@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy.impl;
 
+import com.google.common.base.Throwables;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -26,8 +27,6 @@ import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -70,7 +69,8 @@ public abstract class PolicyChain extends BufferedReadWriteStream implements io.
                 }
             } catch (Exception ex) {
                 logger.error("Unexpected error while running policy {}", policy, ex);
-                failWith(ex);
+                request.metrics().setMessage(Throwables.getStackTraceAsString(ex));
+                resultHandler.handle(PolicyResult.failure(null));
             }
         } else {
             resultHandler.handle(SUCCESS_POLICY_CHAIN);
@@ -80,10 +80,6 @@ public abstract class PolicyChain extends BufferedReadWriteStream implements io.
     @Override
     public void failWith(PolicyResult policyResult) {
         resultHandler.handle(policyResult);
-    }
-
-    protected void failWith(Throwable throwable) {
-        failWith(PolicyResult.failure(convertStackTrace(throwable)));
     }
 
     @Override
@@ -97,13 +93,6 @@ public abstract class PolicyChain extends BufferedReadWriteStream implements io.
 
     public void setStreamErrorHandler(Handler<PolicyResult> streamErrorHandler) {
         this.streamErrorHandler = streamErrorHandler;
-    }
-
-    private String convertStackTrace(Throwable throwable) {
-        final StringWriter sw = new StringWriter();
-        final PrintWriter pw = new PrintWriter(sw, true);
-        throwable.printStackTrace(pw);
-        return sw.getBuffer().toString();
     }
 
     protected abstract void execute(Policy policy, Object ... args) throws PolicyChainException;

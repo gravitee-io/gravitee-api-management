@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.impl.PolicyChain;
 import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
+import io.gravitee.reporter.api.http.RequestMetrics;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -120,13 +121,18 @@ public class ResponsePolicyChainTest {
     @Test
     public void doNext_multiplePolicy_throwError() throws Exception {
         ExecutionContext executionContext = mock(ExecutionContext.class);
+        Request request = mock(Request.class);
+        RequestMetrics requestMetrics = RequestMetrics.on(System.currentTimeMillis()).build();
+        when(request.metrics()).thenReturn(requestMetrics);
+
         PolicyChain chain = ResponsePolicyChain.create(
                 Arrays.asList(policy2, policy3), executionContext);
         chain.setResultHandler(result -> {});
-        chain.doNext(null, null);
+        chain.doNext(request, null);
 
-        verify(policy3, atLeastOnce()).onResponse(null, null, chain, executionContext);
-        verify(policy2, never()).onResponse(null, null, chain, executionContext);
+        verify(request, atLeastOnce()).metrics();
+        verify(policy3, atLeastOnce()).onResponse(request, null, chain, executionContext);
+        verify(policy2, never()).onResponse(request, null, chain, executionContext);
     }
 
     @Test
