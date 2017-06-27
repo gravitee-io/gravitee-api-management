@@ -90,6 +90,7 @@ public class VertxHttpClient extends AbstractHttpClient {
 
         clientRequest.exceptionHandler(event -> {
             LOGGER.error("Server proxying failed: {}", event.getMessage());
+            proxyRequest.request().metrics().setMessage(event.getMessage());
 
             if (proxyConnection.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
                 proxyConnection.connectTimeoutHandler().handle(event);
@@ -99,20 +100,7 @@ public class VertxHttpClient extends AbstractHttpClient {
                         HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
 
                 clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-
-                Buffer buffer = null;
-
-                if (event.getMessage() != null) {
-                    // Create body content with error message
-                    buffer = Buffer.buffer(event.getMessage());
-                    clientResponse.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(buffer.length()));
-                }
-
                 responseHandler.handle(clientResponse);
-
-                if (buffer != null) {
-                    clientResponse.bodyHandler().handle(buffer);
-                }
 
                 clientResponse.endHandler().handle(null);
             }

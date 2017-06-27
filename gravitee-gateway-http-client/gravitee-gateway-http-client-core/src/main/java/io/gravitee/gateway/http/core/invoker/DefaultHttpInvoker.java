@@ -147,9 +147,6 @@ public class DefaultHttpInvoker implements Invoker {
         final boolean enableHttpDump = api.getProxy().isDumpRequest();
         final HttpMethod httpMethod = extractHttpMethod(executionContext, serverRequest);
 
-        // Create a copy of request headers send by the gateway to the backend
-        serverRequest.metrics().setProxyRequestHeaders(serverRequest.headers());
-
         // Create a copy of proxy response headers send by the backend
         Handler<ProxyResponse> finalResult = result;
         result = proxyResponse -> {
@@ -167,6 +164,9 @@ public class DefaultHttpInvoker implements Invoker {
                 .method(httpMethod)
                 .headers(proxyRequestHeaders(serverRequest.headers(), host, endpoint.definition()))
                 .build();
+
+        // Create a copy of request headers send by the gateway to the backend
+        serverRequest.metrics().setProxyRequestHeaders(proxyRequest.headers());
 
         ProxyConnection proxyConnection = invoke0(endpoint.connector(), serverRequest, proxyRequest,
                 executionContext, (enableHttpDump) ? loggableClientResponse(result, serverRequest) : result);

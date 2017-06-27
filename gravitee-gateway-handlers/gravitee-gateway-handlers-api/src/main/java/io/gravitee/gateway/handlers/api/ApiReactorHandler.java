@@ -18,6 +18,7 @@ package io.gravitee.gateway.handlers.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Throwables;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
@@ -192,6 +193,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
             requestPolicyChain.execute(serverRequest, serverResponse, executionContext);
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while processing request", ex);
+
+            serverRequest.metrics().setMessage(Throwables.getStackTraceAsString(ex));
 
             // Send an INTERNAL_SERVER_ERROR (500)
             serverResponse.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
