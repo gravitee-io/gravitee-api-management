@@ -295,6 +295,7 @@ public class LogsServiceImpl implements LogsService {
         req.setClientResponseHeaders(request.getClientResponseHeaders());
         req.setProxyRequestHeaders(request.getProxyRequestHeaders());
         req.setProxyResponseHeaders(request.getProxyResponseHeaders());
+        req.setMessage(request.getMessage());
         return req;
     }
 

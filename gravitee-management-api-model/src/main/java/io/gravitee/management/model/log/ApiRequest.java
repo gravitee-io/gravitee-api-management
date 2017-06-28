@@ -72,6 +72,8 @@ public class ApiRequest {
 
     private Map<String, List<String>> proxyResponseHeaders;
 
+    private String message;
+
     public String getId() {
         return id;
     }
@@ -254,6 +256,14 @@ public class ApiRequest {
 
     public void setProxyResponseHeaders(Map<String, List<String>> proxyResponseHeaders) {
         this.proxyResponseHeaders = proxyResponseHeaders;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     @Override
