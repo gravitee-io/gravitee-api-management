@@ -24,7 +24,8 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
 
@@ -40,6 +41,7 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
 
         // Binding port
         options.setPort(httpServerConfiguration.getPort());
+        options.setHost(httpServerConfiguration.getHost());
 
         // Netty pool buffers must be enabled by default
         options.setUsePooledBuffers(true);
