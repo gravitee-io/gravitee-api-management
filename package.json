@@ -1,6 +1,6 @@
 {
   "name": "gravitee-management-webui",
-  "version": "1.7.0",
+  "version": "1.8.0-SNAPSHOT",
   "description": "Gravitee.io APIM - Portal",
   "dependencies": {
     "angular": "^1.5.0",
@@ -21,7 +21,6 @@
     "angular-mocks": "^1.6.1",
     "angular-sanitize": "^1.5.11",
     "angular-schema-form": "^0.8.13",
-    "angular-swagger-ui": "^0.4.1",
     "angular-timeline": "^1.7.0",
     "angular-translate": "^2.15.1",
     "angular-translate-loader-static-files": "^2.15.1",
@@ -64,7 +63,7 @@
     "@types/lodash": "^4.14.50",
     "@types/moment": "^2.13.0",
     "@types/node": "^0.0.2",
-    "angular-mocks": "^1.5.0-beta.2",
+    "angular-mocks": "^1.6.1",
     "angular-scroll": "^1.0.0",
     "angular-utf8-base64": "0.0.5",
     "autoprefixer": "^6.2.2",
@@ -133,7 +132,7 @@
     "karma-phantomjs-launcher": "^1.0.0",
     "karma-phantomjs-shim": "^1.1.2",
     "karma-webpack": "^1.7.0",
-    "lodash": "~3.9.3",
+    "lodash": "^4.17.4",
     "main-bower-files": "~2.8.0",
     "merge-stream": "~0.1.7",
     "ng-annotate-loader": "^0.0.10",

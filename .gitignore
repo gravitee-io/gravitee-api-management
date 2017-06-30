@@ -5,7 +5,6 @@ node_modules/
 npm-debug.log
 .idea/
 *.iml
-/yarn.lock
 /node/
 /target/
 .DS_Store

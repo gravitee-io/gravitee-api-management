@@ -72,10 +72,19 @@ require('angular-messages');
 
 require('dragular');
 require('v-accordion');
+
 require('angular-schema-form');
 require('../libraries/angular-schema-form/boostrap-decorator');
 require('../libraries/angular-schema-form/codemirror-decorator');
 require('../libraries/angular-ui-codemirror/ui-codemirror');
+
+require('../libraries/angular-swagger-ui/swagger-ui.min');
+-require('../libraries/angular-swagger-ui/modules/swagger-markdown.min.js');
+-require('../libraries/angular-swagger-ui/modules/swagger-auth.min.js');
+-require('../libraries/angular-swagger-ui/modules/swagger-yaml-parser.min.js');
+-require('../libraries/angular-swagger-ui/modules/swagger-xml-formatter.min.js');
+-require('../libraries/angular-swagger-ui/modules/swagger1-to-swagger2-converter.min.js');
+
 require('ngclipboard');
 require('angular-ui-validate');
 require('read-more/js/directives/readmore.js');
@@ -87,12 +96,6 @@ require('angular-ui-tree');
 require('angular-jwt');
 require('ng-showdown');
 require('showdown-prettify');
-require('../../node_modules/angular-swagger-ui/dist/scripts/swagger-ui.js');
-require('../../node_modules/angular-swagger-ui/dist/scripts/modules/swagger-markdown.min.js');
-require('../../node_modules/angular-swagger-ui/dist/scripts/modules/swagger-auth.min.js');
-require('../../node_modules/angular-swagger-ui/dist/scripts/modules/swagger-yaml-parser.min.js');
-require('../../node_modules/angular-swagger-ui/dist/scripts/modules/swagger-xml-formatter.min.js');
-require('../../node_modules/angular-swagger-ui/dist/scripts/modules/swagger1-to-swagger2-converter.min.js');
 require('angular-gridster');
 require('angular-scroll');
 require('diff/dist/diff.min.js');
