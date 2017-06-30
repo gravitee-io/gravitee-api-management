@@ -37,7 +37,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.text.Collator;
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -67,9 +69,12 @@ public class SyncManager {
     @Autowired
     private GatewayConfiguration gatewayConfiguration;
 
+    private final AtomicLong counter = new AtomicLong(0);
+
     private long lastRefreshAt = -1;
 
     public void refresh() {
+        logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
         logger.debug("Refreshing gateway state...");
 
         try {
@@ -163,6 +168,7 @@ public class SyncManager {
         } catch (TechnicalException te) {
             logger.error("Unable to sync instance", te);
         }
+        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
     }
 
     private boolean hasMatchingTags(Api api) {
@@ -288,5 +294,13 @@ public class SyncManager {
 
     public void setApiManager(ApiManager apiManager) {
         this.apiManager = apiManager;
+    }
+
+    public long getLastRefreshAt() {
+        return lastRefreshAt;
+    }
+
+    public long getCounter() {
+        return counter.longValue();
     }
 }

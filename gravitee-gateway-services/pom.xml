@@ -39,5 +39,17 @@
         <module>gravitee-gateway-services-healthcheck</module>
         <module>gravitee-gateway-services-apikeyscache</module>
         <module>gravitee-gateway-services-monitoring</module>
+	    <module>gravitee-gateway-services-node-healthcheck</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Vert.x -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-web</artifactId>
+                <version>${vertx.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
