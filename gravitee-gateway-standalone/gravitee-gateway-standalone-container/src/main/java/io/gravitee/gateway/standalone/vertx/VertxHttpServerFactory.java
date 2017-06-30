@@ -51,12 +51,17 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
                 options.setClientAuth(ClientAuth.REQUIRED);
             }
 
-            options.setTrustStoreOptions(new JksOptions()
-                    .setPath(httpServerConfiguration.getKeyStorePath())
-                    .setPassword(httpServerConfiguration.getKeyStorePassword()));
-            options.setKeyStoreOptions(new JksOptions()
-                    .setPath(httpServerConfiguration.getTrustStorePath())
-                    .setPassword(httpServerConfiguration.getKeyStorePassword()));
+            if (httpServerConfiguration.getTrustStorePath() != null) {
+                options.setTrustStoreOptions(new JksOptions()
+                        .setPath(httpServerConfiguration.getTrustStorePath())
+                        .setPassword(httpServerConfiguration.getTrustStorePassword()));
+            }
+
+            if (httpServerConfiguration.getKeyStorePath() != null) {
+                options.setKeyStoreOptions(new JksOptions()
+                        .setPath(httpServerConfiguration.getKeyStorePath())
+                        .setPassword(httpServerConfiguration.getKeyStorePassword()));
+            }
         }
 
         // Customizable configuration
