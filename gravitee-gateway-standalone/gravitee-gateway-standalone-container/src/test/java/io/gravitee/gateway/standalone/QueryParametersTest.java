@@ -130,4 +130,21 @@ public class QueryParametersTest extends AbstractGatewayTest {
         String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
         assertEquals(query, responseContent);
     }
+
+    @Test
+    public void call_get_query_with_json_content() throws Exception {
+        String query = "{\"key\": \"value\"}";
+
+        URI target = new URIBuilder("http://localhost:8082/test/my_team")
+                .setQuery(query)
+                .build();
+
+        Response response = Request.Get(target).execute();
+
+        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        assertEquals(query, responseContent);
+    }
 }
