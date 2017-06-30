@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -34,9 +35,12 @@ public class TeamServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String query = req.getQueryString();
 
-        if (query != null && !query.isEmpty()) {
+        if (query != null && !query.isEmpty() && req.getParameter("q") != null) {
             resp.setHeader("Content-Type", "text/plain; charset=UTF-8");
             resp.getOutputStream().print(req.getParameter("q"));
+        } else if (query != null && !query.isEmpty()) {
+            resp.setHeader("Content-Type", "text/plain; charset=UTF-8");
+            resp.getOutputStream().print(URLDecoder.decode(req.getQueryString()));
         } else {
             resp.getOutputStream().print("hello");
         }

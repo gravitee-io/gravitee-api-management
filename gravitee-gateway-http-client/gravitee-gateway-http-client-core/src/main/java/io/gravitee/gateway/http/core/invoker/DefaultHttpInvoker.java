@@ -25,8 +25,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.endpoint.EndpointManager;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
-import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
+import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
@@ -34,13 +34,13 @@ import io.gravitee.gateway.http.core.endpoint.impl.DefaultEndpointLifecycleManag
 import io.gravitee.gateway.http.core.logger.HttpDump;
 import io.gravitee.gateway.http.core.logger.LoggableClientResponse;
 import io.gravitee.gateway.http.core.logger.LoggableProxyConnection;
+import org.apache.commons.codec.EncoderException;
+import org.apache.commons.codec.net.URLCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -62,6 +62,8 @@ public class DefaultHttpInvoker implements Invoker {
     private static final int DEFAULT_HTTPS_PORT = 443;
 
     private static final Set<String> HOP_HEADERS;
+
+    private static final URLCodec URL_ENCODER = new URLCodec(StandardCharsets.UTF_8.name());
 
     static {
         Set<String> hopHeaders = new HashSet<>();
@@ -130,7 +132,13 @@ public class DefaultHttpInvoker implements Invoker {
         // Remove duplicate slash
         targetUri = DUPLICATE_SLASH_REMOVER.matcher(targetUri).replaceAll("/");
 
-        URI requestUri = encodeQueryParameters(serverRequest, targetUri);
+        URI requestUri;
+        try {
+            requestUri = encodeQueryParameters(serverRequest, targetUri);
+        } catch (EncoderException e) {
+            throw new IllegalStateException("Query is not well-formed");
+        }
+
         String uri = requestUri.toString();
 
         // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the request
@@ -217,22 +225,19 @@ public class DefaultHttpInvoker implements Invoker {
         return endpointUri + request.pathInfo();
     }
 
-    private URI encodeQueryParameters(Request request, String endpointUri) {
-        final StringBuilder requestURI =
-                new StringBuilder(endpointUri);
+    private URI encodeQueryParameters(Request request, String endpointUri) throws EncoderException {
+        final StringBuilder requestURI = new StringBuilder(endpointUri);
 
         if (request.parameters() != null && !request.parameters().isEmpty()) {
             StringBuilder query = new StringBuilder();
             query.append('?');
 
             for (Map.Entry<String, String> queryParam : request.parameters().entrySet()) {
-                query.append(queryParam.getKey());
+                query.append(URL_ENCODER.encode(queryParam.getKey()));
                 if (queryParam.getValue() != null && !queryParam.getValue().isEmpty()) {
-                    try {
-                        query.append('=').append(URLEncoder.encode(queryParam.getValue(), StandardCharsets.UTF_8.name()));
-                    } catch (UnsupportedEncodingException e) {
-                        logger.error("Unexpected error while encoding query parameters");
-                    }
+                    query
+                            .append('=')
+                            .append(URL_ENCODER.encode(queryParam.getValue()));
                 }
 
                 query.append('&');
