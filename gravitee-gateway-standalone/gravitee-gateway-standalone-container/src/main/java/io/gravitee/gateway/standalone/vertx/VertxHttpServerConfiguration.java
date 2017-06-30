@@ -19,12 +19,16 @@ import io.vertx.core.http.HttpServerOptions;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class VertxHttpServerConfiguration {
 
     @Value("${http.port:8082}")
     private int port;
+
+    @Value("${http.host:0.0.0.0}")
+    private String host;
 
     @Value("${http.secured:false}")
     private boolean secured;
@@ -59,6 +63,14 @@ public class VertxHttpServerConfiguration {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 
     public boolean isSecured() {
