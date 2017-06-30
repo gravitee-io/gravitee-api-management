@@ -22,11 +22,11 @@
 #  ssl:
 #    clientAuth: false
 #    keystore:
-#      path:
-#      password:
+#      path: ${gravitee.home}/security/keystore.jks
+#      password: secret
 #    truststore:
-#      path:
-#      password:
+#      path: ${gravitee.home}/security/truststore.jks
+#      password: secret
 
 # Plugins repository
 #plugins:
