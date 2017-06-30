@@ -123,6 +123,16 @@ reporters:
 # All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the
 # 'local' service for an example).
 services:
+  core:
+    http:
+      enabled: true
+      port: 8092
+      host: localhost
+      authentication:
+        type: basic
+        users:
+          admin: adminadmin
+
   # Synchronization daemon used to keep the gateway state in sync with the configuration from the management repository
   # Be aware that, by disabling it, the gateway will not be sync with the configuration done through management API
   # and management UI

@@ -32,7 +32,7 @@ public class VertxConfiguration {
         return new VertxHttpServerConfiguration();
     }
 
-    @Bean
+    @Bean("gatewayHttpServer")
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public VertxHttpServerFactory vertxHttpServerFactory() {
         return new VertxHttpServerFactory();

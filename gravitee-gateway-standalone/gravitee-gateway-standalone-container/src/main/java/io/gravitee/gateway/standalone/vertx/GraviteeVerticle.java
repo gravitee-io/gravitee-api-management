@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author David BRASSELY (david at graviteesource.com)
@@ -35,6 +36,7 @@ public class GraviteeVerticle extends AbstractVerticle {
     private final Logger logger = LoggerFactory.getLogger(GraviteeVerticle.class);
 
     @Autowired
+    @Qualifier("gatewayHttpServer")
     private HttpServer httpServer;
 
     @Autowired

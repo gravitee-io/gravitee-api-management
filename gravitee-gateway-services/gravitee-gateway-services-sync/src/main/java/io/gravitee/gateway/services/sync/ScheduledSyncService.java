@@ -15,16 +15,16 @@
  */
 package io.gravitee.gateway.services.sync;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.gateway.services.sync.handler.SyncHandler;
+import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
-
-import java.time.Instant;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,6 +37,8 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
      * Logger.
      */
     private final Logger logger = LoggerFactory.getLogger(ScheduledSyncService.class);
+
+    private final static String PATH = "/sync";
 
     @Autowired
     private TaskScheduler scheduler;
@@ -53,7 +55,8 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
     @Autowired
     private SyncManager syncStateManager;
 
-    private final AtomicLong counter = new AtomicLong(0);
+    @Autowired
+    private Router router;
 
     @Override
     protected void doStart() throws Exception {
@@ -64,6 +67,13 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
                 // Sync must start only when doStart() is invoked, that's the reason why we are not
                 // using @Scheduled annotation on doSync() method.
                 scheduler.schedule(this, new CronTrigger(cronTrigger));
+
+                logger.info("Associate a new HTTP handler on {}", PATH);
+
+                // Create and associate handler
+                SyncHandler syncHandler = new SyncHandler();
+                applicationContext.getAutowireCapableBeanFactory().autowireBean(syncHandler);
+                router.get(PATH).produces(MediaType.APPLICATION_JSON).handler(syncHandler);
             } else {
                 logger.warn("Sync service has been disabled");
             }
@@ -82,11 +92,7 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
      * This sync phase must be done by all node before starting.
      */
     private void doSync() {
-        logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
-
         syncStateManager.refresh();
-
-        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
     }
 
     @Override

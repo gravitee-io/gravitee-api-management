@@ -17,8 +17,11 @@ package io.gravitee.gateway.services.impl;
 
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.services.ServiceManager;
+import io.gravitee.gateway.services.http.HttpServer;
+import io.gravitee.gateway.services.http.configuration.HttpServerConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +36,12 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
     private final List<AbstractService> services = new ArrayList<>();
 
+    @Autowired
+    private HttpServerConfiguration serverConfiguration;
+
+    @Autowired
+    private HttpServer httpServer;
+
     @Override
     public void register(AbstractService service) {
         services.add(service);
@@ -42,22 +51,26 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     protected void doStart() throws Exception {
         super.doStart();
 
-        if (! services.isEmpty()) {
-            for (AbstractService service : services) {
-                try {
-                    service.start();
-                } catch (Exception ex) {
-                    LOGGER.error("Unexpected error while starting service", ex);
-                }
+        if (serverConfiguration.isEnabled()) {
+            httpServer.start();
+        }
+
+        for (AbstractService service : services) {
+            try {
+                service.start();
+            } catch (Exception ex) {
+                LOGGER.error("Unexpected error while starting service", ex);
             }
-        } else {
-            LOGGER.info("\tThere is no service to start");
         }
     }
 
     @Override
     protected void doStop() throws Exception {
         super.doStop();
+
+        if (serverConfiguration.isEnabled()) {
+            httpServer.stop();
+        }
 
         for(AbstractService service: services) {
             try {
