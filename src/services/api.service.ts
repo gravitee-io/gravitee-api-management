@@ -158,7 +158,7 @@ class ApiService {
   }
 
   addOrUpdateMember(api, member) {
-    return this.$http.post(this.apisURL + api + '/members?user=' + member.username + '&type=' + member.type, '');
+    return this.$http.post(this.apisURL + api + '/members?user=' + member.username + '&type=' + member.type + '&rolename=' + member.role, '');
   }
 
   deleteMember(api, memberUsername) {
@@ -287,6 +287,10 @@ class ApiService {
 
   deleteMetadata(apiId, metadataId) {
     return this.$http.delete(this.apisURL + apiId + '/metadata/' + metadataId);
+  }
+
+  getPermissions(api) {
+    return this.$http.get(this.apisURL + api + '/members/permissions');
   }
 }
 

@@ -40,10 +40,12 @@
       <td md-cell>{{metadata.value}}</td>
       <td md-cell>
         <div layout="row" layout-align="end end">
-          <ng-md-icon icon="edit" ng-click="$ctrl.updateMetadata(metadata)" style="padding: 0 10px;">
+          <ng-md-icon permission permission-only="'portal-metadata-u'"
+                      icon="edit" ng-click="$ctrl.updateMetadata(metadata)" style="padding: 0 10px;">
             <md-tooltip md-direction="top" md-visible="false">Edit metadata</md-tooltip>
           </ng-md-icon>
-          <ng-md-icon icon="delete" ng-click="$ctrl.deleteMetadata(metadata)" style="padding: 0 10px;">
+          <ng-md-icon permission permission-only="'portal-metadata-d'"
+                      icon="delete" ng-click="$ctrl.deleteMetadata(metadata)" style="padding: 0 10px;">
             <md-tooltip md-direction="top" md-visible="false">Delete metadata</md-tooltip>
           </ng-md-icon>
         </div>
@@ -53,7 +55,8 @@
   </table>
 </md-table-container>
 
-<md-fab-speed-dial md-open="false" class="md-scale md-fab-bottom-right">
+<md-fab-speed-dial permission permission-only="'portal-metadata-c'"
+                   md-open="false" class="md-scale md-fab-bottom-right">
   <md-fab-trigger>
     <md-button aria-label="Add metadata" class="md-fab md-success" ng-click="$ctrl.newMetadata()">
       <md-tooltip md-direction="top" md-visible="false">Add a new metadata</md-tooltip>

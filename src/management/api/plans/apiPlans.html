@@ -54,7 +54,7 @@
             </ng-md-icon>{{plan.name}}
           </h4>
           <span flex></span>
-          <md-menu-bar ng-if="plan.status !== 'closed'">
+          <md-menu-bar permission permission-only="'api-plan-u'" ng-if="plan.status !== 'closed'">
             <md-menu>
               <button ng-click="$mdOpenMenu()">
                 <ng-md-icon style="fill: grey;" icon="more_vert"></ng-md-icon>
@@ -110,7 +110,7 @@
   </md-card>
   </div>
     </div>
-    <div layout="row" layout-align="center" layout-wrap>
+    <div permission permission-only="'api-definition-u'" layout="row" layout-align="center" layout-wrap>
       <span ng-if="apiPlansCtrl.filteredPlans.length != 0 && apiPlansCtrl.dndEnabled"><ng-md-icon icon="info" style="fill: #b1bdc5;"></ng-md-icon> Plans can be re-ordered by dragging & dropping them.</span>
     </div>
   </div>
@@ -123,7 +123,7 @@
                       sub-message="Start creating a plan"
                       create-mode="true"></gravitee-empty-state>
 
-<div ng-style="apiPlansCtrl.filteredPlans.length == 0 && {'text-align':'center'}">
+<div permission permission-only="'api-plan-c'" ng-style="apiPlansCtrl.filteredPlans.length == 0 && {'text-align':'center'}">
   <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': apiPlansCtrl.filteredPlans.length > 0}" class="md-fab" aria-label="Add" ng-click="apiPlansCtrl.addPlan()">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>

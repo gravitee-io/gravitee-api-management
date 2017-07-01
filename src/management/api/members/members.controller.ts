@@ -1,6 +1,3 @@
-/**
- * Created by david on 27/11/2015.
- */
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -18,15 +15,17 @@
  */
 import angular = require('angular');
 import _ = require('lodash');
+import ApiService from '../../../services/api.service';
+import UserService from "../../../services/user.service";
 
 class ApiMembersController {
   private api: any;
   private members: any;
-  private membershipTypes: any;
   private newPrimaryOwner: any;
   private groupMembers: any;
+  private roles: any;
   constructor (
-    private ApiService,
+    private ApiService: ApiService,
     private resolvedApi,
     private resolvedMembers,
     private $state,
@@ -34,12 +33,12 @@ class ApiMembersController {
     private NotificationService,
     private $scope,
     private UserService,
-    private GroupService
+    private GroupService,
+    private RoleService
   ) {
     'ngInject';
     this.api = resolvedApi.data;
     this.members = resolvedMembers.data;
-    this.membershipTypes = [ 'owner', 'user' ];
     this.newPrimaryOwner = null;
     this.$scope.searchText = "";
 
@@ -48,12 +47,19 @@ class ApiMembersController {
         this.groupMembers = members.data;
       });
     }
+
+    const that = this;
+    RoleService.list('API').then(function (roles) {
+      that.roles = roles;
+    });
   }
 
   updateMember(member) {
-    this.ApiService.addOrUpdateMember(this.api.id, member).then(() => {
-      this.NotificationService.show('Member ' + member.username + " has been updated with role " + member.type);
-    });
+    if (member.role) {
+      this.ApiService.addOrUpdateMember(this.api.id, member).then(() => {
+        this.NotificationService.show('Member ' + member.username + " has been updated with role " + member.role);
+      });
+    }
   }
 
   deleteMember(member) {
@@ -64,12 +70,8 @@ class ApiMembersController {
     });
   }
 
-	isOwner() {
-    return this.api.permission && (this.api.permission === 'owner' || this.api.permission === 'primary_owner');
-  }
-
   isPrimaryOwner() {
-    return this.api.permission && (this.api.permission === 'primary_owner');
+    return this.UserService.currentUser.username === this.api.owner.username;
   }
 
   showAddMemberModal(ev) {

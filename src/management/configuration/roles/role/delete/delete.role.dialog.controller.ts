@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import UserService from "../../services/user.service";
+function DeleteRoleDialogController($mdDialog: angular.material.IDialogService, role) {
+  'ngInject';
 
-class RoleController {
-  constructor (private UserService) {
-    'ngInject';
-  }
+  this.role = role;
+
+  this.cancel = function() {
+    $mdDialog.cancel();
+  };
+
+  this.ok = function() {
+    $mdDialog.hide(true);
+  };
 }
 
-const RoleDirective: ng.IDirective = ({
-  restrict: 'AE',
-  link: function (scope, elem, attr, ctr: {UserService: UserService}) {
-    let roles = attr['graviteeRolesAllowed'].replace(/ /g,'').split(',');
-
-    if(!(ctr.UserService.isUserInRoles(roles))) {
-      elem.css('display', 'none');
-    }
-  },
-  controller: RoleController,
-});
-
-export default RoleDirective;
+export default DeleteRoleDialogController;

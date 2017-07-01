@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function config ($logProvider) {
+function config ($logProvider, $urlRouterProvider: ng.ui.IUrlRouterProvider, $permissionProvider) {
   'ngInject';
   // Enable log
   $logProvider.debugEnabled(false);
+
+  // Prevent router from automatic state resolving
+  $urlRouterProvider.deferIntercept();
+
+  $permissionProvider.suppressUndefinedPermissionWarning(true);
 }
 
 export default config;

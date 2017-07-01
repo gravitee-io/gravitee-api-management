@@ -50,7 +50,7 @@
               </thead>
               <tbody md-body>
               <tr md-row ui-sref="management.apis.detail.general.main({apiId: api.id})"
-                  ng-if="api.permission != 'user'"
+                  ng-if="api.manageable"
                   ng-repeat="api in $ctrl.apis | filter:searchAPIs | orderBy:query.order track by api.id">
                 <td md-cell><img height="40" ng-src="{{::api.picture_url}}"/></td>
                 <td md-cell>{{api.name}}</td>
@@ -102,7 +102,7 @@
   </div>
 
   <div ng-style="{'text-align': $ctrl.apis.length == 0 ? 'center' : 'none' }">
-    <md-button ng-if="!devMode" gravitee-roles-allowed="ADMIN, API_PUBLISHER"
+    <md-button ng-if="!devMode" permission permission-only="'management-api-c'"
                ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.apis.length > 0}" class="md-fab"
                aria-label="create-api" ui-sref="management.apis.new">
       <ng-md-icon icon="add" style="fill: #fff;"></ng-md-icon>

@@ -25,7 +25,7 @@
     <md-content style="background: none">
       <label style="color: #b1bdc5;">Timeframe:</label>
       <md-menu>
-        <md-button aria-label="Timeframe: " ng-click="healthCheckCtrl.openMenu($mdOpenMenu, $event)" style="color: #b1bdc5;">
+        <md-button permission permission-only="'api-health-u'" aria-label="Timeframe: " ng-click="healthCheckCtrl.openMenu($mdOpenMenu, $event)" style="color: #b1bdc5;">
           {{analytics.timeframe.title}}<ng-md-icon icon="expand_more" style="fill: #b1bdc5;"></ng-md-icon>
         </md-button>
         <md-menu-content>
@@ -59,7 +59,7 @@
       </md-menu>
     </md-content>
     <span flex></span>
-    <ng-md-icon icon="settings" ng-click="healthCheckCtrl.toggleRight()"></ng-md-icon>
+    <ng-md-icon permission permission-only="'api-health-u'" icon="settings" ng-click="healthCheckCtrl.toggleRight()"></ng-md-icon>
   </div>
 
   <div layout="row">

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import SidenavService from '../../components/sidenav/sidenav.service';
+import UserService from '../../services/user.service';
 
 class ApiAdminController {
   private api: any;
@@ -29,7 +30,8 @@ class ApiAdminController {
     private ApiService,
     private NotificationService,
     private resolvedApiState,
-    private SidenavService: SidenavService) {
+    private SidenavService: SidenavService,
+    private UserService: UserService) {
     'ngInject';
     this.$scope = $scope;
     this.$state = $state;
@@ -105,10 +107,6 @@ class ApiAdminController {
       self.api = updatedApi.data;
       self.NotificationService.show('API \'' + self.api.name + '\' saved');
     });
-  }
-
-  isOwner() {
-    return this.api.permission && (this.api.permission === 'owner' || this.api.permission === 'primary_owner');
   }
 }
 

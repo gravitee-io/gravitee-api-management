@@ -67,21 +67,21 @@ function DialogAddGroupMemberController($scope, $mdDialog, group, GroupService, 
   };
 
   $scope.addMembers = function () {
-    let members = [];
-
     let promises = [];
 
     for (let i = 0; i < $scope.usersSelected.length; i++) {
       let member = {
         "username" : $scope.usersSelected[i],
-        "type" : "user"
       };
-      members.push(member);
       promises.push(GroupService.addOrUpdateMember($scope.groupItem.group.id, member));
     }
 
-    $q.all(promises).then(function () {
+    $q.all(promises).then( (responses) => {
       NotificationService.show('Member(s) has been added to the group');
+      let members = []
+      for (let response of responses) {
+        members.push({"username": response.data.username, "role": response.data.role});
+      }
       $mdDialog.hide(members);
     }).catch(function (error) {
       $scope.error = error;

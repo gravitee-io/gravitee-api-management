@@ -239,6 +239,12 @@ angular-mocks@^1.6.1:
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/angular-mocks/-/angular-mocks-1.6.4.tgz#47fdf50921cf24fb489f100a8cf2ad99d0538f40"
 
+angular-permission@^5.3.2:
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/angular-permission/-/angular-permission-5.3.2.tgz#bf7b3cd0c9f42e4bdee32a9206bea40779c45388"
+  dependencies:
+    angular ">=1.4.8"
+
 "angular-sanitize@>= 1.2", angular-sanitize@^1.3.2, angular-sanitize@^1.5.11:
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/angular-sanitize/-/angular-sanitize-1.6.4.tgz#60a37ea96fb0d4a322a3ccb64ee4a5cf3b154f0c"
@@ -274,7 +280,7 @@ angular-translate@^2.15.1, angular-translate@~2.15.2:
   dependencies:
     angular ">=1.2.26 <=1.6"
 
-angular-ui-router@^1.0.0-rc.1:
+angular-ui-router@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/angular-ui-router/-/angular-ui-router-1.0.3.tgz#bf2494caae95c37cf01af3761d89747cfed2db45"
   dependencies:
@@ -292,7 +298,7 @@ angular-utf8-base64@0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/angular-utf8-base64/-/angular-utf8-base64-0.0.5.tgz#95158d6809dbae1eb9fa03af45d67187b0788cf6"
 
-"angular@>= 1.2", angular@>=1.2.0, "angular@>=1.2.26 <=1.6", angular@>=1.3.0, angular@^1.0.1, angular@^1.3.15, angular@^1.3.2, angular@^1.4.0, angular@^1.4.8, angular@^1.5.0:
+"angular@>= 1.2", angular@>=1.2.0, "angular@>=1.2.26 <=1.6", angular@>=1.3.0, angular@>=1.4.8, angular@^1.0.1, angular@^1.3.15, angular@^1.3.2, angular@^1.4.0, angular@^1.4.8, angular@^1.5.0:
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.4.tgz#03b7b15c01a0802d7e2cf593240e604054dc77fb"
 

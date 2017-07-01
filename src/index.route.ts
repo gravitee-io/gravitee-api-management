@@ -54,11 +54,13 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
             return $state.get()
                   .filter((state: any) => !state.abstract && state.data && state.data.menu)
                   .filter(routeMenuItem => {
-                    let isMenuItem = routeMenuItem.data.menu.firstLevel && (!routeMenuItem.data.roles || graviteeUser.allowedTo(routeMenuItem.data.roles));
+                    let isMenuItem = routeMenuItem.data.menu.firstLevel;
+                    let isMenuAllowed = !routeMenuItem.data.perms || !routeMenuItem.data.perms.only
+                      || graviteeUser.allowedTo(routeMenuItem.data.perms.only);
                     if (Constants.devMode) {
-                      return isMenuItem && routeMenuItem.data.devMode;
+                      return isMenuItem && isMenuAllowed && routeMenuItem.data.devMode;
                     }  else {
-                      return isMenuItem;
+                      return isMenuItem && isMenuAllowed;
                     }
                   });
           }
@@ -103,7 +105,7 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
     .state('logout', {
       controller: (UserService: UserService, $state: ng.ui.IStateService, $rootScope: IScope) => {
         UserService.logout().then(
-          () => { $rootScope.$broadcast('graviteeUserRefresh');$state.go('portal.home'); }
+          () => { $state.go('portal.home');$rootScope.$broadcast('graviteeUserRefresh'); }
         );
       }
     });

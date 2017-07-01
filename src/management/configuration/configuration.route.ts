@@ -19,6 +19,7 @@ import TagService from '../../services/tag.service';
 import SidenavService from '../../components/sidenav/sidenav.service';
 import PortalPagesService from '../../services/portalPages.service';
 import MetadataService from "../../services/metadata.service";
+import RoleService from "../../services/role.service";
 
 export default configurationRouterConfig;
 
@@ -45,7 +46,15 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
           firstLevel: true,
           order: 50
         },
-        roles: ['ADMIN']
+        perms: {
+          only: [
+            //hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
+            'portal-view-r', 'portal-metadata-r',
+            'management-tag-c', 'management-tenant-c', 'management-group-c', 'management-role-c', 'portal-documentation-c',
+            'management-tag-u', 'management-tenant-u', 'management-group-u', 'management-role-u', 'portal-documentation-u',
+            'management-tag-d', 'management-tenant-d', 'management-group-d', 'management-role-d', 'portal-documentation-d'
+          ]
+        }
       }
     })
     .state('management.configuration.admin.views', {
@@ -58,8 +67,7 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Views',
           icon: 'view_module'
-        },
-        roles: ['ADMIN']
+        }
       }
     })
     .state('management.configuration.admin.tags', {
@@ -73,7 +81,9 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
           label: 'Sharding tags',
           icon: 'label'
         },
-        roles: ['ADMIN']
+        perms: {
+          only: ['management-tag-r']
+        }
       }
     })
     .state('management.configuration.admin.tenants', {
@@ -87,7 +97,9 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
           label: 'Tenants',
           icon: 'shuffle'
         },
-        roles: ['ADMIN']
+        perms: {
+          only: ['management-tenant-r']
+        }
       }
     })
     .state('management.configuration.admin.groups', {
@@ -100,7 +112,9 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
           label: 'Groups',
           icon: 'group_work'
         },
-        roles: ['ADMIN']
+        perms: {
+          only: ['management-group-r']
+        }
       }
     })
     .state('management.configuration.admin.pages', {
@@ -114,7 +128,9 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
           label: 'Portal pages',
           icon: 'insert_drive_file'
         },
-        roles: ['ADMIN']
+        perms: {
+          only: ['portal-documentation-r']
+        }
       }
     })
     .state('management.configuration.admin.pages.new', {
@@ -122,7 +138,11 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
       template: require('./pages/page/page.html'),
       controller: 'NewPageController',
       controllerAs: 'pageCtrl',
-      data: {menu: null},
+      data: {
+        menu: null,
+        perms: {
+          only: ['portal-documentation-c']
+        }},
       params: {
         type: {
           type: 'string',
@@ -150,7 +170,62 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
           label: 'Metadata',
           icon: 'description'
         },
-        roles: ['ADMIN']
+        perms: {
+          only: ['portal-metadata-r']
+        }
+      }
+    })
+    .state('management.configuration.admin.roles', {
+      url: '/roles?roleScope',
+      component: 'roles',
+      resolve: {
+        roleScopes: (RoleService: RoleService) => RoleService.listScopes()
+      },
+      data: {
+        menu: {
+          label: 'Roles',
+          icon: 'group'
+        },
+        perms: {
+          only: ['management-role-r']
+        }
+      },
+      params: {
+        roleScope: {
+          type: 'string',
+          value: 'MANAGEMENT',
+          squash: false
+        }
+      }
+    })
+    .state('management.configuration.admin.role', {
+      abstract: true,
+      url: '/role?roleScope',
+      controller: 'RoleSaveController',
+      controllerAs: '$ctrl',
+      data: {
+        menu: null,
+        perms: {
+          only: ['management-role-r']
+        }
+      }
+    })
+    .state('management.configuration.admin.role.new', {
+      url: '/new',
+      template: require('./roles/role/save/role.save.html'),
+      data: {
+        perms: {
+          only: ['management-role-c']
+        }
+      }
+    })
+    .state('management.configuration.admin.role.edit', {
+      url: '/edit?role',
+      template: require('./roles/role/save/role.save.html'),
+      data: {
+        perms: {
+          only: ['management-role-u']
+        }
       }
     });
 }

@@ -38,8 +38,8 @@ export const NavbarComponent: ng.IComponentOptions = {
       $scope.$emit('graviteeUserRefresh');
     };
 
-    vm.hasRoles = function (roles) {
-      return UserService.isUserInRoles(roles);
+    vm.isUserManagement = function () {
+      return vm.graviteeUser.isAdmin();
     };
 
     vm.getLogo = function() {

@@ -69,10 +69,8 @@ export class ApisController {
 
   reloadSyncState() {
     let promises = _.map(this.apis, (api: any) => {
-      if (this.isOwner(api) && !this.devMode) {
         return this.ApiService.isAPISynchronized(api.id)
           .then((sync) => { return sync; });
-      }
     });
 
     this.$q.all( _.filter( promises, ( p ) => { return p !== undefined; } ) )
@@ -112,10 +110,6 @@ export class ApisController {
     }
   }
 
-  isOwner(api) {
-    return api.permission && (api.permission === 'owner' || api.permission === 'primary_owner');
-  }
-
   showImportDialog() {
     var that = this;
     this.$mdDialog.show({
@@ -134,7 +128,7 @@ export class ApisController {
   getSubMessage() {
     if (! this.graviteeUser.username) {
       return 'Login to get access to more APIs';
-    } else if (this.UserService.isUserInRoles(['ADMIN', 'API_PUBLISHER'])) {
+    } else if (this.UserService.isUserHasPermissions(['management-api-c'])) {
       return 'Start creating an API';
     } else {
       return '';

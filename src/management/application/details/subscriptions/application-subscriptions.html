@@ -69,8 +69,8 @@
           </td>
           <td md-cell>
             <div ng-if="'accepted' === subscription.status">
-              <md-tooltip ng-if="applicationCtrl.isOwner()" md-direction="left">Renew your API Key</md-tooltip>
-              <ng-md-icon ng-if="applicationCtrl.isOwner()" icon="autorenew" style="top: 0;"
+              <md-tooltip permission permission-only="'application-subscription-u'" md-direction="left">Renew your API Key</md-tooltip>
+              <ng-md-icon permission permission-only="'application-subscription-u'" icon="autorenew" style="top: 0;"
                           ng-click="$ctrl.generateAPIKey($ctrl.application.id, subscription)"></ng-md-icon>
             </div>
           </td>
@@ -90,12 +90,12 @@
           <td md-cell>
             <span ng-if="!apiKey.revoked">
               <md-tooltip md-direction="left">Revoke this API Key</md-tooltip>
-              <ng-md-icon ng-if="applicationCtrl.isOwner()" style="top: 0;" icon="not_interested"
+              <ng-md-icon permission permission-only="'application-subscription-u'" style="top: 0;" icon="not_interested"
                           ng-click="$ctrl.revoke(subscription, apiKey.key)"></ng-md-icon>
             </span>
             <span ng-if="!apiKey.revoked">
               <md-tooltip md-direction="left">Set expiration for this API Key</md-tooltip>
-              <ng-md-icon ng-if="applicationCtrl.isOwner()" style="top: 0;" icon="schedule"
+              <ng-md-icon permission permission-only="'application-subscription-u'" style="top: 0;" icon="schedule"
                           ng-click="$ctrl.showExpirationModal(api, apiKey)"></ng-md-icon>
             </span>
           </td>

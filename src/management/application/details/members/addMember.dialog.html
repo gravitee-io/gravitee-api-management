@@ -18,7 +18,7 @@
 <md-dialog aria-label="Add member">
 	<md-dialog-content layout-padding>
 		<h4>Add member</h4>
-		<form ng-submit="$event.preventDefault()">
+		<form name="formMember" ng-submit="$event.preventDefault()">
 			<md-autocomplete
 					md-selected-item="selectedItem"
 					md-search-text="searchText"
@@ -46,6 +46,14 @@
 					No users matching "{{searchText}}" were found, or users already selected.
 				</md-not-found>
 			</md-autocomplete>
+      <md-input-container style="width: 450px;">
+        <label>Select a role</label>
+        <md-select ng-model="role" required>
+          <md-option ng-repeat="role in roles" ng-value="role" ng-disabled="role.system">
+            {{role.name}}
+          </md-option>
+        </md-select>
+      </md-input-container>
 		</form>
 		<div ng-show="usersFound.length > 0">
 				<span ng-repeat="user in usersFound">
@@ -66,7 +74,7 @@
 		<md-button ng-click="hide()" class="md-primary">
 			Cancel
 		</md-button>
-		<md-button type="submit" class="md-raised md-primary" ng-click="addMembers()">
+		<md-button type="submit" class="md-raised md-primary" ng-click="addMembers()" ng-disabled="formMember.$invalid">
 			Add
 		</md-button>
 	</md-dialog-actions>

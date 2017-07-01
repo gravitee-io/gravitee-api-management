@@ -44,7 +44,9 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
           firstLevel: true,
           order: 30
         },
-        roles: ['ADMIN']
+        perms: {
+          only: ['management-instance-r']
+        }
       }
     })
     .state('management.instances.detail', {
@@ -92,7 +94,9 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
           firstLevel: true,
           order: 40
         },
-        roles: ['ADMIN']
+        perms: {
+          only: ['management-platform-r']
+        }
       },
       params: {
         from: {

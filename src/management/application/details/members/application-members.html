@@ -20,7 +20,7 @@
     <div layout="column" ng-if="$ctrl.application.group && $ctrl.application.group.id !== null">
       <h4>Members inherited from group "{{$ctrl.application.group.name}}"</h4>
       <md-content style="background: none">
-        <md-table-container ng-show="$ctrl.members.length > 0">
+        <md-table-container ng-show="$ctrl.members.length">
           <table md-table>
             <thead md-head md-order="order">
             <tr md-row>
@@ -48,7 +48,7 @@
       </h4>
       <span flex></span>
       <md-content style="background: none">
-        <md-table-container ng-show="$ctrl.members.length > 1">
+        <md-table-container ng-show="$ctrl.members.length">
           <table md-table>
             <thead md-head md-order="order">
             <tr md-row>
@@ -60,41 +60,36 @@
             </thead>
             <tbody md-body>
             <tr md-row ng-repeat="member in $ctrl.members | orderBy: order">
-              <td md-cell ng-switch="member.type">
-            <span ng-switch-when="primary_owner">
-              <b>{{member.firstname}} {{member.lastname}} [{{member.username}}]</b>
-            </span>
-                <span ng-switch-default>{{member.firstname}} {{member.lastname}} [{{member.username}}]</span>
+              <td>
+                <span ng-if="member.role == 'PRIMARY_OWNER'"><b>{{member.firstname}} {{member.lastname}} [{{member.username}}]</b></span>
+                <span ng-if="member.role != 'PRIMARY_OWNER'">{{member.firstname}} {{member.lastname}} [{{member.username}}]</span>
               </td>
               <td md-cell>
                 {{member.email}}
               </td>
-              <td md-cell ng-show="member.type != 'primary_owner' && $ctrl.isOwner() && member.username != graviteeUser.username">
-                <md-select ng-model="member.type" placeholder="Other" ng-change="$ctrl.updateMember(member)">
-                  <md-option ng-value="type" ng-repeat="type in $ctrl.membershipTypes">{{type}}</md-option>
+              <td md-cell>
+                <md-select ng-model="member.role" ng-change="$ctrl.updateMember(member)" ng-disabled="member.role == 'PRIMARY_OWNER'">
+                  <md-option ng-value="role.name" ng-repeat="role in $ctrl.roles" ng-disabled="role.system">{{role.name}}</md-option>
                 </md-select>
               </td>
-              <td md-cell ng-hide="member.type != 'primary_owner' && $ctrl.isOwner() && member.username != graviteeUser.username">
-                <span>{{member.type}}</span>
-              </td>
               <td md-cell>
-                <div ng-if="member.type != 'primary_owner' && $ctrl.isOwner() && member.username != graviteeUser.username">
-                  <ng-md-icon ng-click="$ctrl.showDeleteMemberConfirm($event, member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
+                <div>
+                  <ng-md-icon ng-if="member.role != 'PRIMARY_OWNER'" ng-click="$ctrl.showDeleteMemberConfirm($event, member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
                 </div>
               </td>
             </tr>
             </tbody>
           </table>
         </md-table-container>
-        <gravitee-empty-state ng-if="$ctrl.members.length <= 1"
+        <gravitee-empty-state ng-if="!$ctrl.members.length"
                               icon="group"
                               model="Member"
                               message="Members will appear here"
                               sub-message="Start attaching a member"
                               create-mode="true"></gravitee-empty-state>
 
-        <div ng-if="$ctrl.isOwner()" ng-style="$ctrl.members.length <= 1 && {'text-align':'center'}">
-          <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.members.length > 1}" class="md-fab" aria-label="Add" ng-click="$ctrl.showAddMemberModal($event)">
+        <div ng-style="!$ctrl.members.length && {'text-align':'center'}">
+          <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.members.length}" class="md-fab" aria-label="Add" ng-click="$ctrl.showAddMemberModal($event)">
             <ng-md-icon icon="add"></ng-md-icon>
           </md-button>
         </div>

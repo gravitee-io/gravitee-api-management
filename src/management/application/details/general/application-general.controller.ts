@@ -18,7 +18,6 @@ import * as _ from 'lodash';
 import ApplicationService from '../../../../services/applications.service';
 import NotificationService from '../../../../services/notification.service';
 import GroupService from '../../../../services/group.service';
-import UserService from '../../../../services/user.service';
 import SidenavService from '../../../../components/sidenav/sidenav.service';
 
 interface IApplicationScope extends ng.IScope {
@@ -35,11 +34,10 @@ class ApplicationGeneralController {
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
     private GroupService: GroupService,
-    private UserService: UserService,
     private $state: ng.ui.IStateService,
     private $scope: IApplicationScope,
     private $mdDialog: angular.material.IDialogService,
-    private SidenavService : SidenavService
+    private SidenavService: SidenavService
   ) {
     'ngInject';
   }
@@ -47,8 +45,11 @@ class ApplicationGeneralController {
   $onInit() {
     if (!this.application.group) {
       this.application.group = this.GroupService.getEmptyGroup();
+    } else {
+      //in non admin mode, `groups`only contains emptyGroup.
+      //we have to add the application group
+      this.groups = _.unionBy(this.groups, [this.application.group], "id");
     }
-    this.groups = [this.application.group];
     this.initialApplication = _.cloneDeep(this.application);
   }
 
@@ -91,10 +92,6 @@ class ApplicationGeneralController {
         that.delete();
       }
     });
-  }
-
-  isOwner() {
-    return this.application.permission && (this.application.permission === 'owner' || this.application.permission === 'primary_owner');
   }
 }
 

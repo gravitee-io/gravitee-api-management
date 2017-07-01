@@ -1,0 +1,87 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-toolbar class="md-table-toolbar md-default">
+  <div class="md-toolbar-tools">
+    <span>Roles</span>
+  </div>
+</md-toolbar>
+
+<md-tabs class="layout-padding" md-dynamic-height md-border-bottom md-selected="$ctrl.roleScopeSelectedIndex"
+  style="padding-bottom: 45px;">
+  <md-tab ng-repeat="roleScope in $ctrl.roleScopes">
+    <md-tab-label>{{::roleScope}}</md-tab-label>
+    <md-tab-body>
+      <v-accordion class="vAccordion--default" multiple>
+        <v-pane ng-repeat="role in $ctrl.roles | filter:{scope: roleScope} | orderBy: 'name'">
+          <v-pane-header ng-click="$ctrl.loadUsers(role)">
+            <div layout="row">
+              <h5 flex="15">{{role.name}}</h5>
+              <span flex="70">{{role.description}}</span>
+              <div flex="10" layout="row" layout-align="space-between center">
+                <ng-md-icon permission permission-only="'management-role-u'"
+                            ng-if="$ctrl.userManagementEnabled(role)" icon="person_add" ng-click="$ctrl.addUserRole(role);$event.stopPropagation();">
+                  <md-tooltip>Add user</md-tooltip>
+                </ng-md-icon>
+                <ng-md-icon ng-if="!role.system" permission permission-only="'management-role-u'"
+                            icon="edit" ng-click="$ctrl.editRole(role);$event.stopPropagation();">
+                  <md-tooltip>Edit role</md-tooltip>
+                </ng-md-icon>
+                <ng-md-icon ng-if="!role.system" permission permission-only="'management-role-d'"
+                            icon="delete" ng-click="$ctrl.deleteRole(role);$event.stopPropagation();">
+                  <md-tooltip>Delete role</md-tooltip>
+                </ng-md-icon>
+              </div>
+            </div>
+          </v-pane-header>
+          <v-pane-content>
+            <gravitee-empty-state ng-if="$ctrl.userManagementEnabled(role) && !role.users.length" icon="person"
+                                  message="There is no user on this role for the moment"></gravitee-empty-state>
+            <md-table-container ng-show="role.users.length">
+              <table md-table>
+                <tbody md-body>
+                <tr md-row ng-repeat="user in role.users | orderBy: 'username'">
+                  <td md-cell>{{user.username}}</td>
+                  <td md-cell>{{user.lastname}}</td>
+                  <td md-cell>{{user.firstname}}</td>
+                  <td md-cell>
+                    <div layout="row" layout-align="end center">
+                      <ng-md-icon permission permission-only="'management-role-d'"
+                                  ng-click="$ctrl.deleteUser(role, user.username)" icon="delete" size="24"></ng-md-icon>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </md-table-container>
+          </v-pane-content>
+        </v-pane>
+      </v-accordion>
+    </md-tab-body>
+  </md-tab>
+</md-tabs>
+<div ui-view=""></div>
+
+<md-fab-speed-dial permission permission-only="'management-role-c'"
+                   md-open="false" class="md-scale md-fab-bottom-right">
+  <md-fab-trigger>
+    <md-button aria-label="Add role" class="md-fab md-success" ng-click="$ctrl.newRole(roleScope)">
+      <md-tooltip md-direction="top" md-visible="false">Add a new role</md-tooltip>
+      <ng-md-icon icon="add"></ng-md-icon>
+    </md-button>
+  </md-fab-trigger>
+</md-fab-speed-dial>

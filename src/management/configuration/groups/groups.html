@@ -114,7 +114,7 @@
                 <thead md-head md-order="order">
                 <tr md-row>
                     <th md-column order-by="username">Username</th>
-                    <th md-column order-by="type">Type</th>
+                    <th md-column order-by="type">Role</th>
                     <th md-column></th>
                 </tr>
                 </thead>
@@ -122,9 +122,8 @@
                 <tr md-row ng-repeat="member in groupsCtrl.selectedGroup.members">
                     <td md-cell>{{member.username}}</td>
                     <td md-cell>
-                        <md-select aria-label="membership-type" ng-model="member.type" md-on-close="groupsCtrl.updateMember(member)">
-                            <md-option ng-value="'owner'"><em>OWNER</em></md-option>
-                            <md-option ng-value="'user'"><em>USER</em></md-option>
+                        <md-select ng-model="member.role" aria-label="membership-role" md-on-close="groupsCtrl.updateMember(member)">
+                          <md-option ng-value="role.name" ng-repeat="role in groupsCtrl.roles" ng-disabled="role.system"><em>{{role.name}}</em></md-option>
                         </md-select>
                     </td>
                     <td md-cell ng-click="$event.stopPropagation()">
@@ -205,7 +204,8 @@
     </md-content>
 </md-sidenav>
 
-<md-fab-speed-dial md-open="false" class="md-scale md-fab-bottom-right">
+<md-fab-speed-dial permission permission-only="'management-group-c'"
+                    md-open="false" class="md-scale md-fab-bottom-right">
     <md-fab-trigger>
         <md-button aria-label="Add Group" class="md-fab md-success" ng-click="groupsCtrl.showAddGroupModal($event)">
             <md-tooltip md-direction="top" md-visible="false">Add a new {{groupsCtrl.groupType | lowercase}} group</md-tooltip>

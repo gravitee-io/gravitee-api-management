@@ -107,7 +107,7 @@
                       </div>
                     </div>
                   </md-card-content>
-                  <div layout="column">
+                  <div layout="column" permission permission-only="'api-definition-u'">
                     <ng-md-icon icon="close" style="fill: #757575" size="18px" class="gravitee-card-close" ng-click="apiPoliciesCtrl.removePolicy($index, path, $event)">
                       <md-tooltip md-direction="right">
                         Remove policy
@@ -160,7 +160,7 @@
 
         <div ng-if="apiPoliciesCtrl.hasProperties(apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId])">
           <md-divider></md-divider>
-          <md-button class="md-raised" ng-disabled="policyConfigurationForm.$invalid || policyConfigurationForm.$pristine" ng-click="apiPoliciesCtrl.savePaths();">Save</md-button>
+          <md-button permission permission-only="'api-definition-u'" class="md-raised" ng-disabled="policyConfigurationForm.$invalid || policyConfigurationForm.$pristine" ng-click="apiPoliciesCtrl.savePaths();">Save</md-button>
         </div>
       </div>
     </div>
@@ -168,6 +168,6 @@
 </div>
 
 
-<md-button class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="apiPoliciesCtrl.showAddPathModal($event)">
+<md-button permission permission-only="'api-definition-d'" class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="apiPoliciesCtrl.showAddPathModal($event)">
   <ng-md-icon icon="add"></ng-md-icon>
 </md-button>

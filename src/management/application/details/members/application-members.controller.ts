@@ -17,27 +17,34 @@ import * as angular from 'angular';
 
 import ApplicationService from '../../../../services/applications.service';
 import NotificationService from '../../../../services/notification.service';
+import RoleService from '../../../../services/role.service';
 
 class ApplicationMembersController {
   private application: any;
   private members: any;
-  private membershipTypes: string[];
-  private groupMembers: any;
+  private roles: any;
 
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
     private $mdDialog: angular.material.IDialogService,
-    private $state: ng.ui.IStateService
+    private $state: ng.ui.IStateService,
+    private RoleService: RoleService
   ) {
     'ngInject';
-    this.membershipTypes = [ 'owner', 'user' ];
+
+    const that = this;
+    RoleService.list('APPLICATION').then(function (roles) {
+      that.roles = roles;
+    });
   }
 
   updateMember(member) {
-    this.ApplicationService.addOrUpdateMember(this.application.id, member).then(() => {
-      this.NotificationService.show(`Member ${member.username} has been updated with role ${member.type}`);
-    });
+    if (member.role) {
+      this.ApplicationService.addOrUpdateMember(this.application.id, member).then(() => {
+        this.NotificationService.show(`Member ${member.username} has been updated with role ${member.role}`);
+      });
+    }
   }
 
   deleteMember(member) {
@@ -97,10 +104,6 @@ class ApplicationMembersController {
       parent: angular.element(document.body),
       clickOutsideToClose:true
     });
-  }
-
-  isOwner() {
-    return this.application.permission && (this.application.permission === 'owner' || this.application.permission === 'primary_owner');
   }
 }
 

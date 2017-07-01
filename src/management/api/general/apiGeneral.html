@@ -20,14 +20,16 @@
   <div layout="column" layout-gt-sm="row">
     <md-input-container flex="30">
       <label>Name</label>
-      <input ng-model="generalCtrl.api.name" type="text" required>
+      <input permission permission-only="'api-definition-u'" permission-on-unauthorized="PermissionStrategies.disableElement"
+             ng-model="generalCtrl.api.name" type="text" required>
     </md-input-container>
     <md-input-container flex="30">
       <label>Version</label>
-      <input ng-model="generalCtrl.api.version" type="text" required>
+      <input permission permission-only="'api-definition-u'" permission-on-unauthorized="PermissionStrategies.disableElement"
+             ng-model="generalCtrl.api.version" type="text" required>
     </md-input-container>
 
-    <div layout="column" flex="20" layout-align="start end">
+    <div permission permission-only="'api-definition-u'" layout="column" flex="20" layout-align="start end">
       <div layout="row" layout-align="start center">
         <a ng-click="generalCtrl.toggleVisibility()" ng-if="generalCtrl.api.visibility==='public'">Public (visible by all)</a>
         <a ng-click="generalCtrl.toggleVisibility()" ng-if="generalCtrl.api.visibility==='private'">Private (visible by its members)</a>
@@ -46,12 +48,13 @@
   <div layout="" layout-sm="column">
     <md-input-container class="flex">
       <label>Description</label>
-      <textarea ng-model="generalCtrl.api.description" required></textarea>
+      <textarea permission permission-only="'api-definition-u'" permission-on-unauthorized="PermissionStrategies.disableElement"
+                ng-model="generalCtrl.api.description" required></textarea>
     </md-input-container>
   </div>
 
   <div layout="" layout-sm="column" flex>
-    <md-input-container flex="30">
+    <md-input-container permission permission-only="'api-definition-u'" flex="30">
       <label>Group</label>
       <md-select aria-label="group"
                  ng-model="generalCtrl.api.group"
@@ -60,17 +63,25 @@
         <md-option ng-value="group" ng-repeat="group in generalCtrl.groups">{{group.name}}</md-option>
       </md-select>
     </md-input-container>
+    <div permission permission-except="'api-definition-u'" layout="column">
+      <label>Group</label>
+      <span>{{generalCtrl.api.group.name}}</span>
+    </div>
   </div>
 
   <md-subheader class="md-primary" style="background-color: #fafafa">Portal</md-subheader>
   <div layout="column">
-    <md-input-container class="flex">
+    <md-input-container permission permission-only="'api-definition-u'" class="flex">
       <label>Labels</label>
       <md-chips ng-model="generalCtrl.api.labels" placeholder="Enter a label" ng-click="generalCtrl.formApi.$setDirty()"></md-chips>
     </md-input-container>
+    <div permission permission-except="'api-definition-u'">
+      <label>Labels</label>
+      <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="generalCtrl.api.labels"></md-chips>
+    </div>
   </div>
   <div layout="column">
-    <md-input-container class="flex">
+    <md-input-container permission permission-only="'api-definition-u'" class="flex">
       <label>Portal views</label>
       <md-select ng-model="generalCtrl.api.views" multiple>
         <md-option ng-repeat="view in generalCtrl.views" ng-value="view.id">
@@ -78,13 +89,17 @@
         </md-option>
       </md-select>
     </md-input-container>
+    <div permission permission-except="'api-definition-u'" layout="column">
+      <label>Portal views</label>
+      <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="generalCtrl.api.views"></md-chips>
+    </div>
   </div>
 
   <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button class="md-raised" type="submit" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
+    <md-button permission permission-only="'api-definition-u'" class="md-raised" type="submit" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
       Save
     </md-button>
-    <md-button class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
+    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
       Reset
     </md-button>
 
@@ -92,12 +107,13 @@
       <ng-md-icon icon="file_upload"></ng-md-icon>
       Export
     </md-button>
-    <md-button aria-label="Import definition" ng-click="generalCtrl.showImportDialog()">
+    <md-button permission permission-only="'api-definition-u'" aria-label="Import definition" ng-click="generalCtrl.showImportDialog()">
       <ng-md-icon icon="file_download"></ng-md-icon>
       Import
     </md-button>
 
-    <md-button class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(generalCtrl.api.id)"
+    <md-button permission permission-only="'api-definition-d'"
+                class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(generalCtrl.api.id)"
                ng-disabled="generalCtrl.api.state === 'started'">
       <div>
         Delete

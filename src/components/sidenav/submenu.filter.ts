@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-export const submenuFilter = function($state: ng.ui.IStateService) {
+import UserService from '../../services/user.service';
+
+export const submenuFilter = function ($state: ng.ui.IStateService, UserService: UserService) {
   'ngInject';
-  return function(menuItems: ng.ui.IState[]) {
+  return function (menuItems: ng.ui.IState[]) {
     let universeLevels: string[] = $state.current.name.split('.').splice(0, 2);
-    let hasId = 'apiId' in $state.params || 'applicationId' in $state.params  || 'instanceId' in $state.params;
+    let hasId = 'apiId' in $state.params || 'applicationId' in $state.params || 'instanceId' in $state.params;
 
     if (universeLevels.indexOf('configuration') !== -1 || hasId) {
       let universe: string = `${universeLevels.join('.')}.`;
-      return menuItems.filter((cState) => (
-        !cState.abstract &&
+      return menuItems.filter((cState) => !cState.abstract &&
         cState.data && cState.data.menu && !cState.data.menu.firstLevel &&
-        cState.name.indexOf(universe) === 0)
+        cState.name.indexOf(universe) === 0 &&
+        (!cState.data.perms || !cState.data.perms.only || UserService.isUserHasPermissions(cState.data.perms.only))
       );
     } else {
       return [];

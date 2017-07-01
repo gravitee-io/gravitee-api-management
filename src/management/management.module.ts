@@ -153,7 +153,6 @@ import PolicyService from '../services/policy.service';
 import ResourceService from '../services/resource.service';
 import FetcherService from '../services/fetcher.service';
 import LoginController from '../user/login/login.controller';
-import RoleDirective from '../components/role/role.directive';
 import DiffDirective from '../components/diff/diff.directive';
 import DialogApiImportController from '../management/api/general/dialog/apiImportDialog.controller';
 import DialogApiExportController from '../management/api/general/dialog/apiExportDialog.controller';
@@ -279,6 +278,14 @@ import PortalPagesController from '../management/configuration/pages/portalPages
 import NewPageController from '../management/configuration/pages/page/newPage.controller';
 import PortalPagesService from '../services/portalPages.service';
 
+import RolesController from '../management/configuration/roles/roles.controller';
+import RoleSaveController from '../management/configuration/roles/role/save/role.save.controller';
+import RolesComponent from '../management/configuration/roles/roles.component';
+import RoleService from '../services/role.service';
+import DeleteRoleDialogController from '../management/configuration/roles/role/delete/delete.role.dialog.controller';
+import DialogAddUserRoleController from '../management/configuration/roles/user/add/add.user.dialog.controller';
+import DeleteUserRoleDialogController from '../management/configuration/roles/user/delete/delete.user.role.dialog.controller';
+
 import applicationRouterConfig from './application/applications.route';
 import apisRouterConfig from './api/apis.route';
 import configurationRouterConfig from './configuration/configuration.route';
@@ -307,7 +314,10 @@ import interceptorConfig from './management.interceptor';
 import delegatorConfig from './management.delegator';
 import runBlock from './management.run';
 
-angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
+import uiRouter from 'angular-ui-router';
+import {permission, uiPermission} from 'angular-permission';
+
+angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
   'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
@@ -404,8 +414,13 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .controller('DeleteApiMetadataDialogController', DeleteApiMetadataDialogController)
   .controller('DialogConfirmController', DialogConfirmController)
   .controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController)
+  .controller('DeleteRoleDialogController', DeleteRoleDialogController)
+  .controller('DialogAddUserRoleController', DialogAddUserRoleController)
+  .controller('DeleteUserRoleDialogController', DeleteUserRoleDialogController)
   .controller('PortalPagesController', PortalPagesController)
   .controller('NewPageController', NewPageController)
+  .controller('RolesController', RolesController)
+  .controller('RoleSaveController', RoleSaveController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
@@ -427,10 +442,10 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .service('PortalPagesService', PortalPagesService)
   .service('StringService', StringService)
   .service('AuthenticationService', AuthenticationService)
+  .service('RoleService', RoleService)
   .directive('filecontent', () => DocumentationDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())
-  .directive('graviteeRolesAllowed', () => RoleDirective)
   .directive('graviteeDiff', () => DiffDirective)
   .directive('graviteeImage', () => new ImageDirective())
   .directive('graviteeEmptyState', () => new EmptyStateDirective())
@@ -447,6 +462,7 @@ angular.module('gravitee-management', ['ui.router', 'ngMaterial', 'ramlConsoleAp
   .component('tags', TagsComponent)
   .component('portalPages', PortalPagesComponent)
   .component('metadata', MetadataComponent)
+  .component('roles', RolesComponent)
   .directive('gvMetadataValidator', () => MetadataValidatorDirective)
 
   .component('instances', InstancesComponent)

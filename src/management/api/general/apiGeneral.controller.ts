@@ -15,6 +15,7 @@
  */
 import _ = require('lodash');
 import SidenavService from '../../../components/sidenav/sidenav.service';
+import UserService from "../../../services/user.service";
 
 class ApiAdminController {
   private initialApi: any;
@@ -30,16 +31,14 @@ class ApiAdminController {
   constructor(
     private ApiService,
     private NotificationService,
-    private UserService,
+    private UserService: UserService,
     private $scope,
     private $mdDialog,
     private $mdEditDialog,
     private $rootScope,
     private resolvedApi,
     private $state,
-    private ViewService,
     private GroupService,
-    private TagService,
     private SidenavService: SidenavService,
     private resolvedViews,
     private resolvedTags
@@ -86,10 +85,10 @@ class ApiAdminController {
   }
 
   toggleVisibility() {
-    if( this.api.visibility === "public") {
-      this.api.visibility = "private";
+    if( this.api.visibility === 'public') {
+      this.api.visibility = 'private';
     } else {
-      this.api.visibility = "public";
+      this.api.visibility = 'public';
     }
     this.formApi.$setDirty();
   }
@@ -101,17 +100,17 @@ class ApiAdminController {
     this.failoverEnabled = (this.api.proxy.failover !== undefined);
 
     // Context-path editable
-    this.contextPathEditable = (this.api.permission === 'primary_owner') || this.UserService.isUserInRoles(['ADMIN']);
+    this.contextPathEditable =this.UserService.currentUser.username === this.api.owner.username;
 
     var self = this;
-    this.$scope.$on("apiChangeSucceed", function () {
+    this.$scope.$on('apiChangeSucceed', function () {
       self.initialApi = _.cloneDeep(self.$scope.$parent.apiCtrl.api);
       self.api = self.$scope.$parent.apiCtrl.api;
     });
   }
 
   loadApplicationGroups() {
-    this.GroupService.list("API").then((groups) => {
+    this.GroupService.list('API').then((groups) => {
       this.groups = _.union(
         [this.GroupService.getEmptyGroup()],
         groups.data);
@@ -127,7 +126,7 @@ class ApiAdminController {
       template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: `Are you sure you want to ${started ? "stop" : "start"} the API ?`,
+        title: `Are you sure you want to ${started ? 'stop' : 'start'} the API ?`,
         msg: '',
         confirmButton: (started ? 'stop' : 'start')
       }
@@ -244,7 +243,7 @@ class ApiAdminController {
     this.api = updatedApi;
     this.initState();
     this.formApi.$setPristine();
-    this.$rootScope.$broadcast("apiChangeSuccess");
+    this.$rootScope.$broadcast('apiChangeSuccess');
     this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
     this.SidenavService.setCurrentResource(this.api.name);
   }

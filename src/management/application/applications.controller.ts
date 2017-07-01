@@ -14,19 +14,32 @@
  * limitations under the License.
  */
 import * as angular from 'angular';
+import UserService from '../../services/user.service';
 
 class ApplicationsController {
   private applications: any;
   private selectedApplications: any;
+  private subMessage: string;
 
   constructor(
     private $mdDialog: ng.material.IDialogService,
     private $state: ng.ui.IStateService,
-    private $rootScope
+    private $rootScope,
+    private UserService: UserService
   ) {
 		'ngInject';
-
 		this.selectedApplications = [];
+
+		const that = this;
+    UserService.current().then(function (user) {
+      if (!user.username) {
+        that.subMessage = 'Login to get access to your applications';
+      } else if (UserService.isUserHasPermissions(['management-application-c'])) {
+        that.subMessage = 'Start creating an application';
+      } else {
+        that.subMessage = '';
+      }
+    });
 	}
 
 	createInitApplication() {

@@ -17,7 +17,7 @@
 -->
 <div layout-padding>
   <form name="formApplication" ng-submit="$ctrl.update()" novalidate>
-    <div ng-if="$ctrl.isOwner()">
+    <div permission permission-only="'application-definition-u'">
       <md-input-container class="md-block">
         <label>Name</label>
         <input ng-model="$ctrl.application.name" type="text" ng-required="true">
@@ -35,7 +35,7 @@
               <md-option ng-value="group" ng-repeat="group in $ctrl.groups">{{group.name}}</md-option>
             </md-select>
           </md-input-container>
-            </div>
+        </div>
       <md-input-container class="md-block">
         <label>Description</label>
         <input ng-model="$ctrl.application.description" type="text" ng-required="true">
@@ -55,7 +55,7 @@
     </div>
   </form>
 
-  <div ng-if="!$ctrl.isOwner()">
+  <div permission permission-except="'application-definition-u'">
     <md-subheader>Name</md-subheader>
     <p class="inset">{{$ctrl.application.name}}</p>
     <md-subheader>Type</md-subheader>

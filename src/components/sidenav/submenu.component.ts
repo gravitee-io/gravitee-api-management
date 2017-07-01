@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 import SidenavService from './sidenav.service';
+import ApiService from '../../services/api.service';
+import ApplicationService from '../../services/applications.service';
+import UserService from '../../services/user.service';
+import _ = require('lodash');
 
 export const SubmenuComponent: ng.IComponentOptions = {
   template: require('./submenu.html'),
@@ -24,21 +28,51 @@ export const SubmenuComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvSidenav'
   },
-  controller: function(SidenavService: SidenavService, $filter: ng.IFilterService, $transitions) {
+  controller: function (SidenavService: SidenavService, $filter: ng.IFilterService, $transitions, $state,
+                        ApiService: ApiService, ApplicationService: ApplicationService, UserService: UserService) {
     'ngInject';
 
     this.sidenavService = SidenavService;
 
     let that = this;
-    $transitions.onSuccess({ }, function() {
+    $transitions.onSuccess({}, function () {
       that.reload();
     });
 
-    this.$onInit = function() {
+    this.$onInit = function () {
       that.reload();
     };
 
-    this.reload = function() {
+    this.reload = function () {
+      if ($state.params.apiId && !UserService.currentUser.userApiPermissions) {
+        UserService.currentUser.userApiPermissions = [];
+        ApiService.getPermissions($state.params.apiId).then(permissions => {
+          _.forEach(_.keys(permissions.data), function (permission) {
+            _.forEach(permissions.data[permission], function (right) {
+              let permissionName = 'API-' + permission + '-' + right;
+              UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
+            });
+          });
+          reloadPermissionsAndSubmenu();
+        });
+      } else if ($state.params.applicationId && !UserService.currentUser.userApplicationPermissions) {
+        UserService.currentUser.userApplicationPermissions = [];
+        ApplicationService.getPermissions($state.params.applicationId).then(permissions => {
+          _.forEach(_.keys(permissions.data), function (permission) {
+            _.forEach(permissions.data[permission], function (right) {
+              let permissionName = 'APPLICATION-' + permission + '-' + right;
+              UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
+            });
+          });
+          reloadPermissionsAndSubmenu();
+        });
+      } else {
+        reloadPermissionsAndSubmenu();
+      }
+    };
+
+    let reloadPermissionsAndSubmenu = function () {
+      UserService.reloadPermissions();
       that.submenuItems = $filter<any>('currentSubmenus')(that.allMenuItems);
     };
   }

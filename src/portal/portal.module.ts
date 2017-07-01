@@ -46,7 +46,11 @@ import PageComponent from './pages/page.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import ThemeElementDirective from './components/theme/theme-element.directive';
 
-angular.module('gravitee-portal', ['ui.router', 'ngMaterial', 'pascalprecht.translate', 'duScroll', 'satellizer'])
+import uiRouter from 'angular-ui-router';
+import {permission, uiPermission} from 'angular-permission';
+
+angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMaterial', 'pascalprecht.translate',
+  'duScroll', 'satellizer'])
   .value('duScrollOffset', 54)
   .config(portalRouterConfig)
   .config(portalI18nConfig)

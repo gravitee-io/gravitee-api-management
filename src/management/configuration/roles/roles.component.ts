@@ -13,6 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class Authority {
-  public authority: string;
-}
+const RolesComponent: ng.IComponentOptions = {
+  bindings: {
+    roleScopes: '<'
+  },
+  controller: 'RolesController',
+  template: require('./roles.html')
+};
+
+export default RolesComponent;

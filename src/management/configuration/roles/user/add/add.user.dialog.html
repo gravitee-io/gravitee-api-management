@@ -1,0 +1,72 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-dialog aria-label="Add user">
+	<md-dialog-content layout-padding>
+		<h4>Add user</h4>
+		<form ng-submit="$event.preventDefault()">
+			<md-autocomplete
+					md-selected-item="$ctrl.selectedItem"
+					md-search-text="$ctrl.searchText"
+					md-search-text-change="$ctrl.searchTextChange($ctrl.searchText)"
+					md-selected-item-change="$ctrl.selectedItemChange(item)"
+					md-items="item in $ctrl.searchUser($ctrl.searchText)"
+					md-item-text="item.id"
+					md-min-length="1"
+					placeholder="Search users ..."
+					md-autofocus="true"
+          md-menu-class="autocomplete-add-member"
+					style="width: 450px;">
+				<md-item-template>
+          <md-list-item class="md-2-line contact-item">
+            <img ng-src="{{item.id}}" gravitee-user-avatar="{{item.id}}" class="md-avatar" alt="{{item.id}}" />
+            <div class="md-list-item-text compact">
+              <h3>{{item.firstname}} {{item.lastname}}</h3>
+              <p ng-if="item.email">{{item.email}}</p>
+              <p ng-if="!item.email">{{item.id}}</p>
+            </div>
+          </md-list-item>
+				</md-item-template>
+				<md-not-found>
+					No users matching "{{$ctrl.searchText}}" were found, or users already selected.
+				</md-not-found>
+			</md-autocomplete>
+		</form>
+		<div ng-show="$ctrl.usersFound.length > 0">
+			<span ng-repeat="user in $ctrl.usersFound">
+				<md-checkbox
+						value="{{user.id}}"
+						aria-label="{{user.id}}"
+						ng-click="$ctrl.selectUser(user)"
+						ng-checked="$ctrl.isUserSelected(user)">
+					<span>
+						{{user.firstname}} {{user.lastname}} [{{user.id}}]
+					</span>
+				</md-checkbox>
+			</span>
+		</div>
+	</md-dialog-content>
+
+	<md-dialog-actions layout="row">
+		<md-button ng-click="$ctrl.hide()" class="md-primary">
+			Cancel
+		</md-button>
+		<md-button type="submit" class="md-raised md-primary" ng-click="$ctrl.addUsers()">
+			Add
+		</md-button>
+	</md-dialog-actions>
+</md-dialog>

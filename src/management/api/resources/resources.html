@@ -25,7 +25,7 @@
             <th md-column order-by="name">Name</th>
             <th md-column order-by="type">Type</th>
             <th md-column>Enabled</th>
-            <th md-column></th>
+            <th md-column permission permission-only="'api-definition-u'"></th>
           </tr>
           </thead>
           <tbody md-body>
@@ -36,7 +36,7 @@
               <ng-md-icon ng-if="resource.enabled" icon="play_circle_outline" style="fill: green;"></ng-md-icon>
               <ng-md-icon ng-if="!resource.enabled" icon="pause_circle_outline" style="fill: red;"></ng-md-icon>
             </td>
-            <td md-cell>
+            <td md-cell permission permission-only="'api-definition-u'">
               <div layout="row">
                 <ng-md-icon ng-click="apiResourcesCtrl.showResourcePanel(resource)" icon="settings" size="24" style="margin-right: 20px;"></ng-md-icon>
                 <ng-md-icon ng-click="apiResourcesCtrl.deleteResource($index)" icon="delete" size="24"></ng-md-icon>
@@ -111,7 +111,7 @@
                       create-mode="true"></gravitee-empty-state>
 
 
-<div ng-style="$parent.apiCtrl.api.resources.length == 0 && {'text-align':'center'}">
+<div permission permission-only="'api-definition-c'" ng-style="$parent.apiCtrl.api.resources.length == 0 && {'text-align':'center'}">
   <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $parent.apiCtrl.api.resources.length > 0}" class="md-fab" aria-label="Add resource" ng-click="apiResourcesCtrl.showResourcePanel()">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>

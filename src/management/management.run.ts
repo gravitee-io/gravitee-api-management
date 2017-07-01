@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 /* global setInterval:false, clearInterval:false, screen:false */
-
 import UserService from '../services/user.service';
+import _ = require('lodash');
 
-function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerModules,
-                  PageSwaggerHttpClientService, $timeout, UserService: UserService, Constants) {
+function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerModules, PageSwaggerHttpClientService,
+                  $timeout, UserService: UserService, Constants, PermissionStrategies) {
   'ngInject';
 
   $transitions.onEnter({}, function (trans) {
@@ -30,8 +30,8 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
 
     if (notEligibleForDevMode || notEligibleForUserCreation) {
       return trans.router.stateService.target('login');
-    } else if (toState.data && toState.data.roles && !UserService.isUserInRoles(toState.data.roles)) {
-      return trans.router.stateService.target(UserService.isAuthenticated() ? 'home' : 'login');
+    } else if (toState.data && toState.data.perms && toState.data.perms.only && !UserService.isUserHasPermissions(toState.data.perms.only)) {
+      return trans.router.stateService.target(UserService.isAuthenticated() ? 'management.apis.list' : 'login');
     }
   });
 
@@ -55,6 +55,8 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
   $timeout(function () {
     $rootScope.displayLoader = false;
   });
+
+  $rootScope.PermissionStrategies = PermissionStrategies;
 }
 
 export default runBlock;

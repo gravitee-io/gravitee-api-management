@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 import { User } from '../entities/user';
+import RoleService from "./role.service";
+import ApplicationService from './applications.service';
+import ApiService from './api.service';
+import _ = require('lodash');
 
 class UserService {
   private baseURL: string;
   private usersURL: string;
   private userURL: string;
+  private routerInitialized: boolean = false;
+  private isLogout: boolean = false;
 
   /**
    * Current authenticated user or empty user if not authenticated.
    */
-  private currentUser: User;
+  public currentUser: User;
 
-  constructor(private $http: ng.IHttpService, private $q: ng.IQService, private $rootScope, Constants) {
+  constructor(private $http: ng.IHttpService, private $q: ng.IQService, Constants, private RoleService: RoleService,
+              private PermPermissionStore, private $urlRouter, private ApplicationService: ApplicationService,
+              private ApiService: ApiService, private $location) {
     'ngInject';
     this.baseURL = Constants.baseURL;
     this.usersURL = `${Constants.baseURL}users/`;
@@ -52,40 +60,96 @@ class UserService {
 		return this.$http.get(`${this.usersURL}?query=${query}`);
 	}
 
-	isUserInRoles(roles) {
-    return this.currentUser && this.currentUser.allowedTo(roles);
-    /*
-	  if (!this.currentUser) {
-	    return false;
-	  }
-    if (this.currentUser && (!roles || roles.length === 0)) {
-	    return false;
-	  }
-    var rolesAllowed = false, that = this;
-	  _.forEach(roles, function(role) {
-	    _.forEach(that.currentUser.authorities, function(authority) {
-        if (authority.authority === role) {
-	        rolesAllowed = true;
-	        return;
-	      }
-	    });
-	  });
-    return rolesAllowed;
-    */
-	}
+  isUserHasPermissions(permissions) {
+    return this.currentUser && this.currentUser.allowedTo(permissions);
+  }
 
-  current(): ng.IPromise<User> {
+  current() {
+    let that = this;
     if (! this.currentUser || !this.currentUser.username) {
-      let that = this;
-      return this.$http.get(this.userURL)
-        .then(response => Object.assign(new User(), response.data))
+      const promises = [this.$http.get(this.userURL)];
+
+      const applicationRegex = /applications\/([\w|\-]+)/;
+      let applicationId = applicationRegex.exec(this.$location.$$path);
+      if (!that.isLogout && applicationId) {
+        promises.push(this.ApplicationService.getPermissions(applicationId[1]));
+      }
+
+      const apiRegex = /apis\/([\w|\-]+)/;
+      const apiId = apiRegex.exec(this.$location.$$path);
+      if (!that.isLogout && apiId) {
+        promises.push(this.ApiService.getPermissions(apiId[1]));
+      }
+
+      return this.$q.all(promises)
         .then(response => {
-          that.currentUser = response;
+          that.currentUser = Object.assign(new User(), response[0].data);
+
+          that.currentUser.userPermissions = [];
+          _.forEach(that.currentUser.roles, function (role) {
+            _.forEach(_.keys(role.permissions), function (permission) {
+              _.forEach(role.permissions[permission], function (right) {
+                let permissionName = role.scope + '-' + permission + '-' + right;
+                that.currentUser.userPermissions.push(_.toLower(permissionName));
+              });
+            });
+          });
+
+          if (response[1]) {
+            if (_.includes(response[1].config.url, 'applications')) {
+              this.currentUser.userApplicationPermissions = [];
+              _.forEach(_.keys(response[1].data), function (permission) {
+                _.forEach(response[1].data[permission], function (right) {
+                  let permissionName = 'APPLICATION-' + permission + '-' + right;
+                  that.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
+                });
+              });
+            } else if (_.includes(response[1].config.url, 'apis')) {
+              this.currentUser.userApiPermissions = [];
+              _.forEach(_.keys(response[1].data), function (permission) {
+                _.forEach(response[1].data[permission], function (right) {
+                  let permissionName = 'API-' + permission + '-' + right;
+                  that.currentUser.userApiPermissions.push(_.toLower(permissionName));
+                });
+              });
+            }
+          }
+
           return that.currentUser;
+        }).then(response => {
+          if (!that.routerInitialized) {
+            that.$urlRouter.sync();
+            that.$urlRouter.listen();
+            that.routerInitialized = true;
+          }
+          return response;
         });
     } else {
       return this.$q.resolve<User>(this.currentUser);
     }
+  }
+
+  reloadPermissions() {
+    const rights: string[] = this.RoleService.listRights();
+    const scopes = this.RoleService.listScopes();
+    let allPermissions: string[] = [];
+
+    const that = this;
+    _.forEach(scopes, function (scope) {
+      let permissionsByScope = that.RoleService.listPermissionsByScope(scope);
+      _.forEach(permissionsByScope, function (permission) {
+        _.forEach(rights, function (right) {
+          let permissionName = scope + '-' + permission + '-' + right;
+          allPermissions.push(_.toLower(permissionName));
+        })
+      })
+    });
+
+    this.PermPermissionStore.defineManyPermissions(allPermissions, function (permissionName) {
+      return _.includes(that.currentUser.userPermissions, permissionName) ||
+        _.includes(that.currentUser.userApiPermissions, permissionName) ||
+        _.includes(that.currentUser.userApplicationPermissions, permissionName);
+    });
   }
 
   isAuthenticated(): boolean {
@@ -103,7 +167,7 @@ class UserService {
   logout() {
     let that = this;
     return this.$http.post(`${this.userURL}logout`, {})
-      .then(function() {that.currentUser = new User();});
+      .then(function() {that.currentUser = new User(); that.isLogout = true;});
   }
 
   currentUserPicture(): ng.IPromise<string> {

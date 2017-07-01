@@ -15,6 +15,8 @@
  */
 import ApplicationService from '../../services/applications.service';
 import GroupService from '../../services/group.service';
+import * as _ from 'lodash';
+import UserService from "../../services/user.service";
 
 export default applicationsConfig;
 
@@ -35,7 +37,6 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
           firstLevel: true,
           order: 20
         },
-        roles: ['USER', 'ADMIN', 'API_CONSUMER', 'API_PUBLISHER'],
         devMode: true
       },
       resolve: {
@@ -48,7 +49,21 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       component: 'application',
       resolve: {
         application: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
-          ApplicationService.get($stateParams['applicationId']).then(response => response.data)
+          ApplicationService.get($stateParams.applicationId).then(response => response.data),
+        onEnter: function (UserService, ApplicationService, $stateParams) {
+          if (!UserService.currentUser.userApplicationPermissions) {
+            UserService.currentUser.userApplicationPermissions = [];
+            ApplicationService.getPermissions($stateParams.applicationId).then(permissions => {
+              _.forEach(_.keys(permissions.data), function (permission) {
+                _.forEach(permissions.data[permission], function (right) {
+                  let permissionName = 'APPLICATION-' + permission + '-' + right;
+                  UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
+                });
+              });
+              UserService.reloadPermissions();
+            });
+          }
+        }
       }
     })
     .state('management.applications.portal.general', {
@@ -59,11 +74,21 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
           label: 'Global settings',
           icon: 'blur_on'
         },
-        devMode: true
+        devMode: true,
+        perms: {
+          only: ['application-definition-r']
+        }
       },
       resolve: {
-        application: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
-          ApplicationService.get($stateParams['applicationId']).then(response => response.data)
+        groups: (UserService: UserService, GroupService: GroupService) => {
+          if (UserService.currentUser.isAdmin()) {
+            return GroupService.list("APPLICATION").then((groups) => {
+              return _.unionBy([GroupService.getEmptyGroup()], groups.data, "id");
+            });
+          } else {
+            return [GroupService.getEmptyGroup()];
+          }
+        }
       }
     })
     .state('management.applications.portal.subscriptions', {
@@ -71,14 +96,17 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       component: 'applicationSubscriptions',
       resolve: {
         subscriptions: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
-          ApplicationService.listSubscriptions($stateParams['applicationId']).then(response => response.data)
+          ApplicationService.listSubscriptions($stateParams.applicationId).then(response => response.data)
       },
       data: {
         menu: {
           label: 'Subscriptions',
           icon: 'vpn_key'
         },
-        devMode: true
+        devMode: true,
+        perms: {
+          only: ['application-subscription-r']
+        }
       }
     })
     .state('management.applications.portal.members', {
@@ -96,7 +124,10 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
           label: 'Members',
           icon: 'group'
         },
-        devMode: true
+        devMode: true,
+        perms: {
+          only: ['application-member-r']
+        }
       }
     })
     .state('management.applications.portal.analytics', {
@@ -107,7 +138,10 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
           label: 'Analytics',
           icon: 'insert_chart'
         },
-        devMode: true
+        devMode: true,
+        perms: {
+          only: ['application-analytics-r']
+        }
       },
       params: {
         from: {
@@ -131,6 +165,9 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Logs',
           icon: 'receipt'
+        },
+        perms: {
+          only: ['application-log-r']
         }
       },
       params: {
@@ -155,5 +192,10 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         log: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
           ApplicationService.getLog($stateParams['applicationId'], $stateParams['logId']).then(response => response.data)
       },
+      data: {
+        perms: {
+          only: ['application-log-r']
+        }
+      }
     });
 }

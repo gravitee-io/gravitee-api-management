@@ -15,8 +15,6 @@
  */
 import angular = require('angular');
 
-import 'angular-ui-router';
-
 import './index.scss';
 
 import './portal/portal.module';

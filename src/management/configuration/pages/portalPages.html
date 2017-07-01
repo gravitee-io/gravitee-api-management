@@ -43,7 +43,8 @@
                       sub-message="Start creating a page"
                       create-mode="true"></gravitee-empty-state>
 
-<md-fab-speed-dial ng-if="$ctrl.$state.current.name != 'management.configuration.admin.pages.new' && listPagesDisplayed" gravitee-roles-allowed="ADMIN" md-direction="{{$ctrl.pages.length > 0 ? 'left' : 'down'}}" md-open="false"
+<md-fab-speed-dial permission permission-only="'portal-documentation-c'"
+                   ng-if="$ctrl.$state.current.name != 'management.configuration.admin.pages.new' && listPagesDisplayed" gravitee-roles-allowed="ADMIN" md-direction="{{$ctrl.pages.length > 0 ? 'left' : 'down'}}" md-open="false"
                    ng-class="{'md-fab-bottom-right gravitee-add-button' : $ctrl.pages.length > 0}" class="md-scale">
   <md-fab-trigger>
     <md-button aria-label="menu" class="md-fab md-success">

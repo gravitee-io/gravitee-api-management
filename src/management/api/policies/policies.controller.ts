@@ -24,6 +24,7 @@ class ApiPoliciesController {
   private httpMethods: string[];
   private httpMethodsFilter: string[];
   private pathsToCompare: any;
+  private dndEnabled: boolean;
 
   constructor (
     private ApiService,
@@ -35,9 +36,12 @@ class ApiPoliciesController {
     private $q,
     private $rootScope,
     private $timeout,
-    private StringService
+    private StringService,
+    private UserService
   ) {
     'ngInject';
+    this.dndEnabled = UserService.isUserHasPermissions(['api-definition-u']);
+    
     this.apiPoliciesByPath = {};
     this.policiesToCopy = [];
     this.policiesMap = {};
@@ -115,6 +119,9 @@ class ApiPoliciesController {
     const dragularSrcOptions = document.querySelector('.gravitee-policy-draggable');
 
     this.dragularService([dragularSrcOptions], {
+      moves: function () {
+        return true;
+      },
       copy: true,
       scope: this.$scope,
       containersModel: this.policiesToCopy,
@@ -130,6 +137,9 @@ class ApiPoliciesController {
     const dragularApiOptions = document.querySelector('.dropzone-' + this.StringService.hashCode(path));
     if (dragularApiOptions) {
       this.dragularService([dragularApiOptions], {
+        moves: function () {
+          return true;
+        },
         copy: false,
         scope: this.$scope,
         containersModel: this.apiPoliciesByPath[path],

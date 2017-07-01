@@ -28,22 +28,28 @@
     <tr md-row>
       <th md-column md-order-by="name">Name</th>
       <th md-column md-order-by="description">Description</th>
-      <th></th>
+      <th permission permission-only="'management-tag-d'"></th>
     </tr>
     </thead>
     <tbody md-body>
     <tr md-row ng-repeat="tag in $ctrl.tags | orderBy: order">
-      <td md-cell ng-click="$ctrl.editName($event, tag)"
-          ng-class="{'gravitee-placeholder': !tag.name}">
+      <td permission permission-only="'management-tag-u'"
+          md-cell ng-click="$ctrl.editName($event, tag)" ng-class="{'gravitee-placeholder': !tag.name}">
         {{tag.name || 'Add a name'}}
       </td>
-      <td md-cell ng-click="$ctrl.editDescription($event, tag)"
-          ng-class="{'gravitee-placeholder': !tag.description}">
+      <td permission permission-only="'management-tag-u'"
+          md-cell ng-click="$ctrl.editDescription($event, tag)" ng-class="{'gravitee-placeholder': !tag.description}">
         {{tag.description || 'Add a description'}}
       </td>
-      <td md-cell><ng-md-icon icon="delete" ng-click="$ctrl.deleteTag(tag)"></ng-md-icon></td>
+      <td permission permission-except="'management-tag-u'">
+        {{tag.name}}
+      </td>
+      <td permission permission-except="'management-tag-u'">
+        {{tag.description}}
+      </td>
+      <td md-cell permission permission-only="'management-tag-d'"><ng-md-icon icon="delete" ng-click="$ctrl.deleteTag(tag)"></ng-md-icon></td>
     </tr>
-    <tr md-row>
+    <tr md-row permission permission-only="'management-tag-c'">
       <td md-cell ng-click="$ctrl.newTag($event)" class="gravitee-placeholder">
         New tag
       </td>
@@ -53,7 +59,7 @@
     </tbody>
   </table>
 </md-table-container>
-<md-card-actions layout="row" layout-align="end center">
+<md-card-actions layout="row" layout-align="end center" permission permission-only="['management-tag-c', 'management-tag-u']">
   <md-button ng-click="$ctrl.saveTags()"
              ng-disabled="!$ctrl.tagsToCreate.length && !$ctrl.tagsToUpdate.length">Save</md-button>
   <md-button ng-click="$ctrl.reset()"

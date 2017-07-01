@@ -18,7 +18,7 @@
 <md-content flex layout-padding class="properties">
   <span class="md-headline" style="padding: 24px 16px 16px;">Properties</span>
 
-  <span class="btn-group pull-right">
+  <span permission permission-only="'api-definition-u'" class="btn-group pull-right">
     <ng-md-icon icon="settings" ng-click="apiPropertiesCtrl.open()"></ng-md-icon>
   </span>
 
@@ -44,15 +44,18 @@
         <tbody md-body>
           <tr md-row ng-repeat="property in apiPropertiesCtrl.api.properties">
             <td md-cell>{{property.key}}</td>
-            <td md-cell ng-click="apiPropertiesCtrl.editValue($event, property)"
+            <td permission permission-only="'api-definition-u'" md-cell ng-click="apiPropertiesCtrl.editValue($event, property)"
                 ng-class="{'gravitee-placeholder': property.value}">
               {{property.value || 'Set value'}}
+            </td>
+            <td permission permission-except="'api-definition-u'">
+              {{property.value}}
             </td>
             <td md-cell hide-gt-xs show-gt-sm>
               <ng-md-icon ng-show="property.dynamic" icon="check" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
             </td>
             <td md-cell>
-              <ng-md-icon ng-show="!property.dynamic" ng-click="apiPropertiesCtrl.deleteProperty(property.key)" icon="delete" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+              <ng-md-icon permission permission-only="'api-definition-d'" ng-show="!property.dynamic" ng-click="apiPropertiesCtrl.deleteProperty(property.key)" icon="delete" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
             </td>
           </tr>
         </tbody>
@@ -68,7 +71,7 @@
                         create-mode="true"></gravitee-empty-state>
 
   <div ng-style="!apiPropertiesCtrl.hasPropertiesDefined() && {'text-align':'center'}">
-    <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': apiPropertiesCtrl.hasPropertiesDefined()}" class="md-fab" aria-label="Add" ng-click="apiPropertiesCtrl.showPropertyModal()">
+    <md-button permission permission-only="'api-definition-u'" ng-class="{'md-fab-bottom-right gravitee-add-button': apiPropertiesCtrl.hasPropertiesDefined()}" class="md-fab" aria-label="Add" ng-click="apiPropertiesCtrl.showPropertyModal()">
       <ng-md-icon icon="add"></ng-md-icon>
     </md-button>
   </div>

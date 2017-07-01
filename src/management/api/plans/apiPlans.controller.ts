@@ -15,6 +15,7 @@
  */
 import _ = require('lodash');
 import angular = require('angular');
+import UserService from '../../../services/user.service';
 
 class ApiPlansController {
   private plans: any;
@@ -33,11 +34,12 @@ class ApiPlansController {
     private $state,
     private $stateParams,
     private NotificationService,
-    private dragularService
+    private dragularService,
+    private UserService: UserService
   ) {
     'ngInject';
     this.plans = resolvedPlans.data;
-    this.dndEnabled = true;
+    this.dndEnabled = UserService.isUserHasPermissions(['api-plan-u']);
     this.statusFilters = ['staging', 'published', 'closed'];
     this.selectedStatus = ['published'];
     this.securityTypes = [

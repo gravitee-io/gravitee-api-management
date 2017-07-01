@@ -13,28 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Authority } from "./authority";
-
+import _ = require('lodash');
 export class User {
-  constructor(
-    public username?: string,
-    private password?: string,
-    private authorities?: Authority[],
-    private accountNonExpired?: boolean,
-    private accountNonLocked?: boolean,
-    private credentialsNonExpired?: boolean,
-    private enabled?: boolean,
-    public picture?: string
-  ) {
+  public username: string;
+  public picture: string;
+  public roles: any[];
+  public userPermissions: string[];
+  public userApiPermissions: string[];
+  public userApplicationPermissions: string[];
+
+  constructor() {
     'ngInject';
   }
 
-  allowedTo(roles: string[]): boolean {
-    if (!roles || !this.authorities) {
+  allowedTo(permissions: string[]): boolean {
+    if (!permissions || !this.userPermissions) {
       return false;
     }
+    return _.intersection(this.userPermissions, permissions).length > 0 ||
+      _.intersection(this.userApiPermissions, permissions).length > 0 ||
+      _.intersection(this.userApplicationPermissions, permissions).length > 0;
+  }
 
-    return this.authorities
-        .some(authority => roles.indexOf(authority.authority) !== -1);
+  isAdmin(): boolean {
+    if (!this.userPermissions) {
+      return false;
+    }
+    return _.some(this.userPermissions, (userPermission) => {
+      return _.startsWith(userPermission, 'management-instance')
+       || _.startsWith(userPermission, 'management-platform');
+    });
   }
 }

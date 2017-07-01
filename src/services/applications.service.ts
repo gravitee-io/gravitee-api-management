@@ -27,6 +27,7 @@ export class LogsQuery {
 interface IMember {
   username: string;
   type: string;
+  role: string;
 }
 
 class ApplicationService {
@@ -50,7 +51,7 @@ class ApplicationService {
 	}
 
 	addOrUpdateMember(applicationId: string, member: IMember): ng.IHttpPromise<any> {
-    const url = `${this.applicationsURL}${applicationId}/members?user=${member.username}&type=${member.type}`;
+    const url = `${this.applicationsURL}${applicationId}/members?user=${member.username}&type=${member.type}&rolename=${member.role}`;
     return this.$http.post(url, '');
 	}
 
@@ -158,6 +159,9 @@ class ApplicationService {
     return this.$http.get(this.applicationsURL + api + '/logs/' + logId);
   }
 
+  getPermissions(application) {
+    return this.$http.get(this.applicationsURL + application + '/members/permissions');
+  }
 }
 
 export default ApplicationService;

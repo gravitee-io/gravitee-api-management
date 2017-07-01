@@ -70,10 +70,10 @@
                       icon="list"
                       model="Application"
                       message="There is no application (yet)."
-                      sub-message="Start creating an application"
+                      sub-message="{{$ctrl.subMessage}}"
                       create-mode="true"></gravitee-empty-state>
 
-<div ng-style="$ctrl.applications.length == 0 && {'text-align':'center'}">
+<div permission permission-only="'portal-application-c'" ng-style="$ctrl.applications.length == 0 && {'text-align':'center'}">
   <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.applications.length > 0}" class="md-fab" aria-label="Add" ng-click="$ctrl.showAddApplicationModal($event)">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>

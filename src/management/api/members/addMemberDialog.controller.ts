@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 import _ = require('lodash');
+import RoleService from '../../../services/role.service';
+import ApiService from '../../../services/api.service';
 
-function DialogAddMemberApiController($scope, $mdDialog, api, apiMembers, ApiService, UserService, NotificationService) {
+function DialogAddMemberApiController($scope, $mdDialog, api, apiMembers, ApiService: ApiService, UserService, NotificationService,
+      RoleService: RoleService) {
   'ngInject';
+
+  RoleService.list('API').then(function (roles) {
+    $scope.roles = roles;
+  });
 
 	$scope.api = api;
 	$scope.apiMembers = apiMembers;
@@ -71,13 +78,13 @@ function DialogAddMemberApiController($scope, $mdDialog, api, apiMembers, ApiSer
 		for (var i = 0; i < $scope.usersSelected.length; i++) {
 			var username = $scope.usersSelected[i];
 			var member = {
-				"username" : username,
-				"type" : "USER"
+				username : username,
+        type : 'USER',
+        role : $scope.role.name
 			};
       ApiService.addOrUpdateMember($scope.api.id, member).then(function() {
 				NotificationService.show('Member ' + username + ' has been added to the API');
 			}).catch(function (error) {
-				NotificationService.show('Error while adding member ' + username);
 			  $scope.error = error;
 			});
 		}

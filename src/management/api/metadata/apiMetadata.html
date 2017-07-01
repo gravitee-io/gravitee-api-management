@@ -45,10 +45,10 @@
       <td md-cell>{{metadata.defaultValue}}</td>
       <td md-cell>
         <div layout="row" layout-align="end end">
-          <ng-md-icon icon="edit" ng-click="apiMetadataCtrl.updateMetadata(metadata)" style="padding: 0 10px;">
+          <ng-md-icon permission permission-only="'api-metadata-u'" icon="edit" ng-click="apiMetadataCtrl.updateMetadata(metadata)" style="padding: 0 10px;">
             <md-tooltip md-direction="top" md-visible="false">Edit API metadata</md-tooltip>
           </ng-md-icon>
-          <ng-md-icon ng-if="metadata.apiId" icon="delete" ng-click="apiMetadataCtrl.deleteMetadata(metadata)" style="padding: 0 10px;">
+          <ng-md-icon permission permission-only="'api-metadata-d'" ng-if="metadata.apiId" icon="delete" ng-click="apiMetadataCtrl.deleteMetadata(metadata)" style="padding: 0 10px;">
             <md-tooltip md-direction="top" md-visible="false">Delete API metadata</md-tooltip>
           </ng-md-icon>
         </div>
@@ -58,7 +58,7 @@
   </table>
 </md-table-container>
 
-<md-fab-speed-dial md-open="false" class="md-scale md-fab-bottom-right">
+<md-fab-speed-dial permission permission-only="'api-metadata-c'" md-open="false" class="md-scale md-fab-bottom-right">
   <md-fab-trigger>
     <md-button aria-label="Add API metadata" class="md-fab md-success" ng-click="apiMetadataCtrl.newMetadata()">
       <md-tooltip md-direction="top" md-visible="false">Add a new API metadata</md-tooltip>

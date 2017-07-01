@@ -37,8 +37,12 @@
         <label>{{$ctrl.user.email || '-'}}</label>
       </div>
       <div layout="row">
-        <ng-md-icon flex="10" icon="lock"></ng-md-icon>
-        <label ng-repeat="auth in $ctrl.user.authorities">{{auth.authority}}{{$last ? '' : ',&nbsp'}}</label>
+        <ng-md-icon flex="10" icon="lock">
+          <md-tooltip>
+            <span ng-repeat="auth in $ctrl.user.authorities">{{auth.authority}}{{$last ? '' : ',&nbsp'}}</span>
+          </md-tooltip>
+        </ng-md-icon>
+        <label ng-repeat="role in $ctrl.user.roles">{{"[" + role.scope + "]&nbsp;" + role.name}}{{$last ? '' : '&nbsp;-&nbsp;'}}</label>
       </div>
     </md-card-content>
     <md-card-actions layout="row" layout-align="end center">

@@ -22,9 +22,14 @@ function DialogAddMemberController(
   applicationMembers,
   ApplicationService,
   UserService,
-  NotificationService
+  NotificationService,
+  RoleService
 ) {
   'ngInject';
+
+  RoleService.list('APPLICATION').then(function (roles) {
+    $scope.roles = roles;
+  });
 
 	$scope.application = application;
 	$scope.applicationMembers = applicationMembers;
@@ -76,13 +81,13 @@ function DialogAddMemberController(
 		for (var i = 0; i < $scope.usersSelected.length; i++) {
 			var username = $scope.usersSelected[i];
 			var member = {
-				"username" : username,
-				"type" : "USER"
+				username : username,
+        type : 'USER',
+        role : $scope.role.name
 			};
 			ApplicationService.addOrUpdateMember($scope.application.id, member).then(function() {
 				NotificationService.show('Member ' + username + ' has been added to the application');
 			}).catch(function (error) {
-				NotificationService.show('Error while adding member ' + username);
 			  $scope.error = error;
 			});
 		}

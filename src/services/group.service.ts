@@ -58,7 +58,8 @@ class GroupService {
   }
 
   addOrUpdateMember(group, member) {
-    return this.$http.post([this.groupsURL, group, 'members?user=' + member.username + '&type=' + member.type].join("/"));
+    let role = member.role ? '&rolename=' + member.role : '';
+    return this.$http.post([this.groupsURL, group, 'members?user=' + member.username + role].join("/"));
   }
 
   deleteMember(group, memberUsername) {

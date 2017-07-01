@@ -28,22 +28,28 @@
     <tr md-row>
       <th md-column md-order-by="name">Name</th>
       <th md-column md-order-by="description">Description</th>
-      <th></th>
+      <th permission permission-only="'portal-view-d'"></th>
     </tr>
     </thead>
     <tbody md-body>
     <tr md-row ng-repeat="view in $ctrl.views | orderBy: order">
-      <td md-cell ng-click="$ctrl.editName($event, view)"
-          ng-class="{'gravitee-placeholder': !view.name}">
+      <td permission permission-only="'portal-view-u'"
+          md-cell ng-click="$ctrl.editName($event, view)" ng-class="{'gravitee-placeholder': !view.name}">
         {{view.name || 'Add a name'}}
       </td>
-      <td md-cell ng-click="$ctrl.editDescription($event, view)"
-          ng-class="{'gravitee-placeholder': !view.description}">
+      <td permission permission-only="'portal-view-u'"
+          md-cell ng-click="$ctrl.editDescription($event, view)" ng-class="{'gravitee-placeholder': !view.description}">
         {{view.description || 'Add a description'}}
       </td>
-      <td md-cell><ng-md-icon icon="delete" ng-click="$ctrl.deleteView(view)"></ng-md-icon></td>
+      <td permission permission-except="'portal-view-u'">
+        {{view.name}}
+      </td>
+      <td permission permission-except="'portal-view-u'">
+        {{view.description}}
+      </td>
+      <td md-cell permission permission-only="'portal-view-d'"><ng-md-icon icon="delete" ng-click="$ctrl.deleteView(view)"></ng-md-icon></td>
     </tr>
-    <tr md-row>
+    <tr md-row permission permission-only="'portal-view-c'">
       <td md-cell ng-click="$ctrl.newView($event)" class="gravitee-placeholder">
         New view
       </td>
@@ -53,7 +59,7 @@
     </tbody>
   </table>
 </md-table-container>
-<md-card-actions layout="row" layout-align="end center">
+<md-card-actions layout="row" layout-align="end center" permission permission-only="['portal-view-c', 'portal-view-u']">
   <md-button ng-click="$ctrl.saveViews()"
              ng-disabled="!$ctrl.viewsToCreate.length && !$ctrl.viewsToUpdate.length">Save</md-button>
   <md-button ng-click="$ctrl.reset()"

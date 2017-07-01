@@ -15,12 +15,12 @@
  */
 import ViewService from '../../services/view.service';
 import ApisController from './apis.controller';
-import DocumentationService from '../../services/apiDocumentation.service';
 import TenantService from '../../services/tenant.service';
 import ResourceService from '../../services/resource.service';
 import TagService from '../../services/tag.service';
 import ApiService from '../../services/api.service';
 import MetadataService from '../../services/metadata.service';
+import * as _ from 'lodash';
 
 export default apisRouterConfig;
 
@@ -53,6 +53,20 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
           return TagService.list().then(response => {
             return response.data;
           });
+        },
+        onEnter: function (UserService, ApiService, $stateParams) {
+          if (!UserService.currentUser.userApiPermissions) {
+            UserService.currentUser.userApiPermissions = [];
+            ApiService.getPermissions($stateParams.apiId).then(permissions => {
+              _.forEach(_.keys(permissions.data), function (permission) {
+                _.forEach(permissions.data[permission], function (right) {
+                  let permissionName = 'API-' + permission + '-' + right;
+                  UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
+                });
+              });
+              UserService.reloadPermissions();
+            });
+          }
         }
       }
     })
@@ -65,7 +79,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         api: null
       },
       data: {
-        roles: ['ADMIN', 'API_PUBLISHER']
+        perms: {
+          only: ['management-api-c']
+        }
       }
     })
     .state('management.apis.create', {
@@ -75,7 +91,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         api: null
       },
       data: {
-        roles: ['ADMIN', 'API_PUBLISHER']
+        perms: {
+          only: ['management-api-c']
+        }
 
       }
     })
@@ -130,6 +148,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'General',
           icon: 'blur_on'
+        },
+        perms: {
+          only: ['api-definition-r']
         }
       }
     })
@@ -145,6 +166,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Gateway',
           icon: 'device_hub'
+        },
+        perms: {
+          only: ['api-definition-r']
         }
       }
     })
@@ -155,6 +179,11 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       controllerAs: 'endpointCtrl',
       resolve: {
         resolvedTenants: (TenantService: TenantService) => TenantService.list()
+      },
+      data: {
+        perms: {
+          only: ['api-definition-r']
+        }
       }
     })
     .state('management.apis.detail.plans', {
@@ -171,6 +200,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Plans',
           icon: 'view_week'
+        },
+        perms: {
+          only: ['api-plan-r']
         }
       },
       params: {
@@ -194,6 +226,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Subscriptions',
           icon: 'vpn_key'
+        },
+        perms: {
+          only: ['api-subscription-r']
         }
       }
     })
@@ -209,6 +244,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Resources',
           icon: 'style'
+        },
+        perms: {
+          only: ['api-definition-r']
         }
       }
     })
@@ -221,6 +259,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Policies',
           icon: 'share'
+        },
+        perms: {
+          only: ['api-definition-r']
         }
       }
     })
@@ -238,6 +279,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Members',
           icon: 'group'
+        },
+        perms: {
+          only: ['api-member-r']
         }
       }
     })
@@ -250,6 +294,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Properties',
           icon: 'assignment'
+        },
+        perms: {
+          only: ['api-definition-r']
         }
       }
     })
@@ -270,6 +317,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Metadata',
           icon: 'description'
+        },
+        perms: {
+          only: ['api-metadata-r']
         }
       }
     })
@@ -282,6 +332,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Analytics',
           icon: 'insert_chart'
+        },
+        perms: {
+          only: ['api-analytics-r']
         }
       },
       params: {
@@ -308,6 +361,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Logs',
           icon: 'receipt'
+        },
+        perms: {
+          only: ['api-log-r']
         }
       },
       params: {
@@ -332,6 +388,11 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         log: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
           ApiService.getLog($stateParams['apiId'], $stateParams['logId']).then(response => response.data)
       },
+      data: {
+        perms: {
+          only: ['api-log-r']
+        }
+      }
     })
     .state('management.apis.detail.documentation', {
       url: '/documentation',
@@ -342,6 +403,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Documentation',
           icon: 'insert_drive_file'
+        },
+        perms: {
+          only: ['api-page-r']
         }
       }
     })
@@ -350,7 +414,12 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       template: require('./documentation/page/apiPage.html'),
       controller: 'PageController',
       controllerAs: 'pageCtrl',
-      data: {menu: null},
+      data: {
+        menu: null,
+        perms: {
+          only: ['api-page-c']
+        }
+      },
       params: {
         type: {
           type: 'string',
@@ -364,7 +433,12 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       template: require('./documentation/page/apiPage.html'),
       controller: 'PageController',
       controllerAs: 'pageCtrl',
-      data: {menu: null}
+      data: {
+        menu: null,
+        perms: {
+          only: ['api-page-r']
+        }
+      }
     })
     .state('management.apis.detail.healthcheck', {
       url: '/healthcheck',
@@ -375,6 +449,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Health-check',
           icon: 'favorite'
+        },
+        perms: {
+          only: ['api-health-r']
         }
       }
     })
@@ -393,6 +470,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'History',
           icon: 'history'
+        },
+        perms: {
+          only: ['api-event-r']
         }
       }
     })
@@ -411,6 +491,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Events',
           icon: 'event'
+        },
+        perms: {
+          only: ['api-event-r']
         }
       }
     });

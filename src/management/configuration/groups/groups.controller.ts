@@ -21,6 +21,7 @@ class GroupsController {
   private applicationGroups: any[];
   private apiGroups: any[];
   private selectedGroup: any;
+  private roles: any;
 
   constructor(
     private GroupService,
@@ -29,12 +30,13 @@ class GroupsController {
     private NotificationService,
     private $q,
     private $mdDialog,
-    private $mdSidenav
+    private $mdSidenav,
+    private RoleService
   ) {
     'ngInject';
-    this.groupType = "APPLICATION";
     this.applicationGroups = [];
     this.apiGroups = [];
+    this.selectGroupType('APPLICATION');
     this.listGroups();
   }
 
@@ -47,7 +49,7 @@ class GroupsController {
             members: getMembersResponse.data
           };
         }).then(groupWithMembers => {
-          if(groupWithMembers.group.type === "application") {
+          if(groupWithMembers.group.type === 'application') {
             return this.ApplicationService.listByGroup(groupWithMembers.group.id).then (applicationsResponse => {
               return {
                 group: groupWithMembers.group,
@@ -69,7 +71,7 @@ class GroupsController {
 
       this.$q.all(promises).then(responses => {
         var partition = _.partition(responses, (item: any) => {
-          return item.group.type === "application";
+          return item.group.type === 'application';
         });
         this.applicationGroups = partition[0];
         this.apiGroups = partition[1];
@@ -94,6 +96,11 @@ class GroupsController {
 
   selectGroupType(type) {
     this.groupType = type;
+
+    const that = this;
+    this.RoleService.list(type).then(function (roles) {
+      that.roles = roles;
+    });
   }
 
   showAddGroupModal() {
@@ -102,8 +109,8 @@ class GroupsController {
       controller: 'DialogAddGroupController',
       controllerAs: 'dialogAddGroupCtrl',
       template: require('./dialog/add-group.dialog.html'),
-      currentName: "",
-      action: "Add",
+      currentName: '',
+      action: 'Add',
       clickOutsideToClose: true
     }).then( (name) => {
       if (name) {
@@ -125,7 +132,7 @@ class GroupsController {
       controllerAs: 'dialogAddGroupCtrl',
       template: require('./dialog/add-group.dialog.html'),
       currentName: name,
-      action: "Edit",
+      action: 'Edit',
       clickOutsideToClose: true
     }).then( (name) => {
       if (name) {
@@ -202,10 +209,12 @@ class GroupsController {
   }
 
   updateMember(member) {
-    var _this = this;
-    this.GroupService.addOrUpdateMember(this.selectedGroup.group.id, member).then( () => {
-      _this.NotificationService.show('Member ' + member.username + ' has been updated');
-    });
+    if (member.role) {
+      var _this = this;
+      this.GroupService.addOrUpdateMember(this.selectedGroup.group.id, member).then( () => {
+        _this.NotificationService.show('Member ' + member.username + ' has been updated');
+      });
+    }
   }
 }
 export default GroupsController;

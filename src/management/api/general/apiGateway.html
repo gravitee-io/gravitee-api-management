@@ -36,7 +36,7 @@
         <th md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
         <th md-column md-order-by="backup" hide-gt-xs show-gt-sm><span>Backup</span></th>
         <th md-column md-order-by="healthcheck" hide-gt-xs show-gt-sm><span>Health-check</span></th>
-        <th md-column>
+        <th md-column permission permission-only="'api-definition-u'">
           <md-button class="md-icon-button" aria-label="Add endpoint" ui-sref="management.apis.detail.general.endpoint({endpointName: ''})">
             <ng-md-icon icon="add" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
             <md-tooltip md-direction="left">Add new endpoint</md-tooltip>
@@ -64,7 +64,7 @@
           <ng-md-icon ng-show="endpoint.healthcheck" icon="done" style="fill: #107F20"></ng-md-icon>
           <ng-md-icon ng-show="!endpoint.healthcheck" icon="clear" style="fill: #BE2628"></ng-md-icon>
         </td>
-        <td md-cell>
+        <td md-cell permission permission-only="'api-definition-u'">
           <md-button class="md-icon-button" aria-label="Edit endpoint" ui-sref="management.apis.detail.general.endpoint({endpointName: endpoint.name})">
             <ng-md-icon icon="settings" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
             <md-tooltip md-direction="left">Edit endpoint</md-tooltip>
@@ -189,13 +189,13 @@
   <br />
 
   <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button class="md-raised" type="submit" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
+    <md-button permission permission-only="'api-definition-u'" class="md-raised" type="submit" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
       Save
     </md-button>
-    <md-button class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
+    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
       Reset
     </md-button>
-    <md-button class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(generalCtrl.api.id)" ng-disabled="generalCtrl.api.state === 'started'">
+    <md-button permission permission-only="'api-definition-d'" class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(generalCtrl.api.id)" ng-disabled="generalCtrl.api.state === 'started'">
       Delete
     </md-button>
   </div>
