@@ -84,7 +84,6 @@ public class RedisUserRepository implements UserRepository {
         user.setFirstname(redisUser.getFirstname());
         user.setLastname(redisUser.getLastname());
         user.setPassword(redisUser.getPassword());
-        user.setRoles(redisUser.getRoles());
         user.setCreatedAt(new Date(redisUser.getCreatedAt()));
         user.setUpdatedAt(new Date(redisUser.getUpdatedAt()));
         user.setPicture(redisUser.getPicture());
@@ -105,7 +104,6 @@ public class RedisUserRepository implements UserRepository {
         redisUser.setFirstname(user.getFirstname());
         redisUser.setLastname(user.getLastname());
         redisUser.setPassword(user.getPassword());
-        redisUser.setRoles(user.getRoles());
         redisUser.setCreatedAt(user.getCreatedAt().getTime());
         redisUser.setUpdatedAt(user.getUpdatedAt().getTime());
         redisUser.setPicture(user.getPicture());

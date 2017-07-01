@@ -133,6 +133,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
         application.setType(redisApplication.getType());
         application.setGroup(redisApplication.getGroup());
         application.setStatus(ApplicationStatus.valueOf(redisApplication.getStatus()));
+
         return application;
     }
 

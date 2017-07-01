@@ -30,7 +30,6 @@ public class RedisUser {
     private String email;
     private String firstname;
     private String lastname;
-    private Set<String> roles = new HashSet<>();
     private long createdAt;
     private long updatedAt;
     private String picture;
@@ -77,14 +76,6 @@ public class RedisUser {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public Set<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<String> roles) {
-        this.roles = roles;
     }
 
     public long getUpdatedAt() {
