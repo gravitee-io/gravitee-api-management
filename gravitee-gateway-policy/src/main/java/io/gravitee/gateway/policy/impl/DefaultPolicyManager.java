@@ -211,23 +211,35 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
                 (policyMetadata.method(OnRequest.class) != null || policyMetadata.method(OnRequestContent.class) != null)) ||
                 (streamType == StreamType.ON_RESPONSE && (
                         policyMetadata.method(OnResponse.class) != null || policyMetadata.method(OnResponseContent.class) != null))) {
-            PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
-                    policyMetadata.configuration(), configuration);
 
-            // TODO: this should be done only if policy is injectable
-            Map<Class<?>, Object> injectables = new HashMap<>(2);
-            injectables.put(policyMetadata.configuration(), policyConfiguration);
+            ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+            try {
+                if (policyMetadata.configuration() != null) {
+                    Thread.currentThread().setContextClassLoader(policyMetadata.configuration().getClassLoader());
+                }
+
+                PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
+                        policyMetadata.configuration(), configuration);
+
+                // TODO: this should be done only if policy is injectable
+                Map<Class<?>, Object> injectables = new HashMap<>(1);
+                injectables.put(policyMetadata.configuration(), policyConfiguration);
+            /*
             if (policyMetadata.context() != null) {
                 injectables.put(policyMetadata.context().getClass(), policyMetadata.context());
             }
+            */
 
-            Object policyInst = policyFactory.create(policyMetadata, injectables);
+                Object policyInst = policyFactory.create(policyMetadata, injectables);
 
-            logger.debug("Policy {} has been added to the policy chain", policyMetadata.id());
-            return PolicyImpl
-                    .target(policyInst)
-                    .definition(policyMetadata)
-                    .build();
+                logger.debug("Policy {} has been added to the policy chain", policyMetadata.id());
+                return PolicyImpl
+                        .target(policyInst)
+                        .definition(policyMetadata)
+                        .build();
+            } finally {
+                Thread.currentThread().setContextClassLoader(tccl);
+            }
         }
 
         return null;
