@@ -54,15 +54,15 @@
           <md-tooltip md-direction="top" ng-if="!pageCtrl.page.homepage">This page is a documentation page. Click to convert to the api homepage</md-tooltip>
           <ng-md-icon icon="home"></ng-md-icon>
         </md-button>
-        <md-button ng-click="pageCtrl.edit()" class="md-icon-button" aria-label="Edit">
+        <md-button ng-click="pageCtrl.edit()" ng-if="pageCtrl.page.id" class="md-icon-button" aria-label="Edit">
           <md-tooltip md-direction="top">Edit this page</md-tooltip>
           <ng-md-icon icon="edit"></ng-md-icon>
         </md-button>
-        <md-button ng-click="pageCtrl.showSettings()" class="md-icon-button" aria-label="Configure">
+        <md-button ng-click="pageCtrl.showSettings()" ng-if="pageCtrl.page.id" class="md-icon-button" aria-label="Configure">
           <md-tooltip md-direction="top">Configure this page</md-tooltip>
           <ng-md-icon icon="settings"></ng-md-icon>
         </md-button>
-        <md-button ng-click="pageCtrl.remove()" class="md-icon-button" aria-label="Delete">
+        <md-button ng-click="pageCtrl.remove()" ng-if="pageCtrl.page.id" class="md-icon-button" aria-label="Delete">
           <md-tooltip md-direction="top">Delete this page</md-tooltip>
           <ng-md-icon icon="delete"></ng-md-icon>
         </md-button>
