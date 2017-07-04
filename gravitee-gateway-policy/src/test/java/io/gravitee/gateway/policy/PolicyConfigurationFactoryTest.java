@@ -69,7 +69,19 @@ public class PolicyConfigurationFactoryTest {
             String configuration = IOUtils.toString(is, "UTF-8");
             DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
 
-            Assert.assertNull(policyConfiguration);
+            Assert.assertNotNull(policyConfiguration);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void createPolicyWithConfigurationAndConfigurationData_unrecognizedField() {
+        try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-unrecognized-field.json")) {
+            String configuration = IOUtils.toString(is, "UTF-8");
+            DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
+
+            Assert.assertNotNull(policyConfiguration);
         } catch (IOException e) {
             e.printStackTrace();
         }
