@@ -63,6 +63,14 @@
                 <include>*.zip</include>
             </includes>
         </fileSet>
+
+        <fileSet>
+            <directory>target/staging</directory>
+            <outputDirectory>/boot</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+        </fileSet>
     </fileSets>
 
     <dependencySets>

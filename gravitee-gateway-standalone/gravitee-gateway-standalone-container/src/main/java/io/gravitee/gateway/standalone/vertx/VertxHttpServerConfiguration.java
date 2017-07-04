@@ -33,6 +33,9 @@ public class VertxHttpServerConfiguration {
     @Value("${http.secured:false}")
     private boolean secured;
 
+    @Value("${http.alpn:false}")
+    private boolean alpn;
+
     @Value("${http.ssl.clientAuth:false}")
     private boolean clientAuth;
 
@@ -143,5 +146,13 @@ public class VertxHttpServerConfiguration {
 
     public void setTcpKeepAlive(boolean tcpKeepAlive) {
         this.tcpKeepAlive = tcpKeepAlive;
+    }
+
+    public boolean isAlpn() {
+        return alpn;
+    }
+
+    public void setAlpn(boolean alpn) {
+        this.alpn = alpn;
     }
 }

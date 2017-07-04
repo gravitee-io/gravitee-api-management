@@ -20,6 +20,7 @@
 #  compressionSupported: false
 #  instances: 0
 #  secured: false
+#  alpn: false
 #  ssl:
 #    clientAuth: false
 #    keystore:
