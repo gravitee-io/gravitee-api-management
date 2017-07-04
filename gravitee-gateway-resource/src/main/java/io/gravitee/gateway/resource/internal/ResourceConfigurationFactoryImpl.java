@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.resource.internal;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.resource.api.ResourceConfiguration;
@@ -31,7 +32,8 @@ public class ResourceConfigurationFactoryImpl implements ResourceConfigurationFa
 
     private final Logger LOGGER = LoggerFactory.getLogger(ResourceConfigurationFactoryImpl.class);
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public <T extends ResourceConfiguration> T create(Class<T> resourceConfigurationClass, String configuration) {
