@@ -13,25 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.services.spring;
+package io.gravitee.management.services.healthcheck;
 
-import io.gravitee.management.services.ServiceManager;
-import io.gravitee.management.services.http.spring.HttpServerSpringConfiguration;
-import io.gravitee.management.services.impl.ServiceManagerImpl;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-@Import(HttpServerSpringConfiguration.class)
-public class ServiceConfiguration {
+public interface Probe {
 
-    @Bean
-    public ServiceManager serviceManager() {
-        return new ServiceManagerImpl();
-    }
+    String id();
+
+    CompletableFuture<Result> check();
 }

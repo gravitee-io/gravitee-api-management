@@ -13,25 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.services.spring;
+package io.gravitee.management.services.http.auth;
 
-import io.gravitee.management.services.ServiceManager;
-import io.gravitee.management.services.http.spring.HttpServerSpringConfiguration;
-import io.gravitee.management.services.impl.ServiceManagerImpl;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.AbstractUser;
+import io.vertx.ext.auth.AuthProvider;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-@Import(HttpServerSpringConfiguration.class)
-public class ServiceConfiguration {
+public class User extends AbstractUser {
 
-    @Bean
-    public ServiceManager serviceManager() {
-        return new ServiceManagerImpl();
+    private AuthProvider authProvider;
+
+    @Override
+    protected void doIsPermitted(String permission, Handler<AsyncResult<Boolean>> resultHandler) {
+        resultHandler.handle(Future.succeededFuture());
+    }
+
+    @Override
+    public JsonObject principal() {
+        return new JsonObject();
+    }
+
+    @Override
+    public void setAuthProvider(AuthProvider authProvider) {
+        this.authProvider = authProvider;
     }
 }

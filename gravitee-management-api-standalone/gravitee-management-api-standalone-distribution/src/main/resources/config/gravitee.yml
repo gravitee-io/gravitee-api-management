@@ -90,6 +90,17 @@ management:
 #    connectTimeout: 500
 #    socketTimeout: 250
 
+services:
+  core:
+    http:
+      enabled: true
+      port: 8093
+      host: localhost
+      authentication:
+        type: basic
+        users:
+          admin: adminadmin
+
 # Analytics repository is used to store all reporting, metrics, healthchecks stored by gateway instances
 # This is the default configuration using Elasticearch
 analytics:

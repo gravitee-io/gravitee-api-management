@@ -37,6 +37,18 @@
         <module>gravitee-management-api-services-sync</module>
         <module>gravitee-management-api-services-dynamic-properties</module>
         <module>gravitee-management-api-services-subscriptions</module>
+	<module>gravitee-management-api-services-healthcheck</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Vert.x -->
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-web</artifactId>
+                <version>${vertx.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
 

@@ -17,8 +17,11 @@ package io.gravitee.management.services.impl;
 
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.management.services.ServiceManager;
+import io.gravitee.management.services.http.HttpServer;
+import io.gravitee.management.services.http.configuration.HttpServerConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +34,12 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ServiceManagerImpl.class);
 
+    @Autowired
+    private HttpServerConfiguration serverConfiguration;
+
+    @Autowired
+    private HttpServer httpServer;
+
     private final List<AbstractService> services = new ArrayList<>();
 
     @Override
@@ -41,6 +50,10 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     protected void doStart() throws Exception {
         super.doStart();
+
+        if (serverConfiguration.isEnabled()) {
+            httpServer.start();
+        }
 
         if (! services.isEmpty()) {
             for (AbstractService service : services) {
@@ -58,6 +71,10 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     protected void doStop() throws Exception {
         super.doStop();
+
+        if (serverConfiguration.isEnabled()) {
+            httpServer.stop();
+        }
 
         for(AbstractService service: services) {
             try {
