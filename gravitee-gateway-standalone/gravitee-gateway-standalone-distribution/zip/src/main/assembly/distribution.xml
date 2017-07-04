@@ -67,6 +67,15 @@
             </includes>
             <fileMode>755</fileMode>
         </fileSet>
+
+        <fileSet>
+            <directory>../target/distribution/boot</directory>
+            <outputDirectory>/boot</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <fileMode>755</fileMode>
+        </fileSet>
         
         <!-- Just to create an empty logs directory -->
         <fileSet>

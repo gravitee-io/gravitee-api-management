@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.policy.impl;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.policy.api.PolicyConfiguration;
@@ -31,8 +30,7 @@ public class PolicyConfigurationFactoryImpl implements PolicyConfigurationFactor
 
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyConfigurationFactoryImpl.class);
 
-    private final ObjectMapper mapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public <T extends PolicyConfiguration> T create(Class<T> policyConfigurationClass, String configuration) {

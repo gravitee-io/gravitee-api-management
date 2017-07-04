@@ -115,6 +115,7 @@ echo ""
 
 # Execute the JVM in the foreground
 "$JAVA" $JAVA_OPTS \
+        -javaagent:$GRAVITEE_HOME/boot/jetty-alpn-agent-2.0.6.jar \
         -Dvertx.disableFileCaching=true \
         -Dvertx.disableFileCPResolving=true \
         -Dvertx.disableContextTiming=true \
