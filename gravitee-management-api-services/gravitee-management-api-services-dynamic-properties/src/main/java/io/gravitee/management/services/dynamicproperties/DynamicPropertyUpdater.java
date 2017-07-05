@@ -26,10 +26,7 @@ import io.gravitee.management.services.dynamicproperties.provider.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -67,7 +64,7 @@ public class DynamicPropertyUpdater implements Runnable {
         // Get latest changes
         ApiEntity latestApi = apiService.findById(api.getId());
 
-        List<Property> properties = latestApi.getProperties().getProperties();
+        List<Property> properties = (latestApi.getProperties() != null) ? latestApi.getProperties().getProperties() : Collections.emptyList();
         List<Property> userDefinedProperties = properties.stream().filter(property -> !property.isDynamic()).collect(Collectors.toList());
 
         Map<String, Property> propertyMap = properties.stream().collect(Collectors.toMap(Property::getKey, property -> property));
