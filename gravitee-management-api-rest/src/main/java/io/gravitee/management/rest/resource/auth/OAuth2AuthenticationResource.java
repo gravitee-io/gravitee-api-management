@@ -118,7 +118,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         // User refresh
         UpdateUserEntity user = new UpdateUserEntity();
         user.setUsername(username);
-        user.setPicture((String) authenticationProvider.configuration().get("mapping.picture"));
+        user.setPicture((String) userInfo.get(authenticationProvider.configuration().get("mapping.picture")));
 
         userService.update(user);
 
