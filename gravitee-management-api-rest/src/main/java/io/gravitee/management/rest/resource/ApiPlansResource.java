@@ -155,6 +155,7 @@ public class ApiPlansResource extends AbstractResource {
 
     @DELETE
     @Path("/{plan}")
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiPermissionsRequired(ApiPermission.MANAGE_PLANS)
     @ApiOperation(value = "Delete a plan",
             notes = "User must have the MANAGE_PLANS permission to use this service")
@@ -179,6 +180,7 @@ public class ApiPlansResource extends AbstractResource {
 
     @POST
     @Path("/{plan}/_close")
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiPermissionsRequired(ApiPermission.MANAGE_PLANS)
     @ApiOperation(value = "Close  a plan",
             notes = "User must have the MANAGE_PLANS permission to use this service")
@@ -201,6 +203,7 @@ public class ApiPlansResource extends AbstractResource {
 
     @POST
     @Path("/{plan}/_publish")
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiPermissionsRequired(ApiPermission.MANAGE_PLANS)
     @ApiOperation(value = "Publicly publish plan",
             notes = "User must have the MANAGE_PLANS permission to use this service")
