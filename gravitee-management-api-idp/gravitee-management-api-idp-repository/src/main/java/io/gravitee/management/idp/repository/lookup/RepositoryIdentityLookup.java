@@ -28,8 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
-import java.util.function.Predicate;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +41,15 @@ import java.util.stream.Collectors;
 public class RepositoryIdentityLookup implements IdentityLookup<String> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryIdentityLookup.class);
+
+    public final static Set<String> MANAGED_USER_TYPES = new HashSet<>();
+
+    static {
+        MANAGED_USER_TYPES.add(RepositoryIdentityProvider.PROVIDER_TYPE);
+        MANAGED_USER_TYPES.add("oauth2");
+        MANAGED_USER_TYPES.add("google");
+        MANAGED_USER_TYPES.add("github");
+    }
 
     @Autowired
     private UserRepository userRepository;
@@ -61,7 +71,7 @@ public class RepositoryIdentityLookup implements IdentityLookup<String> {
     @Override
     public Collection<User> search(String query) {
         try {
-            return userRepository.findAll().stream().filter(user -> RepositoryIdentityProvider.PROVIDER_TYPE.equals(user.getSource())).filter(
+            return userRepository.findAll().stream().filter(user -> MANAGED_USER_TYPES.contains(user.getSource())).filter(
                     user -> (user.getUsername() != null && StringUtils.containsIgnoreCase(user.getUsername(), query)) ||
                             (user.getFirstname() != null && StringUtils.containsIgnoreCase(user.getFirstname(), query)) ||
                             (user.getLastname() != null && StringUtils.containsIgnoreCase(user.getLastname(), query)) ||
