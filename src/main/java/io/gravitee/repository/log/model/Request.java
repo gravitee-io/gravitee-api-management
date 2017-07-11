@@ -76,6 +76,8 @@ public class Request {
 
     private String message;
 
+    private String gateway;
+
     public String getId() {
         return id;
     }
@@ -274,6 +276,14 @@ public class Request {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getGateway() {
+        return gateway;
+    }
+
+    public void setGateway(String gateway) {
+        this.gateway = gateway;
     }
 
     @Override
