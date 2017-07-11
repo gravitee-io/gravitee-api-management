@@ -114,7 +114,9 @@ echo "========================================================================="
 echo ""
 
 # Execute the JVM in the foreground
-"$JAVA" $JAVA_OPTS \
+daemon=`echo $* | egrep -- '(^-d |-d$| -d |--daemon$|--daemon )'`
+if [ -z "$daemon" ] ; then
+	exec "$JAVA" $JAVA_OPTS \
         -javaagent:$GRAVITEE_HOME/boot/jetty-alpn-agent-2.0.6.jar \
         -Dvertx.disableFileCaching=true \
         -Dvertx.disableFileCPResolving=true \
@@ -125,5 +127,42 @@ echo ""
         $GRAVITEE_OPTS \
         io.gravitee.gateway.standalone.boostrap.Bootstrap \
         "$@"
+else
+	while [ $# -gt 0 ]; do
+		case "$1" in
+    		-p=*)
+      			pid_file="${1#*=}"
+      			;;
+  		esac
+  		shift
+	done
 
-GRAVITEE_STATUS=$?
+	if [ -z "$pid_file" ] ; then
+		pid_file=/var/run/graviteeio-apim-gw.pid
+	fi
+
+	exec "$JAVA" $JAVA_OPTS \
+        -javaagent:$GRAVITEE_HOME/boot/jetty-alpn-agent-2.0.6.jar \
+        -Dvertx.disableFileCaching=true \
+        -Dvertx.disableFileCPResolving=true \
+        -Dvertx.disableContextTiming=true \
+        -Dvertx.disableWebsockets=true \
+        -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
+        -cp "$GRAVITEE_BOOT_CLASSPATH" \
+        $GRAVITEE_OPTS \
+        io.gravitee.gateway.standalone.boostrap.Bootstrap \
+        "$@" <&- &
+
+    retval=$?
+    pid=$!
+
+    [ $retval -eq 0 ] || exit $retval
+    if ! ps -p $pid > /dev/null ; then
+        exit 1
+    fi
+
+    echo $pid > $pid_file
+    exit 0
+fi
+
+exit $?
