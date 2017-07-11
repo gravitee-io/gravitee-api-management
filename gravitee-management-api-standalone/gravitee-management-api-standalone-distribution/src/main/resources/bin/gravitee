@@ -113,10 +113,41 @@ echo "========================================================================="
 echo ""
 
 # Execute the JVM in the foreground
-"$JAVA" $JAVA_OPTS \
+daemon=`echo $* | egrep -- '(^-d |-d$| -d |--daemon$|--daemon )'`
+if [ -z "$daemon" ] ; then
+	exec "$JAVA" $JAVA_OPTS \
         -cp "$GRAVITEE_BOOT_CLASSPATH" \
         -Dgravitee.home=$GRAVITEE_HOME \
         io.gravitee.management.standalone.boostrap.Bootstrap \
         "$@"
+else
+	while [ $# -gt 0 ]; do
+		case "$1" in
+    		-p=*)
+      			pid_file="${1#*=}"
+      			;;
+  		esac
+  		shift
+	done
 
-GRAVITEE_STATUS=$?
+	if [ -z "$pid_file" ] ; then
+		pid_file=/var/run/graviteeio-apim-mgmt.pid
+	fi
+
+	exec "$JAVA" $JAVA_OPTS \
+        -cp "$GRAVITEE_BOOT_CLASSPATH" \
+        -Dgravitee.home=$GRAVITEE_HOME \
+        io.gravitee.management.standalone.boostrap.Bootstrap \
+        "$@" <&- &
+
+    retval=$?
+    pid=$!
+
+    [ $retval -eq 0 ] || exit $retval
+    if ! ps -p $pid > /dev/null ; then
+        exit 1
+    fi
+
+    echo $pid > $pid_file
+    exit 0
+fi
