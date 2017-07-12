@@ -119,10 +119,14 @@ class TagsController {
     this.$q.all([
       this.TagService.create(that.tagsToCreate),
       this.TagService.update(that.tagsToUpdate)
-    ]).then(function () {
+    ]).then(function (resultArray) {
       that.NotificationService.show("Tags saved with success");
       that.tagsToCreate = [];
       that.tagsToUpdate = [];
+      let createResult = resultArray[0];
+      if (createResult) {
+        that.tags = _.unionBy(createResult.data, that.tags, 'name');
+      }
     });
   }
 

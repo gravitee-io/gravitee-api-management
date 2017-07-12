@@ -119,10 +119,14 @@ class ViewsController {
     this.$q.all([
       this.ViewService.create(that.viewsToCreate),
       this.ViewService.update(that.viewsToUpdate)
-    ]).then(function () {
+    ]).then(function (resultArray) {
       that.NotificationService.show("Views saved with success");
       that.viewsToCreate = [];
       that.viewsToUpdate = [];
+      let createResult = resultArray[0];
+      if (createResult) {
+        that.views = _.unionBy(createResult.data, that.views, 'name');
+      }
     });
   }
 

@@ -119,11 +119,15 @@ class TenantsController {
     this.$q.all([
       this.TenantService.create(that.tenantsToCreate),
       this.TenantService.update(that.tenantsToUpdate)
-    ]).then(function () {
+    ]).then(function (resultArray) {
       that.NotificationService.show("Tenants saved with success");
 //      that.loadTenants();
       that.tenantsToCreate = [];
       that.tenantsToUpdate = [];
+      let createResult = resultArray[0];
+      if (createResult) {
+        that.tenants = _.unionBy(createResult.data, that.tenants, 'name');
+      }
     });
   }
 
