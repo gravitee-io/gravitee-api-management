@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.standalone;
 
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
@@ -59,6 +60,21 @@ public class DynamicRoutingGatewayTest extends AbstractGatewayTest {
         HttpResponse returnResponse = response.returnResponse();
 
         assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void call_dynamic_api_unavailable() throws Exception {
+        String initialTarget = api.getProxy().getEndpoints().iterator().next().getTarget();
+        String dynamicTarget = create(URI.create("http://localhost:8080/team"), new URL(initialTarget).getPort()).toString();
+
+        api.getProxy().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
+        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Get("http://localhost:8082/test/my_team");
+        request.addHeader("X-Dynamic-Routing-URI", dynamicTarget);
+
+        org.apache.http.client.fluent.Response response = request.execute();
+        HttpResponse returnResponse = response.returnResponse();
+
+        assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, returnResponse.getStatusLine().getStatusCode());
     }
 
     @Override

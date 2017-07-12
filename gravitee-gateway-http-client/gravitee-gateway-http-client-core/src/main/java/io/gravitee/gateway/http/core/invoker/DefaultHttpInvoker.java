@@ -30,14 +30,11 @@ import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
-import io.gravitee.gateway.http.core.endpoint.impl.DefaultEndpointLifecycleManager;
 import io.gravitee.gateway.http.core.logger.HttpDump;
 import io.gravitee.gateway.http.core.logger.LoggableClientResponse;
 import io.gravitee.gateway.http.core.logger.LoggableProxyConnection;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
@@ -51,8 +48,6 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 public class DefaultHttpInvoker implements Invoker {
-
-    private final Logger logger = LoggerFactory.getLogger(DefaultEndpointLifecycleManager.class);
 
 	// Pattern reuse for duplicate slash removal
 	private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
@@ -122,7 +117,7 @@ public class DefaultHttpInvoker implements Invoker {
         }
 
         // No endpoint has been selected by load-balancer strategy nor overridden value
-        if (targetUri == null) {
+        if (targetUri == null || endpoint == null || endpoint.definition().getStatus() == Endpoint.Status.DOWN) {
             ServiceUnavailableResponse clientResponse = new ServiceUnavailableResponse();
             result.handle(clientResponse);
             clientResponse.endHandler().handle(null);
