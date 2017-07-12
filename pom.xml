@@ -157,7 +157,7 @@
         <gravitee-policy-api.version>1.2.0</gravitee-policy-api.version>
         <gravitee-gateway-api.version>1.4.0</gravitee-gateway-api.version>
         <gravitee-reporter-api.version>1.5.0</gravitee-reporter-api.version>
-        <vertx.version>3.4.2</vertx.version>
+        <vertx.version>3.4.1</vertx.version>
         <gravitee-reporter-api.version>1.6.0</gravitee-reporter-api.version>
         <jetty.version>9.3.3.v20150827</jetty.version>
         <netty.version>4.1.8.Final</netty.version>
