@@ -32,19 +32,6 @@
     <name>Gravitee.io APIM - Management - Services - Subscriptions</name>
 
     <dependencies>
-        <!-- Gravitee.io dependencies -->
-        <dependency>
-            <groupId>io.gravitee.common</groupId>
-            <artifactId>gravitee-common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.management</groupId>
-            <artifactId>gravitee-management-api-service</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>

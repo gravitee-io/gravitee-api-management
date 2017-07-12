@@ -20,6 +20,7 @@ import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyServ
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.management.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.management.services.dynamicproperties.provider.http.mapper.JoltMapper;
+import io.vertx.core.Vertx;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -71,6 +72,7 @@ public class HttpProviderTest {
 
         HttpProvider provider = new HttpProvider(dynamicPropertyService);
         provider.setMapper(mapper);
+        provider.setVertx(Vertx.vertx());
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -88,6 +90,7 @@ public class HttpProviderTest {
 
         HttpProvider provider = new HttpProvider(dynamicPropertyService);
         provider.setMapper(mapper);
+        provider.setVertx(Vertx.vertx());
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -105,6 +108,7 @@ public class HttpProviderTest {
 
         HttpProvider provider = new HttpProvider(dynamicPropertyService);
         provider.setMapper(mapper);
+        provider.setVertx(Vertx.vertx());
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         future.join();

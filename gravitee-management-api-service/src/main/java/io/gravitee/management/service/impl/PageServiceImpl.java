@@ -41,7 +41,10 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
@@ -60,7 +63,7 @@ import static java.util.Collections.emptyList;
  * @author GraviteeSource Team
  */
 @Component
-public class PageServiceImpl extends TransactionalService implements PageService {
+public class PageServiceImpl extends TransactionalService implements PageService, ApplicationContextAware {
 
 	private static final Gson gson = new Gson();
 
@@ -83,6 +86,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Autowired
 	private Configuration freemarkerConfiguration;
+
+	@Autowired
+	private ApplicationContext applicationContext;
 
 	@Override
 	public List<PageListItem> findApiPagesByApi(String apiId) {
@@ -350,6 +356,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			Class<? extends Fetcher> fetcherClass = (Class<? extends Fetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
 			FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(fetcherConfigurationClass, ps.getConfiguration());
 			Fetcher fetcher = fetcherClass.getConstructor(fetcherConfigurationClass).newInstance(fetcherConfigurationInstance);
+			// Autowire fetcher
+			applicationContext.getAutowireCapableBeanFactory().autowireBean(fetcher);
 
 			StringBuilder sb = new StringBuilder();
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(fetcher.fetch()))) {
@@ -575,4 +583,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 	}
 
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
 }

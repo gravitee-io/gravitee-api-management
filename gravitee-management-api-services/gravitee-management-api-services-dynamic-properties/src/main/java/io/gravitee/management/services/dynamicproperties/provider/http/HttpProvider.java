@@ -21,9 +21,17 @@ import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPro
 import io.gravitee.management.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.management.services.dynamicproperties.provider.Provider;
 import io.gravitee.management.services.dynamicproperties.provider.http.mapper.JoltMapper;
-import org.asynchttpclient.*;
-import org.asynchttpclient.util.HttpConstants;
+import io.gravitee.management.services.dynamicproperties.provider.http.vertx.VertxCompletableFuture;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -34,36 +42,87 @@ import java.util.concurrent.CompletableFuture;
  */
 public class HttpProvider implements Provider {
 
-    private final DynamicPropertyService dpService;
+    private final Logger logger = LoggerFactory.getLogger(HttpProvider.class);
+
+    private static final String HTTPS_SCHEME = "https";
 
     private final HttpDynamicPropertyProviderConfiguration dpConfiguration;
 
-    private final AsyncHttpClient httpClient;
-
     private JoltMapper mapper;
+
+    private Vertx vertx;
 
     public HttpProvider(final DynamicPropertyService dpService) {
         Objects.requireNonNull(dpService, "Service must not be null");
 
-        this.dpService = dpService;
         this.dpConfiguration = (HttpDynamicPropertyProviderConfiguration) dpService.getConfiguration();
-        this.httpClient = create();
         this.mapper = new JoltMapper(dpConfiguration.getSpecification());
     }
 
     @Override
     public CompletableFuture<Collection<DynamicProperty>> get() {
-        Request request = new RequestBuilder()
-                .setUrl(dpConfiguration.getUrl())
-                .setMethod(HttpConstants.Methods.GET)
-                .build();
+        CompletableFuture<Buffer> future = new VertxCompletableFuture<>(vertx);
 
-        return httpClient
-                .prepareRequest(request)
-                .execute()
-                .toCompletableFuture()
-                .thenApply(response -> (HttpStatusCode.OK_200 == response.getStatusCode()) ?
-                        mapper.map(response.getResponseBody()) : null);
+        URI requestUri = URI.create(dpConfiguration.getUrl());
+        boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
+
+        final HttpClientOptions options = new HttpClientOptions()
+                .setSsl(ssl)
+                .setTrustAll(true)
+                .setMaxPoolSize(1)
+                .setKeepAlive(false)
+                .setTcpKeepAlive(false)
+                .setConnectTimeout(2000);
+
+        final HttpClient httpClient = vertx.createHttpClient(options);
+
+        final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
+                (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
+
+        try {
+            HttpClientRequest request = httpClient.request(
+                    HttpMethod.GET,
+                    port,
+                    requestUri.getHost(),
+                    requestUri.toString()
+            );
+
+            request.handler(response -> {
+                if (response.statusCode() == HttpStatusCode.OK_200) {
+                    response.bodyHandler(buffer -> {
+                        future.complete(buffer);
+
+                        // Close client
+                        httpClient.close();
+                    });
+                } else {
+                    future.complete(null);
+                }
+            });
+
+            request.exceptionHandler(event -> {
+                try {
+                    future.completeExceptionally(event);
+
+                    // Close client
+                    httpClient.close();
+                } catch (IllegalStateException ise) {
+                    // Do not take care about exception when closing client
+                }
+            });
+
+            request.end();
+        } catch (Exception ex) {
+            logger.error("Unable to look for dynamic properties", ex);
+            future.completeExceptionally(ex);
+        }
+
+        return future.thenApply(buffer -> {
+            if (buffer == null) {
+                return null;
+            }
+            return mapper.map(buffer.toString());
+        });
     }
 
     @Override
@@ -75,10 +134,8 @@ public class HttpProvider implements Provider {
         this.mapper = mapper;
     }
 
-    private AsyncHttpClient create() {
-        DefaultAsyncHttpClientConfig.Builder builder = new DefaultAsyncHttpClientConfig.Builder();
-        builder.setAcceptAnyCertificate(true);
-        AsyncHttpClientConfig cf = builder.build();
-        return new DefaultAsyncHttpClient(cf);
+
+    public void setVertx(Vertx vertx) {
+        this.vertx = vertx;
     }
 }

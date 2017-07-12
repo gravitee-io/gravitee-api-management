@@ -26,6 +26,7 @@ import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.event.ApiEvent;
 import io.gravitee.management.services.dynamicproperties.provider.http.HttpProvider;
+import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,9 @@ public class DynamicPropertiesService extends AbstractService  implements EventL
 
     @Autowired
     private ApiService apiService;
+
+    @Autowired
+    private Vertx vertx;
 
     private ExecutorService executorService;
 
@@ -114,6 +118,8 @@ public class DynamicPropertiesService extends AbstractService  implements EventL
 
                 if (dynamicPropertyService.getProvider() == DynamicPropertyProvider.HTTP) {
                     HttpProvider provider = new HttpProvider(dynamicPropertyService);
+                    provider.setVertx(vertx);
+
                     updater.setProvider(provider);
                     updater.setApiService(apiService);
                     logger.info("Add a scheduled task to poll dynamic properties each {} {} ", dynamicPropertyService.getInterval(), dynamicPropertyService.getUnit());
