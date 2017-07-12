@@ -55,7 +55,7 @@
       <h2 class="section-title color-white" translate="home.apis.top"></h2>
       <md-content style="background-color: inherit" layout="column" layout-gt-sm="row" layout-align="center center" layout-wrap>
         <md-card class="api-box gravitee-card gravitee-api-card" ng-repeat="api in homeCtrl.apis | limitTo: 4 track by api.id"
-                 ui-sref="portal.api.plans({apiId: api.id})" layout-wrap>
+                 ng-click="homeCtrl.goToApi(api)" layout-wrap>
           <md-card-title>
             <md-card-title-text>
               <span class="md-headline">{{api.name}}</span>
@@ -68,7 +68,12 @@
             </md-card-title-media>
           </md-card-title>
           <md-card-content>
-            <small>{{api.description}}</small>
+            <div class="api-infos">
+              <small>{{api.description}}</small>
+            </div>
+            <div ng-if="api.views" class="api-views">
+              <a ng-repeat="view in api.views" class="ui label" ng-click="homeCtrl.goToView($event, view)">{{view}}</a>
+            </div>
           </md-card-content>
         </md-card>
       </md-content>

@@ -47,4 +47,13 @@ export class HomeController {
   getLogo() {
     return this.Constants.theme.logo;
   }
+
+  goToApi(api) {
+    this.$state.go('portal.api.plans', {apiId: api.id});
+  }
+
+  goToView(event, view) {
+    event.stopPropagation();
+    this.$state.go('portal.apis.list', {view: view});
+  }
 }
