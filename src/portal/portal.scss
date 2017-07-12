@@ -33,10 +33,14 @@
   }
   .footer-brand-content {
     height: 80%; border-left: 1px solid #020817;
+    div#footer-logo {
+      text-align: right;
+      padding-right: 10px;
+    }
     img {
       vertical-align: middle;
-      width: 32px;
-      height: 32px;
+      max-width: 64px;
+      max-height: 32px;
     }
   }
 
