@@ -66,6 +66,14 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Jackson dependencies -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -86,12 +94,20 @@
             </exclusions>
         </dependency>
 
-        <!-- Vertx.io HTTP client -->
+        <!-- Vert.x -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
             <version>${vertx.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- HTTP mock -->
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>2.6.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

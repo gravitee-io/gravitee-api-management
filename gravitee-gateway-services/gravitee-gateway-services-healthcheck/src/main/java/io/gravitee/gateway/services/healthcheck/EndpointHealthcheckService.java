@@ -19,30 +19,33 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.definition.model.services.healthcheck.HealthCheck;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.report.ReporterService;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRuleRunner;
 import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheckService extends AbstractService implements EventListener<ReactorEvent, Reactable> {
+public class EndpointHealthcheckService extends AbstractService implements EventListener<ReactorEvent, Reactable> {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(HealthCheckService.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(EndpointHealthcheckService.class);
 
     @Value("${services.healthcheck.threads:3}")
     private int threads;
@@ -53,11 +56,15 @@ public class HealthCheckService extends AbstractService implements EventListener
     @Autowired
     private ReporterService reporterService;
 
+    @Autowired
+    private EndpointHealthcheckResolver endpointResolver;
+
     private ExecutorService executorService;
 
-    private final Map<Api, ScheduledFuture> scheduledTasks = new HashMap<>();
+    private final Map<Api, List<EndpointHealthcheckFuture>> scheduledTasks = new HashMap<>();
 
-    private final Vertx vertx = Vertx.vertx();
+    @Autowired
+    private Vertx vertx;
 
     @Override
     protected void doStart() throws Exception {
@@ -67,7 +74,7 @@ public class HealthCheckService extends AbstractService implements EventListener
 
         executorService = Executors.newScheduledThreadPool(threads, new ThreadFactory() {
             private int counter = 0;
-            private String prefix = "healthcheck";
+            private String prefix = "endpoint-healthcheck";
 
             public Thread newThread(Runnable r) {
                 return new Thread(r, prefix + '-' + counter++);
@@ -82,8 +89,6 @@ public class HealthCheckService extends AbstractService implements EventListener
         if (executorService != null) {
             executorService.shutdown();
         }
-
-        vertx.close(event -> LOGGER.info("Health-check HTTP client has been closed."));
     }
 
     @Override
@@ -111,31 +116,49 @@ public class HealthCheckService extends AbstractService implements EventListener
 
     private void startHealthCheck(Api api) {
         if (api.isEnabled()) {
-            HealthCheck healthCheck = api.getServices().get(HealthCheck.class);
-            if (healthCheck != null && healthCheck.isEnabled()) {
-                EndpointHealthCheck monitor = new EndpointHealthCheck(vertx, api);
-                monitor.setReporterService(reporterService);
+            List<EndpointRule> healthcheckEndpoints = endpointResolver.resolve(api);
+            List<EndpointHealthcheckFuture> runners = new ArrayList<>();
 
-                LOGGER.info("Add a scheduled task to health-check endpoints each {} {} ", healthCheck.getInterval(), healthCheck.getUnit());
-                ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
-                        monitor, 0, healthCheck.getInterval(), healthCheck.getUnit());
+            if (! healthcheckEndpoints.isEmpty()) {
+                LOGGER.info("Start health-check for API {} [{}]", api.getId(), api.getName());
 
-                scheduledTasks.put(api, scheduledFuture);
-            } else {
-                LOGGER.info("Health-check is disabled");
+                healthcheckEndpoints.forEach(rule -> {
+                    LOGGER.info("Add a trigger to check health status for endpoint {} [{}] each {} {} ",
+                            rule.endpoint().getName(), rule.endpoint().getTarget(),
+                            rule.trigger().getRate(),
+                            rule.trigger().getUnit());
+
+                    HttpEndpointRuleRunner runner = new HttpEndpointRuleRunner(vertx, rule);
+                    runner.setReporterService(reporterService);
+
+                    EndpointHealthcheckFuture endpointFuture = new EndpointHealthcheckFuture(
+                            rule.endpoint(),
+                            ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
+                                    runner, 0,
+                                    rule.trigger().getRate(),
+                                    rule.trigger().getUnit())
+                    );
+
+                    runners.add(endpointFuture);
+                });
+
+                scheduledTasks.put(api, runners);
             }
         }
     }
 
     private void stopHealthCheck(Api api) {
-        ScheduledFuture scheduledFuture = scheduledTasks.remove(api);
-        if (scheduledFuture != null) {
-            if (! scheduledFuture.isCancelled()) {
-                LOGGER.info("Stop health-check");
-                scheduledFuture.cancel(true);
-            } else {
-                LOGGER.info("Health-check already shutdown");
-            }
+        List<EndpointHealthcheckFuture> futures = scheduledTasks.remove(api);
+        if (futures != null) {
+            LOGGER.info("Stop health-check for API {} [{}]", api.getId(), api.getName());
+
+            futures.forEach(endpointFuture -> {
+                if (! endpointFuture.isCancelled()) {
+                    LOGGER.info("Stop health-check trigger for endpoint {} [{}]",
+                            endpointFuture.getEndpoint().getName(), endpointFuture.getEndpoint().getTarget());
+                    endpointFuture.cancel(true);
+                }
+            });
         }
     }
 }

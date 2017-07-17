@@ -20,10 +20,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointStatusManagerTest {
+public class EndpointStatusDecoratorTest {
 
     @Test
     public void testEndpointStatus_noHealthCheckDone() {
@@ -34,127 +34,125 @@ public class EndpointStatusManagerTest {
     @Test
     public void testEndpointStatus_up() {
         Endpoint endpoint = createEndpoint();
-        EndpointStatusManager manager = new EndpointStatusManager();
+        EndpointStatusDecorator manager = new EndpointStatusDecorator(endpoint);
 
-        manager.update(endpoint, true);
+        manager.updateStatus(true);
         Assert.assertEquals(Endpoint.Status.UP, endpoint.getStatus());
     }
 
     @Test
     public void testEndpointStatus_transitionallyDown() {
         Endpoint endpoint = createEndpoint();
-        EndpointStatusManager manager = new EndpointStatusManager();
+        EndpointStatusDecorator manager = new EndpointStatusDecorator(endpoint);
 
-        manager.update(endpoint, true);
-        manager.update(endpoint, false);
+        manager.updateStatus(true);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.TRANSITIONALLY_DOWN, endpoint.getStatus());
     }
 
     @Test
     public void testEndpointStatus_upAfterTransitionallyDown() {
         Endpoint endpoint = createEndpoint();
-        EndpointStatusManager manager = new EndpointStatusManager();
+        EndpointStatusDecorator manager = new EndpointStatusDecorator(endpoint);
 
-        manager.update(endpoint, true);
-        manager.update(endpoint, false);
+        manager.updateStatus(true);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.TRANSITIONALLY_DOWN, endpoint.getStatus());
 
-        manager.update(endpoint, true);
+        manager.updateStatus(true);
         Assert.assertEquals(Endpoint.Status.UP, endpoint.getStatus());
     }
 
     @Test
     public void testEndpointStatus_upAfterTransitionallyDownAndFinallyDown() {
         Endpoint endpoint = createEndpoint();
-        EndpointStatusManager manager = new EndpointStatusManager();
+        EndpointStatusDecorator manager = new EndpointStatusDecorator(endpoint);
 
-        manager.update(endpoint, false);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.TRANSITIONALLY_DOWN, endpoint.getStatus());
 
-        manager.update(endpoint, false);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.TRANSITIONALLY_DOWN, endpoint.getStatus());
 
-        manager.update(endpoint, false);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.DOWN, endpoint.getStatus());
     }
 
     @Test
     public void testEndpointStatus_down() {
         Endpoint endpoint = createEndpoint();
-        EndpointStatusManager manager = new EndpointStatusManager();
+        EndpointStatusDecorator manager = new EndpointStatusDecorator(endpoint);
 
-        manager.update(endpoint, false);
-        manager.update(endpoint, false);
-        manager.update(endpoint, false);
+        manager.updateStatus(false);
+        manager.updateStatus(false);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.DOWN, endpoint.getStatus());
     }
 
     @Test
     public void testEndpointStatus_downAfterTransitionallyUp() {
         Endpoint endpoint = createEndpoint();
-        EndpointStatusManager manager = new EndpointStatusManager();
+        EndpointStatusDecorator manager = new EndpointStatusDecorator(endpoint);
 
-        manager.update(endpoint, false);
-        manager.update(endpoint, false);
-        manager.update(endpoint, false);
+        manager.updateStatus(false);
+        manager.updateStatus(false);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.DOWN, endpoint.getStatus());
 
-        manager.update(endpoint, true);
+        manager.updateStatus(true);
         Assert.assertEquals(Endpoint.Status.TRANSITIONALLY_UP, endpoint.getStatus());
     }
 
     @Test
     public void testEndpointStatus_downAfterTransitionallyUpAndFinallyUp() {
         Endpoint endpoint = createEndpoint();
-        EndpointStatusManager manager = new EndpointStatusManager();
+        EndpointStatusDecorator manager = new EndpointStatusDecorator(endpoint);
 
-        manager.update(endpoint, false);
-        manager.update(endpoint, false);
-        manager.update(endpoint, false);
+        manager.updateStatus(false);
+        manager.updateStatus(false);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.DOWN, endpoint.getStatus());
 
-        manager.update(endpoint, true);
+        manager.updateStatus(true);
         Assert.assertEquals(Endpoint.Status.TRANSITIONALLY_UP, endpoint.getStatus());
 
-        manager.update(endpoint, true);
+        manager.updateStatus(true);
         Assert.assertEquals(Endpoint.Status.UP, endpoint.getStatus());
     }
 
     @Test
     public void testEndpointStatus_scenario() {
         Endpoint endpoint = createEndpoint();
-        EndpointStatusManager manager = new EndpointStatusManager();
+        EndpointStatusDecorator manager = new EndpointStatusDecorator(endpoint);
 
         Assert.assertEquals(Endpoint.Status.UP, endpoint.getStatus());
 
-        manager.update(endpoint, false);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.TRANSITIONALLY_DOWN, endpoint.getStatus());
 
-        manager.update(endpoint, false);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.TRANSITIONALLY_DOWN, endpoint.getStatus());
 
-        manager.update(endpoint, false);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.DOWN, endpoint.getStatus());
 
-        manager.update(endpoint, true);
+        manager.updateStatus(true);
         Assert.assertEquals(Endpoint.Status.TRANSITIONALLY_UP, endpoint.getStatus());
 
-        manager.update(endpoint, false);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.DOWN, endpoint.getStatus());
 
-        manager.update(endpoint, true);
+        manager.updateStatus(true);
         Assert.assertEquals(Endpoint.Status.TRANSITIONALLY_UP, endpoint.getStatus());
 
-        manager.update(endpoint, true);
+        manager.updateStatus(true);
         Assert.assertEquals(Endpoint.Status.UP, endpoint.getStatus());
 
-        manager.update(endpoint, false);
+        manager.updateStatus(false);
         Assert.assertEquals(Endpoint.Status.TRANSITIONALLY_DOWN, endpoint.getStatus());
     }
 
     private Endpoint createEndpoint() {
-        Endpoint endpoint = new Endpoint("default", "http://localhost:9099");
-
-        return endpoint;
+        return new Endpoint("default", "http://localhost:9099");
     }
 }
