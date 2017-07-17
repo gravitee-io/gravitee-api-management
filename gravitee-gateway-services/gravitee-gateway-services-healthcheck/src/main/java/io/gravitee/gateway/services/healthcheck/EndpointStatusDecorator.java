@@ -17,14 +17,11 @@ package io.gravitee.gateway.services.healthcheck;
 
 import io.gravitee.definition.model.Endpoint;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-class EndpointStatusManager {
+public class EndpointStatusDecorator {
 
     /**
      * Number of consecutive valid health checks before considering the server as UP
@@ -36,18 +33,23 @@ class EndpointStatusManager {
      */
     private static final int FALL_LIMIT = 3;
 
-    private Map<Endpoint, Counter> statuses = new HashMap<>();
+    private final Counter counter = new Counter();
 
-    public void update(Endpoint endpoint, boolean success) {
-        Counter counter = statuses.computeIfAbsent(endpoint, edpt -> new Counter());
+    private final Endpoint endpoint;
 
+    public EndpointStatusDecorator(Endpoint endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public void updateStatus(boolean success) {
+        // Calculate the endpoint status
         if (success) {
             counter.rise();
         } else {
             counter.fall();
         }
 
-        // Calculate the endpoint status
+        // Set status
         endpoint.setStatus(counter.status());
     }
 

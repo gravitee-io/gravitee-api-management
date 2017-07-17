@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.healthcheck.el;
+package io.gravitee.gateway.services.healthcheck.http.el;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.vertx.core.http.HttpClientResponse;
@@ -22,13 +22,13 @@ import io.vertx.core.http.HttpClientResponse;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public final class HealthCheckResponse {
+public final class EvaluableHttpResponse {
 
     private final int statusCode;
     private final String content;
     private final HttpHeaders httpHeaders = new HttpHeaders();
 
-    public HealthCheckResponse(final HttpClientResponse response, final String content) {
+    public EvaluableHttpResponse(final HttpClientResponse response, final String content) {
         this.statusCode = response.statusCode();
         this.content = content;
 
