@@ -32,7 +32,7 @@
     "description": "Sample grouped-app description",
     "type": "Web",
     "status": "ACTIVE",
-    "group": "application-group",
+    "groups": ["application-group"],
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
   },
@@ -42,7 +42,7 @@
     "description": "Sample grouped-app description",
     "type": "Web",
     "status": "ARCHIVED",
-    "group": "application-group",
+    "groups": ["application-group"],
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
   },

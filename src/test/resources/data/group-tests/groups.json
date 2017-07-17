@@ -1,7 +1,6 @@
 [
   {
     "id": "group-application-1",
-    "type": "APPLICATION",
     "name": "group-application-1",
     "administrators": [
       "user1",
@@ -10,7 +9,6 @@
   },
   {
     "id": "group-api-to-delete",
-    "type": "API",
     "name": "group-api-to-delete",
     "administrators": []
   }

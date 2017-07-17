@@ -67,6 +67,7 @@ public class MockTestRepositoryConfiguration {
         when(apiToDelete.getId()).thenReturn("api-to-delete");
 
         final Api apiToUpdate = mock(Api.class);
+        when(apiToUpdate.getId()).thenReturn("api-to-update");
         when(apiToUpdate.getName()).thenReturn("api-to-update");
         final Api apiUpdated = mock(Api.class);
         when(apiUpdated.getName()).thenReturn("New API name");
@@ -74,7 +75,7 @@ public class MockTestRepositoryConfiguration {
         when(apiUpdated.getViews()).thenReturn(Sets.newSet("view1", "view2"));
         when(apiUpdated.getDefinition()).thenReturn("New definition");
         when(apiUpdated.getDeployedAt()).thenReturn(parse("11/02/2016"));
-        when(apiUpdated.getGroup()).thenReturn("New group");
+        when(apiUpdated.getGroups()).thenReturn(Collections.singleton("New group"));
         when(apiUpdated.getLifecycleState()).thenReturn(LifecycleState.STARTED);
         when(apiUpdated.getPicture()).thenReturn("New picture");
         when(apiUpdated.getUpdatedAt()).thenReturn(parse("13/11/2016"));
@@ -97,7 +98,7 @@ public class MockTestRepositoryConfiguration {
         when(apiRepository.findById("sample-new")).thenReturn(of(newApi));
 
         final Api groupedApi = mock(Api.class);
-        when(groupedApi.getGroup()).thenReturn("api-group");
+        when(groupedApi.getGroups()).thenReturn(Collections.singleton("api-group"));
         when(apiRepository.findById("grouped-api")).thenReturn(of(groupedApi));
 
         final Api apiToFindById = mock(Api.class);
@@ -112,6 +113,10 @@ public class MockTestRepositoryConfiguration {
         when(apiRepository.findById("api-to-findById")).thenReturn(of(apiToFindById));
 
         when(apiRepository.findAll()).thenReturn(new HashSet<>(Arrays.asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class))));
+
+        when(apiRepository.findByIds(Arrays.asList("api-to-delete", "api-to-update", "unknown"))).
+                thenReturn(new HashSet<>(Arrays.asList(apiToUpdate, apiToDelete)));
+
         return apiRepository;
     }
 
@@ -119,6 +124,7 @@ public class MockTestRepositoryConfiguration {
     public ApplicationRepository applicationRepository() throws Exception {
         final ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
         final Application application = mock(Application.class);
+        when(application.getId()).thenReturn("application-sample");
         when(applicationRepository.findById("application-sample")).thenReturn(of(application));
 
         final Set<Application> allApplications = newSet(
@@ -144,6 +150,7 @@ public class MockTestRepositoryConfiguration {
         when(applicationRepository.findById("created-app")).thenReturn(of(newApplication));
 
         final Application updatedApplication = mock(Application.class);
+        when(updatedApplication.getId()).thenReturn("updated-app");
         when(updatedApplication.getName()).thenReturn("updated-app");
         when(updatedApplication.getDescription()).thenReturn("Updated description");
         when(updatedApplication.getType()).thenReturn("update-type");
@@ -155,12 +162,12 @@ public class MockTestRepositoryConfiguration {
 
         final Application groupedApplication1 = mock(Application.class);
         when(groupedApplication1.getId()).thenReturn("grouped-app1");
-        when(groupedApplication1.getGroup()).thenReturn("application-group");
+        when(groupedApplication1.getGroups()).thenReturn(Collections.singleton("application-group"));
         when(applicationRepository.findById("grouped-app1")).thenReturn(of(groupedApplication1));
 
         final Application groupedApplication2 = mock(Application.class);
         when(groupedApplication2.getId()).thenReturn("grouped-app2");
-        when(groupedApplication2.getGroup()).thenReturn("application-group");
+        when(groupedApplication2.getGroups()).thenReturn(Collections.singleton("application-group"));
         when(applicationRepository.findById("grouped-app2")).thenReturn(of(groupedApplication2));
 
         final Set<Application> allArchivedApplications = newSet(groupedApplication2);
@@ -179,6 +186,11 @@ public class MockTestRepositoryConfiguration {
         when(applicationRepository.findByIds(asList("searched-app1", "searched-app2"))).thenReturn(newSet(searchedApp1, searchedApp2));
         when(applicationRepository.findByGroups(singletonList("application-group"))).thenReturn(newSet(groupedApplication1, groupedApplication2));
         when(applicationRepository.findByGroups(singletonList("application-group"), ApplicationStatus.ARCHIVED)).thenReturn(newSet(groupedApplication2));
+
+
+        when(applicationRepository.findByIds(Arrays.asList("application-sample", "updated-app", "unknown"))).
+                thenReturn(new HashSet<>(Arrays.asList(application, updatedApplication)));
+
         return applicationRepository;
     }
 
@@ -410,19 +422,15 @@ public class MockTestRepositoryConfiguration {
         final Group group_application_1 = new Group();
         group_application_1.setId("group-application-1");
         group_application_1.setName("group-application-1");
-        group_application_1.setType(Group.Type.APPLICATION);
         group_application_1.setAdministrators(asList("user1", "user2"));
         final Group group_api_to_delete = new Group();
         group_api_to_delete.setId("group-api-to-delete");
         group_api_to_delete.setName("group-api-to-delete");
-        group_api_to_delete.setType(Group.Type.API);
         group_api_to_delete.setAdministrators(Collections.emptyList());
         final Group group_updated = new Group();
         group_updated.setId("group-application-1");
-        group_updated.setType(Group.Type.APPLICATION);
         group_updated.setName("Modified Name");
         group_updated.setUpdatedAt(new Date(0));
-        when(groupRepository.findByType(Group.Type.APPLICATION)).thenReturn(Collections.singleton(group_application_1));
         when(groupRepository.findAll()).thenReturn(newSet(group_application_1, group_api_to_delete));
         when(groupRepository.findById("group-application-1")).thenReturn(of(group_application_1));
         when(groupRepository.findById("unknown")).thenReturn(empty());
@@ -440,6 +448,9 @@ public class MockTestRepositoryConfiguration {
                 return o != null && o instanceof Group && ((Group)o).getId().equals("group-application-1");
             }
         }))).thenReturn(group_updated);
+
+        when(groupRepository.findByIds(new HashSet<>(Arrays.asList("group-application-1", "group-api-to-delete", "unknown")))).
+                thenReturn(new HashSet<>(Arrays.asList(group_application_1, group_api_to_delete)));
 
         return groupRepository;
     }
@@ -485,18 +496,16 @@ public class MockTestRepositoryConfiguration {
     public MembershipRepository membershipRepository() throws Exception {
         final MembershipRepository repo = mock(MembershipRepository.class);
 
+        Map<Integer, String> API_OWNER_ROLE_MAP = Collections.singletonMap(RoleScope.API.getId(), "OWNER");
         Membership m1 = mock(Membership.class);
         when(m1.getUserId()).thenReturn("user1");
         when(m1.getReferenceType()).thenReturn(MembershipReferenceType.API);
-        when(m1.getRoleScope()).thenReturn(3);
-        when(m1.getRoleName()).thenReturn("OWNER");
+        when(m1.getRoles()).thenReturn(API_OWNER_ROLE_MAP);
         when(m1.getReferenceId()).thenReturn("api1");
         Membership m2 = new Membership("user2", "api2", MembershipReferenceType.API);
-        m2.setRoleScope(3);
-        m2.setRoleName("OWNER");
+        m2.setRoles(API_OWNER_ROLE_MAP);
         Membership m3 = new Membership("user3", "api3", MembershipReferenceType.API);
-        m3.setRoleScope(3);
-        m3.setRoleName("USER");
+        m3.setRoles(API_OWNER_ROLE_MAP);
         Membership m4 = new Membership("userToDelete", "app1", MembershipReferenceType.APPLICATION);
         m4.setCreatedAt(new Date(0));
 
@@ -519,6 +528,16 @@ public class MockTestRepositoryConfiguration {
         when(repo.findByReferencesAndRole(MembershipReferenceType.API, asList("api2", "api3"), RoleScope.API, "OWNER"))
                 .thenReturn(new HashSet<>(singletonList(m2)));
         when(repo.update(any())).thenReturn(m4);
+
+        Membership api1_findByIds = mock(Membership.class);
+        when(api1_findByIds.getReferenceId()).thenReturn("api1_findByIds");
+        Membership api2_findByIds = mock(Membership.class);
+        when(api2_findByIds.getReferenceId()).thenReturn("api2_findByIds");
+        when(repo.findByIds(
+                "user_findByIds",
+                MembershipReferenceType.API,
+                new HashSet<>(Arrays.asList("api1_findByIds", "api2_findByIds", "unknown")))).
+                thenReturn(new HashSet<>(Arrays.asList(api1_findByIds, api2_findByIds)));
 
         return repo;
     }

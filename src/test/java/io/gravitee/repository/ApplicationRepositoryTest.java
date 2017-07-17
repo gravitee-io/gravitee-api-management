@@ -18,14 +18,16 @@ package io.gravitee.repository;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
+import static org.junit.Assert.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -43,17 +45,17 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
     public void findAllTest() throws Exception {
         Set<Application> applications = applicationRepository.findAll();
 
-        Assert.assertNotNull(applications);
-        Assert.assertEquals("Fail to resolve application in findAll", 7, applications.size());
+        assertNotNull(applications);
+        assertEquals("Fail to resolve application in findAll", 7, applications.size());
     }
 
     @Test
     public void findAllArchivedTest() throws Exception {
         Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ARCHIVED);
 
-        Assert.assertNotNull(applications);
-        Assert.assertEquals("Fail to resolve application in findAll with application status", 1, applications.size());
-        Assert.assertEquals("grouped-app2", applications.iterator().next().getId());
+        assertNotNull(applications);
+        assertEquals("Fail to resolve application in findAll with application status", 1, applications.size());
+        assertEquals("grouped-app2", applications.iterator().next().getId());
     }
 
     @Test
@@ -74,17 +76,17 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
         Optional<Application> optional = applicationRepository.findById(name);
 
-        Assert.assertNotNull(optional);
-        Assert.assertTrue("Application saved not found", optional.isPresent());
+        assertNotNull(optional);
+        assertTrue("Application saved not found", optional.isPresent());
 
         Application appSaved = optional.get();
 
-        Assert.assertEquals("Invalid application name.", application.getName(), appSaved.getName());
-        Assert.assertEquals("Invalid application description.", application.getDescription(), appSaved.getDescription());
-        Assert.assertEquals("Invalid application type.", application.getType(), appSaved.getType());
-        Assert.assertEquals("Invalid application status.", application.getStatus(), appSaved.getStatus());
-        Assert.assertEquals("Invalid application createdAt.", application.getCreatedAt(), appSaved.getCreatedAt());
-        Assert.assertEquals("Invalid application updateAt.", application.getUpdatedAt(), appSaved.getUpdatedAt());
+        assertEquals("Invalid application name.", application.getName(), appSaved.getName());
+        assertEquals("Invalid application description.", application.getDescription(), appSaved.getDescription());
+        assertEquals("Invalid application type.", application.getType(), appSaved.getType());
+        assertEquals("Invalid application status.", application.getStatus(), appSaved.getStatus());
+        assertEquals("Invalid application createdAt.", application.getCreatedAt(), appSaved.getCreatedAt());
+        assertEquals("Invalid application updateAt.", application.getUpdatedAt(), appSaved.getUpdatedAt());
     }
 
     @Test
@@ -103,17 +105,17 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         applicationRepository.update(application);
 
         Optional<Application> optional = applicationRepository.findById(applicationName);
-        Assert.assertTrue("Application updated not found", optional.isPresent());
+        assertTrue("Application updated not found", optional.isPresent());
 
         Application appUpdated = optional.get();
 
-        Assert.assertEquals("Invalid updated application name.", application.getName(), appUpdated.getName());
-        Assert.assertEquals("Invalid updated application description.", application.getDescription(), appUpdated.getDescription());
-        Assert.assertEquals("Invalid updated application type.", application.getType(), appUpdated.getType());
-        Assert.assertEquals("Invalid updated application status.", application.getStatus(), appUpdated.getStatus());
-        Assert.assertEquals("Invalid updated application updateAt.", application.getUpdatedAt(), appUpdated.getUpdatedAt());
+        assertEquals("Invalid updated application name.", application.getName(), appUpdated.getName());
+        assertEquals("Invalid updated application description.", application.getDescription(), appUpdated.getDescription());
+        assertEquals("Invalid updated application type.", application.getType(), appUpdated.getType());
+        assertEquals("Invalid updated application status.", application.getStatus(), appUpdated.getStatus());
+        assertEquals("Invalid updated application updateAt.", application.getUpdatedAt(), appUpdated.getUpdatedAt());
         //Check invariant field
-        Assert.assertNotEquals("Invalid updated application createdAt.", application.getCreatedAt(), appUpdated.getCreatedAt());
+        assertNotEquals("Invalid updated application createdAt.", application.getCreatedAt(), appUpdated.getCreatedAt());
     }
 
     @Test
@@ -126,74 +128,89 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Optional<Application> optional = applicationRepository.findById(applicationName);
         int nbApplicationAfter = applicationRepository.findAll().size();
 
-        Assert.assertFalse("Deleted application always present", optional.isPresent());
-        Assert.assertEquals("Invalid number of applications after deletion", nbApplicationBefore - 1, nbApplicationAfter);
+        assertFalse("Deleted application always present", optional.isPresent());
+        assertEquals("Invalid number of applications after deletion", nbApplicationBefore - 1, nbApplicationAfter);
     }
 
     @Test
     public void findByIdTest() throws Exception {
         Optional<Application> optional = applicationRepository.findById("application-sample");
-        Assert.assertTrue("Find application by name return no result ", optional.isPresent());
+        assertTrue("Find application by name return no result ", optional.isPresent());
     }
 
     @Test
     public void findByIdsTest() throws Exception {
         Set<Application> apps = applicationRepository.findByIds(Arrays.asList("searched-app1", "searched-app2"));
-        Assert.assertNotNull(apps);
-        Assert.assertEquals(2, apps.size());
+        assertNotNull(apps);
+        assertEquals(2, apps.size());
     }
 
     @Test
     public void shouldFindApplicationWithGroup() throws Exception {
         Optional<Application> application = applicationRepository.findById("grouped-app1");
-        Assert.assertTrue(application.isPresent());
-        Assert.assertNotNull(application.get().getGroup());
-        Assert.assertEquals("application-group", application.get().getGroup());
+        assertTrue(application.isPresent());
+        assertNotNull(application.get().getGroups());
+        assertEquals(Collections.singleton("application-group"), application.get().getGroups());
     }
 
     @Test
     public void shouldFindApplicationByExactName() throws Exception {
         Set<Application> apps = applicationRepository.findByName("searched-app1");
-        Assert.assertNotNull(apps);
-        Assert.assertEquals(1, apps.size());
-        Assert.assertEquals("searched-app1", apps.iterator().next().getId());
+        assertNotNull(apps);
+        assertEquals(1, apps.size());
+        assertEquals("searched-app1", apps.iterator().next().getId());
     }
 
     @Test
     public void shouldNotFindApplicationByName() throws Exception {
         Set<Application> apps = applicationRepository.findByName("unknowd-app");
-        Assert.assertNotNull(apps);
-        Assert.assertEquals(0, apps.size());
+        assertNotNull(apps);
+        assertEquals(0, apps.size());
     }
 
     @Test
     public void shouldFindApplicationByPartialName() throws Exception {
         Set<Application> apps = applicationRepository.findByName("arched");
-        Assert.assertNotNull(apps);
-        Assert.assertEquals(2, apps.size());
+        assertNotNull(apps);
+        assertEquals(2, apps.size());
     }
 
     @Test
     public void shouldFindApplicationByPartialNameIgnoreCase() throws Exception {
         Set<Application> apps = applicationRepository.findByName("aRcHEd");
-        Assert.assertNotNull(apps);
-        Assert.assertEquals(2, apps.size());
+        assertNotNull(apps);
+        assertEquals(2, apps.size());
     }
 
     @Test
     public void shouldFindByGroups() throws Exception {
         Set<Application> apps = applicationRepository.findByGroups(Arrays.asList("application-group"));
 
-        Assert.assertNotNull(apps);
-        Assert.assertEquals(2, apps.size());
+        assertNotNull(apps);
+        assertEquals(2, apps.size());
     }
 
     @Test
     public void shouldFindByGroupsAndStatus() throws Exception {
         Set<Application> apps = applicationRepository.findByGroups(Arrays.asList("application-group"), ApplicationStatus.ARCHIVED);
 
-        Assert.assertNotNull(apps);
-        Assert.assertEquals(1, apps.size());
-        Assert.assertEquals("grouped-app2", apps.iterator().next().getId());
+        assertNotNull(apps);
+        assertEquals(1, apps.size());
+        assertEquals("grouped-app2", apps.iterator().next().getId());
+    }
+
+
+    @Test
+    public void shouldFindByIds() throws Exception {
+        Set<Application> apps = applicationRepository.findByIds(Arrays.asList("application-sample", "updated-app", "unknown"));
+
+        assertNotNull(apps);
+        assertFalse(apps.isEmpty());
+        assertEquals(2, apps.size());
+        assertTrue(apps.
+                stream().
+                map(Application::getId).
+                collect(Collectors.toList()).
+                containsAll(Arrays.asList("application-sample", "updated-app")));
     }
 }
