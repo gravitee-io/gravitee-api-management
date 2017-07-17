@@ -54,7 +54,7 @@ public class ApiMongo extends Auditable {
     
     private String picture;
 
-    private String group;
+    private Set<String> groups;
 
     private Set<String> views;
 
@@ -134,12 +134,12 @@ public class ApiMongo extends Auditable {
         this.picture = picture;
     }
 
-    public String getGroup() {
-        return group;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
     }
 
     public Set<String> getViews() {
@@ -187,6 +187,7 @@ public class ApiMongo extends Auditable {
         sb.append(", version='").append(version).append('\'');
         sb.append(", state='").append(lifecycleState).append('\'');
         sb.append(", visibility='").append(visibility).append('\'');
+        sb.append(", groups='").append(groups).append('\'');
         sb.append(", metadatas='").append(metadatas).append('\'');
         sb.append('}');
         return sb.toString();

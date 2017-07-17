@@ -22,6 +22,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Mongo object model for application.
@@ -43,7 +44,7 @@ public class ApplicationMongo extends Auditable {
 
     private String type;
 
-    private String group;
+    private Set<String> groups;
 
     private String status;
 
@@ -79,12 +80,12 @@ public class ApplicationMongo extends Auditable {
         this.type = type;
     }
 
-    public String getGroup() {
-        return group;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
     }
 
     public String getStatus() {
@@ -115,6 +116,7 @@ public class ApplicationMongo extends Auditable {
         sb.append(", name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
         sb.append(", status='").append(status).append('\'');
+        sb.append(", groups='").append(groups).append('\'');
         sb.append('}');
         return sb.toString();
     }

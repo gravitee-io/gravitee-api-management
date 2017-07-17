@@ -28,7 +28,6 @@ import java.util.List;
 public class GroupMongo extends Auditable {
     @Id
     private String id;
-    private String type;
     private String name;
     private List<String> administrators;
 
@@ -38,14 +37,6 @@ public class GroupMongo extends Auditable {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getName() {

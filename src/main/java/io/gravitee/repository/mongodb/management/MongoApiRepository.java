@@ -93,7 +93,7 @@ public class MongoApiRepository implements ApiRepository {
 		apiMongo.setVersion(api.getVersion());
 		apiMongo.setDeployedAt(api.getDeployedAt());
 		apiMongo.setPicture(api.getPicture());
-        apiMongo.setGroup(api.getGroup());
+        apiMongo.setGroups(api.getGroups());
 		apiMongo.setViews(api.getViews());
 		apiMongo.setLabels(api.getLabels());
 

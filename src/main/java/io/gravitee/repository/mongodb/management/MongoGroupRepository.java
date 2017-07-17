@@ -52,6 +52,14 @@ public class MongoGroupRepository implements GroupRepository {
     }
 
     @Override
+    public Set<Group> findByIds(Set<String> ids) throws TechnicalException {
+        logger.debug("Find groups by ids");
+        Set<Group> groups = collection2set(internalRepository.findByIds(ids));
+        logger.debug("Find groups by ids - Found {}", groups);
+        return groups;
+    }
+
+    @Override
     public Group create(Group group) throws TechnicalException {
         logger.debug("Create group [{}]", group.getName());
         if(group.getAdministrators() == null){
@@ -86,14 +94,6 @@ public class MongoGroupRepository implements GroupRepository {
         Set<Group> all = collection2set(internalRepository.findAll());
         logger.debug("Find all groups - Found {}", all);
         return all;
-    }
-
-    @Override
-    public Set<Group> findByType(Group.Type type) throws TechnicalException {
-        logger.debug("Find group by type [{}]", type);
-        Set<Group> groups = collection2set(internalRepository.findByType(type.name()));
-        logger.debug("Find group by type [{}] - Found {}.", type, groups.size());
-        return groups;
     }
 
     private GroupMongo map(Group group) {

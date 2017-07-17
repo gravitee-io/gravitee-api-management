@@ -31,21 +31,24 @@ import java.util.Set;
 @Repository
 public interface MembershipMongoRepository extends MongoRepository<MembershipMongo, MembershipPkMongo> {
 
+    @Query("{ 'id.userId': ?0, 'id.referenceType': ?1, 'id.referenceId': {$in: ?2} }")
+    Set<MembershipMongo> findByIds(String userId, String referenceType, Set<String> referenceIds);
+
     @Query("{ 'id.referenceType' : ?0, 'id.referenceId' : ?1 }")
     Set<MembershipMongo> findByReference(String referenceType, String referenceId);
 
-    @Query("{ 'id.referenceType' : ?0, 'id.referenceId' : ?1, 'type' : ?2 }")
+    @Query("{ 'id.referenceType' : ?0, 'id.referenceId' : ?1, 'roles' : ?2 }")
     Set<MembershipMongo> findByReferenceAndMembershipType(String referenceType, String referenceId, String membershipType);
 
     @Query("{ 'id.referenceType' : ?0, 'id.referenceId' : { $in : ?1 } }")
     Set<MembershipMongo> findByReferences(String referenceType, List<String> referenceId);
 
-    @Query("{ 'id.referenceType' : ?0, 'id.referenceId' : { $in : ?1 }, 'type' : ?2 }")
+    @Query("{ 'id.referenceType' : ?0, 'id.referenceId' : { $in : ?1 }, 'roles' : ?2 }")
     Set<MembershipMongo> findByReferencesAndMembershipType(String referenceType, List<String>  referenceId, String membershipType);
 
     @Query("{ 'id.userId' : ?0, 'id.referenceType' : ?1 }")
     Set<MembershipMongo> findByUserAndReferenceType(String userId, String referenceType);
 
-    @Query("{ 'id.userId' : ?0, 'id.referenceType' : ?1, 'type' : ?2 }")
+    @Query("{ 'id.userId' : ?0, 'id.referenceType' : ?1, 'roles' : ?2 }")
     Set<MembershipMongo> findByUserAndReferenceTypeAndMembershipType(String userId, String referenceType, String membershipType);
 }

@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -29,7 +30,7 @@ import java.util.Collection;
 @Repository
 public interface GroupMongoRepository extends MongoRepository<GroupMongo, String> {
 
-        @Query("{ 'type' : ?0}")
-        Collection<GroupMongo> findByType(String type);
+    @Query("{ _id: {$in: ?0} }")
+    Collection<GroupMongo> findByIds(Set<String> ids);
 
 }

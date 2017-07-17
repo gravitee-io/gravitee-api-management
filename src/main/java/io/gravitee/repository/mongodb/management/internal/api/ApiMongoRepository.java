@@ -36,7 +36,7 @@ public interface ApiMongoRepository extends MongoRepository<ApiMongo, String> {
     @Query("{ _id: {$in: ?0} }")
     Set<ApiMongo> findByIds(List<String> ids);
 
-    @Query("{ group: {$in: ?0} }")
+    @Query("{ groups: {$in: ?0} }")
     Set<ApiMongo> findByGroups(List<String> groupIds);
 
 }

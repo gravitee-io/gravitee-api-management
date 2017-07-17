@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -29,7 +30,7 @@ public class MembershipMongo extends Auditable {
     @Id
     MembershipPkMongo id;
 
-    private String type;
+    private List<String> roles;
 
     public MembershipPkMongo getId() {
         return id;
@@ -39,12 +40,12 @@ public class MembershipMongo extends Auditable {
         this.id = id;
     }
 
-    public String getType() {
-        return type;
+    public List<String> getRoles() {
+        return roles;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 
     @Override
@@ -53,19 +54,19 @@ public class MembershipMongo extends Auditable {
         if (!(o instanceof MembershipMongo)) return false;
         MembershipMongo membershipMongo = (MembershipMongo) o;
         return Objects.equals(id, membershipMongo.id) &&
-                Objects.equals(type, membershipMongo.type);
+                Objects.equals(roles, membershipMongo.roles);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, type);
+        return Objects.hash(id, roles);
     }
 
     @Override
     public String toString() {
         return "MembershipMongo{" +
                 "id='" + id + '\'' +
-                ", type ='" + type + '\'' +
+                ", roles ='" + roles + '\'' +
                 '}';
     }
 }

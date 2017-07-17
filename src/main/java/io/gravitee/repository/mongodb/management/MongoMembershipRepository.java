@@ -30,9 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -83,6 +81,19 @@ public class MongoMembershipRepository implements MembershipRepository {
 
         logger.debug("Find membership by ID [{}, {}, {}]", userId, referenceType, referenceId);
         return Optional.ofNullable(map(membershipMongo));
+    }
+
+    @Override
+    public Set<Membership> findByIds(String userId, MembershipReferenceType referenceType, Set<String> referenceIds) throws TechnicalException {
+        logger.debug("Find membership by IDs [{}, {}, {}]", userId, referenceType, referenceIds);
+
+        Set<Membership> memberships = internalMembershipRepo.findByIds(userId, referenceType.name(), referenceIds).
+                stream().
+                map(this::map).
+                collect(Collectors.toSet());
+
+        logger.debug("Find membership by IDs [{}, {}, {}]", userId, referenceType, referenceIds);
+        return memberships;
     }
 
     @Override
@@ -146,10 +157,13 @@ public class MongoMembershipRepository implements MembershipRepository {
         membership.setUserId(membershipMongo.getId().getUserId());
         membership.setReferenceType(MembershipReferenceType.valueOf(membershipMongo.getId().getReferenceType()));
         membership.setReferenceId(membershipMongo.getId().getReferenceId());
-        String[] role = convertTypeToRole(membershipMongo.getType());
-        if (role != null) {
-            membership.setRoleScope(Integer.valueOf(role[0]));
-            membership.setRoleName(role[1]);
+        if (membershipMongo.getRoles() != null) {
+            Map<Integer, String> roles = new HashMap<>(membershipMongo.getRoles().size());
+            for (String roleAsString : membershipMongo.getRoles()) {
+                String[] role = convertTypeToRole(roleAsString);
+                roles.put(Integer.valueOf(role[0]), role[1]);
+            }
+            membership.setRoles(roles);
         }
         membership.setCreatedAt(membershipMongo.getCreatedAt());
         membership.setUpdatedAt(membershipMongo.getUpdatedAt());
@@ -162,7 +176,13 @@ public class MongoMembershipRepository implements MembershipRepository {
         }
         MembershipMongo membershipMongo = new MembershipMongo();
         membershipMongo.setId(mapPk(membership));
-        membershipMongo.setType(convertRoleToType(membership.getRoleScope(), membership.getRoleName()));
+        if (membership.getRoles() != null) {
+            List<String> roles = new ArrayList<>(membership.getRoles().size());
+            for (Map.Entry<Integer, String> roleEntry : membership.getRoles().entrySet()) {
+                roles.add(convertRoleToType(roleEntry.getKey(), roleEntry.getValue()));
+            }
+            membershipMongo.setRoles(roles);
+        }
         membershipMongo.setCreatedAt(membership.getCreatedAt());
         membershipMongo.setUpdatedAt(membership.getUpdatedAt());
         return membershipMongo;
