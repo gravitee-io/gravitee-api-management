@@ -71,8 +71,9 @@
             <div class="api-infos">
               <small>{{api.description}}</small>
             </div>
-            <div ng-if="api.views" class="api-views">
-              <a ng-repeat="view in api.views" class="ui label" ng-click="homeCtrl.goToView($event, view)">{{view}}</a>
+            <div class="api-views">
+              <a ng-if="api.views" ng-repeat="view in api.views" class="ui label" ng-click="homeCtrl.goToView($event, view)">{{view}}</a>
+              <div ng-if="!api.views || api.views.length === 0" class="no-view"></div>
             </div>
           </md-card-content>
         </md-card>
