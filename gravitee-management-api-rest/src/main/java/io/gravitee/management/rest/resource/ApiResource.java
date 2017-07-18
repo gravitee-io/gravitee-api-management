@@ -403,7 +403,9 @@ public class ApiResource extends AbstractResource {
     }
 
     private void filterSensitiveData(ApiEntity entity) {
-        if (!isAdmin() && !hasPermission(RolePermission.API_GATEWAY_DEFINITION,entity.getId(), RolePermissionAction.READ)) {
+        if (//try to display a public api as un unauthenticated user
+                ( !isAuthenticated() && Visibility.PUBLIC.equals(entity.getVisibility()))
+                || (!isAdmin() && !hasPermission(RolePermission.API_GATEWAY_DEFINITION,entity.getId(), RolePermissionAction.READ))) {
             entity.setProxy(null);
             entity.setPaths(null);
             entity.setProperties(null);

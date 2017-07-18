@@ -246,8 +246,8 @@ public class ApisResource extends AbstractResource {
     }
 
     private ApiListItem setManageable(ApiListItem api) {
-        api.setManageable(
-                isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), RolePermissionAction.READ)
+        api.setManageable(isAuthenticated() &&
+                        (isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), RolePermissionAction.READ))
         );
         return api;
     }
