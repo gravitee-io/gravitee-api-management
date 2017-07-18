@@ -99,6 +99,8 @@ require('showdown-prettify');
 require('angular-gridster');
 require('angular-scroll');
 require('diff/dist/diff.min.js');
+require('angular-bootstrap-toggle/dist/angular-bootstrap-toggle.css');
+require('angular-bootstrap-toggle/dist/angular-bootstrap-toggle.js')
 require('angular-loading-bar');
 require('angular-loading-bar/build/loading-bar.css');
 
@@ -316,12 +318,13 @@ import runBlock from './management.run';
 
 import uiRouter from 'angular-ui-router';
 import {permission, uiPermission} from 'angular-permission';
+import ApiHeaderController from './api/header/api-header.controller';
 
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
-  'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
-  'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
-  'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
-  'ngAnimate', 'LocalStorageModule', 'satellizer'])
+    'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
+    'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
+    'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
+    'ngAnimate', 'LocalStorageModule', 'satellizer', 'ui.toggle'])
   .config(['cfpLoadingBarProvider', function(cfpLoadingBarProvider) {
     cfpLoadingBarProvider.includeSpinner = false;
   }])
@@ -357,6 +360,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .run(runBlock)
   .controller('ApisController', ApisController)
   .controller('ApiAdminController', ApiAdminController)
+  .controller('ApiHeaderController', ApiHeaderController)
   .controller('ApiAnalyticsController', ApiAnalyticsController)
   .controller('ApiPoliciesController', ApiPoliciesController)
   .controller('AddPoliciesPathController', AddPoliciesPathController)

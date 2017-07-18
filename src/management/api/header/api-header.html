@@ -30,6 +30,16 @@
 					</h4>
 					<md-content flex class="gravitee-api-header-description">
 						<div class="gravitee-api-header-read-more" read-more ng-model="$ctrl.api.description" words="false" length="150"></div>
+            <toggle
+              ng-model="$ctrl.apiEnabled"
+              size="btn-sm"
+              ng-change="$ctrl.changeLifecycle()"
+              on="<i class='glyphicon glyphicon-play'></i> Started"
+              off="<i class='glyphicon glyphicon-stop'></i> Stopped"
+              style="life-cycle"
+              onstyle="btn-success"
+              offstyle="btn-danger">
+            </toggle>
 					</md-content>
 				</div>
 			</div>
