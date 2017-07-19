@@ -18,8 +18,7 @@ const ApiHeaderComponent: ng.IComponentOptions = {
     api: '<',
     readOnly: '<'
   },
-  template: require('./api-header.html'),
-  controller: 'ApiHeaderController'
+  template: require('./api-header.html')
 };
 
 export default ApiHeaderComponent;
