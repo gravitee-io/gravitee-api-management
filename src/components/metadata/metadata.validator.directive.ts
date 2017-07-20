@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const MetadataValidatorDirective: ng.IDirective = ({
+
+import {IScope, IDirective} from 'angular';
+
+interface IMyScope extends IScope {
+  ngPattern: RegExp;
+}
+
+const MetadataValidatorDirective: IDirective = ({
   restrict: 'A',
   require: 'ngModel',
   scope: {
     format: '=gvMetadataFormat',
     ngPattern: '='
   },
-  link: function (scope) {
+  link: function (scope: IMyScope) {
     scope.$watch('format', function (newFormat) {
       switch (newFormat) {
         case 'numeric':

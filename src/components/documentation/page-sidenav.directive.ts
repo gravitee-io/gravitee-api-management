@@ -17,6 +17,12 @@
 import * as _ from 'lodash';
 import * as angular from 'angular';
 
+interface IMyScope extends ng.IScope {
+  page: any;
+  anchors: any;
+  scrollTo: Function;
+}
+
 class PageSidenavController {
   constructor (private $timeout: ng.ITimeoutService, private $document, private $window) {
     'ngInject';
@@ -29,7 +35,7 @@ const PageSidenavDirective: ng.IDirective = ({
     page: '='
   },
   template: require('./page-sidenav.html'),
-  link: function (scope, elem, attr, ctr: {$timeout: ng.ITimeoutService, $window, $document}) {
+  link: function (scope: IMyScope, elem, attr, ctr: {$timeout: ng.ITimeoutService, $window, $document}) {
     ctr.$timeout(function () {
       let sidenav = angular.element(document.getElementById('sidenav'));
       let page = document.getElementById('page-content');
