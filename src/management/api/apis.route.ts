@@ -405,7 +405,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
           icon: 'insert_drive_file'
         },
         perms: {
-          only: ['api-page-r']
+          only: ['api-documentation-r']
         }
       }
     })
@@ -417,7 +417,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       data: {
         menu: null,
         perms: {
-          only: ['api-page-c']
+          only: ['api-documentation-c']
         }
       },
       params: {
@@ -436,7 +436,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       data: {
         menu: null,
         perms: {
-          only: ['api-page-r']
+          only: ['api-documentation-r']
         }
       }
     })
