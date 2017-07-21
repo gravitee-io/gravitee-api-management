@@ -31,16 +31,17 @@
 
     <div permission permission-only="'api-definition-u'" layout="column" flex="20" layout-align="start end">
       <div layout="row" layout-align="start center">
-        <a ng-click="generalCtrl.toggleVisibility()" ng-if="generalCtrl.api.visibility==='public'">Public (visible by all)</a>
-        <a ng-click="generalCtrl.toggleVisibility()" ng-if="generalCtrl.api.visibility==='private'">Private (visible by its members)</a>
-        <ng-md-icon icon="public" ng-if="generalCtrl.api.visibility==='public'" style="fill:grey; top:0;"></ng-md-icon>
-        <ng-md-icon icon="lock" ng-if="generalCtrl.api.visibility==='private'" style="fill:grey; top:0;"></ng-md-icon>
+        <md-switch ng-model="apiPublic" ng-change="generalCtrl.toggleVisibility()"></md-switch>
       </div>
-      <div layout="row" layout-align="start start">
-        <a ng-click="generalCtrl.changeLifecycle(generalCtrl.api.id)" ng-if="apiEnabled" ng-disabled="generalCtrl.api.deployed_at == null">Started</a>
-        <a ng-click="generalCtrl.changeLifecycle(generalCtrl.api.id)" ng-if="!apiEnabled" ng-disabled="generalCtrl.api.deployed_at == null">Stopped</a>
-        <ng-md-icon icon="play_arrow" ng-if="apiEnabled" style="fill:#429f46; top:0;"></ng-md-icon>
-        <ng-md-icon icon="stop" ng-if="!apiEnabled" style="fill:red; top:0;"></ng-md-icon>
+      <div layout="row" layout-align="start center">
+        <div ng-if="generalCtrl.api.visibility==='public'">
+          <ng-md-icon icon="public" style="fill:grey; top:0;"></ng-md-icon>
+          <span style="position:relative; bottom: 6px">Public (visible by all)</span>
+        </div>
+        <div ng-if="generalCtrl.api.visibility==='private'">
+          <ng-md-icon icon="lock" style="fill:grey; top:0;"></ng-md-icon>
+          <span style="position:relative; bottom: 6px">Private (visible by its members)</span>
+        </div>
       </div>
     </div>
   </div>

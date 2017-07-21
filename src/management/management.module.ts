@@ -316,6 +316,7 @@ import runBlock from './management.run';
 
 import uiRouter from 'angular-ui-router';
 import {permission, uiPermission} from 'angular-permission';
+import ApiHeaderController from './api/header/api-header.controller';
 
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -357,6 +358,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .run(runBlock)
   .controller('ApisController', ApisController)
   .controller('ApiAdminController', ApiAdminController)
+  .controller('ApiHeaderController', ApiHeaderController)
   .controller('ApiAnalyticsController', ApiAnalyticsController)
   .controller('ApiPoliciesController', ApiPoliciesController)
   .controller('AddPoliciesPathController', AddPoliciesPathController)

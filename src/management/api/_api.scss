@@ -322,3 +322,32 @@ api-creation {
 .no-view {
   height: 19px;
 }
+
+md-switch {
+  margin: 0;
+
+  .md-container {
+    margin-right: 0;
+  }
+}
+
+md-switch.md-default-theme.md-checked.md-primary .md-thumb, md-switch.md-checked.md-primary .md-thumb {
+  background-color: green;
+}
+
+md-switch.md-default-theme.md-primary .md-thumb, md-switch.md-primary .md-thumb {
+  background-color: #e00000;
+}
+
+md-switch.md-default-theme.md-checked .md-bar, md-switch.md-checked .md-bar {
+  background-color: lightgrey
+}
+
+md-switch.md-default-theme .md-bar, md-switch .md-bar {
+  background-color: lightgrey;
+}
+
+.api-life-cycle {
+  font-weight: 500;
+  margin-left: 6px;
+}

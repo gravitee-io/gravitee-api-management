@@ -30,7 +30,17 @@
 					</h4>
 					<md-content flex class="gravitee-api-header-description">
 						<div class="gravitee-api-header-read-more" read-more ng-model="$ctrl.api.description" words="false" length="150"></div>
-					</md-content>
+            <div layout="row" layout-align="start center">
+              <md-switch class="md-primary" ng-model="$ctrl.apiEnabled" ng-change="$ctrl.changeLifecycle()">
+                <div class="api-life-cycle started" ng-if="$ctrl.api.state==='started'">
+                  <span style="color: green">Started</span>
+                </div>
+                <div class="api-life-cycle stopped" ng-if="$ctrl.api.state==='stopped'">
+                  <span style="color: #e00000">Stopped</span>
+                </div>
+              </md-switch>
+            </div>
+          </md-content>
 				</div>
 			</div>
 			<div flex="30" layout="column" layout-align="center end">

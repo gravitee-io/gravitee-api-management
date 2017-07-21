@@ -27,6 +27,7 @@ class ApiAdminController {
   private failoverEnabled: boolean;
   private contextPathEditable: boolean;
   private formApi: any;
+  private apiPublic: boolean;
 
   constructor(
     private ApiService,
@@ -85,7 +86,7 @@ class ApiAdminController {
   }
 
   toggleVisibility() {
-    if( this.api.visibility === 'public') {
+    if (this.api.visibility === 'public') {
       this.api.visibility = 'private';
     } else {
       this.api.visibility = 'public';
@@ -95,6 +96,7 @@ class ApiAdminController {
 
   initState() {
     this.$scope.apiEnabled = (this.$scope.$parent.apiCtrl.api.state === 'started');
+    this.$scope.apiPublic = (this.$scope.$parent.apiCtrl.api.visibility === 'public');
 
     // Failover
     this.failoverEnabled = (this.api.proxy.failover !== undefined);
@@ -114,40 +116,6 @@ class ApiAdminController {
       this.groups = _.union(
         [this.GroupService.getEmptyGroup()],
         groups.data);
-    });
-  }
-
-  changeLifecycle(id) {
-    var started = this.api.state === 'started';
-    let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: `Are you sure you want to ${started ? 'stop' : 'start'} the API ?`,
-        msg: '',
-        confirmButton: (started ? 'stop' : 'start')
-      }
-    }).then(function (response) {
-      if (response) {
-        if (started) {
-          that.ApiService.stop(id).then(function () {
-            that.api.state = 'stopped';
-            that.$scope.apiEnabled = false;
-            that.NotificationService.show(`API ${that.initialApi.name} has been stopped!`);
-          });
-        } else {
-          that.ApiService.start(id).then(function () {
-            that.api.state = 'started';
-            that.$scope.apiEnabled = true;
-            that.NotificationService.show(`API ${that.initialApi.name} has been started!`);
-          });
-        }
-      }
-    }).catch(function () {
-      that.initState();
     });
   }
 
