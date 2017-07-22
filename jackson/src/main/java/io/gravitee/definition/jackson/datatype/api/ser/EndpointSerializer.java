@@ -40,7 +40,10 @@ public class EndpointSerializer extends StdScalarSerializer<Endpoint> {
         jgen.writeStringField("target", endpoint.getTarget());
         jgen.writeNumberField("weight", endpoint.getWeight());
         jgen.writeBooleanField("backup", endpoint.isBackup());
-        jgen.writeBooleanField("healthcheck", endpoint.isHealthcheck());
+
+        if (endpoint.getHealthCheck() != null) {
+            jgen.writeObjectField("healthcheck", endpoint.getHealthCheck());
+        }
 
         HttpClientOptions options =
                 (endpoint.getHttpClientOptions() != null) ? endpoint.getHttpClientOptions() : new HttpClientOptions();

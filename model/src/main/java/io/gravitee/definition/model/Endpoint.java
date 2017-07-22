@@ -15,6 +15,8 @@
  */
 package io.gravitee.definition.model;
 
+import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -31,8 +33,6 @@ public class Endpoint {
 
     private boolean backup;
 
-    private boolean healthcheck = true;
-
     private Status status = Status.UP;
 
     private HttpProxy httpProxy;
@@ -44,6 +44,8 @@ public class Endpoint {
     private String tenant;
 
     private String hostHeader;
+
+    private EndpointHealthCheckService healthCheck;
 
     public Endpoint(String name, String target) {
         this();
@@ -85,14 +87,6 @@ public class Endpoint {
 
     public void setBackup(boolean backup) {
         this.backup = backup;
-    }
-
-    public boolean isHealthcheck() {
-        return healthcheck;
-    }
-
-    public void setHealthcheck(boolean healthcheck) {
-        this.healthcheck = healthcheck;
     }
 
     public Status getStatus() {
@@ -143,6 +137,22 @@ public class Endpoint {
         this.hostHeader = hostHeader;
     }
 
+    public static int getDefaultWeight() {
+        return DEFAULT_WEIGHT;
+    }
+
+    public static void setDefaultWeight(int defaultWeight) {
+        DEFAULT_WEIGHT = defaultWeight;
+    }
+
+    public EndpointHealthCheckService getHealthCheck() {
+        return healthCheck;
+    }
+
+    public void setHealthCheck(EndpointHealthCheckService healthCheck) {
+        this.healthCheck = healthCheck;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -172,6 +182,10 @@ public class Endpoint {
 
         public int code() {
             return this.code;
+        }
+
+        public boolean isDown() {
+            return this == DOWN || this ==  TRANSITIONALLY_UP;
         }
     }
 }

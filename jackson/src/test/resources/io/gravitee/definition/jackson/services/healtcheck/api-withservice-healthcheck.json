@@ -7,7 +7,8 @@
     "endpoints": [
       {
         "name": "default",
-        "target": "http://localhost:8083/myapi"
+        "target": "http://localhost:8083/myapi",
+        "healthcheck": "true"
       }
     ],
     "strip_context_path": false

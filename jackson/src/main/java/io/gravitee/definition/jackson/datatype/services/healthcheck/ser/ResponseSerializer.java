@@ -18,7 +18,7 @@ package io.gravitee.definition.jackson.datatype.services.healthcheck.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.services.healthcheck.Expectation;
+import io.gravitee.definition.model.services.healthcheck.Response;
 
 import java.io.IOException;
 
@@ -26,19 +26,19 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ExpectationSerializer extends StdScalarSerializer<Expectation> {
+public class ResponseSerializer extends StdScalarSerializer<Response> {
 
-    public ExpectationSerializer(Class<Expectation> t) {
+    public ResponseSerializer(Class<Response> t) {
         super(t);
     }
 
     @Override
-    public void serialize(Expectation expectation, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(Response response, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
 
         jgen.writeArrayFieldStart("assertions");
-        if (expectation.getAssertions() != null && ! expectation.getAssertions().isEmpty()) {
-            expectation.getAssertions().forEach(assertion -> {
+        if (response.getAssertions() != null && ! response.getAssertions().isEmpty()) {
+            response.getAssertions().forEach(assertion -> {
                 try {
                     jgen.writeString(assertion);
                 } catch (IOException e) {
@@ -46,7 +46,7 @@ public class ExpectationSerializer extends StdScalarSerializer<Expectation> {
                 }
             });
         } else {
-            jgen.writeString(Expectation.DEFAULT_ASSERTION);
+            jgen.writeString(Response.DEFAULT_ASSERTION);
         }
 
         jgen.writeEndArray();

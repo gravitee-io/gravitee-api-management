@@ -15,37 +15,33 @@
  */
 package io.gravitee.definition.model.services.healthcheck;
 
-import io.gravitee.definition.model.services.ScheduledService;
+import io.gravitee.definition.model.services.schedule.ScheduledService;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheck extends ScheduledService {
+public class HealthCheckService extends ScheduledService {
 
     public final static String SERVICE_KEY = "health-check";
 
-    public HealthCheck() {
+    public HealthCheckService() {
         super(SERVICE_KEY);
     }
 
-    private Request request;
+    private List<Step> steps;
 
-    private Expectation expectation;
-
-    public Request getRequest() {
-        return request;
+    public static String getServiceKey() {
+        return SERVICE_KEY;
     }
 
-    public void setRequest(Request request) {
-        this.request = request;
+    public List<Step> getSteps() {
+        return steps;
     }
 
-    public Expectation getExpectation() {
-        return expectation;
-    }
-
-    public void setExpectation(Expectation expectation) {
-        this.expectation = expectation;
+    public void setSteps(List<Step> steps) {
+        this.steps = steps;
     }
 }

@@ -15,54 +15,23 @@
  */
 package io.gravitee.definition.model.services.healthcheck;
 
-import io.gravitee.common.http.HttpHeader;
-import io.gravitee.common.http.HttpMethod;
-
 import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Request {
+public class Response {
 
-    private String path;
+    public final static String DEFAULT_ASSERTION = "#response.status == 200";
 
-    private HttpMethod method;
+    private List<String> assertions;
 
-    private List<HttpHeader> headers;
-
-    private String body;
-
-    public String getBody() {
-        return body;
+    public List<String> getAssertions() {
+        return assertions;
     }
 
-    public void setBody(String body) {
-        this.body = body;
-    }
-
-    public List<HttpHeader> getHeaders() {
-        return headers;
-    }
-
-    public void setHeaders(List<HttpHeader> headers) {
-        this.headers = headers;
-    }
-
-    public HttpMethod getMethod() {
-        return method;
-    }
-
-    public void setMethod(HttpMethod method) {
-        this.method = method;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
+    public void setAssertions(List<String> assertions) {
+        this.assertions = assertions;
     }
 }

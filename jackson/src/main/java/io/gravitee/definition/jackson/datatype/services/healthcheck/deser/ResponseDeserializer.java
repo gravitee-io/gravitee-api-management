@@ -19,9 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.services.healthcheck.Expectation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.gravitee.definition.model.services.healthcheck.Response;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,31 +30,31 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ExpectationDeserializer extends StdScalarDeserializer<Expectation> {
+public class ResponseDeserializer extends StdScalarDeserializer<Response> {
 
-    public ExpectationDeserializer(Class<Expectation> vc) {
+    public ResponseDeserializer(Class<Response> vc) {
         super(vc);
     }
 
     @Override
-    public Expectation deserialize(JsonParser jp, DeserializationContext ctxt)
+    public Response deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        Expectation expectation = new Expectation();
+        Response response = new Response();
 
         final JsonNode assertionsNode = node.get("assertions");
         if (assertionsNode != null) {
             List<String> assertions = new ArrayList<>();
             assertionsNode.elements().forEachRemaining(assertionNode -> assertions.add(assertionNode.asText()));
-            expectation.setAssertions(assertions);
+            response.setAssertions(assertions);
         }
 
-        if (expectation.getAssertions().isEmpty()) {
+        if (response.getAssertions().isEmpty()) {
             // Add default assertion
-            expectation.setAssertions(Collections.singletonList(Expectation.DEFAULT_ASSERTION));
+            response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
         }
 
-        return expectation;
+        return response;
     }
 }

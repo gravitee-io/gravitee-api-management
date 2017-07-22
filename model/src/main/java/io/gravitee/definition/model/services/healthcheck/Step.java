@@ -15,54 +15,39 @@
  */
 package io.gravitee.definition.model.services.healthcheck;
 
-import io.gravitee.common.http.HttpHeader;
-import io.gravitee.common.http.HttpMethod;
-
-import java.util.List;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Request {
+public class Step {
 
-    private String path;
+    private String name;
 
-    private HttpMethod method;
+    private Request request;
 
-    private List<HttpHeader> headers;
+    private Response response;
 
-    private String body;
-
-    public String getBody() {
-        return body;
+    public String getName() {
+        return name;
     }
 
-    public void setBody(String body) {
-        this.body = body;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public List<HttpHeader> getHeaders() {
-        return headers;
+    public Request getRequest() {
+        return request;
     }
 
-    public void setHeaders(List<HttpHeader> headers) {
-        this.headers = headers;
+    public void setRequest(Request request) {
+        this.request = request;
     }
 
-    public HttpMethod getMethod() {
-        return method;
+    public Response getResponse() {
+        return response;
     }
 
-    public void setMethod(HttpMethod method) {
-        this.method = method;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
+    public void setResponse(Response response) {
+        this.response = response;
     }
 }

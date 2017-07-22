@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.services.healthcheck;
+package io.gravitee.definition.model.services.schedule;
 
-import java.util.List;
+import io.gravitee.definition.model.Service;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Expectation {
+public abstract class ScheduledService extends Service {
 
-    public final static String DEFAULT_ASSERTION = "#response.status == 200";
+    protected Trigger trigger;
 
-    private List<String> assertions;
-
-    public List<String> getAssertions() {
-        return assertions;
+    public ScheduledService(String name) {
+        super(name);
     }
 
-    public void setAssertions(List<String> assertions) {
-        this.assertions = assertions;
+    public Trigger getTrigger() {
+        return trigger;
+    }
+
+    public void setTrigger(Trigger trigger) {
+        this.trigger = trigger;
     }
 }

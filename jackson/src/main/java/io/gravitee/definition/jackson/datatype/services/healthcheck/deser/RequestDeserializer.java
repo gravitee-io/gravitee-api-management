@@ -44,11 +44,17 @@ public class RequestDeserializer extends StdScalarDeserializer<Request> {
 
         Request request = new Request();
 
-        JsonNode uriNode = node.get("uri");
-        if (uriNode != null) {
-            request.setUri(uriNode.asText());
+        JsonNode pathNode = node.get("path");
+        if (pathNode != null) {
+            request.setPath(pathNode.asText());
         } else {
-            throw ctxt.mappingException("[healthcheck] URI is required");
+            // Ensure backward compatibility
+            JsonNode uriNode = node.get("uri");
+            if (uriNode != null) {
+                request.setPath(uriNode.asText());
+            } else {
+                throw ctxt.mappingException("[healthcheck] URI is required");
+            }
         }
 
         final JsonNode methodNode = node.get("method");

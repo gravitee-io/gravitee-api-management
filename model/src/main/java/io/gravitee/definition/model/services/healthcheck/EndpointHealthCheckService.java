@@ -13,39 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.services;
-
-import io.gravitee.definition.model.Service;
-
-import java.util.concurrent.TimeUnit;
+package io.gravitee.definition.model.services.healthcheck;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class ScheduledService extends Service {
+public class EndpointHealthCheckService extends HealthCheckService {
 
-    protected long interval;
+    private boolean inherit;
 
-    protected TimeUnit unit;
-
-    public ScheduledService(String name) {
-        super(name);
+    public boolean isInherit() {
+        return inherit;
     }
 
-    public long getInterval() {
-        return interval;
-    }
-
-    public void setInterval(long interval) {
-        this.interval = interval;
-    }
-
-    public TimeUnit getUnit() {
-        return unit;
-    }
-
-    public void setUnit(TimeUnit unit) {
-        this.unit = unit;
+    public void setInherit(boolean inherit) {
+        this.inherit = inherit;
     }
 }

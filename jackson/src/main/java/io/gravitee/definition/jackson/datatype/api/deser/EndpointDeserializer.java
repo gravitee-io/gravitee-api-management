@@ -23,6 +23,7 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClientOptions;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
+import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 
 import java.io.IOException;
 
@@ -68,14 +69,6 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
             endpoint.setBackup(false);
         }
 
-        JsonNode healthcheckNode = node.get("healthcheck");
-        if (healthcheckNode != null) {
-            boolean healthcheck = healthcheckNode.asBoolean(true);
-            endpoint.setHealthcheck(healthcheck);
-        } else {
-            endpoint.setHealthcheck(true);
-        }
-
         JsonNode httpProxyNode = node.get("proxy");
         if (httpProxyNode != null) {
             HttpProxy httpProxy = httpProxyNode.traverse(jp.getCodec()).readValueAs(HttpProxy.class);
@@ -108,6 +101,12 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
             if (! hostHeader.trim().isEmpty()) {
                 endpoint.setHostHeader(hostHeader);
             }
+        }
+
+        JsonNode healthcheckNode = node.get("healthcheck");
+        if (healthcheckNode != null && healthcheckNode.isObject()) {
+            EndpointHealthCheckService healthCheckService = healthcheckNode.traverse(jp.getCodec()).readValueAs(EndpointHealthCheckService.class);
+            endpoint.setHealthCheck(healthCheckService);
         }
 
         return endpoint;

@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.Service;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
-import io.gravitee.definition.model.services.healthcheck.HealthCheck;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -37,7 +37,7 @@ public class ServicesDeserializer extends StdScalarDeserializer<Services> {
 
     private final Map<String, Class<? extends Service>> registeredServices = new HashMap<>();
     {
-        registeredServices.put(HealthCheck.SERVICE_KEY, HealthCheck.class);
+        registeredServices.put(HealthCheckService.SERVICE_KEY, HealthCheckService.class);
         registeredServices.put(DynamicPropertyService.SERVICE_KEY, DynamicPropertyService.class);
     }
 

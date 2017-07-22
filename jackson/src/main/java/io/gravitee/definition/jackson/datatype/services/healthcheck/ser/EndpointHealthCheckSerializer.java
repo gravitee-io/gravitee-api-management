@@ -17,8 +17,7 @@ package io.gravitee.definition.jackson.datatype.services.healthcheck.ser;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import io.gravitee.definition.jackson.datatype.services.core.ser.ScheduledServiceSerializer;
-import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
+import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 
 import java.io.IOException;
 
@@ -26,26 +25,16 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheckSerializer<T extends HealthCheckService> extends ScheduledServiceSerializer<T> {
+public class EndpointHealthCheckSerializer extends HealthCheckSerializer<EndpointHealthCheckService> {
 
-    public HealthCheckSerializer(Class<T> t) {
+    public EndpointHealthCheckSerializer(Class<EndpointHealthCheckService> t) {
         super(t);
     }
 
     @Override
-    protected void doSerialize(T service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(EndpointHealthCheckService service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
         super.doSerialize(service, jgen, serializerProvider);
 
-        if (service.getSteps() != null && !service.getSteps().isEmpty()) {
-            jgen.writeArrayFieldStart("steps");
-            service.getSteps().forEach(step -> {
-                try {
-                    jgen.writeObject(step);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            jgen.writeEndArray();
-        }
+        jgen.writeBooleanField("inherit", service.isInherit());
     }
 }

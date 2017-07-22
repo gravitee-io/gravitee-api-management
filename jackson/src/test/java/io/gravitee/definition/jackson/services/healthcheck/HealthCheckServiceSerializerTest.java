@@ -26,11 +26,24 @@ import org.skyscreamer.jsonassert.JSONAssert;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheckSerializerTest extends AbstractTest {
+public class HealthCheckServiceSerializerTest extends AbstractTest {
 
     @Test
     public void definition_withHealtcheck() throws Exception {
-        String definition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck.json";
+        String oldDefinition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck.json";
+        String newDefinition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v2.json";
+        Api api = load(oldDefinition, Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+
+        String expected = IOUtils.toString(read(newDefinition));
+        JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
+    }
+
+    @Test
+    public void definition_withHealtcheck_v2() throws Exception {
+        String definition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v2.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);

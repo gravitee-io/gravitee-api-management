@@ -43,8 +43,8 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
         Assert.assertTrue(dynamicPropertyService.isEnabled());
 
         // Check scheduling configuration
-        Assert.assertEquals(60, dynamicPropertyService.getInterval());
-        Assert.assertEquals(TimeUnit.SECONDS, dynamicPropertyService.getUnit());
+        Assert.assertEquals(60, dynamicPropertyService.getTrigger().getRate());
+        Assert.assertEquals(TimeUnit.SECONDS, dynamicPropertyService.getTrigger().getUnit());
 
         // Check provider
         Assert.assertNotNull(dynamicPropertyService.getProvider());
@@ -77,8 +77,8 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
         DynamicPropertyService dynamicPropertyService = api.getService(DynamicPropertyService.class);
         Assert.assertNotNull(dynamicPropertyService);
         Assert.assertFalse(dynamicPropertyService.isEnabled());
-        Assert.assertEquals(60, dynamicPropertyService.getInterval());
-        Assert.assertEquals(TimeUnit.SECONDS, dynamicPropertyService.getUnit());
+        Assert.assertEquals(60, dynamicPropertyService.getTrigger().getRate());
+        Assert.assertEquals(TimeUnit.SECONDS, dynamicPropertyService.getTrigger().getUnit());
     }
 
     @Test(expected = JsonMappingException.class)

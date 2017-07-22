@@ -17,8 +17,10 @@ package io.gravitee.definition.jackson.services.dynamicproperty;
 
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,9 +30,26 @@ public class DynamicPropertyServiceSerializerTest extends AbstractTest {
 
     @Test
     public void definition_withDynamicProperty() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty.json", Api.class);
+        String oldDefinition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty.json";
+        String newDefinition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-v2.json";
+        Api api = load(oldDefinition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assert.assertNotNull(generatedJsonDefinition);
+
+        String expected = IOUtils.toString(read(newDefinition));
+        JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
+    }
+
+    @Test
+    public void definition_withDynamicProperty_v2() throws Exception {
+        String definition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-v2.json";
+        Api api = load(definition, Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+
+        String expected = IOUtils.toString(read(definition));
+        JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
     }
 }

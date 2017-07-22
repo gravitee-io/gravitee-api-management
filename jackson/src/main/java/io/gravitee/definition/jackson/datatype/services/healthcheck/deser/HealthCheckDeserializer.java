@@ -20,41 +20,62 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.datatype.services.core.deser.ScheduledServiceDeserializer;
-import io.gravitee.definition.model.services.healthcheck.Expectation;
-import io.gravitee.definition.model.services.healthcheck.HealthCheck;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.Request;
+import io.gravitee.definition.model.services.healthcheck.Response;
+import io.gravitee.definition.model.services.healthcheck.Step;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthCheckDeserializer extends ScheduledServiceDeserializer<HealthCheck> {
+public class HealthCheckDeserializer<T extends HealthCheckService> extends ScheduledServiceDeserializer<T> {
 
-    public HealthCheckDeserializer(Class<HealthCheck> vc) {
+    public HealthCheckDeserializer(Class<T> vc) {
         super(vc);
     }
 
     @Override
-    protected void deserialize(HealthCheck service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         super.deserialize(service, jsonParser, node, ctxt);
 
-        final JsonNode requestNode = node.get("request");
-        if (requestNode != null) {
-            service.setRequest(requestNode.traverse(jsonParser.getCodec()).readValueAs(Request.class));
-        } else {
-            throw ctxt.mappingException("[healthcheck] Request is required");
-        }
+        // New version of health-check service
+        final JsonNode stepsNode = node.get("steps");
+        if (stepsNode != null && stepsNode.isArray()) {
+            List<Step> steps = new ArrayList<>(stepsNode.size());
 
-        final JsonNode expectationNode = node.get("expectation");
-        if (expectationNode != null) {
-            service.setExpectation(expectationNode.traverse(jsonParser.getCodec()).readValueAs(Expectation.class));
+            for(JsonNode stepNode : stepsNode) {
+                Step step = stepNode.traverse(jsonParser.getCodec()).readValueAs(Step.class);
+                steps.add(step);
+            }
+
+            service.setSteps(steps);
         } else {
-            Expectation expectation = new Expectation();
-            expectation.setAssertions(Collections.singletonList(Expectation.DEFAULT_ASSERTION));
-            service.setExpectation(expectation);
+            // Ensure backward compatibility
+            Step step = new Step();
+
+            final JsonNode requestNode = node.get("request");
+            if (requestNode != null) {
+                step.setRequest(requestNode.traverse(jsonParser.getCodec()).readValueAs(Request.class));
+            } else {
+                throw ctxt.mappingException("[health-check] Request is required");
+            }
+
+            final JsonNode expectationNode = node.get("expectation");
+            if (expectationNode != null) {
+                step.setResponse(expectationNode.traverse(jsonParser.getCodec()).readValueAs(Response.class));
+            } else {
+                Response response = new Response();
+                response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
+                step.setResponse(response);
+            }
+
+            service.setSteps(Collections.singletonList(step));
         }
     }
 }

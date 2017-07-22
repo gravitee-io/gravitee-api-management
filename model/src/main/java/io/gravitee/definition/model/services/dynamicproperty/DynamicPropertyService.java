@@ -15,7 +15,7 @@
  */
 package io.gravitee.definition.model.services.dynamicproperty;
 
-import io.gravitee.definition.model.services.ScheduledService;
+import io.gravitee.definition.model.services.schedule.ScheduledService;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

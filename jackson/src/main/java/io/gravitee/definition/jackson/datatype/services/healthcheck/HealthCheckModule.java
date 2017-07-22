@@ -16,15 +16,9 @@
 package io.gravitee.definition.jackson.datatype.services.healthcheck;
 
 import io.gravitee.definition.jackson.datatype.GraviteeModule;
-import io.gravitee.definition.jackson.datatype.services.healthcheck.deser.HealthCheckDeserializer;
-import io.gravitee.definition.jackson.datatype.services.healthcheck.deser.RequestDeserializer;
-import io.gravitee.definition.jackson.datatype.services.healthcheck.deser.ExpectationDeserializer;
-import io.gravitee.definition.jackson.datatype.services.healthcheck.ser.RequestSerializer;
-import io.gravitee.definition.jackson.datatype.services.healthcheck.ser.ExpectationSerializer;
-import io.gravitee.definition.jackson.datatype.services.healthcheck.ser.HealthCheckSerializer;
-import io.gravitee.definition.model.services.healthcheck.HealthCheck;
-import io.gravitee.definition.model.services.healthcheck.Request;
-import io.gravitee.definition.model.services.healthcheck.Expectation;
+import io.gravitee.definition.jackson.datatype.services.healthcheck.deser.*;
+import io.gravitee.definition.jackson.datatype.services.healthcheck.ser.*;
+import io.gravitee.definition.model.services.healthcheck.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,16 +30,20 @@ public class HealthCheckModule extends GraviteeModule {
 
     @SuppressWarnings("unchecked")
     public HealthCheckModule() {
-        super(HealthCheck.SERVICE_KEY);
+        super(HealthCheckService.SERVICE_KEY);
 
         // first deserializers
-        addDeserializer(HealthCheck.class, new HealthCheckDeserializer(HealthCheck.class));
+        addDeserializer(EndpointHealthCheckService.class, new EndpointHealthCheckDeserializer(EndpointHealthCheckService.class));
+        addDeserializer(HealthCheckService.class, new HealthCheckDeserializer(HealthCheckService.class));
+        addDeserializer(Step.class, new StepDeserializer(Step.class));
         addDeserializer(Request.class, new RequestDeserializer(Request.class));
-        addDeserializer(Expectation.class, new ExpectationDeserializer(Expectation.class));
+        addDeserializer(Response.class, new ResponseDeserializer(Response.class));
 
         // then serializers:
-        addSerializer(HealthCheck.class, new HealthCheckSerializer(HealthCheck.class));
+        addSerializer(EndpointHealthCheckService.class, new EndpointHealthCheckSerializer(EndpointHealthCheckService.class));
+        addSerializer(HealthCheckService.class, new HealthCheckSerializer(HealthCheckService.class));
+        addSerializer(Step.class, new StepSerializer(Step.class));
         addSerializer(Request.class, new RequestSerializer(Request.class));
-        addSerializer(Expectation.class, new ExpectationSerializer(Expectation.class));
+        addSerializer(Response.class, new ResponseSerializer(Response.class));
     }
 }

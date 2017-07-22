@@ -31,8 +31,10 @@
 
   "services": {
     "dynamic-property": {
-      "interval": 60,
-      "unit": "SECONDS",
+      "trigger": {
+        "rate": 60,
+        "unit": "SECONDS"
+      },
       "enabled": true,
       "provider": "HTTP",
       "configuration": {

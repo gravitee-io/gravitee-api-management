@@ -35,7 +35,7 @@ public class RequestSerializer extends StdScalarSerializer<Request> {
     @Override
     public void serialize(Request request, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
-        jgen.writeStringField("uri", request.getUri());
+        jgen.writeStringField("path", request.getPath());
         jgen.writeStringField("method", request.getMethod().name());
 
         if (request.getHeaders() != null && ! request.getHeaders().isEmpty()) {
