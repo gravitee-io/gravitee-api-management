@@ -15,17 +15,18 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.RoleEntity;
-import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.model.permissions.RoleScope;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.RoleService;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
-import sun.security.acl.GroupImpl;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
@@ -39,6 +40,9 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public abstract class AbstractResource {
+
+    private final static String MANAGEMENT_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
+    private final static String PORTAL_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
 
     @Context
     protected SecurityContext securityContext;
@@ -68,7 +72,9 @@ public abstract class AbstractResource {
     }
 
     protected boolean isAdmin() {
-        return isUserInRole(SystemRole.ADMIN.name());
+        return  isUserInRole(SystemRole.ADMIN.name()) ||
+                isUserInRole(MANAGEMENT_ADMIN) ||
+                isUserInRole(PORTAL_ADMIN);
     }
 
     protected boolean isUserInRole(String role) {
@@ -107,13 +113,18 @@ public abstract class AbstractResource {
         }
         RoleEntity role = membershipService.getRole(membershipReferenceType, optionalReferenceId.orElse(MembershipDefaultReferenceId.DEFAULT.name()), getAuthenticatedUsername());
         if (role == null && groupMembershipReferenceType != null) {
-            String groupId;
+            GroupEntity group;
             if (MembershipReferenceType.API_GROUP.equals(groupMembershipReferenceType)) {
-                groupId = apiService.findById(referenceId).getGroup().getId();
+                group = apiService.findById(referenceId).getGroup();
             } else {
-                groupId = applicationService.findById(referenceId).getGroup().getId();
+                group = applicationService.findById(referenceId).getGroup();
             }
-            role = membershipService.getRole(groupMembershipReferenceType, groupId, getAuthenticatedUsername());
+
+            if (group != null) {
+                role = membershipService.getRole(groupMembershipReferenceType, group.getId(), getAuthenticatedUsername());
+            } else {
+                return false;
+            }
         }
         return roleService.hasPermission(role, permission.getPermission(), acls);
     }

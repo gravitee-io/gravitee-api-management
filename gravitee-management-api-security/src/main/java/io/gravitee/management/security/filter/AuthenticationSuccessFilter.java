@@ -18,9 +18,15 @@ package io.gravitee.management.security.filter;
 import com.auth0.jwt.JWTSigner;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.management.idp.api.authentication.UserDetails;
+import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.security.cookies.JWTCookieGenerator;
+import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.common.JWTHelper.Claims;
+import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
+import io.gravitee.repository.management.model.MembershipReferenceType;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -32,10 +38,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author Azize Elamrani (azize at gravitee.io)
@@ -43,17 +46,21 @@ import java.util.Optional;
  */
 public class AuthenticationSuccessFilter extends GenericFilterBean {
 
+    private final MembershipService membershipService;
+
     private final JWTCookieGenerator jwtCookieGenerator;
     private final String jwtSecret;
     private final int jwtExpireAfter;
     private final String jwtIssuer;
 
     public AuthenticationSuccessFilter(final JWTCookieGenerator jwtCookieGenerator,
-                                       final String jwtSecret, final String jwtIssuer, final int jwtExpireAfter) {
+                                       final String jwtSecret, final String jwtIssuer, final int jwtExpireAfter,
+                                       final MembershipService membershipService) {
         this.jwtCookieGenerator = jwtCookieGenerator;
         this.jwtSecret = jwtSecret;
         this.jwtExpireAfter = jwtExpireAfter;
         this.jwtIssuer = jwtIssuer;
+        this.membershipService = membershipService;
     }
 
     @Override
@@ -78,7 +85,22 @@ public class AuthenticationSuccessFilter extends GenericFilterBean {
             claims.put(Claims.ISSUER, jwtIssuer);
 
             final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            claims.put(Claims.PERMISSIONS, userDetails.getAuthorities());
+
+            // Manage authorities, initialize it with dynamic permissions from the IDP
+            Set<GrantedAuthority> authorities = new HashSet<>(userDetails.getAuthorities());
+
+            // We must also load permissions from repository for configured management or portal role
+            RoleEntity role =  membershipService.getRole(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.toString(), userDetails.getUsername());
+            if (role != null) {
+                authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
+            }
+
+            role =  membershipService.getRole(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.toString(), userDetails.getUsername());
+            if (role != null) {
+                authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
+            }
+
+            claims.put(Claims.PERMISSIONS, authorities);
             claims.put(Claims.SUBJECT, userDetails.getUsername());
             claims.put(Claims.EMAIL, userDetails.getEmail());
             claims.put(Claims.FIRSTNAME, userDetails.getFirstname());
