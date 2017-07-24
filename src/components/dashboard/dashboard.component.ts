@@ -19,6 +19,7 @@ const DashboardComponent: ng.IComponentOptions = {
   template: require('./dashboard.html'),
   bindings: {
     model: '<',
+    accessLogs: '<',
     onFilterChange: '&',
     onTimeframeChange: '&',
     onViewLogClick: '&'
