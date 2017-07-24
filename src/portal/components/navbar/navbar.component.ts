@@ -47,7 +47,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     };
 
     vm.getUserPicture = function() {
-      return '/assets/default_user_picture.png';
+      return 'assets/default_user_picture.png';
     };
   }
 };

@@ -28,7 +28,7 @@ class UserAvatarDirective {
           image.onerror = function () {
             deferred.resolve(false);
             // Default image
-            element.attr('src', '/assets/default_photo.png');
+            element.attr('src', 'assets/default_photo.png');
           };
           image.onload = function () {
             deferred.resolve(true);
