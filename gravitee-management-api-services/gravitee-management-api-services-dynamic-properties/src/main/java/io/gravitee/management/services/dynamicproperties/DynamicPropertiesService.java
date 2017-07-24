@@ -122,9 +122,11 @@ public class DynamicPropertiesService extends AbstractService  implements EventL
 
                     updater.setProvider(provider);
                     updater.setApiService(apiService);
-                    logger.info("Add a scheduled task to poll dynamic properties each {} {} ", dynamicPropertyService.getInterval(), dynamicPropertyService.getUnit());
+                    logger.info("Add a scheduled task to poll dynamic properties each {} {} ", dynamicPropertyService.getTrigger().getRate(),
+                            dynamicPropertyService.getTrigger().getUnit());
                     ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
-                            updater, 0, dynamicPropertyService.getInterval(), dynamicPropertyService.getUnit());
+                            updater, 0, dynamicPropertyService.getTrigger().getRate(),
+                            dynamicPropertyService.getTrigger().getUnit());
 
                     scheduledTasks.put(api, scheduledFuture);
                 }

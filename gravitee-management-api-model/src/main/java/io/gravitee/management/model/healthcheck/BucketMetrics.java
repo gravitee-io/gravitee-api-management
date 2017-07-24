@@ -13,32 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.analytics;
+package io.gravitee.management.model.healthcheck;
 
 import java.util.Map;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class HealthAnalytics implements Analytics {
+public class BucketMetrics<T extends Number> {
 
-    private long [] timestamps;
+    private final String name;
 
-    private Map<Boolean, long[]> buckets;
+    private Map<String, T> metrics;
 
-    public Map<Boolean, long[]> getBuckets() {
-        return buckets;
+    public BucketMetrics(final String name) {
+        this.name = name;
     }
 
-    public void setBuckets(Map<Boolean, long[]> buckets) {
-        this.buckets = buckets;
+    public String getName() {
+        return name;
     }
 
-    public long[] getTimestamps() {
-        return timestamps;
+    public Map<String, T> getMetrics() {
+        return metrics;
     }
 
-    public void setTimestamps(long[] timestamps) {
-        this.timestamps = timestamps;
+    public void setMetrics(Map<String, T> metrics) {
+        this.metrics = metrics;
     }
 }

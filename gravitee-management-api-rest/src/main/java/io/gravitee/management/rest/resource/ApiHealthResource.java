@@ -16,20 +16,23 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.analytics.query.LogQuery;
+import io.gravitee.management.model.healthcheck.Logs;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
-import io.gravitee.management.rest.resource.param.HealthParam;
+import io.gravitee.management.rest.resource.param.healthcheck.HealthcheckFieldParam;
+import io.gravitee.management.rest.resource.param.healthcheck.HealthcheckTypeParam;
+import io.gravitee.management.rest.resource.param.healthcheck.LogsParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.HealthCheckService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
 /**
@@ -45,19 +48,42 @@ public class ApiHealthResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation("Health statistics for API")
+    @ApiOperation("Health-check statistics for API")
     @Permissions({
             @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)
     })
     public Response health(
             @PathParam("api") String api,
-            @BeanParam HealthParam healthParam) {
-        healthParam.validate();
+            @QueryParam("type") @DefaultValue("availability") HealthcheckTypeParam healthcheckTypeParam,
+            @QueryParam("field") @DefaultValue("endpoint") HealthcheckFieldParam healthcheckFieldParam) {
 
-        return Response.ok(healthCheckService.health(
-                api,
-                healthParam.getFrom(),
-                healthParam.getTo(),
-                healthParam.getInterval())).build();
+        switch (healthcheckTypeParam.getValue()) {
+            case RESPONSE_TIME:
+                return Response.ok(healthCheckService.getResponseTime(api, healthcheckFieldParam.getValue().name())).build();
+            default:
+                return Response.ok(healthCheckService.getAvailability(api, healthcheckFieldParam.getValue().name())).build();
+        }
+    }
+
+    @GET
+    @Path("logs")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Health-check logs")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API logs"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({@Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)})
+    public Logs healthcheckLogs(
+            @PathParam("api") String api,
+            @BeanParam LogsParam param) {
+
+        param.validate();
+
+        LogQuery logQuery = new LogQuery();
+        logQuery.setQuery(param.getQuery());
+        logQuery.setPage(param.getPage());
+        logQuery.setSize(param.getSize());
+
+        return healthCheckService.getLogs(api, logQuery);
     }
 }
