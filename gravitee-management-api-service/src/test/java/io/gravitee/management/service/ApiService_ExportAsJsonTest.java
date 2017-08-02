@@ -143,12 +143,13 @@ public class ApiService_ExportAsJsonTest {
         rule.setMethods(Collections.singletonList(HttpMethod.GET));
         Policy policy = new Policy();
         policy.setName("rate-limit");
-        policy.setConfiguration("{\n" +
-                "          \"rate\": {\n" +
-                "            \"limit\": 1,\n" +
-                "            \"periodTime\": 1,\n" +
-                "            \"periodTimeUnit\": \"SECONDS\"\n" +
-                "          }\n" +
+        String ls = System.lineSeparator();
+        policy.setConfiguration("{" + ls +
+                "          \"rate\": {" + ls +
+                "            \"limit\": 1," + ls +
+                "            \"periodTime\": 1," + ls +
+                "            \"periodTimeUnit\": \"SECONDS\"" + ls +
+                "          }" + ls +
                 "        }");
         rule.setPolicy(policy);
         path.setRules(Collections.singletonList(rule));
