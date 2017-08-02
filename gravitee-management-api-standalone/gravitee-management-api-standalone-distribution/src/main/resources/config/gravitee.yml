@@ -189,6 +189,15 @@ security:
 #        lastname: family_name
 #        firstname: given_name
 #        picture: picture
+      #   by default created user will have default role for MANAGEMENT and PORTAL
+      #   you can override this by assigning user to groups, on user creation, if its user info content match expression
+#     groups:
+#       - mapping:
+#           condition: "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
+#           values: [Example group,soft user]
+#       - mapping:
+#           condition: "{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
+#           values: ["Api consumer"]
 
 # SMTP configuration used to send mails
 email:

@@ -54,8 +54,15 @@ abstract class AbstractAuthenticationResource {
             AUTH_CODE = "authorization_code";
 
     protected Map<String, Object> getResponseEntity(final Response response) throws IOException {
-        return MAPPER.readValue(response.readEntity(String.class),
-                new TypeReference<Map<String, Object>>() {});
+        return getEntity((getResponseEntityAsString(response)));
+    }
+
+    protected String getResponseEntityAsString(final Response response) throws IOException {
+        return response.readEntity(String.class);
+    }
+
+    protected Map<String, Object> getEntity(final String response) throws IOException {
+        return MAPPER.readValue(response, new TypeReference<Map<String, Object>>() {});
     }
 
     protected Response connectUser(String username) {

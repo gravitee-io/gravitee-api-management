@@ -1,0 +1,11 @@
+{
+  "sub":"248289761001",
+  "name":"Jane Doe",
+  "given_name":"Jane",
+  "family_name":"Doe",
+  "email":"janedoe@example.com",
+  "picture":"http://example.com/janedoe/me.jpg",
+  "identity_provider_id": "idp_5",
+  "job_id": "API_FRIENDLY_USER",
+  "service_id": "585252525"
+}

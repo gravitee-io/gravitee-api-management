@@ -63,8 +63,8 @@ public class RoleServiceImpl extends TransactionalService implements RoleService
             }
             return convert(role.get());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all roles", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all roles", ex);
+            LOGGER.error("An error occurs while trying to find a role : {} {}", scope, name,  ex);
+            throw new TechnicalManagementException("An error occurs while trying to find a role : " + scope + " " + name, ex);
         }
     }
 
