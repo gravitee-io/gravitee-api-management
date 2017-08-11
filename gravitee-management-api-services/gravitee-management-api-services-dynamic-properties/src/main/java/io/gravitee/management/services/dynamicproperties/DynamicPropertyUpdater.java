@@ -84,7 +84,11 @@ public class DynamicPropertyUpdater implements Runnable {
 
         // Create properties container
         Properties apiProperties = new Properties();
-        apiProperties.setProperties(updatedProperties);
+        try {
+            apiProperties.setProperties(updatedProperties);
+        } catch (RuntimeException e) {
+            logger.error(e.getMessage(), e);
+        }
         latestApi.setProperties(apiProperties);
 
         boolean isSync = apiService.isSynchronized(api.getId());
