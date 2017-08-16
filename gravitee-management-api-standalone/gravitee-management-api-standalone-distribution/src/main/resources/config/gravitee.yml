@@ -137,7 +137,7 @@ security:
           # Password value: api1
           password: $2a$10$iXdXO4wAYdhx2LOwijsp7.PsoAZQ05zEdHxbriIYCbtyo.y32LTji
           # You can declare multiple roles using comma separator
-          roles: MANAGEMENT:API_PUBLISHER, PORTAL:API_PUBLISHER, MANAGEMENT:USER, PORTAL:USER
+          roles: MANAGEMENT:API_PUBLISHER, PORTAL:API_PUBLISHER
         - user:
           username: application1
           # Password value: application1
