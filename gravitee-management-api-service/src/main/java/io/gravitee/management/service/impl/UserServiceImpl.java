@@ -424,7 +424,8 @@ public class UserServiceImpl extends TransactionalService implements UserService
             RoleEntity roleEntity = membershipService.getRole(
                     MembershipReferenceType.PORTAL,
                     MembershipDefaultReferenceId.DEFAULT.name(),
-                    user.getUsername());
+                    user.getUsername(),
+                    RoleScope.PORTAL);
             if (roleEntity != null) {
                 roles.add(convert(roleEntity));
             }
@@ -432,7 +433,8 @@ public class UserServiceImpl extends TransactionalService implements UserService
             roleEntity = membershipService.getRole(
                     MembershipReferenceType.MANAGEMENT,
                     MembershipDefaultReferenceId.DEFAULT.name(),
-                    user.getUsername());
+                    user.getUsername(),
+                    RoleScope.MANAGEMENT);
             if (roleEntity != null) {
                 roles.add(convert(roleEntity));
             }

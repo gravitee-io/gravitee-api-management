@@ -36,6 +36,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonMap;
 
 
 /**
@@ -109,7 +110,8 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
                             collect(Collectors.toSet());
 
             //find applications which be part of the same group as the user
-            List<String> groupIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.APPLICATION_GROUP).stream()
+            List<String> groupIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.GROUP).stream()
+                    .filter(m -> m.getRoles().keySet().contains(RoleScope.APPLICATION.getId()))
                     .map(Membership::getReferenceId).collect(Collectors.toList());
             applications.addAll(applicationRepository.findByGroups(groupIds, ApplicationStatus.ACTIVE));
 
@@ -176,9 +178,9 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         try {
             LOGGER.debug("Create {} for user {}", newApplicationEntity, username);
 
-            if (newApplicationEntity.getGroup() != null) {
+            if (newApplicationEntity.getGroups() != null && !newApplicationEntity.getGroups().isEmpty()) {
                 //throw a NotFoundException if the group doesn't exist
-                groupService.findById(newApplicationEntity.getGroup());
+                groupService.findByIds(newApplicationEntity.getGroups());
             }
             String id = UUID.toString(UUID.random());
 
@@ -200,8 +202,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
             // Add the primary owner of the newly created API
             Membership membership = new Membership(username, createdApplication.getId(), MembershipReferenceType.APPLICATION);
-            membership.setRoleScope(RoleScope.APPLICATION.getId());
-            membership.setRoleName(SystemRole.PRIMARY_OWNER.name());
+            membership.setRoles(singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
             membership.setCreatedAt(application.getCreatedAt());
             membership.setUpdatedAt(application.getCreatedAt());
             membershipRepository.create(membership);
@@ -217,9 +218,9 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
     public ApplicationEntity update(String applicationId, UpdateApplicationEntity updateApplicationEntity) {
         try {
             LOGGER.debug("Update application {}", applicationId);
-            if (updateApplicationEntity.getGroup() != null) {
+            if (updateApplicationEntity.getGroups() != null && !updateApplicationEntity.getGroups().isEmpty()) {
                 //throw a NotFoundException if the group doesn't exist
-                groupService.findById(updateApplicationEntity.getGroup());
+                groupService.findByIds(updateApplicationEntity.getGroups());
             }
             Optional<Application> optApplicationToUpdate = applicationRepository.findById(applicationId);
             if (!optApplicationToUpdate.isPresent()) {
@@ -323,8 +324,11 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
         applicationEntity.setDescription(application.getDescription());
         applicationEntity.setType(application.getType());
         applicationEntity.setStatus(application.getStatus().toString());
-        if (application.getGroup() != null) {
-            applicationEntity.setGroup(groupService.findById(application.getGroup()));
+        if (application.getGroups() != null && !application.getGroups().isEmpty()) {
+            applicationEntity.setGroups(
+                    groupService.findByIds(application.getGroups()).
+                            stream().map(GroupEntity::getId).
+                            collect(Collectors.toSet()));
         }
 
         applicationEntity.setCreatedAt(application.getCreatedAt());
@@ -347,7 +351,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
         application.setName(newApplicationEntity.getName().trim());
         application.setDescription(newApplicationEntity.getDescription().trim());
-        application.setGroup(newApplicationEntity.getGroup());
+        application.setGroups(newApplicationEntity.getGroups());
 
         if (newApplicationEntity.getType() != null) {
             application.setType(newApplicationEntity.getType().trim());
@@ -361,7 +365,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
         application.setName(updateApplicationEntity.getName().trim());
         application.setDescription(updateApplicationEntity.getDescription().trim());
-        application.setGroup(updateApplicationEntity.getGroup());
+        application.setGroups(updateApplicationEntity.getGroups());
 
         if (updateApplicationEntity.getType() != null) {
             application.setType(updateApplicationEntity.getType().trim());

@@ -22,6 +22,7 @@ import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -98,7 +99,7 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         final PageEntity responsePage = response.readEntity(PageEntity.class);
         assertNotNull(responsePage);
         assertEquals(PAGE_NAME, responsePage.getName());
-        verify(membershipService, never()).getRole(any(), any(), any());
+        verify(membershipService, never()).getRole(any(), any(), any(), eq(RoleScope.API));
         verify(apiService, times(1)).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, false);
         verify(pageService, times(1)).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
@@ -118,13 +119,13 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, false);
         doReturn(false).when(pageService).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
         final RoleEntity roleMock = mock(RoleEntity.class);
-        doReturn(roleMock).when(membershipService).getRole(MembershipReferenceType.API, API_NAME, USER_NAME);
-        doReturn(true).when(roleService).hasPermission(roleMock, ApiPermission.DOCUMENTATION, new RolePermissionAction[]{RolePermissionAction.READ});
+        doReturn(roleMock).when(membershipService).getRole(MembershipReferenceType.API, API_NAME, USER_NAME, RoleScope.API);
+        doReturn(true).when(roleService).hasPermission(any(), eq(ApiPermission.DOCUMENTATION), eq(new RolePermissionAction[]{RolePermissionAction.READ}));
 
         final Response response = target().request().get();
 
         assertEquals(UNAUTHORIZED_401, response.getStatus());
-        verify(membershipService, times(1)).getRole(MembershipReferenceType.API, API_NAME, USER_NAME);
+        verify(membershipService, times(1)).getRole(MembershipReferenceType.API, API_NAME, USER_NAME, RoleScope.API);
         verify(apiService, atLeastOnce()).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, false);
         verify(pageService, times(1)).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);

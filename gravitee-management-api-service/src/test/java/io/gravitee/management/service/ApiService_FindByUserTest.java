@@ -80,13 +80,14 @@ public class ApiService_FindByUserTest {
     public void shouldFindByUser() throws TechnicalException {
         when(apiRepository.findByVisibility(any(Visibility.class)))
                 .thenReturn(new HashSet<>(Arrays.asList(api)));
-        Set<Membership> memberships = Collections.singleton(new Membership(USER_NAME, api.getId(), MembershipReferenceType.API));
+        Membership membership = new Membership(USER_NAME, api.getId(), MembershipReferenceType.API);
+        membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), "USER"));
+        Set<Membership> memberships = Collections.singleton(membership);
         when(membershipRepository.findByUserAndReferenceType(anyString(), any(MembershipReferenceType.class)))
                 .thenReturn(memberships);
         when(apiRepository.findByIds(Arrays.asList(USER_NAME))).thenReturn(new HashSet<>(Arrays.asList(api)));
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
-        po.setRoleScope(RoleScope.API.getId());
-        po.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
                 .thenReturn(Collections.singleton(po));
 

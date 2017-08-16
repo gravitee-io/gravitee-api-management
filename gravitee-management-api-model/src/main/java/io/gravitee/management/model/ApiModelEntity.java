@@ -35,7 +35,7 @@ public class ApiModelEntity {
     private String name;
     private String version;
     private String description;
-    private GroupEntity group;
+    private Set<String> groups;
     private Proxy proxy;
     private Map<String, Path> paths = new HashMap<>();
     private Date deployedAt;
@@ -214,12 +214,12 @@ public class ApiModelEntity {
         this.views = views;
     }
 
-    public GroupEntity getGroup() {
-        return group;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(GroupEntity group) {
-        this.group = group;
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
     }
 
     public Map<String, String> getMetadata() {
@@ -260,7 +260,7 @@ public class ApiModelEntity {
             ", role=" + role +
             ", tags=" + tags +
             ", view=" + views +
-            ", group=" + group +
+            ", groups=" + groups +
             ", metadata=" + metadata +
             '}';
     }

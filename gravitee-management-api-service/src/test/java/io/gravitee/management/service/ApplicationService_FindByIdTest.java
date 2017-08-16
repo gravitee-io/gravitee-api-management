@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
@@ -73,8 +74,7 @@ public class ApplicationService_FindByIdTest {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         Membership po = new Membership(USER_NAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
-        po.setRoleScope(RoleScope.APPLICATION.getId());
-        po.setRoleName("PRIMAY_OWNER");
+        po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferenceAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
                 .thenReturn(Collections.singleton(po));
         when(userService.findByName(USER_NAME, false)).thenReturn(new UserEntity());

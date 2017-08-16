@@ -62,6 +62,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected PageService pageService;
 
+    @Autowired
+    protected GroupService groupService;
+
     @Configuration
     static class ContextConfiguration {
 
@@ -108,6 +111,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public PageService pageService() {
             return mock(PageService.class);
+        }
+
+        @Bean
+        public GroupService groupService() {
+            return mock(GroupService.class);
         }
     }
 }

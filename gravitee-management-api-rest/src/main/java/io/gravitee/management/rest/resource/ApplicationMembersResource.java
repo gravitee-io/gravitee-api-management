@@ -16,7 +16,6 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.permissions.ApplicationPermission;
@@ -32,10 +31,10 @@ import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.*;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
@@ -45,9 +44,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static io.gravitee.management.model.permissions.SystemRole.PRIMARY_OWNER;
-import static io.gravitee.management.model.permissions.RolePermission.*;
 import static io.gravitee.management.model.permissions.RolePermissionAction.*;
+import static io.gravitee.management.model.permissions.SystemRole.PRIMARY_OWNER;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com
@@ -78,26 +76,16 @@ public class ApplicationMembersResource  extends AbstractResource {
     })
     public Response getPermissions(@PathParam("application") String application) {
         Map<String, char[]> permissions = new HashMap<>();
-
-        final Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            final UserDetails details = ((UserDetails) principal);
-            final String username = details.getUsername();
+        if (isAuthenticated()) {
+            final String username = getAuthenticatedUsername();
             final ApplicationEntity applicationEntity = applicationService.findById(application);
-            if (username.equals(applicationEntity.getPrimaryOwner().getUsername()) || isAdmin()) {
+            if (isAdmin()) {
                 final char[] rights = new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
                 for (ApplicationPermission perm: ApplicationPermission.values()) {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
-                MemberEntity member = membershipService.getMember(MembershipReferenceType.APPLICATION, application, username);
-                if (member == null && applicationEntity.getGroup() != null) {
-                    member = membershipService.getMember(MembershipReferenceType.APPLICATION_GROUP, applicationEntity.getGroup().getId(), username);
-                }
-
-                if (member != null) {
-                    permissions = member.getPermissions();
-                }
+                permissions = membershipService.getMemberPermissions(applicationEntity, username);
             }
         }
         return Response.ok(permissions).build();
@@ -115,7 +103,7 @@ public class ApplicationMembersResource  extends AbstractResource {
     })
     public List<MemberEntity> listApplicationMembers(@PathParam("application") String application) {
         applicationService.findById(application);
-        return membershipService.getMembers(MembershipReferenceType.APPLICATION, application, null, null).stream()
+        return membershipService.getMembers(MembershipReferenceType.APPLICATION, application, RoleScope.APPLICATION, null).stream()
                 .sorted(Comparator.comparing(MemberEntity::getUsername))
                 .collect(Collectors.toList());
     }

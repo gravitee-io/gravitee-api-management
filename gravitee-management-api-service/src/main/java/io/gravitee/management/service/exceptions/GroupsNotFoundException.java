@@ -13,12 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.service.exceptions;
+
+import java.util.Set;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum GroupEntityType {
-    APPLICATION, API
+public class GroupsNotFoundException extends AbstractNotFoundException {
+
+    private final Set<String> groupIds;
+
+    public GroupsNotFoundException(Set<String> groupIds) {
+        this.groupIds = groupIds;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Groups [" + groupIds + "] can not be found.";
+    }
 }

@@ -16,10 +16,8 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -28,13 +26,11 @@ import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.UserService;
-import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.SinglePrimaryOwnerException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.*;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -77,27 +73,17 @@ public class ApiMembersResource extends AbstractResource {
             @ApiResponse(code = 200, message = "API member's permissions", response = MemberEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response getPermissions(@PathParam("api") String api) {
-
         final ApiEntity apiEntity = apiService.findById(api);
         Map<String, char[]> permissions = new HashMap<>();
-        final Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            final UserDetails details = ((UserDetails) principal);
-            final String username = details.getUsername();
-            if (username.equals(apiEntity.getPrimaryOwner().getUsername()) || isAdmin()) {
+        if (isAuthenticated()) {
+            final String username = getAuthenticatedUsername();
+            if (isAdmin()) {
                 final char[] rights = new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
                 for (ApiPermission perm: ApiPermission.values()) {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
-                MemberEntity member = membershipService.getMember(MembershipReferenceType.API, api, username);
-                if (member == null && apiEntity.getGroup() != null) {
-                    member = membershipService.getMember(MembershipReferenceType.API_GROUP, apiEntity.getGroup().getId(), username);
-                }
-
-                if (member != null) {
-                    permissions = member.getPermissions();
-                }
+                permissions = membershipService.getMemberPermissions(apiEntity, username);
             }
         }
         return Response.ok(permissions).build();
@@ -115,7 +101,7 @@ public class ApiMembersResource extends AbstractResource {
     })
     public List<MemberEntity> listApiMembers(@PathParam("api") String api) {
         apiService.findById(api);
-        return membershipService.getMembers(MembershipReferenceType.API, api, null, null).stream()
+        return membershipService.getMembers(MembershipReferenceType.API, api, RoleScope.API).stream()
                 .sorted(Comparator.comparing(MemberEntity::getUsername))
                 .collect(Collectors.toList());
     }

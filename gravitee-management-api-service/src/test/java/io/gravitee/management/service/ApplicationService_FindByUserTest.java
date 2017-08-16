@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
@@ -89,13 +90,12 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(Collections.singleton(appMembership));
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).
                 thenReturn(Collections.singleton(application));
-        when(membershipRepository.findByUserAndReferenceType(USERNAME, MembershipReferenceType.APPLICATION_GROUP)).
+        when(membershipRepository.findByUserAndReferenceType(USERNAME, MembershipReferenceType.GROUP)).
                 thenReturn(Collections.emptySet());
         when(applicationRepository.findByGroups(Collections.emptyList(), ApplicationStatus.ACTIVE)).
                 thenReturn(Collections.emptySet());
         Membership po = new Membership(USERNAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
-        po.setRoleScope(RoleScope.APPLICATION.getId());
-        po.setRoleName("PRIMAY_OWNER");
+        po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
                 .thenReturn(Collections.singleton(po));
         when(userService.findByName(USERNAME, false)).thenReturn(new UserEntity());
@@ -119,13 +119,12 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(Collections.singleton(appMembership));
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).
                 thenReturn(Collections.singleton(application));
-        when(membershipRepository.findByUserAndReferenceType(USERNAME, MembershipReferenceType.APPLICATION_GROUP)).
+        when(membershipRepository.findByUserAndReferenceType(USERNAME, MembershipReferenceType.GROUP)).
                 thenReturn(Collections.emptySet());
         when(applicationRepository.findByGroups(Collections.emptyList(), ApplicationStatus.ACTIVE)).
                 thenReturn(Collections.emptySet());
         Membership po = new Membership(USERNAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
-        po.setRoleScope(RoleScope.APPLICATION.getId());
-        po.setRoleName("PRIMAY_OWNER");
+        po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
                 .thenReturn(Collections.singleton(po));
         when(userService.findByName(USERNAME, false)).thenReturn(new UserEntity());
@@ -142,7 +141,8 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(APPLICATION_ID);
         when(groupAppMembership.getReferenceId()).
                 thenReturn(GROUP_APPLICATION_ID);
-
+        when(groupAppMembership.getRoles()).
+                thenReturn(Collections.singletonMap(RoleScope.APPLICATION.getId(), "USER"));
         when(application.getId()).
                 thenReturn(APPLICATION_ID);
         when(application.getStatus()).
@@ -156,16 +156,14 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(Collections.singleton(appMembership));
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).
                 thenReturn(Collections.singleton(application));
-        when(membershipRepository.findByUserAndReferenceType(USERNAME, MembershipReferenceType.APPLICATION_GROUP)).
+        when(membershipRepository.findByUserAndReferenceType(USERNAME, MembershipReferenceType.GROUP)).
                 thenReturn(Collections.singleton(groupAppMembership));
         when(applicationRepository.findByGroups(Collections.singletonList(GROUP_APPLICATION_ID), ApplicationStatus.ACTIVE)).
                 thenReturn(Collections.singleton(groupApplication));
         Membership poApp = new Membership(USERNAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
-        poApp.setRoleScope(RoleScope.APPLICATION.getId());
-        poApp.setRoleName("PRIMAY_OWNER");
+        poApp.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
         Membership poGroupApp = new Membership(USERNAME, GROUP_APPLICATION_ID, MembershipReferenceType.APPLICATION);
-        poGroupApp.setRoleScope(RoleScope.APPLICATION.getId());
-        poGroupApp.setRoleName("PRIMAY_OWNER");
+        poGroupApp.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
         Set<Membership> memberships = new HashSet<>();
         memberships.add(poApp);
         memberships.add(poGroupApp);

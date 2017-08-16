@@ -2,7 +2,7 @@
   "description" : "Gravitee.io",
   "paths" : { },
   "resources" : [ ],
-  "group" : "My Group",
+  "groups" : [ "My Group" ],
   "pages" : [ {
     "name" : "My Title",
     "type" : "MARKDOWN",

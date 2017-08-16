@@ -84,8 +84,7 @@ public class ApiService_FindByIdTest {
     public void shouldFindById() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
-        po.setRoleScope(RoleScope.API.getId());
-        po.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferenceAndRole(any(), any(), any(), any()))
                 .thenReturn(Collections.singleton(po));
 

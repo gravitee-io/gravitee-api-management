@@ -459,16 +459,23 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Override
 	public boolean isDisplayable(ApiEntity api, boolean pageIsPublished, String username) {
+		boolean isDisplayable = false;
 		if (api.getVisibility() == Visibility.PUBLIC && pageIsPublished) {
-			return true;
+			isDisplayable = true;
 		} else if (username != null) {
-			MemberEntity member = membershipService.getMember(MembershipReferenceType.API, api.getId(), username);
-			if (member == null && api.getGroup() != null && api.getGroup().getId() != null) {
-				member = membershipService.getMember(MembershipReferenceType.API_GROUP, api.getGroup().getId(), username);
+			MemberEntity member = membershipService.getMember(MembershipReferenceType.API, api.getId(), username, io.gravitee.repository.management.model.RoleScope.API);
+			if (member == null && api.getGroups() != null) {
+				Iterator<String> groupIdIterator = api.getGroups().iterator();
+				while (!isDisplayable && groupIdIterator.hasNext()) {
+					String groupId = groupIdIterator.next();
+					member = membershipService.getMember(MembershipReferenceType.GROUP, groupId, username, io.gravitee.repository.management.model.RoleScope.API);
+					isDisplayable = isDisplayableForMember(member, pageIsPublished);
+				}
+			} else {
+				isDisplayable = isDisplayableForMember(member, pageIsPublished);
 			}
-			return isDisplayableForMember(member, pageIsPublished);
 		}
-		return false;
+		return isDisplayable;
 	}
 
 	private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {
@@ -481,13 +488,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			return true;
 		}
 
-		RoleEntity roleEntity = new RoleEntity();
-		roleEntity.setScope(RoleScope.API);
-		roleEntity.setName(member.getRole());
-		roleEntity.setPermissions(member.getPermissions());
 		// only members which could modify a page can see an unpublished page
 		return roleService.hasPermission(
-				roleEntity,
+				member.getPermissions(),
 				ApiPermission.DOCUMENTATION,
 				new RolePermissionAction[]{
 						RolePermissionAction.UPDATE,

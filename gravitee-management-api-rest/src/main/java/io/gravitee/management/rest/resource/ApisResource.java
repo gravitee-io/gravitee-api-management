@@ -98,7 +98,7 @@ public class ApisResource extends AbstractResource {
 
         return apis.stream()
                 .filter(apiEntity -> view == null || (apiEntity.getViews() != null && apiEntity.getViews().contains(view)))
-                .filter(apiEntity -> group == null || (apiEntity.getGroup() != null && apiEntity.getGroup().getId().equals(group)))
+                .filter(apiEntity -> group == null || (apiEntity.getGroups() != null && apiEntity.getGroups().contains(group)))
                 .map(this::convert)
                 .map(this::setManageable)
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))

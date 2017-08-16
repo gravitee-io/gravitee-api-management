@@ -44,7 +44,6 @@ public class RoleService_HasPermissionTest {
 
     @Test
     public void shouldHasPermission() {
-        final RoleEntity roleMock = mock(RoleEntity.class);
         final Map<String, char[]> perms = new HashMap<>();
         perms.put(ApiPermission.DOCUMENTATION.name(),
                 new char[]{
@@ -53,10 +52,9 @@ public class RoleService_HasPermissionTest {
                         RolePermissionAction.UPDATE.getId(),
                         RolePermissionAction.DELETE.getId()
                 });
-        doReturn(perms).when(roleMock).getPermissions();
 
         boolean hasPermission = roleService.hasPermission(
-                roleMock,
+                perms,
                 ApiPermission.DOCUMENTATION,
                 new RolePermissionAction[]{RolePermissionAction.UPDATE});
 
@@ -65,7 +63,6 @@ public class RoleService_HasPermissionTest {
 
     @Test
     public void shouldNotHasPermission() {
-        final RoleEntity roleMock = mock(RoleEntity.class);
         final Map<String, char[]> perms = new HashMap<>();
         perms.put(ApiPermission.DOCUMENTATION.name(),
                 new char[]{
@@ -73,10 +70,9 @@ public class RoleService_HasPermissionTest {
                         RolePermissionAction.READ.getId(),
                         RolePermissionAction.DELETE.getId()
                 });
-        doReturn(perms).when(roleMock).getPermissions();
 
         boolean hasPermission = roleService.hasPermission(
-                roleMock,
+                perms,
                 ApiPermission.DOCUMENTATION,
                 new RolePermissionAction[]{RolePermissionAction.UPDATE});
 
@@ -85,7 +81,6 @@ public class RoleService_HasPermissionTest {
 
     @Test
     public void shouldNotHasPermission2() {
-        final RoleEntity roleMock = mock(RoleEntity.class);
         final Map<String, char[]> perms = new HashMap<>();
         perms.put(ApiPermission.PLAN.name(),
                 new char[]{
@@ -94,10 +89,9 @@ public class RoleService_HasPermissionTest {
                         RolePermissionAction.UPDATE.getId(),
                         RolePermissionAction.DELETE.getId()
                 });
-        doReturn(perms).when(roleMock).getPermissions();
 
         boolean hasPermission = roleService.hasPermission(
-                roleMock,
+                perms,
                 ApiPermission.DOCUMENTATION,
                 new RolePermissionAction[]{RolePermissionAction.UPDATE});
 

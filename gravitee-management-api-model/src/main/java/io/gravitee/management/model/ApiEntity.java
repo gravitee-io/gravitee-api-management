@@ -18,8 +18,9 @@ package io.gravitee.management.model;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 
@@ -38,7 +39,7 @@ public class ApiEntity {
     private String name;
     private String version;
     private String description;
-    private GroupEntity group;
+    private Set<String> groups;
 
     @JsonProperty(value = "context_path")
     private String contextPath;
@@ -254,12 +255,12 @@ public class ApiEntity {
         this.views = views;
     }
 
-    public GroupEntity getGroup() {
-        return group;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(GroupEntity group) {
-        this.group = group;
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
     }
 
     public List<String> getLabels() {
@@ -308,7 +309,7 @@ public class ApiEntity {
             ", role=" + role +
             ", tags=" + tags +
             ", view=" + views +
-            ", group=" + group +
+            ", groups=" + groups +
             '}';
     }
 }

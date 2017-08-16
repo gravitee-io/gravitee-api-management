@@ -27,7 +27,6 @@ import java.util.Objects;
 public class GroupEntity {
 
     private String id;
-    private GroupEntityType type;
     private String name;
 
     @JsonProperty("created_at")
@@ -42,14 +41,6 @@ public class GroupEntity {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public GroupEntityType getType() {
-        return type;
-    }
-
-    public void setType(GroupEntityType type) {
-        this.type = type;
     }
 
     public String getName() {
@@ -94,7 +85,6 @@ public class GroupEntity {
         return "GroupEntity{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
-                ", type='" + type + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 "}";

@@ -90,8 +90,7 @@ public class ApiService_StartTest {
         final EventEntity event = mockEvent(EventType.PUBLISH_API);
         when(eventService.findByApi(API_ID)).thenReturn(Collections.singleton(event));
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
-        po.setRoleScope(RoleScope.API.getId());
-        po.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
                 .thenReturn(Collections.singleton(po));
 

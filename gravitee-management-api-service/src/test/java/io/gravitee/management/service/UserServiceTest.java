@@ -142,7 +142,8 @@ public class UserServiceTest {
         when(membershipService.getRole(
                 MembershipReferenceType.PORTAL,
                 MembershipDefaultReferenceId.DEFAULT.name(),
-                user.getUsername())).thenReturn(role);
+                user.getUsername(),
+                RoleScope.PORTAL)).thenReturn(role);
 
         final UserEntity createdUserEntity = userService.create(newUser, false);
 

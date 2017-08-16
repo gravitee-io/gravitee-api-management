@@ -59,7 +59,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity responsePage = response.readEntity(PageEntity.class);
         assertNotNull(responsePage);
         assertEquals(PAGE_NAME, responsePage.getName());
-        verify(membershipService, never()).getRole(any(), any(), any());
+        verify(membershipService, never()).getRole(any(), any(), any(), any());
         verify(apiService, times(1)).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, false);
         verify(pageService, never()).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
@@ -83,7 +83,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity responsePage = response.readEntity(PageEntity.class);
         assertNotNull(responsePage);
         assertEquals(PAGE_NAME, responsePage.getName());
-        verify(membershipService, never()).getRole(any(), any(), any());
+        verify(membershipService, never()).getRole(any(), any(), any(), any());
         verify(apiService, times(1)).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, false);
         verify(pageService, never()).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
@@ -107,7 +107,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity responsePage = response.readEntity(PageEntity.class);
         assertNotNull(responsePage);
         assertEquals(PAGE_NAME, responsePage.getName());
-        verify(membershipService, never()).getRole(any(), any(), any());
+        verify(membershipService, never()).getRole(any(), any(), any(), any());
         verify(apiService, times(1)).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, false);
         verify(pageService, never()).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);

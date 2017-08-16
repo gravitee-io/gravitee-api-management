@@ -13,31 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.*;
-
-import java.util.List;
-import java.util.Set;
+package io.gravitee.management.service.exceptions;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface GroupService {
+public class MemberWithoutRoleException extends AbstractNotFoundException {
 
-    List<GroupEntity> findAll();
+    private final String username;
 
-    List<GroupEntity> findByName(String name);
+    public MemberWithoutRoleException(String username) {
+        this.username = username;
+    }
 
-    GroupEntity create(NewGroupEntity group);
-
-    GroupEntity update(String groupId, UpdateGroupEntity group);
-
-    GroupEntity findById(String groupId);
-
-    Set<GroupEntity> findByIds(Set<String> groupIds);
-
-    void delete(String groupId);
-
+    @Override
+    public String getMessage() {
+        return "User [" + username + "] must have at least one role.";
+    }
 }

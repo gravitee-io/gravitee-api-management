@@ -54,12 +54,12 @@ public class GroupRepositoryProxy extends AbstractProxy<GroupRepository> impleme
     }
 
     @Override
-    public Set<Group> findByType(Group.Type type) throws TechnicalException {
-        return target.findByType(type);
+    public Set<Group> findAll() throws TechnicalException {
+        return target.findAll();
     }
 
     @Override
-    public Set<Group> findAll() throws TechnicalException {
-        return target.findAll();
+    public Set<Group> findByIds(Set<String> ids) throws TechnicalException {
+        return target.findByIds(ids);
     }
 }

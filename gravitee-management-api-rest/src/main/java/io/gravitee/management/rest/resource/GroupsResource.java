@@ -16,7 +16,6 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.GroupEntity;
-import io.gravitee.management.model.GroupEntityType;
 import io.gravitee.management.model.NewGroupEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -25,7 +24,6 @@ import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.GroupService;
 import io.swagger.annotations.*;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -61,19 +59,11 @@ public class GroupsResource extends AbstractResource {
             @ApiResponse(code = 200, message = "List of groups", response = GroupEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
-    public Response findByOptionalType(
-            @ApiParam(name = "type") @QueryParam("type") @Nullable GroupEntityType type) {
-        if (hasPermission(RolePermission.MANAGEMENT_ROLE, new RolePermissionAction[]{RolePermissionAction.READ})
-                || (type != null && type.equals(GroupEntityType.API))) {
-            if (type == null) {
+    public Response findAll(){
+        if (hasPermission(RolePermission.MANAGEMENT_ROLE, RolePermissionAction.READ)) {
                 return Response
                         .ok(groupService.findAll())
                         .build();
-            } else {
-                return Response
-                        .ok(groupService.findByType(type))
-                        .build();
-            }
         }
         return Response
                 .status(Response.Status.FORBIDDEN)

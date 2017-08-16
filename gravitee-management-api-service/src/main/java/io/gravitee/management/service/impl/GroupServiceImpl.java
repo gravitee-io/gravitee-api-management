@@ -16,10 +16,13 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.common.utils.UUID;
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.GroupEntity;
+import io.gravitee.management.model.NewGroupEntity;
+import io.gravitee.management.model.UpdateGroupEntity;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.exceptions.GroupNameAlreadyExistsException;
 import io.gravitee.management.service.exceptions.GroupNotFoundException;
+import io.gravitee.management.service.exceptions.GroupsNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -28,7 +31,6 @@ import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,39 +75,21 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
     }
 
     @Override
-    public List<GroupEntity> findByType(GroupEntityType type) {
+    public List<GroupEntity> findByName(String name) {
         try {
-            logger.debug("findByType : {}", type);
-            if (type == null) {
+            logger.debug("findByName : {}", name);
+            if (name == null) {
                 return Collections.emptyList();
             }
-            List<GroupEntity> groupEntities = groupRepository.findByType(Group.Type.valueOf(type.name())).stream()
-                    .map(this::map)
-                    .collect(Collectors.toList());
-            logger.debug("findByType : {} - DONE", type);
-            return groupEntities;
-        } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find groups by Type", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find groups by Type", ex);
-        }
-    }
-
-    @Override
-    public List<GroupEntity> findByTypeAndName(GroupEntityType type, String name) {
-        try {
-            logger.debug("findByTypeAndName : {}, {}", type, name);
-            if (type == null || name == null) {
-                return Collections.emptyList();
-            }
-            List<GroupEntity> groupEntities = groupRepository.findByType(Group.Type.valueOf(type.name())).stream()
+            List<GroupEntity> groupEntities = groupRepository.findAll().stream()
                     .filter(group -> group.getName().equals(name))
                     .map(this::map)
                     .collect(Collectors.toList());
-            logger.debug("findByType : {} - DONE", type);
+            logger.debug("findByName : {} - DONE", name);
             return groupEntities;
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find groups by Type", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find groups by Type", ex);
+            logger.error("An error occurs while trying to find groups by name", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find groups by name", ex);
         }
     }
 
@@ -113,7 +97,7 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
     public GroupEntity create(NewGroupEntity group) {
         try {
             logger.debug("create {}", group);
-            if( !this.findByTypeAndName(group.getType(), group.getName()).isEmpty()) {
+            if( !this.findByName(group.getName()).isEmpty()) {
                 throw new GroupNameAlreadyExistsException(group.getName());
             }
             Group newGroup = this.map(group);
@@ -162,15 +146,36 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
     }
 
     @Override
+    public Set<GroupEntity> findByIds(Set<String> groupIds) {
+        try {
+            logger.debug("findByIds {}", groupIds);
+            Set<Group> groups = groupRepository.findByIds(groupIds);
+            if (groups == null || groups.size() != groupIds.size()) {
+                List<String> groupsFound = groups == null ? Collections.emptyList()
+                        : groups.stream().map(Group::getId).collect(Collectors.toList());
+                Set<String> groupIdsNotFound = new HashSet<>(groupIds);
+                groupIdsNotFound.removeAll(groupsFound);
+                throw new GroupsNotFoundException(groupIdsNotFound);
+            }
+            logger.debug("findByIds {} - DONE", groups);
+            return groups.
+                    stream().
+                    map(this::map).
+                    collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to find groups", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find groups", ex);
+        }
+    }
+
+    @Override
     public void delete(String groupId) {
         try {
             logger.debug("delete {}", groupId);
             GroupEntity groupEntity = this.findById(groupId);
             //remove all members
             membershipRepository.findByReferenceAndRole(
-                    groupEntity.getType().equals(GroupEntityType.API)
-                            ? MembershipReferenceType.API_GROUP
-                            : MembershipReferenceType.APPLICATION_GROUP,
+                    MembershipReferenceType.GROUP,
                     groupId,
                     null,
                     null)
@@ -185,29 +190,26 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
 
             //remove all applications or apis
             Date updatedDate = new Date();
-            if (groupEntity.getType().equals(GroupEntityType.API)) {
-                apiRepository.findByGroups(Collections.singletonList(groupId)).forEach( api -> {
-                    api.setGroup(null);
-                    api.setUpdatedAt(updatedDate);
-                    try {
-                        apiRepository.update(api);
-                    } catch (TechnicalException ex) {
-                        logger.error("An error occurs while trying to delete a group", ex);
-                        throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
-                    }
-                });
-            } else {
-                applicationRepository.findByGroups(Collections.singletonList(groupId)).forEach( application -> {
-                    application.setGroup(null);
-                    application.setUpdatedAt(updatedDate);
-                    try {
-                        applicationRepository.update(application);
-                    } catch (TechnicalException ex) {
-                        logger.error("An error occurs while trying to delete a group", ex);
-                        throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
-                    }
-                });
-            }
+            apiRepository.findByGroups(Collections.singletonList(groupId)).forEach( api -> {
+                api.getGroups().remove(groupId);
+                api.setUpdatedAt(updatedDate);
+                try {
+                    apiRepository.update(api);
+                } catch (TechnicalException ex) {
+                    logger.error("An error occurs while trying to delete a group", ex);
+                    throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
+                }
+            });
+            applicationRepository.findByGroups(Collections.singletonList(groupId)).forEach( application -> {
+                application.getGroups().remove(groupId);
+                application.setUpdatedAt(updatedDate);
+                try {
+                    applicationRepository.update(application);
+                } catch (TechnicalException ex) {
+                    logger.error("An error occurs while trying to delete a group", ex);
+                    throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
+                }
+            });
             //remove group
             groupRepository.delete(groupId);
             logger.debug("delete {} - DONE", groupId);
@@ -225,7 +227,6 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
 
         Group group = new Group();
         group.setId(entity.getId());
-        group.setType(Group.Type.valueOf(entity.getType().name()));
         group.setName(entity.getName());
         group.setCreatedAt(entity.getCreatedAt());
         group.setUpdatedAt(entity.getUpdatedAt());
@@ -239,7 +240,6 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
         }
 
         Group group = new Group();
-        group.setType(Group.Type.valueOf(entity.getType().name()));
         group.setName(entity.getName());
 
         return group;
@@ -252,7 +252,6 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
 
         GroupEntity entity = new GroupEntity();
         entity.setId(group.getId());
-        entity.setType(GroupEntityType.valueOf(group.getType().name()));
         entity.setName(group.getName());
         entity.setCreatedAt(group.getCreatedAt());
         entity.setUpdatedAt(group.getUpdatedAt());

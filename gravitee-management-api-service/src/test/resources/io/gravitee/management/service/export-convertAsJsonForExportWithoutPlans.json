@@ -2,7 +2,7 @@
   "description" : "Gravitee.io",
   "paths" : { },
   "resources" : [ ],
-  "group" : "My Group",
+  "groups" : [ "My Group" ],
   "members" : [ {
     "username" : "johndoe",
     "role" : "PRIMARY_OWNER"

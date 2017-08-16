@@ -17,6 +17,7 @@ package io.gravitee.management.model;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,7 +41,7 @@ public class NewApiEntity {
     @NotNull
     private String endpoint;
 
-    private String group;
+    private Set<String> groups;
 
     private List<String> paths;
 
@@ -92,12 +93,12 @@ public class NewApiEntity {
         this.paths = paths;
     }
 
-    public String getGroup() {
-        return group;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
     }
 
     @Override
@@ -108,7 +109,7 @@ public class NewApiEntity {
                 ", description='" + description + '\'' +
                 ", contextPath='" + contextPath + '\'' +
                 ", endpoint='" + endpoint + '\'' +
-                ", group='" + group + '\'' +
+                ", groups='" + groups + '\'' +
                 '}';
     }
 }

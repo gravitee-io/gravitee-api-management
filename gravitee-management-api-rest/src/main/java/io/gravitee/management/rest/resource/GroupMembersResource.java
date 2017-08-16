@@ -15,32 +15,28 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.GroupEntity;
-import io.gravitee.management.model.GroupEntityType;
+import io.gravitee.management.model.GroupMemberEntity;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.MembershipService;
-import io.gravitee.management.service.UserService;
-import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.Comparator;
-import java.util.List;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -49,8 +45,8 @@ import java.util.stream.Collectors;
  */
 public class GroupMembersResource extends AbstractResource {
 
-    @Inject
-    private UserService userService;
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private GroupService groupService;
@@ -67,84 +63,46 @@ public class GroupMembersResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.READ)
     })
-    public List<MemberEntity> getMembers(@PathParam("group") String group) {
-        GroupEntity groupEntity = groupService.findById(group);
-        return membershipService.getMembers(
-                groupEntity.getType().equals(GroupEntityType.API) ?
-                        MembershipReferenceType.API_GROUP :
-                        MembershipReferenceType.APPLICATION_GROUP,
-                group).stream()
-                .sorted(Comparator.comparing(MemberEntity::getUsername))
-                .collect(Collectors.toList());
+    public List<GroupMemberEntity> getMembers(@PathParam("group") String group) {
+        //check that group exists
+        groupService.findById(group);
+
+        Map<String, List<MemberEntity>> membersWithApplicationRole = membershipService.
+                getMembers(MembershipReferenceType.GROUP, group, RoleScope.APPLICATION).
+                stream().
+                filter(Objects::nonNull).
+                collect(Collectors.groupingBy(MemberEntity::getUsername));
+
+        Map<String, List<MemberEntity>> membersWithApiRole = membershipService.
+                getMembers(MembershipReferenceType.GROUP, group, RoleScope.API).
+                stream().
+                filter(Objects::nonNull).
+                collect(Collectors.groupingBy(MemberEntity::getUsername));
+
+        Set<String> usernames = new HashSet<>();
+        usernames.addAll(membersWithApiRole.keySet());
+        usernames.addAll(membersWithApplicationRole.keySet());
+
+        return usernames.stream().
+                map(username -> {
+                    MemberEntity memberWithApiRole = Objects.isNull(membersWithApiRole.get(username)) ? null : membersWithApiRole.get(username).get(0);
+                    MemberEntity memberWithApplicationRole = Objects.isNull(membersWithApplicationRole.get(username)) ? null : membersWithApplicationRole.get(username).get(0);
+                    GroupMemberEntity groupMemberEntity = new GroupMemberEntity(Objects.nonNull(memberWithApiRole) ? memberWithApiRole : memberWithApplicationRole);
+                    groupMemberEntity.setRoles(new HashMap<>());
+                    if (Objects.nonNull(memberWithApiRole)) {
+                        groupMemberEntity.getRoles().put(RoleScope.API.name(), memberWithApiRole.getRole());
+                    }
+                    if (Objects.nonNull(memberWithApplicationRole)) {
+                        groupMemberEntity.getRoles().put(RoleScope.APPLICATION.name(), memberWithApplicationRole.getRole());
+                    }
+                    return groupMemberEntity;
+                }).
+                sorted(Comparator.comparing(GroupMemberEntity::getUsername)).
+                collect(Collectors.toList());
     }
 
-    @POST
-    @ApiOperation(value = "Add or update an Group member")
-    @ApiResponses({
-            @ApiResponse(code = 201, message = "Member has been added or updated successfully"),
-            @ApiResponse(code = 400, message = "Membership parameter is not valid"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.UPDATE)
-    })
-    public Response addOrUpdateMember(
-            @PathParam("group") String group,
-
-            @ApiParam(name = "user", required = true)
-            @NotNull @QueryParam("user") String username,
-
-            @ApiParam(name = "rolename", required = true)
-            @QueryParam("rolename") String roleName
-    ) {
-
-        GroupEntity groupEntity = groupService.findById(group);
-        RoleScope roleScope = groupEntity.getType().equals(GroupEntityType.API) ? RoleScope.API : RoleScope.APPLICATION;
-
-        if (roleName == null) {
-            roleName = roleService.
-                    findDefaultRoleByScopes(groupEntity.getType().equals(GroupEntityType.API) ? RoleScope.API : RoleScope.APPLICATION).
-                    get(0).
-                    getName();
-        }
-
-        MemberEntity memberEntity = membershipService.addOrUpdateMember(
-                groupEntity.getType().equals(GroupEntityType.API) ?
-                        MembershipReferenceType.API_GROUP :
-                        MembershipReferenceType.APPLICATION_GROUP,
-                group,
-                username,
-                roleScope,
-                roleName.toUpperCase());
-        return Response.created(URI.create("/groups/" + group + "/members/" + username)).entity(memberEntity).build();
+    @Path("{member}")
+    public GroupMemberResource groupMemberResource() {
+        return resourceContext.getResource(GroupMemberResource.class);
     }
-
-    @DELETE
-    @ApiOperation(value = "Remove a group member")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Member has been removed successfully"),
-            @ApiResponse(code = 400, message = "User does not exist"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.DELETE)
-    })
-    public Response deleteMember(
-            @PathParam("group") String group,
-            @ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String username) {
-        GroupEntity groupEntity = groupService.findById(group);
-        try {
-            userService.findByName(username, false);
-        } catch (UserNotFoundException unfe) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
-        }
-
-        membershipService.deleteMember(
-                groupEntity.getType().equals(GroupEntityType.API) ?
-                        MembershipReferenceType.API_GROUP :
-                        MembershipReferenceType.APPLICATION_GROUP,
-                group,
-                username);
-        return Response.ok().build();
-    }
-
 }

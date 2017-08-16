@@ -16,6 +16,7 @@
 package io.gravitee.management.model;
 
 import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,7 +33,7 @@ public class UpdateApplicationEntity {
 
     private String type;
 
-    private String group;
+    private Set<String> groups;
 
     public String getName() {
         return name;
@@ -58,11 +59,22 @@ public class UpdateApplicationEntity {
         this.type = type;
     }
 
-    public String getGroup() {
-        return group;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Application{");
+        sb.append("description='").append(description).append('\'');
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", type='").append(type).append('\'');
+        sb.append(", groups='").append(groups).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }

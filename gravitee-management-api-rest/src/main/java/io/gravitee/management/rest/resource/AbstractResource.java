@@ -25,6 +25,7 @@ import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.RoleService;
+import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 
@@ -32,7 +33,10 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -96,40 +100,53 @@ public abstract class AbstractResource {
         Optional<String> optionalReferenceId = Optional.ofNullable(referenceId);
         MembershipReferenceType membershipReferenceType;
         MembershipReferenceType groupMembershipReferenceType = null;
-
+        io.gravitee.repository.management.model.RoleScope repoRoleScope;
         switch (permission.getScope()) {
             case MANAGEMENT:
                 membershipReferenceType = MembershipReferenceType.MANAGEMENT;
+                repoRoleScope = io.gravitee.repository.management.model.RoleScope.MANAGEMENT;
                 break;
             case PORTAL:
                 membershipReferenceType = MembershipReferenceType.PORTAL;
+                repoRoleScope = io.gravitee.repository.management.model.RoleScope.PORTAL;
                 break;
             case API:
                 membershipReferenceType = MembershipReferenceType.API;
-                groupMembershipReferenceType = MembershipReferenceType.API_GROUP;
+                groupMembershipReferenceType = MembershipReferenceType.GROUP;
+                repoRoleScope = io.gravitee.repository.management.model.RoleScope.API;
                 break;
             case APPLICATION:
                 membershipReferenceType = MembershipReferenceType.APPLICATION;
-                groupMembershipReferenceType = MembershipReferenceType.APPLICATION_GROUP;
+                groupMembershipReferenceType = MembershipReferenceType.GROUP;
+                repoRoleScope = io.gravitee.repository.management.model.RoleScope.APPLICATION;
                 break;
             default:
                 membershipReferenceType = null;
+                repoRoleScope = null;
         }
-        RoleEntity role = membershipService.getRole(membershipReferenceType, optionalReferenceId.orElse(MembershipDefaultReferenceId.DEFAULT.name()), getAuthenticatedUsername());
-        if (role == null && groupMembershipReferenceType != null) {
-            GroupEntity group;
-            if (MembershipReferenceType.API_GROUP.equals(groupMembershipReferenceType)) {
-                group = apiService.findById(referenceId).getGroup();
-            } else {
-                group = applicationService.findById(referenceId).getGroup();
+        Set<RoleEntity> roles = Collections.emptySet();
+        RoleEntity firstDegreeRole = membershipService.getRole(membershipReferenceType, optionalReferenceId.orElse(MembershipDefaultReferenceId.DEFAULT.name()), getAuthenticatedUsername(), repoRoleScope);
+        if (firstDegreeRole != null) {
+            roles = Collections.singleton(firstDegreeRole);
+        } else if (groupMembershipReferenceType != null) {
+            Set<String> groups = null;
+            if (MembershipReferenceType.GROUP.equals(groupMembershipReferenceType)) {
+                try {
+                    groups = apiService.findById(referenceId).getGroups();
+                } catch (ApiNotFoundException ane) {
+                    groups = applicationService.findById(referenceId).getGroups();
+                }
             }
 
-            if (group != null) {
-                role = membershipService.getRole(groupMembershipReferenceType, group.getId(), getAuthenticatedUsername());
-            } else {
-                return false;
+            if (groups != null && !groups.isEmpty()) {
+                roles = membershipService.getRoles(groupMembershipReferenceType, groups, getAuthenticatedUsername(), repoRoleScope);
             }
         }
-        return roleService.hasPermission(role, permission.getPermission(), acls);
+        for (RoleEntity roleEntity : roles) {
+            if (roleService.hasPermission(roleEntity.getPermissions(), permission.getPermission(), acls)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -27,7 +27,6 @@ import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
@@ -36,7 +35,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.management.model.Visibility;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -107,7 +105,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setName(newApiEntity.getName());
         apiEntity.setDescription(newApiEntity.getDescription());
         apiEntity.setVersion(newApiEntity.getVersion());
-        apiEntity.setGroup(newApiEntity.getGroup());
+        apiEntity.setGroups(newApiEntity.getGroups());
 
         Proxy proxy = new Proxy();
         proxy.setContextPath(newApiEntity.getContextPath());
@@ -163,8 +161,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 // Add the primary owner of the newly created API
                 UserEntity primaryOwner = userService.findByName(username, false);
                 Membership membership = new Membership(primaryOwner.getUsername(), createdApi.getId(), MembershipReferenceType.API);
-                membership.setRoleScope(RoleScope.API.getId());
-                membership.setRoleName(SystemRole.PRIMARY_OWNER.name());
+                membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
                 membership.setCreatedAt(repoApi.getCreatedAt());
                 membership.setUpdatedAt(repoApi.getCreatedAt());
                 membershipRepository.create(membership);
@@ -272,7 +269,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                             .collect(Collectors.toList())
             );
 
-            List<String> groupIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.API_GROUP).stream()
+            List<String> groupIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.GROUP).stream()
+                    .filter(m -> m.getRoles().keySet().contains(RoleScope.API.getId()))
                     .map(Membership::getReferenceId).collect(Collectors.toList());
             Set<Api> groupApis = apiRepository.findByGroups(groupIds);
 
@@ -280,7 +278,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
             apis.addAll(convert(publicApis, true));
             apis.addAll(convert(userApis, true));
-
             apis.addAll(convert(groupApis, true));
 
             return apis;
@@ -558,17 +555,19 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         ObjectNode apiJsonNode = objectMapper.valueToTree(apiEntity);
         String field;
 
-        field = "group";
+        field = "groups";
         if (!filteredFiedsList.contains(field)) {
              apiJsonNode.remove(field);
-            if (apiEntity.getGroup() != null) {
-                apiJsonNode.put(field, apiEntity.getGroup().getName());
+            if (apiEntity.getGroups() != null && !apiEntity.getGroups().isEmpty()) {
+                Set<GroupEntity> groupEntities = groupService.findByIds(apiEntity.getGroups());
+
+                apiJsonNode.putPOJO(field, groupEntities.stream().map(GroupEntity::getName).collect(Collectors.toSet()));
             }
         }
 
         field = "members";
         if (!filteredFiedsList.contains(field)) {
-            Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, apiId);
+            Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, apiId, RoleScope.API);
             if (members != null) {
                 members.forEach(m -> {
                     m.setFirstname(null);
@@ -633,19 +632,22 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 importedApi.setPaths(Collections.singletonMap("/", path));
             }
 
-            //create group if not exist
-            if (importedApi.getGroup() != null) {
-                List<GroupEntity> groupEntities = groupService.findByTypeAndName(GroupEntityType.API, importedApi.getGroup());
-                GroupEntity group;
-                if (groupEntities.isEmpty()) {
-                    NewGroupEntity newGroupEntity = new NewGroupEntity();
-                    newGroupEntity.setName(importedApi.getGroup());
-                    newGroupEntity.setType(GroupEntityType.API);
-                    group = groupService.create(newGroupEntity);
-                } else {
-                    group = groupEntities.get(0);
+            //create group if not exist & replace groupName by groupId
+            if (importedApi.getGroups() != null) {
+                Set<String> groupNames = new HashSet<>(importedApi.getGroups());
+                importedApi.getGroups().clear();
+                for (String name : groupNames) {
+                    List<GroupEntity> groupEntities = groupService.findByName(name);
+                    GroupEntity group;
+                    if (groupEntities.isEmpty()) {
+                        NewGroupEntity newGroupEntity = new NewGroupEntity();
+                        newGroupEntity.setName(name);
+                        group = groupService.create(newGroupEntity);
+                    } else {
+                        group = groupEntities.get(0);
+                    }
+                    importedApi.getGroups().add(group.getId());
                 }
-                importedApi.setGroup(group.getId());
             }
 
             ApiEntity createdOrUpdatedApiEntity;
@@ -772,7 +774,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiModelEntity.setCreatedAt(apiEntity.getCreatedAt());
         apiModelEntity.setDeployedAt(apiEntity.getDeployedAt());
         apiModelEntity.setUpdatedAt(apiEntity.getUpdatedAt());
-        apiModelEntity.setGroup(apiEntity.getGroup());
+        apiModelEntity.setGroups(apiEntity.getGroups());
         apiModelEntity.setVisibility(apiEntity.getVisibility());
         apiModelEntity.setViews(apiEntity.getViews());
         apiModelEntity.setVersion(apiEntity.getVersion());
@@ -892,8 +894,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setName(api.getName());
         apiEntity.setDeployedAt(api.getDeployedAt());
         apiEntity.setCreatedAt(api.getCreatedAt());
-        if(api.getGroup() != null) {
-            apiEntity.setGroup(groupService.findById(api.getGroup()));
+        if(api.getGroups() != null && !api.getGroups().isEmpty()) {
+            apiEntity.setGroups(groupService.findByIds(api.getGroups()).stream().map(GroupEntity::getId).collect(Collectors.toSet()));
         }
 
         if (readDefinition && api.getDefinition() != null) {
@@ -955,12 +957,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             api.setLabels(new ArrayList<>(new LinkedHashSet<>(updateApiEntity.getLabels())));
         }
 
-        if (updateApiEntity.getGroup() != null && !updateApiEntity.getGroup().isEmpty()) {
+        if (updateApiEntity.getGroups() != null && !updateApiEntity.getGroups().isEmpty()) {
             try {
-                groupService.findById(updateApiEntity.getGroup());
-                api.setGroup(updateApiEntity.getGroup());
-            } catch (GroupNotFoundException gnfe) {
-                throw new InvalidDataException("Group [" + updateApiEntity.getGroup() + "] does not exist");
+                groupService.findByIds(updateApiEntity.getGroups());
+                api.setGroups(updateApiEntity.getGroups());
+            } catch (GroupsNotFoundException gnfe) {
+                throw new InvalidDataException("Groups [" + updateApiEntity.getGroups() + "] does not exist");
             }
         }
 
@@ -996,8 +998,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         updateApiEntity.setProperties(apiEntity.getProperties());
         updateApiEntity.setDescription(apiEntity.getDescription());
 
-        if (apiEntity.getGroup() != null) {
-            updateApiEntity.setGroup(apiEntity.getGroup().getId());
+        if (apiEntity.getGroups() != null) {
+            updateApiEntity.setGroups(apiEntity.getGroups());
         }
         updateApiEntity.setPaths(apiEntity.getPaths());
         updateApiEntity.setPicture(apiEntity.getPicture());

@@ -16,8 +16,6 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.GroupEntity;
-import io.gravitee.management.model.GroupEntityType;
-import io.gravitee.management.model.NewGroupEntity;
 import io.gravitee.management.model.UpdateGroupEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -26,7 +24,6 @@ import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.GroupService;
 import io.swagger.annotations.*;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -35,7 +32,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 

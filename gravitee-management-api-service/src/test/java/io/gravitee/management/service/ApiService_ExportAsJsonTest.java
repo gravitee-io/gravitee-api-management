@@ -107,25 +107,23 @@ public class ApiService_ExportAsJsonTest {
         membership.setUserId("johndoe");
         membership.setReferenceId(API_ID);
         membership.setReferenceType(MembershipReferenceType.API);
-        membership.setRoleScope(RoleScope.API.getId());
-        membership.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferenceAndRole(eq(MembershipReferenceType.API), eq(API_ID), any(), any()))
                 .thenReturn(Collections.singleton(membership));
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setUsername(membership.getUserId());
         memberEntity.setRole(SystemRole.PRIMARY_OWNER.name());
-        when(membershipService.getMembers(eq(MembershipReferenceType.API), eq(API_ID)))
+        when(membershipService.getMembers(eq(MembershipReferenceType.API), eq(API_ID), eq(RoleScope.API)))
                 .thenReturn(Collections.singleton(memberEntity));
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(memberEntity.getUsername());
         when(userService.findByName(memberEntity.getUsername(), false)).thenReturn(userEntity);
 
-        api.setGroup("my-group");
+        api.setGroups(Collections.singleton("my-group"));
         GroupEntity groupEntity = new GroupEntity();
         groupEntity.setId("my-group");
         groupEntity.setName("My Group");
-        groupEntity.setType(GroupEntityType.API);
-        when(groupService.findById("my-group")).thenReturn(groupEntity);
+        when(groupService.findByIds(api.getGroups())).thenReturn(Collections.singleton(groupEntity));
 
         PlanEntity publishedPlan = new PlanEntity();
         publishedPlan.setId("plan-id");

@@ -221,10 +221,10 @@ public class RoleServiceImpl extends TransactionalService implements RoleService
     }
 
     @Override
-    public boolean hasPermission(RoleEntity userRole, Permission permission, RolePermissionAction[] acls) {
+    public boolean hasPermission(Map<String, char[]> userPermissions, Permission permission, RolePermissionAction[] acls) {
         boolean hasPermission = false;
-        if (userRole != null) {
-            Iterator<Map.Entry<String, char[]>> it = userRole.getPermissions().entrySet().iterator();
+        if (userPermissions != null) {
+            Iterator<Map.Entry<String, char[]>> it = userPermissions.entrySet().iterator();
             while (it.hasNext() && !hasPermission) {
                 Map.Entry<String, char[]> entry = it.next();
                 if (permission.getName().equals(entry.getKey())) {

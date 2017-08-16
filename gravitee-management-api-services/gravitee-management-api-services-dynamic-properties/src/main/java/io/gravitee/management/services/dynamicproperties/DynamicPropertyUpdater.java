@@ -19,6 +19,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.EventType;
+import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.services.dynamicproperties.model.DynamicProperty;
@@ -114,8 +115,8 @@ public class DynamicPropertyUpdater implements Runnable {
         updateApiEntity.setProperties(apiEntity.getProperties());
         updateApiEntity.setDescription(apiEntity.getDescription());
 
-        if (apiEntity.getGroup() != null) {
-            updateApiEntity.setGroup(apiEntity.getGroup().getId());
+        if (apiEntity.getGroups() != null) {
+            updateApiEntity.setGroups(apiEntity.getGroups());
         }
         updateApiEntity.setPaths(apiEntity.getPaths());
         updateApiEntity.setPicture(apiEntity.getPicture());

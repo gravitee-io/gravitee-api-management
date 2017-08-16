@@ -24,6 +24,7 @@ import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.common.JWTHelper.Claims;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -41,7 +42,8 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * @author Azize Elamrani (azize at gravitee.io)
+ * @author Azize Elamrani (azize.elamrani at graviteesource.com)
+ * @author Nicolas Geraud (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class AuthenticationSuccessFilter extends GenericFilterBean {
@@ -90,12 +92,20 @@ public class AuthenticationSuccessFilter extends GenericFilterBean {
             Set<GrantedAuthority> authorities = new HashSet<>(userDetails.getAuthorities());
 
             // We must also load permissions from repository for configured management or portal role
-            RoleEntity role =  membershipService.getRole(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.toString(), userDetails.getUsername());
+            RoleEntity role =  membershipService.getRole(
+                    MembershipReferenceType.MANAGEMENT,
+                    MembershipDefaultReferenceId.DEFAULT.toString(),
+                    userDetails.getUsername(),
+                    RoleScope.MANAGEMENT);
             if (role != null) {
                 authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
             }
 
-            role =  membershipService.getRole(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.toString(), userDetails.getUsername());
+            role = membershipService.getRole(
+                    MembershipReferenceType.PORTAL,
+                    MembershipDefaultReferenceId.DEFAULT.toString(),
+                    userDetails.getUsername(),
+                    RoleScope.PORTAL);
             if (role != null) {
                 authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
             }

@@ -175,8 +175,7 @@ public class ApiService_CreateTest {
         when(newApi.getContextPath()).thenReturn(contextPathToCreate);
         when(userService.findByName(USER_NAME, false)).thenReturn(new UserEntity());
         Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
-        po.setRoleScope(RoleScope.API.getId());
-        po.setRoleName(SystemRole.PRIMARY_OWNER.name());
+        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(
                 MembershipReferenceType.API,
                 Collections.singletonList(API_ID),

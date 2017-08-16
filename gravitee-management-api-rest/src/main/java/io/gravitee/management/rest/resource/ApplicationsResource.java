@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -81,7 +82,7 @@ public class ApplicationsResource extends AbstractResource {
             applications = applicationService.findByUser(getAuthenticatedUsername());
             if (group != null && !group.isEmpty()) {
                 applications = applications.stream()
-                        .filter(app -> app.getGroup() != null && app.getGroup().getId().equals(group))
+                        .filter(app -> app.getGroups() != null && app.getGroups().contains(group))
                         .collect(Collectors.toSet());
             }
         }

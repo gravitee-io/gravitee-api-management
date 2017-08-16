@@ -17,10 +17,7 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.PageListItem;
-import io.gravitee.management.model.UpdatePageEntity;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
-import io.gravitee.management.service.exceptions.PageNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.PageServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -34,13 +31,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
@@ -66,11 +60,7 @@ public class PageService_CreateTest {
     @Mock
     private NewPageEntity newPage;
     @Mock
-    private UpdatePageEntity existingPage;
-    @Mock
     private Page page1;
-    @Mock
-    private Page page2;
 
     @Test
     public void shouldCreatePage() throws TechnicalException {

@@ -24,17 +24,7 @@ import javax.validation.constraints.NotNull;
 public class NewGroupEntity {
 
     @NotNull
-    private GroupEntityType type;
-    @NotNull
     private String name;
-
-    public GroupEntityType getType() {
-        return type;
-    }
-
-    public void setType(GroupEntityType type) {
-        this.type = type;
-    }
 
     public String getName() {
         return name;
@@ -48,7 +38,6 @@ public class NewGroupEntity {
     public String toString() {
         return "NewGroupEntity{" +
                 ", name='" + name + '\'' +
-                ", type='" + type + '\'' +
                 "}";
     }
 }

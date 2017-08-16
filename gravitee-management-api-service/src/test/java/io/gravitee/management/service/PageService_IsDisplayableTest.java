@@ -22,11 +22,14 @@ import io.gravitee.management.model.Visibility;
 import io.gravitee.management.service.impl.PageServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.Collections;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -62,7 +65,7 @@ public class PageService_IsDisplayableTest {
         boolean displayable = pageService.isDisplayable(apiEntityMock, true, null);
 
         assertTrue(displayable);
-        verify(membershipServiceMock, never()).getMember(any(), any(), any());
+        verify(membershipServiceMock, never()).getMember(any(), any(), any(), any());
     }
 
     @Test
@@ -73,7 +76,7 @@ public class PageService_IsDisplayableTest {
         boolean displayable = pageService.isDisplayable(apiEntityMock, true, USERNAME);
 
         assertTrue(displayable);
-        verify(membershipServiceMock, never()).getMember(any(), any(), any());
+        verify(membershipServiceMock, never()).getMember(any(), any(), any(), any());
     }
 
     @Test
@@ -84,50 +87,48 @@ public class PageService_IsDisplayableTest {
         boolean displayable = pageService.isDisplayable(apiEntityMock, true, null);
 
         assertFalse(displayable);
-        verify(membershipServiceMock, never()).getMember(any(), any(), any());
+        verify(membershipServiceMock, never()).getMember(any(), any(), any(), any());
     }
 
     @Test
     public void shouldNotBeDisplayablePrivateApiAndPublishedPageAsNotApiMember() throws TechnicalException {
         final ApiEntity apiEntityMock = mock(ApiEntity.class);
         doReturn(Visibility.PRIVATE).when(apiEntityMock).getVisibility();
-        doReturn(null).when(membershipServiceMock).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME));
+        doReturn(null).when(membershipServiceMock).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME), eq(RoleScope.API));
 
         boolean displayable = pageService.isDisplayable(apiEntityMock, true, USERNAME);
 
         assertFalse(displayable);
-        verify(membershipServiceMock, times(1)).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME));
-        verify(membershipServiceMock, never()).getMember(eq(MembershipReferenceType.API_GROUP), any(), any());
+        verify(membershipServiceMock, times(1)).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME), eq(RoleScope.API));
+        verify(membershipServiceMock, never()).getMember(eq(MembershipReferenceType.GROUP), any(), any(), eq(RoleScope.API));
     }
 
     @Test
     public void shouldBeDisplayablePrivateApiAndPublishedPageAsApiMember() throws TechnicalException {
         final ApiEntity apiEntityMock = mock(ApiEntity.class);
         doReturn(Visibility.PRIVATE).when(apiEntityMock).getVisibility();
-        doReturn(mock(MemberEntity.class)).when(membershipServiceMock).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME));
+        doReturn(mock(MemberEntity.class)).when(membershipServiceMock).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME), eq(RoleScope.API));
 
         boolean displayable = pageService.isDisplayable(apiEntityMock, true, USERNAME);
 
         assertTrue(displayable);
-        verify(membershipServiceMock, times(1)).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME));
-        verify(membershipServiceMock, never()).getMember(eq(MembershipReferenceType.API_GROUP), any(), any());
+        verify(membershipServiceMock, times(1)).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME), eq(RoleScope.API));
+        verify(membershipServiceMock, never()).getMember(eq(MembershipReferenceType.GROUP), any(), any(), eq(RoleScope.API));
     }
 
     @Test
     public void shouldBeDisplayablePrivateApiAndPublishedPageAsGroupApiMember() throws TechnicalException {
         final ApiEntity apiEntityMock = mock(ApiEntity.class);
         doReturn(Visibility.PRIVATE).when(apiEntityMock).getVisibility();
-        final GroupEntity groupEntityMock = mock(GroupEntity.class);
-        doReturn(groupEntityMock).when(apiEntityMock).getGroup();
-        doReturn("groupid").when(groupEntityMock).getId();
-        doReturn(null).when(membershipServiceMock).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME));
-        doReturn(mock(MemberEntity.class)).when(membershipServiceMock).getMember(eq(MembershipReferenceType.API_GROUP), any(), eq(USERNAME));
+        when(apiEntityMock.getGroups()).thenReturn(Collections.singleton("groupid"));
+        doReturn(null).when(membershipServiceMock).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME), eq(RoleScope.API));
+        doReturn(mock(MemberEntity.class)).when(membershipServiceMock).getMember(eq(MembershipReferenceType.GROUP), any(), eq(USERNAME), eq(RoleScope.API));
 
         boolean displayable = pageService.isDisplayable(apiEntityMock, true, USERNAME);
 
         assertTrue(displayable);
-        verify(membershipServiceMock, times(1)).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME));
-        verify(membershipServiceMock, times(1)).getMember(eq(MembershipReferenceType.API_GROUP), any(), eq(USERNAME));
+        verify(membershipServiceMock, times(1)).getMember(eq(MembershipReferenceType.API), any(), eq(USERNAME), eq(RoleScope.API));
+        verify(membershipServiceMock, times(1)).getMember(eq(MembershipReferenceType.GROUP), any(), eq(USERNAME), eq(RoleScope.API));
     }
 
 
@@ -144,6 +145,6 @@ public class PageService_IsDisplayableTest {
         boolean displayable = pageService.isDisplayable(apiEntityMock, false, null);
 
         assertFalse(displayable);
-        verify(membershipServiceMock, never()).getMember(any(), any(), any());
+        verify(membershipServiceMock, never()).getMember(any(), any(), any(), any());
     }
 }

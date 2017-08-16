@@ -72,8 +72,7 @@ public class EmailNotificationBuilder {
         USER_REGISTRATION("userRegistration.html"),
         APPLICATION_MEMBER_SUBSCRIPTION("applicationMember.html"),
         API_MEMBER_SUBSCRIPTION("apiMember.html"),
-        APPLICATION_GROUP_MEMBER_SUBSCRIPTION("applicationGroupMember.html"),
-        API_MEMBER_GROUP_SUBSCRIPTION("apiGroupMember.html");
+        GROUP_MEMBER_SUBSCRIPTION("groupMember.html");
 
         private String template;
 

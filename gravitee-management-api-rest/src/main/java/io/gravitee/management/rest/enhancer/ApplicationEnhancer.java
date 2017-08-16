@@ -15,17 +15,18 @@
  */
 package io.gravitee.management.rest.enhancer;
 
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -48,7 +49,7 @@ public class ApplicationEnhancer {
     public Function<ApplicationEntity, ApplicationEntity> enhance(SecurityContext securityContext) {
         return application -> {
             // Add primary owner
-            Collection<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.APPLICATION, application.getId());
+            Collection<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.APPLICATION, application.getId(), RoleScope.APPLICATION);
 //            Optional<MemberEntity> primaryOwnerOpt = members.stream().filter(m -> MembershipType.PRIMARY_OWNER.equals(m.getType())).findFirst();
 //            if (application..isPresent()) {
 //                MemberEntity primaryOwner = primaryOwnerOpt.get();

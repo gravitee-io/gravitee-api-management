@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.model.UpdateRoleEntity;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -38,5 +39,5 @@ public interface RoleService {
     List<RoleEntity> findAll();
     List<RoleEntity> findByScope(RoleScope scope);
     List<RoleEntity> findDefaultRoleByScopes(RoleScope... scopes);
-    boolean hasPermission(RoleEntity userRole, Permission permission, RolePermissionAction[] acls);
+    boolean hasPermission(Map<String, char[]> userPermissions, Permission permission, RolePermissionAction[] acls);
 }

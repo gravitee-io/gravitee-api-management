@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,7 +32,7 @@ public class ApplicationEntity {
     private String name;
     private String description;
     private String type;
-    private GroupEntity group;
+    private Set<String> groups;
     private String status;
 
     @JsonProperty("created_at")
@@ -120,12 +121,12 @@ public class ApplicationEntity {
 		this.membersSize = membersSize;
 	}
 
-    public GroupEntity getGroup() {
-        return group;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(GroupEntity group) {
-        this.group = group;
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
     }
 
     public String getStatus() {
