@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -43,14 +44,9 @@ public class Membership {
     private MembershipReferenceType referenceType;
 
     /**
-     * Role scope
+     * Roles
      */
-    private int roleScope;
-
-    /**
-     * Role name
-     */
-    private String roleName;
+    private Map<Integer, String> roles;
 
     /**
      * Creation date
@@ -80,20 +76,12 @@ public class Membership {
         this.createdAt = createdAt;
     }
 
-    public int getRoleScope() {
-        return roleScope;
+    public Map<Integer, String> getRoles() {
+        return roles;
     }
 
-    public void setRoleScope(int roleScope) {
-        this.roleScope = roleScope;
-    }
-
-    public String getRoleName() {
-        return roleName;
-    }
-
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
+    public void setRoles(Map<Integer, String> roles) {
+        this.roles = roles;
     }
 
     public Date getUpdatedAt() {
@@ -134,14 +122,12 @@ public class Membership {
         Membership m = (Membership)o;
         return Objects.equals(userId, m.userId) &&
                 Objects.equals(referenceId, m.referenceId) &&
-                Objects.equals(referenceType, m.referenceType)  &&
-                Objects.equals(roleScope, m.roleScope) &&
-                Objects.equals(roleName, m.roleName);
+                Objects.equals(referenceType, m.referenceType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, referenceId, referenceType, roleScope, roleName);
+        return Objects.hash(userId, referenceId, referenceType);
     }
 
     public String toString() {
@@ -149,8 +135,6 @@ public class Membership {
                 "userId='" + userId + '\'' +
                 ", referenceId='" + referenceId + '\'' +
                 ", referenceType='" + referenceType + '\'' +
-                ", roleScope='" + roleScope + '\'' +
-                ", roleName='" + roleName + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

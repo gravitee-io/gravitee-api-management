@@ -44,6 +44,19 @@ public interface MembershipRepository {
      */
     Optional<Membership> findById(String userId, MembershipReferenceType referenceType, String referenceId) throws TechnicalException;
 
+
+    /**
+     * find membership by ids.
+     * the MembershipId is a combination of username, reference type and referenceId
+     * => a user has only one membership for a given reference
+     * @param userId the user
+     * @param referenceType the reference type
+     * @param referenceIds the reference ids
+     * @return an optional membership
+     * @throws TechnicalException if something goes wrong, should never happen.
+     */
+    Set<Membership> findByIds(String userId, MembershipReferenceType referenceType, Set<String> referenceIds) throws TechnicalException;
+
     /**
      * find all memberships for a specific reference
      * => find all members of an api

@@ -25,6 +25,5 @@ public enum MembershipReferenceType {
     PORTAL,
     APPLICATION,
     API,
-    API_GROUP,
-    APPLICATION_GROUP
+    GROUP
 }

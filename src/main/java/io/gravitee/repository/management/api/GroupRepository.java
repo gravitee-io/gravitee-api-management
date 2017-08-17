@@ -27,16 +27,11 @@ import java.util.Set;
 public interface GroupRepository extends CrudRepository<Group, String> {
 
     /**
-     * List all groups for specific group type.
-     * @param type the searched type
-     * @return groups.
-     */
-    Set<Group> findByType(Group.Type type) throws TechnicalException;
-
-    /**
      * List all APIs
      * @return all groups
      * @throws TechnicalException if something goes wrong
      */
     Set<Group> findAll() throws TechnicalException;
+
+    Set<Group> findByIds(Set<String> ids) throws TechnicalException;
 }

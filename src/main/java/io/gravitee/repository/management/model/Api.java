@@ -84,17 +84,12 @@ public class Api {
     /**
      * the api group, may be null
      */
-    private String group;
+    private Set<String> groups;
 
     /**
      * The views associated to this API
      */
     private Set<String> views;
-
-    /**
-     * The owner of the API
-     */
-    private String owner;
 
     /**
      */
@@ -188,12 +183,12 @@ public class Api {
         this.picture = picture;
     }
 
-    public String getGroup() {
-        return group;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
     }
 
     public Set<String> getViews() {

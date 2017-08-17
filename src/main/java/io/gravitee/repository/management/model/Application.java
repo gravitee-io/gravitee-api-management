@@ -18,6 +18,7 @@ package io.gravitee.repository.management.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,7 +60,7 @@ public class Application {
     /**
      * the application group
      */
-    private String group;
+    private Set<String> groups;
 
     private ApplicationStatus status;
 
@@ -111,12 +112,12 @@ public class Application {
         this.id = id;
     }
 
-    public String getGroup() {
-        return group;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
     }
 
     public ApplicationStatus getStatus() {
