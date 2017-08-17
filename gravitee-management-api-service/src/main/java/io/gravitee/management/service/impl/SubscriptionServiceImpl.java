@@ -221,8 +221,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         .params(ImmutableMap.of(
                                 "owner", appOwner,
                                 "api", api,
-                                "plan", plan,
-                                "application", application))
+                                "plan", planEntity,
+                                "application", applicationEntity))
                         .build());
             }
 

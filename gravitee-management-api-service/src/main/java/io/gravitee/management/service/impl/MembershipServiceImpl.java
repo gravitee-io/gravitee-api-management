@@ -65,6 +65,15 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private ApplicationService applicationService;
+
+    @Autowired
+    private ApiService apiService;
+
+    @Autowired
+    private GroupService groupService;
+
     @Override
     public Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId) {
         return getMembers(referenceType, referenceId, null, null);
@@ -247,27 +256,31 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
         String subject = null;
         EmailNotificationBuilder.EmailTemplate template = null;
         Map params = null;
-
+        GroupEntity groupEntity;
         switch (referenceType) {
             case APPLICATION:
-                subject = "Subscription to application " + referenceId;
+                ApplicationEntity applicationEntity = applicationService.findById(referenceId);
+                subject = "Subscription to application " + applicationEntity.getName();
                 template = EmailNotificationBuilder.EmailTemplate.APPLICATION_MEMBER_SUBSCRIPTION;
-                params = ImmutableMap.of("application", referenceId, "username", user.getUsername());
+                params = ImmutableMap.of("application", applicationEntity, "username", user.getUsername());
                 break;
             case API:
-                subject = "Subscription to API " + referenceId;
+                ApiEntity apiEntity = apiService.findById(referenceId);
+                subject = "Subscription to API " + apiEntity.getName();
                 template = EmailNotificationBuilder.EmailTemplate.API_MEMBER_SUBSCRIPTION;
-                params = ImmutableMap.of("api", referenceId, "username", user.getUsername());
+                params = ImmutableMap.of("api", apiEntity, "username", user.getUsername());
                 break;
             case APPLICATION_GROUP:
-                subject = "Subscription to application group " + referenceId;
+                groupEntity = groupService.findById(referenceId);
+                subject = "Subscription to application group " + groupEntity.getName();
                 template = EmailNotificationBuilder.EmailTemplate.APPLICATION_GROUP_MEMBER_SUBSCRIPTION;
-                params = ImmutableMap.of("group", referenceId, "username", user.getUsername());
+                params = ImmutableMap.of("group", groupEntity, "username", user.getUsername());
                 break;
             case API_GROUP:
-                subject = "Subscription to API group " + referenceId;
+                groupEntity = groupService.findById(referenceId);
+                subject = "Subscription to API group " + groupEntity.getName();
                 template = EmailNotificationBuilder.EmailTemplate.API_MEMBER_GROUP_SUBSCRIPTION;
-                params = ImmutableMap.of("group", referenceId, "username", user.getUsername());
+                params = ImmutableMap.of("group", groupEntity, "username", user.getUsername());
                 break;
         }
 
