@@ -36,6 +36,7 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,9 +53,6 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     private JavaMailSender mailSender;
 
     @Autowired
-    private MimeMessageHelper mailMessage;
-
-    @Autowired
     private Configuration freemarkerConfiguration;
 
     @Value("${templates.path:${gravitee.home}/templates}")
@@ -66,6 +64,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     public void sendEmailNotification(final EmailNotification emailNotification) {
         if (enabled) {
             try {
+                MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
                 final Template template = freemarkerConfiguration.getTemplate(emailNotification.getContent());
                 final String htmlText =
                         FreeMarkerTemplateUtils.processTemplateIntoString(template, emailNotification.getParams());
