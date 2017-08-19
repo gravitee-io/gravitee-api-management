@@ -25,6 +25,7 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URIUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import sun.security.action.GetPropertyAction;
 
@@ -137,6 +138,45 @@ public class QueryParametersTest extends AbstractGatewayTest {
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
                 .setQuery(query)
+                .build();
+
+        Response response = Request.Get(target).execute();
+
+        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        assertEquals(query, responseContent);
+    }
+
+    @Test
+    public void call_get_query_with_multiple_parameter_values() throws Exception {
+        String query = "country=fr&country=es&type=MAG";
+
+        URI target = new URIBuilder("http://localhost:8082/test/my_team")
+                .addParameter("country", "fr")
+                .addParameter("country", "es")
+                .addParameter("type", "MAG")
+                .build();
+
+        Response response = Request.Get(target).execute();
+
+        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        assertEquals(query, responseContent);
+    }
+
+    @Test
+    @Ignore
+    public void call_get_query_with_multiple_parameter_values_ordered() throws Exception {
+        String query = "country=fr&type=MAG&country=es";
+
+        URI target = new URIBuilder("http://localhost:8082/test/my_team")
+                .addParameter("country", "fr")
+                .addParameter("type", "MAG")
+                .addParameter("country", "es")
                 .build();
 
         Response response = Request.Get(target).execute();

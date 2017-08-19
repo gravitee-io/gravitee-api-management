@@ -16,9 +16,8 @@
 package io.gravitee.gateway.el;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.Request;
-
-import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,7 +39,7 @@ public class EvaluableRequest {
         return request.headers();
     }
 
-    public Map<String, String> getParams() {
+    public MultiValueMap<String, String> getParams() {
         return request.parameters();
     }
 

@@ -16,6 +16,8 @@
 package io.gravitee.gateway.el;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.util.LinkedMultiValueMap;
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.Request;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,6 +29,8 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -64,6 +68,36 @@ public class SpelTemplateEngineTest {
 
         String value = engine.convert("{#request.headers['X-Gravitee-Endpoint']}");
         Assert.assertEquals("my_api_host", value);
+    }
+
+    @Test
+    public void shouldTransformWithRequestQueryParameter() {
+        final MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.put("param", Collections.singletonList("myparam"));
+
+        when(request.parameters()).thenReturn(parameters);
+        when(request.path()).thenReturn("/stores/99/products/123456");
+
+        SpelTemplateEngine engine = new SpelTemplateEngine();
+        engine.getTemplateContext().setVariable("request", new EvaluableRequest(request));
+
+        String value = engine.convert("{#request.params['param']}");
+        Assert.assertEquals("myparam", value);
+    }
+
+    @Test
+    public void shouldTransformWithRequestQueryParameterMultipleValues() {
+        final MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.put("param", Arrays.asList("myparam", "myparam2"));
+
+        when(request.parameters()).thenReturn(parameters);
+        when(request.path()).thenReturn("/stores/99/products/123456");
+
+        SpelTemplateEngine engine = new SpelTemplateEngine();
+        engine.getTemplateContext().setVariable("request", new EvaluableRequest(request));
+
+        String value = engine.convert("{#request.params['param'][1]}");
+        Assert.assertEquals("myparam2", value);
     }
 
     @Test
