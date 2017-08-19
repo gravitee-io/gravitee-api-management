@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -227,15 +228,19 @@ public class DefaultHttpInvoker implements Invoker {
             StringBuilder query = new StringBuilder();
             query.append('?');
 
-            for (Map.Entry<String, String> queryParam : request.parameters().entrySet()) {
-                query.append(URL_ENCODER.encode(queryParam.getKey()));
-                if (queryParam.getValue() != null && !queryParam.getValue().isEmpty()) {
-                    query
-                            .append('=')
-                            .append(URL_ENCODER.encode(queryParam.getValue()));
-                }
+            for (Map.Entry<String, List<String>> queryParam : request.parameters().entrySet()) {
+                if (queryParam.getValue() != null) {
+                    for (String value : queryParam.getValue()) {
+                        query.append(URL_ENCODER.encode(queryParam.getKey()));
+                        if (value != null && !value.isEmpty()) {
+                            query
+                                    .append('=')
+                                    .append(URL_ENCODER.encode(value));
+                        }
 
-                query.append('&');
+                        query.append('&');
+                    }
+                }
             }
 
             // Removing latest & separator and encode query parameters

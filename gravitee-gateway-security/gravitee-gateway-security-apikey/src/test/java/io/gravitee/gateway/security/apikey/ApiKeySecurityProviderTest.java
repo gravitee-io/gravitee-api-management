@@ -16,6 +16,8 @@
 package io.gravitee.gateway.security.apikey;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.util.LinkedMultiValueMap;
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.SecurityPolicy;
@@ -24,8 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,6 +50,9 @@ public class ApiKeySecurityProviderTest {
         Request request = mock(Request.class);
         when(request.headers()).thenReturn(new HttpHeaders());
 
+        MultiValueMap<String, String> parameters = mock(MultiValueMap.class);
+        when(request.parameters()).thenReturn(parameters);
+
         boolean handle = securityProvider.canHandle(request);
         Assert.assertFalse(handle);
     }
@@ -68,8 +72,8 @@ public class ApiKeySecurityProviderTest {
     public void shouldHandleRequestUsingQueryParameters() {
         Request request = mock(Request.class);
 
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("api-key", "xxxxx-xxxx-xxxxx");
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.put("api-key", Collections.singletonList("xxxxx-xxxx-xxxxx"));
         when(request.parameters()).thenReturn(parameters);
 
         HttpHeaders headers = new HttpHeaders();

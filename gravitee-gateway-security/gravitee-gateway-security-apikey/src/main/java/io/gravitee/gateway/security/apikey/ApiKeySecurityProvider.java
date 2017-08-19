@@ -90,7 +90,7 @@ public class ApiKeySecurityProvider implements SecurityProvider {
         if (apiKey == null || apiKey.isEmpty()) {
             logger.debug("Looking for an API Key from request query parameter: {}", apiKeyQueryParameter);
             // 2_ If not found, search in query parameters
-            apiKey = request.parameters().getOrDefault(apiKeyQueryParameter, null);
+            apiKey = request.parameters().getFirst(apiKeyQueryParameter);
         }
 
         return apiKey;

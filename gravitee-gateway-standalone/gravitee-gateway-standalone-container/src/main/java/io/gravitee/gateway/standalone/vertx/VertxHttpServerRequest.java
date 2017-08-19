@@ -18,6 +18,8 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
+import io.gravitee.common.util.LinkedMultiValueMap;
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -28,7 +30,6 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.net.SocketAddress;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -42,7 +43,7 @@ class VertxHttpServerRequest implements Request {
 
     private final HttpServerRequest httpServerRequest;
 
-    private Map<String, String> queryParameters = null;
+    private MultiValueMap<String, String> queryParameters = null;
 
     private HttpHeaders headers = null;
 
@@ -93,12 +94,13 @@ class VertxHttpServerRequest implements Request {
     }
 
     @Override
-    public Map<String, String> parameters() {
+    public MultiValueMap<String, String> parameters() {
         if (queryParameters == null) {
-            queryParameters = new HashMap<>(httpServerRequest.params().size());
+            MultiMap parameters = httpServerRequest.params();
+            queryParameters = new LinkedMultiValueMap<>(parameters.size());
 
             for(Map.Entry<String, String> param : httpServerRequest.params()) {
-                queryParameters.put(param.getKey(), param.getValue());
+                queryParameters.put(param.getKey(), parameters.getAll(param.getKey()));
             }
         }
 
