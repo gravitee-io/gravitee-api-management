@@ -17,7 +17,7 @@
 -->
 <div layout="row">
   <div id="page-content" layout-padding ng-switch="$ctrl.page.type" flex="{{ $ctrl.sidenav ? 75 : 100 }}">
-    <gv-page-swagger page="$ctrl.page" ng-switch-when="SWAGGER"></gv-page-swagger>
+    <gv-page-swagger page="$ctrl.page" edit="$ctrl.edit" ng-switch-when="SWAGGER"></gv-page-swagger>
     <gv-page-raml page="$ctrl.page" ng-switch-when="RAML"></gv-page-raml>
     <gv-page-markdown page="$ctrl.page" ng-switch-when="MARKDOWN"></gv-page-markdown>
   </div>

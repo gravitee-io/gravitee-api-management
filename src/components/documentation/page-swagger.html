@@ -15,6 +15,10 @@
     limitations under the License.
 
 -->
-<div ng-if="$ctrl.page.content" swagger-ui url="$ctrl.url"
+<div ng-if="$ctrl.page.content && !$ctrl.edit && $ctrl.pageId" swagger-ui url="$ctrl.url"
+     api-explorer="$ctrl.tryItEnabled()" trusted-sources="true" permalinks="true" validator-url="false">
+</div>
+
+<div ng-if="$ctrl.page.content && $ctrl.edit" swagger-ui input-type="{{$ctrl.page.contentType.split('/')[1]}}" input="$ctrl.page.content"
      api-explorer="$ctrl.tryItEnabled()" trusted-sources="true" permalinks="true" validator-url="false">
 </div>

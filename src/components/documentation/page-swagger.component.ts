@@ -20,17 +20,18 @@ import UserService from '../../services/user.service';
 const PageSwaggerComponent: ng.IComponentOptions = {
   template: require('./page-swagger.html'),
   bindings: {
-    page: '<'
+    page: '<',
+    edit: '<'
   },
   controller: function(Constants, UserService: UserService, $state: ng.ui.IStateService) {
     'ngInject';
 
     this.$onInit = function() {
-      let pageId = (this.page === undefined) ? $state.params['pageId'] : this.page.id;
+      this.pageId = (this.page === undefined) ? $state.params['pageId'] : this.page.id;
       if ($state.params['apiId']) {
-        this.url = Constants.baseURL + 'apis/' + $state.params['apiId'] + '/pages/' + pageId + '/content';
+        this.url = Constants.baseURL + 'apis/' + $state.params['apiId'] + '/pages/' + this.pageId + '/content';
       } else {
-        this.url = Constants.baseURL + 'portal/pages/' + pageId + '/content';
+        this.url = Constants.baseURL + 'portal/pages/' + this.pageId + '/content';
       }
     };
 

@@ -18,6 +18,7 @@ const PageComponent: ng.IComponentOptions = {
   template: require('./page.html'),
   bindings: {
     page: '<',
+    edit: '<',
     sidenav: '<'
   }
 };
