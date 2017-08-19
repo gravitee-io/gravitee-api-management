@@ -1,0 +1,244 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div layout="row" flex>
+  <section layout="column" flex="70" class="configuration-card">
+
+  <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
+  <md-content>
+    <md-input-container class="md-block">
+      <md-checkbox
+        ng-model="healthCheckCtrl.healthcheck.enabled"
+        aria-label="Enable health-check"
+        class="md-warn md-align-top-left"
+        flex>
+        Enable health-check<br/>
+        <span class="ipsum" ng-if="healthCheckCtrl.endpoint === undefined">
+          By enabling health-check, all non-backup endpoints will be checked except if health-check is disabled at
+          endpoint level.
+        </span>
+        <span class="ipsum" ng-if="healthCheckCtrl.endpoint !== undefined">
+          Enable / disable health-check for this endpoint.
+        </span>
+      </md-checkbox>
+    </md-input-container>
+    <md-input-container class="md-block" ng-if="healthCheckCtrl.endpoint !== undefined">
+      <md-checkbox
+        ng-model="healthCheckCtrl.healthcheck.inherit"
+        aria-label="Inherit health-check"
+        class="md-align-top-left"
+        flex>
+        Inherit configuration<br/>
+        <span class="ipsum">
+          Inherit health-check configuration from global health-check configuration.
+        </span>
+      </md-checkbox>
+    </md-input-container>
+  </md-content>
+
+  <br>
+
+  <div ng-show="healthCheckCtrl.healthcheck.inherit === false">
+    <md-subheader class="md-primary" style="background-color: #fafafa">Trigger</md-subheader>
+    <md-content>
+        <form name="formApiHealthCheckTrigger" novalidate layout-gt-sm="row" flex="100">
+          <md-input-container flex="20">
+            <label>Interval</label>
+            <input required ng-model="healthCheckCtrl.healthcheck.trigger.rate" autofocus type="number" min="1" required>
+            <div class="hint">Interval between each health-check.</div>
+          </md-input-container>
+
+          <div flex="2" hide-xs hide-sm>
+            <!-- Spacer //-->
+          </div>
+
+          <md-input-container flex="25">
+            <label>Time Unit</label>
+            <md-select ng-model="healthCheckCtrl.healthcheck.trigger.unit" placeholder="Time unit" required>
+              <md-option ng-value="timeUnit" ng-repeat="timeUnit in healthCheckCtrl.timeUnits">{{timeUnit}}</md-option>
+            </md-select>
+            <div class="hint">Time-unit for fixed rate trigger.</div>
+          </md-input-container>
+        </form>
+    </md-content>
+
+    <br>
+
+    <md-subheader class="md-primary" style="background-color: #fafafa">Request</md-subheader>
+    <md-content>
+      <form name="formApiHealthCheckRequest" novalidate layout-gt-sm="row" flex="100">
+        <fieldset ng-disabled="formApiHealthCheckTrigger.$invalid" ng-class="{'form-disabled': formApiHealthCheckTrigger.$invalid}" flex="100">
+          <div layout="column" layout-sm="column">
+            <h5 style="color: grey;">Endpoint</h5>
+
+            <div layout-gt-sm="row">
+              <md-input-container flex="15">
+                <label>HTTP Method</label>
+                <md-select ng-model="healthCheckCtrl.healthcheck.steps[0].request.method" required ng-disabled="formApiHealthCheckTrigger.$invalid">
+                  <md-option ng-value="httpMethod" ng-repeat="httpMethod in healthCheckCtrl.httpMethods">{{httpMethod}}</md-option>
+                </md-select>
+                <div class="hint">HTTP Method used to health-check endpoint.</div>
+              </md-input-container>
+
+              <div flex="2" hide-xs hide-sm>
+                <!-- Spacer //-->
+              </div>
+
+              <md-input-container flex-gt-sm>
+                <label>Path</label>
+                <input ng-model="healthCheckCtrl.healthcheck.steps[0].request.path" type="text" required>
+                <div class="hint">Additional path added to the endpoint target.</div>
+              </md-input-container>
+            </div>
+          </div>
+
+          <div layout="row" layout-sm="column" ng-if="healthCheckCtrl.healthcheck.steps[0].request.method !== 'GET' && healthCheckCtrl.healthcheck.steps[0].request.method !== undefined">
+            <md-input-container class="md-block" flex-gt-sm>
+              <label>Request Body</label>
+              <textarea ng-model="healthCheckCtrl.healthcheck.steps[0].request.body" md-maxlength="1000" rows="5"
+                        md-select-on-focus></textarea>
+              <div class="hint"><ng-md-icon icon="error_outline" style="fill: red;"></ng-md-icon>Make sure to add Content-Type header for POST/PUT HTTP method</div>
+            </md-input-container>
+          </div>
+
+          <div layout="column" layout-sm="column">
+            <h5 style="color: grey;">
+              <span>Headers</span>
+              <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5;" aria-label="Add HTTP header" ng-click="healthCheckCtrl.addHTTPHeader()">Add headers</ng-md-icon>
+            </h5>
+            <div layout="row" layout-sm="column" layout-align="center center" ng-repeat="header in healthCheckCtrl.healthcheck.steps[0].request.headers">
+              <ng-md-icon icon="remove_circle_outline" style="fill: #b1bdc5;" aria-label="Delete header" ng-click="healthCheckCtrl.removeHTTPHeader($index)"></ng-md-icon>
+
+              <div flex="5" hide-xs hide-sm>
+                <!-- Spacer //-->
+              </div>
+
+              <md-input-container flex-gt-sm>
+                <input aria-label="Header name" ng-model="header.name" type="text" placeholder="Header name" ng-required="true">
+              </md-input-container>
+
+              <div flex="5" hide-xs hide-sm>
+                <!-- Spacer //-->
+              </div>
+
+              <md-input-container flex-gt-sm>
+                <input aria-label="Header value" ng-model="header.value" type="text" placeholder="Header value" ng-required="true">
+              </md-input-container>
+            </div>
+          </div>
+        </fieldset>
+      </form>
+    </md-content>
+
+    <br>
+
+    <md-subheader class="md-primary" style="background-color: #fafafa">
+      Assertions
+        <ng-md-icon icon="info" style="fill: #b1bdc5;" aria-label="Expectation info" ng-click="healthCheckCtrl.showAssertionInformation()"></ng-md-icon>
+        <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5;" aria-label="Add assertion" ng-click="healthCheckCtrl.addAssertion()"></ng-md-icon>
+    </md-subheader>
+    <md-content>
+      <form name="formApiHealthCheckResponse" novalidate layout-gt-sm="row" flex="100">
+        <fieldset ng-disabled="formApiHealthCheckTrigger.$invalid" ng-class="{'form-disabled': formApiHealthCheckTrigger.$invalid}" flex="100">
+          <div layout="column" layout-sm="column">
+            <div layout="row" layout-sm="column" ng-repeat="assertion in healthCheckCtrl.healthcheck.steps[0].response.assertions track by $index">
+              <ng-md-icon size="24" icon="remove_circle_outline" style="fill: #b1bdc5;" aria-label="Delete assertion" ng-click="healthCheckCtrl.removeAssertion($index)"></ng-md-icon>
+              <md-input-container flex-gt-sm>
+                <label>Assertion #{{$index+1}}</label>
+                <input ng-model="healthCheckCtrl.healthcheck.steps[0].response.assertions[$index]" type="text" required>
+              </md-input-container>
+            </div>
+          </div>
+        </fieldset>
+      </form>
+    </md-content>
+
+    <br>
+
+  </div>
+
+  <md-divider></md-divider>
+
+  <div layout="row" flex>
+    <div flex>
+      <md-button ng-if="healthCheckCtrl.endpoint !== undefined" class="md-warn" aria-label="Back to endpoint configuration" ng-click="healthCheckCtrl.backToEndpointConfiguration()">
+        <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+        <span style="color: rgba(0, 0, 0, 0.54);">Back to endpoint configuration</span>
+      </md-button>
+      <md-button ng-if="healthCheckCtrl.endpoint === undefined" class="md-warn" aria-label="Back to health-check" ng-click="healthCheckCtrl.backToHealthcheck()">
+        <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+        <span style="color: rgba(0, 0, 0, 0.54);">Back to health-check</span>
+      </md-button>
+    </div>
+    <div flex layout="row" layout-align="end top">
+      <md-button class="md-raised" type="submit" ng-click="healthCheckCtrl.update()"
+                 ng-disabled="(healthCheckCtrl.healthcheck.inherit === false && (formApiHealthCheckTrigger.$invalid || formApiHealthCheckResponse.$invalid || formApiHealthCheckRequest.$invalid))">
+        <span style="color: rgba(0, 0, 0, 0.54);">Save</span>
+      </md-button>
+    </div>
+  </div>
+</section>
+  <div class="api-creation-timeline-wrapper" layout-padding flex="30">
+    <div>
+      <h4>Summary</h4>
+      <md-divider></md-divider>
+    </div>
+    <div class="api-creation-timeline">
+      <timeline>
+        <timeline-event side="right">
+          <timeline-badge ng-class="{'disable': formApiHealthCheckTrigger.$invalid, 'info': formApiHealthCheckTrigger.$valid}">
+            <i class="glyphicon glyphicon-play-circle"></i>
+          </timeline-badge>
+          <timeline-panel ng-class="{'disable': formApiHealthCheckTrigger.$invalid, 'info': formApiHealthCheckTrigger.$valid}">
+            <timeline-heading>
+              <div style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">Trigger</div>
+            </timeline-heading>
+            <p>{{healthCheckCtrl.buildTrigger()}}</p>
+          </timeline-panel>
+        </timeline-event>
+        <timeline-event side="right">
+          <timeline-badge ng-class="{'disable': formApiHealthCheckRequest.$invalid, 'info': formApiHealthCheckRequest.$valid}">
+            <i class="glyphicon glyphicon-screenshot"></i>
+          </timeline-badge>
+          <timeline-panel ng-class="{'disable': formApiHealthCheckRequest.$invalid, 'info': formApiHealthCheckRequest.$valid}">
+            <timeline-heading>
+              <div style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">Request</div>
+            </timeline-heading>
+            <span style="font-weight: bold"><code>{{healthCheckCtrl.buildRequest()}}</code></span>
+            <p ng-repeat="header in healthCheckCtrl.healthcheck.steps[0].request.headers track by $index">
+              &bigoplus; {{healthCheckCtrl.healthcheck.steps[0].request.headers[$index].name}}: {{healthCheckCtrl.healthcheck.steps[0].request.headers[$index].value}}
+            </p>
+          </timeline-panel>
+        </timeline-event>
+        <timeline-event side="right">
+          <timeline-badge ng-class="{'disable': formApiHealthCheckResponse.$invalid, 'info': formApiHealthCheckResponse.$valid}">
+            <i class="glyphicon glyphicon-ok-circle"></i>
+          </timeline-badge>
+          <timeline-panel ng-class="{'disable': formApiHealthCheckResponse.$invalid, 'info': formApiHealthCheckResponse.$valid}">
+            <timeline-heading>
+              <div style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">Assertions</div>
+            </timeline-heading>
+            <p ng-repeat="assertion in healthCheckCtrl.healthcheck.steps[0].response.assertions track by $index">
+              &bigoplus; {{healthCheckCtrl.healthcheck.steps[0].response.assertions[$index]}}
+            </p>
+            </p>
+          </timeline-panel>
+        </timeline-event>
+      </timeline>
+    </div>
+  </div>
+</div>

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import * as _ from "lodash";
 
 export class LogsQuery {
   from: number;
@@ -141,13 +141,6 @@ class ApiService {
 
   getLog(api, logId) {
     return this.$http.get(this.apisURL + api + '/logs/' + logId);
-  }
-
-  /*
-   * Health
-   */
-  apiHealth(api, interval, from, to) {
-    return this.$http.get(this.apisURL + api + '/health?interval=' + interval + '&from=' + from + '&to=' + to);
   }
 
   /*
@@ -292,6 +285,36 @@ class ApiService {
   getPermissions(api) {
     return this.$http.get(this.apisURL + api + '/members/permissions');
   }
+
+  /*
+   * Health-check
+   */
+  apiHealth(api: string, type?: string, field?: string) {
+    let req = this.apisURL + api + '/health';
+    if (type !== undefined) {
+      req += '?type=' + type;
+    }
+    if (field !== undefined) {
+      req += '&field=' + field;
+    }
+
+    return this.$http.get(req, {timeout: 30000});
+  }
+
+  apiHealthLogs(api: string, query: LogsQuery) {
+    var url = this.apisURL + api + '/health/logs?';
+
+    var keys = Object.keys(query);
+    _.forEach(keys, function (key) {
+      var val = query[key];
+      if (val !== undefined && val !== '') {
+        url += key + '=' + val + '&';
+      }
+    });
+
+    return this.$http.get(url, {timeout: 30000});
+  }
+
 }
 
 export default ApiService;

@@ -23,6 +23,7 @@ class ApiEndpointController {
   private initialEndpoints: any;
   private initialEndpoint: any;
   private tenants: any;
+  private creation: boolean = false;
 
   constructor(
     private ApiService,
@@ -46,7 +47,6 @@ class ApiEndpointController {
     if (!this.endpoint) {
       this.endpoint = {
         weight: 1,
-        healthcheck: true,
         http: {
           connectTimeout : 5000,
           idleTimeout : 60000,
@@ -57,6 +57,8 @@ class ApiEndpointController {
           useCompression : true
         }
       };
+
+      this.creation = true;
     }
 
     // Keep the initial state in case of form reset

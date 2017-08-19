@@ -53,23 +53,12 @@
 
   <br />
 
-  <section>
-    <md-subheader class="md-primary" style="background-color: #fafafa">Health-check</md-subheader>
+  <section ng-if="endpointCtrl.creation === false">
+    <md-subheader class="md-primary" style="background-color: #fafafa">
+      Health-check
+      <ng-md-icon icon="settings" style="fill: rgba(0, 0, 0, 0.54);" ui-sref="management.apis.detail.general.endpointhc({endpointName: endpointCtrl.endpoint.name})"></ng-md-icon>
+    </md-subheader>
     <div layout="column" layout-wrap layout-gt-sm="row">
-      <div flex-xs flex="50">
-        <div layout-xs="column" flex-xs="100">
-          <md-checkbox
-            ng-model="endpointCtrl.endpoint.healthcheck"
-            aria-label="Health-check enable"
-            class="md-warn md-align-top-left" flex>
-            Enable health-check<br/>
-                    <span class="ipsum">
-                      By enabling health-check, the endpoint can be disabled automatically if expectations are not
-                      satisfied.
-                    </span>
-          </md-checkbox>
-        </div>
-      </div>
       <div flex-xs flex="50">
         <div layout-xs="column" flex-xs="100">
           <md-checkbox

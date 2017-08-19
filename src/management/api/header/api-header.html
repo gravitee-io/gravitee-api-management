@@ -31,7 +31,7 @@
 					<md-content flex class="gravitee-api-header-description">
 						<div class="gravitee-api-header-read-more" read-more ng-model="$ctrl.api.description" words="false" length="150"></div>
             <div layout="row" layout-align="start center">
-              <md-switch class="md-primary" ng-model="$ctrl.apiEnabled" ng-change="$ctrl.changeLifecycle()">
+              <md-switch class="md-primary" aria-label="Manage API lifecycle" ng-model="$ctrl.apiEnabled" ng-change="$ctrl.changeLifecycle()">
                 <div class="api-life-cycle started" ng-if="$ctrl.api.state==='started'">
                   <span style="color: green">Started</span>
                 </div>

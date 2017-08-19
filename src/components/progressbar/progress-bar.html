@@ -15,12 +15,8 @@
     limitations under the License.
 
 -->
-<md-content flex>
-  <div layout="row">
-    <h4>Health-check</h4>
-    <span flex></span>
-    <ng-md-icon permission permission-only="'api-health-u'" icon="settings" style="fill: rgba(0, 0, 0, 0.54);" ui-sref="management.apis.detail.healthcheck.configure"></ng-md-icon>
+<div class="progress">
+  <div class="progress-bar" ng-class="{'progress-bar-success': $ctrl.value >= 95, 'progress-bar-warning': $ctrl.value < 95 && $ctrl.value >= 80 , 'progress-bar-danger': $ctrl.value < 80}" role="progressbar" aria-valuenow="{{$ctrl.value | number: 0 }}" aria-valuemin="0" aria-valuemax="100" ng-style="{width: $ctrl.value + '%'}">
+    {{$ctrl.value | number: 0 }}%
   </div>
-
-  <ui-view></ui-view>
-</md-content>
+</div>

@@ -15,3 +15,20 @@ md-sidenav.healthcheck {
     background-color: #fafafa;
   }
 }
+
+.configuration-card {
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2),
+  0 1px 1px 0 rgba(0,0,0,.14),
+  0 2px 1px -1px rgba(0,0,0,.12);
+  background: #fff;
+  padding: 10px 10px 10px 10px;
+  margin: 20px 20px 20px 20px;
+}
+
+.configuration-card fieldset {
+  border: none;
+}
+
+.configuration-card fieldset.form-disabled {
+  background-color: #E1E2E1;
+}

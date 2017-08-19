@@ -129,10 +129,8 @@ import ApiMembersController from '../management/api/members/members.controller';
 import ApiPoliciesController from '../management/api/policies/policies.controller';
 import ApiEndpointController from '../management/api/endpoint/endpointConfiguration.controller';
 import AddPoliciesPathController from '../management/api/policies/addPoliciesPath.controller';
-import ApiHealthCheckController from '../management/api/healthcheck/healthcheck.controller';
 import ApiResourcesController from '../management/api/resources/resources.controller';
 import NewApiController from '../management/api/creation/newApi.controller';
-import DialogAssertionInformationController from '../management/api/healthcheck/healthcheck-assertion-dialog.controller';
 import DialogApiPermissionsHelpController from '../management/api/members/api-permissions-dialog.controller';
 import ApiPropertiesController from '../management/api/properties/properties.controller';
 import SubscriptionsController from '../management/api/subscriptions/subscriptions.controller';
@@ -172,6 +170,7 @@ import ApiCreationStep3Component from '../management/api/creation/steps/api-crea
 import ApiCreationStep4Component from '../management/api/creation/steps/api-creation-step4.component';
 import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
 import ApiPlanComponent from '../management/api/api-plan.component';
+
 
 // Applications
 import ApplicationService from '../services/applications.service';
@@ -302,6 +301,12 @@ import PageSwaggerComponent from '../components/documentation/page-swagger.compo
 import PageRamlComponent from '../components/documentation/page-raml.component';
 import PageMarkdownComponent from '../components/documentation/page-markdown.component';
 import PageSidenavDirective from '../components/documentation/page-sidenav.directive';
+
+// Healthcheck
+import ApiHealthCheckConfigureController from '../management/api/healthcheck/healthcheck-configure.controller';
+import DialogAssertionInformationController from '../management/api/healthcheck/healthcheck-assertion-dialog.controller';
+import ApiHealthCheckController from '../management/api/healthcheck/healthcheck.controller';
+import ProgressBarComponent from '../components/progressbar/progress-bar.component';
 
 // Others
 import StringService from '../services/string.service';
@@ -525,6 +530,10 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvLogsTimeframe', LogsTimeframeComponent)
   .controller('LogsTimeframeController', LogsTimeframeController)
   .component('log', LogComponent)
+
+  // Healthcheck
+  .controller('ApiHealthCheckConfigureController', ApiHealthCheckConfigureController)
+  .component('progressBar', ProgressBarComponent)
 
   .filter('humanDateFilter', function () {
     return function(input) {

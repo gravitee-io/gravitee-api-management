@@ -193,6 +193,18 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
+    .state('management.apis.detail.general.endpointhc', {
+      url: '/endpoint/:endpointName/healthcheck',
+      template: require('./healthcheck/healthcheck-configure.html'),
+      controller: 'ApiHealthCheckConfigureController',
+      controllerAs: 'healthCheckCtrl',
+      data: {
+        menu: null,
+        perms: {
+          only: ['api-health-c']
+        }
+      }
+    })
     .state('management.apis.detail.plans', {
       url: '/plans?state',
       template: require('./plans/apiPlans.html'),
@@ -448,8 +460,13 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       }
     })
     .state('management.apis.detail.healthcheck', {
+      abstract: true,
       url: '/healthcheck',
-      template: require('./healthcheck/healthcheck.html'),
+      template: require('./healthcheck/healthcheck.html')
+    })
+    .state('management.apis.detail.healthcheck.visualize', {
+      url: '/',
+      template: require('./healthcheck/healthcheck-visualize.html'),
       controller: 'ApiHealthCheckController',
       controllerAs: 'healthCheckCtrl',
       data: {
@@ -459,6 +476,18 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-health-r']
+        }
+      }
+    })
+    .state('management.apis.detail.healthcheck.configure', {
+      url: '/configure',
+      template: require('./healthcheck/healthcheck-configure.html'),
+      controller: 'ApiHealthCheckConfigureController',
+      controllerAs: 'healthCheckCtrl',
+      data: {
+        menu: null,
+        perms: {
+          only: ['api-health-c']
         }
       }
     })
