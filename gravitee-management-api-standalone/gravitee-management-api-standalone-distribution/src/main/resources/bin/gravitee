@@ -118,6 +118,9 @@ if [ -z "$daemon" ] ; then
 	exec "$JAVA" $JAVA_OPTS \
         -cp "$GRAVITEE_BOOT_CLASSPATH" \
         -Dgravitee.home=$GRAVITEE_HOME \
+        -Dvertx.disableFileCaching=true \
+        -Dvertx.disableFileCPResolving=true \
+        -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
         io.gravitee.management.standalone.boostrap.Bootstrap \
         "$@"
 else
@@ -137,6 +140,9 @@ else
 	exec "$JAVA" $JAVA_OPTS \
         -cp "$GRAVITEE_BOOT_CLASSPATH" \
         -Dgravitee.home=$GRAVITEE_HOME \
+        -Dvertx.disableFileCaching=true \
+        -Dvertx.disableFileCPResolving=true \
+        -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
         io.gravitee.management.standalone.boostrap.Bootstrap \
         "$@" <&- &
 

@@ -67,7 +67,7 @@ echo "========================================================================="
 echo ""
 
 rem Execute the JVM in the foreground
-%JAVA% %JAVA_OPTS% -cp %GRAVITEE_BOOT_CLASSPATH% -Dgravitee.home=%GRAVITEE_HOME% io.gravitee.management.standalone.boostrap.Bootstrap "%*"
+%JAVA% %JAVA_OPTS% -cp %GRAVITEE_BOOT_CLASSPATH% -Dgravitee.home=%GRAVITEE_HOME% -Dvertx.disableFileCaching=true -Dvertx.disableFileCPResolving=true -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory io.gravitee.management.standalone.boostrap.Bootstrap "%*"
 
 set GRAVITEE_STATUS=%?
 goto endbatch
