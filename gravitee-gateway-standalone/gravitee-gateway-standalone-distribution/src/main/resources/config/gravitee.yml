@@ -127,7 +127,7 @@ services:
   core:
     http:
       enabled: true
-      port: 8092
+      port: 18082
       host: localhost
       authentication:
         type: basic
