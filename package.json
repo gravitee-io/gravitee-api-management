@@ -1,6 +1,6 @@
 {
   "name": "gravitee-management-webui",
-  "version": "1.8.4-SNAPSHOT",
+  "version": "1.8.4",
   "description": "Gravitee.io APIM - Portal",
   "dependencies": {
     "angular": "^1.5.0",
