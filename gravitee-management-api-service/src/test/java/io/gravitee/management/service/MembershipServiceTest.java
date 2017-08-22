@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -67,6 +68,9 @@ public class MembershipServiceTest {
     private IdentityService identityService;
     @Mock
     private RoleService roleService;
+
+    @Mock
+    private GroupService groupService;
 
     @Test
     public void shouldGetEmptyMembersWithMembership() throws Exception {
@@ -153,9 +157,12 @@ public class MembershipServiceTest {
         newMembership.setRoleScope(RoleScope.API.getId());
         newMembership.setReferenceId(API_ID);
         newMembership.setUserId(userEntity.getUsername());
+        GroupEntity groupEntityMock = mock(GroupEntity.class);
+        when(groupEntityMock.getName()).thenReturn("foo");
         when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.API);
         when(roleService.findById(any(), any())).thenReturn(role);
         when(userService.findByName(userEntity.getUsername(), false)).thenReturn(userEntity);
+        when(groupService.findById(API_ID)).thenReturn(groupEntityMock);
         when(membershipRepository.findById(userEntity.getUsername(), MembershipReferenceType.API_GROUP, API_ID)).thenReturn(empty(), of(newMembership));
         when(membershipRepository.create(any())).thenReturn(newMembership);
 
@@ -179,10 +186,13 @@ public class MembershipServiceTest {
         newMembership.setUserId(userEntity.getUsername());
         newMembership.setReferenceType(MembershipReferenceType.API_GROUP);
         newMembership.setReferenceId(API_ID);
+        GroupEntity groupEntityMock = mock(GroupEntity.class);
+        when(groupEntityMock.getName()).thenReturn("foo");
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.API);
         when(roleService.findById(any(), any())).thenReturn(role);
         when(userService.findByName(userEntity.getUsername(), false)).thenReturn(userEntity);
+        when(groupService.findById(API_ID)).thenReturn(groupEntityMock);
         when(membershipRepository.findById(userEntity.getUsername(), MembershipReferenceType.API_GROUP, API_ID)).thenReturn(of(membership));
         when(membershipRepository.update(any())).thenReturn(newMembership);
 
