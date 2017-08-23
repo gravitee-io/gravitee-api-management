@@ -27,10 +27,10 @@ import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.management.fetcher.FetcherConfigurationFactory;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.PageType;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.PageService;
-import io.gravitee.management.service.SwaggerService;
+import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.model.permissions.RoleScope;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -38,7 +38,10 @@ import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.plugin.fetcher.FetcherPluginManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageConfiguration;
+import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -89,6 +92,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Autowired
 	private ApplicationContext applicationContext;
+
+	@Autowired
+	private MembershipService membershipService;
+
+	@Autowired
+	private RoleService roleService;
 
 	@Override
 	public List<PageListItem> findApiPagesByApi(String apiId) {
@@ -446,6 +455,44 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			logger.error("An error occured when searching max order portal page", ex);
 			throw new TechnicalManagementException("An error occured when searching max order portal ", ex);
 		}
+	}
+
+	@Override
+	public boolean isDisplayable(ApiEntity api, boolean pageIsPublished, String username) {
+		if (api.getVisibility() == Visibility.PUBLIC && pageIsPublished) {
+			return true;
+		} else if (username != null) {
+			MemberEntity member = membershipService.getMember(MembershipReferenceType.API, api.getId(), username);
+			if (member == null && api.getGroup() != null && api.getGroup().getId() != null) {
+				member = membershipService.getMember(MembershipReferenceType.API_GROUP, api.getGroup().getId(), username);
+			}
+			return isDisplayableForMember(member, pageIsPublished);
+		}
+		return false;
+	}
+
+	private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {
+	    // if not member => not displayable
+		if (member == null) {
+			return false;
+		}
+		// if member && published page => displayable
+		if (pageIsPublished) {
+			return true;
+		}
+
+		RoleEntity roleEntity = new RoleEntity();
+		roleEntity.setScope(RoleScope.API);
+		roleEntity.setName(member.getRole());
+		roleEntity.setPermissions(member.getPermissions());
+		// only members which could modify a page can see an unpublished page
+		return roleService.hasPermission(
+				roleEntity,
+				ApiPermission.DOCUMENTATION,
+				new RolePermissionAction[]{
+						RolePermissionAction.UPDATE,
+						RolePermissionAction.CREATE,
+						RolePermissionAction.DELETE});
 	}
 
 	private PageListItem reduce(Page page) {

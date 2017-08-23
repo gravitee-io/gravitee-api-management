@@ -15,10 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.PageListItem;
-import io.gravitee.management.model.UpdatePageEntity;
+import io.gravitee.management.model.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -53,4 +50,6 @@ public interface PageService {
 	int findMaxApiPageOrderByApi(String apiId);
 
 	int findMaxPortalPageOrder();
+
+	boolean isDisplayable(ApiEntity api, boolean isPagePublished, String username);
 }

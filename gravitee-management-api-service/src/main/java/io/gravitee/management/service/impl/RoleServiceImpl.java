@@ -15,7 +15,9 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.NewRoleEntity;
+import io.gravitee.management.model.RoleEntity;
+import io.gravitee.management.model.UpdateRoleEntity;
 import io.gravitee.management.model.permissions.*;
 import io.gravitee.management.service.RoleService;
 import io.gravitee.management.service.exceptions.RoleAlreadyExistsException;

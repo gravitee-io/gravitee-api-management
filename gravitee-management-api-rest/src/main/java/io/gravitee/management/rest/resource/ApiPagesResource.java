@@ -22,11 +22,9 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
-import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -36,7 +34,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -49,9 +46,6 @@ public class ApiPagesResource extends AbstractResource {
 
     @Inject
     private ApiService apiService;
-
-    @Inject
-    private MembershipService membershipService;
 
     @Inject
     private PageService pageService;
@@ -71,9 +65,9 @@ public class ApiPagesResource extends AbstractResource {
         final ApiEntity apiEntity = apiService.findById(api);
 
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-                || hasPermission(RolePermission.API_PLAN, api, RolePermissionAction.READ)) {
+                || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
             PageEntity pageEntity = pageService.findById(page, portal);
-            if (isDisplayable(apiEntity, pageEntity.isPublished())) {
+            if (isDisplayable(apiEntity, pageEntity.isPublished(), getAuthenticatedUsernameOrNull())) {
                 return pageEntity;
             } else {
                 throw new UnauthorizedAccessException();
@@ -95,9 +89,9 @@ public class ApiPagesResource extends AbstractResource {
             @QueryParam("portal") boolean portal) {
         final ApiEntity apiEntity = apiService.findById(api);
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-                || hasPermission(RolePermission.API_PLAN, api, RolePermissionAction.READ)) {
+                || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
             PageEntity pageEntity = pageService.findById(page, portal);
-            if (isDisplayable(apiEntity, pageEntity.isPublished())) {
+            if (isDisplayable(apiEntity, pageEntity.isPublished(), getAuthenticatedUsernameOrNull())) {
                 return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
             } else {
                 throw new UnauthorizedAccessException();
@@ -118,11 +112,11 @@ public class ApiPagesResource extends AbstractResource {
             @QueryParam("homepage") Boolean homepage) {
         final ApiEntity apiEntity = apiService.findById(api);
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-                || hasPermission(RolePermission.API_PLAN, api, RolePermissionAction.READ)) {
+                || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
             final List<PageListItem> pages = pageService.findApiPagesByApiAndHomepage(api, homepage);
 
             return pages.stream()
-                    .filter(page -> this.isDisplayable(apiEntity, page.isPublished()))
+                    .filter(page -> isDisplayable(apiEntity, page.isPublished(), getAuthenticatedUsernameOrNull()))
                     .collect(Collectors.toList());
         }
         throw new ForbiddenAccessException();
@@ -196,18 +190,8 @@ public class ApiPagesResource extends AbstractResource {
         pageService.delete(page);
     }
 
-    private boolean isDisplayable(ApiEntity apiEntity, boolean isPublished) {
-        if (isAuthenticated()) {
-            MemberEntity member = membershipService.getMember(MembershipReferenceType.API, apiEntity.getId(), getAuthenticatedUsername());
-            if (member == null && apiEntity.getGroup() != null && apiEntity.getGroup().getId() != null) {
-                member = membershipService.getMember(MembershipReferenceType.API_GROUP, apiEntity.getGroup().getId(), getAuthenticatedUsername());
-            }
-            if (member != null) {
-                //TODO prendre en compte le droit de modifier une page via les roles et non pas uniquement le owner
-                return Objects.equals(apiEntity.getPrimaryOwner().getUsername(), getAuthenticatedUsername()) || isPublished;
-            }
-        }
+    private boolean isDisplayable(ApiEntity api, boolean pageIsPublished, String username) {
+        return (isAuthenticated() && isAdmin()) || pageService.isDisplayable(api, pageIsPublished, username);
 
-        return apiEntity.getVisibility() == Visibility.PUBLIC && isPublished;
     }
 }

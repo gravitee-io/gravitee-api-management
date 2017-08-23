@@ -100,7 +100,7 @@ public abstract class JerseySpringTest {
                 });
 
                 application.property("contextConfig", context);
-                application.register(AuthenticationFilter.class);
+                decorate(application);
 
                 return application;
             }
@@ -114,8 +114,12 @@ public abstract class JerseySpringTest {
         };
     }
 
+    protected void decorate(ResourceConfig resourceConfig) {
+        resourceConfig.register(AuthenticationFilter.class);
+    }
+
     @Priority(50)
-     public static class AuthenticationFilter implements ContainerRequestFilter {
+    public static class AuthenticationFilter implements ContainerRequestFilter {
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
             requestContext.setSecurityContext(new SecurityContext() {
@@ -134,6 +138,4 @@ public abstract class JerseySpringTest {
             });
         }
     }
-
-//    protected abstract ResourceConfig configure();
 }

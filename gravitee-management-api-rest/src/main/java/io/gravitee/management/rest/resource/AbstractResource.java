@@ -63,6 +63,10 @@ public abstract class AbstractResource {
         return securityContext.getUserPrincipal().getName();
     }
 
+    protected String getAuthenticatedUsernameOrNull() {
+        return isAuthenticated()?getAuthenticatedUsername():null;
+    }
+
     protected Principal getAuthenticatedUser() {
         return securityContext.getUserPrincipal();
     }
