@@ -50,6 +50,13 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
 
         DeploymentOptions options = new DeploymentOptions().setInstances(instances);
         vertx.deployVerticle(GraviteeVerticleFactory.GRAVITEE_VERTICLE_PREFIX + ':' + GraviteeVerticle.class.getName(), options, event -> {
+            if (event.failed()) {
+                logger.error("Unable to start HTTP server", event.cause());
+
+                // HTTP Server is a required component. Shutdown if not available
+                Runtime.getRuntime().exit(1);
+            }
+
             deploymentId = event.result();
         });
     }
