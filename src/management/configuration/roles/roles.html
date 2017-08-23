@@ -30,7 +30,7 @@
         <v-pane ng-repeat="role in $ctrl.roles | filter:{scope: roleScope} | orderBy: 'name'">
           <v-pane-header ng-click="$ctrl.loadUsers(role)">
             <div layout="row">
-              <h5 flex="15">{{role.name}}</h5>
+              <h5 flex="15">{{role.name}}<i ng-if="role.default"> (default)</i></h5>
               <span flex="70">{{role.description}}</span>
               <div flex="10" layout="row" layout-align="space-between center">
                 <ng-md-icon permission permission-only="'management-role-u'"

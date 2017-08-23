@@ -33,6 +33,12 @@
       <label>Role description</label>
       <input ng-model="$ctrl.role.description">
     </md-input-container>
+
+    <md-input-container flex="10">
+      <md-checkbox ng-model="$ctrl.role.default">
+        Role default
+      </md-checkbox>
+    </md-input-container>
   </div>
 
   <md-table-container>
