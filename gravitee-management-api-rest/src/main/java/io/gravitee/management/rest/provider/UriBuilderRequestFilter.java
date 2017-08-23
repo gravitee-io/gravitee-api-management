@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.rest.provider;
 
+import io.gravitee.common.http.HttpHeaders;
+
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
@@ -33,18 +35,27 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
 
     @Override
     public void filter( ContainerRequestContext ctx ) throws IOException {
-        List<String> schemes = ctx.getHeaders().get("x-forwarded-proto");
+        List<String> schemes = ctx.getHeaders().get(HttpHeaders.X_FORWARDED_PROTO);
         if (schemes != null && !schemes.isEmpty()) {
             String scheme = schemes.get(0);
             UriBuilder builder = ctx.getUriInfo().getRequestUriBuilder();
             ctx.setRequestUri(builder.scheme(scheme).build());
         }
 
-        List<String> hosts = ctx.getHeaders().get("x-forwarded-host");
+        List<String> hosts = ctx.getHeaders().get(HttpHeaders.X_FORWARDED_HOST);
         if (hosts != null && !hosts.isEmpty()) {
             String host = hosts.get(0);
             UriBuilder builder = ctx.getUriInfo().getRequestUriBuilder();
-            ctx.setRequestUri(builder.host(host).build());
+
+            if (host.contains(":")) {
+                // Forwarded host contains both host and port
+                String [] parts = host.split(":");
+                builder.host(parts[0]).port(Integer.parseInt(parts[1]));
+            } else {
+                builder.host(host);
+            }
+
+            ctx.setRequestUri(builder.build());
         }
     }
 }
