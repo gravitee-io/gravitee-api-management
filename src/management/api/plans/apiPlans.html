@@ -201,7 +201,7 @@
       <md-input-container class="md-block">
         <label>Period time unit</label>
         <md-select ng-model="rateLimit.periodTimeUnit" placeholder="Select a time unit" ng-required="rateLimit.limit">
-          <md-option ng-value="timeUnit" ng-repeat="timeUnit in timeUnits">{{timeUnit}}</md-option>
+          <md-option ng-value="timeUnit" ng-repeat="timeUnit in rateLimitTimeUnits">{{timeUnit}}</md-option>
         </md-select>
       </md-input-container>
     </div>
@@ -228,7 +228,7 @@
       <md-input-container class="md-block">
         <label>Period time unit</label>
         <md-select ng-model="quota.periodTimeUnit" placeholder="Select a time unit" ng-required="quota.limit">
-          <md-option ng-value="timeUnit" ng-repeat="timeUnit in timeUnits">{{timeUnit}}</md-option>
+          <md-option ng-value="timeUnit" ng-repeat="timeUnit in quotaTimeUnits">{{timeUnit}}</md-option>
         </md-select>
       </md-input-container>
     </div>

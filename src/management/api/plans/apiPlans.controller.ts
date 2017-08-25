@@ -88,7 +88,9 @@ class ApiPlansController {
       }
     };
 
-    $scope.timeUnits = ['SECONDS', 'MINUTES', 'HOURS', 'DAYS'];
+    $scope.rateLimitTimeUnits = ['SECONDS', 'MINUTES'];
+    $scope.quotaTimeUnits = ['HOURS', 'DAYS', "WEEKS", "MONTHS"];
+
     $scope.methods = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS', 'TRACE', 'CONNECT'];
 
     this.resetResourceFiltering();
