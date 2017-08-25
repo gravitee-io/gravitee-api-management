@@ -89,20 +89,22 @@ public class VertxHttpClient extends AbstractHttpClient {
         clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse, responseHandler));
 
         clientRequest.exceptionHandler(event -> {
-            LOGGER.error("Server proxying failed: {}", event.getMessage());
-            proxyRequest.request().metrics().setMessage(event.getMessage());
+            if (! proxyConnection.isCanceled()) {
+                LOGGER.error("Server proxying failed: {}", event.getMessage());
+                proxyRequest.request().metrics().setMessage(event.getMessage());
 
-            if (proxyConnection.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
-                proxyConnection.connectTimeoutHandler().handle(event);
-            } else {
-                VertxProxyResponse clientResponse = new VertxProxyResponse(
-                        ((event instanceof ConnectTimeoutException) || (event instanceof TimeoutException)) ?
-                        HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
+                if (proxyConnection.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
+                    proxyConnection.connectTimeoutHandler().handle(event);
+                } else {
+                    VertxProxyResponse clientResponse = new VertxProxyResponse(
+                            ((event instanceof ConnectTimeoutException) || (event instanceof TimeoutException)) ?
+                                    HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
 
-                clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-                responseHandler.handle(clientResponse);
+                    clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+                    responseHandler.handle(clientResponse);
 
-                clientResponse.endHandler().handle(null);
+                    clientResponse.endHandler().handle(null);
+                }
             }
         });
 

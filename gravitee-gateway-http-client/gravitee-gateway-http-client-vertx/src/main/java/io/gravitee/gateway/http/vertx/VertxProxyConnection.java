@@ -30,6 +30,7 @@ class VertxProxyConnection implements ProxyConnection {
     private final HttpClientRequest httpClientRequest;
     private ProxyResponse proxyResponse;
     private Handler<Throwable> timeoutHandler;
+    private boolean canceled = false;
 
     VertxProxyConnection(final HttpClientRequest httpClientRequest) {
         this.httpClientRequest = httpClientRequest;
@@ -41,11 +42,16 @@ class VertxProxyConnection implements ProxyConnection {
 
     @Override
     public ProxyConnection cancel() {
-        this.httpClientRequest.end();
+        this.canceled = true;
+        this.httpClientRequest.reset();
         if (proxyResponse != null) {
             proxyResponse.bodyHandler(null);
         }
         return this;
+    }
+
+    public boolean isCanceled() {
+        return this.canceled;
     }
 
     @Override

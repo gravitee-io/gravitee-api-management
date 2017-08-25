@@ -33,7 +33,7 @@ import io.gravitee.policy.api.annotations.OnResponseContent;
 public class ValidateResponsePolicy {
 
     @OnResponseContent
-    public ReadWriteStream OnResponseContent(Request request, PolicyChain policyChain) {
+    public ReadWriteStream onResponseContent(Request request, PolicyChain policyChain) {
         return new BufferedReadWriteStream() {
 
             Buffer buffer = Buffer.buffer();
