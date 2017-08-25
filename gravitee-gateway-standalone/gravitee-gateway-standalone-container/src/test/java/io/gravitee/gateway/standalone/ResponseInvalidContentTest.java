@@ -55,7 +55,7 @@ public class ResponseInvalidContentTest extends AbstractGatewayTest {
     public void register(PolicyPluginManager policyPluginManager) {
         super.register(policyPluginManager);
 
-        PolicyPlugin errorResponseStreamPolicy = PolicyBuilder.build("content-error", ValidateResponsePolicy.class);
+        PolicyPlugin errorResponseStreamPolicy = PolicyBuilder.build("content-response-error", ValidateResponsePolicy.class);
         policyPluginManager.register(errorResponseStreamPolicy);
     }
 }
