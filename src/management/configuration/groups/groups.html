@@ -24,17 +24,17 @@
 <md-tabs md-dynamic-height md-border-bottom>
     <md-tab label="Application Groups" ng-click="groupsCtrl.selectGroupType('APPLICATION')">
         <md-table-container>
-            <table md-table>
+            <table md-table ng-init="order = 'group.name'">
                 <thead md-head md-order="order">
                 <tr md-row>
-                    <th md-column order-by="name">Name</th>
-                    <th style="text-align:center" md-column order-by="applications">Applications</th>
-                    <th style="text-align:center" md-column order-by="members">Members</th>
+                    <th md-column md-order-by="group.name">Name</th>
+                    <th style="text-align:center" md-column md-order-by="applications.length">Applications</th>
+                    <th style="text-align:center" md-column md-order-by="members.length">Members</th>
                     <th md-column></th>
                 </tr>
                 </thead>
                 <tbody md-body>
-                <tr md-row ng-repeat="item in groupsCtrl.applicationGroups" ng-click="groupsCtrl.showApplications(item)">
+                <tr md-row ng-repeat="item in groupsCtrl.applicationGroups | orderBy: order" ng-click="groupsCtrl.showApplications(item)">
                     <td md-cell>{{item.group.name}}</td>
                     <td md-cell style="text-align:center">{{item.applications.length}}</td>
                     <td md-cell style="text-align:center">{{item.members.length}}</td>
@@ -61,17 +61,17 @@
     </md-tab>
     <md-tab label="Api Groups" ng-click="groupsCtrl.selectGroupType('API')">
         <md-table-container>
-            <table md-table>
+            <table md-table ng-init="order = 'group.name'">
                 <thead md-head md-order="order">
                 <tr md-row>
-                    <th md-column order-by="name">Name</th>
-                    <th style="text-align:center" md-column order-by="apis">Apis</th>
-                    <th style="text-align:center" md-column order-by="members">Members</th>
+                    <th md-column md-order-by="group.name">Name</th>
+                    <th style="text-align:center" md-column md-order-by="apis.lengt">Apis</th>
+                    <th style="text-align:center" md-column md-order-by="members.length">Members</th>
                     <th md-column></th>
                 </tr>
                 </thead>
                 <tbody md-body>
-                <tr md-row ng-repeat="item in groupsCtrl.apiGroups" ng-click="groupsCtrl.showApis(item)">
+                <tr md-row ng-repeat="item in groupsCtrl.apiGroups | orderBy: order" ng-click="groupsCtrl.showApis(item)">
                     <td md-cell>{{item.group.name}}</td>
                     <td md-cell style="text-align:center">{{item.apis.length}}</td>
                     <td md-cell style="text-align:center">{{item.members.length}}</td>
@@ -110,16 +110,16 @@
     </md-toolbar>
     <md-content layout-padding>
         <md-table-container>
-            <table md-table>
+            <table md-table ng-init="order = 'username'">
                 <thead md-head md-order="order">
                 <tr md-row>
-                    <th md-column order-by="username">Username</th>
-                    <th md-column order-by="type">Role</th>
+                    <th md-column md-order-by="username">Username</th>
+                    <th md-column md-order-by="role">Role</th>
                     <th md-column></th>
                 </tr>
                 </thead>
                 <tbody md-body>
-                <tr md-row ng-repeat="member in groupsCtrl.selectedGroup.members">
+                <tr md-row ng-repeat="member in groupsCtrl.selectedGroup.members | orderBy: order">
                     <td md-cell>{{member.username}}</td>
                     <td md-cell>
                         <md-select ng-model="member.role" aria-label="membership-role" md-on-close="groupsCtrl.updateMember(member)">
@@ -156,15 +156,15 @@
     </md-toolbar>
     <md-content layout-padding>
         <md-table-container>
-            <table md-table>
+            <table md-table ng-init="order = 'name'">
                 <thead md-head md-order="order">
                 <tr md-row>
-                    <th md-column order-by="name">Name</th>
-                    <th md-column order-by="type">Type</th>
+                    <th md-column md-order-by="name">Name</th>
+                    <th md-column md-order-by="type">Type</th>
                 </tr>
                 </thead>
                 <tbody md-body>
-                <tr md-row ng-repeat="app in groupsCtrl.selectedGroup.applications">
+                <tr md-row ng-repeat="app in groupsCtrl.selectedGroup.applications | orderBy: order">
                     <td md-cell>{{app.name}}</td>
                     <td md-cell>{{app.type}}</td>
                 </tr>
@@ -186,15 +186,15 @@
     </md-toolbar>
     <md-content layout-padding>
         <md-table-container>
-            <table md-table>
+            <table md-table ng-init="order = 'name'">
                 <thead md-head md-order="order">
                 <tr md-row>
-                    <th md-column order-by="name">Name</th>
-                    <th md-column order-by="version">Version</th>
+                    <th md-column md-order-by="name">Name</th>
+                    <th md-column md-order-by="version">Version</th>
                 </tr>
                 </thead>
                 <tbody md-body>
-                <tr md-row ng-repeat="api in groupsCtrl.selectedGroup.apis">
+                <tr md-row ng-repeat="api in groupsCtrl.selectedGroup.apis | orderBy: order">
                     <td md-cell>{{api.name}}</td>
                     <td md-cell>{{api.version}}</td>
                 </tr>
