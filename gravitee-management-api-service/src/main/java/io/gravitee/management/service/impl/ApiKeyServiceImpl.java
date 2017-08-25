@@ -177,7 +177,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                                     "api", api,
                                     "plan", plan,
                                     "application", application,
-                                    "apiKey", key))
+                                    "apiKey", key.getKey()))
                             .build());
                 }
             } else {

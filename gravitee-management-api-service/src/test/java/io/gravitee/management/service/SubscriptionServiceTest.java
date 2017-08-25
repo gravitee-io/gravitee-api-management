@@ -22,9 +22,9 @@ import io.gravitee.management.service.impl.SubscriptionServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Subscription;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
@@ -516,12 +516,32 @@ public class SubscriptionServiceTest {
     }
 
     @Test
-    @Ignore
     public void shouldCloseSubscription() throws Exception {
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+        final Date now = new Date();
+
+        final Subscription subscription = new Subscription();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setStatus(Subscription.Status.ACCEPTED);
+        subscription.setEndingAt(now);
+
+        final ApiKeyEntity apiKey = new ApiKeyEntity();
+        apiKey.setRevoked(false);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
 
         subscriptionService.close(SUBSCRIPTION_ID);
+
+        verify(apiKeyService).update(argThat(new ArgumentMatcher<ApiKeyEntity>() {
+            @Override
+            public boolean matches(Object argument) {
+                final ApiKeyEntity apiKey = (ApiKeyEntity) argument;
+                return now.equals(apiKey.getExpireAt()) &&
+                        now.equals(apiKey.getRevokedAt()) &&
+                        apiKey.isRevoked();
+            }
+        }));
     }
 
     @Test

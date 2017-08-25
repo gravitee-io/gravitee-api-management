@@ -76,7 +76,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             Optional<Subscription> optSubscription = subscriptionRepository.findById(subscription);
 
-            if (! optSubscription.isPresent()) {
+            if (!optSubscription.isPresent()) {
                 throw new SubscriptionNotFoundException(subscription);
             }
 
@@ -95,9 +95,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             Set<Subscription> subscriptions = null;
 
-            if (application != null && ! application.trim().isEmpty()) {
+            if (application != null && !application.trim().isEmpty()) {
                 subscriptions = subscriptionRepository.findByApplication(application);
-            } else if (isAuthenticated()){
+            } else if (isAuthenticated()) {
                 Set<ApplicationEntity> applications = applicationService.findByUser(getAuthenticatedUsername());
                 subscriptions = applications.stream().flatMap(new Function<ApplicationEntity, Stream<Subscription>>() {
                     @Override
@@ -250,7 +250,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             logger.debug("Update subscription {}", updateSubscription.getId());
 
             Optional<Subscription> optSubscription = subscriptionRepository.findById(updateSubscription.getId());
-            if (! optSubscription.isPresent()) {
+            if (!optSubscription.isPresent()) {
                 throw new SubscriptionNotFoundException(updateSubscription.getId());
             }
 
@@ -295,7 +295,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             logger.debug("Subscription {} processed by {}", processSubscription.getId(), validator);
 
             Optional<Subscription> optSubscription = subscriptionRepository.findById(processSubscription.getId());
-            if (! optSubscription.isPresent()) {
+            if (!optSubscription.isPresent()) {
                 throw new SubscriptionNotFoundException(processSubscription.getId());
             }
 
@@ -378,32 +378,28 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             logger.debug("Close subscription {}", subscriptionId);
 
             Optional<Subscription> optSubscription = subscriptionRepository.findById(subscriptionId);
-            if (! optSubscription.isPresent()) {
+            if (!optSubscription.isPresent()) {
                 throw new SubscriptionNotFoundException(subscriptionId);
             }
 
             Subscription subscription = optSubscription.get();
 
             if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
-                subscription.setUpdatedAt(new Date());
+                final Date now = new Date();
+                subscription.setUpdatedAt(now);
                 subscription.setStatus(Subscription.Status.CLOSED);
 
                 subscription = subscriptionRepository.update(subscription);
 
                 // API Keys are automatically revoked
-                Date endingAt = subscription.getEndingAt();
-                if (endingAt != null) {
-
-                    Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
-                    Date now = new Date();
-                    for (ApiKeyEntity apiKey : apiKeys) {
-                        Date expireAt = apiKey.getExpireAt();
-                        if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
-                            apiKey.setExpireAt(endingAt);
-                            apiKey.setRevokedAt(endingAt);
-                            apiKey.setRevoked(true);
-                            apiKeyService.update(apiKey);
-                        }
+                Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                for (ApiKeyEntity apiKey : apiKeys) {
+                    Date expireAt = apiKey.getExpireAt();
+                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
+                        apiKey.setExpireAt(now);
+                        apiKey.setRevokedAt(now);
+                        apiKey.setRevoked(true);
+                        apiKeyService.update(apiKey);
                     }
                 }
 
@@ -424,7 +420,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             logger.debug("Delete subscription {}", subscriptionId);
 
             Optional<Subscription> optSubscription = subscriptionRepository.findById(subscriptionId);
-            if (! optSubscription.isPresent()) {
+            if (!optSubscription.isPresent()) {
                 throw new SubscriptionNotFoundException(subscriptionId);
             }
 
