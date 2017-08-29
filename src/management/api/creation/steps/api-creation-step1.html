@@ -61,14 +61,14 @@
           <md-input-container class="md-block" flex-gt-sm>
             <label>Context-path</label>
             <input ng-model="$ctrl.parent.api.proxy.context_path" type="text" minlength="3"
-                   ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" required name="contextPath" ng-change="$ctrl.parent.onChangeContextPath()">
+                   ng-pattern="/^\/[\/.a-zA-Z0-9-_]+$/" required name="contextPath" ng-change="$ctrl.parent.onChangeContextPath()">
             <div class="hint" ng-if="apiGeneralForm.contextPath.$valid || apiGeneralForm.contextPath.$pristine">
-              Path where API is exposed, must start with a '/'
+              Path where API is exposed, must start with a '/' and must contain any letter, capitalize letter, number, dash or underscore.
             </div>
             <div ng-messages="apiGeneralForm.contextPath.$error">
               <div ng-message="required">Context path is required.</div>
               <div ng-message="minlength">Context path has to be more than 3 characters long.</div>
-              <div ng-message="pattern">Context path is not valid (must start with a '/')</div>
+              <div ng-message="pattern">Context path is not valid (must start with a '/' and must contain any letter, capitalize letter, number, dash or underscore)</div>
             </div>
           </md-input-container>
         </div>

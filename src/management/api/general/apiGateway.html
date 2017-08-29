@@ -20,7 +20,7 @@
     <md-input-container class="md-block" flex-gt-sm>
       <label>Gateway context path</label>
       <input ng-model="generalCtrl.api.proxy.context_path" type="text"
-             ng-pattern="/^\/[\/.a-zA-Z0-9-]+$/" ng-disabled="!generalCtrl.contextPathEditable"
+             ng-pattern="/^\/[\/.a-zA-Z0-9-_]+$/" ng-disabled="!generalCtrl.contextPathEditable"
              required>
     </md-input-container>
   </div>
