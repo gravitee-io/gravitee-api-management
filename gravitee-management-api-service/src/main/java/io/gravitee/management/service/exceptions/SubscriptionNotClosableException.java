@@ -16,6 +16,7 @@
 package io.gravitee.management.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.repository.management.model.Subscription;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -23,15 +24,15 @@ import io.gravitee.common.http.HttpStatusCode;
  */
 public class SubscriptionNotClosableException extends AbstractManagementException {
 
-    private final String subscription;
+    private final Subscription subscription;
 
-    public SubscriptionNotClosableException(String subscription) {
+    public SubscriptionNotClosableException(Subscription subscription) {
         this.subscription = subscription;
     }
 
     @Override
     public String getMessage() {
-        return "Subscription [" + subscription + "] can not be closed because of its status.";
+        return "Subscription [" + subscription.getId() + "] can not be closed because of its status: " + subscription.getStatus();
     }
 
     @Override

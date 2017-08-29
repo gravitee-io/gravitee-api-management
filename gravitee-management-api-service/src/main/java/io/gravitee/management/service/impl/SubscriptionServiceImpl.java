@@ -426,7 +426,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 return convert(subscription);
             }
 
-            throw new SubscriptionNotClosableException(subscriptionId);
+            throw new SubscriptionNotClosableException(subscription);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to close subscription {}", subscriptionId, ex);
             throw new TechnicalManagementException(String.format(

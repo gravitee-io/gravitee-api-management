@@ -21,6 +21,7 @@ import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.management.service.exceptions.SubscriptionNotClosableException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -260,7 +261,13 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
                         LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), tme);
                     }
                 });
-                subscriptionService.close(subscription.getId());
+
+                try {
+                    subscriptionService.close(subscription.getId());
+                } catch (SubscriptionNotClosableException snce) {
+                    // Subscription can not be closed because it is already closed or not yet accepted
+                    LOGGER.debug("The subscription can not be closed: {}", snce.getMessage());
+                }
             });
 
             // Archive the application
