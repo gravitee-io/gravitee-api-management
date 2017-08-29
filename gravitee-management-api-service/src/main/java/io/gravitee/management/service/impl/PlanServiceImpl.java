@@ -40,6 +40,7 @@ import static java.util.Arrays.asList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -218,6 +219,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Save plan
             plan = planRepository.update(plan);
+
+            //reorder plan
+            reorderedAndSavePlansAfterRemove(optPlan.get());
+
             return convert(plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to delete plan: {}", planId, ex);
@@ -245,6 +250,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Delete plan
             planRepository.delete(plan);
+
+            //reorder plan
+            reorderedAndSavePlansAfterRemove(optPlan.get());
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to delete plan: {}", plan, ex);
             throw new TechnicalManagementException(
@@ -269,9 +277,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new PlanAlreadyPublishedException(planId);
             }
 
+            Set<Plan> plans = planRepository.findByApi(plan.getApis().iterator().next());
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // Look to other plans if there is already a keyless-published plan
-                long count = planRepository.findByApi(plan.getApis().iterator().next())
+                long count = plans
                         .stream()
                         .filter(plan1 -> plan1.getStatus() == Plan.Status.PUBLISHED)
                         .filter(plan1 -> plan1.getSecurity() == Plan.PlanSecurityType.KEY_LESS)
@@ -284,6 +293,14 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Update plan status
             plan.setStatus(Plan.Status.PUBLISHED);
+            // Update plan order
+            List<Plan> orderedPublishedPlans = plans.
+                    stream().
+                    filter(plan1 -> Plan.Status.PUBLISHED.equals(plan1.getStatus())).
+                    sorted(Comparator.comparingInt(Plan::getOrder)).
+                    collect(Collectors.toList());
+            plan.setOrder(orderedPublishedPlans.isEmpty() ? 1 : (orderedPublishedPlans.get(orderedPublishedPlans.size()-1).getOrder() + 1));
+
             plan.setPublishedAt(new Date());
 
             // Save plan
@@ -298,30 +315,50 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     private void reorderAndSavePlans(final Plan planToReorder) throws TechnicalException {
         final Collection<Plan> plans = planRepository.findByApi(planToReorder.getApis().iterator().next());
-        final List<Boolean> increment = asList(true);
+        Plan[] plansToReorder = plans.stream()
+                .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()) && !Objects.equals(p.getId(), planToReorder.getId()))
+                .sorted(Comparator.comparingInt(Plan::getOrder)).toArray(Plan[]::new);
+
+        // the new plan order must be between 1 && numbers of published apis
+        if(planToReorder.getOrder() < 1) {
+            planToReorder.setOrder(1);
+        } else if (planToReorder.getOrder() > plansToReorder.length + 1) { // -1 because we have filtered the plan itself
+            planToReorder.setOrder(plansToReorder.length + 1);
+        }
+        try {
+            // reorder plans before and after the reordered plan
+            // we update the first range only because of https://github.com/gravitee-io/issues/issues/751
+            // if orders are good in the repository, we should not update the first range
+            for (int i = 0; i < plansToReorder.length; i++) {
+                int newOrder = (i + 1) < planToReorder.getOrder() ? (i+1) : (i+2);
+                if (plansToReorder[i].getOrder() != newOrder) {
+                    plansToReorder[i].setOrder(newOrder);
+                    planRepository.update(plansToReorder[i]);
+                }
+            }
+            // update the modified plan
+            planRepository.update(planToReorder);
+
+        } catch (final TechnicalException ex) {
+            logger.error("An error occurs while trying to update plan {}", planToReorder.getId(), ex);
+            throw new TechnicalManagementException("An error occurs while trying to update plan " + planToReorder.getId(), ex);
+        }
+    }
+
+    private void reorderedAndSavePlansAfterRemove(final Plan planRemoved) throws TechnicalException {
+        final Collection<Plan> plans = planRepository.findByApi(planRemoved.getApis().iterator().next());
         plans.stream()
-                .sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
-                .forEachOrdered(page -> {
+                .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()))
+                .sorted(Comparator.comparingInt(Plan::getOrder))
+                .forEachOrdered(plan -> {
                     try {
-                        if (page.equals(planToReorder)) {
-                            increment.set(0, false);
-                            page.setOrder(planToReorder.getOrder());
-                        } else {
-                            final int newOrder;
-                            final Boolean isIncrement = increment.get(0);
-                            if (page.getOrder() < planToReorder.getOrder()) {
-                                newOrder = page.getOrder() - (isIncrement ? 0 : 1);
-                            } else if (page.getOrder() > planToReorder.getOrder())  {
-                                newOrder = page.getOrder() + (isIncrement? 1 : 0);
-                            } else {
-                                newOrder = page.getOrder() + (isIncrement? 1 : -1);
-                            }
-                            page.setOrder(newOrder);
+                        if (plan.getOrder() > planRemoved.getOrder()) {
+                            plan.setOrder(plan.getOrder() - 1);
+                            planRepository.update(plan);
                         }
-                        planRepository.update(page);
                     } catch (final TechnicalException ex) {
-                        logger.error("An error occurs while trying to update plan {}", planToReorder.getId(), ex);
-                        throw new TechnicalManagementException("An error occurs while trying to update plan " + planToReorder.getId(), ex);
+                        logger.error("An error occurs while trying to reorder plan {}", plan.getId(), ex);
+                        throw new TechnicalManagementException("An error occurs while trying to update plan " + plan.getId(), ex);
                     }
                 });
     }

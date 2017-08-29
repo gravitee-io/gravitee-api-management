@@ -40,6 +40,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -123,6 +124,8 @@ public class PlanServiceTest {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
+        when(plan.getApis()).thenReturn(Collections.singleton("id"));
+        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.delete(PLAN_ID);
 
@@ -141,6 +144,8 @@ public class PlanServiceTest {
         when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
+        when(plan.getApis()).thenReturn(Collections.singleton("id"));
+        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.delete(PLAN_ID);
 
@@ -152,6 +157,8 @@ public class PlanServiceTest {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
+        when(plan.getApis()).thenReturn(Collections.singleton("id"));
+        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.delete(PLAN_ID);
 
@@ -162,6 +169,8 @@ public class PlanServiceTest {
     public void shouldDelete() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
+        when(plan.getApis()).thenReturn(Collections.singleton("id"));
+        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.delete(PLAN_ID);
 
@@ -202,6 +211,8 @@ public class PlanServiceTest {
         when(subscription.getStatus()).thenReturn(SubscriptionStatus.ACCEPTED);
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+        when(plan.getApis()).thenReturn(Collections.singleton("id"));
+        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(PLAN_ID);
 
@@ -221,6 +232,8 @@ public class PlanServiceTest {
         when(subscription.getStatus()).thenReturn(SubscriptionStatus.PENDING);
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+        when(plan.getApis()).thenReturn(Collections.singleton("id"));
+        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(PLAN_ID);
 
@@ -240,6 +253,8 @@ public class PlanServiceTest {
         when(subscription.getStatus()).thenReturn(SubscriptionStatus.CLOSED);
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+        when(plan.getApis()).thenReturn(Collections.singleton("id"));
+        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(PLAN_ID);
 
