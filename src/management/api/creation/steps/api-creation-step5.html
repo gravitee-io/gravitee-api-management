@@ -46,7 +46,7 @@
       <p ng-if="$ctrl.parent.api.plans.length > 0">
         The <code>{{$ctrl.parent.api.plans[0].name}}</code> plan will allow users to subscribe to the API.
         The <code>{{$ctrl.parent.api.plans[0].security}}</code> plan security scheme means that the API
-        <span ng-if="$ctrl.parent.api.plans[0].security === 'KEY_LESS'">will be open access and causes Gravitee.io Gateway to bypass any access control mechanisms.</span>
+        <span ng-if="$ctrl.parent.api.plans[0].security === 'KEY_LESS'">will be open access and causes API Gateway to bypass any access control mechanisms.</span>
         <span ng-if="$ctrl.parent.api.plans[0].security === 'API_KEY'">will enforce verification of API keys during request processing, letting only apps with approved API keys access the API.</span>
 
         The plan has validation mode set to <code>{{$ctrl.parent.api.plans[0].validation}}</code> meaning that application developers
@@ -76,7 +76,7 @@
       </p>
 
       <div layout="row">
-        <a href="https://docs.gravitee.io" target="_blank" class="api-abstract-documentation-link" flex>To go further on API configuration, please consult <strong>Gravitee.io API Management documentation</strong></a>
+        <a ng-href="{{$ctrl.documentationURL}}" target="_blank" class="api-abstract-documentation-link" flex>To go further on API configuration, please consult <strong>API Management documentation</strong></a>
       </div>
     </md-content>
   </md-step-body>

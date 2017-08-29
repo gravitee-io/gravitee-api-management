@@ -4,6 +4,9 @@
   "managementTitle": "Gravitee.io Management",
   "devMode": false,
   "userCreationEnabled": true,
+  "documentation": {
+    "url": "https://docs.gravitee.io"
+  },
   "portal": {
     "entrypoint": "https://api.company.com",
     "apikeyHeader": "X-Gravitee-Api-Key"
