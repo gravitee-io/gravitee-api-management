@@ -18,14 +18,14 @@
 <md-content>
   <div ui-view class="main-container" autoscroll="true"></div>
   <section id="footer">
-    <footer layout="row" layout-align="center start" gv-theme-element="portal.footer">
+    <footer layout="row" layout-align="center start" gv-theme-element="portal.footer.content">
       <div flex="100" flex-gt-xs="90" layout="column" layout-gt-xs="row">
         <div flex="100" flex-gt-xs="70" layout-wrap>
           <ul class="footer-links" layout="column">
             <li class="footer-links-section" ng-if="indexCtrl.pages && indexCtrl.pages.length > 0">
               <h3>{{'home.pages.title' | translate}}</h3>
               <ul>
-                <li data-ng-repeat="page in indexCtrl.pages"><a ui-sref="portal.pages.page({pageId: page.id})">{{page.name}}</a></li>
+                <li data-ng-repeat="page in indexCtrl.pages"><a gv-theme-element="portal.footer.links" ui-sref="portal.pages.page({pageId: page.id})">{{page.name}}</a></li>
               </ul>
             </li>
           </ul>

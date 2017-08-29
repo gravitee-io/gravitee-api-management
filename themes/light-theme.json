@@ -5,8 +5,13 @@
       "color": "#000"
     },
     "footer": {
-      "background-color": "#fbfbfb",
-      "color": "#5d5d5d"
+      "content": {
+        "background-color": "#fbfbfb",
+        "color": "#5d5d5d"
+      },
+      "links": {
+        "color": "#5f5f5f"
+      }
     },
     "home": {
       "header": {
