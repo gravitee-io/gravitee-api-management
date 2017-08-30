@@ -13,15 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.healthcheck;
-
-import io.gravitee.repository.analytics.AnalyticsException;
+package io.gravitee.repository.healthcheck.query;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface HealthCheckRepository {
+public abstract class AbstractQuery<T extends Response> implements Query<T> {
 
-    HealthResponse query(String api, long interval, long from, long to) throws AnalyticsException;
+    private RootFilter rootFilter;
+
+    private QueryFilter queryFilter;
+
+    public RootFilter root() {
+        return rootFilter;
+    }
+
+    void root(RootFilter rootFilter) {
+        this.rootFilter = rootFilter;
+    }
+
+    public QueryFilter query() {
+        return queryFilter;
+    }
+
+    void query(QueryFilter queryFilter) {
+        this.queryFilter = queryFilter;
+    }
 }

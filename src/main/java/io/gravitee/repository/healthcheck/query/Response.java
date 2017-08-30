@@ -13,33 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.healthcheck;
-
-import java.util.Map;
+package io.gravitee.repository.healthcheck.query;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HealthResponse {
+public interface Response {
 
-    private long [] timestamps;
-
-    private Map<Boolean, long[]> buckets;
-
-    public long [] timestamps() {
-        return timestamps;
-    }
-
-    public void timestamps(long[] timestamps) {
-        this.timestamps = timestamps;
-    }
-
-    public Map<Boolean, long[]> buckets() {
-        return buckets;
-    }
-
-    public void buckets(Map<Boolean, long[]> buckets) {
-        this.buckets = buckets;
-    }
 }
