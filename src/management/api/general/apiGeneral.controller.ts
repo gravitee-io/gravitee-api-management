@@ -42,7 +42,8 @@ class ApiAdminController {
     private GroupService,
     private SidenavService: SidenavService,
     private resolvedViews,
-    private resolvedTags
+    private resolvedTags,
+    private resolvedTenants
   ) {
     'ngInject';
 
@@ -56,6 +57,7 @@ class ApiAdminController {
     this.$mdDialog = $mdDialog;
     this.initialApi = _.cloneDeep(resolvedApi.data);
     this.api = resolvedApi.data;
+    this.tenants = resolvedTenants.data;
     this.$scope.selected = [];
     if (!this.api.group) {
       this.api.group = GroupService.getEmptyGroup();
