@@ -20,6 +20,7 @@ import ResourceService from '../../services/resource.service';
 import TagService from '../../services/tag.service';
 import ApiService from '../../services/api.service';
 import MetadataService from '../../services/metadata.service';
+import GroupService from '../../services/group.service';
 import * as _ from 'lodash';
 
 export default apisRouterConfig;
@@ -46,6 +47,11 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         resolvedViews: (ViewService: ViewService) => {
           return ViewService.list().then(response => {
+            return response.data;
+          });
+        },
+        resolvedGroups: (GroupService: GroupService) => {
+          return GroupService.list().then(response => {
             return response.data;
           });
         },

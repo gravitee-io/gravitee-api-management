@@ -78,7 +78,7 @@ class ApplicationService {
         'name': application.name,
         'description': application.description,
         'type': application.type,
-        'group': application.group ? application.group.id : ''
+        'groups': application.groups
       }
     );
   }

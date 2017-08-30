@@ -31,7 +31,7 @@ function DialogAddGroupMemberController($scope, $mdDialog, group, GroupService, 
   $scope.searchUser = function (query) {
     if (query) {
       return UserService.search(query).then((response) => {
-        var membersFound = response.data;
+        const membersFound = response.data;
         return _.filter(membersFound, (member: any) => {
           return _.findIndex($scope.groupItem.members, (m: any) => {
               return m.username === member.id;
@@ -52,7 +52,7 @@ function DialogAddGroupMemberController($scope, $mdDialog, group, GroupService, 
   };
 
   $scope.selectMember = function(user) {
-    var idx = $scope.usersSelected.indexOf(user.id);
+    const idx = $scope.usersSelected.indexOf(user.id);
     if (idx > -1) {
       $scope.usersSelected.splice(idx, 1);
     }
@@ -62,30 +62,20 @@ function DialogAddGroupMemberController($scope, $mdDialog, group, GroupService, 
   };
 
   $scope.isUserSelected = function(user) {
-    var idx = $scope.usersSelected.indexOf(user.id);
+    const idx = $scope.usersSelected.indexOf(user.id);
     return idx > -1;
   };
 
   $scope.addMembers = function () {
-    let promises = [];
-
+    let members = [];
     for (let i = 0; i < $scope.usersSelected.length; i++) {
       let member = {
-        "username" : $scope.usersSelected[i],
+        username: $scope.usersSelected[i],
+        roles: {API: "", APPLICATION: ""}
       };
-      promises.push(GroupService.addOrUpdateMember($scope.groupItem.group.id, member));
+      members.push(member);
     }
-
-    $q.all(promises).then( (responses) => {
-      NotificationService.show('Member(s) has been added to the group');
-      let members = []
-      for (let response of responses) {
-        members.push({"username": response.data.username, "role": response.data.role});
-      }
-      $mdDialog.hide(members);
-    }).catch(function (error) {
-      $scope.error = error;
-    });
+    $mdDialog.hide(members);
   };
 }
 

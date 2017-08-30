@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as _ from 'lodash';
+
 class GroupService {
   private groupsURL: string;
 
@@ -21,17 +23,7 @@ class GroupService {
     this.groupsURL = `${Constants.baseURL}configuration/groups`;
   }
 
-  getEmptyGroup() {
-    return  {
-      "id": null,
-      "name": "NONE"
-    };
-  }
-
-  list(type) {
-    if (type) {
-      return this.$http.get(this.groupsURL + "?type=" + type);
-    }
+  list() {
     return this.$http.get(this.groupsURL);
   }
 
@@ -58,12 +50,23 @@ class GroupService {
   }
 
   addOrUpdateMember(group, member) {
-    let role = member.role ? '&rolename=' + member.role : '';
-    return this.$http.post([this.groupsURL, group, 'members?user=' + member.username + role].join("/"));
+    let groupRole = [];
+    //at least one role is mandatory
+    let rolenames = _.filter(_.values(member.roles), (rolename) => !_.isEmpty(rolename));
+    if (rolenames.length > 0) {
+      let roleScopes = _.keys(member.roles);
+      _.forEach(roleScopes, (roleScope) => {
+        groupRole.push({
+          scope: roleScope,
+          name: member.roles[roleScope]
+        });
+      });
+      return this.$http.put([this.groupsURL, group, 'members', member.username].join("/"), groupRole);
+    }
   }
 
   deleteMember(group, memberUsername) {
-    return this.$http.delete([this.groupsURL, group, 'members?user=' + memberUsername].join("/"));
+    return this.$http.delete([this.groupsURL, group, 'members', memberUsername].join("/"));
   }
 }
 

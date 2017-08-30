@@ -82,11 +82,11 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       resolve: {
         groups: (UserService: UserService, GroupService: GroupService) => {
           if (UserService.currentUser.isAdmin()) {
-            return GroupService.list("APPLICATION").then((groups) => {
-              return _.unionBy([GroupService.getEmptyGroup()], groups.data, "id");
+            return GroupService.list().then((groups) => {
+              return groups.data;
             });
           } else {
-            return [GroupService.getEmptyGroup()];
+            return [];
           }
         }
       }
@@ -115,9 +115,11 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       resolve: {
         members: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
           ApplicationService.getMembers($stateParams['applicationId']).then(response => response.data),
-        groupMembers: ($stateParams: ng.ui.IStateParamsService, application: any, GroupService: GroupService) =>
-          (application.group && application.group.id &&
-          GroupService.getMembers(application.group.id).then(response => response.data))
+        resolvedGroups: (GroupService: GroupService) => {
+          return GroupService.list().then(response => {
+            return response.data;
+          });
+        },
       },
       data: {
         menu: {

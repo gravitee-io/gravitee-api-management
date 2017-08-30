@@ -474,3 +474,7 @@ md-card.no-box-shadow {
 .gv-button-toggled {
   background-color: rgba(158,158,158,0.2);
 }
+
+.md-select-menu-container {
+  z-index: 99999 !important;
+}

@@ -17,11 +17,10 @@ import * as _ from 'lodash';
 import * as angular from 'angular';
 
 class GroupsController {
-  private groupType: string;
-  private applicationGroups: any[];
-  private apiGroups: any[];
+  private groups: any[];
   private selectedGroup: any;
-  private roles: any;
+  private apiRoles: any;
+  private applicationRoles: any;
 
   constructor(
     private GroupService,
@@ -34,9 +33,8 @@ class GroupsController {
     private RoleService
   ) {
     'ngInject';
-    this.applicationGroups = [];
-    this.apiGroups = [];
-    this.selectGroupType('APPLICATION');
+    this.groups = [];
+    this.initRoles();
     this.listGroups();
   }
 
@@ -48,33 +46,29 @@ class GroupsController {
             group,
             members: getMembersResponse.data
           };
-        }).then(groupWithMembers => {
-          if(groupWithMembers.group.type === 'application') {
+        })
+          .then(groupWithMembers => {
             return this.ApplicationService.listByGroup(groupWithMembers.group.id).then (applicationsResponse => {
               return {
                 group: groupWithMembers.group,
                 members: groupWithMembers.members,
                 applications: applicationsResponse.data
               };
-            });
-          } else {
-            return this.ApiService.listByGroup(groupWithMembers.group.id).then (apiResponse => {
-              return {
-                group: groupWithMembers.group,
-                members: groupWithMembers.members,
-                apis: apiResponse.data
-              };
-            });
-          }
+            }).then (groupWithMembersAndApps => {
+              return this.ApiService.listByGroup(groupWithMembersAndApps.group.id).then (apiResponse => {
+                return {
+                  group: groupWithMembersAndApps.group,
+                  members: groupWithMembersAndApps.members,
+                  applications: groupWithMembersAndApps.applications,
+                  apis: apiResponse.data
+                };
+              });
+          });
         });
       });
 
       this.$q.all(promises).then(responses => {
-        var partition = _.partition(responses, (item: any) => {
-          return item.group.type === 'application';
-        });
-        this.applicationGroups = partition[0];
-        this.apiGroups = partition[1];
+        this.groups = responses;
       });
     });
   }
@@ -94,17 +88,18 @@ class GroupsController {
     this.$mdSidenav('group-applications').toggle();
   }
 
-  selectGroupType(type) {
-    this.groupType = type;
-
+  initRoles() {
     const that = this;
-    this.RoleService.list(type).then(function (roles) {
-      that.roles = roles;
+    this.RoleService.list("API").then(function (roles) {
+      that.apiRoles = [{"scope":"API", "name": "", "system":false}].concat(roles);
+    });
+    this.RoleService.list("APPLICATION").then(function (roles) {
+      that.applicationRoles = [{"scope":"APPLICATION", "name": "", "system":false}].concat(roles);
     });
   }
 
   showAddGroupModal() {
-    var _this = this;
+    let _this = this;
     this.$mdDialog.show({
       controller: 'DialogAddGroupController',
       controllerAs: 'dialogAddGroupCtrl',
@@ -116,7 +111,6 @@ class GroupsController {
       if (name) {
         _this.GroupService.create({
           name: name,
-          type: _this.groupType
         }).then(() => {
           _this.listGroups();
         });
@@ -126,7 +120,7 @@ class GroupsController {
 
   showRenameGroupModal(ev, groupId, name) {
     ev.stopPropagation();
-    var _this = this;
+    let _this = this;
     this.$mdDialog.show({
       controller: 'DialogAddGroupController',
       controllerAs: 'dialogAddGroupCtrl',
@@ -145,7 +139,7 @@ class GroupsController {
   }
 
   showAddMemberModal(ev) {
-    var _this = this;
+    let _this = this;
     this.$mdDialog.show({
       controller: 'DialogAddGroupMemberController',
       template: require('./dialog/addMember.dialog.html'),
@@ -164,7 +158,7 @@ class GroupsController {
 
   removeGroup(ev, groupId, groupName) {
     ev.stopPropagation();
-    var _this = this;
+    let _this = this;
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
@@ -174,7 +168,7 @@ class GroupsController {
         title: 'Would you like to remove the group "' + groupName + '" ?',
         confirmButton: 'Remove'
       }
-    }).then(function (response) {
+    }).then( (response) => {
       if (response) {
         _this.GroupService.remove(groupId).then( () => {
           _this.listGroups();
@@ -185,7 +179,7 @@ class GroupsController {
 
   removeMember(ev, username) {
     ev.stopPropagation();
-    var _this = this;
+    let _this = this;
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
@@ -196,7 +190,7 @@ class GroupsController {
         title: 'Would you like to remove the user "' + username + '" ?',
         confirmButton: 'Remove'
       }
-    }).then(function (response) {
+    }).then((response) => {
       if (response) {
         _this.GroupService.deleteMember(_this.selectedGroup.group.id, username).then( () => {
           _this.NotificationService.show('Member ' + username + ' has been removed from the group');
@@ -209,11 +203,14 @@ class GroupsController {
   }
 
   updateMember(member) {
-    if (member.role) {
-      var _this = this;
-      this.GroupService.addOrUpdateMember(this.selectedGroup.group.id, member).then( () => {
-        _this.NotificationService.show('Member ' + member.username + ' has been updated');
-      });
+    if (member.roles) {
+      let _this = this;
+      let promise = this.GroupService.addOrUpdateMember(this.selectedGroup.group.id, member);
+      if (promise) {
+        promise.then(() => {
+          _this.NotificationService.show('Member ' + member.username + ' has been updated');
+        });
+      }
     }
   }
 }

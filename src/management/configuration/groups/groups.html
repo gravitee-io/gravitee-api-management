@@ -16,87 +16,49 @@
 
 -->
 <md-toolbar class="md-table-toolbar md-default">
-  <div class="md-toolbar-tools">
-    <span>Groups</span>
-    <div flex></div>
-  </div>
+    <div class="md-toolbar-tools">
+        <span>Groups</span>
+        <div flex></div>
+    </div>
 </md-toolbar>
-<md-tabs md-dynamic-height md-border-bottom>
-    <md-tab label="Application Groups" ng-click="groupsCtrl.selectGroupType('APPLICATION')">
-        <md-table-container>
-            <table md-table ng-init="order = 'group.name'">
-                <thead md-head md-order="order">
-                <tr md-row>
-                    <th md-column md-order-by="group.name">Name</th>
-                    <th style="text-align:center" md-column md-order-by="applications.length">Applications</th>
-                    <th style="text-align:center" md-column md-order-by="members.length">Members</th>
-                    <th md-column></th>
-                </tr>
-                </thead>
-                <tbody md-body>
-                <tr md-row ng-repeat="item in groupsCtrl.applicationGroups | orderBy: order" ng-click="groupsCtrl.showApplications(item)">
-                    <td md-cell>{{item.group.name}}</td>
-                    <td md-cell style="text-align:center">{{item.applications.length}}</td>
-                    <td md-cell style="text-align:center">{{item.members.length}}</td>
-                    <td md-cell ng-click="$event.stopPropagation()">
-                        <div layout="row" layout-align="end center">
-                            <span style="padding: 0 10px">
-                                <ng-md-icon icon="group_add" ng-click="groupsCtrl.showMembers(item)" aria-label="manage-members"></ng-md-icon>
-                                <md-tooltip md-direction="top">Manage members</md-tooltip>
-                            </span>
-                            <span style="padding: 0 10px">
-                                <md-tooltip md-direction="top">rename</md-tooltip>
-                                <ng-md-icon icon="mode_edit" ng-click="groupsCtrl.showRenameGroupModal($event, item.group.id, item.group.name)" aria-label="rename-group"></ng-md-icon>
-                            </span>
-                            <span style="padding: 0 10px">
-                                <md-tooltip md-direction="top">delete</md-tooltip>
-                                <ng-md-icon icon="delete" ng-click="groupsCtrl.removeGroup($event, item.group.id, item.group.name)" aria-label="delete-group"></ng-md-icon>
-                            </span>
-                        </div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </md-table-container>
-    </md-tab>
-    <md-tab label="Api Groups" ng-click="groupsCtrl.selectGroupType('API')">
-        <md-table-container>
-            <table md-table ng-init="order = 'group.name'">
-                <thead md-head md-order="order">
-                <tr md-row>
-                    <th md-column md-order-by="group.name">Name</th>
-                    <th style="text-align:center" md-column md-order-by="apis.lengt">Apis</th>
-                    <th style="text-align:center" md-column md-order-by="members.length">Members</th>
-                    <th md-column></th>
-                </tr>
-                </thead>
-                <tbody md-body>
-                <tr md-row ng-repeat="item in groupsCtrl.apiGroups | orderBy: order" ng-click="groupsCtrl.showApis(item)">
-                    <td md-cell>{{item.group.name}}</td>
-                    <td md-cell style="text-align:center">{{item.apis.length}}</td>
-                    <td md-cell style="text-align:center">{{item.members.length}}</td>
-                    <td md-cell ng-click="$event.stopPropagation()">
-                        <div layout="row" layout-align="end center">
-                            <span style="padding: 0 10px">
-                                <ng-md-icon icon="group_add" ng-click="groupsCtrl.showMembers(item)" aria-label="manage-members"></ng-md-icon>
-                                <md-tooltip md-direction="top">Manage members</md-tooltip>
-                            </span>
-                            <span style="padding: 0 10px">
-                                <ng-md-icon icon="mode_edit" ng-click="groupsCtrl.showRenameGroupModal($event, item.group.id, item.group.name)" aria-label="rename-group"></ng-md-icon>
-                                <md-tooltip md-direction="top">rename</md-tooltip>
-                            </span>
-                            <span style="padding: 0 10px">
-                                <ng-md-icon icon="delete" ng-click="groupsCtrl.removeGroup($event, item.group.id, item.group.name)" aria-label="delete-group"></ng-md-icon>
-                                <md-tooltip md-direction="top">delete</md-tooltip>
-                            </span>
-                        </div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </md-table-container>
-    </md-tab>
-</md-tabs>
+
+<md-table-container>
+    <table md-table ng-init="order = 'order.name'">
+        <thead md-head md-order="order">
+        <tr md-row>
+            <th md-column md-order-by="group.name">Name</th>
+            <th style="text-align:center" md-column md-order-by="apis.length">APIs</th>
+            <th style="text-align:center" md-column md-order-by="applications.length">Applications</th>
+            <th style="text-align:center" md-column md-order-by="members.length">Members</th>
+            <th md-column></th>
+        </tr>
+        </thead>
+        <tbody md-body>
+        <tr md-row ng-repeat="item in groupsCtrl.groups | orderBy: order">
+            <td md-cell>{{item.group.name}}</td>
+            <td md-cell style="text-align:center" ng-click="groupsCtrl.showApis(item)">{{item.apis.length}}</td>
+            <td md-cell style="text-align:center" ng-click="groupsCtrl.showApplications(item)">{{item.applications.length}}</td>
+            <td md-cell style="text-align:center">{{item.members.length}}</td>
+            <td md-cell ng-click="$event.stopPropagation()">
+                <div layout="row" layout-align="end center">
+                        <span style="padding: 0 10px">
+                            <ng-md-icon icon="group_add" ng-click="groupsCtrl.showMembers(item)" aria-label="manage-members"></ng-md-icon>
+                            <md-tooltip md-direction="top">Manage members</md-tooltip>
+                        </span>
+                    <span style="padding: 0 10px">
+                            <md-tooltip md-direction="top">rename</md-tooltip>
+                            <ng-md-icon icon="mode_edit" ng-click="groupsCtrl.showRenameGroupModal($event, item.group.id, item.group.name)" aria-label="rename-group"></ng-md-icon>
+                        </span>
+                    <span style="padding: 0 10px">
+                            <md-tooltip md-direction="top">delete</md-tooltip>
+                            <ng-md-icon icon="delete" ng-click="groupsCtrl.removeGroup($event, item.group.id, item.group.name)" aria-label="delete-group"></ng-md-icon>
+                        </span>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</md-table-container>
 
 
 <md-sidenav class="md-sidenav-right md-whiteframe-z2 resource" md-component-id="group-members">
@@ -114,7 +76,8 @@
                 <thead md-head md-order="order">
                 <tr md-row>
                     <th md-column md-order-by="username">Username</th>
-                    <th md-column md-order-by="role">Role</th>
+                    <th md-column md-order-by="role">API Role</th>
+                    <th md-column md-order-by="role">Application Role</th>
                     <th md-column></th>
                 </tr>
                 </thead>
@@ -122,8 +85,13 @@
                 <tr md-row ng-repeat="member in groupsCtrl.selectedGroup.members | orderBy: order">
                     <td md-cell>{{member.username}}</td>
                     <td md-cell>
-                        <md-select ng-model="member.role" aria-label="membership-role" md-on-close="groupsCtrl.updateMember(member)">
-                          <md-option ng-value="role.name" ng-repeat="role in groupsCtrl.roles" ng-disabled="role.system"><em>{{role.name}}</em></md-option>
+                        <md-select ng-model="member.roles['API']" aria-label="membership-api-role" md-on-close="groupsCtrl.updateMember(member)">
+                            <md-option ng-value="role.name" ng-repeat="role in groupsCtrl.apiRoles" ng-disabled="role.system"><em>{{role.name}}</em></md-option>
+                        </md-select>
+                    </td>
+                    <td md-cell>
+                        <md-select ng-model="member.roles['APPLICATION']" aria-label="membership-application-role" md-on-close="groupsCtrl.updateMember(member)">
+                            <md-option ng-value="role.name" ng-repeat="role in groupsCtrl.applicationRoles" ng-disabled="role.system"><em>{{role.name}}</em></md-option>
                         </md-select>
                     </td>
                     <td md-cell ng-click="$event.stopPropagation()">
@@ -164,7 +132,7 @@
                 </tr>
                 </thead>
                 <tbody md-body>
-                <tr md-row ng-repeat="app in groupsCtrl.selectedGroup.applications | orderBy: order">
+                <tr md-row ng-repeat="app in groupsCtrl.selectedGroup.applications">
                     <td md-cell>{{app.name}}</td>
                     <td md-cell>{{app.type}}</td>
                 </tr>
@@ -194,7 +162,7 @@
                 </tr>
                 </thead>
                 <tbody md-body>
-                <tr md-row ng-repeat="api in groupsCtrl.selectedGroup.apis | orderBy: order">
+                <tr md-row ng-repeat="api in groupsCtrl.selectedGroup.apis">
                     <td md-cell>{{api.name}}</td>
                     <td md-cell>{{api.version}}</td>
                 </tr>
@@ -205,10 +173,10 @@
 </md-sidenav>
 
 <md-fab-speed-dial permission permission-only="'management-group-c'"
-                    md-open="false" class="md-scale md-fab-bottom-right">
+                   md-open="false" class="md-scale md-fab-bottom-right">
     <md-fab-trigger>
         <md-button aria-label="Add Group" class="md-fab md-success" ng-click="groupsCtrl.showAddGroupModal($event)">
-            <md-tooltip md-direction="top" md-visible="false">Add a new {{groupsCtrl.groupType | lowercase}} group</md-tooltip>
+            <md-tooltip md-direction="top" md-visible="false">Add a new group</md-tooltip>
             <ng-md-icon icon="add"></ng-md-icon>
         </md-button>
     </md-fab-trigger>

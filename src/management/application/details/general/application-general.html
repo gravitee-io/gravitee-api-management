@@ -28,11 +28,11 @@
             <input ng-model="$ctrl.application.type" type="text">
           </md-input-container>
           <md-input-container class="md-block" flex="70">
-            <label>Group</label>
+            <label>Groups</label>
             <md-select aria-label="group"
-                       ng-model="$ctrl.application.group"
-                       ng-model-options="{trackBy: '$value.id'}">
-              <md-option ng-value="group" ng-repeat="group in $ctrl.groups">{{group.name}}</md-option>
+                       ng-model="$ctrl.application.groups"
+                       multiple>
+              <md-option ng-value="group.id" ng-repeat="group in $ctrl.groups">{{group.name}}</md-option>
             </md-select>
           </md-input-container>
         </div>

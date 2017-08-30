@@ -23,11 +23,15 @@ class ApiMembersController {
   private members: any;
   private newPrimaryOwner: any;
   private groupMembers: any;
+  private groupIdsWithMembers: any;
   private roles: any;
+  private groupById: any;
+  private displayGroups: any;
   constructor (
     private ApiService: ApiService,
     private resolvedApi,
     private resolvedMembers,
+    private resolvedGroups,
     private $state,
     private $mdDialog: ng.material.IDialogService,
     private NotificationService,
@@ -41,10 +45,26 @@ class ApiMembersController {
     this.members = resolvedMembers.data;
     this.newPrimaryOwner = null;
     this.$scope.searchText = "";
+    this.groupById = _.keyBy(resolvedGroups, "id");
+    this.displayGroups = {};
+    _.forEach(resolvedGroups, (grp) => {
+      this.displayGroups[grp.id] = false;
+    });
+    this.groupMembers = {};
+    this.groupIdsWithMembers = [];
+    if (this.api.groups) {
+      let self = this;
+      _.forEach(this.api.groups, (grp) => {
+        GroupService.getMembers(grp).then((members) => {
+          let filteredMembers = _.filter(members.data, (m: any) => {
+            return m.roles["API"]
+          });
 
-    if (this.api.group && this.api.group.id != null) {
-      GroupService.getMembers(this.api.group.id).then((members) => {
-        this.groupMembers = members.data;
+          if (filteredMembers.length > 0) {
+            self.groupMembers[grp] = filteredMembers;
+            self.groupIdsWithMembers.push(grp)
+          }
+        });
       });
     }
 

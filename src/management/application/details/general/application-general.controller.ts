@@ -33,7 +33,6 @@ class ApplicationGeneralController {
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
-    private GroupService: GroupService,
     private $state: ng.ui.IStateService,
     private $scope: IApplicationScope,
     private $mdDialog: angular.material.IDialogService,
@@ -43,12 +42,8 @@ class ApplicationGeneralController {
   }
 
   $onInit() {
-    if (!this.application.group) {
-      this.application.group = this.GroupService.getEmptyGroup();
-    } else {
-      //in non admin mode, `groups`only contains emptyGroup.
-      //we have to add the application group
-      this.groups = _.unionBy(this.groups, [this.application.group], "id");
+    if (!this.application.groups) {
+      this.application.groups = [];
     }
     this.initialApplication = _.cloneDeep(this.application);
   }

@@ -17,7 +17,7 @@ const ApplicationMembersComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
     members: '<',
-    groupMembers: '<'
+    resolvedGroups: '<',
   },
   controller: 'ApplicationMembersController',
   template: require('./application-members.html')

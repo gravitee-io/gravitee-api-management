@@ -42,6 +42,7 @@ class ApiAdminController {
     private GroupService,
     private SidenavService: SidenavService,
     private resolvedViews,
+    private resolvedGroups,
     private resolvedTags,
     private resolvedTenants
   ) {
@@ -59,12 +60,8 @@ class ApiAdminController {
     this.api = resolvedApi.data;
     this.tenants = resolvedTenants.data;
     this.$scope.selected = [];
-    if (!this.api.group) {
-      this.api.group = GroupService.getEmptyGroup();
-    }
 
     this.api.labels = this.api.labels || [];
-    this.groups = [this.api.group];
 
     this.$scope.lbs = [
       {
@@ -85,6 +82,7 @@ class ApiAdminController {
 
     this.views = resolvedViews;
     this.tags = resolvedTags;
+    this.groups = resolvedGroups;
   }
 
   toggleVisibility() {
@@ -110,14 +108,6 @@ class ApiAdminController {
     this.$scope.$on('apiChangeSucceed', function () {
       self.initialApi = _.cloneDeep(self.$scope.$parent.apiCtrl.api);
       self.api = self.$scope.$parent.apiCtrl.api;
-    });
-  }
-
-  loadApplicationGroups() {
-    this.GroupService.list('API').then((groups) => {
-      this.groups = _.union(
-        [this.GroupService.getEmptyGroup()],
-        groups.data);
     });
   }
 

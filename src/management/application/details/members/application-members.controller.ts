@@ -15,6 +15,7 @@
  */
 import * as angular from 'angular';
 
+import _ = require('lodash');
 import ApplicationService from '../../../../services/applications.service';
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
@@ -23,13 +24,19 @@ class ApplicationMembersController {
   private application: any;
   private members: any;
   private roles: any;
+  private groupById: any;
+  private displayGroups: any;
+  private groupMembers: any;
+  private groupIdsWithMembers: any;
+  private resolvedGroups: any;
 
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
     private $mdDialog: angular.material.IDialogService,
     private $state: ng.ui.IStateService,
-    private RoleService: RoleService
+    private RoleService: RoleService,
+    private GroupService
   ) {
     'ngInject';
 
@@ -37,6 +44,29 @@ class ApplicationMembersController {
     RoleService.list('APPLICATION').then(function (roles) {
       that.roles = roles;
     });
+  }
+  $onInit() {
+    this.groupById = _.keyBy(this.resolvedGroups, "id");
+    this.displayGroups = {};
+    _.forEach(this.resolvedGroups, (grp) => {
+      this.displayGroups[grp.id] = false;
+    });
+    this.groupMembers = {};
+    this.groupIdsWithMembers = [];
+    if (this.application.groups) {
+      let self = this;
+      _.forEach(this.application.groups, (grp) => {
+        this.GroupService.getMembers(grp).then((members) => {
+          let filteredMembers = _.filter(members.data, (m: any) => {
+            return m.roles["APPLICATION"]
+          });
+          if (filteredMembers.length > 0) {
+            self.groupMembers[grp] = filteredMembers;
+            self.groupIdsWithMembers.push(grp)
+          }
+        });
+      });
+    }
   }
 
   updateMember(member) {

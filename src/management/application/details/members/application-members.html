@@ -17,10 +17,20 @@
 -->
 <section layout="column" flex>
   <md-content flex layout-padding>
-    <div layout="column" ng-if="$ctrl.application.group && $ctrl.application.group.id !== null">
-      <h4>Members inherited from group "{{$ctrl.application.group.name}}"</h4>
-      <md-content style="background: none">
-        <md-table-container ng-show="$ctrl.members.length">
+    <div layout="column" ng-repeat="grp in $ctrl.groupIdsWithMembers">
+      <div layout="row" layout-align="start end">
+        <h4>{{$ctrl.groupMembers[grp].length}} members inherited from "{{$ctrl.groupById[grp].name}}"</h4>
+        <div style="margin-bottom: 5px;" ng-model="$ctrl.displayGroups[grp]"
+             ng-if="!$ctrl.displayGroups[grp]" ng-click="$ctrl.displayGroups[grp]=true">
+          <a>Show</a>
+        </div>
+        <div style="margin-bottom: 5px;" ng-model="$ctrl.displayGroups[grp]"
+             ng-if="$ctrl.displayGroups[grp]" ng-click="$ctrl.displayGroups[grp]=false">
+          <a>Hide</a>
+        </div>
+      </div>
+      <md-content style="background: none" ng-if="$ctrl.displayGroups[grp]">
+        <md-table-container ng-show="$ctrl.groupMembers[grp].length">
           <table md-table>
             <thead md-head md-order="order">
             <tr md-row>
@@ -30,10 +40,10 @@
             </tr>
             </thead>
             <tbody md-body>
-            <tr md-row ng-repeat="member in $ctrl.groupMembers | orderBy: order">
+            <tr md-row ng-repeat="member in $ctrl.groupMembers[grp] | orderBy: order">
               <td md-cell> {{member.firstname}} {{member.lastname}} [{{member.username}}] </td>
               <td md-cell> {{member.email}} </td>
-              <td md-cell> {{member.type}} </td>
+              <td md-cell> {{member.roles["APPLICATION"]}} </td>
             </tr>
             </tbody>
           </table>

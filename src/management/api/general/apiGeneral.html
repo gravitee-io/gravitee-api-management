@@ -54,19 +54,18 @@
     </md-input-container>
   </div>
 
-  <div layout="" layout-sm="column" flex>
-    <md-input-container permission permission-only="'api-definition-u'" flex="30">
-      <label>Group</label>
-      <md-select aria-label="group"
-                 ng-model="generalCtrl.api.group"
-                 ng-model-options="{trackBy: '$value.id'}"
-                 md-on-open="generalCtrl.loadApplicationGroups()" >
-        <md-option ng-value="group" ng-repeat="group in generalCtrl.groups">{{group.name}}</md-option>
+  <div layout="column">
+    <md-input-container permission permission-only="'api-definition-u'" class="flex">
+      <label>Groups</label>
+      <md-select ng-model="generalCtrl.api.groups" multiple>
+        <md-option ng-repeat="group in generalCtrl.groups" ng-value="group.id">
+          {{group.name}}
+        </md-option>
       </md-select>
     </md-input-container>
     <div permission permission-except="'api-definition-u'" layout="column">
-      <label>Group</label>
-      <span>{{generalCtrl.api.group.name}}</span>
+      <label>Groups</label>
+      <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="generalCtrl.api.groups"></md-chips>
     </div>
   </div>
 
