@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import moment = require('moment');
+
 function DialogSubscriptionAcceptController($scope, $mdDialog) {
   'ngInject';
+
+  $scope.now = moment().toDate();
 
   this.hide = function () {
     $mdDialog.cancel();

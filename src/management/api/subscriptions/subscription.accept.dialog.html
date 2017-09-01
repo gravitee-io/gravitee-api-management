@@ -21,12 +21,12 @@
     <div ng-cloak class="md-inline-form">
       <md-input-container>
         <label>Start date</label>
-        <md-datepicker ng-model="starting_at"></md-datepicker>
-      </md-input-container >
+        <md-datepicker ng-model="starting_at" md-min-date="now"></md-datepicker>
+      </md-input-container>
       <md-input-container>
         <label>End date</label>
-        <md-datepicker ng-model="end_at"></md-datepicker>
-      </md-input-container >
+        <md-datepicker ng-model="ending_at" md-min-date="starting_at"></md-datepicker>
+      </md-input-container>
     </div>
   </md-dialog-content>
 
