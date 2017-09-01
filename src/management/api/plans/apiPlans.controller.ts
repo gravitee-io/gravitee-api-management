@@ -106,24 +106,21 @@ class ApiPlansController {
 
   init() {
     let that = this;
+
     let d = document.querySelector('.plans');
     this.dragularService([d], {
       moves: function () {
         return that.dndEnabled;
       },
       scope: this.$scope,
-      containersModel: _.cloneDeep(this.plans),
+      containersModel: this.plans,
       nameSpace: 'plan'
     });
-    this.$scope.$on('dragulardrop', function(e, el, target, source, dragularList, index) {
-      let movedPlan = that.plans[index];
-      for (let idx = 0; idx < dragularList.length; idx++) {
-        if (movedPlan.id === dragularList[idx].id) {
-          movedPlan.order = idx+1;
-          break;
-        }
-      }
-      that.plans = dragularList;
+
+    this.$scope.$on('dragulardrop', function(e, el, target, source, dragularList, index, targetModel, dropIndex) {
+      let movedPlan = that.filteredPlans[index];
+      movedPlan.order = dropIndex+1;
+
       that.ApiService.savePlan(that.$stateParams.apiId, movedPlan).then(function () {
         // sync list from server because orders has been changed
         that.list();
@@ -133,10 +130,14 @@ class ApiPlansController {
   }
 
   list() {
-    return this.ApiService.getApiPlans(this.$stateParams.apiId).then(response => {
-      this.plans = response.data;
-      this.applyFilters();
-      return {plans: this.plans};
+    this.ApiService.getApiPlans(this.$stateParams.apiId).then(response => {
+      let that = this;
+      this.$scope.$applyAsync(function(){
+        that.plans.length = 0;
+        Array.prototype.push.apply(that.plans, response.data);
+
+        that.applyFilters();
+      });
     });
   }
 
@@ -160,9 +161,10 @@ class ApiPlansController {
   applyFilters() {
     this.countPlansByStatus();
     var that = this;
-    this.filteredPlans = _.filter(this.plans, function (plan: any) {
+    this.filteredPlans = _.sortBy(
+      _.filter(this.plans, function (plan: any) {
       return _.includes(that.selectedStatus, plan.status);
-    });
+    }), "order");
   }
 
   resetResourceFiltering() {
