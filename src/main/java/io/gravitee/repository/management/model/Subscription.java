@@ -75,6 +75,8 @@ public class Subscription {
      */
     private Date updatedAt;
 
+    private Date closedAt;
+
     public String getId() {
         return id;
     }
@@ -169,6 +171,14 @@ public class Subscription {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public Date getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Date closedAt) {
+        this.closedAt = closedAt;
     }
 
     @Override
