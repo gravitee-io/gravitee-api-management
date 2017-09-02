@@ -537,8 +537,8 @@ public class SubscriptionServiceTest {
             @Override
             public boolean matches(Object argument) {
                 final ApiKeyEntity apiKey = (ApiKeyEntity) argument;
-                return now.equals(apiKey.getExpireAt()) &&
-                        now.equals(apiKey.getRevokedAt()) &&
+                return now.compareTo(apiKey.getExpireAt()) <= 0 &&
+                        now.compareTo(apiKey.getRevokedAt()) <= 0 &&
                         apiKey.isRevoked();
             }
         }));
