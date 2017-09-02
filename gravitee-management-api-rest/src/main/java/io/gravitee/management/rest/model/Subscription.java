@@ -64,6 +64,9 @@ public class Subscription {
     @JsonProperty("updated_at")
     private Date updatedAt;
 
+    @JsonProperty("closed_at")
+    private Date closedAt;
+
     public String getId() {
         return id;
     }
@@ -158,6 +161,14 @@ public class Subscription {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Date getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Date closedAt) {
+        this.closedAt = closedAt;
     }
 
     @Override

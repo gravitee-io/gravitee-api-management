@@ -147,7 +147,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public void revoke(String apiKey) {
+    public void revoke(String apiKey, boolean notify) {
         try {
             LOGGER.debug("Revoke API Key {}", apiKey);
             Optional<ApiKey> optKey = apiKeyRepository.findById(apiKey);
@@ -162,23 +162,25 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
                 apiKeyRepository.update(key);
 
-                final ApplicationEntity application = applicationService.findById(key.getApplication());
-                final PlanEntity plan = planService.findById(key.getPlan());
-                final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
-                final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+                if (notify) {
+                    final ApplicationEntity application = applicationService.findById(key.getApplication());
+                    final PlanEntity plan = planService.findById(key.getPlan());
+                    final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
+                    final PrimaryOwnerEntity owner = application.getPrimaryOwner();
 
-                if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
-                    emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                            .to(owner.getEmail())
-                            .subject("API key revoked for API " + api.getName())
-                            .template(EmailNotificationBuilder.EmailTemplate.REVOKE_API_KEY)
-                            .params(ImmutableMap.of(
-                                    "owner", owner,
-                                    "api", api,
-                                    "plan", plan,
-                                    "application", application,
-                                    "apiKey", key.getKey()))
-                            .build());
+                    if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
+                        emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
+                                .to(owner.getEmail())
+                                .subject("API key revoked for API " + api.getName())
+                                .template(EmailNotificationBuilder.EmailTemplate.REVOKE_API_KEY)
+                                .params(ImmutableMap.of(
+                                        "owner", owner,
+                                        "api", api,
+                                        "plan", plan,
+                                        "application", application,
+                                        "apiKey", key.getKey()))
+                                .build());
+                    }
                 }
             } else {
                 LOGGER.info("API Key {} already revoked. Skipping...", apiKey);

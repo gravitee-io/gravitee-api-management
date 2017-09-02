@@ -139,7 +139,7 @@ public class ApiKeyServiceTest {
         when(planService.findById(subscription.getPlan())).thenReturn(plan);
 
         // Run
-        apiKeyService.revoke(API_KEY);
+        apiKeyService.revoke(API_KEY, true);
 
         // Verify
         verify(apiKeyRepository, times(1)).update(any());
@@ -160,14 +160,14 @@ public class ApiKeyServiceTest {
     public void shouldNotRevokeBecauseNotFound() throws TechnicalException {
         when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.empty());
 
-        apiKeyService.revoke(API_KEY);
+        apiKeyService.revoke(API_KEY, true);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotRevokeBecauseTechnicalException() throws TechnicalException {
         when(apiKeyRepository.findById(API_KEY)).thenThrow(TechnicalException.class);
 
-        apiKeyService.revoke(API_KEY);
+        apiKeyService.revoke(API_KEY, true);
     }
 
     @Test

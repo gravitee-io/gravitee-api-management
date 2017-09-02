@@ -139,7 +139,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
                     .build();
         }
 
-        apiKeyService.revoke(apiKey);
+        apiKeyService.revoke(apiKey, true);
 
         return Response
                 .status(Response.Status.NO_CONTENT)
@@ -175,6 +175,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
                                 application.getPrimaryOwner().getLastname()
                         )
                 ));
+
+        subscription.setClosedAt(subscriptionEntity.getClosedAt());
 
         return subscription;
     }

@@ -29,7 +29,7 @@ public interface ApiKeyService {
 
     ApiKeyEntity renew(String subscription);
 
-    void revoke(String apiKey);
+    void revoke(String apiKey, boolean notify);
 
     Set<ApiKeyEntity> findBySubscription(String subscription);
 

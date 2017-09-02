@@ -180,7 +180,7 @@ public class ApplicationSubscriptionsResource {
                     .build();
         }
 
-        apiKeyService.revoke(apiKey);
+        apiKeyService.revoke(apiKey, true);
 
         return Response
                 .status(Response.Status.NO_CONTENT)
@@ -221,6 +221,8 @@ public class ApplicationSubscriptionsResource {
             io.gravitee.management.model.ApiEntity apiEntity = apiService.findById(api);
             return new Subscription.Api(apiEntity.getId(), apiEntity.getName(), apiEntity.getVersion());
         }).collect(Collectors.toList()));
+
+        subscription.setClosedAt(subscriptionEntity.getClosedAt());
 
         return subscription;
     }

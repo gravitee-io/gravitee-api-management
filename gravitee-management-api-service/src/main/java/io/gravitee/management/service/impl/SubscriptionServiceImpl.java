@@ -321,6 +321,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             } else {
                 subscription.setStatus(Subscription.Status.REJECTED);
                 subscription.setReason(processSubscription.getReason());
+                subscription.setClosedAt(new Date());
             }
 
             subscription = subscriptionRepository.update(subscription);
@@ -389,7 +390,26 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setUpdatedAt(now);
                 subscription.setStatus(Subscription.Status.CLOSED);
 
+                subscription.setClosedAt(new Date());
+
                 subscription = subscriptionRepository.update(subscription);
+
+                // Send an email to subscriber
+                final ApplicationEntity application = applicationService.findById(subscription.getApplication());
+                final PlanEntity plan = planService.findById(subscription.getPlan());
+                final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
+                final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+                emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
+                        .to(owner.getEmail())
+                        .subject("Your subscription to " + api.getName() + " with plan " + plan.getName() +
+                                " has been closed")
+                        .template(EmailNotificationBuilder.EmailTemplate.CLOSE_SUBSCRIPTION)
+                        .params(ImmutableMap.of(
+                                "owner", owner,
+                                "api", api,
+                                "plan", plan,
+                                "application", application))
+                        .build());
 
                 // API Keys are automatically revoked
                 Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
@@ -399,7 +419,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         apiKey.setExpireAt(now);
                         apiKey.setRevokedAt(now);
                         apiKey.setRevoked(true);
-                        apiKeyService.update(apiKey);
+                        apiKeyService.revoke(apiKey.getKey(), false);
                     }
                 }
 
@@ -452,6 +472,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setCreatedAt(subscription.getCreatedAt());
         entity.setUpdatedAt(subscription.getUpdatedAt());
         entity.setSubscribedBy(subscription.getSubscribedBy());
+        entity.setClosedAt(subscription.getClosedAt());
 
         return entity;
     }

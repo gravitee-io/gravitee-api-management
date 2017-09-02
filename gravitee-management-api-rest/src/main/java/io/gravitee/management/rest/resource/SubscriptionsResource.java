@@ -106,6 +106,8 @@ public class SubscriptionsResource {
             return new Subscription.Api(apiEntity.getId(), apiEntity.getName(), apiEntity.getVersion());
         }).collect(Collectors.toList()));
 
+        subscription.setClosedAt(subscriptionEntity.getClosedAt());
+
         return subscription;
     }
 }

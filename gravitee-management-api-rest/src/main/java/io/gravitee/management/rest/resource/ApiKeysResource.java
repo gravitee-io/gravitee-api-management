@@ -58,7 +58,7 @@ public class ApiKeysResource extends AbstractResource {
     public Response revokeApiKey(
             @PathParam("api") String api,
             @PathParam("key") String apiKey) {
-        apiKeyService.revoke(apiKey);
+        apiKeyService.revoke(apiKey, true);
 
         return Response
                 .status(Response.Status.NO_CONTENT)

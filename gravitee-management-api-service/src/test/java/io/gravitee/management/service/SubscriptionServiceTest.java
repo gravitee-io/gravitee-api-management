@@ -24,7 +24,6 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Subscription;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
@@ -91,6 +90,9 @@ public class SubscriptionServiceTest {
 
     @Mock
     private ApiKeyEntity apiKeyEntity;
+
+    @Mock
+    private EmailService emailService;
 
     @Test
     public void shouldFindById() throws TechnicalException {
@@ -523,25 +525,26 @@ public class SubscriptionServiceTest {
         subscription.setId(SUBSCRIPTION_ID);
         subscription.setStatus(Subscription.Status.ACCEPTED);
         subscription.setEndingAt(now);
+        subscription.setPlan(PLAN_ID);
+        subscription.setApplication(APPLICATION_ID);
 
         final ApiKeyEntity apiKey = new ApiKeyEntity();
+        apiKey.setKey("api-key");
         apiKey.setRevoked(false);
 
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(subscription)).thenReturn(subscription);
         when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
+        when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
+        when(application.getPrimaryOwner()).thenReturn(mock(PrimaryOwnerEntity.class));
 
         subscriptionService.close(SUBSCRIPTION_ID);
 
-        verify(apiKeyService).update(argThat(new ArgumentMatcher<ApiKeyEntity>() {
-            @Override
-            public boolean matches(Object argument) {
-                final ApiKeyEntity apiKey = (ApiKeyEntity) argument;
-                return now.compareTo(apiKey.getExpireAt()) <= 0 &&
-                        now.compareTo(apiKey.getRevokedAt()) <= 0 &&
-                        apiKey.isRevoked();
-            }
-        }));
+        verify(apiKeyService).revoke("api-key", false);
+        verify(emailService).sendAsyncEmailNotification(any(EmailNotification.class));
     }
 
     @Test

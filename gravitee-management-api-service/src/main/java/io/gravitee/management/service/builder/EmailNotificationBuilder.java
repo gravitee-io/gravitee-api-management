@@ -67,6 +67,7 @@ public class EmailNotificationBuilder {
         EXPIRE_API_KEY("apiKeyExpired.html"),
         NEW_SUBSCRIPTION("subscriptionReceived.html"),
         APPROVE_SUBSCRIPTION("subscriptionApproved.html"),
+        CLOSE_SUBSCRIPTION("subscriptionClosed.html"),
         REJECT_SUBSCRIPTION("subscriptionRejected.html"),
         USER_REGISTRATION("userRegistration.html"),
         APPLICATION_MEMBER_SUBSCRIPTION("applicationMember.html"),
