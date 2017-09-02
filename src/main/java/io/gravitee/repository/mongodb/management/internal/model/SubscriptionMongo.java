@@ -74,6 +74,8 @@ public class SubscriptionMongo extends Auditable {
 
     private Date endingAt;
 
+    private Date closedAt;
+
     public String getId() {
         return id;
     }
@@ -152,6 +154,14 @@ public class SubscriptionMongo extends Auditable {
 
     public void setSubscribedBy(String subscribedBy) {
         this.subscribedBy = subscribedBy;
+    }
+
+    public Date getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Date closedAt) {
+        this.closedAt = closedAt;
     }
 
     @Override
