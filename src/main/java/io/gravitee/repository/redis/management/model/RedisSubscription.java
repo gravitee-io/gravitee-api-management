@@ -75,6 +75,8 @@ public class RedisSubscription {
      */
     private long updatedAt;
 
+    private long closedAt;
+
     public String getId() {
         return id;
     }
@@ -169,6 +171,14 @@ public class RedisSubscription {
 
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public long getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(long closedAt) {
+        this.closedAt = closedAt;
     }
 
     @Override

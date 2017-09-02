@@ -104,6 +104,10 @@ public class RedisSubscriptionRepository implements SubscriptionRepository {
         subscription.setCreatedAt(new Date(redisSubscription.getCreatedAt()));
         subscription.setUpdatedAt(new Date(redisSubscription.getUpdatedAt()));
 
+        if (redisSubscription.getClosedAt() != 0) {
+            subscription.setClosedAt(new Date(redisSubscription.getClosedAt()));
+        }
+
         return subscription;
     }
 
