@@ -54,6 +54,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
             return response.data;
           });
         },
+        resolvedTenants: () => [],
         onEnter: function (UserService, ApiService, $stateParams) {
           if (!UserService.currentUser.userApiPermissions) {
             UserService.currentUser.userApiPermissions = [];
