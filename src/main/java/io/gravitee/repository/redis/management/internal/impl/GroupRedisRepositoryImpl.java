@@ -18,9 +18,12 @@ package io.gravitee.repository.redis.management.internal.impl;
 import io.gravitee.repository.redis.management.internal.GroupRedisRepository;
 import io.gravitee.repository.redis.management.internal.PageRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisGroup;
+import io.gravitee.repository.redis.management.model.RedisUser;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,6 +47,15 @@ public class GroupRedisRepositoryImpl extends AbstractRedisRepository implements
     }
 
     @Override
+    public Set<RedisGroup> findByIds(Set<String> ids) {
+        return redisTemplate.opsForHash().multiGet(REDIS_KEY, Collections.unmodifiableCollection(ids)).
+                stream().
+                filter(Objects::nonNull).
+                map(o -> this.convert(o, RedisGroup.class)).
+                collect(Collectors.toSet());
+    }
+
+    @Override
     public RedisGroup saveOrUpdate(RedisGroup group) {
         redisTemplate.opsForHash().put(REDIS_KEY, group.getId(), group);
         redisTemplate.opsForSet().add(REDIS_KEY + ":type:" + group.getType(), group.getId());
@@ -55,16 +67,6 @@ public class GroupRedisRepositoryImpl extends AbstractRedisRepository implements
         RedisGroup group = find(groupId);
         redisTemplate.opsForHash().delete(REDIS_KEY, groupId);
         redisTemplate.opsForSet().remove(REDIS_KEY + ":type:" + group.getType(), groupId);
-    }
-
-    @Override
-    public Set<RedisGroup> findByType(String type) {
-        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":type:" + type);
-        List<Object> groupObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
-
-        return groupObjects.stream()
-                .map(grp -> convert(grp, RedisGroup.class))
-                .collect(Collectors.toSet());
     }
 
     @Override

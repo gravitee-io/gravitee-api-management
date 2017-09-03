@@ -59,6 +59,11 @@ public class RedisMembershipRepository implements MembershipRepository {
     }
 
     @Override
+    public Set<Membership> findByIds(String userId, MembershipReferenceType referenceType, Set<String> referenceIds) throws TechnicalException {
+        return membershipRedisRepository.findByIds(userId, referenceType.name(), referenceIds).stream().map(this::convert).collect(Collectors.toSet());
+    }
+
+    @Override
     public Set<Membership> findByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName) throws TechnicalException {
         return findByReferencesAndRole(referenceType, Collections.singletonList(referenceId), roleScope, roleName);
     }
@@ -73,7 +78,7 @@ public class RedisMembershipRepository implements MembershipRepository {
                     .collect(Collectors.toSet());
         } else {
             return memberships.stream()
-                    .filter(membership -> membershipType.equals(membership.getType()))
+                    .filter(membership -> membership.getRoles().contains(membershipType))
                     .map(this::convert)
                     .collect(Collectors.toSet());
         }
@@ -94,7 +99,7 @@ public class RedisMembershipRepository implements MembershipRepository {
                     .collect(Collectors.toSet());
         } else {
             return memberships.stream()
-                    .filter(membership -> membershipType.equals(membership.getType()))
+                    .filter(membership -> membership.getRoles().contains(membershipType))
                     .map(this::convert)
                     .collect(Collectors.toSet());
         }
@@ -108,7 +113,13 @@ public class RedisMembershipRepository implements MembershipRepository {
         redisMembership.setUserId(membership.getUserId());
         redisMembership.setReferenceId(membership.getReferenceId());
         redisMembership.setReferenceType(membership.getReferenceType().name());
-        redisMembership.setType(convertRoleToType(membership.getRoleScope(), membership.getRoleName()));
+        if (membership.getRoles() != null) {
+            List<String> roles = new ArrayList<>(membership.getRoles().size());
+            for (Map.Entry<Integer, String> roleEntry : membership.getRoles().entrySet()) {
+                roles.add(convertRoleToType(roleEntry.getKey(), roleEntry.getValue()));
+            }
+            redisMembership.setRoles(roles);
+        }
         redisMembership.setCreatedAt(membership.getCreatedAt() != null ? membership.getCreatedAt().getTime() : new Date().getTime());
         redisMembership.setUpdatedAt(membership.getUpdatedAt() != null ? membership.getUpdatedAt().getTime() : redisMembership.getCreatedAt());
         return redisMembership;
@@ -122,9 +133,15 @@ public class RedisMembershipRepository implements MembershipRepository {
         membership.setUserId(redisMembership.getUserId());
         membership.setReferenceId(redisMembership.getReferenceId());
         membership.setReferenceType(MembershipReferenceType.valueOf(redisMembership.getReferenceType()));
-        String[] scopeAndName = convertTypeToRole(redisMembership.getType());
-        membership.setRoleScope(Integer.valueOf(scopeAndName[0]));
-        membership.setRoleName(scopeAndName[1]);
+        if (redisMembership.getRoles() != null) {
+            Map<Integer, String> roles = new HashMap<>(redisMembership.getRoles().size());
+            for (String roleAsString : redisMembership.getRoles()) {
+                String[] role = convertTypeToRole(roleAsString);
+                roles.put(Integer.valueOf(role[0]), role[1]);
+            }
+            membership.setRoles(roles);
+        }
+
         membership.setCreatedAt(new Date(redisMembership.getCreatedAt()));
         membership.setUpdatedAt(new Date(redisMembership.getUpdatedAt()));
         return membership;

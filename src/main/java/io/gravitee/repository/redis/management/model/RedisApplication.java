@@ -16,6 +16,7 @@
 package io.gravitee.repository.redis.management.model;
 
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,7 +29,7 @@ public class RedisApplication {
     private String name;
     private String description;
     private String type;
-    private String group;
+    private Set<String> groups;
     private String status;
 
     private long createdAt;
@@ -74,12 +75,12 @@ public class RedisApplication {
         this.type = type;
     }
 
-    public String getGroup() {
-        return group;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
     }
 
     public long getUpdatedAt() {

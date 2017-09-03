@@ -18,14 +18,14 @@ package io.gravitee.repository.redis.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
+import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.repository.management.model.GroupEventRule;
 import io.gravitee.repository.redis.management.internal.GroupRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +52,14 @@ public class RedisGroupRepository implements GroupRepository{
     }
 
     @Override
+    public Set<Group> findByIds(Set<String> ids) throws TechnicalException {
+        return internalRepository.findByIds(ids).
+                stream().
+                map(this::convert).
+                collect(Collectors.toSet());
+    }
+
+    @Override
     public Group update(Group item) throws TechnicalException {
         return convert(internalRepository.saveOrUpdate(convert(item)));
     }
@@ -59,14 +67,6 @@ public class RedisGroupRepository implements GroupRepository{
     @Override
     public void delete(String groupId) throws TechnicalException {
         internalRepository.delete(groupId);
-    }
-
-    @Override
-    public Set<Group> findByType(Group.Type type) throws TechnicalException {
-        return internalRepository.findByType(type.name())
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
     }
 
     @Override
@@ -84,7 +84,14 @@ public class RedisGroupRepository implements GroupRepository{
         Group group = new Group();
         group.setId(redisGroup.getId());
         group.setName(redisGroup.getName());
-        group.setType(Group.Type.valueOf(redisGroup.getType()));
+        if (redisGroup.getGroupEventRules() != null && !redisGroup.getGroupEventRules().isEmpty()) {
+            group.setEventRules(new ArrayList<>(redisGroup.getGroupEventRules().size()));
+            for (String event : redisGroup.getGroupEventRules()) {
+                GroupEventRule groupEventRule = new GroupEventRule();
+                groupEventRule.setEvent(GroupEvent.valueOf(event));
+                group.getEventRules().add(groupEventRule);
+            }
+        }
         group.setCreatedAt(redisGroup.getCreatedAt());
         group.setUpdatedAt(redisGroup.getUpdatedAt());
         group.setAdministrators(redisGroup.getAdminstrators());
@@ -98,7 +105,12 @@ public class RedisGroupRepository implements GroupRepository{
         RedisGroup redisGroup = new RedisGroup();
         redisGroup.setId(group.getId());
         redisGroup.setName(group.getName());
-        redisGroup.setType(group.getType().name());
+        if (group.getEventRules() != null && !group.getEventRules().isEmpty()) {
+            redisGroup.setGroupEventRules(group.getEventRules().
+                    stream().
+                    map(groupEventRule -> groupEventRule.getEvent().name()).
+                    collect(Collectors.toList()));
+        }
         redisGroup.setCreatedAt(group.getCreatedAt());
         redisGroup.setUpdatedAt(group.getUpdatedAt());
         redisGroup.setAdminstrators(group.getAdministrators());

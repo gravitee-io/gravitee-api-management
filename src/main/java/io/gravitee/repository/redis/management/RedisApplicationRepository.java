@@ -106,7 +106,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
         redisApplication.setCreatedAt(application.getCreatedAt().getTime());
         redisApplication.setUpdatedAt(application.getUpdatedAt().getTime());
         redisApplication.setType(application.getType());
-        redisApplication.setGroup(application.getGroup());
+        redisApplication.setGroups(application.getGroups());
         redisApplication.setStatus(application.getStatus().toString());
 
         applicationRedisRepository.saveOrUpdate(redisApplication);
@@ -131,7 +131,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
         application.setUpdatedAt(new Date(redisApplication.getUpdatedAt()));
         application.setDescription(redisApplication.getDescription());
         application.setType(redisApplication.getType());
-        application.setGroup(redisApplication.getGroup());
+        application.setGroups(redisApplication.getGroups());
         application.setStatus(ApplicationStatus.valueOf(redisApplication.getStatus()));
 
         return application;
@@ -146,7 +146,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
         redisApplication.setUpdatedAt(application.getUpdatedAt().getTime());
         redisApplication.setDescription(application.getDescription());
         redisApplication.setType(application.getType());
-        redisApplication.setGroup(application.getGroup());
+        redisApplication.setGroups(application.getGroups());
         redisApplication.setStatus(application.getStatus().toString());
 
         return redisApplication;

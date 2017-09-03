@@ -28,6 +28,8 @@ public interface MembershipRedisRepository {
 
     RedisMembership findById(String userId, String referenceType, String referenceId);
 
+    Set<RedisMembership> findByIds(String userId, String referenceType, Set<String> referenceIds);
+
     RedisMembership saveOrUpdate(RedisMembership membership);
 
     void delete(RedisMembership membership);

@@ -33,7 +33,7 @@ public class RedisApi {
     private String definition;
     private String lifecycleState;
     private String visibility;
-    private String group;
+    private Set<String> groups;
     private long deployedAt;
     private long createdAt;
     private long updatedAt;
@@ -106,12 +106,12 @@ public class RedisApi {
         this.visibility = visibility;
     }
 
-    public String getGroup() {
-        return group;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
     }
 
     public long getCreatedAt() {

@@ -22,10 +22,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -48,29 +45,36 @@ public class MembershipRedisRepositoryImpl extends AbstractRedisRepository imple
     }
 
     @Override
+    public Set<RedisMembership> findByIds(String userId, String referenceType, Set<String> referenceIds) {
+        HashSet<Object> keys = new HashSet<>(referenceIds.size());
+        for (String referenceId : referenceIds) {
+            keys.add(getMembershipKey(userId, referenceType, referenceId));
+        }
+        return redisTemplate.opsForHash().multiGet(REDIS_KEY, Collections.unmodifiableCollection(keys)).
+                stream().
+                filter(Objects::nonNull).
+                map(o -> this.convert(o, RedisMembership.class)).
+                collect(Collectors.toSet());
+    }
+
+    @Override
     public RedisMembership saveOrUpdate(RedisMembership membership) {
-        redisTemplate.executePipelined(new RedisCallback<Object>() {
-            @Override
-            public Object doInRedis(RedisConnection connection) throws DataAccessException {
-                redisTemplate.opsForHash().put(REDIS_KEY, getMembershipKey(membership), membership);
-                redisTemplate.opsForSet().add(getMembershipByReferenceKey(membership), getMembershipKey(membership));
-                redisTemplate.opsForSet().add(getMembershipByUserKey(membership), getMembershipKey(membership));
-                return null;
-            }
+        redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            redisTemplate.opsForHash().put(REDIS_KEY, getMembershipKey(membership), membership);
+            redisTemplate.opsForSet().add(getMembershipByReferenceKey(membership), getMembershipKey(membership));
+            redisTemplate.opsForSet().add(getMembershipByUserKey(membership), getMembershipKey(membership));
+            return null;
         });
         return membership;
     }
 
     @Override
     public void delete(RedisMembership membership) {
-        redisTemplate.executePipelined( new RedisCallback<Object>() {
-            @Override
-            public Object doInRedis(RedisConnection connection) throws DataAccessException {
-                redisTemplate.opsForHash().delete(REDIS_KEY, getMembershipKey(membership));
-                redisTemplate.opsForSet().remove(getMembershipByReferenceKey(membership), getMembershipKey(membership));
-                redisTemplate.opsForSet().remove(getMembershipByUserKey(membership), getMembershipKey(membership));
-                return null;
-            }
+        redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            redisTemplate.opsForHash().delete(REDIS_KEY, getMembershipKey(membership));
+            redisTemplate.opsForSet().remove(getMembershipByReferenceKey(membership), getMembershipKey(membership));
+            redisTemplate.opsForSet().remove(getMembershipByUserKey(membership), getMembershipKey(membership));
+            return null;
         });
     }
 

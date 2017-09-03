@@ -28,7 +28,7 @@ public interface GroupRedisRepository {
 
     RedisGroup find(String groupId);
 
-    Set<RedisGroup> findByType(String type);
+    Set<RedisGroup> findByIds(Set<String> ids);
 
     Set<RedisGroup> findAll();
 

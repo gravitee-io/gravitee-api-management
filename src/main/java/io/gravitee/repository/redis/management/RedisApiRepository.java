@@ -116,7 +116,7 @@ public class RedisApiRepository implements ApiRepository {
         api.setVisibility(Visibility.valueOf(redisApi.getVisibility()));
         api.setLifecycleState(LifecycleState.valueOf(redisApi.getLifecycleState()));
         api.setPicture(redisApi.getPicture());
-        api.setGroup(redisApi.getGroup());
+        api.setGroups(redisApi.getGroups());
         api.setViews(redisApi.getViews());
         api.setLabels(redisApi.getLabels());
 
@@ -141,7 +141,7 @@ public class RedisApiRepository implements ApiRepository {
         redisApi.setVisibility(api.getVisibility().name());
         redisApi.setLifecycleState(api.getLifecycleState().name());
         redisApi.setPicture(api.getPicture());
-        redisApi.setGroup(api.getGroup());
+        redisApi.setGroups(api.getGroups());
         redisApi.setViews(api.getViews());
         redisApi.setLabels(api.getLabels());
 

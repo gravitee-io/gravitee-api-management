@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.redis.management.model;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -29,7 +30,7 @@ public class RedisMembership {
 
     private String referenceId;
 
-    private String type;
+    private List<String> roles;
 
     private long createdAt;
 
@@ -59,12 +60,12 @@ public class RedisMembership {
         this.referenceId = referenceId;
     }
 
-    public String getType() {
-        return type;
+    public List<String> getRoles() {
+        return roles;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 
     public long getCreatedAt() {

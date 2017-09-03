@@ -48,6 +48,7 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
     @Override
     public Set<RedisApi> find(List<String> apis) {
         return redisTemplate.opsForHash().multiGet(REDIS_KEY, Collections.unmodifiableCollection(apis)).stream()
+                .filter(Objects::nonNull)
                 .map(o -> this.convert(o, RedisApi.class))
                 .collect(Collectors.toSet());
     }
@@ -87,25 +88,26 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
     @Override
     public RedisApi saveOrUpdate(RedisApi api) {
         RedisApi oldApi = find(api.getId());
-        redisTemplate.executePipelined(new RedisCallback<Object>() {
-            @Override
-            public Object doInRedis(RedisConnection connection) throws DataAccessException {
-                redisTemplate.opsForHash().put(REDIS_KEY, api.getId(), api);
+        redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
+            redisTemplate.opsForHash().put(REDIS_KEY, api.getId(), api);
 
-                if (oldApi != null) {
-                    redisTemplate.opsForSet().remove(REDIS_KEY + ":visibility:" + oldApi.getVisibility(), api.getId());
-                    if(oldApi.getGroup() != null) {
-                        redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + oldApi.getGroup(), api.getId());
+            if (oldApi != null) {
+                redisTemplate.opsForSet().remove(REDIS_KEY + ":visibility:" + oldApi.getVisibility(), api.getId());
+                if(oldApi.getGroups() != null) {
+                    for (String groupId : oldApi.getGroups()) {
+                        redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + groupId, api.getId());
                     }
                 }
-
-                redisTemplate.opsForSet().add(REDIS_KEY + ":visibility:" + api.getVisibility(), api.getId());
-                if(api.getGroup() != null) {
-                    redisTemplate.opsForSet().add(REDIS_KEY + ":group:" + api.getGroup(), api.getId());
-                }
-
-                return null;
             }
+
+            redisTemplate.opsForSet().add(REDIS_KEY + ":visibility:" + api.getVisibility(), api.getId());
+            if(api.getGroups() != null) {
+                for (String groupId : api.getGroups()) {
+                    redisTemplate.opsForSet().add(REDIS_KEY + ":group:" + groupId, api.getId());
+                }
+            }
+
+            return null;
         });
         return api;
     }
@@ -117,8 +119,10 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
         if (api.getVisibility() != null) {
             redisTemplate.opsForSet().remove(REDIS_KEY + ":visibility:" + api.getVisibility(), apiId);
         }
-        if (api.getGroup() != null) {
-            redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + api.getGroup(), apiId);
+        if (api.getGroups() != null) {
+            for (String groupId : api.getGroups()) {
+                redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + groupId, apiId);
+            }
         }
     }
 

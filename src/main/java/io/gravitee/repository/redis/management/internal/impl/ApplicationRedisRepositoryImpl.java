@@ -51,6 +51,7 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
     @Override
     public Set<RedisApplication> find(List<String> applicationIds) {
         return redisTemplate.opsForHash().multiGet(REDIS_KEY, Collections.unmodifiableCollection(applicationIds)).stream()
+                .filter(Objects::nonNull)
                 .map(o -> this.convert(o, RedisApplication.class))
                 .collect(Collectors.toSet());
     }
@@ -82,8 +83,10 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
         }
 
         redisTemplate.opsForHash().put(REDIS_KEY, application.getId(), application);
-        if(application.getGroup() != null) {
-            redisTemplate.opsForSet().add(REDIS_KEY + ":group:" + application.getGroup(), application.getId());
+        if(application.getGroups() != null) {
+            for (String groupId : application.getGroups()) {
+                redisTemplate.opsForSet().add(REDIS_KEY + ":group:" + groupId, application.getId());
+            }
         }
         redisTemplate.opsForSet().add(REDIS_KEY + ":search-by:name:" + application.getName().toUpperCase(), application.getId());
 
@@ -140,8 +143,10 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
     public void delete(String applicationId) {
         RedisApplication redisApplication = find(applicationId);
         redisTemplate.opsForHash().delete(REDIS_KEY, applicationId);
-        if (redisApplication.getGroup() != null) {
-            redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + redisApplication.getGroup(), applicationId);
+        if (redisApplication.getGroups() != null) {
+            for (String groupId : redisApplication.getGroups()) {
+                redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + groupId, applicationId);
+            }
         }
         redisTemplate.opsForSet().remove(REDIS_KEY + ":search-by:name:" + redisApplication.getName().toUpperCase(), applicationId);
     }

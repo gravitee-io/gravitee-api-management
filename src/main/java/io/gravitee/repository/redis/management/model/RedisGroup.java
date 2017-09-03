@@ -30,6 +30,7 @@ public class RedisGroup {
     private Date createdAt;
     private Date updatedAt;
     private List<String> adminstrators;
+    private List<String> groupEventRules;
 
     public List<String> getAdminstrators() {
         return adminstrators;
@@ -61,6 +62,14 @@ public class RedisGroup {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<String> getGroupEventRules() {
+        return groupEventRules;
+    }
+
+    public void setGroupEventRules(List<String> groupEventRules) {
+        this.groupEventRules = groupEventRules;
     }
 
     public Date getCreatedAt() {
