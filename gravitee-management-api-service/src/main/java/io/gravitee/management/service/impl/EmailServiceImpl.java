@@ -58,6 +58,9 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     @Value("${templates.path:${gravitee.home}/templates}")
     private String templatesPath;
 
+    @Value("${email.subject:[Gravitee.io] %s}")
+    private String subject;
+
     @Value("${email.enabled:false}")
     private boolean enabled;
 
@@ -70,12 +73,13 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                         FreeMarkerTemplateUtils.processTemplateIntoString(template, emailNotification.getParams());
 
                 final String from = emailNotification.getFrom();
+
                 if (from != null && !from.isEmpty()) {
                     mailMessage.setFrom(from);
                 }
 
                 mailMessage.setTo(emailNotification.getTo());
-                mailMessage.setSubject("[Gravitee.io] " + emailNotification.getSubject());
+                mailMessage.setSubject(String.format(subject, emailNotification.getSubject()));
 
                 final String html = addResourcesInMessage(mailMessage, htmlText);
 

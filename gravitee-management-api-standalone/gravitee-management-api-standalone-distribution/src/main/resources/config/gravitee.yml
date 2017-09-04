@@ -194,6 +194,7 @@ security:
 email:
   enabled: false
   host: smtp.my.domain
+  subject: [Gravitee.io] %s
 #  port: 465
   from: noreply@my.domain
   username: user@my.domain
