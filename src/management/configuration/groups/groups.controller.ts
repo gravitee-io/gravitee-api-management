@@ -105,20 +105,20 @@ class GroupsController {
       controllerAs: 'dialogAddGroupCtrl',
       template: require('./dialog/add-group.dialog.html'),
       currentName: '',
+      currentDefaultApi: false,
+      currentDefaultApplication: false,
       action: 'Add',
       clickOutsideToClose: true
-    }).then( (name) => {
-      if (name) {
-        _this.GroupService.create({
-          name: name,
-        }).then(() => {
+    }).then( (newGroup) => {
+      if (newGroup && newGroup.name) {
+        _this.GroupService.create(newGroup).then(() => {
           _this.listGroups();
         });
       }
     });
   }
 
-  showRenameGroupModal(ev, groupId, name) {
+  showRenameGroupModal(ev, groupId, name, event_rules) {
     ev.stopPropagation();
     let _this = this;
     this.$mdDialog.show({
@@ -126,13 +126,14 @@ class GroupsController {
       controllerAs: 'dialogAddGroupCtrl',
       template: require('./dialog/add-group.dialog.html'),
       currentName: name,
+      currentDefaultApi: _.indexOf(_.map(event_rules, "event"), "API_CREATE") >= 0,
+      currentDefaultApplication: _.indexOf(_.map(event_rules, "event"), "APPLICATION_CREATE") >= 0,
       action: 'Edit',
       clickOutsideToClose: true
-    }).then( (name) => {
-      if (name) {
-        _this.GroupService.update(groupId, name)
-          .then(() => {
-            _this.listGroups();
+    }).then( (updatedGroup) => {
+      if (updatedGroup && updatedGroup.name) {
+        _this.GroupService.update(groupId, updatedGroup).then(() => {
+          _this.listGroups();
         });
       }
     });

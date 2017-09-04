@@ -33,14 +33,33 @@ class GroupService {
 
   create(newGroup) {
     if(newGroup) {
-      return this.$http.post(this.groupsURL, newGroup);
+      let grpEntity = GroupService._mapToEntity(newGroup);
+      return this.$http.post(this.groupsURL, grpEntity);
     }
   }
 
-  update(groupId, name) {
-    if(groupId && name) {
-      return this.$http.put( [this.groupsURL, groupId].join("/"), { 'name': name });
+  update(groupId, updatedGroup) {
+    if(groupId && updatedGroup) {
+      let grpEntity = GroupService._mapToEntity(updatedGroup);
+      return this.$http.put( [this.groupsURL, groupId].join("/"), grpEntity);
     }
+  }
+
+  static _mapToEntity(grp) {
+    let grpEntity = {
+      name: grp.name
+    };
+    let eventRules = [];
+    if (grp.defaultApi) {
+      eventRules.push({event: "API_CREATE"});
+    }
+    if (grp.defaultApplication) {
+      eventRules.push({event: "APPLICATION_CREATE"});
+    }
+    if (eventRules.length > 0) {
+      grpEntity["event_rules"] = eventRules;
+    }
+    return grpEntity;
   }
 
   remove(groupId) {

@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogAddGroupController($scope, $mdDialog, currentName, action) {
+function DialogAddGroupController($scope, $mdDialog, currentName, currentDefaultApplication, currentDefaultApi,  action) {
   'ngInject';
   $scope.name = currentName;
+  $scope.defaultApplication = currentDefaultApplication;
+  $scope.defaultApi = currentDefaultApi;
   $scope.action = action;
 
   this.hide = function () {
@@ -23,7 +25,13 @@ function DialogAddGroupController($scope, $mdDialog, currentName, action) {
   };
 
   this.save = function () {
-    $mdDialog.hide($scope.name);
+    $mdDialog.hide(
+      {
+        name: $scope.name,
+        defaultApplication: $scope.defaultApplication,
+        defaultApi: $scope.defaultApi
+      }
+    );
   };
 }
 
