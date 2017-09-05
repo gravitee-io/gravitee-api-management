@@ -19,6 +19,8 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
+import io.gravitee.gateway.api.stream.ReadStream;
+import io.vertx.core.http.HttpClientResponse;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,9 +33,16 @@ class VertxProxyResponse implements ProxyResponse {
 
     private final int status;
     private final HttpHeaders httpHeaders = new HttpHeaders();
+    private final HttpClientResponse httpClientResponse;
+
+    VertxProxyResponse(final HttpClientResponse httpClientResponse) {
+        this.httpClientResponse = httpClientResponse;
+        this.status = httpClientResponse.statusCode();
+    }
 
     VertxProxyResponse(final int status) {
         this.status = status;
+        this.httpClientResponse = null;
     }
 
     @Override
@@ -64,5 +73,23 @@ class VertxProxyResponse implements ProxyResponse {
 
     Handler<Void> endHandler() {
         return this.endHandler;
+    }
+
+    @Override
+    public ReadStream<Buffer> pause() {
+        if (httpClientResponse != null) {
+            httpClientResponse.pause();
+        }
+        return this;
+    }
+
+    @Override
+    public ReadStream<Buffer> resume() {
+        if (httpClientResponse != null) {
+            httpClientResponse.resume();
+        } else {
+            endHandler.handle(null);
+        }
+        return null;
     }
 }

@@ -29,7 +29,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.proxy.ProxyConnection;
+import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
@@ -60,7 +60,7 @@ import java.util.List;
  */
 public class ApiReactorHandler extends AbstractReactorHandler implements InitializingBean {
 
-    private final Logger logger = LoggerFactory.getLogger(ApiReactorHandler.class);
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private Api api;
@@ -110,83 +110,34 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                     sendPolicyFailure(requestPolicyChainResult.getPolicyResult(), serverResponse);
                     handler.handle(serverResponse);
                 } else {
-                    // Use the upstream invoker (call the remote API using HTTP client)
+                    // Call an invoker to get a proxy connection (connection to an underlying backend, mainly HTTP)
                     Invoker upstreamInvoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
 
                     long serviceInvocationStart = System.currentTimeMillis();
-                    ProxyConnection proxyConnection = upstreamInvoker.invoke(executionContext, serverRequest, responseStream -> {
-                        // Set the status
-                        serverResponse.status(responseStream.status());
 
-                        // Copy HTTP headers
-                        responseStream.headers().forEach((headerName, headerValues) -> serverResponse.headers().put(headerName, headerValues));
+                    Request invokeRequest = upstreamInvoker.invoke(executionContext, serverRequest, requestPolicyChainResult.getPolicyChain(), connection -> {
+                        connection.responseHandler(
+                                proxyResponse -> handleProxyResponse(serverRequest, serverResponse, executionContext, proxyResponse, serviceInvocationStart, handler));
 
-                        // Calculate response policies
-                        PolicyChain responsePolicyChain = apiPolicyResolver.resolve(StreamType.ON_RESPONSE, serverRequest, serverResponse, executionContext);
-
-                        responsePolicyChain.setResultHandler(responsePolicyResult -> {
-                            if (responsePolicyResult.isFailure()) {
-                                sendPolicyFailure(responsePolicyResult, serverResponse);
-                                handler.handle(serverResponse);
-                            } else {
-                                responsePolicyChain.bodyHandler(chunk -> {
-                                    MDC.put("api", api.getId());
-                                    serverRequest.metrics().setResponseContentLength(serverRequest.metrics().getResponseContentLength() + chunk.length());
-                                    serverResponse.write(chunk);
-                                });
-                                responsePolicyChain.endHandler(responseEndResult -> {
-                                    MDC.put("api", api.getId());
-                                    serverResponse.end();
-
-                                    serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
-                                    logger.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
-
-                                    // Transfer proxy response to the initial consumer
-                                    handler.handle(serverResponse);
-                                });
-
-                                responseStream.bodyHandler(responsePolicyChain::write);
-                                responseStream.endHandler(aVoid -> responsePolicyChain.end());
-                            }
-                        });
-
-                        responsePolicyChain.setStreamErrorHandler(result -> {
-                            sendPolicyFailure(result, serverResponse);
+                        requestPolicyChain.setStreamErrorHandler(result -> {
+                            connection.cancel();
+                            // TODO: review this part of the code
+                            sendPolicyFailure(result.getPolicyResult(), serverResponse);
                             handler.handle(serverResponse);
                         });
-
-                        // Execute response policy chain
-                        responsePolicyChain.doNext(serverRequest, serverResponse);
                     });
-
-                    requestPolicyChain.setStreamErrorHandler(result -> {
-                        proxyConnection.cancel();
-                        sendPolicyFailure(result.getPolicyResult(), serverResponse);
-                        handler.handle(serverResponse);
-                    });
-
-                    // In case of underlying service unavailable, we can have a null client request
-                    if (proxyConnection != null) {
-                        // Plug request policy chain stream to backend request stream
-                        requestPolicyChainResult.getPolicyChain()
-                                .bodyHandler(proxyConnection::write)
-                                .endHandler(aVoid -> proxyConnection.end());
-                    }
 
                     // Plug server request stream to request policy chain stream
-                    serverRequest
+                    invokeRequest
                             .bodyHandler(chunk -> {
                                 MDC.put("api", api.getId());
-                                serverRequest.metrics().setRequestContentLength(serverRequest.metrics().getRequestContentLength() + chunk.length());
+                                invokeRequest.metrics().setRequestContentLength(invokeRequest.metrics().getRequestContentLength() + chunk.length());
                                 requestPolicyChainResult.getPolicyChain().write(chunk);
                             })
                             .endHandler(aVoid -> {
                                 MDC.put("api", api.getId());
                                 requestPolicyChainResult.getPolicyChain().end();
                             });
-
-                    // Resume request read
-                    serverRequest.resume();
                 }
             });
 
@@ -207,7 +158,64 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         }
     }
 
-    private void sendPolicyFailure(PolicyResult policyResult, Response response) {
+    private void handleProxyResponse(Request serverRequest, Response serverResponse, ExecutionContext executionContext, ProxyResponse proxyResponse, long serviceInvocationStart, Handler<Response> handler) {
+        if (proxyResponse == null) {
+            serverResponse.status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+            serverResponse.end();
+        } else {
+            // Set the status
+            serverResponse.status(proxyResponse.status());
+
+            // Create a copy of proxy response headers send by the backend
+            serverRequest.metrics().setProxyResponseHeaders(proxyResponse.headers());
+
+            // Copy HTTP headers
+            proxyResponse.headers().forEach((headerName, headerValues) -> serverResponse.headers().put(headerName, headerValues));
+
+            // Calculate response policies
+            PolicyChain responsePolicyChain = apiPolicyResolver.resolve(StreamType.ON_RESPONSE, serverRequest, serverResponse, executionContext);
+
+            responsePolicyChain.setResultHandler(responsePolicyResult -> {
+                if (responsePolicyResult.isFailure()) {
+                    sendPolicyFailure(responsePolicyResult, serverResponse);
+                    handler.handle(serverResponse);
+                } else {
+                    responsePolicyChain.bodyHandler(chunk -> {
+                        MDC.put("api", api.getId());
+                        serverRequest.metrics().setResponseContentLength(serverRequest.metrics().getResponseContentLength() + chunk.length());
+                        serverResponse.write(chunk);
+                    });
+                    responsePolicyChain.endHandler(responseEndResult -> {
+                        MDC.put("api", api.getId());
+                        serverResponse.end();
+
+                        //TODO: How to pass invocation start timestamp ?
+                        serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
+                        logger.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
+
+                        // Transfer proxy response to the initial consumer
+                        handler.handle(serverResponse);
+                    });
+
+                    proxyResponse.bodyHandler(responsePolicyChain::write);
+                    proxyResponse.endHandler(aVoid -> responsePolicyChain.end());
+                }
+            });
+
+            responsePolicyChain.setStreamErrorHandler(result -> {
+                sendPolicyFailure(result, serverResponse);
+                handler.handle(serverResponse);
+            });
+
+            // Execute response policy chain
+            responsePolicyChain.doNext(serverRequest, serverResponse);
+
+            // Resume response read
+            proxyResponse.resume();
+        }
+    }
+
+    void sendPolicyFailure(PolicyResult policyResult, Response response) {
         response.status(policyResult.httpStatusCode());
 
         response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);

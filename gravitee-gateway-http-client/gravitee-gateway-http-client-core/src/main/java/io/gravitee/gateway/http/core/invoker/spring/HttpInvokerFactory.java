@@ -19,7 +19,7 @@ import io.gravitee.common.spring.factory.AbstractAutowiringFactoryBean;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.http.core.invoker.DefaultHttpInvoker;
-import io.gravitee.gateway.http.core.invoker.failover.FailoverHttpInvoker;
+import io.gravitee.gateway.http.core.invoker.failover.FailoverInvoker;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -39,7 +39,7 @@ public class HttpInvokerFactory extends AbstractAutowiringFactoryBean<Invoker> {
     @Override
     protected Invoker doCreateInstance() throws Exception {
         if (api.getProxy().failoverEnabled()) {
-            return new FailoverHttpInvoker();
+            return new FailoverInvoker();
         }
 
         return new DefaultHttpInvoker();
