@@ -423,6 +423,11 @@ public class MockTestRepositoryConfiguration {
         group_application_1.setId("group-application-1");
         group_application_1.setName("group-application-1");
         group_application_1.setAdministrators(asList("user1", "user2"));
+        GroupEventRule eventRule1 = new GroupEventRule();
+        eventRule1.setEvent(GroupEvent.API_CREATE);
+        GroupEventRule eventRule2 = new GroupEventRule();
+        eventRule2.setEvent(GroupEvent.APPLICATION_CREATE);
+        group_application_1.setEventRules(Arrays.asList(eventRule1, eventRule2));
         final Group group_api_to_delete = new Group();
         group_api_to_delete.setId("group-api-to-delete");
         group_api_to_delete.setName("group-api-to-delete");

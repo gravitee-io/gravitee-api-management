@@ -61,6 +61,8 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertTrue(group.isPresent());
         assertEquals("group-application-1", group.get().getId());
         assertEquals("group-application-1", group.get().getName());
+        assertEquals(2, group.get().getAdministrators().size());
+        assertEquals(2, group.get().getEventRules().size());
     }
 
     @Test

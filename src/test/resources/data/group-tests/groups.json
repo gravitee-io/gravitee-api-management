@@ -5,6 +5,14 @@
     "administrators": [
       "user1",
       "user2"
+    ],
+    "eventRules": [
+      {
+        "event": "API_CREATE"
+      },
+      {
+        "event": "APPLICATION_CREATE"
+      }
     ]
   },
   {
