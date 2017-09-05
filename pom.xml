@@ -149,13 +149,13 @@
 
     <properties>
         <gravitee-definition.version>1.6.0</gravitee-definition.version>
-        <gravitee-common.version>1.5.0</gravitee-common.version>
+        <gravitee-common.version>1.6.0-SNAPSHOT</gravitee-common.version>
         <gravitee-repository.version>1.9.0</gravitee-repository.version>
         <gravitee-plugin-core.version>1.2.0</gravitee-plugin-core.version>
         <gravitee-plugin-policy.version>1.2.0</gravitee-plugin-policy.version>
         <gravitee-plugin-resource.version>1.2.0</gravitee-plugin-resource.version>
         <gravitee-policy-api.version>1.2.0</gravitee-policy-api.version>
-        <gravitee-gateway-api.version>1.5.0</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>1.6.0-SNAPSHOT</gravitee-gateway-api.version>
         <gravitee-reporter-api.version>1.7.0</gravitee-reporter-api.version>
         <vertx.version>3.4.1</vertx.version>
         <jetty.version>9.3.3.v20150827</jetty.version>

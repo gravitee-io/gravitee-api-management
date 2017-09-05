@@ -29,9 +29,9 @@ import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
+import io.gravitee.gateway.api.stream.ReadStream;
+import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
-import io.gravitee.gateway.http.core.logger.HttpDump;
-import io.gravitee.gateway.http.core.logger.LoggableClientResponse;
 import io.gravitee.gateway.http.core.logger.LoggableProxyConnection;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
@@ -40,9 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -60,6 +58,8 @@ public class DefaultHttpInvoker implements Invoker {
     private static final Set<String> HOP_HEADERS;
 
     private static final URLCodec URL_ENCODER = new URLCodec(StandardCharsets.UTF_8.name());
+
+    private final static String TARGET_URI_ATTRIBUTE = ExecutionContext.ATTR_PREFIX + "target.uri";
 
     static {
         Set<String> hopHeaders = new HashSet<>();
@@ -88,41 +88,15 @@ public class DefaultHttpInvoker implements Invoker {
     protected EndpointManager<HttpClient> endpointManager;
 
     @Override
-    public ProxyConnection invoke(ExecutionContext executionContext, Request serverRequest, Handler<ProxyResponse> result) {
-        // Get target if overridden by a policy
-        String targetUri = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
-        HttpEndpoint endpoint;
-
-        // If not defined, use the one provided by the underlying load-balancer
-        if (targetUri == null) {
-            String endpointName = nextEndpoint(executionContext);
-            endpoint = (HttpEndpoint) endpointManager.get(endpointName);
-
-            targetUri = (endpoint != null) ? rewriteURI(serverRequest, endpoint.target()) : null;
-
-            // Set the final target URI invoked
-            executionContext.setAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT, targetUri);
-        } else {
-            // Select a matching endpoint according to the URL
-            // If none, select the first (non-backup) from the endpoint list.
-            String finalTargetUri = targetUri;
-
-            Optional<String> endpointName = endpointManager.targetByEndpoint()
-                    .entrySet()
-                    .stream()
-                    .filter(endpointEntry -> finalTargetUri.startsWith(endpointEntry.getValue()))
-                    .map(Map.Entry::getKey)
-                    .findFirst();
-
-            endpoint = (HttpEndpoint) endpointManager.getOrDefault(endpointName.orElse(null));
-        }
+    public Request invoke(ExecutionContext executionContext, Request serverRequest, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
+        HttpEndpoint endpoint = selectEndpoint(serverRequest, executionContext);
+        String targetUri = (String) executionContext.getAttribute(TARGET_URI_ATTRIBUTE);
 
         // No endpoint has been selected by load-balancer strategy nor overridden value
         if (targetUri == null || endpoint == null || endpoint.definition().getStatus() == Endpoint.Status.DOWN) {
-            ServiceUnavailableResponse clientResponse = new ServiceUnavailableResponse();
-            result.handle(clientResponse);
-            clientResponse.endHandler().handle(null);
-            return null;
+            ServiceUnavailableConnection serviceUnavailableConnection = new ServiceUnavailableConnection();
+            connectionHandler.handle(serviceUnavailableConnection);
+            serviceUnavailableConnection.sendServerUnavailableResponse();
         }
 
         // Remove duplicate slash
@@ -143,13 +117,6 @@ public class DefaultHttpInvoker implements Invoker {
         final boolean enableHttpDump = api.getProxy().isDumpRequest();
         final HttpMethod httpMethod = extractHttpMethod(executionContext, serverRequest);
 
-        // Create a copy of proxy response headers send by the backend
-        Handler<ProxyResponse> finalResult = result;
-        result = proxyResponse -> {
-            serverRequest.metrics().setProxyResponseHeaders(proxyResponse.headers());
-            finalResult.handle(proxyResponse);
-        };
-
         final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
                 (HTTPS_SCHEME.equals(requestUri.getScheme()) ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT);
         final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
@@ -164,20 +131,24 @@ public class DefaultHttpInvoker implements Invoker {
         // Create a copy of request headers send by the gateway to the backend
         serverRequest.metrics().setProxyRequestHeaders(proxyRequest.headers());
 
-        ProxyConnection proxyConnection = invoke0(endpoint.connector(), serverRequest, proxyRequest,
-                executionContext, (enableHttpDump) ? loggableClientResponse(result, serverRequest) : result);
+        ProxyConnection proxyConnection = endpoint.connector().request(proxyRequest);
 
         if (enableHttpDump) {
-            HttpDump.logger.info("{}/{} >> Rewriting: {} -> {}", serverRequest.id(), serverRequest.transactionId(), serverRequest.uri(), requestUri);
-            HttpDump.logger.info("{}/{} >> {} {}", serverRequest.id(), serverRequest.transactionId(), httpMethod, requestUri.getRawPath());
-
-            proxyRequest.headers().forEach((headerName, headerValues) -> HttpDump.logger.info("{}/{} >> {}: {}",
-                    serverRequest.id(), serverRequest.transactionId(), headerName, headerValues.stream().collect(Collectors.joining(","))));
-
-            proxyConnection = new LoggableProxyConnection(proxyConnection, serverRequest);
+            proxyConnection = new LoggableProxyConnection(proxyConnection, proxyRequest);
         }
 
-        return proxyConnection;
+        connectionHandler.handle(proxyConnection);
+
+        // Plug underlying stream to connection stream
+        ProxyConnection finalProxyConnection = proxyConnection;
+        stream
+                .bodyHandler(finalProxyConnection::write)
+                .endHandler(aVoid -> finalProxyConnection.end());
+
+        // Resume the incoming request to handle content and end
+        serverRequest.resume();
+
+        return serverRequest;
     }
 
     private HttpHeaders proxyRequestHeaders(HttpHeaders serverHeaders, String host, Endpoint endpoint) {
@@ -203,18 +174,37 @@ public class DefaultHttpInvoker implements Invoker {
         return proxyRequestHeaders;
     }
 
+    private HttpEndpoint selectEndpoint(Request serverRequest, ExecutionContext executionContext) {
+        // Get target if overridden by a policy
+        String targetUri = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
+        HttpEndpoint endpoint;
 
-    private Handler<ProxyResponse> loggableClientResponse(Handler<ProxyResponse> proxyResponseHandler, Request request) {
-        return result -> proxyResponseHandler.handle(new LoggableClientResponse(result, request));
-    }
+        // If not defined, use the one provided by the underlying load-balancer
+        if (targetUri == null) {
+            String endpointName = endpointManager.loadbalancer().next();
+            endpoint = (HttpEndpoint) endpointManager.get(endpointName);
 
-    protected String nextEndpoint(ExecutionContext executionContext) {
-        return endpointManager.loadbalancer().next();
-    }
+            targetUri = (endpoint != null) ? rewriteURI(serverRequest, endpoint.target()) : null;
 
-    protected ProxyConnection invoke0(HttpClient httpClient, Request serverRequest, ProxyRequest proxyRequest,
-                                      ExecutionContext context, Handler<ProxyResponse> proxyResponse) {
-        return httpClient.request(proxyRequest, proxyResponse);
+            // Set the final target URI invoked
+            executionContext.setAttribute(TARGET_URI_ATTRIBUTE, targetUri);
+        } else {
+            // Select a matching endpoint according to the URL
+            // If none, select the first (non-backup) from the endpoint list.
+            String finalTargetUri = targetUri;
+            executionContext.setAttribute(TARGET_URI_ATTRIBUTE, finalTargetUri);
+
+            Optional<String> endpointName = endpointManager.targetByEndpoint()
+                    .entrySet()
+                    .stream()
+                    .filter(endpointEntry -> finalTargetUri.startsWith(endpointEntry.getValue()))
+                    .map(Map.Entry::getKey)
+                    .findFirst();
+
+            endpoint = (HttpEndpoint) endpointManager.getOrDefault(endpointName.orElse(null));
+        }
+
+        return endpoint;
     }
 
     private String rewriteURI(Request request, String endpointUri) {
@@ -256,6 +246,33 @@ public class DefaultHttpInvoker implements Invoker {
         return (overrideMethod == null) ? request.method() : overrideMethod;
     }
 
+    private class ServiceUnavailableConnection implements ProxyConnection {
+
+        private Handler<ProxyResponse> responseHandler;
+
+        @Override
+        public WriteStream<Buffer> write(Buffer content) {
+            return null;
+        }
+
+        @Override
+        public void end() {
+
+        }
+
+        @Override
+        public ProxyConnection responseHandler(Handler<ProxyResponse> responseHandler) {
+            this.responseHandler = responseHandler;
+            return this;
+        }
+
+        private void sendServerUnavailableResponse() {
+            ServiceUnavailableResponse response = new ServiceUnavailableResponse();
+            this.responseHandler.handle(response);
+            response.endHandler().handle(null);
+        }
+    }
+
     private class ServiceUnavailableResponse implements ProxyResponse {
 
         private Handler<Buffer> bodyHandler;
@@ -295,6 +312,12 @@ public class DefaultHttpInvoker implements Invoker {
 
         Handler<Void> endHandler() {
             return this.endHandler;
+        }
+
+        @Override
+        public ReadStream<Buffer> resume() {
+            endHandler.handle(null);
+            return this;
         }
     }
 }

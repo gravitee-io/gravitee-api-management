@@ -22,10 +22,8 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
-import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.http.core.client.AbstractHttpClient;
 import io.netty.channel.ConnectTimeoutException;
 import io.vertx.core.Context;
@@ -39,7 +37,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +72,7 @@ public class VertxHttpClient extends AbstractHttpClient {
     private final Map<Context, HttpClient> httpClients = new HashMap<>();
 
     @Override
-    public ProxyConnection request(ProxyRequest proxyRequest, Handler<ProxyResponse> responseHandler) {
+    public ProxyConnection request(ProxyRequest proxyRequest) {
         HttpClient httpClient = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
 
         final URI uri = proxyRequest.uri();
@@ -86,24 +87,32 @@ public class VertxHttpClient extends AbstractHttpClient {
         clientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
 
         VertxProxyConnection proxyConnection = new VertxProxyConnection(clientRequest);
-        clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse, responseHandler));
+        clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse));
+
+        clientRequest.connectionHandler(connection -> {
+            connection.exceptionHandler(ex -> {
+                // I don't want to fill my logs with error
+            });
+        });
 
         clientRequest.exceptionHandler(event -> {
-            if (! proxyConnection.isCanceled()) {
+            if (! proxyConnection.isCanceled() && ! proxyConnection.isTransmitted()) {
                 LOGGER.error("Server proxying failed: {}", event.getMessage());
                 proxyRequest.request().metrics().setMessage(event.getMessage());
 
-                if (proxyConnection.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
-                    proxyConnection.connectTimeoutHandler().handle(event);
+                if (proxyConnection.timeoutHandler() != null
+                        && (event instanceof ConnectException ||
+                        event instanceof TimeoutException ||
+                        event instanceof NoRouteToHostException ||
+                        event instanceof UnknownHostException)) {
+                    proxyConnection.handleConnectTimeout(event);
                 } else {
                     VertxProxyResponse clientResponse = new VertxProxyResponse(
                             ((event instanceof ConnectTimeoutException) || (event instanceof TimeoutException)) ?
                                     HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
 
                     clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-                    responseHandler.handle(clientResponse);
-
-                    clientResponse.endHandler().handle(null);
+                    proxyConnection.handleResponse(clientResponse);
                 }
             }
         });
@@ -123,16 +132,15 @@ public class VertxHttpClient extends AbstractHttpClient {
         return proxyConnection;
     }
 
-    private void handleClientResponse(VertxProxyConnection proxyConnection, HttpClientResponse clientResponse,
-                                      Handler<ProxyResponse> proxyResponseHandler) {
-        VertxProxyResponse proxyClientResponse = new VertxProxyResponse(
-                clientResponse.statusCode());
-
+    private void handleClientResponse(VertxProxyConnection proxyConnection, HttpClientResponse clientResponse) {
+        VertxProxyResponse proxyClientResponse = new VertxProxyResponse(clientResponse);
         proxyConnection.setProxyResponse(proxyClientResponse);
 
         // Copy HTTP headers
         clientResponse.headers().names().forEach(headerName ->
                 proxyClientResponse.headers().put(headerName, clientResponse.headers().getAll(headerName)));
+
+        proxyClientResponse.pause();
 
         // Copy body content
         clientResponse.handler(event -> proxyClientResponse.bodyHandler().handle(Buffer.buffer(event.getBytes())));
@@ -140,7 +148,7 @@ public class VertxHttpClient extends AbstractHttpClient {
         // Signal end of the response
         clientResponse.endHandler(v -> proxyClientResponse.endHandler().handle(null));
 
-        proxyResponseHandler.handle(proxyClientResponse);
+        proxyConnection.handleResponse(proxyClientResponse);
     }
 
     private void copyRequestHeaders(HttpHeaders headers, HttpClientRequest httpClientRequest) {
@@ -228,7 +236,7 @@ public class VertxHttpClient extends AbstractHttpClient {
     protected void doStop() throws Exception {
         LOGGER.info("Closing HTTP Client for '{}' endpoint [{}]", endpoint.getName(), endpoint.getTarget());
 
-        httpClients.values().stream().forEach(httpClient -> {
+        httpClients.values().forEach(httpClient -> {
             try {
                 httpClient.close();
             } catch (IllegalStateException ise) {
