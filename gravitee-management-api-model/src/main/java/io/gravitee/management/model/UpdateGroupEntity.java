@@ -15,7 +15,10 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -26,6 +29,9 @@ public class UpdateGroupEntity {
     @NotNull
     private String name;
 
+    @JsonProperty("event_rules")
+    private List<GroupEventRuleEntity> eventRules;
+
     public String getName() {
         return name;
     }
@@ -34,10 +40,19 @@ public class UpdateGroupEntity {
         this.name = name;
     }
 
+    public List<GroupEventRuleEntity> getEventRules() {
+        return eventRules;
+    }
+
+    public void setEventRules(List<GroupEventRuleEntity> eventRules) {
+        this.eventRules = eventRules;
+    }
+
     @Override
     public String toString() {
-        return "NewGroupEntity{" +
+        return "UpdateGroupEntity{" +
                 ", name='" + name + '\'' +
+                ", eventRules='" + eventRules + '\'' +
                 "}";
     }
 }

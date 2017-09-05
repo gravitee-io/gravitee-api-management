@@ -32,6 +32,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -64,6 +65,9 @@ public class ApplicationService_CreateTest {
     private UserService userService;
 
     @Mock
+    private GroupService groupService;
+
+    @Mock
     private NewApplicationEntity newApplication;
 
     @Mock
@@ -77,6 +81,7 @@ public class ApplicationService_CreateTest {
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
+        when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
 
         final ApplicationEntity applicationEntity = applicationService.create(newApplication, USER_NAME);
 

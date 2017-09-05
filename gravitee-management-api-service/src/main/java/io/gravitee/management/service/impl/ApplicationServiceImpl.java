@@ -194,6 +194,17 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             application.setId(id);
             application.setStatus(ApplicationStatus.ACTIVE);
 
+            // Add Default groups
+            Set<String> defaultGroups = groupService.findByEvent(GroupEvent.APPLICATION_CREATE).
+                    stream().
+                    map(GroupEntity::getId).
+                    collect(Collectors.toSet());
+            if (!defaultGroups.isEmpty() && application.getGroups() == null) {
+                application.setGroups(defaultGroups);
+            } else if (!defaultGroups.isEmpty()) {
+                application.getGroups().addAll(defaultGroups);
+            }
+
             // Set date fields
             application.setCreatedAt(new Date());
             application.setUpdatedAt(application.getCreatedAt());

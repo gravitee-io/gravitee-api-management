@@ -156,6 +156,17 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 repoApi.setLifecycleState(LifecycleState.STOPPED);
                 repoApi.setVisibility(Visibility.PRIVATE);
 
+                // Add Default groups
+                Set<String> defaultGroups = groupService.findByEvent(GroupEvent.API_CREATE).
+                        stream().
+                        map(GroupEntity::getId).
+                        collect(Collectors.toSet());
+                if (!defaultGroups.isEmpty() && repoApi.getGroups() == null) {
+                    repoApi.setGroups(defaultGroups);
+                } else if (!defaultGroups.isEmpty()) {
+                    repoApi.getGroups().addAll(defaultGroups);
+                }
+
                 Api createdApi = apiRepository.create(repoApi);
 
                 // Add the primary owner of the newly created API

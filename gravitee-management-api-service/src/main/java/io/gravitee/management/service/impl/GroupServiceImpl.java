@@ -17,6 +17,7 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.GroupEntity;
+import io.gravitee.management.model.GroupEventRuleEntity;
 import io.gravitee.management.model.NewGroupEntity;
 import io.gravitee.management.model.UpdateGroupEntity;
 import io.gravitee.management.service.GroupService;
@@ -30,6 +31,8 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Group;
+import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.repository.management.model.GroupEventRule;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -169,6 +172,27 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
     }
 
     @Override
+    public Set<GroupEntity> findByEvent(GroupEvent event) {
+        try {
+            logger.debug("findByEvent : {}", event);
+            Set<GroupEntity> set = groupRepository.findAll().
+                    stream().
+                    filter(g -> g.getEventRules() != null && g.getEventRules().
+                            stream().
+                            map(GroupEventRule::getEvent).
+                            collect(Collectors.toList()).
+                            contains(event)).
+                    map(this::map).
+                    collect(Collectors.toSet());
+            logger.debug("findByEvent : {} - DONE", set);
+            return set;
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to find groups by event", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find groups by event", ex);
+        }
+    }
+
+    @Override
     public void delete(String groupId) {
         try {
             logger.debug("delete {}", groupId);
@@ -228,6 +252,15 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
         Group group = new Group();
         group.setId(entity.getId());
         group.setName(entity.getName());
+        if(entity.getEventRules() != null && !entity.getEventRules().isEmpty()) {
+            List<GroupEventRule> groupEventRules = new ArrayList<>();
+            for (GroupEventRuleEntity groupEventRuleEntity : entity.getEventRules()) {
+                GroupEventRule eventRule = new GroupEventRule();
+                eventRule.setEvent(GroupEvent.valueOf(groupEventRuleEntity.getEvent()));
+                groupEventRules.add(eventRule);
+            }
+            group.setEventRules(groupEventRules);
+        }
         group.setCreatedAt(entity.getCreatedAt());
         group.setUpdatedAt(entity.getUpdatedAt());
 
@@ -241,7 +274,15 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
 
         Group group = new Group();
         group.setName(entity.getName());
-
+        if(entity.getEventRules() != null && !entity.getEventRules().isEmpty()) {
+            List<GroupEventRule> groupEventRules = new ArrayList<>();
+            for (GroupEventRuleEntity groupEventRuleEntity : entity.getEventRules()) {
+                GroupEventRule eventRule = new GroupEventRule();
+                eventRule.setEvent(GroupEvent.valueOf(groupEventRuleEntity.getEvent()));
+                groupEventRules.add(eventRule);
+            }
+            group.setEventRules(groupEventRules);
+        }
         return group;
     }
 
@@ -253,6 +294,15 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
         GroupEntity entity = new GroupEntity();
         entity.setId(group.getId());
         entity.setName(group.getName());
+        if(group.getEventRules() != null && !group.getEventRules().isEmpty()) {
+            List<GroupEventRuleEntity> groupEventRules = new ArrayList<>();
+            for (GroupEventRule groupEventRule : group.getEventRules()) {
+                GroupEventRuleEntity eventRuleEntity = new GroupEventRuleEntity();
+                eventRuleEntity.setEvent(groupEventRule.getEvent().name());
+                groupEventRules.add(eventRuleEntity);
+            }
+            entity.setEventRules(groupEventRules);
+        }
         entity.setCreatedAt(group.getCreatedAt());
         entity.setUpdatedAt(group.getUpdatedAt());
 

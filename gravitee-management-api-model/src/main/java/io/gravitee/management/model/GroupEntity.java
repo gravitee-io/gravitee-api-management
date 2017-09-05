@@ -18,6 +18,7 @@ package io.gravitee.management.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -28,6 +29,8 @@ public class GroupEntity {
 
     private String id;
     private String name;
+    @JsonProperty("event_rules")
+    private List<GroupEventRuleEntity> eventRules;
 
     @JsonProperty("created_at")
     private Date createdAt;
@@ -49,6 +52,14 @@ public class GroupEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<GroupEventRuleEntity> getEventRules() {
+        return eventRules;
+    }
+
+    public void setEventRules(List<GroupEventRuleEntity> eventRules) {
+        this.eventRules = eventRules;
     }
 
     public Date getCreatedAt() {
@@ -85,6 +96,7 @@ public class GroupEntity {
         return "GroupEntity{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
+                ", eventRules='" + eventRules + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 "}";

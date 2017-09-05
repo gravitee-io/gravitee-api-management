@@ -13,34 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.*;
-import io.gravitee.repository.management.model.GroupEvent;
-
-import java.util.List;
-import java.util.Set;
+package io.gravitee.management.model;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-public interface GroupService {
+public class GroupEventRuleEntity {
+    private String event;
 
-    List<GroupEntity> findAll();
+    public String getEvent() {
+        return event;
+    }
 
-    List<GroupEntity> findByName(String name);
+    public void setEvent(String event) {
+        this.event = event;
+    }
 
-    GroupEntity create(NewGroupEntity group);
-
-    GroupEntity update(String groupId, UpdateGroupEntity group);
-
-    GroupEntity findById(String groupId);
-
-    Set<GroupEntity> findByIds(Set<String> groupIds);
-
-    Set<GroupEntity> findByEvent(GroupEvent event);
-
-    void delete(String groupId);
-
+    @Override
+    public String toString() {
+        return "GroupEventRule{" +
+                ", event='" + event + '\'' +
+                "}";
+    }
 }

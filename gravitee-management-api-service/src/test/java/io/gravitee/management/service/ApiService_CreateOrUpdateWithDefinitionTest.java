@@ -83,6 +83,9 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
     @Mock
     private PlanService planService;
 
+    @Mock
+    private GroupService groupService;
+
     @Test
     public void shouldUpdateImportApiWithMembersAndPages() throws IOException, TechnicalException {
         URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+members+pages.json");
@@ -300,6 +303,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         user.setUsername(owner.getUserId());
         when(userService.findByName(admin.getUsername(), false)).thenReturn(admin);
         when(userService.findByName(user.getUsername(), false)).thenReturn(user);
+        when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 

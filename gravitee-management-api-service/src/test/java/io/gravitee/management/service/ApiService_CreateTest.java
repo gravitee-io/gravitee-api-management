@@ -77,6 +77,9 @@ public class ApiService_CreateTest {
     private Api api;
 
     @Mock
+    private GroupService groupService;
+
+    @Mock
     private UserService userService;
 
     @Test
@@ -93,6 +96,8 @@ public class ApiService_CreateTest {
         when(newApi.getDescription()).thenReturn("Ma description");
         when(newApi.getContextPath()).thenReturn("/context");
         when(userService.findByName(USER_NAME, false)).thenReturn(new UserEntity());
+
+        when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 
