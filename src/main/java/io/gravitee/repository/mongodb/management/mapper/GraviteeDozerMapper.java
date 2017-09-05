@@ -23,6 +23,8 @@ import java.util.Set;
 
 import org.dozer.DozerBeanMapper;
 import org.dozer.MappingException;
+import org.dozer.config.BeanContainer;
+import org.dozer.util.DefaultClassLoader;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,6 +34,7 @@ public class GraviteeDozerMapper extends DozerBeanMapper implements GraviteeMapp
 
 	public GraviteeDozerMapper(){
 		super.addMapping(getClass().getResourceAsStream("/dozer.xml"));
+		BeanContainer.getInstance().setClassLoader(new RepositoryDozerClassLoader());
 	}
 	
 	public  <T> T map(Object source, Class<T> destinationClass) throws MappingException{
