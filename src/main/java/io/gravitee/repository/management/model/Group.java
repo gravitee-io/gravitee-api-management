@@ -38,6 +38,12 @@ public class Group {
      * administrators of the group. May be null
      */
     private List<String> administrators;
+
+    /**
+     * events
+     */
+    private List<GroupEventRule> eventRules;
+
     /**
      * Creation date
      */
@@ -86,5 +92,13 @@ public class Group {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<GroupEventRule> getEventRules() {
+        return eventRules;
+    }
+
+    public void setEventRules(List<GroupEventRule> eventRules) {
+        this.eventRules = eventRules;
     }
 }
