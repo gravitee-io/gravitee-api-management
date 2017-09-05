@@ -39,7 +39,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,12 +91,22 @@ public class VertxHttpClient extends AbstractHttpClient {
         VertxProxyConnection proxyConnection = new VertxProxyConnection(clientRequest);
         clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse, responseHandler));
 
+        clientRequest.connectionHandler(connection -> {
+            connection.exceptionHandler(ex -> {
+                // I don't want to fill my logs with error
+            });
+        });
+
         clientRequest.exceptionHandler(event -> {
             if (! proxyConnection.isCanceled()) {
                 LOGGER.error("Server proxying failed: {}", event.getMessage());
                 proxyRequest.request().metrics().setMessage(event.getMessage());
 
-                if (proxyConnection.connectTimeoutHandler() != null && event instanceof ConnectTimeoutException) {
+                if (proxyConnection.connectTimeoutHandler() != null
+                        && (event instanceof ConnectException ||
+                        event instanceof TimeoutException ||
+                        event instanceof NoRouteToHostException ||
+                        event instanceof UnknownHostException)) {
                     proxyConnection.connectTimeoutHandler().handle(event);
                 } else {
                     VertxProxyResponse clientResponse = new VertxProxyResponse(

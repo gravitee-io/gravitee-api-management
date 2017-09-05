@@ -1,0 +1,29 @@
+{
+  "id": "unreachable-api",
+  "name": "My unreachable API",
+
+  "proxy": {
+    "context_path": "/team",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://toto.com.org.io:8080/team",
+        "http": {
+          "connectTimeout": 1000,
+          "readTimeout": 1000
+        }
+      }
+    ],
+    "failover": {
+      "maxAttempts": 3,
+      "retryTimeout": 5000
+    },
+    "strip_context_path": false,
+    "dumpRequest": true
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}
