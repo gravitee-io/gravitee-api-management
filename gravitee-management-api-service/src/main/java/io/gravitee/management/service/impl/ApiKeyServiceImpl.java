@@ -281,7 +281,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
                 emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                         .to(owner.getEmail())
-                        .subject("API key has been updated !")
+                        .subject("API key has expired !")
                         .template(EmailNotificationBuilder.EmailTemplate.EXPIRE_API_KEY)
                         .params(ImmutableMap.of(
                                 "owner", owner,
