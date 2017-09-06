@@ -22,6 +22,8 @@ function authenticationConfig ($authProvider: AuthProvider, Constants) {
   'ngInject';
 
   if (Constants.authentication) {
+    $authProvider.withCredentials = true;
+    
     // Google
     let googleConfig = Constants.authentication.google;
     if (googleConfig && googleConfig.clientId) {
