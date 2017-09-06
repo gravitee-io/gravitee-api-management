@@ -39,10 +39,13 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Component
 public class EmailServiceImpl extends TransactionalService implements EmailService {
@@ -64,6 +67,9 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     @Value("${email.enabled:false}")
     private boolean enabled;
 
+    @Value("${email.from}")
+    private String defaultFrom;
+
     public void sendEmailNotification(final EmailNotification emailNotification) {
         if (enabled) {
             try {
@@ -72,12 +78,11 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                 final String htmlText =
                         FreeMarkerTemplateUtils.processTemplateIntoString(template, emailNotification.getParams());
 
-                final String from = emailNotification.getFrom();
+                final String from = Objects.isNull(emailNotification.getFrom()) || emailNotification.getFrom().isEmpty()
+                        ? defaultFrom
+                        : emailNotification.getFrom();
 
-                if (from != null && !from.isEmpty()) {
-                    mailMessage.setFrom(from);
-                }
-
+                mailMessage.setFrom(from);
                 mailMessage.setTo(emailNotification.getTo());
                 mailMessage.setSubject(String.format(subject, emailNotification.getSubject()));
 

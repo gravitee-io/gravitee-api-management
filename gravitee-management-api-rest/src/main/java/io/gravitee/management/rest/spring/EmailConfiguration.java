@@ -36,13 +36,15 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Configuration
 @EnableAsync
 public class EmailConfiguration {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(EmailConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmailConfiguration.class);
 
     private final static String EMAIL_PROPERTIES_PREFIX = "email.properties";
     private final static String MAILAPI_PROPERTIES_PREFIX = "mail.smtp.";
@@ -52,9 +54,6 @@ public class EmailConfiguration {
 
     @Value("${email.port}")
     private String port;
-
-    @Value("${email.from}")
-    private String from;
 
     @Value("${email.username}")
     private String username;
@@ -94,13 +93,6 @@ public class EmailConfiguration {
                 value.toString()));
 
         return properties;
-    }
-
-    @Bean
-    public MimeMessageHelper mailMessage(JavaMailSenderImpl mailSender) throws MessagingException {
-        final MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mailSender.createMimeMessage(), true);
-        mimeMessageHelper.setFrom(from);
-        return mimeMessageHelper;
     }
 
     @Bean
