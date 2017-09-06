@@ -84,10 +84,11 @@ abstract class AbstractAuthenticationResource {
                                 environment.getProperty("jwt.secret")
                         ).sign(claims, options),
                         environment.getProperty("jwt.cookie-path", "/"),
-                        environment.getProperty("jwt.cookie-domain", ""),
+                        environment.getProperty("jwt.cookie-domain"),
                         "",
                         -1,
-                        environment.getProperty("jwt.cookie-secure", Boolean.class, false)))
+                        environment.getProperty("jwt.cookie-secure", Boolean.class, false),
+                        true))
                 .build();
     }
 
