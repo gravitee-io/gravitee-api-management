@@ -196,6 +196,10 @@ class ApiMembersController {
         this.$state.go(this.$state.current, {}, {reload: true});
     });
   }
+
+  isAllowedToTransferOwnership() {
+    return this.UserService.currentUser.isAdmin() || this.isPrimaryOwner();
+  }
 }
 
 export default ApiMembersController;
