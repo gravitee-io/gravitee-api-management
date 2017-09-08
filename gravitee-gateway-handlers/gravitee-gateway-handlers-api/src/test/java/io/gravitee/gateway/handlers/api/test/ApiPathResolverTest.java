@@ -171,4 +171,31 @@ public class ApiPathResolverTest {
         Assert.assertEquals("/v1/products/stores/:storeId", path.getPath());
         Assert.assertEquals("/stores/:storeId", path.getResolvedPath());
     }
+
+    @Test
+    public void resolve_pathWithContextPath_mustReturnParameterizedPath2() {
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/stores/file.txt");
+        Assert.assertNotNull(path);
+
+        Assert.assertEquals("/v1/products/stores/:storeId", path.getPath());
+        Assert.assertEquals("/stores/:storeId", path.getResolvedPath());
+    }
+
+    @Test
+    public void resolve_pathWithContextPath_mustReturnParameterizedPath3() {
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/stores/file%20sqs/toto");
+        Assert.assertNotNull(path);
+
+        Assert.assertEquals("/v1/products/stores/:storeId", path.getPath());
+        Assert.assertEquals("/stores/:storeId", path.getResolvedPath());
+    }
+
+    @Test
+    public void resolve_pathWithContextPath_mustReturnParameterizedPath4() {
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/stores/file;&,.=sqs/toto");
+        Assert.assertNotNull(path);
+
+        Assert.assertEquals("/v1/products/stores/:storeId", path.getPath());
+        Assert.assertEquals("/stores/:storeId", path.getResolvedPath());
+    }
 }
