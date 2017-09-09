@@ -4,7 +4,11 @@
 			<#include "header.html" />
 		</header>
 		<div style="margin-top: 50px; color: #424e5a;">
-			<h3>Hi ${owner.username},</h3>
+			<#if owner.firstname?? && owner.lastname??>
+				<h3>Hi ${owner.firstname} ${owner.lastname},</h3>
+				<#else>
+					<h3>Hi ${owner.username},</h3>
+			</#if>
 			<p>Your subscription to the API <code>${api.name}</code> with plan <code>${plan.name}</code> has been rejected.</p>
 		</div>
 	</body>

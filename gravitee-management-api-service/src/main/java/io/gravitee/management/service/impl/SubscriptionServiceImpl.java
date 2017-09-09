@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -68,6 +69,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private ConfigurableEnvironment environment;
 
     @Override
     public SubscriptionEntity findById(String subscription) {
@@ -212,6 +216,18 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             final PrimaryOwnerEntity apiOwner = api.getPrimaryOwner();
             final PrimaryOwnerEntity appOwner = applicationEntity.getPrimaryOwner();
 
+
+            String portalUrl = environment.getProperty("portalURL");
+
+            String subscriptionsUrl = "";
+
+            if (portalUrl != null) {
+                if (portalUrl.endsWith("/")) {
+                    portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
+                }
+                subscriptionsUrl = portalUrl + "/#!/management/apis/" + api.getId() + "/settings/subscriptions";
+            }
+
             // Send a notification to the primary owner of the API
             if (apiOwner != null && apiOwner.getEmail() != null && !apiOwner.getEmail().isEmpty()) {
                 emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
@@ -222,7 +238,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                                 "owner", appOwner,
                                 "api", api,
                                 "plan", planEntity,
-                                "application", applicationEntity))
+                                "application", applicationEntity,
+                                "subscriptionsUrl", subscriptionsUrl))
                         .build());
             }
 

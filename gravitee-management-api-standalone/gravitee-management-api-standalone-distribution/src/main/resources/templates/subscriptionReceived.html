@@ -4,8 +4,15 @@
 			<#include "header.html" />
 		</header>
 		<div style="margin-top: 50px; color: #424e5a;">
-			<h3>Hi ${owner.username},</h3>
-			<p><code>${application.name}</code> has just subscribed to the API <code>${api.name}</code> with plan <code>${plan.name}</code>.</p>
+			<#if owner.firstname?? && owner.lastname??>
+				<h3>Hi ${owner.firstname} ${owner.lastname},</h3>
+			<#else>
+				<h3>Hi ${owner.username},</h3>
+			</#if>
+			<p>Application <b>${application.name}</b> has just subscribed to the API <b>${api.name}</b> with plan <b>${plan.name}</b>.</p>
+			<#if plan.validation == 'MANUAL'>
+				<p>This subscription need your approval<#if subscriptionsUrl?? && subscriptionsUrl != ''> <a href="${subscriptionsUrl}">here</a></#if>.</p>
+			</#if>
       	</div>
 	</body>
 </html>

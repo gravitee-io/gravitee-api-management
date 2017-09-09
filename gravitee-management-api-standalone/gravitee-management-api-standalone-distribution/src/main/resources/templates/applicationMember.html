@@ -4,8 +4,12 @@
 			<#include "header.html" />
 		</header>
 		<div style="margin-top: 50px; color: #424e5a;">
-			<h3>Hi ${username},</h3>
-			<p>You are now a member of the application: ${application.name}</p>
+			<#if owner.firstname?? && owner.lastname??>
+				<h3>Hi ${owner.firstname} ${owner.lastname},</h3>
+			<#else>
+				<h3>Hi ${owner.username},</h3>
+			</#if>
+			<p>You are now a member of the application: <b>${application.name}</b></p>
 		</div>
 	</body>
 </html>
