@@ -101,9 +101,9 @@ public class RedisApplicationRepository implements ApplicationRepository {
     public Application update(Application application) throws TechnicalException {
         RedisApplication redisApplication = applicationRedisRepository.find(application.getId());
 
-        // Update, but don't change invariant other creation information
         redisApplication.setName(application.getName());
         redisApplication.setDescription(application.getDescription());
+        redisApplication.setCreatedAt(application.getCreatedAt().getTime());
         redisApplication.setUpdatedAt(application.getUpdatedAt().getTime());
         redisApplication.setType(application.getType());
         redisApplication.setGroup(application.getGroup());
