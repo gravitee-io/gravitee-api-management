@@ -29,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -60,39 +61,30 @@ public class SubscriptionServiceTest {
 
     @Mock
     private PlanService planService;
-
     @Mock
     private ApplicationService applicationService;
-
     @Mock
     private ApiService apiService;
-
     @Mock
     private ApiKeyService apiKeyService;
-
     @Mock
     private SubscriptionRepository subscriptionRepository;
-
     @Mock
     private Subscription subscription;
-
     @Mock
     private PlanEntity plan;
-
     @Mock
     private ApplicationEntity application;
-
     @Mock
     private ApiEntity apiEntity;
-
     @Mock
     private ApiModelEntity apiModelEntity;
-
     @Mock
     private ApiKeyEntity apiKeyEntity;
-
     @Mock
     private EmailService emailService;
+    @Mock
+    private ConfigurableEnvironment environment;
 
     @Test
     public void shouldFindById() throws TechnicalException {
