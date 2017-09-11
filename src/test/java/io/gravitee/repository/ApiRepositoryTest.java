@@ -77,6 +77,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         api.setGroups(Collections.singleton("New group"));
         api.setLifecycleState(LifecycleState.STARTED);
         api.setPicture("New picture");
+        api.setCreatedAt(parse("11/02/2016"));
         api.setUpdatedAt(parse("13/11/2016"));
         api.setVersion("New version");
         api.setVisibility(Visibility.PRIVATE);
@@ -99,6 +100,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid API group.", Collections.singleton("New group"), apiUpdated.getGroups());
         assertEquals("Invalid API lifecycle state.", LifecycleState.STARTED, apiUpdated.getLifecycleState());
         assertEquals("Invalid API picture.", "New picture", apiUpdated.getPicture());
+        assertEquals("Invalid API create date.", parse("11/02/2016"), apiUpdated.getCreatedAt());
         assertEquals("Invalid API update date.", parse("13/11/2016"), apiUpdated.getUpdatedAt());
         assertEquals("Invalid API version.", "New version", apiUpdated.getVersion());
         assertEquals("Invalid API visibility.", Visibility.PRIVATE, apiUpdated.getVisibility());

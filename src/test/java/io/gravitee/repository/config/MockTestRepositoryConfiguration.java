@@ -78,6 +78,7 @@ public class MockTestRepositoryConfiguration {
         when(apiUpdated.getGroups()).thenReturn(Collections.singleton("New group"));
         when(apiUpdated.getLifecycleState()).thenReturn(LifecycleState.STARTED);
         when(apiUpdated.getPicture()).thenReturn("New picture");
+        when(apiUpdated.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(apiUpdated.getUpdatedAt()).thenReturn(parse("13/11/2016"));
         when(apiUpdated.getVersion()).thenReturn("New version");
         when(apiUpdated.getVisibility()).thenReturn(Visibility.PRIVATE);
@@ -155,7 +156,7 @@ public class MockTestRepositoryConfiguration {
         when(updatedApplication.getDescription()).thenReturn("Updated description");
         when(updatedApplication.getType()).thenReturn("update-type");
         when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);
-        when(updatedApplication.getCreatedAt()).thenReturn(null);
+        when(updatedApplication.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(updatedApplication.getUpdatedAt()).thenReturn(parse("22/02/2016"));
 
         when(applicationRepository.findById("updated-app")).thenReturn(of(updatedApplication));

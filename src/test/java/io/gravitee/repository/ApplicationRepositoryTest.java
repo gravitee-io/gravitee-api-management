@@ -113,9 +113,8 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid updated application description.", application.getDescription(), appUpdated.getDescription());
         assertEquals("Invalid updated application type.", application.getType(), appUpdated.getType());
         assertEquals("Invalid updated application status.", application.getStatus(), appUpdated.getStatus());
+        assertEquals("Invalid updated application createdAt.", application.getCreatedAt(), appUpdated.getCreatedAt());
         assertEquals("Invalid updated application updateAt.", application.getUpdatedAt(), appUpdated.getUpdatedAt());
-        //Check invariant field
-        assertNotEquals("Invalid updated application createdAt.", application.getCreatedAt(), appUpdated.getCreatedAt());
     }
 
     @Test
