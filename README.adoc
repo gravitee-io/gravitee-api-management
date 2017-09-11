@@ -7,64 +7,42 @@ endif::[]
 
 = Install
 
-- Install [nodejs] [1]
-- It comes with [npm] [2]
-- Install [gulp] [3] :
-```
-sudo npm install -g gulp
-```
+**Yarn tasks are ran from this base dir.**
 
-- You can install from the base dir :
+- Install http://nodejs.org[nodejs], it comes with http://npmjs.org[npm]
+- Install https://yarnpkg.com[yarn]
+- Then install node modules with:
 ```
-npm install
+yarn install
 ```
 
-  - *npm install* reads **package.json** and generates the directory **node_modules**
+__Prefer the use of yarn to use stable dependencies versions fixed by the yarn.lock file__
 
-- You can always update your project dependencies :
-```
-npm update
-```
-
-= Working with [gulp] [4]
-
-Gulp tasks are run from this base dir.
-
-== Serve
+== Tasks
 
 If you wanna serve the built version on dev mode :
 ```
-gulp serve
+yarn run serve
 ```
 
 If you wanna serve the built version on production mode :
 ```
-gulp serve:dist
+yarn run serve:dist
 ```
 
-If you wanna launch unit tests with Karma :
+If you wanna serve the built version pointing on the demo's server :
 ```
-gulp test
-```
-
-If you wanna launch unit tests with Karma in watch mode :
-```
-gulp test:dev
+yarn run serve:demo
 ```
 
-If you wanna launch e2e (end to end) tests with Protractor :
+If you wanna serve the built version pointing on the nightly's server :
 ```
-gulp protractor
-```
-
-If you wanna launch e2e tests with Protractor on the dist files :
-```
-gulp protractor:dist
+yarn run serve:nightly
 ```
 
-Tested and approved with the marvelous [BrowserStack platform](https://www.browserstack.com)
+If you wanna launch e2e (end to end) tests with Protractor on the built version :
+```
+yarn run buildNoReg
+```
 
-[1]: http://nodejs.org
-[2]: http://npmjs.org
-[3]: https://github.com/gulpjs/gulp
-[4]: http://gulpjs.com
+Tested and approved with the https://www.browserstack.com[BrowserStack platform]
