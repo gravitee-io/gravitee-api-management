@@ -43,153 +43,153 @@ import java.util.Set;
 @Component
 public class MongoPageRepository implements PageRepository {
 
-	private static final Logger logger = LoggerFactory.getLogger(MongoPageRepository.class);
+    private static final Logger logger = LoggerFactory.getLogger(MongoPageRepository.class);
 
-	@Autowired
-	private PageMongoRepository internalPageRepo;
+    @Autowired
+    private PageMongoRepository internalPageRepo;
 
-	@Autowired
-	private GraviteeMapper mapper;
+    @Autowired
+    private GraviteeMapper mapper;
 
-	@Override
-	public Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException {
-		logger.debug("Find pages by api {}", apiId);
+    @Override
+    public Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException {
+        logger.debug("Find pages by api {}", apiId);
 
-		List<PageMongo> pages = internalPageRepo.findByApi(apiId);
-		Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
+        List<PageMongo> pages = internalPageRepo.findByApi(apiId);
+        Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
 
-		logger.debug("Find pages by api {} - Done", apiId);
-		return res;
-	}
+        logger.debug("Find pages by api {} - Done", apiId);
+        return res;
+    }
 
-	@Override
-	public Optional<Page> findById(String pageId) throws TechnicalException {
-		logger.debug("Find page by ID [{}]", pageId);
+    @Override
+    public Optional<Page> findById(String pageId) throws TechnicalException {
+        logger.debug("Find page by ID [{}]", pageId);
 
-		PageMongo page = internalPageRepo.findOne(pageId);
-		Page res = mapper.map(page, Page.class);
+        PageMongo page = internalPageRepo.findOne(pageId);
+        Page res = mapper.map(page, Page.class);
 
-		logger.debug("Find page by ID [{}] - Done", pageId);
-		return Optional.ofNullable(res);
-	}
+        logger.debug("Find page by ID [{}] - Done", pageId);
+        return Optional.ofNullable(res);
+    }
 
-	@Override
-	public Page create(Page page) throws TechnicalException {
-		logger.debug("Create page [{}]", page.getName());
-		
-		PageMongo pageMongo = mapper.map(page, PageMongo.class);
-		PageMongo createdPageMongo = internalPageRepo.insert(pageMongo);
-		
-		Page res = mapper.map(createdPageMongo, Page.class);
-		
-		logger.debug("Create page [{}] - Done", page.getName());
-		
-		return res;
-	}
+    @Override
+    public Page create(Page page) throws TechnicalException {
+        logger.debug("Create page [{}]", page.getName());
 
-	@Override
-	public Page update(Page page) throws TechnicalException {
-		if(page == null){
-			throw new IllegalArgumentException("Page must not be null");
-		}
-		
-		PageMongo pageMongo = internalPageRepo.findOne(page.getId());
-		if(pageMongo == null){
-			throw new IllegalArgumentException(String.format("No page found with id [%s]", page.getId()));
-		}
-		
-		try{
-			pageMongo.setName(page.getName());
-			pageMongo.setContent(page.getContent());
-			pageMongo.setLastContributor(page.getLastContributor());
-			pageMongo.setCreatedAt(page.getCreatedAt());
-			pageMongo.setUpdatedAt(page.getUpdatedAt());
-			pageMongo.setOrder(page.getOrder());
-			pageMongo.setPublished(page.isPublished());
-			pageMongo.setHomepage(page.isHomepage());
-			if(page.getSource() != null) {
-				pageMongo.setSource(convert(page.getSource()));
-			} else {
-				pageMongo.setSource(null);
-			}
-			if(page.getConfiguration() != null) {
-				pageMongo.setConfiguration(convert(page.getConfiguration()));
-			} else {
-				pageMongo.setConfiguration(null);
-			}
-			
-			PageMongo pageMongoUpdated = internalPageRepo.save(pageMongo);
-			return mapper.map(pageMongoUpdated, Page.class);
+        PageMongo pageMongo = mapper.map(page, PageMongo.class);
+        PageMongo createdPageMongo = internalPageRepo.insert(pageMongo);
 
-		}catch(Exception e){
+        Page res = mapper.map(createdPageMongo, Page.class);
 
-			logger.error("An error occured when updating page",e);
-			throw new TechnicalException("An error occured when updating page");
-		}
-	}
+        logger.debug("Create page [{}] - Done", page.getName());
 
-	@Override
-	public void delete(String pageId) throws TechnicalException {
-		try{
-			internalPageRepo.delete(pageId);
-		}catch(Exception e){
-			logger.error("An error occured when deleting page [{}]", pageId, e);
-			throw new TechnicalException("An error occured when deleting page");
-		}
-	}
+        return res;
+    }
 
-	@Override
-	public Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException {
-		try{
-			return internalPageRepo.findMaxPageOrderByApi(apiId);
-		}catch(Exception e){
-			logger.error("An error occured when searching max order page for api name [{}]", apiId, e);
-			throw new TechnicalException("An error occured when searching max order page for api name");
-		}
-	}
+    @Override
+    public Page update(Page page) throws TechnicalException {
+        if (page == null) {
+            throw new IllegalStateException("Page must not be null");
+        }
 
-	@Override
-	public Integer findMaxPortalPageOrder() throws TechnicalException {
-		try{
-			return internalPageRepo.findMaxPortalPageOrder();
-		}catch(Exception e){
-			logger.error("An error occured when searching max order portal page ", e);
-			throw new TechnicalException("An error occured when searching max order portal page");
-		}
-	}
+        PageMongo pageMongo = internalPageRepo.findOne(page.getId());
+        if (pageMongo == null) {
+            throw new IllegalStateException(String.format("No page found with id [%s]", page.getId()));
+        }
 
-	private PageSourceMongo convert(PageSource pageSource) {
-		PageSourceMongo pageSourceMongo = new PageSourceMongo();
-		pageSourceMongo.setType(pageSource.getType());
-		pageSourceMongo.setConfiguration(pageSource.getConfiguration());
-		return pageSourceMongo;
-	}
+        try {
+            pageMongo.setName(page.getName());
+            pageMongo.setContent(page.getContent());
+            pageMongo.setLastContributor(page.getLastContributor());
+            pageMongo.setCreatedAt(page.getCreatedAt());
+            pageMongo.setUpdatedAt(page.getUpdatedAt());
+            pageMongo.setOrder(page.getOrder());
+            pageMongo.setPublished(page.isPublished());
+            pageMongo.setHomepage(page.isHomepage());
+            if (page.getSource() != null) {
+                pageMongo.setSource(convert(page.getSource()));
+            } else {
+                pageMongo.setSource(null);
+            }
+            if (page.getConfiguration() != null) {
+                pageMongo.setConfiguration(convert(page.getConfiguration()));
+            } else {
+                pageMongo.setConfiguration(null);
+            }
 
-	private PageConfigurationMongo convert(PageConfiguration pageConfiguration) {
-		PageConfigurationMongo pageConfigurationMongo = new PageConfigurationMongo();
-		pageConfigurationMongo.setTryIt(pageConfiguration.isTryIt());
-		pageConfigurationMongo.setTryItURL(pageConfiguration.getTryItURL());
+            PageMongo pageMongoUpdated = internalPageRepo.save(pageMongo);
+            return mapper.map(pageMongoUpdated, Page.class);
+
+        } catch (Exception e) {
+
+            logger.error("An error occured when updating page", e);
+            throw new TechnicalException("An error occured when updating page");
+        }
+    }
+
+    @Override
+    public void delete(String pageId) throws TechnicalException {
+        try {
+            internalPageRepo.delete(pageId);
+        } catch (Exception e) {
+            logger.error("An error occured when deleting page [{}]", pageId, e);
+            throw new TechnicalException("An error occured when deleting page");
+        }
+    }
+
+    @Override
+    public Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException {
+        try {
+            return internalPageRepo.findMaxPageOrderByApi(apiId);
+        } catch (Exception e) {
+            logger.error("An error occured when searching max order page for api name [{}]", apiId, e);
+            throw new TechnicalException("An error occured when searching max order page for api name");
+        }
+    }
+
+    @Override
+    public Integer findMaxPortalPageOrder() throws TechnicalException {
+        try {
+            return internalPageRepo.findMaxPortalPageOrder();
+        } catch (Exception e) {
+            logger.error("An error occured when searching max order portal page ", e);
+            throw new TechnicalException("An error occured when searching max order portal page");
+        }
+    }
+
+    private PageSourceMongo convert(PageSource pageSource) {
+        PageSourceMongo pageSourceMongo = new PageSourceMongo();
+        pageSourceMongo.setType(pageSource.getType());
+        pageSourceMongo.setConfiguration(pageSource.getConfiguration());
+        return pageSourceMongo;
+    }
+
+    private PageConfigurationMongo convert(PageConfiguration pageConfiguration) {
+        PageConfigurationMongo pageConfigurationMongo = new PageConfigurationMongo();
+        pageConfigurationMongo.setTryIt(pageConfiguration.isTryIt());
+        pageConfigurationMongo.setTryItURL(pageConfiguration.getTryItURL());
         return pageConfigurationMongo;
-	}
+    }
 
-	@Override
-	public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException {
-		return mapper.collection2list(internalPageRepo.findByHomepage(apiId, isHomepage), PageMongo.class, Page.class);
-	}
+    @Override
+    public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException {
+        return mapper.collection2list(internalPageRepo.findByHomepage(apiId, isHomepage), PageMongo.class, Page.class);
+    }
 
-	@Override
-	public Collection<Page> findPortalPageByHomepage(boolean isHomepage) throws TechnicalException {
-		return mapper.collection2list(internalPageRepo.findByHomepage(isHomepage), PageMongo.class, Page.class);
-	}
+    @Override
+    public Collection<Page> findPortalPageByHomepage(boolean isHomepage) throws TechnicalException {
+        return mapper.collection2list(internalPageRepo.findByHomepage(isHomepage), PageMongo.class, Page.class);
+    }
 
-	@Override
-	public Collection<Page> findPortalPages() throws TechnicalException {
-		logger.debug("Find portal pages");
+    @Override
+    public Collection<Page> findPortalPages() throws TechnicalException {
+        logger.debug("Find portal pages");
 
-		List<PageMongo> pages = internalPageRepo.findPortalPages();
-		Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
+        List<PageMongo> pages = internalPageRepo.findPortalPages();
+        Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
 
-		logger.debug("Find portal pages - Done");
-		return res;
-	}
+        logger.debug("Find portal pages - Done");
+        return res;
+    }
 }

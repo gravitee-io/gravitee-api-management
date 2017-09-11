@@ -26,7 +26,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -72,6 +75,15 @@ public class MongoGroupRepository implements GroupRepository {
 
     @Override
     public Group update(Group group) throws TechnicalException {
+        if (group == null) {
+            throw new IllegalStateException("Group must not be null");
+        }
+
+        final GroupMongo groupMongo = internalRepository.findOne(group.getId());
+        if (groupMongo == null) {
+            throw new IllegalStateException(String.format("No group found with id [%s]", group.getId()));
+        }
+        
         logger.debug("Update group [{}]", group.getName());
         if(group.getAdministrators() == null){
             group.setAdministrators(Collections.emptyList());

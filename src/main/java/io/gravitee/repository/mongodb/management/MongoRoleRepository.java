@@ -19,10 +19,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.repository.mongodb.management.internal.model.RoleMongo;
 import io.gravitee.repository.mongodb.management.internal.model.RolePkMongo;
 import io.gravitee.repository.mongodb.management.internal.role.RoleMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.RoleMongo;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,15 +70,14 @@ public class MongoRoleRepository implements RoleRepository {
 
     @Override
     public Role update(Role role) throws TechnicalException {
-        RolePkMongo id = convert(role);
-        RoleMongo roleMongo = internalRoleRepo.findOne(id);
+        final RolePkMongo id = convert(role);
+        final RoleMongo roleMongo = internalRoleRepo.findOne(id);
 
         if (roleMongo == null) {
             throw new IllegalStateException(String.format("No role found with id [%s]", id));
         }
 
         try {
-            roleMongo.setId(id);
             roleMongo.setDescription(role.getDescription());
             roleMongo.setDefaultRole(role.isDefaultRole());
             roleMongo.setPermissions(role.getPermissions());
@@ -123,7 +121,7 @@ public class MongoRoleRepository implements RoleRepository {
     }
 
     private RolePkMongo convert(Role role) {
-        if (role == null || role.getName() == null) {
+        if (role == null || role.getScope() == null || role.getName() == null) {
             throw new IllegalStateException("Role to update must not be null");
         }
         return new RolePkMongo(role.getScope().getId(), role.getName());

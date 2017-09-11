@@ -76,7 +76,7 @@ public class MongoTenantRepository implements TenantRepository {
             throw new IllegalStateException("Tenant to update must have a name");
         }
 
-        TenantMongo tenantMongo = internalTenantRepo.findOne(tenant.getId());
+        final TenantMongo tenantMongo = internalTenantRepo.findOne(tenant.getId());
 
         if (tenantMongo == null) {
             throw new IllegalStateException(String.format("No tenant found with name [%s]", tenant.getId()));

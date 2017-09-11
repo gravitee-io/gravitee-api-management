@@ -76,8 +76,6 @@ public class MongoMetadataRepository implements MetadataRepository {
         }
 
         try {
-            //Update
-            metadataMongo.setId(metadataId);
             metadataMongo.setName(metadata.getName());
             metadataMongo.setValue(metadata.getValue());
             metadataMongo.setFormat(metadata.getFormat().name());

@@ -51,9 +51,17 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
 	@Override
 	public ApiKey update(ApiKey apiKey) throws TechnicalException {
-		ApiKeyMongo apiKeyMongo = mapper.map(apiKey, ApiKeyMongo.class);
-		apiKeyMongo = internalApiKeyRepo.save(apiKeyMongo);
+		if (apiKey == null || apiKey.getKey() == null) {
+			throw new IllegalStateException("ApiKey to update must have an key");
+		}
 
+		ApiKeyMongo apiKeyMongo = internalApiKeyRepo.findOne(apiKey.getKey());
+
+		if (apiKeyMongo == null) {
+			throw new IllegalStateException(String.format("No apiKey found with key [%s]", apiKey.getKey()));
+		}
+
+		apiKeyMongo = internalApiKeyRepo.save(mapper.map(apiKey, ApiKeyMongo.class));
 		return mapper.map(apiKeyMongo, ApiKey.class);
 	}
 

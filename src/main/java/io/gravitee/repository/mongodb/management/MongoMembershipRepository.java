@@ -23,8 +23,6 @@ import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.mongodb.management.internal.membership.MembershipMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.MembershipMongo;
 import io.gravitee.repository.mongodb.management.internal.model.MembershipPkMongo;
-import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,9 +54,20 @@ public class MongoMembershipRepository implements MembershipRepository {
 
     @Override
     public Membership update(Membership membership) throws TechnicalException {
+        if (membership == null || membership.getUserId() == null || membership.getReferenceId() == null || membership.getReferenceType() == null) {
+            throw new IllegalStateException("Membership to update must have an user id, a reference id and type");
+        }
+
+        final MembershipPkMongo id = mapPk(membership);
+        MembershipMongo membershipMongo = internalMembershipRepo.findOne(id);
+
+        if (membershipMongo == null) {
+            throw new IllegalStateException(String.format("No membership found with id [%s]", id));
+        }
+
         logger.debug("Update membership [{}, {}, {}]", membership.getUserId(), membership.getReferenceType(), membership.getReferenceId());
         Membership m = map(internalMembershipRepo.save(map(membership)));
-        logger.debug("Update membership [{}, {}, {}] - Done", m.getUserId(), m.getReferenceType(), m.getReferenceId());
+        logger.debug("Update membership [{}, {}, {}] - Done", membership.getUserId(), membership.getReferenceType(), membership.getReferenceId());
         return m;
     }
 
@@ -101,7 +110,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         logger.debug("Find membership by reference [{}, {}]", referenceType, referenceId);
         Set<MembershipMongo> membershipMongos;
         String membershipType = convertRoleToType(roleScope, roleName);
-        if(membershipType == null) {
+        if (membershipType == null) {
             membershipMongos = internalMembershipRepo.findByReference(referenceType.name(), referenceId);
         } else {
             membershipMongos = internalMembershipRepo.findByReferenceAndMembershipType(referenceType.name(), referenceId, membershipType);
@@ -116,7 +125,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         logger.debug("Find membership by references [{}, {}]", referenceType, referenceIds);
         Set<MembershipMongo> membershipMongos;
         String membershipType = convertRoleToType(roleScope, roleName);
-        if(membershipType == null) {
+        if (membershipType == null) {
             membershipMongos = internalMembershipRepo.findByReferences(referenceType.name(), referenceIds);
         } else {
             membershipMongos = internalMembershipRepo.findByReferencesAndMembershipType(referenceType.name(), referenceIds, membershipType);
@@ -208,11 +217,11 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     private String[] convertTypeToRole(String type) {
-        if(type == null) {
+        if (type == null) {
             return null;
         }
         String[] role = type.split(":");
-        if (role .length != 2) {
+        if (role.length != 2) {
             return null;
         }
         return role;

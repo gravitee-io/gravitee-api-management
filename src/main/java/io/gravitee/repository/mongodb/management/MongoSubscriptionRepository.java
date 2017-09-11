@@ -72,7 +72,17 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     @Override
     public Subscription update(Subscription subscription) throws TechnicalException {
-        SubscriptionMongo subscriptionMongo = map(subscription);
+        if (subscription == null || subscription.getId() == null) {
+            throw new IllegalStateException("Subscription to update must have an id");
+        }
+
+        SubscriptionMongo subscriptionMongo = internalSubscriptionRepository.findOne(subscription.getId());
+
+        if (subscriptionMongo == null) {
+            throw new IllegalStateException(String.format("No subscription found with id [%s]", subscription.getId()));
+        }
+
+        subscriptionMongo = map(subscription);
         subscriptionMongo = internalSubscriptionRepository.save(subscriptionMongo);
         return map(subscriptionMongo);
     }

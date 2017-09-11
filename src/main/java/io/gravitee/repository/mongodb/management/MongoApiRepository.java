@@ -81,7 +81,14 @@ public class MongoApiRepository implements ApiRepository {
 
 	@Override
 	public Api update(Api api) throws TechnicalException {
-		ApiMongo apiMongo = internalApiRepo.findOne(api.getId());
+		if (api == null || api.getId() == null) {
+			throw new IllegalStateException("Api to update must have an id");
+		}
+
+		final ApiMongo apiMongo = internalApiRepo.findOne(api.getId());
+		if (apiMongo == null) {
+			throw new IllegalStateException(String.format("No api found with id [%s]", api.getId()));
+		}
 
 		apiMongo.setName(api.getName());
 		apiMongo.setDescription(api.getDescription());
@@ -97,8 +104,8 @@ public class MongoApiRepository implements ApiRepository {
 		apiMongo.setViews(api.getViews());
 		apiMongo.setLabels(api.getLabels());
 
-		ApiMongo applicationMongoUpdated = internalApiRepo.save(apiMongo);
-		return mapApi(applicationMongoUpdated);
+		ApiMongo apiMongoUpdated = internalApiRepo.save(apiMongo);
+		return mapApi(apiMongoUpdated);
 	}
 
 	@Override

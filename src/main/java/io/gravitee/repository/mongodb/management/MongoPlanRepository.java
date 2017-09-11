@@ -64,7 +64,17 @@ public class MongoPlanRepository implements PlanRepository {
 
     @Override
     public Plan update(Plan plan) throws TechnicalException {
-        PlanMongo planMongo = map(plan);
+        if (plan == null || plan.getId() == null) {
+            throw new IllegalStateException("Plan to update must have an id");
+        }
+
+        PlanMongo planMongo = internalPlanRepository.findOne(plan.getId());
+
+        if (planMongo == null) {
+            throw new IllegalStateException(String.format("No plan found with id [%s]", plan.getId()));
+        }
+        
+        planMongo = map(plan);
         planMongo = internalPlanRepository.save(planMongo);
         return map(planMongo);
     }

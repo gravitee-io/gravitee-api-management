@@ -76,7 +76,7 @@ public class MongoTagRepository implements TagRepository {
             throw new IllegalStateException("Tag to update must have a name");
         }
 
-        TagMongo tagMongo = internalTagRepo.findOne(tag.getId());
+        final TagMongo tagMongo = internalTagRepo.findOne(tag.getId());
 
         if (tagMongo == null) {
             throw new IllegalStateException(String.format("No tag found with name [%s]", tag.getId()));

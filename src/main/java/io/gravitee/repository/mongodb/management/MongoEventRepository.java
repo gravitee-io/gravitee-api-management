@@ -79,7 +79,7 @@ public class MongoEventRepository implements EventRepository {
             throw new IllegalStateException("Event to update must have an id");
         }
 
-        EventMongo eventMongo = internalEventRepo.findOne(event.getId());
+        final EventMongo eventMongo = internalEventRepo.findOne(event.getId());
         if (eventMongo == null) {
             throw new IllegalStateException(String.format("No event found with id [%s]", event.getId()));
         }

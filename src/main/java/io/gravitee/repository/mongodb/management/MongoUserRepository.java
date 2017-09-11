@@ -94,7 +94,15 @@ public class MongoUserRepository implements UserRepository {
 
 	@Override
 	public User update(User user) throws TechnicalException {
+		if (user == null || user.getUsername() == null) {
+			throw new IllegalStateException("User to update must have a username");
+		}
+
 		final UserMongo userMongo = internalUserRepo.findOne(user.getUsername());
+
+		if (userMongo == null) {
+			throw new IllegalStateException(String.format("No user found with username [%s]", user.getUsername()));
+		}
 
 		userMongo.setCreatedAt(user.getCreatedAt());
 		userMongo.setUpdatedAt(user.getUpdatedAt());
