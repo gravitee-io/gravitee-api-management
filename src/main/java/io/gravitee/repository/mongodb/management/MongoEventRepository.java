@@ -32,7 +32,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -90,6 +89,7 @@ public class MongoEventRepository implements EventRepository {
             eventMongo.setType(event.getType().toString());
             eventMongo.setPayload(event.getPayload());
             eventMongo.setParentId(event.getParentId());
+            eventMongo.setCreatedAt(event.getUpdatedAt());
             eventMongo.setUpdatedAt(event.getUpdatedAt());
             EventMongo eventMongoUpdated = internalEventRepo.save(eventMongo);
             return mapEvent(eventMongoUpdated);

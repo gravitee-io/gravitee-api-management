@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import io.gravitee.repository.management.model.ApplicationStatus;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -65,9 +64,9 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	public Application update(Application application) throws TechnicalException {
 		ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application.getId());
 		
-		// Update, but don't change invariant other creation information
 		applicationMongo.setName(application.getName());
 		applicationMongo.setDescription(application.getDescription());
+		applicationMongo.setCreatedAt(application.getCreatedAt());
 		applicationMongo.setUpdatedAt(application.getUpdatedAt());
 		applicationMongo.setType(application.getType());
 		applicationMongo.setGroups(application.getGroups());

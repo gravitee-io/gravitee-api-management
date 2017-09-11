@@ -96,7 +96,7 @@ public class MongoUserRepository implements UserRepository {
 	public User update(User user) throws TechnicalException {
 		final UserMongo userMongo = internalUserRepo.findOne(user.getUsername());
 
-		// Update, but don't change invariant other creation information
+		userMongo.setCreatedAt(user.getCreatedAt());
 		userMongo.setUpdatedAt(user.getUpdatedAt());
 		userMongo.setPassword(user.getPassword());
 		userMongo.setPicture(user.getPicture());

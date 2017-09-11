@@ -83,9 +83,9 @@ public class MongoApiRepository implements ApiRepository {
 	public Api update(Api api) throws TechnicalException {
 		ApiMongo apiMongo = internalApiRepo.findOne(api.getId());
 
-		// Update, but don't change invariant other creation information
 		apiMongo.setName(api.getName());
 		apiMongo.setDescription(api.getDescription());
+		apiMongo.setCreatedAt(api.getCreatedAt());
 		apiMongo.setUpdatedAt(api.getUpdatedAt());
 		apiMongo.setLifecycleState(api.getLifecycleState().toString());
 		apiMongo.setDefinition(api.getDefinition());

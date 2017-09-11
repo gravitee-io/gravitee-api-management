@@ -99,10 +99,10 @@ public class MongoPageRepository implements PageRepository {
 		}
 		
 		try{
-			//Update
 			pageMongo.setName(page.getName());
 			pageMongo.setContent(page.getContent());
 			pageMongo.setLastContributor(page.getLastContributor());
+			pageMongo.setCreatedAt(page.getCreatedAt());
 			pageMongo.setUpdatedAt(page.getUpdatedAt());
 			pageMongo.setOrder(page.getOrder());
 			pageMongo.setPublished(page.isPublished());
