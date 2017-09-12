@@ -25,6 +25,8 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.Assert.fail;
+
 public class UserRepositoryTest extends AbstractRepositoryTest {
 
     @Override
@@ -95,5 +97,19 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull(usernames);
         Assert.assertFalse(usernames.isEmpty());
         Assert.assertEquals(2, usernames.size());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownUser() throws Exception {
+        User unknownUser = new User();
+        unknownUser.setUsername("unknown");
+        userRepository.update(unknownUser);
+        fail("An unknown user should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        userRepository.update(null);
+        fail("A null user should not be updated");
     }
 }

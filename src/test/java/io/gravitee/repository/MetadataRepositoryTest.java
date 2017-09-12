@@ -25,8 +25,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class MetadataRepositoryTest extends AbstractRepositoryTest {
 
@@ -117,5 +116,21 @@ public class MetadataRepositoryTest extends AbstractRepositoryTest {
         int nbMetadataListAfterDeletion = metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId").size();
 
         Assert.assertEquals(nbMetadataListBeforeDeletion - 1, nbMetadataListAfterDeletion);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownMetadata() throws Exception {
+        Metadata unknownMetadata = new Metadata();
+        unknownMetadata.setKey("unknown");
+        unknownMetadata.setReferenceId("unknown");
+        unknownMetadata.setReferenceType(MetadataReferenceType.DEFAULT);
+        metadataRepository.update(unknownMetadata);
+        fail("An unknown metadata should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        metadataRepository.update(null);
+        fail("A null metadata should not be updated");
     }
 }

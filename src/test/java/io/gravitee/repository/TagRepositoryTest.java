@@ -23,8 +23,7 @@ import org.junit.Test;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class TagRepositoryTest extends AbstractRepositoryTest {
 
@@ -93,5 +92,19 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
         int nbTagsAfterDeletion = tagRepository.findAll().size();
 
         Assert.assertEquals(nbTagsBeforeDeletion - 1, nbTagsAfterDeletion);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownTag() throws Exception {
+        Tag unknownTag = new Tag();
+        unknownTag.setId("unknown");
+        tagRepository.update(unknownTag);
+        fail("An unknown tag should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        tagRepository.update(null);
+        fail("A null tag should not be updated");
     }
 }

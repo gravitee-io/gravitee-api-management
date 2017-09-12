@@ -164,4 +164,18 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
                 collect(Collectors.toList()).
                 containsAll(Arrays.asList("api-to-delete", "api-to-update")));
     }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownApi() throws Exception {
+        Api unknownApi = new Api();
+        unknownApi.setId("unknown");
+        apiRepository.update(unknownApi);
+        fail("An unknown api should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        apiRepository.update(null);
+        fail("A null api should not be updated");
+    }
 }

@@ -23,8 +23,7 @@ import org.junit.Test;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class TenantRepositoryTest extends AbstractRepositoryTest {
 
@@ -93,5 +92,19 @@ public class TenantRepositoryTest extends AbstractRepositoryTest {
         int nbTenantsAfterDeletion = tenantRepository.findAll().size();
 
         Assert.assertEquals(nbTenantsBeforeDeletion - 1, nbTenantsAfterDeletion);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownTenant() throws Exception {
+        Tenant unknownTenant = new Tenant();
+        unknownTenant.setId("unknown");
+        tenantRepository.update(unknownTenant);
+        fail("An unknown tenant should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        tenantRepository.update(null);
+        fail("A null tenant should not be updated");
     }
 }

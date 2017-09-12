@@ -18,7 +18,6 @@ package io.gravitee.repository;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Group;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.*;
@@ -73,18 +72,6 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertFalse(group.isPresent());
     }
 
-    @Ignore
-    @Test(expected = TechnicalException.class)
-    public void shouldNotUpdateUnknownGroup() throws TechnicalException {
-        Group group = new Group();
-        group.setId("unknown");
-        group.setName("Unknown");
-
-        groupRepository.update(group);
-
-        fail("should not update an unknown group");
-    }
-
     @Test
     public void shouldUpdate() throws TechnicalException {
         Group group = new Group();
@@ -129,5 +116,19 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
                 map(Group::getId).
                 collect(Collectors.toList()).
                 containsAll(Arrays.asList("group-application-1", "group-api-to-delete")));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownGroup() throws Exception {
+        Group unknownGroup = new Group();
+        unknownGroup.setId("unknown");
+        groupRepository.update(unknownGroup);
+        fail("An unknown group should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        groupRepository.update(null);
+        fail("A null group should not be updated");
     }
 }

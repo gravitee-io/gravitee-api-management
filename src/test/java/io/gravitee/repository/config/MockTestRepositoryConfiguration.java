@@ -56,6 +56,13 @@ public class MockTestRepositoryConfiguration {
         when(apiKeyRepository.findById("apiKey")).thenReturn(of(apiKey));
         when(apiKeyRepository.findBySubscription("subscription1")).thenReturn(newSet(apiKey, mock(ApiKey.class)));
 
+        when(apiKeyRepository.update(argThat(new ArgumentMatcher<ApiKey>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof ApiKey && ((ApiKey)o).getKey().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
+
         return apiKeyRepository;
     }
 
@@ -117,6 +124,13 @@ public class MockTestRepositoryConfiguration {
 
         when(apiRepository.findByIds(Arrays.asList("api-to-delete", "api-to-update", "unknown"))).
                 thenReturn(new HashSet<>(Arrays.asList(apiToUpdate, apiToDelete)));
+
+        when(apiRepository.update(argThat(new ArgumentMatcher<Api>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Api && ((Api)o).getId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
 
         return apiRepository;
     }
@@ -191,6 +205,13 @@ public class MockTestRepositoryConfiguration {
 
         when(applicationRepository.findByIds(Arrays.asList("application-sample", "updated-app", "unknown"))).
                 thenReturn(new HashSet<>(Arrays.asList(application, updatedApplication)));
+
+        when(applicationRepository.update(argThat(new ArgumentMatcher<Application>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Application && ((Application)o).getId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
 
         return applicationRepository;
     }
@@ -319,6 +340,13 @@ public class MockTestRepositoryConfiguration {
                 new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(
                         new io.gravitee.common.data.domain.Page<>(Collections.emptyList(), 0, 0, 0));
 
+        when(eventRepository.update(argThat(new ArgumentMatcher<Event>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Event && ((Event)o).getId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
+
         return eventRepository;
     }
 
@@ -338,6 +366,13 @@ public class MockTestRepositoryConfiguration {
         when(user.getUsername()).thenReturn("createuser1");
         when(user.getEmail()).thenReturn("createuser1@gravitee.io");
 
+        when(userRepository.update(argThat(new ArgumentMatcher<User>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof User && ((User)o).getUsername().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
+
         return userRepository;
     }
 
@@ -350,6 +385,7 @@ public class MockTestRepositoryConfiguration {
         when(view.getDescription()).thenReturn("Description for the new view");
 
         final View view2 = mock(View.class);
+        when(view2.getId()).thenReturn("view");
         when(view2.getName()).thenReturn("Products");
 
         final View view2Updated = mock(View.class);
@@ -371,12 +407,9 @@ public class MockTestRepositoryConfiguration {
         when(viewRepository.update(argThat(new ArgumentMatcher<View>() {
             @Override
             public boolean matches(Object o) {
-                if (o==null) {
-                    throw new NullPointerException();
-                }
-                return o instanceof View && "unknown".equals(((View)o).getId());
+                return o == null || (o instanceof View && ((View)o).getId().equals("unknown"));
             }
-        }))).thenReturn(null);
+        }))).thenThrow(new IllegalStateException());
 
         return viewRepository;
     }
@@ -390,6 +423,7 @@ public class MockTestRepositoryConfiguration {
         when(tag.getDescription()).thenReturn("Description for the new tag");
 
         final Tag tag2 = mock(Tag.class);
+        when(tag2.getId()).thenReturn("tag");
         when(tag2.getName()).thenReturn("Products");
 
         final Tag tag2Updated = mock(Tag.class);
@@ -406,6 +440,13 @@ public class MockTestRepositoryConfiguration {
 
         when(tagRepository.findById("new-tag")).thenReturn(of(tag));
         when(tagRepository.findById("products")).thenReturn(of(tag2), of(tag2Updated));
+
+        when(tagRepository.update(argThat(new ArgumentMatcher<Tag>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Tag && ((Tag)o).getId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
 
         return tagRepository;
     }
@@ -458,6 +499,13 @@ public class MockTestRepositoryConfiguration {
         when(groupRepository.findByIds(new HashSet<>(Arrays.asList("group-application-1", "group-api-to-delete", "unknown")))).
                 thenReturn(new HashSet<>(Arrays.asList(group_application_1, group_api_to_delete)));
 
+        when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Group && ((Group)o).getId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
+
         return groupRepository;
     }
 
@@ -493,7 +541,13 @@ public class MockTestRepositoryConfiguration {
                 new HashSet<>(asList(plan, plan2)));
 
         when(planRepository.findById("unknown")).thenReturn(empty());
-        when(planRepository.update(null)).thenThrow(Exception.class);
+
+        when(planRepository.update(argThat(new ArgumentMatcher<Plan>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Plan && ((Plan)o).getId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
 
         return planRepository;
     }
@@ -544,6 +598,13 @@ public class MockTestRepositoryConfiguration {
                 MembershipReferenceType.API,
                 new HashSet<>(Arrays.asList("api1_findByIds", "api2_findByIds", "unknown")))).
                 thenReturn(new HashSet<>(Arrays.asList(api1_findByIds, api2_findByIds)));
+
+        when(repo.update(argThat(new ArgumentMatcher<Membership>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Membership && ((Membership)o).getReferenceId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
 
         return repo;
     }
@@ -597,13 +658,12 @@ public class MockTestRepositoryConfiguration {
         when(updatePageAfter.getContent()).thenReturn("New content");
         when(pageRepository.findById("updatePage")).thenReturn(of(updatePageBefore), of(updatePageAfter));
 
-        // shouldNotUpdateUnknownPage && shouldNotUpdateNull
         when(pageRepository.update(argThat(new ArgumentMatcher<Page>() {
             @Override
             public boolean matches(Object o) {
                 return o == null || (o instanceof Page && ((Page)o).getId().equals("unknown"));
             }
-        }))).thenThrow(new IllegalArgumentException());
+        }))).thenThrow(new IllegalStateException());
 
         //Find api pages
         final Page homepage = mock(Page.class);
@@ -648,6 +708,13 @@ public class MockTestRepositoryConfiguration {
         when(subscriptionRepository.findById("unknown-sub")).thenReturn(empty());
         when(subscriptionRepository.findById("sub2")).thenReturn(empty());
         when(subscriptionRepository.update(sub1)).thenReturn(sub1);
+
+        when(subscriptionRepository.update(argThat(new ArgumentMatcher<Subscription>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Subscription && ((Subscription)o).getId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
         return subscriptionRepository;
     }
 
@@ -660,6 +727,7 @@ public class MockTestRepositoryConfiguration {
         when(tenant.getDescription()).thenReturn("Description for the new tenant");
 
         final Tenant tenant2 = mock(Tenant.class);
+        when(tenant2.getId()).thenReturn("tenant");
         when(tenant2.getName()).thenReturn("Asia");
 
         final Tenant tenant2Updated = mock(Tenant.class);
@@ -677,6 +745,13 @@ public class MockTestRepositoryConfiguration {
         when(tenantRepository.findById("new-tenant")).thenReturn(of(tenant));
         when(tenantRepository.findById("asia")).thenReturn(of(tenant2), of(tenant2Updated));
 
+        when(tenantRepository.update(argThat(new ArgumentMatcher<Tenant>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Tenant && ((Tenant)o).getId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
+
         return tenantRepository;
     }
 
@@ -685,6 +760,7 @@ public class MockTestRepositoryConfiguration {
         final MetadataRepository metadataRepository = mock(MetadataRepository.class);
 
         final Metadata booleanMetadata = mock(Metadata.class);
+        when(booleanMetadata.getKey()).thenReturn("boolean");
         when(booleanMetadata.getName()).thenReturn("Boolean");
 
         final Metadata stringMetadata = mock(Metadata.class);
@@ -716,6 +792,13 @@ public class MockTestRepositoryConfiguration {
 
         when(metadataRepository.findById("new-metadata", "_", MetadataReferenceType.DEFAULT)).thenReturn(of(stringMetadata));
         when(metadataRepository.findById("boolean", "_", MetadataReferenceType.DEFAULT)).thenReturn(of(booleanMetadata), of(metadata2Updated));
+
+        when(metadataRepository.update(argThat(new ArgumentMatcher<Metadata>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Metadata && ((Metadata)o).getKey().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
 
         return metadataRepository;
     }
@@ -764,6 +847,13 @@ public class MockTestRepositoryConfiguration {
         when(roleRepository.findAll()).thenReturn(newSet(toDelete,toUpdate, findByScope1, findByScope2));
         when(roleRepository.findByScope(RoleScope.PORTAL)).thenReturn(newSet(findByScope1, findByScope2));
         when(roleRepository.update(any())).thenReturn(toUpdate);
+
+        when(roleRepository.update(argThat(new ArgumentMatcher<Role>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Role && ((Role)o).getName().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
 
         return roleRepository;
     }

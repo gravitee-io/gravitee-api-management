@@ -17,10 +17,7 @@ package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
-import org.junit.Assert;
+import io.gravitee.repository.management.model.*;
 import org.junit.Test;
 
 import java.util.*;
@@ -148,5 +145,21 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
                 map(Membership::getReferenceId).
                 collect(Collectors.toList()).
                 containsAll(Arrays.asList("api1_findByIds", "api2_findByIds")));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownMembership() throws Exception {
+        Membership unknownMembership = new Membership();
+        unknownMembership.setUserId("unknown");
+        unknownMembership.setReferenceId("unknown");
+        unknownMembership.setReferenceType(MembershipReferenceType.MANAGEMENT);
+        membershipRepository.update(unknownMembership);
+        fail("An unknown membership should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        membershipRepository.update(null);
+        fail("A null membership should not be updated");
     }
 }

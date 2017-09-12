@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
+import static org.junit.Assert.fail;
 
 public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
 
@@ -91,5 +92,19 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull("ApiKey Set is null", apiKeys);
 
         Assert.assertTrue("Api found on subscription with no api", apiKeys.isEmpty());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownApiKey() throws Exception {
+        ApiKey unknownApiKey = new ApiKey();
+        unknownApiKey.setKey("unknown");
+        apiKeyRepository.update(unknownApiKey);
+        fail("An unknown apiKey should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        apiKeyRepository.update(null);
+        fail("A null apiKey should not be updated");
     }
 }

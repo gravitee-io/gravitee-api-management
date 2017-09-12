@@ -212,4 +212,18 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
                 collect(Collectors.toList()).
                 containsAll(Arrays.asList("application-sample", "updated-app")));
     }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownApplication() throws Exception {
+        Application unknownApplication = new Application();
+        unknownApplication.setId("unknown");
+        applicationRepository.update(unknownApplication);
+        fail("An unknown application should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        applicationRepository.update(null);
+        fail("A null application should not be updated");
+    }
 }

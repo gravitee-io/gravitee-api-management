@@ -116,4 +116,18 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
         assertEquals("invalid permissions", 1, role.get().getPermissions().length);
         assertEquals("invalid permissions", 1, role.get().getPermissions()[0]);
     }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownRole() throws Exception {
+        Role unknownRole = new Role();
+        unknownRole.setName("unknown");
+        roleRepository.update(unknownRole);
+        fail("An unknown role should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        roleRepository.update(null);
+        fail("A null role should not be updated");
+    }
 }

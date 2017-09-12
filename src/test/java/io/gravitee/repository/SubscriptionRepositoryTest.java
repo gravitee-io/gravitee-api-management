@@ -109,4 +109,18 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(subscription);
         assertFalse(subscription.isPresent());
     }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownSubscription() throws Exception {
+        Subscription unknownSubscription = new Subscription();
+        unknownSubscription.setId("unknown");
+        subscriptionRepository.update(unknownSubscription);
+        fail("An unknown subscription should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        subscriptionRepository.update(null);
+        fail("A null subscription should not be updated");
+    }
 }

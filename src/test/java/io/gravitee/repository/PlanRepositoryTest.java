@@ -120,13 +120,6 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid plan status.", plan.getStatus(), planUpdated.getStatus());
     }
 
-    @Test(expected = Exception.class)
-    public void shouldNotUpdateNull() throws Exception {
-        planRepository.update(null);
-
-        Assert.fail("should not update NULL entity");
-    }
-
     @Test
     public void shouldDelete() throws Exception {
         planRepository.delete("stores");
@@ -134,5 +127,19 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         Optional<Plan> optional = planRepository.findById("stores");
 
         Assert.assertFalse("Plan must not be found", optional.isPresent());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownPlan() throws Exception {
+        Plan unknownPlan = new Plan();
+        unknownPlan.setId("unknown");
+        planRepository.update(unknownPlan);
+        fail("An unknown plan should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        planRepository.update(null);
+        fail("A null plan should not be updated");
     }
 }

@@ -145,7 +145,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertFalse("should not exists after delete", pageShouldNotExists.isPresent());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownPage() throws Exception {
         Page unknownPage = new Page();
         unknownPage.setId("unknown");
@@ -153,7 +153,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         fail("An unknown page should not be updated");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateNull() throws Exception {
         pageRepository.update(null);
         fail("A null page should not be updated");

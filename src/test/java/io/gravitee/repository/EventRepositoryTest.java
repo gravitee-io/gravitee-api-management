@@ -201,4 +201,18 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
 
         assertFalse(eventRepository.findById("event5").isPresent());
     }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownEvent() throws Exception {
+        Event unknownEvent = new Event();
+        unknownEvent.setId("unknown");
+        eventRepository.update(unknownEvent);
+        fail("An unknown event should not be updated");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateNull() throws Exception {
+        eventRepository.update(null);
+        fail("A null event should not be updated");
+    }
 }
