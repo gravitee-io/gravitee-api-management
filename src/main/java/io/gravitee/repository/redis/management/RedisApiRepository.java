@@ -87,8 +87,17 @@ public class RedisApiRepository implements ApiRepository {
 
     @Override
     public Api update(Api api) throws TechnicalException {
-        RedisApi redisApi = apiRedisRepository.saveOrUpdate(convert(api));
-        return convert(redisApi);
+        if (api == null || api.getId() == null) {
+            throw new IllegalStateException("Api to update must have an id");
+        }
+
+        final RedisApi redisApi = apiRedisRepository.find(api.getId());
+        if (redisApi == null) {
+            throw new IllegalStateException(String.format("No api found with id [%s]", api.getId()));
+        }
+
+        RedisApi redisApiUpdated = apiRedisRepository.saveOrUpdate(convert(api));
+        return convert(redisApiUpdated);
     }
 
     @Override

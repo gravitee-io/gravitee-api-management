@@ -45,6 +45,17 @@ public class RedisMetadataRepository implements MetadataRepository {
 
     @Override
     public Metadata update(Metadata metadata) throws TechnicalException {
+        if (metadata == null || metadata.getName() == null) {
+            throw new IllegalStateException("Metadata to update must have a name");
+        }
+
+        RedisMetadata redisMetadata = metadataRedisRepository.findById(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType());
+
+        if (redisMetadata == null) {
+            throw new IllegalStateException(String.format("No metadata found with key [%s], reference id [%s] and type [%s]",
+                    metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType()));
+        }
+
         return convert(metadataRedisRepository.update(convert(metadata)));
     }
 

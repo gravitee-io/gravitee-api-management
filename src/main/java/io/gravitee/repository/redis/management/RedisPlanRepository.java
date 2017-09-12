@@ -60,8 +60,18 @@ public class RedisPlanRepository implements PlanRepository {
 
     @Override
     public Plan update(Plan plan) throws TechnicalException {
-        RedisPlan redisPlan = planRedisRepository.saveOrUpdate(convert(plan));
-        return convert(redisPlan);
+        if (plan == null || plan.getId() == null) {
+            throw new IllegalStateException("Plan to update must have an id");
+        }
+
+        RedisPlan redisPlan = planRedisRepository.find(plan.getId());
+
+        if (redisPlan == null) {
+            throw new IllegalStateException(String.format("No plan found with id [%s]", plan.getId()));
+        }
+
+        RedisPlan redisPlanUpdated = planRedisRepository.saveOrUpdate(convert(plan));
+        return convert(redisPlanUpdated);
     }
 
     @Override

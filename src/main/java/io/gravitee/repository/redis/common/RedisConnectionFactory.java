@@ -49,7 +49,7 @@ public class RedisConnectionFactory implements FactoryBean<org.springframework.d
         jedisConnectionFactory.setTimeout(readPropertyValue(propertyPrefix + "timeout", int.class, -1));
 
         JedisPoolConfig poolConfig = new JedisPoolConfig();
-        poolConfig.setMaxTotal(128);
+        poolConfig.setMaxTotal(256);
         poolConfig.setBlockWhenExhausted(false);
         jedisConnectionFactory.setPoolConfig(poolConfig);
 

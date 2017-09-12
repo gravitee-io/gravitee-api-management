@@ -45,6 +45,17 @@ public class RedisMembershipRepository implements MembershipRepository {
 
     @Override
     public Membership update(Membership membership) throws TechnicalException {
+        if (membership == null || membership.getUserId() == null || membership.getReferenceId() == null || membership.getReferenceType() == null) {
+            throw new IllegalStateException("Membership to update must have an user id, a reference id and type");
+        }
+
+        RedisMembership redisMembership = membershipRedisRepository.findById(membership.getUserId(), membership.getReferenceType().name(), membership.getReferenceId());
+
+        if (redisMembership == null) {
+            throw new IllegalStateException(String.format("No membership found with user id [%s], reference type [%s] and id [%s]",
+                    membership.getUserId(), membership.getReferenceType().name(), membership.getReferenceId()));
+        }
+
         return convert(membershipRedisRepository.saveOrUpdate(convert(membership)));
     }
 

@@ -76,8 +76,17 @@ public class RedisEventRepository implements EventRepository {
 
     @Override
     public Event update(Event event) throws TechnicalException {
-        RedisEvent redisEvent = eventRedisRepository.saveOrUpdate(convert(event));
-        return convert(redisEvent);
+        if (event == null || event.getId() == null) {
+            throw new IllegalStateException("Event to update must have an id");
+        }
+
+        final RedisEvent redisEvent = eventRedisRepository.find(event.getId());
+        if (redisEvent == null) {
+            throw new IllegalStateException(String.format("No event found with id [%s]", event.getId()));
+        }
+
+        RedisEvent redisEventUpdated = eventRedisRepository.saveOrUpdate(convert(event));
+        return convert(redisEventUpdated);
     }
 
     @Override

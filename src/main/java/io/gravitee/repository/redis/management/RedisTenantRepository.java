@@ -51,13 +51,18 @@ public class RedisTenantRepository implements TenantRepository {
 
     @Override
     public Tenant update(final Tenant tenant) throws TechnicalException {
-        Optional<Tenant> existingTenant = findById(tenant.getId());
-
-        if (!existingTenant.isPresent()) {
-            return null;
+        if (tenant == null || tenant.getName() == null) {
+            throw new IllegalStateException("Tenant to update must have a name");
         }
-        final RedisTenant redisTenant = tenantRedisRepository.saveOrUpdate(convert(tenant));
-        return convert(redisTenant);
+
+        final RedisTenant redisTenant = tenantRedisRepository.findById(tenant.getId());
+
+        if (redisTenant == null) {
+            throw new IllegalStateException(String.format("No tenant found with name [%s]", tenant.getId()));
+        }
+
+        final RedisTenant redisTenantUpdated = tenantRedisRepository.saveOrUpdate(convert(tenant));
+        return convert(redisTenantUpdated);
     }
 
     @Override

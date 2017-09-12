@@ -69,16 +69,17 @@ public class RedisPageRepository implements PageRepository {
 
     @Override
     public Page update(Page page) throws TechnicalException {
-        if(page == null){
-            throw new IllegalArgumentException("Page must not be null");
+        if (page == null) {
+            throw new IllegalStateException("Page must not be null");
         }
 
-        RedisPage oldRedisPage = pageRedisRepository.find(page.getId());
-        if(oldRedisPage == null){
-            throw new IllegalArgumentException(String.format("No page found with id [%s]", page.getId()));
+        RedisPage pageMongo = pageRedisRepository.find(page.getId());
+        if (pageMongo == null) {
+            throw new IllegalStateException(String.format("No page found with id [%s]", page.getId()));
         }
-        RedisPage redisPage = pageRedisRepository.saveOrUpdate(convert(page));
-        return convert(redisPage);
+
+        RedisPage redisPageUpdated = pageRedisRepository.saveOrUpdate(convert(page));
+        return convert(redisPageUpdated);
     }
 
     @Override

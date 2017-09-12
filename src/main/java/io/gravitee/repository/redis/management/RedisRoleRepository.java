@@ -53,8 +53,17 @@ public class RedisRoleRepository implements RoleRepository {
 
     @Override
     public Role update(Role role) throws TechnicalException {
-        RedisRole redisRole = roleRedisRepository.saveOrUpdate(convert(role));
-        return convert(redisRole);
+        if (role == null || role.getScope() == null || role.getName() == null) {
+            throw new IllegalStateException("Role to update must not be null");
+        }
+        final RedisRole redisRole = roleRedisRepository.find(convertId(role.getScope(), role.getName()));
+
+        if (redisRole == null) {
+            throw new IllegalStateException(String.format("No role found with scope [%s] and name [%s]", role.getScope(), role.getName()));
+        }
+
+        RedisRole redisRoleUpdated = roleRedisRepository.saveOrUpdate(convert(role));
+        return convert(redisRoleUpdated);
     }
 
     @Override

@@ -50,9 +50,19 @@ public class RedisApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
-    public ApiKey update(ApiKey key) throws TechnicalException {
-        RedisApiKey redisApiKey = apiKeyRedisRepository.saveOrUpdate(convert(key));
-        return convert(redisApiKey);
+    public ApiKey update(ApiKey apiKey) throws TechnicalException {
+        if (apiKey == null || apiKey.getKey() == null) {
+            throw new IllegalStateException("ApiKey to update must have an key");
+        }
+
+        RedisApiKey redisApiKey = apiKeyRedisRepository.find(apiKey.getKey());
+
+        if (redisApiKey == null) {
+            throw new IllegalStateException(String.format("No apiKey found with key [%s]", apiKey.getKey()));
+        }
+
+        RedisApiKey redisApiKeyUpdated = apiKeyRedisRepository.saveOrUpdate(convert(apiKey));
+        return convert(redisApiKeyUpdated);
     }
 
     @Override

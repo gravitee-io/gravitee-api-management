@@ -25,7 +25,10 @@ import io.gravitee.repository.redis.management.model.RedisGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -60,8 +63,16 @@ public class RedisGroupRepository implements GroupRepository{
     }
 
     @Override
-    public Group update(Group item) throws TechnicalException {
-        return convert(internalRepository.saveOrUpdate(convert(item)));
+    public Group update(Group group) throws TechnicalException {
+        if (group == null) {
+            throw new IllegalStateException("Group must not be null");
+        }
+
+        final RedisGroup redisGroup = internalRepository.find(group.getId());
+        if (redisGroup == null) {
+            throw new IllegalStateException(String.format("No group found with id [%s]", group.getId()));
+        }
+        return convert(internalRepository.saveOrUpdate(convert(group)));
     }
 
     @Override

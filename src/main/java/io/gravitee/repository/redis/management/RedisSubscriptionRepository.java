@@ -68,8 +68,18 @@ public class RedisSubscriptionRepository implements SubscriptionRepository {
 
     @Override
     public Subscription update(Subscription subscription) throws TechnicalException {
-        RedisSubscription redisSubscription = subscriptionRedisRepository.saveOrUpdate(convert(subscription));
-        return convert(redisSubscription);
+        if (subscription == null || subscription.getId() == null) {
+            throw new IllegalStateException("Subscription to update must have an id");
+        }
+
+        RedisSubscription redisSubscription = subscriptionRedisRepository.find(subscription.getId());
+
+        if (redisSubscription == null) {
+            throw new IllegalStateException(String.format("No subscription found with id [%s]", subscription.getId()));
+        }
+
+        RedisSubscription redisSubscriptionUpdated = subscriptionRedisRepository.saveOrUpdate(convert(subscription));
+        return convert(redisSubscriptionUpdated);
     }
 
     @Override

@@ -99,7 +99,14 @@ public class RedisApplicationRepository implements ApplicationRepository {
 
     @Override
     public Application update(Application application) throws TechnicalException {
-        RedisApplication redisApplication = applicationRedisRepository.find(application.getId());
+        if (application == null || application.getId() == null) {
+            throw new IllegalStateException("Application to update must have an id");
+        }
+
+        final RedisApplication redisApplication = applicationRedisRepository.find(application.getId());
+        if (redisApplication == null) {
+            throw new IllegalStateException(String.format("No application found with id [%s]", application.getId()));
+        }
 
         redisApplication.setName(application.getName());
         redisApplication.setDescription(application.getDescription());

@@ -47,8 +47,18 @@ public class RedisUserRepository implements UserRepository {
 
     @Override
     public User update(User user) throws TechnicalException {
-        RedisUser redisUser = userRedisRepository.saveOrUpdate(convert(user));
-        return convert(redisUser);
+        if (user == null || user.getUsername() == null) {
+            throw new IllegalStateException("User to update must have a username");
+        }
+
+        final RedisUser redisUser = userRedisRepository.find(user.getUsername());
+
+        if (redisUser == null) {
+            throw new IllegalStateException(String.format("No user found with username [%s]", user.getUsername()));
+        }
+
+        RedisUser redisUserUdated = userRedisRepository.saveOrUpdate(convert(user));
+        return convert(redisUserUdated);
     }
 
     @Override

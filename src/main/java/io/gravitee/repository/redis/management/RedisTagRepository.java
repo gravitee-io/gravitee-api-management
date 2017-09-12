@@ -51,8 +51,18 @@ public class RedisTagRepository implements TagRepository {
 
     @Override
     public Tag update(final Tag tag) throws TechnicalException {
-        final RedisTag redisTag = tagRedisRepository.saveOrUpdate(convert(tag));
-        return convert(redisTag);
+        if (tag == null || tag.getName() == null) {
+            throw new IllegalStateException("Tag to update must have a name");
+        }
+
+        final RedisTag redisTag = tagRedisRepository.findById(tag.getId());
+
+        if (redisTag == null) {
+            throw new IllegalStateException(String.format("No tag found with name [%s]", tag.getId()));
+        }
+
+        final RedisTag redisTagUpdated = tagRedisRepository.saveOrUpdate(convert(tag));
+        return convert(redisTagUpdated);
     }
 
     @Override

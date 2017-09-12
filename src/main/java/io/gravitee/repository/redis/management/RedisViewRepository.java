@@ -51,11 +51,16 @@ public class RedisViewRepository implements ViewRepository {
 
     @Override
     public View update(final View view) throws TechnicalException {
-        Optional<View> existingView = findById(view.getId());
-
-        if (!existingView.isPresent()) {
-            return null;
+        if (view == null || view.getName() == null) {
+            throw new IllegalStateException("View to update must have a name");
         }
+
+        final RedisView viewRedis = viewRedisRepository.findById(view.getId());
+
+        if (viewRedis == null) {
+            throw new IllegalStateException(String.format("No view found with name [%s]", view.getId()));
+        }
+        
         final RedisView redisView = viewRedisRepository.saveOrUpdate(convert(view));
         return convert(redisView);
     }
