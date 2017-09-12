@@ -17,10 +17,16 @@
 -->
 <form name="generalCtrl.formApi" ng-submit="generalCtrl.update(generalCtrl.api)" novalidate>
   <div layout-gt-sm="row">
-    <md-input-container class="md-block" flex-gt-sm>
+    <md-input-container class="md-block" flex-gt-sm permission permission-only="'api-gateway_definition-u'">
       <label>Gateway context path</label>
       <input ng-model="generalCtrl.api.proxy.context_path" type="text"
-             ng-pattern="/^\/[\/.a-zA-Z0-9-_]+$/" ng-disabled="!generalCtrl.contextPathEditable"
+             ng-pattern="/^\/[\/.a-zA-Z0-9-_]+$/"
+             required>
+    </md-input-container>
+    <md-input-container class="md-block" flex-gt-sm permission permission-except="'api-gateway_definition-u'">
+      <label>Gateway context path</label>
+      <input ng-model="generalCtrl.api.proxy.context_path" type="text"
+             ng-pattern="/^\/[\/.a-zA-Z0-9-_]+$/" disabled
              required>
     </md-input-container>
   </div>
