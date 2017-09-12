@@ -145,8 +145,8 @@ public class ApiResource extends AbstractResource {
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
     public Response doLifecycleAction(
-            @ApiParam(required = true,  allowableValues = "START, STOP")
-                @QueryParam("action") LifecycleActionParam action,
+            @ApiParam(required = true, allowableValues = "START, STOP")
+            @QueryParam("action") LifecycleActionParam action,
             @PathParam("api") String api) {
         ApiEntity apiEntity = apiService.findById(api);
 
@@ -176,7 +176,8 @@ public class ApiResource extends AbstractResource {
             @ApiResponse(code = 200, message = "API successfully updated", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
     public ApiEntity update(
             @ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiToUpdate,
@@ -184,7 +185,8 @@ public class ApiResource extends AbstractResource {
         final ApiEntity currentApi = this.get(api);
 
         // Force context-path if user is not the primary_owner or an administrator
-        if (!Objects.equals(currentApi.getPrimaryOwner().getUsername(), getAuthenticatedUsername()) && !isAdmin()) {
+        if (!hasPermission(RolePermission.API_GATEWAY_DEFINITION, api, RolePermissionAction.UPDATE) &&
+                !Objects.equals(currentApi.getPrimaryOwner().getUsername(), getAuthenticatedUsername()) && !isAdmin()) {
             apiToUpdate.getProxy().setContextPath(currentApi.getProxy().getContextPath());
         }
 
@@ -313,7 +315,7 @@ public class ApiResource extends AbstractResource {
         filterSensitiveData(apiEntity);
         return Response
                 .ok(apiService.exportAsJson(api, apiEntity.getRole(), exclude.split(",")))
-                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s",getExportFilename(apiEntity)))
+                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity)))
                 .build();
     }
 
@@ -374,9 +376,9 @@ public class ApiResource extends AbstractResource {
             apiEntity.setIsSynchronized(false);
         }
     }
-    
+
     private void checkAPILifeCycle(ApiEntity api, LifecycleAction action) {
-        switch(api.getState()) {
+        switch (api.getState()) {
             case STARTED:
                 if (LifecycleAction.START.equals(action)) {
                     throw new BadRequestException("API is already started");
@@ -398,14 +400,14 @@ public class ApiResource extends AbstractResource {
                 .toLowerCase()
                 .replaceAll(" +", " ")
                 .replaceAll(" ", "-")
-                .replaceAll("[^\\w\\s\\.]","-")
+                .replaceAll("[^\\w\\s\\.]", "-")
                 .replaceAll("-+", "-");
     }
 
     private void filterSensitiveData(ApiEntity entity) {
         if (//try to display a public api as un unauthenticated user
-                ( !isAuthenticated() && Visibility.PUBLIC.equals(entity.getVisibility()))
-                || (!isAdmin() && !hasPermission(RolePermission.API_GATEWAY_DEFINITION,entity.getId(), RolePermissionAction.READ))) {
+                (!isAuthenticated() && Visibility.PUBLIC.equals(entity.getVisibility()))
+                        || (!isAdmin() && !hasPermission(RolePermission.API_GATEWAY_DEFINITION, entity.getId(), RolePermissionAction.READ))) {
             entity.setProxy(null);
             entity.setPaths(null);
             entity.setProperties(null);
