@@ -173,9 +173,4 @@ public class GroupMemberResource extends AbstractResource {
         membershipService.deleteMember(MembershipReferenceType.GROUP, group, member);
         return Response.ok().build();
     }
-
-    @Path("{user}")
-    public GroupResource groupResource() {
-        return resourceContext.getResource(GroupResource.class);
-    }
 }
