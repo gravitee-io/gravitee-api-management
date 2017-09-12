@@ -184,7 +184,7 @@ public class ApiResource extends AbstractResource {
         final ApiEntity currentApi = this.get(api);
 
         // Force context-path if user is not the primary_owner or an administrator
-        if (!Objects.equals(currentApi.getPrimaryOwner().getUsername(), getAuthenticatedUsername())) {
+        if (!Objects.equals(currentApi.getPrimaryOwner().getUsername(), getAuthenticatedUsername()) && !isAdmin()) {
             apiToUpdate.getProxy().setContextPath(currentApi.getProxy().getContextPath());
         }
 
