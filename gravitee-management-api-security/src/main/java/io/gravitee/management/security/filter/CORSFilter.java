@@ -42,7 +42,7 @@ public class CORSFilter implements Filter {
 		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "POST, PUT, GET, OPTIONS, DELETE, X-XSRF-TOKEN");
 		response.setHeader(HttpHeaders.ACCESS_CONTROL_MAX_AGE, "1209600");
 
-		if (!HttpMethod.OPTIONS.equals(request.getMethod())) {
+		if (!HttpMethod.OPTIONS.name().equals(request.getMethod())) {
 			chain.doFilter(req, res);
 		}
 	}

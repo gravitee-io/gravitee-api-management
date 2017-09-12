@@ -178,10 +178,4 @@ public class GroupMemberResource extends AbstractResource {
     public GroupResource groupResource() {
         return resourceContext.getResource(GroupResource.class);
     }
-
-    private GroupMemberEntity convert(MemberEntity memberEntity, Map<String, String> roles) {
-        GroupMemberEntity entity = new GroupMemberEntity(memberEntity);
-        entity.setRoles(roles);
-        return entity;
-    }
 }
