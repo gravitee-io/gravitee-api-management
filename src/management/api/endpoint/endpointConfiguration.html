@@ -143,6 +143,19 @@
         </div>
 
         <div layout-xs="column" flex-xs="50">
+          <md-checkbox
+            ng-model="endpointCtrl.endpoint.http.followRedirects"
+            aria-label="Enables follow HTTP redirections"
+            class="md-align-top-left" flex>
+            Follow HTTP redirections<br/>
+            <span class="ipsum">
+              when the client receives an <code>301</code>, <code>302</code>, <code>303</code> or <code>307</code> status code,
+              it follows the redirection provided by the <code>Location</code> response header
+            </span>
+          </md-checkbox>
+        </div>
+
+        <div layout-xs="column" flex-xs="50">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Override Host header</label>
             <input ng-model="endpointCtrl.endpoint.hostHeader" type="text" name="hostHeader">
