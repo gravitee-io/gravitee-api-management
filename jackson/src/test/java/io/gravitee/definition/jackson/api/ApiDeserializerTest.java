@@ -401,4 +401,21 @@ public class ApiDeserializerTest extends AbstractTest {
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
         Assert.assertNotNull(endpoint.getHostHeader());
     }
+
+    @Test
+    public void definition_defaultFollowRedirect() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
+
+        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Assert.assertFalse(endpoint.getHttpClientOptions().isFollowRedirects());
+    }
+
+    @Test
+    public void definition_withFollowRedirect() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-withclientoptions.json", Api.class);
+
+        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Assert.assertNotNull(endpoint.getHttpClientOptions());
+        Assert.assertTrue(endpoint.getHttpClientOptions().isFollowRedirects());
+    }
 }

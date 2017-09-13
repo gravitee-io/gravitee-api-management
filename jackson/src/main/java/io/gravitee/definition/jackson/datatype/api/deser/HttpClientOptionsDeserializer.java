@@ -95,6 +95,14 @@ public class HttpClientOptionsDeserializer extends AbstractStdScalarDeserializer
             httpClientOptions.setUseCompression(HttpClientOptions.DEFAULT_USE_COMPRESSION);
         }
 
+        JsonNode followRedirectsNode = node.get("followRedirects");
+        if (followRedirectsNode != null) {
+            boolean useCompression = followRedirectsNode.asBoolean(HttpClientOptions.DEFAULT_FOLLOW_REDIRECTS);
+            httpClientOptions.setFollowRedirects(useCompression);
+        } else {
+            httpClientOptions.setFollowRedirects(HttpClientOptions.DEFAULT_FOLLOW_REDIRECTS);
+        }
+
         return httpClientOptions;
     }
 }

@@ -11,7 +11,8 @@
         "http": {
           "idleTimeout": 5000,
           "connectTimeout": 5000,
-          "keepAlive": true
+          "keepAlive": true,
+          "followRedirects": true
         },
         "ssl": {
           "trustAll": true,
