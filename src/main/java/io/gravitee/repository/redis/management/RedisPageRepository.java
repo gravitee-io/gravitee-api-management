@@ -132,6 +132,7 @@ public class RedisPageRepository implements PageRepository {
         page.setPublished(redisPage.isPublished());
         page.setType(PageType.valueOf(redisPage.getType()));
         page.setHomepage(redisPage.isHomepage());
+        page.setExcludedGroups(redisPage.getExcludedGroups());
 
         if (redisPage.getSourceType() != null) {
             PageSource pageSource = new PageSource();
@@ -161,6 +162,7 @@ public class RedisPageRepository implements PageRepository {
         redisPage.setPublished(page.isPublished());
         redisPage.setType(page.getType().name());
         redisPage.setHomepage(page.isHomepage());
+        redisPage.setExcludedGroups(page.getExcludedGroups());
 
         if (page.getSource() != null) {
             redisPage.setSourceType(page.getSource().getType());

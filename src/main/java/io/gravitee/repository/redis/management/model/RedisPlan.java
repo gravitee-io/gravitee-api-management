@@ -79,6 +79,8 @@ public class RedisPlan {
 
     private String security;
 
+    private List<String> excludedGroups;
+
     public String getId() {
         return id;
     }
@@ -197,6 +199,14 @@ public class RedisPlan {
 
     public void setSecurity(String security) {
         this.security = security;
+    }
+
+    public List<String> getExcludedGroups() {
+        return excludedGroups;
+    }
+
+    public void setExcludedGroups(List<String> excludedGroups) {
+        this.excludedGroups = excludedGroups;
     }
 
     @Override

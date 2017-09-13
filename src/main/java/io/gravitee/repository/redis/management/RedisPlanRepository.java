@@ -97,6 +97,7 @@ public class RedisPlanRepository implements PlanRepository {
         plan.setApis(redisPlan.getApis());
         plan.setDescription(redisPlan.getDescription());
         plan.setDefinition(redisPlan.getDefinition());
+        plan.setExcludedGroups(redisPlan.getExcludedGroups());
 
         if (redisPlan.getValidation() != null) {
             plan.setValidation(Plan.PlanValidationType.valueOf(redisPlan.getValidation()));
@@ -132,7 +133,7 @@ public class RedisPlanRepository implements PlanRepository {
         RedisPlan redisPlan = new RedisPlan();
         redisPlan.setId(plan.getId());
         redisPlan.setName(plan.getName());
-        redisPlan.setOrder(redisPlan.getOrder());
+        redisPlan.setOrder(plan.getOrder());
 
         if (plan.getType() != null) {
             redisPlan.setType(plan.getType().name());
@@ -142,6 +143,7 @@ public class RedisPlanRepository implements PlanRepository {
         redisPlan.setApis(plan.getApis());
         redisPlan.setDescription(plan.getDescription());
         redisPlan.setDefinition(plan.getDefinition());
+        redisPlan.setExcludedGroups(plan.getExcludedGroups());
 
         if (plan.getValidation() != null) {
             redisPlan.setValidation(plan.getValidation().name());

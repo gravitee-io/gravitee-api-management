@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.redis.management.model;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -38,6 +39,7 @@ public class RedisPage {
     private boolean configurationTryIt;
     private String configurationTryItURL;
     private boolean homepage;
+    private List<String> excludedGroups;
 
     public String getApi() {
         return api;
@@ -157,6 +159,14 @@ public class RedisPage {
 
     public void setHomepage(boolean homepage) {
         this.homepage = homepage;
+    }
+
+    public List<String> getExcludedGroups() {
+        return excludedGroups;
+    }
+
+    public void setExcludedGroups(List<String> excludedGroups) {
+        this.excludedGroups = excludedGroups;
     }
 
     @Override
