@@ -45,6 +45,13 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.gateway.handlers</groupId>
+            <artifactId>gravitee-gateway-handlers-api</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
         </dependency>
