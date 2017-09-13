@@ -17,6 +17,8 @@ package io.gravitee.gateway.services.http;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.gateway.services.http.handler.apis.ApiHandler;
+import io.gravitee.gateway.services.http.handler.apis.ApisHandler;
 import io.gravitee.gateway.services.http.handler.NodeHandler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.auth.AuthProvider;
@@ -76,6 +78,16 @@ public class HttpServer extends AbstractService {
         NodeHandler nodeHandler = new NodeHandler();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(nodeHandler);
         nodeRouter.get("/").handler(nodeHandler);
+
+        // Set APIs handler
+        ApisHandler apisHandler = new ApisHandler();
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(apisHandler);
+        nodeRouter.get("/apis").handler(apisHandler);
+
+        // Set API handler
+        ApiHandler apiHandler = new ApiHandler();
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(apiHandler);
+        nodeRouter.get("/apis/:apiId").handler(apiHandler);
     }
 
     @Override
