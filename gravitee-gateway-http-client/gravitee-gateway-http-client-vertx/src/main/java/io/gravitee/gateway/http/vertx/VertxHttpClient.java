@@ -85,6 +85,7 @@ public class VertxHttpClient extends AbstractHttpClient {
         HttpClientRequest clientRequest = httpClient.request(
                 convert(proxyRequest.method()), port, uri.getHost(), relativeUri);
         clientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
+        clientRequest.setFollowRedirects(endpoint.getHttpClientOptions().isFollowRedirects());
 
         VertxProxyConnection proxyConnection = new VertxProxyConnection(clientRequest);
         clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse));
