@@ -371,19 +371,19 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
                 ApplicationEntity applicationEntity = applicationService.findById(referenceId);
                 subject = "Subscription to application " + applicationEntity.getName();
                 template = EmailNotificationBuilder.EmailTemplate.APPLICATION_MEMBER_SUBSCRIPTION;
-                params = ImmutableMap.of("application", applicationEntity, "username", user.getUsername());
+                params = ImmutableMap.of("application", applicationEntity, "username", user.getUsername(), "user", user);
                 break;
             case API:
                 ApiEntity apiEntity = apiService.findById(referenceId);
                 subject = "Subscription to API " + apiEntity.getName();
                 template = EmailNotificationBuilder.EmailTemplate.API_MEMBER_SUBSCRIPTION;
-                params = ImmutableMap.of("api", apiEntity, "username", user.getUsername());
+                params = ImmutableMap.of("api", apiEntity, "username", user.getUsername(), "user", user);
                 break;
             case GROUP:
                 groupEntity = groupService.findById(referenceId);
                 subject = "Subscription to group " + groupEntity.getName();
                 template = EmailNotificationBuilder.EmailTemplate.GROUP_MEMBER_SUBSCRIPTION;
-                params = ImmutableMap.of("group", groupEntity, "username", user.getUsername());
+                params = ImmutableMap.of("group", groupEntity, "username", user.getUsername(), "user", user);
                 break;
         }
 

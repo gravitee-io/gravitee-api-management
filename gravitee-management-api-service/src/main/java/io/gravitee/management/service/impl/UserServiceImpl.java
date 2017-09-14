@@ -316,7 +316,8 @@ public class UserServiceImpl extends TransactionalService implements UserService
                 .params(ImmutableMap.of(
                         "username", userEntity.getUsername(),
                         "token", token,
-                        "registrationUrl", registrationUrl))
+                        "registrationUrl", registrationUrl,
+                        "user", userEntity))
                 .build()
         );
 

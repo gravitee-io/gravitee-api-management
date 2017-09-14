@@ -5,9 +5,9 @@
 		</header>
 		<div style="margin-top: 50px; color: #424e5a;">
 			<#if owner.firstname?? && owner.lastname??>
-				<h3>Hi ${owner.firstname} ${owner.lastname},</h3>
+				<h3>Hi ${user.firstname} ${user.lastname},</h3>
 			<#else>
-				<h3>Hi ${owner.username},</h3>
+				<h3>Hi ${user.username},</h3>
 			</#if>
 			<p>You are now a member of the group: <b>${group.name}</b></p>
 		</div>
