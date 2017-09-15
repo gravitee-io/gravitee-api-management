@@ -85,19 +85,9 @@ public class ApiPagesResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response getPageContent(
             @PathParam("api") String api,
-            @PathParam("page") String page,
-            @QueryParam("portal") boolean portal) {
-        final ApiEntity apiEntity = apiService.findById(api);
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-                || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
-            PageEntity pageEntity = pageService.findById(page, portal);
-            if (isDisplayable(apiEntity, pageEntity.isPublished(), getAuthenticatedUsernameOrNull())) {
-                return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
-            } else {
-                throw new UnauthorizedAccessException();
-            }
-        }
-        throw new ForbiddenAccessException();
+            @PathParam("page") String page) {
+        final PageEntity pageEntity = getPage(api, page, true);
+        return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
     }
 
     @GET
