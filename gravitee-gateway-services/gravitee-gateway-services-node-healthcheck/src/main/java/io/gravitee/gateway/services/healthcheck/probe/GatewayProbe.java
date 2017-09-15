@@ -37,6 +37,9 @@ public class GatewayProbe implements Probe {
     @Value("${http.port:8082}")
     private int port;
 
+    @Value("${http.host:localhost}")
+    private String host;
+
     @Autowired
     private Vertx vertx;
 
@@ -52,7 +55,7 @@ public class GatewayProbe implements Probe {
         NetClientOptions options = new NetClientOptions().setConnectTimeout(500);
         NetClient client = vertx.createNetClient(options);
 
-        client.connect(port, "localhost", res -> {
+        client.connect(port, host, res -> {
             if (res.succeeded()) {
                 result.complete(Result.healthy());
             } else {
