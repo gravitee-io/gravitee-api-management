@@ -82,14 +82,15 @@ class ApiEndpointController {
       api.proxy.endpoints.push(this.endpoint);
     }
 
-    this.ApiService.update(api).then(() => {
+    this.ApiService.update(api).then((updatedApi) => {
+      this.api = updatedApi.data;
       this.onApiUpdate();
       this.initialEndpoints = _.cloneDeep(api.proxy.endpoints);
     });
   }
 
   onApiUpdate() {
-    this.$rootScope.$broadcast("apiChangeSuccess");
+    this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
     this.NotificationService.show('Endpoint saved');
     this.$state.go('apis.admin.general.gateway');
   }

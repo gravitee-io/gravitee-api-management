@@ -60,10 +60,10 @@ class ApiHistoryController {
   init() {
     var self = this;
     this.$scope.$parent.apiCtrl.checkAPISynchronization(self.api);
-    this.$scope.$on("apiChangeSucceed", function() {
+    this.$scope.$on("apiChangeSuccess", function(event, args) {
       if (self.$state.current.name.endsWith('history')) {
         // reload API
-        self.api = _.cloneDeep(self.$scope.$parent.apiCtrl.api);
+        self.api = _.cloneDeep(args.api);
         self.cleanAPI();
         // reload API events
         self.ApiService.getApiEvents(self.api.id, self.eventTypes).then(response => {
@@ -206,12 +206,9 @@ class ApiHistoryController {
 
     that.ApiService.rollback(this.api.id, _apiDefinition).then( () => {
       that.NotificationService.show('Api rollback !');
-      that.$rootScope.$broadcast("apiChangeSuccess");
 
       that.ApiService.get(that.api.id).then(function (response) {
-        that.$timeout(function () {
-          that.$scope.$parent.apiCtrl.api = response.data;
-        });
+        that.$rootScope.$broadcast("apiChangeSuccess", {api: response.data});
       });
     });
   }

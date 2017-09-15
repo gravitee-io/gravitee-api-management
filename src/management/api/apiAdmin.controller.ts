@@ -30,8 +30,7 @@ class ApiAdminController {
     private ApiService,
     private NotificationService,
     private resolvedApiState,
-    private SidenavService: SidenavService,
-    private UserService: UserService) {
+    private SidenavService: SidenavService) {
     'ngInject';
     this.$scope = $scope;
     this.$state = $state;
@@ -54,9 +53,9 @@ class ApiAdminController {
       self.api.picture = args.image;
       self.updatePicture(self.api);
     });
-    this.$scope.$on("apiChangeSuccess", function() {
+    this.$scope.$on("apiChangeSuccess", function(event, args) {
+      self.api = args.api;
       self.checkAPISynchronization(self.api);
-      self.$rootScope.$broadcast("apiChangeSucceed");
     });
   }
 
@@ -97,7 +96,7 @@ class ApiAdminController {
       this.api = deployedApi.data;
       this.api.picture_url = api.picture_url;
       this.apiJustDeployed = true;
-      this.$rootScope.$broadcast("apiChangeSuccess");
+      this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
     });
   }
 

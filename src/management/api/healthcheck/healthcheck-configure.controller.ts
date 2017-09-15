@@ -162,7 +162,7 @@ class ApiHealthCheckConfigureController {
       this.$scope.formApiHealthCheckTrigger.$setPristine();
       this.$scope.formApiHealthCheckRequest.$setPristine();
       this.$scope.formApiHealthCheckResponse.$setPristine();
-      this.$rootScope.$broadcast('apiChangeSuccess');
+      this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
 
       if (this.endpoint !== undefined) {
         this.NotificationService.show('Health-check configuration for endpoint [' + this.endpoint.name+ '] has been updated');

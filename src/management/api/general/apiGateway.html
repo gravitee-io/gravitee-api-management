@@ -198,7 +198,7 @@
     <md-button permission permission-only="'api-definition-u'" class="md-raised" type="submit" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
       Save
     </md-button>
-    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="generalCtrl.formApi.$invalid || generalCtrl.formApi.$pristine">
+    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="button" ng-click="generalCtrl.reset()" ng-disabled="generalCtrl.formApi.$pristine">
       Reset
     </md-button>
     <md-button permission permission-only="'api-definition-d'" class="md-raised md-warn pull-right" type="button" ng-click="generalCtrl.delete(generalCtrl.api.id)" ng-disabled="generalCtrl.api.state === 'started'">

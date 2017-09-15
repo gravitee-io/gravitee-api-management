@@ -37,7 +37,6 @@ class ApiAdminController {
     private $mdDialog,
     private $mdEditDialog,
     private $rootScope,
-    private resolvedApi,
     private $state,
     private GroupService,
     private SidenavService: SidenavService,
@@ -56,8 +55,8 @@ class ApiAdminController {
     this.$rootScope = $rootScope;
     this.$mdEditDialog = $mdEditDialog;
     this.$mdDialog = $mdDialog;
-    this.initialApi = _.cloneDeep(resolvedApi.data);
-    this.api = resolvedApi.data;
+    this.initialApi = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
+    this.api = this.$scope.$parent.apiCtrl.api;
     this.tenants = resolvedTenants.data;
     this.$scope.selected = [];
 
@@ -103,12 +102,6 @@ class ApiAdminController {
 
     // Context-path editable
     this.contextPathEditable =this.UserService.currentUser.username === this.api.owner.username;
-
-    var self = this;
-    this.$scope.$on('apiChangeSucceed', function () {
-      self.initialApi = _.cloneDeep(self.$scope.$parent.apiCtrl.api);
-      self.api = self.$scope.$parent.apiCtrl.api;
-    });
   }
 
   editWeight(event, endpoint) {
@@ -172,7 +165,6 @@ class ApiAdminController {
 
   reset() {
     this.api = _.cloneDeep(this.initialApi);
-    this.$scope.$parent.apiCtrl.api = this.api;
     this.formApi.$setPristine();
     this.formApi.$setUntouched();
   }
@@ -203,7 +195,7 @@ class ApiAdminController {
     this.api = updatedApi;
     this.initState();
     this.formApi.$setPristine();
-    this.$rootScope.$broadcast('apiChangeSuccess');
+    this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
     this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
     this.SidenavService.setCurrentResource(this.api.name);
   }

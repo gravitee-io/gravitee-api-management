@@ -35,13 +35,12 @@ class ApiPoliciesController {
     private dragularService,
     private $q,
     private $rootScope,
-    private $timeout,
     private StringService,
     private UserService
   ) {
     'ngInject';
     this.dndEnabled = UserService.isUserHasPermissions(['api-definition-u']);
-    
+
     this.apiPoliciesByPath = {};
     this.policiesToCopy = [];
     this.policiesMap = {};
@@ -344,14 +343,11 @@ class ApiPoliciesController {
     const that = this;
 
     let api = this.$scope.$parent.apiCtrl.api;
-    return this.ApiService.update(api).then( ({data} ) => {
-      that.$rootScope.$broadcast('apiChangeSuccess');
-      that.NotificationService.show('API \'' + data.name + '\' saved');
+    return this.ApiService.update(api).then( (updatedApi) => {
+      that.NotificationService.show('API \'' + updatedApi.data.name + '\' saved');
       that.pathsToCompare = that.generatePathsToCompare();
 
-      that.$timeout(function () {
-        api = data;
-      });
+      that.$rootScope.$broadcast('apiChangeSuccess', {api: updatedApi.data});
     });
   }
 
