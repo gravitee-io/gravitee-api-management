@@ -26,7 +26,7 @@
   <span flex></span>
   <md-button ng-if="!$ctrl.graviteeUser.username" ui-sref="login">{{'menu.login' | translate}}</md-button>
   <md-menu ng-if="$ctrl.graviteeUser.username" md-offset="0 54">
-    <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" aria-label="Open user menu">
+    <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" ng-mouseover="$mdMenu.open($event)" aria-label="Open user menu">
       <img ng-src="{{$ctrl.graviteeUser.picture || $ctrl.getUserPicture()}}" alt="user-picture"/>
       <span ng-if="$ctrl.graviteeUser.lastname">{{$ctrl.graviteeUser.firstname}} {{$ctrl.graviteeUser.lastname}}</span>
       <span ng-if="!$ctrl.graviteeUser.lastname">{{$ctrl.graviteeUser.username}}</span>
