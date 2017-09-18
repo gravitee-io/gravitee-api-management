@@ -97,6 +97,10 @@ services:
       port: 18083
       host: localhost
       authentication:
+        # authentication type to be used for the core services
+        # - none : to disable authentication
+        # - basic : to use basic authentication
+        # default is "basic"
         type: basic
         users:
           admin: adminadmin

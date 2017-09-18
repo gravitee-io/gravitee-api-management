@@ -17,6 +17,7 @@ package io.gravitee.management.services.http;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.management.services.http.configuration.HttpServerConfiguration;
 import io.gravitee.management.services.http.handler.NodeHandler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.auth.AuthProvider;
@@ -36,6 +37,10 @@ public class HttpServer extends AbstractService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpServer.class);
 
+    private final static String AUTHENTICATION_TYPE_NONE = "none";
+    private final static String AUTHENTICATION_TYPE_BASIC = "basic";
+    private final static String AUTHENTICATION_BASIC_REALM = "gravitee.io";
+
     private final static String PATH = "/_node";
 
     @Autowired
@@ -51,6 +56,9 @@ public class HttpServer extends AbstractService {
     @Autowired
     private AuthProvider authProvider;
 
+    @Autowired
+    private HttpServerConfiguration httpServerConfiguration;
+
     @Override
     protected void doStart() throws Exception {
         super.doStart();
@@ -60,10 +68,23 @@ public class HttpServer extends AbstractService {
         // Start HTTP server
         Router mainRouter = Router.router(vertx).mountSubRouter(PATH, nodeRouter);
 
-        // Set security handler
-        AuthHandler authHandler = BasicAuthHandler.create(authProvider, "gravitee.io");
-        mainRouter.route().handler(authHandler);
-        nodeRouter.route().handler(authHandler);
+        AuthHandler authHandler = null;
+        switch ( httpServerConfiguration.getAuthenticationType().toLowerCase() ) {
+            case AUTHENTICATION_TYPE_NONE:
+                break;
+            case AUTHENTICATION_TYPE_BASIC:
+                authHandler = BasicAuthHandler.create(authProvider, AUTHENTICATION_BASIC_REALM);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported Authentication type " + httpServerConfiguration.getAuthenticationType() + " for HTTP core services");
+        }
+
+        // Set security handler is defined
+        if ( authHandler != null ) {
+           mainRouter.route().handler(authHandler);
+           nodeRouter.route().handler(authHandler);
+        }
+
 
         // Set default handler
         mainRouter.route().handler(ctx -> ctx.fail(HttpStatusCode.NOT_FOUND_404));

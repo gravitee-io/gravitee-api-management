@@ -23,36 +23,48 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class HttpServerConfiguration {
 
-    @Value("${services.core.http.enabled:true}")
-    private boolean enabled;
+  @Value("${services.core.http.enabled:true}")
+  private boolean enabled;
 
-    @Value("${services.core.http.port:8093}")
-    private int port;
+  @Value("${services.core.http.port:8093}")
+  private int port;
 
-    @Value("${services.core.http.host:localhost}")
-    private String host;
+  @Value("${services.core.http.host:localhost}")
+  private String host;
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+  @Value("${services.core.http.authentication.type:basic}")
+  private String authenticationType;
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+  public boolean isEnabled() {
+    return enabled;
+  }
 
-    public int getPort() {
-        return port;
-    }
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
+  public int getPort() {
+    return port;
+  }
 
-    public String getHost() {
-        return host;
-    }
+  public void setPort(int port) {
+    this.port = port;
+  }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
+  public String getHost() {
+    return host;
+  }
+
+  public void setHost(String host) {
+    this.host = host;
+  }
+
+  public String getAuthenticationType() {
+    return authenticationType;
+  }
+
+  public void setAuthenticationType(String authenticationType) {
+    this.authenticationType = authenticationType;
+  }
+
 }
