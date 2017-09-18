@@ -49,14 +49,14 @@ module.exports = {
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        loader: 'tslint-loader',
+        use: 'tslint-loader',
         enforce: 'pre'
       },
       {
         test: /\.(css|scss)$/,
         loaders: ExtractTextPlugin.extract({
-          fallbackLoader: 'style-loader',
-          loader: 'css-loader!sass-loader!postcss-loader'
+          fallback: 'style-loader',
+          use: 'css-loader!sass-loader!postcss-loader'
         })
       },
       {
@@ -69,7 +69,7 @@ module.exports = {
       },
       {
         test: /\.html$/,
-        loader: 'html-loader',
+        use: 'html-loader',
         options: {
           minimize: true,
           removeComments: true,
@@ -84,11 +84,11 @@ module.exports = {
       },
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader?limit=10000&minetype=application/font-woff'
+        use: 'url-loader?limit=10000&minetype=application/font-woff'
       },
       {
         test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'file-loader'
+        use: 'file-loader'
       }
     ]
   },

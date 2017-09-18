@@ -162,6 +162,24 @@
                             </replacements>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>replace-base-url</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>${project.basedir}/dist/constants.json</include>
+                            </includes>
+                            <replacements>
+                                <replacement>
+                                    <token>"baseURL": "(.*)"</token>
+                                    <value>"baseURL": "http://localhost:8083/management/"</value>
+                                </replacement>
+                            </replacements>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
