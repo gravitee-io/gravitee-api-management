@@ -25,7 +25,7 @@
   <div layout="row" style="padding-left: 16px;" ng-if="dynamicPropertyEnabled">
     <span>
       Dynamic properties service is actually in <code>running</code>
-      state and run each <code>{{apiPropertiesCtrl.dynamicPropertyService.interval}} {{apiPropertiesCtrl.dynamicPropertyService.unit}}</code>
+      state and run each <code>{{apiPropertiesCtrl.dynamicPropertyService.trigger.rate}} {{apiPropertiesCtrl.dynamicPropertyService.trigger.unit}}</code>
       using <code>{{apiPropertiesCtrl.dynamicPropertyService.provider}}</code> provider.
     </span>
   </div>
@@ -104,7 +104,7 @@
       <div layout="row" layout-sm="column">
         <md-input-container class="md-block" flex-gt-xs>
           <label>Interval</label>
-          <input required ng-model="apiPropertiesCtrl.dynamicPropertyService.interval" md-autofocus type="number" min="1" ng-required="true">
+          <input required ng-model="apiPropertiesCtrl.dynamicPropertyService.trigger.rate" md-autofocus type="number" min="1" ng-required="true">
         </md-input-container>
 
         <div flex="5" hide-xs hide-sm>
@@ -113,7 +113,7 @@
 
         <md-input-container class="md-block" flex-gt-xs>
           <label>Time Unit</label>
-          <md-select ng-model="apiPropertiesCtrl.dynamicPropertyService.unit" placeholder="Time unit" required ng-required="true">
+          <md-select ng-model="apiPropertiesCtrl.dynamicPropertyService.trigger.unit" placeholder="Time unit" required ng-required="true">
             <md-option ng-repeat="timeUnit in apiPropertiesCtrl.timeUnits" ng-value="timeUnit">{{timeUnit}}</md-option>
           </md-select>
         </md-input-container>
