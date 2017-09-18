@@ -65,7 +65,9 @@
     </md-input-container>
     <div permission permission-except="'api-definition-u'" layout="column">
       <label>Groups</label>
-      <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="generalCtrl.api.groups"></md-chips>
+      <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="generalCtrl.api.groups">
+        <md-chip-template>{{generalCtrl.getGroup($chip).name}}</md-chip-template>
+      </md-chips>
     </div>
   </div>
 

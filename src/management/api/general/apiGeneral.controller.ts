@@ -242,6 +242,10 @@ class ApiAdminController {
   getTenant(tenantId) {
     return _.find(this.tenants, { 'id': tenantId });
   }
+
+  getGroup(groupId) {
+    return _.find(this.groups, { 'id': groupId });
+  }
 }
 
 export default ApiAdminController;
