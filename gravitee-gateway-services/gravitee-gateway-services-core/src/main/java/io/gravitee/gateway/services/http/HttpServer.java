@@ -17,9 +17,10 @@ package io.gravitee.gateway.services.http;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.gateway.services.http.configuration.HttpServerConfiguration;
+import io.gravitee.gateway.services.http.handler.NodeHandler;
 import io.gravitee.gateway.services.http.handler.apis.ApiHandler;
 import io.gravitee.gateway.services.http.handler.apis.ApisHandler;
-import io.gravitee.gateway.services.http.handler.NodeHandler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.Router;
@@ -40,6 +41,10 @@ public class HttpServer extends AbstractService {
 
     private final static String PATH = "/_node";
 
+    private final static String AUTHENTICATION_TYPE_NONE = "none";
+    private final static String AUTHENTICATION_TYPE_BASIC = "basic";
+    private final static String AUTHENTICATION_BASIC_REALM = "gravitee.io";
+
     @Autowired
     @Qualifier("vertxNodeHttpServer")
     private io.vertx.core.http.HttpServer httpServer;
@@ -53,6 +58,9 @@ public class HttpServer extends AbstractService {
     @Autowired
     private AuthProvider authProvider;
 
+    @Autowired
+    private HttpServerConfiguration httpServerConfiguration;
+
     @Override
     protected void doStart() throws Exception {
         super.doStart();
@@ -62,10 +70,23 @@ public class HttpServer extends AbstractService {
         // Start HTTP server
         Router mainRouter = Router.router(vertx).mountSubRouter(PATH, nodeRouter);
 
-        // Set security handler
-        AuthHandler authHandler = BasicAuthHandler.create(authProvider, "gravitee.io");
-        mainRouter.route().handler(authHandler);
-        nodeRouter.route().handler(authHandler);
+        AuthHandler authHandler = null;
+        switch ( httpServerConfiguration.getAuthenticationType().toLowerCase() ) {
+           case AUTHENTICATION_TYPE_NONE:
+              break;
+           case AUTHENTICATION_TYPE_BASIC:
+              authHandler = BasicAuthHandler.create(authProvider, AUTHENTICATION_BASIC_REALM);
+              break;
+           default:
+              throw new IllegalArgumentException("Unsupported Authentication type " + httpServerConfiguration.getAuthenticationType() + " for HTTP core services");
+        }
+
+        // Set security handler is defined
+        if ( authHandler != null ) {
+           mainRouter.route().handler(authHandler);
+           nodeRouter.route().handler(authHandler);
+        }
+
 
         // Set default handler
         mainRouter.route().handler(ctx -> ctx.fail(HttpStatusCode.NOT_FOUND_404));

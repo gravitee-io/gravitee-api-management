@@ -32,6 +32,9 @@ public class HttpServerConfiguration {
     @Value("${services.core.http.host:localhost}")
     private String host;
 
+    @Value("${services.core.http.authentication.type:basic}")
+    private String authenticationType;
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -55,4 +58,13 @@ public class HttpServerConfiguration {
     public void setHost(String host) {
         this.host = host;
     }
+
+    public String getAuthenticationType() {
+      return authenticationType;
+    }
+
+    public void setAuthenticationType(String authenticationType) {
+      this.authenticationType = authenticationType;
+    }
+
 }
