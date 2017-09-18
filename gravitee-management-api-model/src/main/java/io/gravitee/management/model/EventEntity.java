@@ -15,10 +15,10 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Date;
 import java.util.Map;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Titouan COMPIEGNE
@@ -30,6 +30,7 @@ public class EventEntity {
     private String payload;
     private String parentId;
     private Map<String, String> properties;
+    private UserEntity user;
 
     @JsonProperty("created_at")
     private Date createdAt;
@@ -74,6 +75,14 @@ public class EventEntity {
 
     public void setProperties(Map<String, String> properties) {
         this.properties = properties;
+    }
+
+    public UserEntity getUser() {
+        return user;
+    }
+
+    public void setUser(UserEntity user) {
+        this.user = user;
     }
 
     public Date getCreatedAt() {

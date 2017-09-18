@@ -20,6 +20,7 @@ import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.NewEventEntity;
 import io.gravitee.management.service.EventService;
+import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.EventNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -47,6 +48,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
     @Autowired
     private EventRepository eventRepository;
+    @Autowired
+    private UserService userService;
 
     @Override
     public EventEntity findById(String id) {
@@ -181,6 +184,13 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         eventEntity.setProperties(event.getProperties());
         eventEntity.setCreatedAt(event.getCreatedAt());
         eventEntity.setUpdatedAt(event.getUpdatedAt());
+
+        if (event.getProperties() != null) {
+            final String username = event.getProperties().get(Event.EventProperties.USERNAME.getValue());
+            if (username != null && !username.isEmpty()) {
+                eventEntity.setUser(userService.findByName(username, false));
+            }
+        }
 
         return eventEntity;
     }

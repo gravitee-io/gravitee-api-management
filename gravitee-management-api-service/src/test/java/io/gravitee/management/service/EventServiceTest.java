@@ -78,6 +78,9 @@ public class EventServiceTest {
     @Mock
     private Page<Event> eventPage;
 
+    @Mock
+    private UserService userService;
+
     @Test
     public void shouldCreateEventWithPublishApiEventType() throws TechnicalException {
         when(event.getType()).thenReturn(EventType.PUBLISH_API);
