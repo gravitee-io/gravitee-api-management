@@ -159,7 +159,7 @@ class ApiMembersController {
       });
     } else {
       var filterMembers = _.filter(this.members, function(member: any) { return member.type !== 'primary_owner'; });
-      var members = _.flatMap(filterMembers, function(member: any) { return { 'id' : member.username}; });
+      var members = _.flatMap(filterMembers, function(member: any) { return { 'id' : member.username, 'label' : member.firstname? member.firstname + ' ' + member.lastname : member.username}; });
       return members;
     }
   }

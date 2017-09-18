@@ -35,7 +35,7 @@ class ApiEventsController {
         badgeIconClass: eventTimelineType.icon,
         title: event.type,
         when: event.created_at,
-        username: event.properties.username
+        user: event.user
       };
       this.eventsTimeline.push(eventTimeline);
     });

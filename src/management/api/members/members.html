@@ -124,14 +124,14 @@
             md-search-text-change="searchTextChange(searchText)"
             md-selected-item-change="apiMembersCtrl.selectedItemChange(item)"
             md-items="item in apiMembersCtrl.searchUser(searchText)"
-            md-item-text="item.id"
+            md-item-text="item.label"
             placeholder="Transfer API ownership to ?"
             md-autofocus="false"
             md-min-length="0"
             md-menu-class="autocomplete-custom-template">
             <md-item-template>
                 <span>
-                  {{item.id}}
+                  {{item.label}}
                 </span>
             </md-item-template>
             <md-not-found>
