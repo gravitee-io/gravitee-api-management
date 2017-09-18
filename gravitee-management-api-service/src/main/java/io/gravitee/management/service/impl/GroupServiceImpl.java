@@ -123,6 +123,7 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
             GroupEntity updatedGroup = this.findById(groupId);
             updatedGroup.setName(group.getName());
             updatedGroup.setUpdatedAt(new Date());
+            updatedGroup.setEventRules(group.getEventRules());
             GroupEntity grp = this.map(groupRepository.update(this.map(updatedGroup)));
             logger.debug("update {} - DONE", grp);
             return grp;
