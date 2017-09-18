@@ -15,7 +15,6 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -36,7 +35,6 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,8 +43,8 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractResource {
 
-    private final static String MANAGEMENT_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
-    private final static String PORTAL_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
+    public final static String MANAGEMENT_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
+    public final static String PORTAL_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
 
     @Context
     protected SecurityContext securityContext;

@@ -19,6 +19,7 @@ import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.management.rest.resource.AbstractResource;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
@@ -77,7 +78,9 @@ public class PermissionsFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (securityContext.isUserInRole(SystemRole.ADMIN.name())) {
+        if (securityContext.isUserInRole(SystemRole.ADMIN.name()) ||
+                securityContext.isUserInRole(AbstractResource.MANAGEMENT_ADMIN) ||
+                securityContext.isUserInRole(AbstractResource.PORTAL_ADMIN)) {
             logger.debug("User [{}] has full access because of its ADMIN role",
                     securityContext.getUserPrincipal().getName());
             return;
