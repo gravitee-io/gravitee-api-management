@@ -241,6 +241,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             Application application = convert(updateApplicationEntity);
             application.setId(applicationId);
             application.setStatus(ApplicationStatus.ACTIVE);
+            application.setCreatedAt(optApplicationToUpdate.get().getCreatedAt());
             application.setUpdatedAt(new Date());
 
             Application updatedApplication =  applicationRepository.update(application);
