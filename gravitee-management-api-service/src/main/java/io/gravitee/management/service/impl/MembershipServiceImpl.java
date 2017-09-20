@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.gravitee.management.model.permissions.SystemRole.PRIMARY_OWNER;
@@ -251,10 +252,15 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
     @Override
     public void transferApiOwnership(String apiId, String username) {
         RoleEntity defaultRole = roleService.findDefaultRoleByScopes(RoleScope.API).get(0);
-        this.getMembers(MembershipReferenceType.API, apiId, RoleScope.API, PRIMARY_OWNER.name())
-                .forEach(m -> this.addOrUpdateMember(MembershipReferenceType.API, apiId, m.getUsername(), RoleScope.API, defaultRole.getName()));
-        // set the new primary owner
+
+        // Set the new primary owner
         this.addOrUpdateMember(MembershipReferenceType.API, apiId, username, RoleScope.API, PRIMARY_OWNER.name());
+
+        // Update the role for previous primary_owner
+        this.getMembers(MembershipReferenceType.API, apiId, RoleScope.API, PRIMARY_OWNER.name())
+                .stream()
+                .filter(memberEntity -> ! memberEntity.getUsername().equals(username))
+                .forEach(m -> this.addOrUpdateMember(MembershipReferenceType.API, apiId, m.getUsername(), RoleScope.API, defaultRole.getName()));
     }
 
     @Override
