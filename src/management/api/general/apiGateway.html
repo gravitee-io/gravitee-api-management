@@ -33,7 +33,7 @@
 
   <md-subheader class="md-primary" style="background-color: #fafafa">Endpoints</md-subheader>
   <md-table-container>
-    <table md-table  md-row-select="true" ng-model="selected">
+    <table md-table md-row-select="true" ng-model="selected" ng-init="order = 'name'">
       <thead md-head md-order="order">
       <tr md-row>
         <th md-column md-order-by="name"><span>Name</span></th>
@@ -57,7 +57,7 @@
       </tr>
       </thead>
       <tbody md-body>
-      <tr md-row md-select="endpoint" md-auto-select="false" ng-repeat="endpoint in generalCtrl.api.proxy.endpoints">
+      <tr md-row md-select="endpoint" md-auto-select="false" ng-repeat="endpoint in generalCtrl.api.proxy.endpoints | orderBy:order">
         <td md-cell>{{endpoint.name}}</td>
         <td md-cell>{{endpoint.target}}</td>
         <td ng-if="generalCtrl.api.proxy.multiTenant" md-cell hide-gt-xs show-gt-sm>{{generalCtrl.getTenant(endpoint.tenant).name}}</td>
