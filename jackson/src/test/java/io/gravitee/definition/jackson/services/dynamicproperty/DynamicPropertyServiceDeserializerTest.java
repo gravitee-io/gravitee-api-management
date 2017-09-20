@@ -76,7 +76,7 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-unitInLowerCase.json", Api.class);
         DynamicPropertyService dynamicPropertyService = api.getService(DynamicPropertyService.class);
         Assert.assertNotNull(dynamicPropertyService);
-        Assert.assertFalse(dynamicPropertyService.isEnabled());
+        Assert.assertTrue(dynamicPropertyService.isEnabled());
         Assert.assertEquals(60, dynamicPropertyService.getTrigger().getRate());
         Assert.assertEquals(TimeUnit.SECONDS, dynamicPropertyService.getTrigger().getUnit());
     }

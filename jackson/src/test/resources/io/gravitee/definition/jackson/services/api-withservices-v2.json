@@ -67,7 +67,7 @@
         "rate": 60,
         "unit": "SECONDS"
       },
-      "enabled": false,
+      "enabled": true,
       "provider": "HTTP",
       "configuration": {
         "url": "http://my_configuration_url",

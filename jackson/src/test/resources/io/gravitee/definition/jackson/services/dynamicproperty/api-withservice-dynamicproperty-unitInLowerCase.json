@@ -28,7 +28,7 @@
     "dynamic-property": {
       "interval": 60,
       "unit": "seconds",
-      "enabled": false,
+      "enabled": true,
       "provider": "HTTP",
       "configuration": {
         "url": "http://my_configuration_url",

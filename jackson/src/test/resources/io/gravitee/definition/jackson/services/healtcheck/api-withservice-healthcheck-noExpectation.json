@@ -28,7 +28,7 @@
     "health-check": {
       "interval": 60,
       "unit": "seconds",
-      "enabled": false,
+      "enabled": true,
       "request": {
         "uri": "http://se56-2-qlf.mbstech.aec.corp/services/cxf/mobilite",
         "method": "GET",

@@ -44,38 +44,40 @@ public class HealthCheckDeserializer<T extends HealthCheckService> extends Sched
     protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         super.deserialize(service, jsonParser, node, ctxt);
 
-        // New version of health-check service
-        final JsonNode stepsNode = node.get("steps");
-        if (stepsNode != null && stepsNode.isArray()) {
-            List<Step> steps = new ArrayList<>(stepsNode.size());
+        if (service.isEnabled()) {
+            // New version of health-check service
+            final JsonNode stepsNode = node.get("steps");
+            if (stepsNode != null && stepsNode.isArray()) {
+                List<Step> steps = new ArrayList<>(stepsNode.size());
 
-            for(JsonNode stepNode : stepsNode) {
-                Step step = stepNode.traverse(jsonParser.getCodec()).readValueAs(Step.class);
-                steps.add(step);
-            }
+                for (JsonNode stepNode : stepsNode) {
+                    Step step = stepNode.traverse(jsonParser.getCodec()).readValueAs(Step.class);
+                    steps.add(step);
+                }
 
-            service.setSteps(steps);
-        } else {
-            // Ensure backward compatibility
-            Step step = new Step();
-
-            final JsonNode requestNode = node.get("request");
-            if (requestNode != null) {
-                step.setRequest(requestNode.traverse(jsonParser.getCodec()).readValueAs(Request.class));
+                service.setSteps(steps);
             } else {
-                throw ctxt.mappingException("[health-check] Request is required");
-            }
+                // Ensure backward compatibility
+                Step step = new Step();
 
-            final JsonNode expectationNode = node.get("expectation");
-            if (expectationNode != null) {
-                step.setResponse(expectationNode.traverse(jsonParser.getCodec()).readValueAs(Response.class));
-            } else {
-                Response response = new Response();
-                response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
-                step.setResponse(response);
-            }
+                final JsonNode requestNode = node.get("request");
+                if (requestNode != null) {
+                    step.setRequest(requestNode.traverse(jsonParser.getCodec()).readValueAs(Request.class));
+                } else {
+                    throw ctxt.mappingException("[health-check] Request is required");
+                }
 
-            service.setSteps(Collections.singletonList(step));
+                final JsonNode expectationNode = node.get("expectation");
+                if (expectationNode != null) {
+                    step.setResponse(expectationNode.traverse(jsonParser.getCodec()).readValueAs(Response.class));
+                } else {
+                    Response response = new Response();
+                    response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
+                    step.setResponse(response);
+                }
+
+                service.setSteps(Collections.singletonList(step));
+            }
         }
     }
 }

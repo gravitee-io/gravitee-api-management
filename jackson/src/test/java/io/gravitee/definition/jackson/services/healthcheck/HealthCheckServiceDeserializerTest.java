@@ -82,7 +82,7 @@ public class HealthCheckServiceDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-unitInLowerCase.json", Api.class);
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
         Assert.assertNotNull(healthCheckService);
-        Assert.assertFalse(healthCheckService.isEnabled());
+        Assert.assertTrue(healthCheckService.isEnabled());
         Assert.assertEquals(60, healthCheckService.getTrigger().getRate());
         Assert.assertEquals(TimeUnit.SECONDS, healthCheckService.getTrigger().getUnit());
     }

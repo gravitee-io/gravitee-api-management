@@ -52,7 +52,7 @@ public abstract class ServiceDeserializer<T extends Service> extends StdScalarDe
     protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         final JsonNode serviceEnabledNode = node.get("enabled");
         if (serviceEnabledNode != null) {
-            service.setEnabled(serviceEnabledNode.asBoolean(true));
+            service.setEnabled(serviceEnabledNode.asBoolean(false));
         } else {
             service.setEnabled(true);
         }
