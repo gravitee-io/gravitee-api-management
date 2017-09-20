@@ -21,6 +21,8 @@ import org.springframework.core.env.Environment;
 
 import javax.servlet.http.Cookie;
 
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
+
 /**
  * @author Azize Elamrani (azize at gravitee.io)
  * @author GraviteeSource Team
@@ -40,6 +42,7 @@ public class JWTCookieGenerator {
         cookie.setSecure(environment.getProperty("jwt.cookie-secure", Boolean.class, DEFAULT_JWT_COOKIE_SECURE));
         cookie.setPath(environment.getProperty("jwt.cookie-path", DEFAULT_JWT_COOKIE_PATH));
         cookie.setDomain(environment.getProperty("jwt.cookie-domain", DEFAULT_JWT_COOKIE_DOMAIN));
+        cookie.setMaxAge(environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER));
         return cookie;
     }
 }

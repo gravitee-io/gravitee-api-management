@@ -86,7 +86,7 @@ abstract class AbstractAuthenticationResource {
                         environment.getProperty("jwt.cookie-path", "/"),
                         environment.getProperty("jwt.cookie-domain"),
                         "",
-                        -1,
+                        environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER),
                         environment.getProperty("jwt.cookie-secure", Boolean.class, false),
                         true))
                 .build();
