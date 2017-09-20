@@ -148,7 +148,7 @@
     </dependencies>
 
     <properties>
-        <gravitee-definition.version>1.5.0</gravitee-definition.version>
+        <gravitee-definition.version>1.6.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>1.5.0</gravitee-common.version>
         <gravitee-repository.version>1.9.0</gravitee-repository.version>
         <gravitee-plugin-core.version>1.2.0</gravitee-plugin-core.version>
