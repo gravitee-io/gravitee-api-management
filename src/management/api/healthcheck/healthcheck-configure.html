@@ -52,7 +52,7 @@
 
   <br>
 
-  <div ng-show="healthCheckCtrl.healthcheck.inherit === false">
+  <div ng-show="healthCheckCtrl.healthcheck.inherit === false && healthCheckCtrl.healthcheck.enabled === true">
     <md-subheader class="md-primary" style="background-color: #fafafa">Trigger</md-subheader>
     <md-content>
         <form name="formApiHealthCheckTrigger" novalidate layout-gt-sm="row" flex="100">
@@ -173,7 +173,7 @@
 
   <md-divider></md-divider>
 
-  <div layout="row" flex>
+  <div layout="row">
     <div flex>
       <md-button ng-if="healthCheckCtrl.endpoint !== undefined" class="md-warn" aria-label="Back to endpoint configuration" ng-click="healthCheckCtrl.backToEndpointConfiguration()">
         <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
@@ -186,7 +186,7 @@
     </div>
     <div flex layout="row" layout-align="end top">
       <md-button class="md-raised" type="submit" ng-click="healthCheckCtrl.update()"
-                 ng-disabled="(healthCheckCtrl.healthcheck.inherit === false && (formApiHealthCheckTrigger.$invalid || formApiHealthCheckResponse.$invalid || formApiHealthCheckRequest.$invalid))">
+                 ng-disabled="((healthCheckCtrl.healthcheck.inherit === false && healthCheckCtrl.healthcheck.enabled === true) && (formApiHealthCheckTrigger.$invalid || formApiHealthCheckResponse.$invalid || formApiHealthCheckRequest.$invalid))">
         <span style="color: rgba(0, 0, 0, 0.54);">Save</span>
       </md-button>
     </div>

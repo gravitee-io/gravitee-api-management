@@ -116,8 +116,8 @@ class ApiHealthCheckConfigureController {
   buildTrigger() {
     let trigger = "Health-check is running each ";
 
-    trigger += this.healthcheck.trigger.rate|| "{rate}";
-    trigger += " " + (this.healthcheck.trigger.unit|| "{unit}");
+    trigger += (this.healthcheck.trigger && this.healthcheck.trigger.rate) || "{rate}";
+    trigger += " " + ((this.healthcheck.trigger && this.healthcheck.trigger.unit) || "{unit}");
 
     return trigger;
   }
@@ -125,9 +125,9 @@ class ApiHealthCheckConfigureController {
   buildRequest() {
     let request = "";
 
-    request += this.healthcheck.steps[0].request.method|| "{method}";
+    request += (this.healthcheck.steps && this.healthcheck.steps[0].request.method) || "{method}";
     request += " " + ((this.endpoint) ? this.endpoint.target : "{endpoint}");
-    request += this.healthcheck.steps[0].request.path ||  "{path}";
+    request += (this.healthcheck.steps && this.healthcheck.steps[0].request.path) ||  "/{path}";
 
     return request;
   }
@@ -154,6 +154,11 @@ class ApiHealthCheckConfigureController {
     if (this.endpoint !== undefined) {
       this.endpoint['healthcheck'] = this.healthcheck;
     } else {
+      // health-check is disabled, set dummy values
+      if (this.healthcheck.enabled === false) {
+        delete this.healthcheck.trigger;
+        delete this.healthcheck.steps;
+      }
       this.api.services['health-check'] = this.healthcheck;
     }
     this.ApiService.update(this.api).then((updatedApi) => {
