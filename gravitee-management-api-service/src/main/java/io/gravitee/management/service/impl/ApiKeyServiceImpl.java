@@ -32,9 +32,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -279,16 +277,22 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
 
             if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
+                final Map<String, Object> params = new HashMap<>();
+                params.put("owner", owner);
+                params.put("api", api);
+                params.put("application", application);
+                params.put("apiKey", key.getKey());
+                params.put("plan", plan);
+
+                if (key.getExpireAt() != null && new Date().before(key.getExpireAt())) {
+                    params.put("expirationDate", key.getExpireAt());
+                }
+
                 emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                         .to(owner.getEmail())
-                        .subject("API key has expired !")
+                        .subject("API key expiration!")
                         .template(EmailNotificationBuilder.EmailTemplate.EXPIRE_API_KEY)
-                        .params(ImmutableMap.of(
-                                "owner", owner,
-                                "api", api,
-                                "application", application,
-                                "apiKey", key.getKey(),
-                                "plan", plan))
+                        .params(params)
                         .build());
             }
         }

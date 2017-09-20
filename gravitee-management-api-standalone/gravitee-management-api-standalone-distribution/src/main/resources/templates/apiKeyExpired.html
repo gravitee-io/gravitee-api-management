@@ -9,7 +9,12 @@
 			<#else>
 				<h3>Hi ${owner.username},</h3>
 			</#if>
-			<p>The API Key <code>${apiKey}</code> has expired.
+
+			<#if expirationDate??>
+                <p>The API Key <code>${apiKey}</code> will expire the ${expirationDate?date} at ${expirationDate?time}.
+			<#else>
+				<p>The API Key <code>${apiKey}</code> has expired.
+			</#if>
 		</p>
 	</body>
 </html>
