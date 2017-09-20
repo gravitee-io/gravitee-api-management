@@ -26,7 +26,6 @@ class ApiHealthCheckConfigureController {
 
   constructor (
     private ApiService,
-    private resolvedApi,
     private NotificationService,
     private $mdDialog,
     private $scope,
@@ -36,11 +35,11 @@ class ApiHealthCheckConfigureController {
   ) {
     'ngInject';
 
-    this.api = resolvedApi.data;
+    this.api = this.$scope.$parent.apiCtrl.api;
 
     if (this.$stateParams.endpointName !== undefined) {
       // Health-check for specific endpoint
-      this.endpoint = _.find(resolvedApi.data.proxy.endpoints, { 'name': $stateParams.endpointName });
+      this.endpoint = _.find(this.api.proxy.endpoints, { 'name': $stateParams.endpointName });
       this.healthcheck = this.endpoint.healthcheck;
     } else {
       this.healthcheck = this.api.services && this.api.services['health-check'];

@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import moment = require('moment');
-import _ = require('lodash');
-import angular = require('angular');
 import ApiService, { LogsQuery } from "../../../services/api.service";
 
 class ApiHealthCheckController {
@@ -27,11 +24,11 @@ class ApiHealthCheckController {
 
   constructor (
     private ApiService: ApiService,
-    private resolvedApi,
+    private $scope,
     private $state: ng.ui.IStateService
   ) {
     'ngInject';
-    this.api = resolvedApi.data;
+    this.api = this.$scope.$parent.apiCtrl.api;
     this.gateway = {availabilities:{},responsetimes:{}};
     this.endpoint = {availabilities:{},responsetimes:{}};
 
