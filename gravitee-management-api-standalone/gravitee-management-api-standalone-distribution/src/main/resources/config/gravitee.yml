@@ -120,6 +120,11 @@ analytics:
 security:
   providers:  # authentication providers
     - type: memory
+      # password encoding/hashing algorithm. One of:
+      # - bcrypt : passwords are hashed with bcrypt
+      # - none : passwords are not hashed/encrypted
+      # default value is bcrypt
+      password-encoding-algo: bcrypt
       users:
         - user:
           username: user

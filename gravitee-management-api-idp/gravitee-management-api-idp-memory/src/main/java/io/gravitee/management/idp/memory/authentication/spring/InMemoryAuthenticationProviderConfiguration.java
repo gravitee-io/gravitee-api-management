@@ -15,13 +15,16 @@
  */
 package io.gravitee.management.idp.memory.authentication.spring;
 
+import java.util.Collections;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-
-import java.util.Collections;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -30,13 +33,34 @@ import java.util.Collections;
 @Configuration
 public class InMemoryAuthenticationProviderConfiguration {
 
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
+  private static final String ENCODING_ALGORITHM_PROPERTY_NAME = "password-encoding-algo";
 
-	@Bean
-	public InMemoryUserDetailsManager userDetailsService() {
-		return new InMemoryUserDetailsManager(Collections.emptyList());
-	}
+  private static final String NOOP_ALGORITHM = "none";
+
+  private static final String BCRYPT_ALGORITHM = "bcrypt";
+
+  @Autowired
+  private Environment environment;
+
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    String encodingAlgo = environment.getProperty(ENCODING_ALGORITHM_PROPERTY_NAME, BCRYPT_ALGORITHM);
+    if ( encodingAlgo == null || encodingAlgo.isEmpty() ) {
+      encodingAlgo = BCRYPT_ALGORITHM;
+    }
+    switch (encodingAlgo.toLowerCase()) {
+    case BCRYPT_ALGORITHM:
+      return new BCryptPasswordEncoder();
+    case NOOP_ALGORITHM:
+      return NoOpPasswordEncoder.getInstance();
+    default:
+      throw new IllegalArgumentException("Unsupported password encoding algorithm : " + encodingAlgo);
+    }
+
+  }
+
+  @Bean
+  public InMemoryUserDetailsManager userDetailsService() {
+    return new InMemoryUserDetailsManager(Collections.emptyList());
+  }
 }
