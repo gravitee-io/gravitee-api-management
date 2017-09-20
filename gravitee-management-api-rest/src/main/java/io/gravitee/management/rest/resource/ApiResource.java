@@ -71,21 +71,25 @@ public class ApiResource extends AbstractResource {
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
 
-            final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-            final UriBuilder uriBuilder = ub.path("picture");
-            if (apiEntity.getPicture() != null) {
-                // force browser to get if updated
-                uriBuilder.queryParam("hash", apiEntity.getPicture().hashCode());
-            }
+            setPicture(apiEntity);
 
             apiEntity.setContextPath(apiEntity.getProxy().getContextPath());
-            apiEntity.setPictureUrl(uriBuilder.build().toString());
-            apiEntity.setPicture(null);
 
             filterSensitiveData(apiEntity);
             return apiEntity;
         }
         throw new ForbiddenAccessException();
+    }
+
+    private void setPicture(final ApiEntity apiEntity) {
+        final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
+        final UriBuilder uriBuilder = ub.path("picture");
+        if (apiEntity.getPicture() != null) {
+            // force browser to get if updated
+            uriBuilder.queryParam("hash", apiEntity.getPicture().hashCode());
+        }
+        apiEntity.setPictureUrl(uriBuilder.build().toString());
+        apiEntity.setPicture(null);
     }
 
     @GET
@@ -191,7 +195,7 @@ public class ApiResource extends AbstractResource {
         }
 
         final ApiEntity updatedApi = apiService.update(api, apiToUpdate);
-
+        setPicture(updatedApi);
         return updatedApi;
     }
 
