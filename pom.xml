@@ -65,6 +65,12 @@
             </dependency>
 
             <dependency>
+                <groupId>io.gravitee.el</groupId>
+                <artifactId>gravitee-expression-language</artifactId>
+                <version>${gravitee-expression-language.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.definition</groupId>
                 <artifactId>gravitee-definition-jackson</artifactId>
                 <version>${gravitee-definition.version}</version>
@@ -150,6 +156,7 @@
     <properties>
         <gravitee-definition.version>1.7.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>1.6.0-SNAPSHOT</gravitee-common.version>
+        <gravitee-expression-language.version>1.0.0-SNAPSHOT</gravitee-expression-language.version>
         <gravitee-repository.version>1.9.0</gravitee-repository.version>
         <gravitee-plugin-core.version>1.2.0</gravitee-plugin-core.version>
         <gravitee-plugin-policy.version>1.2.0</gravitee-plugin-policy.version>
