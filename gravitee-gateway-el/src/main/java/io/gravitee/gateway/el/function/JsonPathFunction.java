@@ -15,42 +15,27 @@
  */
 package io.gravitee.gateway.el.function;
 
-import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Predicate;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 
 /**
  * Utility class to {@link #evaluate} a jsonPath on the provided object.
  * Delegates evaluation to <a href="https://github.com/jayway/JsonPath">JsonPath</a>.
  * Note {@link #evaluate} is used as {@code #jsonPath()} SpEL function.
  *
+ * @deprecated replaced by io.gravitee.el.function.JsonPathFunction
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Deprecated
 public final class JsonPathFunction {
 
     private JsonPathFunction() {
     }
 
     public static <T> T evaluate(Object json, String jsonPath, Predicate... predicates) throws IOException {
-        if (json instanceof String) {
-            return JsonPath.read((String) json, jsonPath, predicates);
-        }
-        else if (json instanceof File) {
-            return JsonPath.read((File) json, jsonPath, predicates);
-        }
-        else if (json instanceof URL) {
-            return JsonPath.read((URL) json, jsonPath, predicates);
-        }
-        else if (json instanceof InputStream) {
-            return JsonPath.read((InputStream) json, jsonPath, predicates);
-        }
-        else {
-            return JsonPath.read(json, jsonPath, predicates);
-        }
+        return io.gravitee.el.spel.function.JsonPathFunction.evaluate(json,jsonPath,predicates);
     }
 }

@@ -16,35 +16,38 @@
 package io.gravitee.gateway.el;
 
 import io.gravitee.gateway.api.expression.TemplateContext;
-import io.gravitee.gateway.el.function.JsonPathFunction;
-import org.springframework.beans.BeanUtils;
 import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 /**
+ * @deprecated replaced by io.gravitee.el.spel.SpelTemplateContext
+ *
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
+@Deprecated
 public class SpelTemplateContext implements TemplateContext {
 
-    private final StandardEvaluationContext context = new StandardEvaluationContext();
+    private final io.gravitee.el.spel.SpelTemplateContext delegate;
 
     public SpelTemplateContext() {
-        context.registerFunction("jsonPath",
-                BeanUtils.resolveSignature("evaluate", JsonPathFunction.class));
+        this.delegate = new io.gravitee.el.spel.SpelTemplateContext();
+    }
+
+    SpelTemplateContext(io.gravitee.el.spel.SpelTemplateContext delegate) {
+        this.delegate = delegate;
     }
 
     @Override
     public void setVariable(String name, Object value) {
-        context.setVariable(name, value);
+        delegate.setVariable(name, value);
     }
 
     @Override
     public Object lookupVariable(String name) {
-        return context.lookupVariable(name);
+        return delegate.lookupVariable(name);
     }
 
     public EvaluationContext getContext() {
-        return context;
+        return delegate.getContext();
     }
 }
