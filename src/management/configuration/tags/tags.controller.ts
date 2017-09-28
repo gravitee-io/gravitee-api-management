@@ -158,6 +158,11 @@ class TagsController {
     this.tagsToCreate = [];
     this.tagsToUpdate = [];
   }
+
+  onClipboardSuccess(e) {
+    this.NotificationService.show('Sharding Tag ID has been copied to clipboard');
+    e.clearSelection();
+  }
 }
 
 export default TagsController;

@@ -22,17 +22,36 @@
   </div>
 </md-toolbar>
 
+<blockquote>
+  <p style="font-size: 12px">
+    <ng-md-icon icon="info"  style="fill:grey;"></ng-md-icon>
+    Copy/paste the ID to the API gateway configuration file in order to resolve API endpoints according to the configured tenant.
+  </p>
+</blockquote>
+
 <md-table-container>
   <table md-table ng-init="order = 'name'">
     <thead md-head md-order="order">
     <tr md-row>
+      <th md-column md-order-by="id">ID
+      </th>
       <th md-column md-order-by="name">Name</th>
       <th md-column md-order-by="description">Description</th>
       <th permission permission-only="'management-tenant-d'"></th>
     </tr>
     </thead>
     <tbody md-body>
-    <tr md-row ng-repeat="tenant in $ctrl.tenants | orderBy: order">
+    <tr md-row ng-repeat="tenant in $ctrl.tenants | orderBy: order"ng-mouseover="hovered = true && tenant.id" ng-mouseout="hovered = false">
+      <td md-cell>
+        {{tenant.id}}
+        <span style="position: absolute">
+            <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
+            <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"
+                        ngclipboard data-clipboard-text="{{tenant.id}}"
+                        ngclipboard-success="$ctrl.onClipboardSuccess(e);"
+                        role="button" ></ng-md-icon>
+        </span>
+      </td>
       <td permission permission-only="'management-tenant-u'"
           md-cell ng-click="$ctrl.editName($event, tenant)" ng-class="{'gravitee-placeholder': !tenant.name}">
         {{tenant.name || 'Add a name'}}
@@ -42,14 +61,15 @@
         {{tenant.description || 'Add a description'}}
       </td>
       <td permission permission-except="'management-tenant-u'">
-        {{view.name}}
+        {{tenant.name}}
       </td>
       <td permission permission-except="'management-tenant-u'">
-        {{view.description}}
+        {{tenant.description}}
       </td>
       <td md-cell permission permission-only="'management-tenant-d'"><ng-md-icon icon="delete" ng-click="$ctrl.deleteTenant(tenant)"></ng-md-icon></td>
     </tr>
     <tr md-row permission permission-only="'management-tenant-c'">
+      <td md-cell></td>
       <td md-cell ng-click="$ctrl.newTenant($event)" class="gravitee-placeholder">
         New tenant
       </td>

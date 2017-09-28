@@ -22,17 +22,36 @@
   </div>
 </md-toolbar>
 
+<blockquote>
+  <p style="font-size: 12px">
+    <ng-md-icon icon="info"  style="fill:grey;"></ng-md-icon>
+    Copy/paste the ID to the API gateway configuration file in order to manage API deployments.
+  </p>
+</blockquote>
+
 <md-table-container>
   <table md-table ng-init="order = 'name'">
     <thead md-head md-order="order">
     <tr md-row>
+      <th md-column md-order-by="id">ID
+      </th>
       <th md-column md-order-by="name">Name</th>
       <th md-column md-order-by="description">Description</th>
       <th permission permission-only="'management-tag-d'"></th>
     </tr>
     </thead>
     <tbody md-body>
-    <tr md-row ng-repeat="tag in $ctrl.tags | orderBy: order">
+    <tr md-row ng-repeat="tag in $ctrl.tags | orderBy: order" ng-mouseover="hovered = true && tag.id" ng-mouseout="hovered = false">
+      <td md-cell>
+        {{tag.id}}
+        <span style="position: absolute">
+            <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
+            <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"
+                        ngclipboard data-clipboard-text="{{tag.id}}"
+                        ngclipboard-success="$ctrl.onClipboardSuccess(e);"
+                        role="button" ></ng-md-icon>
+        </span>
+      </td>
       <td permission permission-only="'management-tag-u'"
           md-cell ng-click="$ctrl.editName($event, tag)" ng-class="{'gravitee-placeholder': !tag.name}">
         {{tag.name || 'Add a name'}}
@@ -50,6 +69,7 @@
       <td md-cell permission permission-only="'management-tag-d'"><ng-md-icon icon="delete" ng-click="$ctrl.deleteTag(tag)"></ng-md-icon></td>
     </tr>
     <tr md-row permission permission-only="'management-tag-c'">
+      <td md-cell></td>
       <td md-cell ng-click="$ctrl.newTag($event)" class="gravitee-placeholder">
         New tag
       </td>
@@ -59,6 +79,7 @@
     </tbody>
   </table>
 </md-table-container>
+
 <md-card-actions layout="row" layout-align="end center" permission permission-only="['management-tag-c', 'management-tag-u']">
   <md-button ng-click="$ctrl.saveTags()"
              ng-disabled="!$ctrl.tagsToCreate.length && !$ctrl.tagsToUpdate.length">Save</md-button>
