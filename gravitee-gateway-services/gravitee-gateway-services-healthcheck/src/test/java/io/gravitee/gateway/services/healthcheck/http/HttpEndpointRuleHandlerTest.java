@@ -20,74 +20,83 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.services.healthcheck.Request;
 import io.gravitee.definition.model.services.healthcheck.Response;
-import io.gravitee.definition.model.services.healthcheck.Step;
-import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
-import io.gravitee.reporter.api.Reportable;
-import io.gravitee.reporter.api.health.EndpointHealthStatus;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
+import io.gravitee.reporter.api.health.EndpointStatus;
+import io.gravitee.reporter.api.health.Step;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.runner.RunWith;
 
 import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpEndpointRuleRunnerTest {
+@RunWith(VertxUnitRunner.class)
+public class HttpEndpointRuleHandlerTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
+    private Vertx vertx;
+
+    @Before
+    public void before(TestContext context) {
+        vertx = Vertx.vertx();
+    }
+
     @Test
-    public void shouldNotValidate_invalidEndpoint() {
+    public void shouldNotValidate_invalidEndpoint(TestContext context) {
         // Prepare
         EndpointRule rule = mock(EndpointRule.class);
         when(rule.endpoint()).thenReturn(createEndpoint());
 
-        Step step = new Step();
+        io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
         Request request = new Request();
         request.setPath("/");
         request.setMethod(HttpMethod.GET);
 
         step.setRequest(request);
+        Response response = new Response();
+        response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
+        step.setResponse(response);
+
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleRunner runner = new HttpEndpointRuleRunner(Vertx.vertx(), rule);
-        ReporterService reporter = Mockito.spy(ReporterService.class);
-        runner.setReporterService(reporter);
-
-        // Run
-        Future future = runner.run0();
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+        Async async = context.async();
 
         // Verify
-        future.setHandler(new Handler<AsyncResult<EndpointHealthStatus>>() {
+        runner.setStatusHandler(new Handler<EndpointStatus>() {
             @Override
-            public void handle(AsyncResult<EndpointHealthStatus> healthEvent) {
-                EndpointHealthStatus healthStatus = healthEvent.result();
-
-                Assert.assertFalse(healthStatus.isSuccess());
-                verify(reporter, Mockito.atLeastOnce()).report(any(Reportable.class));
+            public void handle(EndpointStatus status) {
+                Assert.assertFalse(status.isSuccess());
+                async.complete();
             }
         });
+
+        // Run
+        runner.handle(null);
+
+        // Wait until completion
+        async.awaitSuccess();
     }
 
     @Test
-    public void shouldValidate() throws InterruptedException {
+    public void shouldValidate(TestContext context) throws InterruptedException {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/"))
                 .willReturn(aResponse()
@@ -98,7 +107,7 @@ public class HttpEndpointRuleRunnerTest {
         EndpointRule rule = mock(EndpointRule.class);
         when(rule.endpoint()).thenReturn(createEndpoint());
 
-        Step step = new Step();
+        io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
         Request request = new Request();
         request.setPath("/");
         request.setMethod(HttpMethod.GET);
@@ -109,31 +118,28 @@ public class HttpEndpointRuleRunnerTest {
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleRunner runner = new HttpEndpointRuleRunner(Vertx.vertx(), rule);
-        ReporterService reporter = Mockito.spy(ReporterService.class);
-        runner.setReporterService(reporter);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
 
-        // Run
-        Future future = runner.run0();
+        Async async = context.async();
 
         // Verify
-        final CountDownLatch lock = new CountDownLatch(1);
-        future.setHandler(new Handler<AsyncResult<EndpointHealthStatus>>() {
+        runner.setStatusHandler(new Handler<EndpointStatus>() {
             @Override
-            public void handle(AsyncResult<EndpointHealthStatus> healthEvent) {
-                EndpointHealthStatus healthStatus = healthEvent.result();
-
-                Assert.assertTrue(healthStatus.isSuccess());
-                verify(reporter, Mockito.atLeastOnce()).report(any(Reportable.class));
-                lock.countDown();
+            public void handle(EndpointStatus status) {
+                Assert.assertTrue(status.isSuccess());
+                async.complete();
             }
         });
 
-        Assert.assertEquals(true, lock.await(10000, TimeUnit.MILLISECONDS));
+        // Run
+        runner.handle(null);
+
+        // Wait until completion
+        async.awaitSuccess();
     }
 
     @Test
-    public void shouldNotValidate_invalidResponseBody() throws InterruptedException {
+    public void shouldNotValidate_invalidResponseBody(TestContext context) throws InterruptedException {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/"))
                 .willReturn(aResponse()
@@ -144,7 +150,7 @@ public class HttpEndpointRuleRunnerTest {
         EndpointRule rule = mock(EndpointRule.class);
         when(rule.endpoint()).thenReturn(createEndpoint());
 
-        Step step = new Step();
+        io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
         Request request = new Request();
         request.setPath("/");
         request.setMethod(HttpMethod.GET);
@@ -155,27 +161,30 @@ public class HttpEndpointRuleRunnerTest {
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleRunner runner = new HttpEndpointRuleRunner(Vertx.vertx(), rule);
-        ReporterService reporter = Mockito.spy(ReporterService.class);
-        runner.setReporterService(reporter);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
 
-        // Run
-        Future future = runner.run0();
+        Async async = context.async();
 
         // Verify
-        final CountDownLatch lock = new CountDownLatch(1);
-        future.setHandler(new Handler<AsyncResult<EndpointHealthStatus>>() {
+        runner.setStatusHandler(new Handler<EndpointStatus>() {
             @Override
-            public void handle(AsyncResult<EndpointHealthStatus> healthEvent) {
-                EndpointHealthStatus healthStatus = healthEvent.result();
+            public void handle(EndpointStatus status) {
+                Assert.assertFalse(status.isSuccess());
 
-                Assert.assertFalse(healthStatus.isSuccess());
-                verify(reporter, Mockito.atLeastOnce()).report(any(Reportable.class));
-                lock.countDown();
+                // When health-check is false, we store both request and response
+                Step result = status.getSteps().get(0);
+                Assert.assertEquals(HttpMethod.GET, result.getRequest().getMethod());
+                Assert.assertNotNull(result.getResponse().getBody());
+
+                async.complete();
             }
         });
 
-        Assert.assertEquals(true, lock.await(10000, TimeUnit.MILLISECONDS));
+        // Run
+        runner.handle(null);
+
+        // Wait until completion
+        async.awaitSuccess();
     }
 
     private Endpoint createEndpoint() {

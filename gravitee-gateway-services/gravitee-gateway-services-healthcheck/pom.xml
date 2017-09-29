@@ -102,6 +102,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-unit</artifactId>
+            <version>${vertx.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- HTTP mock -->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>

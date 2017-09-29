@@ -98,7 +98,6 @@ public class VertxHttpClient extends AbstractHttpClient {
 
         clientRequest.exceptionHandler(event -> {
             if (! proxyConnection.isCanceled() && ! proxyConnection.isTransmitted()) {
-                LOGGER.error("Server proxying failed: {}", event.getMessage());
                 proxyRequest.request().metrics().setMessage(event.getMessage());
 
                 if (proxyConnection.timeoutHandler() != null
