@@ -31,6 +31,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.logging.LoggableClientRequest;
+import io.gravitee.gateway.handlers.api.logging.LoggableClientResponse;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
 import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager;
@@ -47,7 +49,6 @@ import io.gravitee.gateway.security.core.SecurityPolicyChainResolver;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -87,61 +88,24 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     @Override
     protected void doHandle(Request serverRequest, Response serverResponse, Handler<Response> handler,
                             ExecutionContext executionContext) {
-        MDC.put("api", api.getId());
-
         try {
             serverRequest.pause();
 
+            // Enable logging at client level
+            if (api.getProxy().getLoggingMode().isClientMode()) {
+                serverRequest = new LoggableClientRequest(serverRequest);
+                serverResponse = new LoggableClientResponse(serverRequest, serverResponse);
+            }
+
             // Set execution context attributes and metrics specific to this handler
             serverRequest.metrics().setApi(api.getId());
-
-            // Create a copy of incoming HTTP request headers
-            serverRequest.metrics().setClientRequestHeaders(new HttpHeaders(serverRequest.headers()));
 
             executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
             executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
             executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.properties());
             executionContext.getTemplateEngine().getTemplateContext().setVariable("endpoints", endpointLifecycleManager.targetByEndpoint());
 
-            // Apply request policies
-            RequestPolicyChainProcessor requestPolicyChain = new RequestPolicyChainProcessor(policyResolvers);
-            requestPolicyChain.setResultHandler(requestPolicyChainResult -> {
-                if (requestPolicyChainResult.isFailure()) {
-                    sendPolicyFailure(requestPolicyChainResult.getPolicyResult(), serverResponse);
-                    handler.handle(serverResponse);
-                } else {
-                    // Call an invoker to get a proxy connection (connection to an underlying backend, mainly HTTP)
-                    Invoker upstreamInvoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
-
-                    long serviceInvocationStart = System.currentTimeMillis();
-
-                    Request invokeRequest = upstreamInvoker.invoke(executionContext, serverRequest, requestPolicyChainResult.getPolicyChain(), connection -> {
-                        connection.responseHandler(
-                                proxyResponse -> handleProxyResponse(serverRequest, serverResponse, executionContext, proxyResponse, serviceInvocationStart, handler));
-
-                        requestPolicyChain.setStreamErrorHandler(result -> {
-                            connection.cancel();
-                            // TODO: review this part of the code
-                            sendPolicyFailure(result.getPolicyResult(), serverResponse);
-                            handler.handle(serverResponse);
-                        });
-                    });
-
-                    // Plug server request stream to request policy chain stream
-                    invokeRequest
-                            .bodyHandler(chunk -> {
-                                MDC.put("api", api.getId());
-                                invokeRequest.metrics().setRequestContentLength(invokeRequest.metrics().getRequestContentLength() + chunk.length());
-                                requestPolicyChainResult.getPolicyChain().write(chunk);
-                            })
-                            .endHandler(aVoid -> {
-                                MDC.put("api", api.getId());
-                                requestPolicyChainResult.getPolicyChain().end();
-                            });
-                }
-            });
-
-            requestPolicyChain.execute(serverRequest, serverResponse, executionContext);
+            handleClientRequest(serverRequest, serverResponse, executionContext, handler);
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while processing request", ex);
 
@@ -153,21 +117,55 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
             serverResponse.end();
 
             handler.handle(serverResponse);
-        } finally {
-            MDC.remove("api");
         }
     }
 
-    private void handleProxyResponse(Request serverRequest, Response serverResponse, ExecutionContext executionContext, ProxyResponse proxyResponse, long serviceInvocationStart, Handler<Response> handler) {
+    private void handleClientRequest(Request serverRequest, Response serverResponse, ExecutionContext executionContext, Handler<Response> handler) {
+        // Apply request policies
+        RequestPolicyChainProcessor requestPolicyChain = new RequestPolicyChainProcessor(policyResolvers);
+        requestPolicyChain.setResultHandler(requestPolicyChainResult -> {
+            if (requestPolicyChainResult.isFailure()) {
+                sendPolicyFailure(requestPolicyChainResult.getPolicyResult(), serverResponse);
+                handler.handle(serverResponse);
+            } else {
+                // Call an invoker to get a proxy connection (connection to an underlying backend, mainly HTTP)
+                Invoker upstreamInvoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
+
+                long serviceInvocationStart = System.currentTimeMillis();
+
+                Request invokeRequest = upstreamInvoker.invoke(executionContext, serverRequest, requestPolicyChainResult.getPolicyChain(), connection -> {
+                    connection.responseHandler(
+                            proxyResponse -> handleProxyResponse(serverRequest, serverResponse, executionContext, proxyResponse, serviceInvocationStart, handler));
+
+                    requestPolicyChain.setStreamErrorHandler(result -> {
+                        connection.cancel();
+                        // TODO: review this part of the code
+                        sendPolicyFailure(result.getPolicyResult(), serverResponse);
+                        handler.handle(serverResponse);
+                    });
+                });
+
+                // Plug server request stream to request policy chain stream
+                invokeRequest
+                        .bodyHandler(chunk -> {
+                            requestPolicyChainResult.getPolicyChain().write(chunk);
+                        })
+                        .endHandler(aVoid -> {
+                            requestPolicyChainResult.getPolicyChain().end();
+                        });
+            }
+        });
+
+        requestPolicyChain.execute(serverRequest, serverResponse, executionContext);
+    }
+
+    private void handleProxyResponse(Request serverRequest,final Response serverResponse, ExecutionContext executionContext, ProxyResponse proxyResponse, long serviceInvocationStart, Handler<Response> handler) {
         if (proxyResponse == null) {
             serverResponse.status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
             serverResponse.end();
         } else {
             // Set the status
             serverResponse.status(proxyResponse.status());
-
-            // Create a copy of proxy response headers send by the backend
-            serverRequest.metrics().setProxyResponseHeaders(proxyResponse.headers());
 
             // Copy HTTP headers
             proxyResponse.headers().forEach((headerName, headerValues) -> serverResponse.headers().put(headerName, headerValues));
@@ -180,18 +178,11 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                     sendPolicyFailure(responsePolicyResult, serverResponse);
                     handler.handle(serverResponse);
                 } else {
-                    responsePolicyChain.bodyHandler(chunk -> {
-                        MDC.put("api", api.getId());
-                        serverRequest.metrics().setResponseContentLength(serverRequest.metrics().getResponseContentLength() + chunk.length());
-                        serverResponse.write(chunk);
-                    });
+                    responsePolicyChain.bodyHandler(serverResponse::write);
                     responsePolicyChain.endHandler(responseEndResult -> {
-                        MDC.put("api", api.getId());
                         serverResponse.end();
 
-                        //TODO: How to pass invocation start timestamp ?
                         serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
-                        logger.debug("Remote API invocation took {} ms [request={}]", serverRequest.metrics().getApiResponseTimeMs(), serverRequest.id());
 
                         // Transfer proxy response to the initial consumer
                         handler.handle(serverResponse);

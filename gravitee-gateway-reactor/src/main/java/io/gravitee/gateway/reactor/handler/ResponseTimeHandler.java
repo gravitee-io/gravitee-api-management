@@ -20,7 +20,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ResponseTimeHandler implements Handler<Response> {
@@ -40,7 +40,6 @@ public class ResponseTimeHandler implements Handler<Response> {
         serverRequest.metrics().setResponseHttpStatus(response.status());
         serverRequest.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
         serverRequest.metrics().setProxyLatencyMs(proxyResponseTimeInMs - serverRequest.metrics().getApiResponseTimeMs());
-        serverRequest.metrics().setClientResponseHeaders(response.headers());
 
         // Push response to the next handler
         next.handle(response);

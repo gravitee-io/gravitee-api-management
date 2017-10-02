@@ -22,10 +22,8 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Plan;
 import net.sf.ehcache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +34,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.*;
 
 /**
@@ -151,21 +148,16 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     private void startRefresher(Api api) {
         if (api.isEnabled()) {
-            try {
-                Set<Plan> plans = planRepository.findByApi(api.getId());
-                ApiKeyRefresher refresher = new ApiKeyRefresher(api);
-                refresher.setCache(cache);
-                refresher.setApiKeyRepository(apiKeyRepository);
-                refresher.setPlans(plans);
+            ApiKeyRefresher refresher = new ApiKeyRefresher(api);
+            refresher.setCache(cache);
+            refresher.setApiKeyRepository(apiKeyRepository);
+            refresher.setPlans(api.getPlans());
 
-                LOGGER.info("Add a task to refresh keys each {} {} ", delay, unit.name());
-                ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
-                        refresher, 0, delay, unit);
+            LOGGER.info("Add a task to refresh api-keys each {} {} for API [name: {}] [id: {}]", delay, unit.name(), api.getName(), api.getId());
+            ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
+                    refresher, 0, delay, unit);
 
-                scheduledTasks.put(api, scheduledFuture);
-            } catch (TechnicalException te) {
-                LOGGER.error("Unable to retrieve plans for API {} to refresh api-keys", api.getId(), te);
-            }
+            scheduledTasks.put(api, scheduledFuture);
         }
     }
 

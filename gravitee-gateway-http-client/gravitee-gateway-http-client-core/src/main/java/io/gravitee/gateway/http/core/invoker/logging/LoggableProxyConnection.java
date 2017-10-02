@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.core.logger;
+package io.gravitee.gateway.http.core.invoker.logging;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
@@ -24,10 +24,6 @@ import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.WriteStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,23 +31,18 @@ import java.util.stream.Collectors;
  */
 public class LoggableProxyConnection implements ProxyConnection {
 
-    private final static Logger logger = LoggerFactory.getLogger("io.gravitee.gateway.http.client");
-
     private final ProxyConnection proxyConnection;
     private final Request request;
+    private Buffer buffer;
 
     public LoggableProxyConnection(final ProxyConnection proxyConnection, final ProxyRequest proxyRequest) {
         this.proxyConnection = proxyConnection;
         this.request = proxyRequest.request();
 
-        logger.info("{}/{} >> Rewriting: {} -> {}", request.id(), request.transactionId(),
-                request.uri(), proxyRequest.uri());
-        logger.info("{}/{} >> {} {}", request.id(), request.transactionId(),
-                proxyRequest.method(), proxyRequest.uri().getRawPath());
-
-        proxyRequest.headers().forEach((headerName, headerValues) -> logger.info("{}/{} >> {}: {}",
-                proxyRequest.request().id(), proxyRequest.request().transactionId(), headerName,
-                headerValues.stream().collect(Collectors.joining(","))));
+        this.request.metrics().setProxyRequest(new io.gravitee.reporter.api.http.Request());
+        this.request.metrics().getProxyRequest().setUri(proxyRequest.uri().toString());
+        this.request.metrics().getProxyRequest().setMethod(proxyRequest.method());
+        this.request.metrics().getProxyRequest().setHeaders(proxyRequest.headers());
     }
 
     @Override
@@ -66,21 +57,24 @@ public class LoggableProxyConnection implements ProxyConnection {
 
     @Override
     public ProxyConnection responseHandler(Handler<ProxyResponse> responseHandler) {
-        return proxyConnection.responseHandler(new LoggableProxyResponseHandler(responseHandler));
+        return proxyConnection.responseHandler(new LoggableProxyConnection.LoggableProxyResponseHandler(responseHandler));
     }
 
     @Override
     public void end() {
-        logger.info("{}/{} >> upstream proxying complete", request.id(), request.transactionId());
+        if (buffer != null) {
+            request.metrics().getProxyRequest().setBody(buffer.toString());
+        }
 
         proxyConnection.end();
     }
 
     @Override
     public WriteStream<Buffer> write(Buffer chunk) {
-        logger.info("{}/{} >> proxying content to upstream: {} bytes", request.id(), request.transactionId(),
-                chunk.length());
-        logger.info("{}/{} >> {}", request.id(), request.transactionId(), chunk.toString());
+        if (buffer == null) {
+            buffer = Buffer.buffer();
+        }
+        buffer.appendBuffer(chunk);
 
         return proxyConnection.write(chunk);
     }
@@ -94,30 +88,32 @@ public class LoggableProxyConnection implements ProxyConnection {
 
         @Override
         public void handle(ProxyResponse proxyResponse) {
-            responseHandler.handle(new LoggableProxyResponse(proxyResponse));
+            responseHandler.handle(new LoggableProxyConnection.LoggableProxyResponse(request, proxyResponse));
         }
     }
 
     class LoggableProxyResponse implements ProxyResponse {
 
         private final ProxyResponse proxyResponse;
+        private final Request request;
+        private Buffer buffer;
 
-        LoggableProxyResponse(final ProxyResponse proxyResponse) {
+        LoggableProxyResponse(final Request request, final ProxyResponse proxyResponse) {
+            this.request = request;
             this.proxyResponse = proxyResponse;
 
-            proxyResponse.headers().forEach((headerName, headerValues) -> logger.info("{} << {}: {}",
-                    request.id(), headerName, headerValues.stream().collect(Collectors.joining(","))));
-
-            logger.info("{} << HTTP Status - {}", request.id(), proxyResponse.status());
+            this.request.metrics().setProxyResponse(new io.gravitee.reporter.api.http.Response(proxyResponse.status()));
+            this.request.metrics().getProxyResponse().setHeaders(proxyResponse.headers());
         }
 
         @Override
         public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
             return proxyResponse.bodyHandler(chunk -> {
-                logger.info("{}/{} << proxying content to downstream: {} bytes", request.id(),
-                        request.transactionId(), chunk.length());
-                logger.info("{}/{} << {}", request.id(), request.transactionId(), chunk.toString());
+                if (buffer == null) {
+                    buffer = Buffer.buffer();
+                }
 
+                buffer.appendBuffer(chunk);
                 bodyHandler.handle(chunk);
             });
         }
@@ -125,7 +121,9 @@ public class LoggableProxyConnection implements ProxyConnection {
         @Override
         public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
             return proxyResponse.endHandler(result -> {
-                logger.info("{}/{} << downstream proxying complete", request.id(), request.transactionId());
+                if (buffer != null) {
+                    request.metrics().getProxyResponse().setBody(buffer.toString());
+                }
 
                 endHandler.handle(result);
             });
