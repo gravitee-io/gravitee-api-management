@@ -32,7 +32,7 @@ import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
-import io.gravitee.gateway.http.core.logger.LoggableProxyConnection;
+import io.gravitee.gateway.http.core.invoker.logging.LoggableProxyConnection;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,7 +114,6 @@ public class DefaultHttpInvoker implements Invoker {
         // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the request
         serverRequest.metrics().setEndpoint(uri);
 
-        final boolean enableHttpDump = api.getProxy().isDumpRequest();
         final HttpMethod httpMethod = extractHttpMethod(executionContext, serverRequest);
 
         final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
@@ -128,12 +127,10 @@ public class DefaultHttpInvoker implements Invoker {
                 .headers(proxyRequestHeaders(serverRequest.headers(), host, endpoint.definition()))
                 .build();
 
-        // Create a copy of request headers send by the gateway to the backend
-        serverRequest.metrics().setProxyRequestHeaders(proxyRequest.headers());
-
         ProxyConnection proxyConnection = endpoint.connector().request(proxyRequest);
 
-        if (enableHttpDump) {
+        // Enable logging at proxy level
+        if (api.getProxy().getLoggingMode().isProxyMode()) {
             proxyConnection = new LoggableProxyConnection(proxyConnection, proxyRequest);
         }
 

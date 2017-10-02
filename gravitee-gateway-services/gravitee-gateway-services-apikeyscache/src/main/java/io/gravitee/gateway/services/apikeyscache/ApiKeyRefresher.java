@@ -16,15 +16,15 @@
 package io.gravitee.gateway.services.apikeyscache;
 
 import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.model.Plan;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
+import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
@@ -41,7 +41,7 @@ public class ApiKeyRefresher implements Runnable {
 
     private final Api api;
 
-    private Set<Plan> plans;
+    private Collection<Plan> plans;
 
     public ApiKeyRefresher(final Api api) {
         this.api = api;
@@ -49,18 +49,22 @@ public class ApiKeyRefresher implements Runnable {
 
     @Override
     public void run() {
-        logger.debug("Refresh API keys for API {}", api);
+        logger.warn("Refresh api-keys for API [name: {}] [id: {}]", api.getName(), api.getId());
 
         plans.stream()
                 .flatMap(plan -> {
                     try {
+                        logger.warn("Loading for api-keys for plan [name: {}] [id: {}]", plan.getName(), plan.getId());
                         return apiKeyRepository.findByPlan(plan.getId()).stream();
                     } catch (TechnicalException te) {
-                        logger.warn("Not able to refresh API keys from repository: {}", te);
+                        logger.error("Not able to refresh api-keys from repository: {}", te);
                         return Stream.empty();
                     }
                 })
-                .forEach(apiKey -> cache.put(new Element(apiKey.getKey(), apiKey)));
+                .forEach(apiKey -> {
+                    logger.warn("Caching an api-key [key: {}] [plan: {}] [app: {}]", apiKey.getKey(), apiKey.getPlan(), apiKey.getApplication());
+                    cache.put(new Element(apiKey.getKey(), apiKey));
+                });
     }
 
     public void setApiKeyRepository(ApiKeyRepository apiKeyRepository) {
@@ -71,7 +75,7 @@ public class ApiKeyRefresher implements Runnable {
         this.cache = cache;
     }
 
-    public void setPlans(Set<Plan> plans) {
+    public void setPlans(Collection<Plan> plans) {
         this.plans = plans;
     }
 }

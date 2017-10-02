@@ -20,6 +20,8 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.Set;
@@ -29,6 +31,8 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
+
+    private static final Logger logger = LoggerFactory.getLogger(ApiKeyRepositoryWrapper.class);
 
     private final ApiKeyRepository wrapped;
     private final Cache cache;
@@ -40,11 +44,14 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
 
     @Override
     public Optional<ApiKey> findById(String apiKey) throws TechnicalException {
+        logger.warn("Looking for api-key from cache [key: {}]", apiKey);
         Element elt = cache.get(apiKey);
         if (elt != null) {
+            logger.warn("An api-key has been found in cache for [key: {}]", apiKey);
             return Optional.of((ApiKey) elt.getObjectValue());
         }
 
+        logger.warn("No api-key found in cache for [key: {}]", apiKey);
         return Optional.empty();
     }
 
