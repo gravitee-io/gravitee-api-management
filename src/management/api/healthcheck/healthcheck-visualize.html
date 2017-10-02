@@ -195,13 +195,14 @@
                       <th md-column>Health</th>
                       <th md-column>Target</th>
                       <th md-column>Status | Elapsed Time</th>
+                      <th md-column></th>
                     </tr>
                   </thead>
                   <tbody md-body>
                     <tr ng-if="healthCheckCtrl.logs.logs.length > 0" md-row
                         ng-repeat="log in healthCheckCtrl.logs.logs | limitTo: healthCheckCtrl.query.size"
                         md-auto-select md-select="log" md-select-id="key">
-                      <td md-cell>{{log.timestamp | date:'MM.dd.yyyy y h:mm:ss.sss a'}}</td>
+                      <td md-cell>{{log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
                       <td md-cell>
                         <md-tooltip md-direction="bottom">{{healthCheckCtrl.getEndpointStatus(log.state)}}</md-tooltip>
                         <ng-md-icon ng-if="log.state === 0" icon="close" size="14px" style="fill: red"></ng-md-icon>
@@ -217,10 +218,13 @@
                       </td>
                       <td md-cell>
                         <span>
-                          {{log.steps[0].method | uppercase}} {{log.steps[0].url}}
+                          {{log.request.method | uppercase}} {{log.request.uri}}
                         </span>
                       </td>
-                      <td md-cell>{{log.steps[0].statusCode}} | {{log.responseTime}} ms</td>
+                      <td md-cell>{{log.response.status}} | {{log.responseTime}} ms</td>
+                      <td md-cell>
+                        <ng-md-icon ng-if="!log.success" icon="remove_red_eye" size="16px" ui-sref="management.apis.detail.healthcheck.log({log: log.id})"></ng-md-icon>
+                      </td>
                     </tr>
                     <tr ng-if="healthCheckCtrl.logs.total === 0">
                       <td md-cell colspan="6">No log</td>

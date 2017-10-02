@@ -303,17 +303,21 @@ class ApiService {
   }
 
   apiHealthLogs(api: string, query: LogsQuery) {
-    var url = this.apisURL + api + '/health/logs?';
+    let url = this.apisURL + api + '/health/logs?';
 
-    var keys = Object.keys(query);
+    let keys = Object.keys(query);
     _.forEach(keys, function (key) {
-      var val = query[key];
+      let val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }
     });
 
     return this.$http.get(url, {timeout: 30000});
+  }
+
+  getHealthLog(api: string, log: string) {
+    return this.$http.get(this.apisURL + api + '/health/logs/' + log);
   }
 
 }

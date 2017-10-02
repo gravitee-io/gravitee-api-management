@@ -82,6 +82,10 @@ class ApiHealthCheckController {
       default: return '-';
     }
   }
+
+  viewLog(log) {
+    this.$state.go('management.apis.detail.healthcheck.log', log);
+  }
 }
 
 export default ApiHealthCheckController;

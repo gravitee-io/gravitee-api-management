@@ -307,6 +307,7 @@ import ApiHealthCheckConfigureController from '../management/api/healthcheck/hea
 import DialogAssertionInformationController from '../management/api/healthcheck/healthcheck-assertion-dialog.controller';
 import ApiHealthCheckController from '../management/api/healthcheck/healthcheck.controller';
 import ProgressBarComponent from '../components/progressbar/progress-bar.component';
+import ApiHealthCheckLogController from '../management/api/healthcheck/healthcheck-log.controller';
 
 // Ticket
 import TicketService from '../services/ticket.service';
@@ -539,6 +540,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   // Healthcheck
   .controller('ApiHealthCheckConfigureController', ApiHealthCheckConfigureController)
+  .controller('ApiHealthCheckLogController', ApiHealthCheckLogController)
   .component('progressBar', ProgressBarComponent)
 
   .filter('humanDateFilter', function () {

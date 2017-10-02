@@ -491,6 +491,21 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
+    .state('management.apis.detail.healthcheck.log', {
+      url: '/logs/:log',
+      template: require('./healthcheck/healthcheck-log.html'),
+      controller: 'ApiHealthCheckLogController',
+      controllerAs: 'healthCheckLogCtrl',
+      resolve: {
+        resolvedLog: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getHealthLog($stateParams['apiId'], $stateParams['log'])
+      },
+      data: {
+        perms: {
+          only: ['api-health-r']
+        }
+      }
+    })
     .state('management.apis.detail.history', {
       url: '/history',
       template: require('./history/apiHistory.html'),
