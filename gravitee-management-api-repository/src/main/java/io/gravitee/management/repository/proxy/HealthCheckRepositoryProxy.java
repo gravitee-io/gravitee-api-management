@@ -19,6 +19,7 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.Response;
+import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,5 +32,10 @@ public class HealthCheckRepositoryProxy extends AbstractProxy<HealthCheckReposit
     @Override
     public <T extends Response> T query(Query<T> query) throws AnalyticsException {
         return target.query(query);
+    }
+
+    @Override
+    public ExtendedLog findById(String logId) throws AnalyticsException {
+        return target.findById(logId);
     }
 }

@@ -19,20 +19,19 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.InstanceListItem;
 import io.gravitee.management.model.analytics.query.LogQuery;
-import io.gravitee.management.model.healthcheck.ApiMetrics;
-import io.gravitee.management.model.healthcheck.Log;
-import io.gravitee.management.model.healthcheck.Logs;
+import io.gravitee.management.model.healthcheck.*;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.HealthCheckService;
 import io.gravitee.management.service.InstanceService;
+import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.query.Bucket;
 import io.gravitee.repository.healthcheck.query.FieldBucket;
 import io.gravitee.repository.healthcheck.query.QueryBuilders;
 import io.gravitee.repository.healthcheck.query.availability.AvailabilityQuery;
 import io.gravitee.repository.healthcheck.query.availability.AvailabilityResponse;
+import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
 import io.gravitee.repository.healthcheck.query.log.LogsResponse;
-import io.gravitee.repository.healthcheck.query.log.Step;
 import io.gravitee.repository.healthcheck.query.responsetime.AverageResponseTimeQuery;
 import io.gravitee.repository.healthcheck.query.responsetime.AverageResponseTimeResponse;
 import org.slf4j.Logger;
@@ -45,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -110,7 +108,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     @Override
-    public Logs getLogs(String api, LogQuery query) {
+    public SearchLogResponse findByApi(String api, LogQuery query) {
         logger.debug("Run health logs query for API '{}'", api);
 
         try {
@@ -129,11 +127,22 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         }
     }
 
-    private Logs convert(LogsResponse response) {
-        Logs logsResponse = new Logs(response.getSize());
+    @Override
+    public Log findLog(String id) {
+        try {
+            ExtendedLog log = healthCheckRepository.findById(id);
+            return toLog(log);
+        } catch (AnalyticsException ae) {
+            logger.error("An unexpected error occurs while searching for health data.", ae);
+            return null;
+        }
+    }
+
+    private SearchLogResponse convert(LogsResponse response) {
+        SearchLogResponse searchLogResponseResponse = new SearchLogResponse(response.getSize());
 
         // Transform repository logs
-        logsResponse.setLogs(response.getLogs().stream()
+        searchLogResponseResponse.setLogs(response.getLogs().stream()
                 .map(this::toLog)
                 .collect(Collectors.toList()));
 
@@ -141,24 +150,17 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         if (response.getSize() > 0) {
             Map<String, Map<String, String>> metadata = new HashMap<>();
 
-            logsResponse.getLogs().forEach(logItem -> {
+            searchLogResponseResponse.getLogs().forEach(logItem -> {
                 String gateway = logItem.getGateway();
-                //String endpoint = logItem.getEndpoint();
-
                 if (gateway != null) {
                     metadata.computeIfAbsent(gateway, this::getGatewayMetadata);
                 }
-                /*
-                if (endpoint != null) {
-                    metadata.computeIfAbsent(endpoint, edpt -> getEndpointMetadata(null, edpt));
-                }
-                */
             });
 
-            logsResponse.setMetadata(metadata);
+            searchLogResponseResponse.setMetadata(metadata);
         }
 
-        return logsResponse;
+        return searchLogResponseResponse;
     }
 
     private <T extends Number> ApiMetrics<T> convert(ApiEntity api, List<FieldBucket<T>> response, String field) {
@@ -238,19 +240,60 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         log.setResponseTime(repoLog.getResponseTime());
         log.setState(repoLog.getState());
 
-        if (repoLog.getSteps() != null) {
-            log.setSteps(repoLog.getSteps().stream().map(repoStep -> {
-                io.gravitee.management.model.healthcheck.Step step = new io.gravitee.management.model.healthcheck.Step();
-                step.setMessage(repoStep.getMessage());
-                step.setMethod(repoStep.getMethod());
-                step.setStatusCode(repoStep.getStatusCode());
-                step.setSuccess(repoStep.isSuccess());
-                step.setUrl(repoStep.getUrl());
-                return step;
-            }).collect(Collectors.toList()));
-        }
+        Request request = new Request();
+        request.setMethod(repoLog.getMethod());
+        request.setUri(repoLog.getUri());
+        log.setRequest(request);
+
+        Response response = new Response();
+        response.setStatus(repoLog.getStatus());
+        log.setResponse(response);
 
         return log;
+    }
+
+    private Log toLog(io.gravitee.repository.healthcheck.query.log.ExtendedLog repoLog) {
+        Log log = new Log();
+        log.setId(repoLog.getId());
+        log.setTimestamp(repoLog.getTimestamp());
+        log.setAvailable(repoLog.isAvailable());
+        log.setSuccess(repoLog.isSuccess());
+        log.setEndpoint(repoLog.getEndpoint());
+        log.setGateway(repoLog.getGateway());
+        log.setResponseTime(repoLog.getResponseTime());
+        log.setState(repoLog.getState());
+        log.setMessage(repoLog.getSteps().get(0).getMessage());
+        log.setRequest(createRequest(repoLog.getSteps().get(0).getRequest()));
+        log.setResponse(createResponse(repoLog.getSteps().get(0).getResponse()));
+
+        return log;
+    }
+
+    private Request createRequest(io.gravitee.repository.healthcheck.query.log.Request repoRequest) {
+        if (repoRequest == null) {
+            return null;
+        }
+
+        Request request = new Request();
+        request.setUri(repoRequest.getUri());
+        request.setMethod(repoRequest.getMethod());
+        request.setHeaders(repoRequest.getHeaders());
+        request.setBody(repoRequest.getBody());
+
+        return request;
+    }
+
+    private Response createResponse(io.gravitee.repository.healthcheck.query.log.Response repoResponse) {
+        if (repoResponse == null) {
+            return null;
+        }
+
+        Response response = new Response();
+        response.setStatus(repoResponse.getStatus());
+        response.setHeaders(repoResponse.getHeaders());
+        response.setBody(repoResponse.getBody());
+
+        return response;
     }
 
     private Map<String, String> getEndpointMetadata(ApiEntity api, String endpointName) {

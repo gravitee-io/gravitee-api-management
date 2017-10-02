@@ -13,24 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.model.healthcheck;
 
-import io.gravitee.management.model.analytics.query.LogQuery;
-import io.gravitee.management.model.healthcheck.ApiMetrics;
-import io.gravitee.management.model.healthcheck.Log;
-import io.gravitee.management.model.healthcheck.SearchLogResponse;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface HealthCheckService {
+public class Response {
 
-    ApiMetrics getAvailability(String api, String field);
+    private int status;
 
-    ApiMetrics getResponseTime(String api, String field);
+    private Map<String, List<String>> headers;
 
-    SearchLogResponse findByApi(String api, LogQuery logQuery);
+    private String body;
 
-    Log findLog(String id);
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public Map<String, List<String>> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Map<String, List<String>> headers) {
+        this.headers = headers;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
 }

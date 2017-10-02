@@ -17,7 +17,8 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.analytics.query.LogQuery;
-import io.gravitee.management.model.healthcheck.Logs;
+import io.gravitee.management.model.healthcheck.Log;
+import io.gravitee.management.model.healthcheck.SearchLogResponse;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.healthcheck.HealthcheckFieldParam;
@@ -73,7 +74,7 @@ public class ApiHealthResource extends AbstractResource {
             @ApiResponse(code = 200, message = "API logs"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({@Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)})
-    public Logs healthcheckLogs(
+    public SearchLogResponse healthcheckLogs(
             @PathParam("api") String api,
             @BeanParam LogsParam param) {
 
@@ -84,6 +85,21 @@ public class ApiHealthResource extends AbstractResource {
         logQuery.setPage(param.getPage());
         logQuery.setSize(param.getSize());
 
-        return healthCheckService.getLogs(api, logQuery);
+        return healthCheckService.findByApi(api, logQuery);
+    }
+
+    @GET
+    @Path("logs/{log}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Health-check log")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Single health-check log"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({@Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)})
+    public Log healthcheckLog(
+            @PathParam("api") String api,
+            @PathParam("log") String logId) {
+
+        return healthCheckService.findLog(logId);
     }
 }

@@ -15,8 +15,6 @@
  */
 package io.gravitee.management.model.healthcheck;
 
-import java.util.List;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -39,7 +37,11 @@ public class Log {
 
     private int state;
 
-    private List<Step> steps;
+    private String message;
+
+    private Request request;
+
+    private Response response;
 
     public String getId() {
         return id;
@@ -105,12 +107,28 @@ public class Log {
         this.state = state;
     }
 
-    public List<Step> getSteps() {
-        return steps;
+    public Request getRequest() {
+        return request;
     }
 
-    public void setSteps(List<Step> steps) {
-        this.steps = steps;
+    public void setRequest(Request request) {
+        this.request = request;
+    }
+
+    public Response getResponse() {
+        return response;
+    }
+
+    public void setResponse(Response response) {
+        this.response = response;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     @Override

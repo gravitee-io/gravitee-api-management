@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.model.healthcheck;
 
+import io.gravitee.common.http.HttpMethod;
+
 import java.util.List;
 import java.util.Map;
 
@@ -22,33 +24,45 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Logs {
+public class Request {
 
-    private final long total;
-    private List<Log> logs;
-    private Map<String, Map<String, String>> metadata;
+    private HttpMethod method;
 
-    public Logs(long total) {
-        this.total = total;
+    private String uri;
+
+    private Map<String, List<String>> headers;
+
+    private String body;
+
+    public HttpMethod getMethod() {
+        return method;
     }
 
-    public long getTotal() {
-        return total;
+    public void setMethod(HttpMethod method) {
+        this.method = method;
     }
 
-    public List<Log> getLogs() {
-        return logs;
+    public String getUri() {
+        return uri;
     }
 
-    public void setLogs(List<Log> logs) {
-        this.logs = logs;
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 
-    public Map<String, Map<String, String>> getMetadata() {
-        return metadata;
+    public Map<String, List<String>> getHeaders() {
+        return headers;
     }
 
-    public void setMetadata(Map<String, Map<String, String>> metadata) {
-        this.metadata = metadata;
+    public void setHeaders(Map<String, List<String>> headers) {
+        this.headers = headers;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 }

@@ -15,43 +15,19 @@
  */
 package io.gravitee.management.model.healthcheck;
 
-import io.gravitee.common.http.HttpMethod;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Step {
 
-    private String url;
-    private HttpMethod method;
-    private int statusCode;
-    private String message;
     private boolean success;
 
-    public String getUrl() {
-        return url;
-    }
+    private String message;
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+    private Request request;
 
-    public HttpMethod getMethod() {
-        return method;
-    }
-
-    public void setMethod(HttpMethod method) {
-        this.method = method;
-    }
-
-    public int getStatusCode() {
-        return statusCode;
-    }
-
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
-    }
+    private Response response;
 
     public String getMessage() {
         return message;
@@ -67,5 +43,21 @@ public class Step {
 
     public void setSuccess(boolean success) {
         this.success = success;
+    }
+
+    public Request getRequest() {
+        return request;
+    }
+
+    public void setRequest(Request request) {
+        this.request = request;
+    }
+
+    public Response getResponse() {
+        return response;
+    }
+
+    public void setResponse(Response response) {
+        this.response = response;
     }
 }
