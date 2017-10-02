@@ -15,13 +15,13 @@
  */
 package io.gravitee.repository.healthcheck.query.log;
 
-import io.gravitee.common.http.HttpMethod;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Log {
+public class ExtendedLog {
 
     private String id;
 
@@ -39,11 +39,7 @@ public class Log {
 
     private int state;
 
-    private HttpMethod method;
-
-    private String uri;
-
-    private int status;
+    private List<Step> steps;
 
     public String getId() {
         return id;
@@ -109,27 +105,11 @@ public class Log {
         this.state = state;
     }
 
-    public HttpMethod getMethod() {
-        return method;
+    public List<Step> getSteps() {
+        return steps;
     }
 
-    public void setMethod(HttpMethod method) {
-        this.method = method;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
+    public void setSteps(List<Step> steps) {
+        this.steps = steps;
     }
 }

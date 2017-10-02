@@ -13,20 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.healthcheck.api;
+package io.gravitee.repository.healthcheck.query.log;
 
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.healthcheck.query.Query;
-import io.gravitee.repository.healthcheck.query.Response;
-import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
+import io.gravitee.common.http.HttpHeaders;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface HealthCheckRepository {
+public class Response {
 
-    <T extends Response> T query(Query<T> query) throws AnalyticsException;
+    private int status;
 
-    ExtendedLog findById(String logId) throws AnalyticsException;
+    private HttpHeaders headers;
+
+    private String body;
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public HttpHeaders getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(HttpHeaders headers) {
+        this.headers = headers;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
 }

@@ -15,49 +15,55 @@
  */
 package io.gravitee.repository.healthcheck.query.log;
 
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpMethod;
+
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Step {
+public class Request {
 
-    private boolean success;
+    private HttpMethod method;
 
-    private String message;
+    private HttpHeaders headers;
 
-    private Request request;
+    private String uri;
 
-    private Response response;
+    private String body;
 
-    public String getMessage() {
-        return message;
+    public HttpMethod getMethod() {
+        return method;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setMethod(HttpMethod method) {
+        this.method = method;
     }
 
-    public boolean isSuccess() {
-        return success;
+    public HttpHeaders getHeaders() {
+        return headers;
     }
 
-    public void setSuccess(boolean success) {
-        this.success = success;
+    public void setHeaders(HttpHeaders headers) {
+        this.headers = headers;
     }
 
-    public Request getRequest() {
-        return request;
+    public String getUri() {
+        return uri;
     }
 
-    public void setRequest(Request request) {
-        this.request = request;
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 
-    public Response getResponse() {
-        return response;
+    public String getBody() {
+        return body;
     }
 
-    public void setResponse(Response response) {
-        this.response = response;
+    public void setBody(String body) {
+        this.body = body;
     }
 }
