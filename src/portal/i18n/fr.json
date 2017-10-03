@@ -8,7 +8,9 @@
     "MINUTES": "minutes",
     "HOURS": "heurs",
     "DAYS": "jours",
-    "close": "Fermer"
+    "close": "Fermer",
+    "create": "Créer",
+    "cancel": "Annuler"
   },
   "home": {
     "title": "Gravitee.io",
@@ -31,7 +33,8 @@
     "management": "Administration",
     "applications": "Mes applications",
     "apis": "Mes APIs",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "support": "Support"
   },
   "apis": {
     "all": "Toutes les APIs",
@@ -84,5 +87,23 @@
   },
   "application": {
     "notFound": "Aucune application trouvée pour \"{{applicationName}}\"."
+  },
+  "support": {
+    "ticket": {
+      "title": "Création d'un ticket support",
+      "subject": "Sujet",
+      "content": "Contenu",
+      "api": "Sélectionnez une API",
+      "application": "Sélectionnez une application",
+      "copyToSender": "Recevoir une copie de l’email",
+      "successCreation": "Le ticket de support a été créé avec succès",
+      "notAuthenticated": {
+        "title": "Création d'un ticket support",
+        "message": "Afin de saisir un ticket, merci de vous connecter"
+      },
+      "userWithoutEmail": {
+        "message": "Vous ne pouvez pas saisir de ticket car vous n'avez pas d'email configuré sur votre compte"
+      }
+    }
   }
 }

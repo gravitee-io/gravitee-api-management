@@ -108,6 +108,12 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
           () => { $state.go('portal.home');$rootScope.$broadcast('graviteeUserRefresh'); }
         );
       }
+    })
+    .state('support', {
+      url: '/support',
+      template: require('./support/ticket.html'),
+      controller: 'SupportTicketController',
+      controllerAs: 'supportTicketCtrl'
     });
 
   $urlRouterProvider.otherwise('/');

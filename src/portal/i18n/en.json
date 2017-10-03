@@ -8,7 +8,9 @@
     "MINUTES": "minuts",
     "HOURS": "hours",
     "DAYS": "days",
-    "close": "Close"
+    "close": "Close",
+    "create": "Create",
+    "cancel": "Cancel"
   },
   "home": {
     "title": "Gravitee.io",
@@ -31,7 +33,8 @@
     "management": "Administration",
     "applications": "My applications",
     "apis": "My APIs",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "support": "Support"
   },
   "apis": {
     "all": "All APIs",
@@ -84,5 +87,23 @@
   },
   "application": {
     "notFound": "No applications matching \"{{applicationName}}\" were found."
+  },
+  "support": {
+    "ticket": {
+      "title": "Support ticket creation",
+      "subject": "Subject",
+      "content": "Content",
+      "api": "Select an API",
+      "application": "Select an application",
+      "copyToSender": "Receive a copy of the email",
+      "successCreation": "Support ticket has been created successfully",
+      "notAuthenticated": {
+        "title": "Creation of a support ticket",
+        "message": "In order to enter a ticket, please log in"
+      },
+      "userWithoutEmail": {
+        "message": "You can not submit a ticket because you do not have an email configured on your account"
+      }
+    }
   }
 }

@@ -16,6 +16,7 @@
 import _ = require('lodash');
 export class User {
   public username: string;
+  public email: string;
   public picture: string;
   public roles: any[];
   public userPermissions: string[];

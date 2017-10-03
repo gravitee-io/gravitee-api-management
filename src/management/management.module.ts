@@ -308,6 +308,10 @@ import DialogAssertionInformationController from '../management/api/healthcheck/
 import ApiHealthCheckController from '../management/api/healthcheck/healthcheck.controller';
 import ProgressBarComponent from '../components/progressbar/progress-bar.component';
 
+// Ticket
+import TicketService from '../services/ticket.service';
+import SupportTicketController from '../support/ticket.controller';
+
 // Others
 import StringService from '../services/string.service';
 import AuthenticationService from '../services/authentication.service';
@@ -428,6 +432,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('NewPageController', NewPageController)
   .controller('RolesController', RolesController)
   .controller('RoleSaveController', RoleSaveController)
+  .controller('SupportTicketController', SupportTicketController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
@@ -450,6 +455,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('StringService', StringService)
   .service('AuthenticationService', AuthenticationService)
   .service('RoleService', RoleService)
+  .service('TicketService', TicketService)
   .directive('filecontent', () => DocumentationDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())

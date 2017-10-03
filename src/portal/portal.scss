@@ -117,6 +117,10 @@ input {
   color: #333;
 }
 
+.menu-active {
+  background-color: #34a0d4 !important;
+}
+
 /**
  *  Do not remove the comment below. It's the markers used by gulp-inject to inject
  *  all your sass files automatically

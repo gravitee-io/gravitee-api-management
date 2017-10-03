@@ -39,5 +39,9 @@
       // Required scope
       "scope": ["profile", "openid"]
     }
+  },
+  // Enable the creation of support tickets
+  "support": {
+    "enabled": false
   }
 }
