@@ -15,9 +15,13 @@
  */
 package io.gravitee.management.service.impl;
 
+import io.gravitee.management.model.MetadataEntity;
+import io.gravitee.management.model.MetadataFormat;
+import io.gravitee.management.model.NewMetadataEntity;
 import io.gravitee.management.model.NewRoleEntity;
 import io.gravitee.management.model.permissions.*;
 import io.gravitee.management.service.InitializerService;
+import io.gravitee.management.service.MetadataService;
 import io.gravitee.management.service.RoleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +43,13 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
 
     private final Logger logger = LoggerFactory.getLogger(InitializerServiceImpl.class);
 
+    public static final String METADATA_EMAIL_SUPPORT_KEY = "email-support";
+    public static final String DEFAULT_METADATA_EMAIL_SUPPORT = "support@change.me";
+
     @Autowired
-    RoleService roleService;
+    private RoleService roleService;
+    @Autowired
+    private MetadataService metadataService;
 
     @Override
     protected String name() {
@@ -50,6 +59,19 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
     @Override
     protected void doStart() throws Exception {
         super.doStart();
+
+        // initialize default metadata
+        final MetadataEntity defaultEmailSupportMetadata = metadataService.findDefaultByKey(METADATA_EMAIL_SUPPORT_KEY);
+
+        if (defaultEmailSupportMetadata == null) {
+            logger.info("    No default metadata for email support found. Add default one.");
+            final NewMetadataEntity metadata = new NewMetadataEntity();
+            metadata.setFormat(MetadataFormat.MAIL);
+            metadata.setName("Email support");
+            metadata.setValue(DEFAULT_METADATA_EMAIL_SUPPORT);
+            final MetadataEntity metadataEntity = metadataService.create(metadata);
+            logger.info("    Added default metadata for email support with success: {}", metadataEntity);
+        }
 
         // initialize roles.
         if(roleService.findAll().isEmpty()) {

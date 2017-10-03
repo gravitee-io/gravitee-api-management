@@ -32,15 +32,18 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static java.lang.String.format;
+import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.springframework.ui.freemarker.FreeMarkerTemplateUtils.processTemplateIntoString;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -50,7 +53,7 @@ import java.util.stream.Collectors;
 @Component
 public class EmailServiceImpl extends TransactionalService implements EmailService {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     @Autowired
     private JavaMailSender mailSender;
@@ -73,20 +76,28 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     public void sendEmailNotification(final EmailNotification emailNotification) {
         if (enabled) {
             try {
-                MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
-                final Template template = freemarkerConfiguration.getTemplate(emailNotification.getContent());
-                final String htmlText =
-                        FreeMarkerTemplateUtils.processTemplateIntoString(template, emailNotification.getParams());
+                final MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
 
-                final String from = Objects.isNull(emailNotification.getFrom()) || emailNotification.getFrom().isEmpty()
+                final Template template = freemarkerConfiguration.getTemplate(emailNotification.getTemplate());
+                final String content = processTemplateIntoString(template, emailNotification.getParams());
+
+                final String from = isNull(emailNotification.getFrom()) || emailNotification.getFrom().isEmpty()
                         ? defaultFrom
                         : emailNotification.getFrom();
 
-                mailMessage.setFrom(from);
-                mailMessage.setTo(emailNotification.getTo());
-                mailMessage.setSubject(String.format(subject, emailNotification.getSubject()));
+                if (isEmpty(emailNotification.getFromName())) {
+                    mailMessage.setFrom(from);
+                } else {
+                    mailMessage.setFrom(from, emailNotification.getFromName());
+                }
 
-                final String html = addResourcesInMessage(mailMessage, htmlText);
+                mailMessage.setTo(emailNotification.getTo());
+                if (emailNotification.isCopyToSender() && emailNotification.getFrom() != null) {
+                    mailMessage.setBcc(emailNotification.getFrom());
+                }
+                mailMessage.setSubject(format(subject, emailNotification.getSubject()));
+
+                final String html = addResourcesInMessage(mailMessage, content);
 
                 LOGGER.debug("Sending an email to: {}\nSubject: {}\nMessage: {}",
                         emailNotification.getTo(), emailNotification.getSubject(), html);

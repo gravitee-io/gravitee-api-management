@@ -141,6 +141,22 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     }
 
     @Override
+    public MetadataEntity findDefaultByKey(final String key) {
+        try {
+            LOGGER.debug("Find default metadata by key");
+            final Optional<Metadata> optMetadata = metadataRepository.findById(key, DEFAUT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
+            if (optMetadata.isPresent()) {
+                return convert(optMetadata.get());
+            } else {
+                return null;
+            }
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurred while trying to find default metadata by key", ex);
+            throw new TechnicalManagementException("An error occurred while trying to find default metadata by key", ex);
+        }
+    }
+
+    @Override
     public void checkMetadataFormat(final MetadataFormat format, final String value) {
         if (isBlank(value)) {
             return;

@@ -258,3 +258,7 @@ user:
 
 # The portal URL used in emails
 #portalURL: http://portal-url.net
+
+# Allows to create support ticket (default value: false)
+#support:
+  #enabled: true

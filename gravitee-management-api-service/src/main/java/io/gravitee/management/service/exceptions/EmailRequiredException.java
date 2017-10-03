@@ -13,27 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.*;
-
-import java.util.List;
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MetadataService {
+public class EmailRequiredException extends AbstractManagementException {
 
-    List<MetadataEntity> findAllDefault();
+    private final String username;
 
-    MetadataEntity create(NewMetadataEntity metadata);
+    public EmailRequiredException(String username) {
+        this.username = username;
+    }
 
-    MetadataEntity update(UpdateMetadataEntity metadata);
+    @Override
+    public int getHttpStatusCode() {
+        return BAD_REQUEST_400;
+    }
 
-    void delete(String metadataId);
-
-    void checkMetadataFormat(MetadataFormat format, String value);
-
-    MetadataEntity findDefaultByKey(String key);
+    @Override
+    public String getMessage() {
+        return "User [" + username + "] must have a configured email to create a ticket.";
+    }
 }

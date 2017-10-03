@@ -42,4 +42,9 @@ public class PlatformResource {
     public PlatformEventsResource getPlatformEventsResource() {
         return resourceContext.getResource(PlatformEventsResource.class);
     }
+
+    @Path("tickets")
+    public PlatformTicketsResource getPlatformTicketsResource() {
+        return resourceContext.getResource(PlatformTicketsResource.class);
+    }
 }

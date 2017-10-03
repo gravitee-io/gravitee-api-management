@@ -32,13 +32,18 @@ public class EmailNotificationBuilder {
         return this;
     }
 
+    public EmailNotificationBuilder fromName(String fromName) {
+        this.emailNotification.setFromName(fromName);
+        return this;
+    }
+
     public EmailNotificationBuilder to(String... to) {
         this.emailNotification.setTo(to);
         return this;
     }
 
     public EmailNotificationBuilder template(EmailTemplate emailTemplate) {
-        this.emailNotification.setContent(emailTemplate.getTemplate());
+        this.emailNotification.setTemplate(emailTemplate.getTemplate());
         return this;
     }
 
@@ -57,6 +62,11 @@ public class EmailNotificationBuilder {
         return this;
     }
 
+    public EmailNotificationBuilder copyToSender(boolean copyToSender) {
+        this.emailNotification.setCopyToSender(copyToSender);
+        return this;
+    }
+
     public EmailNotification build() {
         return this.emailNotification;
     }
@@ -72,7 +82,8 @@ public class EmailNotificationBuilder {
         USER_REGISTRATION("userRegistration.html"),
         APPLICATION_MEMBER_SUBSCRIPTION("applicationMember.html"),
         API_MEMBER_SUBSCRIPTION("apiMember.html"),
-        GROUP_MEMBER_SUBSCRIPTION("groupMember.html");
+        GROUP_MEMBER_SUBSCRIPTION("groupMember.html"),
+        SUPPORT_TICKET("supportTicket.html");
 
         private String template;
 

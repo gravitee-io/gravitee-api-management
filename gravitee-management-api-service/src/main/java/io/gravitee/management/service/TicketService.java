@@ -15,25 +15,13 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.*;
-
-import java.util.List;
+import io.gravitee.management.model.NewTicketEntity;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MetadataService {
+public interface TicketService {
 
-    List<MetadataEntity> findAllDefault();
-
-    MetadataEntity create(NewMetadataEntity metadata);
-
-    MetadataEntity update(UpdateMetadataEntity metadata);
-
-    void delete(String metadataId);
-
-    void checkMetadataFormat(MetadataFormat format, String value);
-
-    MetadataEntity findDefaultByKey(String key);
+    void create(String username, NewTicketEntity ticketEntity);
 }

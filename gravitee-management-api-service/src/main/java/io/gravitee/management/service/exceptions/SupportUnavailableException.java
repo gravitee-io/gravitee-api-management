@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.*;
-
-import java.util.List;
+import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MetadataService {
+public class SupportUnavailableException extends AbstractManagementException {
 
-    List<MetadataEntity> findAllDefault();
+    @Override
+    public int getHttpStatusCode() {
+        return SERVICE_UNAVAILABLE_503;
+    }
 
-    MetadataEntity create(NewMetadataEntity metadata);
-
-    MetadataEntity update(UpdateMetadataEntity metadata);
-
-    void delete(String metadataId);
-
-    void checkMetadataFormat(MetadataFormat format, String value);
-
-    MetadataEntity findDefaultByKey(String key);
+    @Override
+    public String getMessage() {
+        return "Support service is unavailable.";
+    }
 }

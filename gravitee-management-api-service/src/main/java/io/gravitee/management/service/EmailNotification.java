@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -26,10 +27,20 @@ import java.util.Objects;
 public class EmailNotification {
 
     private String from;
+    private String fromName;
     private String[] to;
     private String subject;
-    private String content;
+    private String template;
     private Map<String, Object> params = new HashMap<>();
+    private boolean copyToSender;
+
+    public String getFromName() {
+        return fromName;
+    }
+
+    public void setFromName(String fromName) {
+        this.fromName = fromName;
+    }
 
     public String getFrom() {
         return from;
@@ -55,12 +66,12 @@ public class EmailNotification {
         this.subject = subject;
     }
 
-    public String getContent() {
-        return content;
+    public String getTemplate() {
+        return template;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setTemplate(String template) {
+        this.template = template;
     }
 
     public Map<String, Object> getParams() {
@@ -71,31 +82,43 @@ public class EmailNotification {
         this.params = params;
     }
 
+    public boolean isCopyToSender() {
+        return copyToSender;
+    }
+
+    public void setCopyToSender(boolean copyToSender) {
+        this.copyToSender = copyToSender;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof EmailNotification)) return false;
         EmailNotification that = (EmailNotification) o;
         return Objects.equals(from, that.from) &&
-                Objects.equals(to, that.to) &&
+                Objects.equals(fromName, that.fromName) &&
+                Arrays.equals(to, that.to) &&
                 Objects.equals(subject, that.subject) &&
-                Objects.equals(content, that.content) &&
-                Objects.equals(params, that.params);
+                Objects.equals(template, that.template) &&
+                Objects.equals(params, that.params) &&
+                Objects.equals(copyToSender, that.copyToSender);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(from, to, subject, content, params);
+        return Objects.hash(from, fromName, to, subject, template, params, copyToSender);
     }
 
     @Override
     public String toString() {
         return "EmailNotification{" +
                 "from='" + from + '\'' +
-                ", to='" + to + '\'' +
+                ", fromName='" + fromName + '\'' +
+                ", to=" + Arrays.toString(to) +
                 ", subject='" + subject + '\'' +
-                ", content='" + content + '\'' +
+                ", template='" + template + '\'' +
                 ", params=" + params +
+                ", copyToSender=" + copyToSender +
                 '}';
     }
 }
