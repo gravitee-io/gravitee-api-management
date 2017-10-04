@@ -235,7 +235,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         .subject("New subscription for " + api.getName() + " with plan " + planEntity.getName())
                         .template(EmailNotificationBuilder.EmailTemplate.NEW_SUBSCRIPTION)
                         .params(ImmutableMap.of(
-                                "owner", appOwner,
+                                "owner", apiOwner,
                                 "api", api,
                                 "plan", planEntity,
                                 "application", applicationEntity,
