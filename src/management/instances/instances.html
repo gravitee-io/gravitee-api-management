@@ -46,6 +46,7 @@
                   <div>{{instance.ip}}:{{instance.port}}</div>
                   <span style="font-size: 10px">v.{{instance.version | limitTo:5:0}}</span>
                   <span ng-if="instance.tenant" style="font-size: 10px"> - {{instance.tenant}}</span>
+                  <div ng-if="instance.tags" style="font-size: 10px">Tags: {{instance.tags.join(', ')}}</div>
                 </div>
                 <div class="api-box-state" layout-padding>
                     <span ng-class="{'gravitee-instances-started':instance.state === 'started',
