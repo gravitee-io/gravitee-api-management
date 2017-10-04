@@ -18,7 +18,7 @@ package io.gravitee.repository.log.api;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.tabular.TabularQuery;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
-import io.gravitee.repository.log.model.Request;
+import io.gravitee.repository.log.model.ExtendedLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,5 +28,5 @@ public interface LogRepository {
 
     TabularResponse query(TabularQuery query) throws AnalyticsException;
 
-    Request findById(String requestId) throws AnalyticsException;
+    ExtendedLog findById(String logId) throws AnalyticsException;
 }

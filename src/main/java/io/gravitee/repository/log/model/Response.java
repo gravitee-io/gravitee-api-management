@@ -13,36 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query.tabular;
+package io.gravitee.repository.log.model;
 
-import io.gravitee.repository.log.model.Log;
-import io.gravitee.repository.analytics.query.response.Response;
-
-import java.util.List;
+import io.gravitee.common.http.HttpHeaders;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TabularResponse implements Response {
+public class Response {
 
-    private final long total;
+    private int status;
 
-    public TabularResponse(long total) {
-        this.total = total;
+    private HttpHeaders headers;
+
+    private String body;
+
+    public int getStatus() {
+        return status;
     }
 
-    private List<Log> logs;
-
-    public List<Log> getLogs() {
-        return logs;
+    public void setStatus(int status) {
+        this.status = status;
     }
 
-    public void setLogs(List<Log> logs) {
-        this.logs = logs;
+    public HttpHeaders getHeaders() {
+        return headers;
     }
 
-    public long getSize() {
-        return total;
+    public void setHeaders(HttpHeaders headers) {
+        this.headers = headers;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 }

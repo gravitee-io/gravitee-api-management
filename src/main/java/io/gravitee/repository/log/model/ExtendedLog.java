@@ -15,52 +15,44 @@
  */
 package io.gravitee.repository.log.model;
 
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpMethod;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Request {
+public class ExtendedLog extends Log {
 
-    private HttpMethod method;
+    private Request clientRequest, proxyRequest;
+    private Response clientResponse, proxyResponse;
 
-    private HttpHeaders headers;
-
-    private String uri;
-
-    private String body;
-
-    public HttpMethod getMethod() {
-        return method;
+    public Request getClientRequest() {
+        return clientRequest;
     }
 
-    public void setMethod(HttpMethod method) {
-        this.method = method;
+    public void setClientRequest(Request clientRequest) {
+        this.clientRequest = clientRequest;
     }
 
-    public HttpHeaders getHeaders() {
-        return headers;
+    public Request getProxyRequest() {
+        return proxyRequest;
     }
 
-    public void setHeaders(HttpHeaders headers) {
-        this.headers = headers;
+    public void setProxyRequest(Request proxyRequest) {
+        this.proxyRequest = proxyRequest;
     }
 
-    public String getUri() {
-        return uri;
+    public Response getClientResponse() {
+        return clientResponse;
     }
 
-    public void setUri(String uri) {
-        this.uri = uri;
+    public void setClientResponse(Response clientResponse) {
+        this.clientResponse = clientResponse;
     }
 
-    public String getBody() {
-        return body;
+    public Response getProxyResponse() {
+        return proxyResponse;
     }
 
-    public void setBody(String body) {
-        this.body = body;
+    public void setProxyResponse(Response proxyResponse) {
+        this.proxyResponse = proxyResponse;
     }
 }
