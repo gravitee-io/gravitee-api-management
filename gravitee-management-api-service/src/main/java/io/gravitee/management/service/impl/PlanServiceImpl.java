@@ -21,12 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Path;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.Visibility;
+import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.SubscriptionService;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +37,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.util.Arrays.asList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,6 +59,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private MembershipService membershipService;
 
     @Override
     public PlanEntity findById(String plan) {
@@ -89,7 +92,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             return plans
                     .stream()
                     .map(this::convert)
-                    .sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
+                    .sorted(Comparator.comparingInt(PlanEntity::getOrder))
                     .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find a plan by api: {}", api, ex);
@@ -113,6 +116,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setType(Plan.PlanType.valueOf(newPlan.getType().name()));
             plan.setSecurity(Plan.PlanSecurityType.valueOf(newPlan.getSecurity().name()));
             plan.setStatus(Plan.Status.valueOf(newPlan.getStatus().name()));
+            plan.setExcludedGroups(newPlan.getExcludedGroups());
 
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // There is no need for a validation when authentication is KEY_LESS, force to AUTO
@@ -156,6 +160,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             String planPolicies = objectMapper.writeValueAsString(updatePlan.getPaths());
             plan.setDefinition(planPolicies);
+
+            plan.setExcludedGroups(updatePlan.getExcludedGroups());
 
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // There is no need for a validation when authentication is KEY_LESS, force to AUTO
@@ -373,6 +379,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         entity.setCreatedAt(plan.getCreatedAt());
         entity.setUpdatedAt(plan.getUpdatedAt());
         entity.setOrder(plan.getOrder());
+        entity.setExcludedGroups(plan.getExcludedGroups());
 
         if (plan.getDefinition() != null && ! plan.getDefinition().isEmpty()) {
             try {

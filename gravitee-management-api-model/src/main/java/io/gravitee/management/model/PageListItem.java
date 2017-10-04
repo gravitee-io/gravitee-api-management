@@ -15,6 +15,9 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -39,6 +42,9 @@ public class PageListItem {
     private PageConfigurationEntity configuration;
 
     private boolean homepage;
+
+    @JsonProperty("excluded_groups")
+    private List<String> excludedGroups;
 
     public String getId() {
         return id;
@@ -110,6 +116,14 @@ public class PageListItem {
 
     public void setHomepage(boolean homepage) {
         this.homepage = homepage;
+    }
+
+    public List<String> getExcludedGroups() {
+        return excludedGroups;
+    }
+
+    public void setExcludedGroups(List<String> excludedGroups) {
+        this.excludedGroups = excludedGroups;
     }
 
     @Override

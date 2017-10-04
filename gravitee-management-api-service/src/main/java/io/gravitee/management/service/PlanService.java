@@ -15,9 +15,13 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.NewPlanEntity;
 import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.UpdatePlanEntity;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.User;
 
 import java.util.Set;
 

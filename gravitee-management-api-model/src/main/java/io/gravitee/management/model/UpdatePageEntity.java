@@ -15,8 +15,11 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 /**
  * @author Titouan COMPIEGNE
@@ -40,6 +43,9 @@ public class UpdatePageEntity {
 	private PageConfigurationEntity configuration;
 
 	private boolean homepage;
+
+	@JsonProperty("excluded_groups")
+	private List<String> excludedGroups;
 
 	public String getName() {
 		return name;
@@ -103,5 +109,13 @@ public class UpdatePageEntity {
 
 	public void setHomepage(boolean homepage) {
 		this.homepage = homepage;
+	}
+
+	public List<String> getExcludedGroups() {
+		return excludedGroups;
+	}
+
+	public void setExcludedGroups(List<String> excludedGroups) {
+		this.excludedGroups = excludedGroups;
 	}
 }

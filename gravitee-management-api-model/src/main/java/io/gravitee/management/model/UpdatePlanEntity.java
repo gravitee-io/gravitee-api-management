@@ -48,6 +48,9 @@ public class UpdatePlanEntity {
     @NotNull
     private int order;
 
+    @JsonProperty("excluded_groups")
+    private List<String> excludedGroups;
+
     public String getName() {
         return name;
     }
@@ -102,6 +105,14 @@ public class UpdatePlanEntity {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public List<String> getExcludedGroups() {
+        return excludedGroups;
+    }
+
+    public void setExcludedGroups(List<String> excludedGroups) {
+        this.excludedGroups = excludedGroups;
     }
 
     @Override

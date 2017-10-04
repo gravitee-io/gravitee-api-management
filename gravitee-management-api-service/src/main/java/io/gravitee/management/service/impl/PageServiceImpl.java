@@ -510,6 +510,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		pageItem.setHomepage(page.isHomepage());
 		pageItem.setSource(convert(page.getSource()));
 		pageItem.setConfiguration(convert(page.getConfiguration()));
+		pageItem.setExcludedGroups(page.getExcludedGroups());
 
 		return pageItem;
 	}
@@ -529,6 +530,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setHomepage(newPageEntity.isHomepage());
 		page.setSource(convert(newPageEntity.getSource()));
 		page.setConfiguration(convert(newPageEntity.getConfiguration()));
+		page.setExcludedGroups(newPageEntity.getExcludedGroups());
 
 		return page;
 	}
@@ -562,6 +564,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		if (page.getConfiguration() != null) {
 			pageEntity.setConfiguration(convert(page.getConfiguration()));
 		}
+		pageEntity.setExcludedGroups(page.getExcludedGroups());
 		return pageEntity;
 	}
 
@@ -576,6 +579,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setSource(convert(updatePageEntity.getSource()));
         page.setConfiguration(convert(updatePageEntity.getConfiguration()));
         page.setHomepage(updatePageEntity.isHomepage());
+        page.setExcludedGroups(updatePageEntity.getExcludedGroups());
 		return page;
 	}
 

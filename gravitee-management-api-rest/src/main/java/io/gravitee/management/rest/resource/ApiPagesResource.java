@@ -22,6 +22,7 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
@@ -49,6 +50,9 @@ public class ApiPagesResource extends AbstractResource {
 
     @Inject
     private PageService pageService;
+
+    @Inject
+    private GroupService groupService;
 
     @GET
     @Path("/{page}")
@@ -106,7 +110,9 @@ public class ApiPagesResource extends AbstractResource {
             final List<PageListItem> pages = pageService.findApiPagesByApiAndHomepage(api, homepage);
 
             return pages.stream()
-                    .filter(page -> isDisplayable(apiEntity, page.isPublished(), getAuthenticatedUsernameOrNull()))
+                    .filter(page ->
+                            isDisplayable(apiEntity, page.isPublished(), getAuthenticatedUsernameOrNull()) &&
+                            groupService.isUserAuthorizedToAccess(apiEntity, page.getExcludedGroups(), getAuthenticatedUsernameOrNull()))
                     .collect(Collectors.toList());
         }
         throw new ForbiddenAccessException();

@@ -23,6 +23,7 @@ import io.gravitee.management.rest.resource.param.PlanStatusParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.*;
@@ -53,6 +54,9 @@ public class ApiPlansResource extends AbstractResource {
     @Inject
     private ApiService apiService;
 
+    @Inject
+    private GroupService groupService;
+
     @Context
     private ResourceContext resourceContext;
 
@@ -68,11 +72,14 @@ public class ApiPlansResource extends AbstractResource {
             @PathParam("api") String api,
             @QueryParam("status") @DefaultValue("published") PlanStatusParam status) {
 
-        if (Visibility.PUBLIC.equals(apiService.findById(api).getVisibility())
+        ApiEntity apiEntity = apiService.findById(api);
+
+        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
             || hasPermission(RolePermission.API_PLAN, api, RolePermissionAction.READ)) {
 
             return planService.findByApi(api).stream()
-                    .filter(plan -> status.getStatuses().contains(plan.getStatus()))
+                    .filter(plan -> status.getStatuses().contains(plan.getStatus())
+                            && groupService.isUserAuthorizedToAccess(apiEntity, plan.getExcludedGroups(), getAuthenticatedUsernameOrNull()))
                     .sorted(Comparator.comparingInt(PlanEntity::getOrder))
                     .collect(Collectors.toList());
         }

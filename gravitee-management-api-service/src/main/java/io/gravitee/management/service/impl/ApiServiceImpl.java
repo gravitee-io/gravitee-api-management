@@ -350,20 +350,20 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public void delete(String apiName) {
+    public void delete(String apiId) {
         try {
-            LOGGER.debug("Delete API {}", apiName);
+            LOGGER.debug("Delete API {}", apiId);
 
-            Optional<Api> optApi = apiRepository.findById(apiName);
+            Optional<Api> optApi = apiRepository.findById(apiId);
             if (! optApi.isPresent()) {
-                throw new ApiNotFoundException(apiName);
+                throw new ApiNotFoundException(apiId);
             }
 
             if (optApi.get().getLifecycleState() == LifecycleState.STARTED) {
-                throw new ApiRunningStateException(apiName);
+                throw new ApiRunningStateException(apiId);
             } else {
                 // Delete plans
-                Set<PlanEntity> plans = planService.findByApi(apiName);
+                Set<PlanEntity> plans = planService.findByApi(apiId);
                 Set<String> plansNotClosed = plans.stream()
                         .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
                         .map(PlanEntity::getName)
@@ -377,15 +377,15 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 plans.stream().forEach(plan -> planService.delete(plan.getId()));
 
                 // Delete events
-                eventService.findByApi(apiName)
+                eventService.findByApi(apiId)
                         .forEach(event -> eventService.delete(event.getId()));
 
                 // Delete API
-                apiRepository.delete(apiName);
+                apiRepository.delete(apiId);
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete API {}", apiName, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete API " + apiName, ex);
+            LOGGER.error("An error occurs while trying to delete API {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete API " + apiId, ex);
         }
     }
 

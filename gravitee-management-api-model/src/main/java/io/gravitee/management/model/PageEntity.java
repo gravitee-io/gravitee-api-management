@@ -15,7 +15,10 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -46,6 +49,9 @@ public class PageEntity {
 	private PageConfigurationEntity configuration;
 
 	private boolean homepage;
+
+	@JsonProperty("excluded_groups")
+	private List<String> excludedGroups;
 
 	public String getId() {
 		return id;
@@ -143,6 +149,14 @@ public class PageEntity {
 		this.homepage = homepage;
 	}
 
+	public List<String> getExcludedGroups() {
+		return excludedGroups;
+	}
+
+	public void setExcludedGroups(List<String> excludedGroups) {
+		this.excludedGroups = excludedGroups;
+	}
+
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -169,6 +183,7 @@ public class PageEntity {
 		sb.append(", lastContributor='").append(lastContributor).append('\'');
 		sb.append(", published='").append(published).append('\'');
 		sb.append(", lastModificationDate='").append(lastModificationDate).append('\'');
+		sb.append(", excludedGroups='").append(excludedGroups).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}

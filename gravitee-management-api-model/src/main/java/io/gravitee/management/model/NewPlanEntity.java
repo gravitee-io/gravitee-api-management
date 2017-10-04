@@ -54,6 +54,9 @@ public class NewPlanEntity {
 
     private List<String> characteristics;
 
+    @JsonProperty("excluded_groups")
+    private List<String> excludedGroups;
+
     public String getName() {
         return name;
     }
@@ -124,6 +127,14 @@ public class NewPlanEntity {
 
     public void setSecurity(PlanSecurityType security) {
         this.security = security;
+    }
+
+    public List<String> getExcludedGroups() {
+        return excludedGroups;
+    }
+
+    public void setExcludedGroups(List<String> excludedGroups) {
+        this.excludedGroups = excludedGroups;
     }
 
     @Override

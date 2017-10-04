@@ -16,11 +16,10 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.common.utils.UUID;
-import io.gravitee.management.model.GroupEntity;
-import io.gravitee.management.model.GroupEventRuleEntity;
-import io.gravitee.management.model.NewGroupEntity;
-import io.gravitee.management.model.UpdateGroupEntity;
+import io.gravitee.management.model.*;
+import io.gravitee.management.model.Visibility;
 import io.gravitee.management.service.GroupService;
+import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.exceptions.GroupNameAlreadyExistsException;
 import io.gravitee.management.service.exceptions.GroupNotFoundException;
 import io.gravitee.management.service.exceptions.GroupsNotFoundException;
@@ -30,10 +29,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Group;
-import io.gravitee.repository.management.model.GroupEvent;
-import io.gravitee.repository.management.model.GroupEventRule;
-import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +57,9 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
 
     @Autowired
     private MembershipRepository membershipRepository;
+
+    @Autowired
+    private MembershipService membershipService;
 
     @Override
     public List<GroupEntity> findAll() {
@@ -243,6 +242,44 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
 
+    }
+
+    @Override
+    public boolean isUserAuthorizedToAccess(ApiEntity api, List<String> excludedGroups, String username) {
+        // in anonymous mode, only public API without restrictions are authorized
+        if (username == null) {
+            return (excludedGroups == null || excludedGroups.isEmpty())
+                    && (Visibility.PUBLIC.equals(api.getVisibility()));
+        }
+
+        if ( // plan contains excluded groups
+             excludedGroups != null && !excludedGroups.isEmpty()
+             // user is not directly member of the API
+             && membershipService.getMember(MembershipReferenceType.API, api.getId(), username, RoleScope.API) == null
+           ) {
+            Set<String> authorizedGroups = Collections.emptySet();
+
+            if (Visibility.PRIVATE.equals(api.getVisibility()) && api.getGroups() != null && !api.getGroups().isEmpty()) {
+                authorizedGroups = new HashSet<>(api.getGroups());
+            }
+
+            if (Visibility.PUBLIC.equals(api.getVisibility())) {
+                try {
+                    authorizedGroups = groupRepository.findAll().stream().map(Group::getId).collect(Collectors.toSet());
+                } catch (TechnicalException ex) {
+                    logger.error("An error occurs while trying to find all groups", ex);
+                    throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
+                }
+            }
+            authorizedGroups.removeAll(excludedGroups);
+            for (String authorizedGroupId : authorizedGroups) {
+                if (membershipService.getMember(MembershipReferenceType.GROUP, authorizedGroupId, username, RoleScope.API) != null) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return true;
     }
 
     private Group map(GroupEntity entity) {
