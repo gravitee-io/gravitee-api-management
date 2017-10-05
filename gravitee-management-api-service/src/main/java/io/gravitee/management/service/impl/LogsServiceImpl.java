@@ -20,6 +20,8 @@ import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.analytics.query.LogQuery;
 import io.gravitee.management.model.log.*;
+import io.gravitee.management.model.log.extended.Request;
+import io.gravitee.management.model.log.extended.Response;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.LogsService;
@@ -89,7 +91,7 @@ public class LogsServiceImpl implements LogsService {
             SearchLogResponse<ApiRequestItem> logResponse = new SearchLogResponse<>(response.getSize());
 
             // Transform repository logs
-            logResponse.setLogs(response.getRequests().stream()
+            logResponse.setLogs(response.getLogs().stream()
                     .map(this::toApiRequestItem)
                     .collect(Collectors.toList()));
 
@@ -147,7 +149,7 @@ public class LogsServiceImpl implements LogsService {
             SearchLogResponse<ApplicationRequestItem> logResponse = new SearchLogResponse<>(response.getSize());
 
             // Transform repository logs
-            logResponse.setLogs(response.getRequests().stream()
+            logResponse.setLogs(response.getLogs().stream()
                     .map(this::toApplicationRequestItem)
                     .collect(Collectors.toList()));
 
@@ -242,81 +244,111 @@ public class LogsServiceImpl implements LogsService {
         };
     }
 
-    private ApiRequestItem toApiRequestItem(io.gravitee.repository.log.model.Request request) {
+    private ApiRequestItem toApiRequestItem(io.gravitee.repository.log.model.Log log) {
         ApiRequestItem req = new ApiRequestItem();
-        req.setId(request.getId());
-        req.setTransactionId(request.getTransactionId());
-        req.setApplication(request.getApplication());
-        req.setMethod(request.getMethod());
-        req.setPath(request.getPath());
-        req.setPlan(request.getPlan());
-        req.setResponseTime(request.getResponseTime());
-        req.setStatus(request.getStatus());
-        req.setTimestamp(request.getTimestamp());
+        req.setId(log.getId());
+        req.setTransactionId(log.getTransactionId());
+        req.setApplication(log.getApplication());
+        req.setMethod(log.getMethod());
+        req.setPath(log.getPath());
+        req.setPlan(log.getPlan());
+        req.setResponseTime(log.getResponseTime());
+        req.setStatus(log.getStatus());
+        req.setTimestamp(log.getTimestamp());
         return req;
     }
 
-    private ApplicationRequestItem toApplicationRequestItem(io.gravitee.repository.log.model.Request request) {
+    private ApplicationRequestItem toApplicationRequestItem(io.gravitee.repository.log.model.Log log) {
         ApplicationRequestItem req = new ApplicationRequestItem();
-        req.setId(request.getId());
-        req.setTransactionId(request.getTransactionId());
-        req.setApi(request.getApi());
-        req.setMethod(request.getMethod());
-        req.setPath(request.getPath());
-        req.setPlan(request.getPlan());
-        req.setResponseTime(request.getResponseTime());
-        req.setStatus(request.getStatus());
-        req.setTimestamp(request.getTimestamp());
+        req.setId(log.getId());
+        req.setTransactionId(log.getTransactionId());
+        req.setApi(log.getApi());
+        req.setMethod(log.getMethod());
+        req.setPath(log.getPath());
+        req.setPlan(log.getPlan());
+        req.setResponseTime(log.getResponseTime());
+        req.setStatus(log.getStatus());
+        req.setTimestamp(log.getTimestamp());
         return req;
     }
 
-    private ApiRequest toApiRequest(io.gravitee.repository.log.model.Request request) {
+    private ApiRequest toApiRequest(io.gravitee.repository.log.model.ExtendedLog log) {
         ApiRequest req = new ApiRequest();
-        req.setId(request.getId());
-        req.setTransactionId(request.getTransactionId());
-        req.setApplication(request.getApplication());
-        req.setApiResponseTime(request.getApiResponseTime());
-        req.setEndpoint(request.getEndpoint());
-        req.setLocalAddress(request.getLocalAddress());
-        req.setRemoteAddress(request.getRemoteAddress());
-        req.setMethod(request.getMethod());
-        req.setPath(request.getPath());
-        req.setPlan(request.getPlan());
-        req.setRequestContentLength(request.getRequestContentLength());
-        req.setResponseContentLength(request.getResponseContentLength());
-        req.setResponseTime(request.getResponseTime());
-        req.setStatus(request.getStatus());
-        req.setTenant(request.getTenant());
-        req.setTimestamp(request.getTimestamp());
-        req.setUri(request.getUri());
-        req.setUser(request.getUser());
-        req.setApiKey(request.getApiKey());
-        req.setClientRequestHeaders(request.getClientRequestHeaders());
-        req.setClientResponseHeaders(request.getClientResponseHeaders());
-        req.setProxyRequestHeaders(request.getProxyRequestHeaders());
-        req.setProxyResponseHeaders(request.getProxyResponseHeaders());
-        req.setMessage(request.getMessage());
-        req.setGateway(request.getGateway());
+        req.setId(log.getId());
+        req.setTransactionId(log.getTransactionId());
+        req.setApplication(log.getApplication());
+        req.setApiResponseTime(log.getApiResponseTime());
+        req.setEndpoint(log.getEndpoint());
+        req.setLocalAddress(log.getLocalAddress());
+        req.setRemoteAddress(log.getRemoteAddress());
+        req.setMethod(log.getMethod());
+        req.setPath(log.getPath());
+        req.setPlan(log.getPlan());
+        req.setRequestContentLength(log.getRequestContentLength());
+        req.setResponseContentLength(log.getResponseContentLength());
+        req.setResponseTime(log.getResponseTime());
+        req.setStatus(log.getStatus());
+        req.setTenant(log.getTenant());
+        req.setTimestamp(log.getTimestamp());
+        req.setUri(log.getUri());
+        req.setUser(log.getUser());
+        req.setApiKey(log.getApiKey());
+        req.setMessage(log.getMessage());
+        req.setGateway(log.getGateway());
+
+        req.setClientRequest(createRequest(log.getClientRequest()));
+        req.setProxyRequest(createRequest(log.getProxyRequest()));
+        req.setClientResponse(createResponse(log.getClientResponse()));
+        req.setProxyResponse(createResponse(log.getProxyResponse()));
+
         return req;
     }
 
-    private ApplicationRequest toApplicationRequest(io.gravitee.repository.log.model.Request request) {
+    private Request createRequest(io.gravitee.repository.log.model.Request repoRequest) {
+        if (repoRequest == null) {
+            return null;
+        }
+
+        Request request = new Request();
+        request.setUri(repoRequest.getUri());
+        request.setMethod(repoRequest.getMethod());
+        request.setHeaders(repoRequest.getHeaders());
+        request.setBody(repoRequest.getBody());
+
+        return request;
+    }
+
+    private Response createResponse(io.gravitee.repository.log.model.Response repoResponse) {
+        if (repoResponse == null) {
+            return null;
+        }
+
+        Response response = new Response();
+        response.setStatus(repoResponse.getStatus());
+        response.setHeaders(repoResponse.getHeaders());
+        response.setBody(repoResponse.getBody());
+
+        return response;
+    }
+
+    private ApplicationRequest toApplicationRequest(io.gravitee.repository.log.model.ExtendedLog log) {
         ApplicationRequest req = new ApplicationRequest();
-        req.setId(request.getId());
-        req.setTransactionId(request.getTransactionId());
-        req.setApi(request.getApi());
-        req.setMethod(request.getMethod());
-        req.setPath(request.getPath());
-        req.setPlan(request.getPlan());
-        req.setRequestContentLength(request.getRequestContentLength());
-        req.setResponseContentLength(request.getResponseContentLength());
-        req.setResponseTime(request.getResponseTime());
-        req.setStatus(request.getStatus());
-        req.setTimestamp(request.getTimestamp());
-        req.setUser(request.getUser());
-        req.setApiKey(request.getApiKey());
-        req.setClientRequestHeaders(request.getClientRequestHeaders());
-        req.setClientResponseHeaders(request.getClientResponseHeaders());
+        req.setId(log.getId());
+        req.setTransactionId(log.getTransactionId());
+        req.setApi(log.getApi());
+        req.setMethod(log.getMethod());
+        req.setPath(log.getPath());
+        req.setPlan(log.getPlan());
+        req.setRequestContentLength(log.getRequestContentLength());
+        req.setResponseContentLength(log.getResponseContentLength());
+        req.setResponseTime(log.getResponseTime());
+        req.setStatus(log.getStatus());
+        req.setTimestamp(log.getTimestamp());
+        req.setUser(log.getUser());
+        req.setApiKey(log.getApiKey());
+        req.setRequest(createRequest(log.getClientRequest()));
+        req.setResponse(createResponse(log.getClientResponse()));
+
         return req;
     }
 }

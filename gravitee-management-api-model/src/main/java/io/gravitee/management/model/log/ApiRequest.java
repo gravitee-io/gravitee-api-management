@@ -16,9 +16,8 @@
 package io.gravitee.management.model.log;
 
 import io.gravitee.common.http.HttpMethod;
-
-import java.util.List;
-import java.util.Map;
+import io.gravitee.management.model.log.extended.Request;
+import io.gravitee.management.model.log.extended.Response;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,13 +63,8 @@ public class ApiRequest {
 
     private String tenant;
 
-    private Map<String, List<String>> clientRequestHeaders;
-
-    private Map<String, List<String>> clientResponseHeaders;
-
-    private Map<String, List<String>> proxyRequestHeaders;
-
-    private Map<String, List<String>> proxyResponseHeaders;
+    private Request clientRequest, proxyRequest;
+    private Response clientResponse, proxyResponse;
 
     private String message;
 
@@ -228,36 +222,36 @@ public class ApiRequest {
         this.apiKey = apiKey;
     }
 
-    public Map<String, List<String>> getClientRequestHeaders() {
-        return clientRequestHeaders;
+    public Request getClientRequest() {
+        return clientRequest;
     }
 
-    public void setClientRequestHeaders(Map<String, List<String>> clientRequestHeaders) {
-        this.clientRequestHeaders = clientRequestHeaders;
+    public void setClientRequest(Request clientRequest) {
+        this.clientRequest = clientRequest;
     }
 
-    public Map<String, List<String>> getClientResponseHeaders() {
-        return clientResponseHeaders;
+    public Request getProxyRequest() {
+        return proxyRequest;
     }
 
-    public void setClientResponseHeaders(Map<String, List<String>> clientResponseHeaders) {
-        this.clientResponseHeaders = clientResponseHeaders;
+    public void setProxyRequest(Request proxyRequest) {
+        this.proxyRequest = proxyRequest;
     }
 
-    public Map<String, List<String>> getProxyRequestHeaders() {
-        return proxyRequestHeaders;
+    public Response getClientResponse() {
+        return clientResponse;
     }
 
-    public void setProxyRequestHeaders(Map<String, List<String>> proxyRequestHeaders) {
-        this.proxyRequestHeaders = proxyRequestHeaders;
+    public void setClientResponse(Response clientResponse) {
+        this.clientResponse = clientResponse;
     }
 
-    public Map<String, List<String>> getProxyResponseHeaders() {
-        return proxyResponseHeaders;
+    public Response getProxyResponse() {
+        return proxyResponse;
     }
 
-    public void setProxyResponseHeaders(Map<String, List<String>> proxyResponseHeaders) {
-        this.proxyResponseHeaders = proxyResponseHeaders;
+    public void setProxyResponse(Response proxyResponse) {
+        this.proxyResponse = proxyResponse;
     }
 
     public String getMessage() {

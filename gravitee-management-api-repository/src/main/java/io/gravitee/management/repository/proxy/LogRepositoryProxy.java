@@ -19,7 +19,7 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.tabular.TabularQuery;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.log.api.LogRepository;
-import io.gravitee.repository.log.model.Request;
+import io.gravitee.repository.log.model.ExtendedLog;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,7 +35,7 @@ public class LogRepositoryProxy extends AbstractProxy<LogRepository> implements 
     }
 
     @Override
-    public Request findById(String requestId) throws AnalyticsException {
+    public ExtendedLog findById(String requestId) throws AnalyticsException {
         return target.findById(requestId);
     }
 }

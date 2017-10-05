@@ -16,9 +16,8 @@
 package io.gravitee.management.model.log;
 
 import io.gravitee.common.http.HttpMethod;
-
-import java.util.List;
-import java.util.Map;
+import io.gravitee.management.model.log.extended.Request;
+import io.gravitee.management.model.log.extended.Response;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -52,9 +51,9 @@ public class ApplicationRequest {
 
     private String api;
 
-    private Map<String, List<String>> clientRequestHeaders;
+    private Request request;
 
-    private Map<String, List<String>> clientResponseHeaders;
+    private Response response;
 
     public String getId() {
         return id;
@@ -160,20 +159,20 @@ public class ApplicationRequest {
         this.apiKey = apiKey;
     }
 
-    public Map<String, List<String>> getClientRequestHeaders() {
-        return clientRequestHeaders;
+    public Request getRequest() {
+        return request;
     }
 
-    public void setClientRequestHeaders(Map<String, List<String>> clientRequestHeaders) {
-        this.clientRequestHeaders = clientRequestHeaders;
+    public void setRequest(Request request) {
+        this.request = request;
     }
 
-    public Map<String, List<String>> getClientResponseHeaders() {
-        return clientResponseHeaders;
+    public Response getResponse() {
+        return response;
     }
 
-    public void setClientResponseHeaders(Map<String, List<String>> clientResponseHeaders) {
-        this.clientResponseHeaders = clientResponseHeaders;
+    public void setResponse(Response response) {
+        this.response = response;
     }
 
     @Override
