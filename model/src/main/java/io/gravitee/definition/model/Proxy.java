@@ -15,7 +15,6 @@
  */
 package io.gravitee.definition.model;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -24,9 +23,9 @@ import java.util.Set;
  */
 public class Proxy {
 
-    public static boolean DEFAULT_DUMP_REQUEST = false;
+    public final static LoggingMode DEFAULT_LOGGING_MODE = LoggingMode.NONE;
 
-    public static boolean DEFAULT_MULTI_TENANT = false;
+    public final static boolean DEFAULT_MULTI_TENANT = false;
 
     private String contextPath;
 
@@ -38,7 +37,7 @@ public class Proxy {
 
     private boolean stripContextPath = false;
 
-    private boolean dumpRequest = DEFAULT_DUMP_REQUEST;
+    private LoggingMode loggingMode = DEFAULT_LOGGING_MODE;
 
     private boolean multiTenant = DEFAULT_MULTI_TENANT;
 
@@ -86,12 +85,12 @@ public class Proxy {
         this.failover = failover;
     }
 
-    public boolean isDumpRequest() {
-        return dumpRequest;
+    public LoggingMode getLoggingMode() {
+        return loggingMode;
     }
 
-    public void setDumpRequest(boolean dumpRequest) {
-        this.dumpRequest = dumpRequest;
+    public void setLoggingMode(LoggingMode loggingMode) {
+        this.loggingMode = loggingMode;
     }
 
     public boolean isMultiTenant() {

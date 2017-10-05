@@ -22,7 +22,6 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.Proxy;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -40,7 +39,9 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
         jgen.writeStartObject();
         jgen.writeStringField("context_path", proxy.getContextPath());
         jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
-        jgen.writeBooleanField("dumpRequest", proxy.isDumpRequest());
+        if (proxy.getLoggingMode() != null) {
+            jgen.writeStringField("loggingMode", proxy.getLoggingMode().name());
+        }
         jgen.writeBooleanField("multiTenant", proxy.isMultiTenant());
 
         final Set<Endpoint> endpoints = proxy.getEndpoints();

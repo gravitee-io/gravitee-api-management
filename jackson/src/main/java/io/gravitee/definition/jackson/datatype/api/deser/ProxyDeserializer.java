@@ -19,10 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.Failover;
-import io.gravitee.definition.model.LoadBalancer;
-import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.*;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -83,12 +80,11 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             proxy.setFailover(failover);
         }
 
-        JsonNode dumpRequestNode = node.get("dumpRequest");
-        if (dumpRequestNode != null) {
-            boolean dumpRequest = dumpRequestNode.asBoolean(Proxy.DEFAULT_DUMP_REQUEST);
-            proxy.setDumpRequest(dumpRequest);
+        JsonNode loggingNode = node.get("loggingMode");
+        if (loggingNode != null) {
+            proxy.setLoggingMode(LoggingMode.valueOf(loggingNode.asText().toUpperCase()));
         } else {
-            proxy.setDumpRequest(Proxy.DEFAULT_DUMP_REQUEST);
+            proxy.setLoggingMode(Proxy.DEFAULT_LOGGING_MODE);
         }
 
         JsonNode multiTenantNode = node.get("multiTenant");
