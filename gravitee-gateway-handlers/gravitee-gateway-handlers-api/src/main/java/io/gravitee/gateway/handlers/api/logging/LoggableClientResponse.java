@@ -49,6 +49,7 @@ public class LoggableClientResponse implements Response {
 
     @Override
     public Response status(int statusCode) {
+        this.request.metrics().setClientResponse(new io.gravitee.reporter.api.http.Response(statusCode));
         return response.status(statusCode);
     }
 

@@ -21,7 +21,6 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.expression.TemplateContext;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.el.EvaluableExecutionContext;
 import io.gravitee.gateway.reactor.handler.el.EvaluableRequest;
 import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
@@ -48,11 +47,6 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
 
     public void setClassLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
-    }
-
-    @Override
-    public Reactable reactable() {
-        return null;
     }
 
     @Override

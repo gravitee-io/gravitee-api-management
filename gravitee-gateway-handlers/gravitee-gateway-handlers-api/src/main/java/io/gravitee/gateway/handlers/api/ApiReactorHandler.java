@@ -23,6 +23,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
@@ -30,6 +31,8 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
+import io.gravitee.gateway.handlers.api.cors.CorsHandler;
+import io.gravitee.gateway.handlers.api.cors.CorsResponseHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.logging.LoggableClientRequest;
 import io.gravitee.gateway.handlers.api.logging.LoggableClientResponse;
@@ -90,8 +93,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     protected void doHandle(Request serverRequest, Response serverResponse, Handler<Response> handler,
                             ExecutionContext executionContext) {
         try {
-            serverRequest.pause();
-
             // Enable logging at client level
             if (api.getProxy().getLoggingMode().isClientMode()) {
                 serverRequest = new LoggableClientRequest(serverRequest);
@@ -106,7 +107,20 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
             executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.properties());
             executionContext.getTemplateEngine().getTemplateContext().setVariable("endpoints", endpointLifecycleManager.targetByEndpoint());
 
-            handleClientRequest(serverRequest, serverResponse, executionContext, handler);
+            Cors cors = api.getProxy().getCors();
+            if (cors != null && cors.isEnabled()) {
+                Request finalServerRequest = serverRequest;
+                Response finalServerResponse = serverResponse;
+
+                new CorsHandler(cors).responseHandler(new Handler<Response>() {
+                    @Override
+                    public void handle(Response response) {
+                        handleClientRequest(finalServerRequest, finalServerResponse, executionContext, new CorsResponseHandler(handler));
+                    }
+                }).handle(serverRequest, serverResponse, handler);
+            } else {
+                handleClientRequest(serverRequest, serverResponse, executionContext, handler);
+            }
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while processing request", ex);
 
@@ -122,6 +136,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     }
 
     private void handleClientRequest(Request serverRequest, Response serverResponse, ExecutionContext executionContext, Handler<Response> handler) {
+        serverRequest.pause();
+
         // Apply request policies
         RequestPolicyChainProcessor requestPolicyChain = new RequestPolicyChainProcessor(policyResolvers);
         requestPolicyChain.setResultHandler(requestPolicyChainResult -> {
@@ -148,12 +164,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
                 // Plug server request stream to request policy chain stream
                 invokeRequest
-                        .bodyHandler(chunk -> {
-                            requestPolicyChainResult.getPolicyChain().write(chunk);
-                        })
-                        .endHandler(aVoid -> {
-                            requestPolicyChainResult.getPolicyChain().end();
-                        });
+                        .bodyHandler(chunk -> requestPolicyChainResult.getPolicyChain().write(chunk))
+                        .endHandler(aVoid -> requestPolicyChainResult.getPolicyChain().end());
             }
         });
 
