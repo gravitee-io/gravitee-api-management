@@ -70,17 +70,6 @@
 <hr>
 
 <div class="log-table" layout="column" layout-padding>
-  <div layout="row" layout-padding>
-    <span class="log-header" flex="5"></span>
-
-    <div flex="30" layout="row" layout-align="center center">
-      <span class="log-header">METADATA</span>
-    </div>
-
-    <div flex="65" layout="row" layout-align="center center">
-      <span class="log-header">CLIENT</span>
-    </div>
-  </div>
 
   <div layout="row" layout-padding style="background-color: #f1f8e9; border: 1px solid #dcedc8;">
     <div flex="5" layout="row" layout-align="center center" style="background-color: #dcedc8;">
@@ -99,7 +88,7 @@
           </td>
         </tr>
         <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Path</span></td>
+          <td md-cell><span style="font-weight: bold">URI</span></td>
           <td md-cell>{{$ctrl.log.path}}</td>
         </tr>
         <tr md-row style="height: 30px;">
@@ -113,7 +102,7 @@
     <md-table-container flex="65">
       <table md-table>
         <tbody md-body>
-        <tr md-row ng-repeat="(key, value) in $ctrl.log.clientRequestHeaders" style="height: 30px;">
+        <tr md-row ng-repeat="(key, value) in $ctrl.log.request.headers" style="height: 30px;">
           <td md-cell><span style="font-weight: bold">{{key}}</span></td>
           <td md-cell>{{value[0]}}</td>
         </tr>
@@ -145,7 +134,7 @@
     <md-table-container flex="65">
       <table md-table>
         <tbody md-body>
-        <tr md-row ng-repeat="(key, value) in $ctrl.log.clientResponseHeaders" style="height: 30px;">
+        <tr md-row ng-repeat="(key, value) in $ctrl.log.response.headers" style="height: 30px;">
           <td md-cell><span style="font-weight: bold">{{key}}</span></td>
           <td md-cell>{{value[0]}}</td>
         </tr>

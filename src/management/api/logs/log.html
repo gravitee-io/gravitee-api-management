@@ -96,7 +96,7 @@
         <h4>Error</h4>
       </v-pane-header>
       <v-pane-content>
-        <div
+        <div flex
           ui-codemirror
           ui-codemirror-opts="{lineNumbers: true, readOnly: true, mode: 'text/x-java'}"
           ng-model="$ctrl.log.message">
@@ -112,18 +112,14 @@
   <div layout="row" layout-padding>
     <span class="log-header" flex="5"></span>
 
-    <div flex="30" layout="row" layout-align="center center">
-      <span class="log-header">METADATA</span>
-    </div>
-
-    <div flex="30" layout="row" layout-align="center center">
-      <span class="log-header">CLIENT</span>
+    <div flex="45" layout="row" layout-align="center center">
+      <span class="log-header">CONSUMER</span>
     </div>
 
     <span class="log-header" flex="5" ng-if="$ctrl.log.endpoint"></span>
 
-    <div flex="30" layout="row" layout-align="center center" ng-if="$ctrl.log.endpoint">
-      <span class="log-header">PROXY</span>
+    <div flex="45" layout="row" layout-align="center center">
+      <span class="log-header">GATEWAY</span>
     </div>
   </div>
 
@@ -132,56 +128,95 @@
       <span class="vertical-text log-header" style="text-align: center;">REQUEST</span>
     </div>
 
-    <md-table-container flex="30">
-      <table md-table>
-        <tbody md-body>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Method</span></td>
-          <td md-cell>
-              <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected">
-                {{$ctrl.log.method | uppercase}}
-              </span>
-          </td>
-        </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Path</span></td>
-          <td md-cell>{{$ctrl.log.path}}</td>
-        </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Content-length</span></td>
-          <td md-cell>{{$ctrl.log.requestContentLength | number}}</td>
-        </tr>
-        </tbody>
-      </table>
-    </md-table-container>
+    <div layout="column" flex="45" ng-if="$ctrl.log.clientRequest">
+      <md-table-container>
+        <table md-table>
+          <tbody md-body>
+            <tr md-row>
+              <td md-cell>
+                <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected">
+                  {{$ctrl.log.clientRequest.method | uppercase}}
+                </span>
+              </td>
+              <td md-cell>{{$ctrl.log.clientRequest.uri}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </md-table-container>
 
-    <md-table-container flex="30">
-      <table md-table>
-        <tbody md-body>
-        <tr md-row ng-repeat="(key, value) in $ctrl.log.clientRequestHeaders" style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">{{key}}</span></td>
-          <td md-cell>{{value[0]}}</td>
-        </tr>
-        </tbody>
-      </table>
-    </md-table-container>
+      <br>
 
-    <div flex="5" layout="column" layout-align="center center" ng-if="$ctrl.log.endpoint">
+      <md-table-container>
+        <table md-table>
+          <tbody md-body>
+          <tr md-row ng-repeat="(key, value) in $ctrl.log.clientRequest.headers" style="height: 30px;">
+            <td md-cell><span style="font-weight: bold">{{key}}</span></td>
+            <td md-cell>{{value[0]}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+
+      <br>
+
+      <div ng-if="$ctrl.log.clientRequest.body"
+        ui-codemirror
+        ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.clientRequest)}"
+        ng-model="$ctrl.log.clientRequest.body">
+      </div>
+    </div>
+    <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientRequest">
+      <p>No log for this request.</p>
+      <p>Please check or configure logging mode (client).</p>
+    </div>
+
+    <div flex="5" layout="column" layout-align="center center">
         <span>
           <ng-md-icon icon="arrow_forward" size="30px"></ng-md-icon>
         </span>
     </div>
 
-    <md-table-container flex="30" ng-if="$ctrl.log.endpoint">
-      <table md-table>
-        <tbody md-body>
-        <tr md-row ng-repeat="(key, value) in $ctrl.log.proxyRequestHeaders" style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">{{key}}</span></td>
-          <td md-cell>{{value[0]}}</td>
-        </tr>
-        </tbody>
-      </table>
-    </md-table-container>
+    <div layout="column" flex="45" ng-if="$ctrl.log.proxyRequest">
+      <md-table-container>
+        <table md-table>
+          <tbody md-body>
+            <tr md-row>
+              <td md-cell>
+                <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.proxyRequest.method | uppercase}}-selected">
+                  {{$ctrl.log.proxyRequest.method | uppercase}}
+                </span>
+              </td>
+              <td md-cell>{{$ctrl.log.proxyRequest.uri}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+
+      <br>
+
+      <md-table-container ng-if="$ctrl.log.endpoint">
+        <table md-table>
+          <tbody md-body>
+          <tr md-row ng-repeat="(key, value) in $ctrl.log.proxyRequest.headers" style="height: 30px;">
+            <td md-cell><span style="font-weight: bold">{{key}}</span></td>
+            <td md-cell>{{value[0]}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+
+      <br>
+
+      <div ng-if="$ctrl.log.proxyRequest.body"
+        ui-codemirror
+        ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.proxyRequest)}"
+        ng-model="$ctrl.log.proxyRequest.body">
+      </div>
+    </div>
+    <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyRequest">
+      <p>No log for this request.</p>
+      <p>Please check or configure logging mode (proxy).</p>
+    </div>
   </div>
 
   <div layout="row" layout-padding style="background-color: #e1f5fe; margin-top:3px; border: 1px solid #b3e5fc;">
@@ -189,47 +224,86 @@
       <span class="vertical-text log-header" style="text-align: center;">RESPONSE</span>
     </div>
 
-    <md-table-container flex="30">
-      <table md-table>
-        <tbody md-body>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Status</span></td>
-          <td md-cell>{{$ctrl.log.status | number}}</td>
-        </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Content-length</span></td>
-          <td md-cell>{{$ctrl.log.responseContentLength | number}}</td>
-        </tr>
-        </tbody>
-      </table>
-    </md-table-container>
+    <div layout="column" flex="45" ng-if="$ctrl.log.clientResponse">
+      <md-table-container>
+        <table md-table>
+          <tbody md-body>
+            <tr md-row>
+              <td md-cell><span style="font-weight: bold">Status</span></td>
+              <td md-cell>{{$ctrl.log.clientResponse.status | number}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </md-table-container>
 
-    <md-table-container flex="30">
-      <table md-table>
-        <tbody md-body>
-        <tr md-row ng-repeat="(key, value) in $ctrl.log.clientResponseHeaders" style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">{{key}}</span></td>
-          <td md-cell>{{value[0]}}</td>
-        </tr>
-        </tbody>
-      </table>
-    </md-table-container>
+      <br>
 
-    <div flex="5" layout="column" layout-align="center center" ng-if="$ctrl.log.endpoint">
+        <md-table-container>
+          <table md-table>
+            <tbody md-body>
+            <tr md-row ng-repeat="(key, value) in $ctrl.log.clientResponse.headers" style="height: 30px;">
+              <td md-cell><span style="font-weight: bold">{{key}}</span></td>
+              <td md-cell>{{value[0]}}</td>
+            </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+
+      <br>
+
+      <div ng-if="$ctrl.log.clientResponse.body"
+          ui-codemirror
+          ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.clientResponse)}"
+          ng-model="$ctrl.log.clientResponse.body">
+        </div>
+    </div>
+    <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientResponse">
+      <p>No log for this response.</p>
+      <p>Please check or configure logging mode (client).</p>
+    </div>
+
+    <div flex="5" layout="column" layout-align="center center">
         <span>
           <ng-md-icon icon="arrow_back" size="30px"></ng-md-icon>
         </span>
     </div>
 
-    <md-table-container flex="30" ng-if="$ctrl.log.endpoint">
-      <table md-table>
-        <tbody md-body>
-        <tr md-row ng-repeat="(key, value) in $ctrl.log.proxyResponseHeaders" style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">{{key}}</span></td>
-          <td md-cell>{{value[0]}}</td>
-        </tr>
-        </tbody>
-      </table>
-    </md-table-container>
+    <div layout="column" flex="45" ng-if="$ctrl.log.proxyResponse">
+      <md-table-container>
+        <table md-table>
+          <tbody md-body>
+          <tr md-row>
+            <td md-cell><span style="font-weight: bold">Status</span></td>
+            <td md-cell>{{$ctrl.log.proxyResponse.status | number}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+
+      <br>
+
+      <md-table-container ng-if="$ctrl.log.endpoint">
+        <table md-table>
+          <tbody md-body>
+          <tr md-row ng-repeat="(key, value) in $ctrl.log.proxyResponse.headers" style="height: 30px;">
+            <td md-cell><span style="font-weight: bold">{{key}}</span></td>
+            <td md-cell>{{value[0]}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+
+      <br>
+
+      <div ng-if="$ctrl.log.proxyResponse.body"
+        ui-codemirror
+        ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.proxyResponse)}"
+        ng-model="$ctrl.log.proxyResponse.body">
+      </div>
+    </div>
+    <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyResponse">
+      <p>No log for this response.</p>
+      <p>Please check or configure logging mode (proxy).</p>
+    </div>
   </div>
 </div>

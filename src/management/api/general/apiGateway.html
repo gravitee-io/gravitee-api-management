@@ -180,24 +180,22 @@
 
   <section>
     <md-subheader class="md-primary" style="background-color: #fafafa">
-      <span>Profiling</span>
-      <div class="hints">Use profiling with caution and only for development purpose since it can have impact on API performance.</div>
+      <span>Logging</span>
+      <div class="hints">Use logging with caution and only for development purpose since it can have impact on API performance and is requiring more spaces for analytics storage..</div>
     </md-subheader>
     <div layout="column" layout-wrap layout-gt-sm="row">
       <div flex-xs flex="50">
         <div layout-xs="column" flex-xs="50">
-          <md-checkbox
-            ng-model="generalCtrl.api.proxy.dumpRequest"
-            aria-label="Dump HTTP Client request"
-            class="md-warn md-align-top-left" flex>
-            Dump HTTP requests<br/>
-                        <span class="ipsum">
-                          Print HTTP client requests in gateway logs.
-                        </span>
-          </md-checkbox>
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Mode</label>
+            <md-select ng-model="generalCtrl.api.proxy.loggingMode">
+              <md-option ng-repeat="loggingMode in loggingModes" value="{{loggingMode.value}}">
+                {{loggingMode.name}}
+              </md-option>
+            </md-select>
+          </md-input-container>
         </div>
       </div>
-    </div>
   </section>
 
   <br />
