@@ -95,6 +95,12 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             proxy.setMultiTenant(Proxy.DEFAULT_MULTI_TENANT);
         }
 
+        JsonNode corsNode = node.get("cors");
+        if (corsNode != null) {
+            Cors cors = corsNode.traverse(jp.getCodec()).readValueAs(Cors.class);
+            proxy.setCors(cors);
+        }
+
         return proxy;
     }
 

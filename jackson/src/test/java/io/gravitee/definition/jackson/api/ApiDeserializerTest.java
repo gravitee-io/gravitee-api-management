@@ -418,4 +418,26 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertNotNull(endpoint.getHttpClientOptions());
         Assert.assertTrue(endpoint.getHttpClientOptions().isFollowRedirects());
     }
+
+    @Test
+    public void definition_noCors() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-hostHeader.json", Api.class);
+
+        Cors cors = api.getProxy().getCors();
+        Assert.assertNull(cors);
+    }
+
+    @Test
+    public void definition_withCors_defaultValues() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-cors.json", Api.class);
+
+        Cors cors = api.getProxy().getCors();
+        Assert.assertNotNull(cors);
+        Assert.assertEquals(-1, cors.getAccessControlMaxAge());
+        Assert.assertFalse(cors.isAccessControlAllowCredentials());
+        Assert.assertNotNull(cors.getAccessControlAllowOrigin());
+        Assert.assertNotNull(cors.getAccessControlAllowHeaders());
+        Assert.assertNotNull(cors.getAccessControlAllowMethods());
+        Assert.assertNotNull(cors.getAccessControlExposeHeaders());
+    }
 }

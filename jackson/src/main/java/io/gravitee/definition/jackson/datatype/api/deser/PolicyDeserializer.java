@@ -47,11 +47,6 @@ public class PolicyDeserializer extends StdScalarDeserializer<Policy> {
             System.out.println(field);
         });
 
-        /*
-        policy.setName(node.get("policy").asText());
-        policy.setConfiguration(node.getget("configuration").toString());
-        */
-
         return policy;
     }
 }

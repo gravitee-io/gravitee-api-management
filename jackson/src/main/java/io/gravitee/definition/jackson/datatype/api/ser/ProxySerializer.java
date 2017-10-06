@@ -66,6 +66,10 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
             jgen.writeObjectField("failover", proxy.getFailover());
         }
 
+        if (proxy.getCors() != null && proxy.getCors().isEnabled()) {
+            jgen.writeObjectField("cors", proxy.getCors());
+        }
+
         jgen.writeEndObject();
     }
 }

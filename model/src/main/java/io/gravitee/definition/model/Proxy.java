@@ -35,6 +35,8 @@ public class Proxy {
 
     private Failover failover;
 
+    private Cors cors;
+
     private boolean stripContextPath = false;
 
     private LoggingMode loggingMode = DEFAULT_LOGGING_MODE;
@@ -99,5 +101,13 @@ public class Proxy {
 
     public void setMultiTenant(boolean multiTenant) {
         this.multiTenant = multiTenant;
+    }
+
+    public Cors getCors() {
+        return cors;
+    }
+
+    public void setCors(Cors cors) {
+        this.cors = cors;
     }
 }
