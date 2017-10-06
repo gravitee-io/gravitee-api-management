@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -56,6 +57,11 @@ public class Page {
 	private Date createdAt;
 
 	private Date updatedAt;
+
+	/**
+	 * List of excluded groups
+	 */
+	private List<String> excludedGroups;
 
 	public String getId() {
 		return id;
@@ -161,6 +167,14 @@ public class Page {
 		this.homepage = homepage;
 	}
 
+	public List<String> getExcludedGroups() {
+		return excludedGroups;
+	}
+
+	public void setExcludedGroups(List<String> excludedGroups) {
+		this.excludedGroups = excludedGroups;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -187,6 +201,7 @@ public class Page {
 				", source=" + source +
 				", configuration=" + configuration +
 				", homepage=" + homepage +
+				", excludedGroups=" + excludedGroups +
 				", createdAt=" + createdAt +
 				", updatedAt=" + updatedAt +
 				'}';

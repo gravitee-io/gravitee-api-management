@@ -79,6 +79,11 @@ public class Plan {
 
     private List<String> characteristics;
 
+    /**
+     * List of excluded groups
+     */
+    private List<String> excludedGroups;
+
     public String getId() {
         return id;
     }
@@ -199,6 +204,14 @@ public class Plan {
         this.security = security;
     }
 
+    public List<String> getExcludedGroups() {
+        return excludedGroups;
+    }
+
+    public void setExcludedGroups(List<String> excludedGroups) {
+        this.excludedGroups = excludedGroups;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -221,6 +234,7 @@ public class Plan {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", validation=" + validation +
+                ", excludedGroups=" + excludedGroups +
                 ", type=" + type +
                 '}';
     }
