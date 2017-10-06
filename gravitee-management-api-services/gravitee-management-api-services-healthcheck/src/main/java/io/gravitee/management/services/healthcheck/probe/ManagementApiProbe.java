@@ -34,10 +34,10 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ManagementApiProbe implements Probe {
 
-    @Value("${http.port:8083}")
+    @Value("${jetty.port:8083}")
     private int port;
 
-    @Value("${http.host:localhost}")
+    @Value("${jetty.host:localhost}")
     private String host;
 
     @Autowired
