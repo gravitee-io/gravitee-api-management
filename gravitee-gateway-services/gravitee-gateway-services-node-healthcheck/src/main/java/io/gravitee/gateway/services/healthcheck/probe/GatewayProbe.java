@@ -34,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class GatewayProbe implements Probe {
 
-    @Value("${http.port:18082}")
+    @Value("${http.port:8082}")
     private int port;
 
     @Value("${http.host:localhost}")
