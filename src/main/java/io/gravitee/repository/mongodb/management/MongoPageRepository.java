@@ -107,6 +107,7 @@ public class MongoPageRepository implements PageRepository {
             pageMongo.setOrder(page.getOrder());
             pageMongo.setPublished(page.isPublished());
             pageMongo.setHomepage(page.isHomepage());
+            pageMongo.setExcludedGroups(page.getExcludedGroups());
             if (page.getSource() != null) {
                 pageMongo.setSource(convert(page.getSource()));
             } else {

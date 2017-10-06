@@ -18,6 +18,8 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
+
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
@@ -49,6 +51,8 @@ public class PageMongo extends Auditable {
 	private PageConfigurationMongo configuration;
 
 	private boolean homepage;
+
+	private List<String> excludedGroups;
 
 	public String getId() {
 		return id;
@@ -146,6 +150,14 @@ public class PageMongo extends Auditable {
 		this.homepage = homepage;
 	}
 
+	public List<String> getExcludedGroups() {
+		return excludedGroups;
+	}
+
+	public void setExcludedGroups(List<String> excludedGroups) {
+		this.excludedGroups = excludedGroups;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -171,6 +183,7 @@ public class PageMongo extends Auditable {
 		sb.append(", lastContributor='").append(lastContributor).append('\'');
 		sb.append(", api='").append(api).append('\'');
 		sb.append(", homepage='").append(homepage).append('\'');
+		sb.append(", excludedGroups='").append(excludedGroups).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}
