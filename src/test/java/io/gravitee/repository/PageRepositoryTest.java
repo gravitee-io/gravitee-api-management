@@ -21,10 +21,7 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
@@ -60,7 +57,17 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("content", "Content of the page", page.getContent());
         assertEquals("api", "my-api", page.getApi());
         assertEquals("type", PageType.MARKDOWN, page.getType());
-        assertNull("source", page.getSource());
+        assertEquals("last contributor", "john_doe", page.getLastContributor());
+        assertEquals("order", 2, page.getOrder());
+        assertTrue("published", page.isPublished());
+        assertEquals("source type", "sourceType", page.getSource().getType());
+        assertEquals("source configuration", "sourceConfiguration", page.getSource().getConfiguration());
+        assertTrue("configuration try it", page.getConfiguration().isTryIt());
+        assertEquals("configuration try it URL", "http://company.com", page.getConfiguration().getTryItURL());
+        assertTrue("homepage", page.isHomepage());
+        assertEquals("excludedGroups", Arrays.asList("grp1", "grp2"), page.getExcludedGroups());
+        assertEquals("created at", new Date(1439022010883L), page.getCreatedAt());
+        assertEquals("updated at", new Date(1119022010883L), page.getUpdatedAt());
     }
 
     @Test

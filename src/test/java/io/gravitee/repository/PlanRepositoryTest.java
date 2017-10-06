@@ -21,9 +21,7 @@ import io.gravitee.repository.management.model.Plan;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static org.junit.Assert.*;
@@ -46,6 +44,20 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(plan);
         assertTrue(plan.isPresent());
         assertEquals("my-plan", plan.get().getId());
+        assertEquals("Free plan", plan.get().getName());
+        assertEquals("Description of the free plan", plan.get().getDescription());
+        assertEquals("api1", plan.get().getApis().stream().findFirst().get());
+        assertEquals(Plan.PlanSecurityType.API_KEY, plan.get().getSecurity());
+        assertEquals(Plan.PlanValidationType.AUTO, plan.get().getValidation());
+        assertEquals(Plan.PlanType.API, plan.get().getType());
+        assertEquals(Plan.Status.PUBLISHED, plan.get().getStatus());
+        assertEquals(2, plan.get().getOrder());
+        assertEquals(new Date(1506964899000L), plan.get().getCreatedAt());
+        assertEquals(new Date(1507032062000L), plan.get().getUpdatedAt());
+        assertEquals(new Date(1506878460000L), plan.get().getPublishedAt());
+        assertEquals(new Date(1507611600000L), plan.get().getClosedAt());
+        assertEquals(Arrays.asList("charac 1", "charac 2"), plan.get().getCharacteristics());
+        assertEquals("grp1", plan.get().getExcludedGroups().get(0));
     }
 
     @Test
@@ -102,7 +114,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldUpdate() throws Exception {
-        Optional<Plan> optional = planRepository.findById("my-plan");
+        Optional<Plan> optional = planRepository.findById("updated-plan");
         Assert.assertTrue("Plan to update not found", optional.isPresent());
 
         final Plan plan = optional.get();
@@ -111,7 +123,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
 
         planRepository.update(plan);
 
-        Optional<Plan> optionalUpdated = planRepository.findById("my-plan");
+        Optional<Plan> optionalUpdated = planRepository.findById("updated-plan");
         Assert.assertTrue("View to update not found", optionalUpdated.isPresent());
 
         final Plan planUpdated = optionalUpdated.get();

@@ -28,6 +28,7 @@ import java.util.*;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -528,12 +529,30 @@ public class MockTestRepositoryConfiguration {
 
         final Plan plan2 = mock(Plan.class);
         when(plan2.getId()).thenReturn("my-plan");
-        when(plan2.getName()).thenReturn("New plan");
+        when(plan2.getName()).thenReturn("Free plan");
+        when(plan2.getDescription()).thenReturn("Description of the free plan");
+        when(plan2.getApis()).thenReturn(singleton("api1"));
+        when(plan2.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
+        when(plan2.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan2.getType()).thenReturn(Plan.PlanType.API);
+        when(plan2.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        when(plan2.getOrder()).thenReturn(2);
+        when(plan2.getCreatedAt()).thenReturn(new Date(1506964899000L));
+        when(plan2.getUpdatedAt()).thenReturn(new Date(1507032062000L));
+        when(plan2.getPublishedAt()).thenReturn(new Date(1506878460000L));
+        when(plan2.getClosedAt()).thenReturn(new Date(1507611600000L));
+        when(plan2.getCharacteristics()).thenReturn(Arrays.asList("charac 1", "charac 2"));
+        when(plan2.getExcludedGroups()).thenReturn(singletonList("grp1"));
+
+        final Plan updatedPlan = mock(Plan.class);
+        when(updatedPlan.getId()).thenReturn("updated-plan");
+        when(updatedPlan.getName()).thenReturn("New plan");
 
         when(planRepository.create(any(Plan.class))).thenReturn(plan);
 
         when(planRepository.findById("new-plan")).thenReturn(of(plan));
         when(planRepository.findById("my-plan")).thenReturn(of(plan2));
+        when(planRepository.findById("updated-plan")).thenReturn(of(updatedPlan));
 
         when(planRepository.findById("stores")).thenReturn(Optional.empty());
 
@@ -619,6 +638,21 @@ public class MockTestRepositoryConfiguration {
         when(findApiPage.getContent()).thenReturn("Content of the page");
         when(findApiPage.getApi()).thenReturn("my-api");
         when(findApiPage.getType()).thenReturn(PageType.MARKDOWN);
+        when(findApiPage.getLastContributor()).thenReturn("john_doe");
+        when(findApiPage.getOrder()).thenReturn(2);
+        when(findApiPage.isPublished()).thenReturn(true);
+        PageSource pageSource = new PageSource();
+        pageSource.setType("sourceType");
+        pageSource.setConfiguration("sourceConfiguration");
+        when(findApiPage.getSource()).thenReturn(pageSource);
+        PageConfiguration pageConfiguration = new PageConfiguration();
+        pageConfiguration.setTryIt(true);
+        pageConfiguration.setTryItURL("http://company.com");
+        when(findApiPage.getConfiguration()).thenReturn(pageConfiguration);
+        when(findApiPage.isHomepage()).thenReturn(true);
+        when(findApiPage.getExcludedGroups()).thenReturn(Arrays.asList("grp1", "grp2"));
+        when(findApiPage.getCreatedAt()).thenReturn(new Date(1439022010883L));
+        when(findApiPage.getUpdatedAt()).thenReturn(new Date(1119022010883L));
 
         // shouldFindApiPageByApiId
         when(pageRepository.findApiPageByApiId("my-api")).thenReturn(newSet(findApiPage));

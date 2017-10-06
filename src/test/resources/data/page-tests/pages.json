@@ -5,8 +5,21 @@
       "content": "Content of the page",
       "api": "my-api",
       "type": "MARKDOWN",
+      "lastContributor": "john_doe",
+      "order": 2,
+      "published": true,
+      "source": {
+         "type": "sourceType",
+         "configuration": "sourceConfiguration"
+      },
+      "configuration": {
+         "tryItURL": "http://company.com",
+         "tryIt": true
+      },
+      "homepage": true,
+      "excludedGroups": [ "grp1", "grp2" ],
       "createdAt": 1439022010883,
-      "updatedAt": 1439022010883
+      "updatedAt": 1119022010883
    },
    {
       "id":"updatePage",

@@ -3,7 +3,26 @@
       "id":"my-plan",
       "name":"Free plan",
       "description": "Description of the free plan",
-      "apis": ["api1"]
+      "apis": ["api1"],
+      "security": "API_KEY",
+      "validation": "AUTO",
+      "type": "API",
+      "status": "PUBLISHED",
+      "order": 2,
+      "createdAt": 1506964899000,
+      "updatedAt": 1507032062000,
+      "publishedAt": 1506878460000,
+      "closedAt": 1507611600000,
+      "characteristics": [
+         "charac 1",
+         "charac 2"
+      ],
+      "excludedGroups": [ "grp1" ]
+   },
+   {
+      "id":"updated-plan",
+      "name":"old plan",
+      "apis": ["api3"]
    },
    {
       "id":"products",
