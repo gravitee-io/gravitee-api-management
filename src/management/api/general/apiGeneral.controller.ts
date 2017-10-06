@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import _ = require('lodash');
+import angular = require('angular');
 import SidenavService from '../../../components/sidenav/sidenav.service';
 import UserService from "../../../services/user.service";
 
@@ -28,6 +29,7 @@ class ApiAdminController {
   private contextPathEditable: boolean;
   private formApi: any;
   private apiPublic: boolean;
+  private headers: string[];
 
   constructor(
     private ApiService,
@@ -59,6 +61,8 @@ class ApiAdminController {
     this.api = this.$scope.$parent.apiCtrl.api;
     this.tenants = resolvedTenants.data;
     this.$scope.selected = [];
+
+    this.$scope.searchHeaders = null;
 
     this.api.labels = this.api.labels || [];
 
@@ -92,11 +96,26 @@ class ApiAdminController {
         value: 'CLIENT_PROXY'
       }];
 
+    this.$scope.methods = ['GET','DELETE','PATCH','POST','PUT','TRACE','HEAD'];
+
     this.initState();
 
     this.views = resolvedViews;
     this.tags = resolvedTags;
     this.groups = resolvedGroups;
+
+    this.headers = [
+      'Accept','Accept-Charset','Accept-Encoding','Accept-Language','Accept-Ranges','Access-Control-Allow-Credentials',
+      'Access-Control-Allow-Headers','Access-Control-Allow-Methods','Access-Control-Allow-Origin',
+      'Access-Control-Expose-Headers','Access-Control-Max-Age','Access-Control-Request-Headers',
+      'Access-Control-Request-Method','Age','Allow','Authorization','Cache-Control','Connection','Content-Disposition',
+      'Content-Encoding','Content-ID','Content-Language','Content-Length','Content-Location','Content-MD5','Content-Range',
+      'Content-Type','Cookie','Date','ETag','Expires','Expect','Forwarded','From','Host','If-Match','If-Modified-Since',
+      'If-None-Match','If-Unmodified-Since','Keep-Alive','Last-Modified','Location','Link','Max-Forwards','MIME-Version',
+      'Origin','Pragma','Proxy-Authenticate','Proxy-Authorization','Proxy-Connection','Range','Referer','Retry-After',
+      'Server','Set-Cookie','Set-Cookie2','TE','Trailer','Transfer-Encoding','Upgrade','User-Agent','Vary','Via',
+      'Warning','WWW-Authenticate','X-Forwarded-For','X-Forwarded-Proto','X-Forwarded-Server','X-Forwarded-Host'
+    ];
   }
 
   toggleVisibility() {
@@ -117,6 +136,8 @@ class ApiAdminController {
 
     // Context-path editable
     this.contextPathEditable =this.UserService.currentUser.username === this.api.owner.username;
+
+    this.api.proxy.cors = this.api.proxy.cors || {allowOrigin: ['*'], allowHeaders: [], allowMethods: [], exposeHeaders: [], maxAge: -1, allowCredentials: false};
   }
 
   editWeight(event, endpoint) {
@@ -260,6 +281,24 @@ class ApiAdminController {
 
   getGroup(groupId) {
     return _.find(this.groups, { 'id': groupId });
+  }
+
+  /**
+   * Search for HTTP Headers.
+   */
+  querySearchHeaders(query) {
+    return query ? this.headers.filter(this.createFilterFor(query)) : [];
+  }
+
+  /**
+   * Create filter function for a query string
+   */
+  createFilterFor(query) {
+    let lowercaseQuery = angular.lowercase(query);
+
+    return function filterFn(header) {
+      return angular.lowercase(header).indexOf(lowercaseQuery) === 0;
+    };
   }
 }
 

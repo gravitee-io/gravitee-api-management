@@ -125,14 +125,134 @@
       <md-input-container class="md-block" flex-gt-sm>
         <label>Max attempts</label>
         <input ng-model="generalCtrl.api.proxy.failover.maxAttempts" type="number" ng-required="generalCtrl.failoverEnabled" min="0" ng-disabled="!generalCtrl.failoverEnabled">
-        <div class="hint">Limits the number of possible tries for passing a request to the next server. <br/>The 0 value turns off this limitation.</div>
+        <div class="hint">Limits the number of possible tries for passing a request to the next endpoint. <br/>The 0 value turns off this limitation.</div>
       </md-input-container>
     </div>
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
         <label>Timeout (ms)</label>
         <input ng-model="generalCtrl.api.proxy.failover.retryTimeout" type="number" min="0" ng-required="generalCtrl.failoverEnabled" ng-disabled="!generalCtrl.failoverEnabled">
-        <div class="hint">Limits the time allowed to pass a request to the next server. <br/>The 0 value turns off this limitation.</div>
+        <div class="hint">Limits the time allowed to pass a request to the next endpoint. <br/>The 0 value turns off this limitation.</div>
+      </md-input-container>
+    </div>
+  </div>
+
+  <br />
+
+  <md-subheader class="md-primary" style="background-color: #fafafa">
+    <md-checkbox
+      ng-model="generalCtrl.api.proxy.cors.enabled"
+      aria-label="Enable CORS" flex>
+      <div ng-switch on="generalCtrl.api.proxy.cors.enabled">
+        CORS (Cross-origin resource sharing)
+        <span class="proxy-activated" ng-switch-when="true">(active)</span>
+        <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
+        <span class="proxy-deactivated" ng-switch-default>(not active)</span>
+      </div>
+      <div class="hints">CORS is a mechanism that allows restricted resources (e.g. fonts) on a web page to be requested from another domain outside the domain from which the first resource was served.</div>
+    </md-checkbox>
+  </md-subheader>
+  <div layout="column" layout-wrap layout-gt-sm="row">
+    <div flex-xs flex="50">
+      <md-input-container class="md-block" flex-gt-sm>
+      <md-chips ng-model="generalCtrl.api.proxy.cors.allowOrigin" readonly="false"
+                md-removable="true" placeholder="Access-Control-Allow-Origin">
+        <md-chip-template>
+          <strong>{{$chip}}</strong>
+        </md-chip-template>
+      </md-chips>
+        <div class="hint">The origin parameter specifies a URI that may access the resource.</div>
+      </md-input-container>
+    </div>
+
+    <div flex-xs flex="50">
+      <md-input-container class="md-block" flex-gt-sm>
+        <label>Access-Control-Allow-Methods</label>
+        <md-select ng-model="generalCtrl.api.proxy.cors.allowMethods"
+                   md-on-close="clearSearchTerm()"
+                   data-md-container-class="selectdemoSelectHeader"
+                   multiple
+                   ng-required="generalCtrl.api.proxy.cors.enabled">
+          <md-select-header class="demo-select-header">
+            <input ng-model="searchTerm"
+                   type="search"
+                   placeholder="Search for allowed HTTP method."
+                   class="demo-header-searchbox md-text">
+          </md-select-header>
+          <md-optgroup label="HTTP Methods">
+            <md-option ng-value="method" ng-repeat="method in methods |
+              filter:searchTerm">{{method}}</md-option>
+          </md-optgroup>
+        </md-select>
+        <div class="hint">Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.</div>
+      </md-input-container>
+    </div>
+
+    <div flex-xs flex="50">
+      <md-input-container class="md-block" flex-gt-sm>
+        <md-chips ng-model="generalCtrl.api.proxy.cors.allowHeaders" md-autocomplete-snap
+                  md-require-match="false"
+                  ng-required="generalCtrl.api.proxy.cors.enabled">
+          <md-autocomplete
+            md-search-text="searchHeaders"
+            md-items="item in generalCtrl.querySearchHeaders(searchHeaders)"
+            md-item-text="item"
+            placeholder="Access-Control-Allow-Headers">
+            <span md-highlight-text="searchHeaders">{{item}}</span>
+          </md-autocomplete>
+          <md-chip-template>
+          <span>
+            <strong>{{$chip}}</strong>
+          </span>
+          </md-chip-template>
+          <span class="ipsum">
+             Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
+          </span>
+        </md-chips>
+      </md-input-container>
+    </div>
+
+    <div layout-gt-sm="row">
+      <md-input-container class="md-block" flex-gt-sm>
+        <md-checkbox
+          ng-model="generalCtrl.api.proxy.cors.allowCredentials"
+          aria-label="Access-Control-Allow-Credentials"
+          class="md-align-top-left" flex>
+          Access-Control-Allow-Credentials<br/>
+          <span class="ipsum">
+             Indicates whether or not the response to the request can be exposed when the credentials flag is true.
+          </span>
+        </md-checkbox>
+      </md-input-container>
+
+      <md-input-container class="md-block" flex-gt-sm>
+        <label>Max Age (seconds)</label>
+        <input ng-model="generalCtrl.api.proxy.cors.maxAge" type="number" ng-required="generalCtrl.api.proxy.cors.enabled" min="-1">
+        <div class="hint">This header indicates how long the results of a preflight request can be cached (-1 if disabled).</div>
+      </md-input-container>
+    </div>
+
+
+
+    <div flex-xs flex="50">
+      <md-input-container class="md-block" flex-gt-sm>
+        <md-chips ng-model="generalCtrl.api.proxy.cors.exposeHeaders" md-autocomplete-snap
+                  md-require-match="false"
+                  ng-required="generalCtrl.api.proxy.cors.enabled">
+          <md-autocomplete
+            md-search-text="searchHeaders"
+            md-items="item in generalCtrl.querySearchHeaders(searchHeaders)"
+            md-item-text="item"
+            placeholder="Access-Control-Expose-Headers">
+            <span md-highlight-text="searchHeaders">{{item}}</span>
+          </md-autocomplete>
+          <md-chip-template>
+          <span>
+            <strong>{{$chip}}</strong>
+          </span>
+          </md-chip-template>
+        </md-chips>
+        <div class="hint">This header lets a server whitelist headers that browsers are allowed to access.</div>
       </md-input-container>
     </div>
   </div>
