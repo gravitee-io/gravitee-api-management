@@ -19,6 +19,7 @@ import UserService from '../../../services/user.service';
 
 class ApiPlansController {
   private plans: any;
+  private groups: any;
   private dndEnabled: boolean;
   private statusFilters: string[];
   private selectedStatus: string[];
@@ -27,6 +28,8 @@ class ApiPlansController {
   private filteredPlans: any;
   constructor(
     private resolvedPlans,
+    private resolvedGroups,
+    private resolvedApi,
     private $mdSidenav,
     private $mdDialog,
     private $scope,
@@ -39,6 +42,13 @@ class ApiPlansController {
   ) {
     'ngInject';
     this.plans = resolvedPlans.data;
+    this.groups = resolvedGroups;
+    if (resolvedApi.data.visibility === "private") {
+      const apiGroupIds = resolvedApi.data.groups;
+      this.groups = _.filter(resolvedGroups, (group) => {
+        return apiGroupIds.indexOf(group["id"]) > -1;
+      });
+    }
     this.dndEnabled = UserService.isUserHasPermissions(['api-plan-u']);
     this.statusFilters = ['staging', 'published', 'closed'];
     this.selectedStatus = ['published'];
@@ -70,13 +80,19 @@ class ApiPlansController {
       that.resetPlan();
       if (!$mdSidenav('plan-edit').isOpen()) {
         $scope.plan = plan;
+        if (plan['excluded_groups']) {
+          $scope.plan.authorizedGroups = _.difference(_.map(that.groups, "id"), plan["excluded_groups"]);
+        } else {
+          $scope.plan.authorizedGroups = _.map(that.groups, "id");
+        }
+        console.log($scope.authorizedGroups);
         if ($scope.plan.paths['/']) {
           _.forEach($scope.plan.paths['/'], function (path) {
             if (path['rate-limit']) {
               $scope.rateLimit = path['rate-limit'].rate;
             }
-            if (path.quota) {
-              $scope.quota = path.quota.quota;
+            if (path['quota']) {
+              $scope.quota = path['quota'].quota;
             }
             if (path['resource-filtering']) {
               $scope.resourceFiltering.whitelist = path['resource-filtering'].whitelist;
@@ -197,6 +213,7 @@ class ApiPlansController {
 
   addPlan() {
     this.resetPlan();
+    this.$scope.plan.authorizedGroups = _.map(this.groups, "id");
     this.$mdSidenav('plan-edit').toggle();
     this.$mdSidenav('live-preview').toggle();
   }
@@ -237,6 +254,11 @@ class ApiPlansController {
           'addHeaders': true
         }
       });
+    }
+    // convert authorized groups to excludedGroups
+    that.$scope.plan.excludedGroups = [];
+    if (that.groups) {
+      that.$scope.plan.excludedGroups = _.difference(_.map(that.groups, "id"), that.$scope.plan.authorizedGroups);
     }
 
     that.ApiService.savePlan(that.$stateParams.apiId, that.$scope.plan).then(function (response) {

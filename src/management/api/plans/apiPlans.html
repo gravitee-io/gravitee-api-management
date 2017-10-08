@@ -177,6 +177,19 @@
     </div>
 
     <md-divider></md-divider>
+    <h3>Groups Authorizations</h3>
+    <div layout="row">
+      <md-input-container class="md-block" flex="100">
+        <label>Groups allowed to access to this plan</label>
+        <md-select ng-model="plan.authorizedGroups" multiple>
+          <md-option ng-repeat="group in apiPlansCtrl.groups | orderBy:'name'" ng-value="group.id">
+            {{group.name}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+    </div>
+
+    <md-divider></md-divider>
     <h3>Configuration</h3>
 
     <div layout="row">

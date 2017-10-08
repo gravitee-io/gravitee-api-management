@@ -77,7 +77,8 @@ class DocumentationService {
         content: editPage.content || '',
         source: editPage.source,
         homepage: editPage.homepage,
-        configuration: editPage.configuration
+        configuration: editPage.configuration,
+        excluded_groups: editPage.excludedGroups
       }
     );
   }

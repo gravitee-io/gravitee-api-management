@@ -198,7 +198,8 @@ class ApiService {
         {
           id: plan.id, name: plan.name, description: plan.description,
           validation: plan.validation, policies: plan.policies,
-          characteristics: plan.characteristics, order: plan.order, paths: plan.paths
+          characteristics: plan.characteristics, order: plan.order, paths: plan.paths,
+          excluded_groups: plan.excludedGroups
         });
     } else {
       return this.$http.post(this.apisURL + apiId + '/plans',
@@ -206,7 +207,7 @@ class ApiService {
           name: plan.name, description: plan.description, api: plan.api,
           validation: plan.validation, policies: plan.policies,
           characteristics: plan.characteristics, type: plan.type, paths: plan.paths,
-          security: plan.security
+          security: plan.security, excluded_groups: plan.excludedGroups
         });
     }
   }

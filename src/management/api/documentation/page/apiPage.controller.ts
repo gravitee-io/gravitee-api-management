@@ -29,11 +29,28 @@ class PageController {
   private initialPage: any;
   private editMode: boolean;
   private codeMirrorOptions: any;
+  private groups: any;
 
-	constructor(private DocumentationService, private $state, private $mdDialog, private $rootScope, private $scope, private NotificationService, private FetcherService, private $mdSidenav) {
+	constructor(
+	  private DocumentationService,
+    private $state,
+    private $mdDialog,
+    private $rootScope,
+    private $scope,
+    private NotificationService,
+    private FetcherService,
+    private $mdSidenav,
+    private resolvedGroups,
+    private resolvedApi) {
     'ngInject';
     this.useFetcher = false;
-
+    this.groups = resolvedGroups;
+    if (resolvedApi.data.visibility === "private") {
+      const apiGroupIds = resolvedApi.data.groups;
+      this.groups = _.filter(resolvedGroups, (group) => {
+        return apiGroupIds.indexOf(group["id"]) > -1;
+      });
+    }
     this.codeMirrorOptions = {
       lineWrapping: true,
       lineNumbers: true,
@@ -71,6 +88,11 @@ class PageController {
         DocumentationService.get($state.params.apiId, $state.params.pageId).then( response => {
           this.page = response.data;
           this.initialPage = _.clone(response.data);
+          if (this.page.excluded_groups) {
+            this.page.authorizedGroups = _.difference(_.map(this.groups, "id"), this.page.excluded_groups);
+          } else {
+            this.page.authorizedGroups = _.map(this.groups, "id");
+          }
           if(!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
             this.useFetcher = true;
             _.forEach(this.fetchers, fetcher => {
@@ -115,6 +137,11 @@ class PageController {
           this.$scope.error = error;
       });
     } else {
+      // convert authorized groups to excludedGroups
+      this.page.excludedGroups = [];
+      if (this.groups) {
+        this.page.excludedGroups = _.difference(_.map(this.groups, "id"), this.page.authorizedGroups);
+      }
       this.DocumentationService.editPage(this.$state.params.apiId, this.page.id, this.page)
         .then(() =>{
           this.onPageUpdate();

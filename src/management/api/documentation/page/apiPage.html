@@ -152,6 +152,17 @@
         <form name="PageConfigFetcherForm" sf-schema="fetcherJsonSchema" sf-form="pageCtrl.fetcherJsonSchemaForm" sf-model="pageCtrl.page.source.configuration"></form>
       </div>
     </div>
+    <md-subheader class="md-primary">Groups Authorizations</md-subheader>
+    <div>
+      <md-input-container class="md-block" flex="100">
+        <label>Groups allowed to access to this page</label>
+        <md-select ng-model="pageCtrl.page.authorizedGroups" multiple>
+          <md-option ng-repeat="group in pageCtrl.groups | orderBy:'name'" ng-value="group.id">
+            {{group.name}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+    </div>
     <md-button ng-disabled="pageCtrl.hasNoTitle()" class="md-raised" type="submit" ng-click="pageCtrl.upsert()">
       Save
     </md-button>
