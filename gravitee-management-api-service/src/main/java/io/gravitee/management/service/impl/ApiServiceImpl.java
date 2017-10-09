@@ -662,11 +662,13 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             }
 
             ApiEntity createdOrUpdatedApiEntity;
+            Set<MemberEntity> members = Collections.emptySet();
             if (apiEntity == null || apiEntity.getId() == null) {
                 createdOrUpdatedApiEntity = create0(importedApi, username);
             }
             else {
                 createdOrUpdatedApiEntity = update(apiEntity.getId(), importedApi);
+                members = membershipService.getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API);
             }
 
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
@@ -676,14 +678,19 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 String memberAsPrimaryOwner = null;
                 for (final JsonNode memberNode : membersDefinition) {
                     MemberEntity memberEntity = objectMapper.readValue(memberNode.toString(), MemberEntity.class);
-                    membershipService.addOrUpdateMember(
-                            MembershipReferenceType.API,
-                            createdOrUpdatedApiEntity.getId(),
-                            memberEntity.getUsername(),
-                            RoleScope.API,
-                            memberEntity.getRole());
-                    if (SystemRole.PRIMARY_OWNER.name().equals(memberEntity.getRole())) {
-                        memberAsPrimaryOwner = memberEntity.getUsername();
+                    if (!members.contains(memberEntity)
+                            || members.stream().anyMatch(m ->
+                                m.getUsername().equals(memberEntity.getUsername())
+                                && !m.getRole().equals(memberEntity.getRole()))) {
+                        membershipService.addOrUpdateMember(
+                                MembershipReferenceType.API,
+                                createdOrUpdatedApiEntity.getId(),
+                                memberEntity.getUsername(),
+                                RoleScope.API,
+                                memberEntity.getRole());
+                        if (SystemRole.PRIMARY_OWNER.name().equals(memberEntity.getRole())) {
+                            memberAsPrimaryOwner = memberEntity.getUsername();
+                        }
                     }
                 }
                 //transfer ownership if necessary

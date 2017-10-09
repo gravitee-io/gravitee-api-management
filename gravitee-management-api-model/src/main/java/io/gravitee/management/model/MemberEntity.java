@@ -108,4 +108,19 @@ public class MemberEntity {
     public void setPermissions(Map<String, char[]> permissions) {
         this.permissions = permissions;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MemberEntity that = (MemberEntity) o;
+
+        return username.equals(that.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return username.hashCode();
+    }
 }
