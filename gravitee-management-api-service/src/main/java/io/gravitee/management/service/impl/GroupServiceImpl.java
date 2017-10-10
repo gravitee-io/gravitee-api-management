@@ -257,12 +257,13 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
              // user is not directly member of the API
              && membershipService.getMember(MembershipReferenceType.API, api.getId(), username, RoleScope.API) == null
            ) {
-            Set<String> authorizedGroups = Collections.emptySet();
 
+            // for public apis, default authorized groups are all groups,
+            // for private apis, default authorized groups are all apis groups
+            Set<String> authorizedGroups = Collections.emptySet();
             if (Visibility.PRIVATE.equals(api.getVisibility()) && api.getGroups() != null && !api.getGroups().isEmpty()) {
                 authorizedGroups = new HashSet<>(api.getGroups());
             }
-
             if (Visibility.PUBLIC.equals(api.getVisibility())) {
                 try {
                     authorizedGroups = groupRepository.findAll().stream().map(Group::getId).collect(Collectors.toSet());
@@ -271,6 +272,7 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
                     throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
                 }
             }
+
             authorizedGroups.removeAll(excludedGroups);
             for (String authorizedGroupId : authorizedGroups) {
                 if (membershipService.getMember(MembershipReferenceType.GROUP, authorizedGroupId, username, RoleScope.API) != null) {
