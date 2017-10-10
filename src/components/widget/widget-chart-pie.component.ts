@@ -35,12 +35,13 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
 
         let idx = 0;
         let that = this;
-        _.forEach(data.values, function(value) {
-          let percentage = _.round(value / total * 100);
+        _.forEach(data.values, function(value: number) {
+          let percentage = _.round(value / total * 100, 2);
           values.push({
-            name: that.parent.widget.chart.labels[idx], // + ': (' + percentage + '%) ' + value + ' hits',
+            name: that.parent.widget.chart.labels[idx],
             y: percentage,
-            color: that.parent.widget.chart.colors[idx]
+            color: that.parent.widget.chart.colors[idx],
+            hits: value
           });
           idx++;
         });
@@ -67,7 +68,9 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
             }
           },
           tooltip: {
-            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            pointFormat: '{series.name}: <b>{point.percentage:.2f}%</b>'
+                       + '<br>'
+                       + 'Nb hits: <b>{point.hits}</b>'
           },
           title: {
             text: '<br>' + total +'<br> hits',
