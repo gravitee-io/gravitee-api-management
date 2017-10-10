@@ -93,7 +93,7 @@ public class QueryParametersTest extends AbstractGatewayTest {
         assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
 
         String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
-        assertEquals(query, responseContent);
+        assertEquals("myparam:test AND myotherparam:12", responseContent);
     }
 
     @Test
@@ -177,6 +177,41 @@ public class QueryParametersTest extends AbstractGatewayTest {
                 .addParameter("country", "fr")
                 .addParameter("type", "MAG")
                 .addParameter("country", "es")
+                .build();
+
+        Response response = Request.Get(target).execute();
+
+        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        assertEquals(query, responseContent);
+    }
+
+    @Test
+    public void call_multiple_characters() throws Exception {
+        String query = "RECHERCHE,35147,8;RECHERCHE,670620,1";
+
+        URI target = new URIBuilder("http://localhost:8082/test/my_team")
+                .addParameter("q", "RECHERCHE,35147,8;RECHERCHE,670620,1")
+                .build();
+
+        Response response = Request.Get(target).execute();
+
+        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        assertEquals(query, responseContent);
+    }
+
+    @Test
+    public void call_percent_character() throws Exception {
+        String query = "username=toto&password=password%";
+
+        URI target = new URIBuilder("http://localhost:8082/test/my_team")
+                .addParameter("username", "toto")
+                .addParameter("password", "password%")
                 .build();
 
         Response response = Request.Get(target).execute();

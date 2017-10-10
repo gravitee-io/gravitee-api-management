@@ -35,6 +35,7 @@ import io.gravitee.gateway.handlers.api.logging.LoggableClientRequest;
 import io.gravitee.gateway.handlers.api.logging.LoggableClientResponse;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
+import io.gravitee.gateway.http.core.direct.DirectProxyConnection;
 import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager;
 import io.gravitee.gateway.http.core.invoker.DefaultHttpInvoker;
 import io.gravitee.gateway.policy.PolicyChainResolver;
@@ -160,9 +161,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     }
 
     private void handleProxyResponse(Request serverRequest,final Response serverResponse, ExecutionContext executionContext, ProxyResponse proxyResponse, long serviceInvocationStart, Handler<Response> handler) {
-        if (proxyResponse == null) {
-            serverResponse.status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+        if (proxyResponse == null || proxyResponse instanceof DirectProxyConnection.DirectResponse) {
+            serverResponse.status((proxyResponse == null) ? HttpStatusCode.SERVICE_UNAVAILABLE_503 : proxyResponse.status());
             serverResponse.end();
+            handler.handle(serverResponse);
         } else {
             // Set the status
             serverResponse.status(proxyResponse.status());

@@ -15,7 +15,10 @@
  */
 package io.gravitee.gateway.http.core.invoker;
 
-import io.gravitee.common.http.*;
+import io.gravitee.common.http.GraviteeHttpHeader;
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -27,18 +30,19 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
-import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
 import io.gravitee.gateway.api.stream.ReadStream;
-import io.gravitee.gateway.api.stream.WriteStream;
+import io.gravitee.gateway.http.core.direct.DirectProxyConnection;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import io.gravitee.gateway.http.core.invoker.logging.LoggableProxyConnection;
-import org.apache.commons.codec.EncoderException;
-import org.apache.commons.codec.net.URLCodec;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -56,8 +60,6 @@ public class DefaultHttpInvoker implements Invoker {
     private static final int DEFAULT_HTTPS_PORT = 443;
 
     private static final Set<String> HOP_HEADERS;
-
-    private static final URLCodec URL_ENCODER = new URLCodec(StandardCharsets.UTF_8.name());
 
     private final static String TARGET_URI_ATTRIBUTE = ExecutionContext.ATTR_PREFIX + "target.uri";
 
@@ -94,53 +96,60 @@ public class DefaultHttpInvoker implements Invoker {
 
         // No endpoint has been selected by load-balancer strategy nor overridden value
         if (targetUri == null || endpoint == null || endpoint.definition().getStatus() == Endpoint.Status.DOWN) {
-            ServiceUnavailableConnection serviceUnavailableConnection = new ServiceUnavailableConnection();
-            connectionHandler.handle(serviceUnavailableConnection);
-            serviceUnavailableConnection.sendServerUnavailableResponse();
+            DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+            connectionHandler.handle(statusOnlyConnection);
+            statusOnlyConnection.sendResponse();
+        } else {
+            // Remove duplicate slash
+            targetUri = DUPLICATE_SLASH_REMOVER.matcher(targetUri).replaceAll("/");
+
+            URI requestUri = null;
+            try {
+                requestUri = encodeQueryParameters(serverRequest, targetUri);
+            } catch (Exception ex) {
+                serverRequest.metrics().setMessage(getStackTraceAsString(ex));
+
+                // Request URI is not correct nor correctly encoded, returning a bad request
+                DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.BAD_REQUEST_400);
+                connectionHandler.handle(statusOnlyConnection);
+                statusOnlyConnection.sendResponse();
+            }
+
+            if (requestUri != null) {
+                String uri = requestUri.toString();
+
+                // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the request
+                serverRequest.metrics().setEndpoint(uri);
+
+                final HttpMethod httpMethod = extractHttpMethod(executionContext, serverRequest);
+
+                final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
+                        (HTTPS_SCHEME.equals(requestUri.getScheme()) ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT);
+                final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
+                        requestUri.getHost() : requestUri.getHost() + ':' + port;
+
+                ProxyRequest proxyRequest = ProxyRequestBuilder.from(serverRequest)
+                        .uri(requestUri)
+                        .method(httpMethod)
+                        .headers(proxyRequestHeaders(serverRequest.headers(), host, endpoint.definition()))
+                        .build();
+
+                ProxyConnection proxyConnection = endpoint.connector().request(proxyRequest);
+
+                // Enable logging at proxy level
+                if (api.getProxy().getLoggingMode().isProxyMode()) {
+                    proxyConnection = new LoggableProxyConnection(proxyConnection, proxyRequest);
+                }
+
+                connectionHandler.handle(proxyConnection);
+
+                // Plug underlying stream to connection stream
+                ProxyConnection finalProxyConnection = proxyConnection;
+                stream
+                        .bodyHandler(finalProxyConnection::write)
+                        .endHandler(aVoid -> finalProxyConnection.end());
+            }
         }
-
-        // Remove duplicate slash
-        targetUri = DUPLICATE_SLASH_REMOVER.matcher(targetUri).replaceAll("/");
-
-        URI requestUri;
-        try {
-            requestUri = encodeQueryParameters(serverRequest, targetUri);
-        } catch (EncoderException e) {
-            throw new IllegalStateException("Query is not well-formed");
-        }
-
-        String uri = requestUri.toString();
-
-        // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the request
-        serverRequest.metrics().setEndpoint(uri);
-
-        final HttpMethod httpMethod = extractHttpMethod(executionContext, serverRequest);
-
-        final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
-                (HTTPS_SCHEME.equals(requestUri.getScheme()) ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT);
-        final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
-                requestUri.getHost() : requestUri.getHost() + ':' + port;
-
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(serverRequest)
-                .uri(requestUri)
-                .method(httpMethod)
-                .headers(proxyRequestHeaders(serverRequest.headers(), host, endpoint.definition()))
-                .build();
-
-        ProxyConnection proxyConnection = endpoint.connector().request(proxyRequest);
-
-        // Enable logging at proxy level
-        if (api.getProxy().getLoggingMode().isProxyMode()) {
-            proxyConnection = new LoggableProxyConnection(proxyConnection, proxyRequest);
-        }
-
-        connectionHandler.handle(proxyConnection);
-
-        // Plug underlying stream to connection stream
-        ProxyConnection finalProxyConnection = proxyConnection;
-        stream
-                .bodyHandler(finalProxyConnection::write)
-                .endHandler(aVoid -> finalProxyConnection.end());
 
         // Resume the incoming request to handle content and end
         serverRequest.resume();
@@ -208,7 +217,7 @@ public class DefaultHttpInvoker implements Invoker {
         return endpointUri + request.pathInfo();
     }
 
-    private URI encodeQueryParameters(Request request, String endpointUri) throws EncoderException {
+    private URI encodeQueryParameters(Request request, String endpointUri) throws MalformedURLException, URISyntaxException {
         final StringBuilder requestURI = new StringBuilder(endpointUri);
 
         if (request.parameters() != null && !request.parameters().isEmpty()) {
@@ -218,11 +227,11 @@ public class DefaultHttpInvoker implements Invoker {
             for (Map.Entry<String, List<String>> queryParam : request.parameters().entrySet()) {
                 if (queryParam.getValue() != null) {
                     for (String value : queryParam.getValue()) {
-                        query.append(URL_ENCODER.encode(queryParam.getKey()));
+                        query.append(queryParam.getKey());
                         if (value != null && !value.isEmpty()) {
                             query
                                     .append('=')
-                                    .append(URL_ENCODER.encode(value));
+                                    .append(value);
                         }
 
                         query.append('&');
@@ -234,7 +243,8 @@ public class DefaultHttpInvoker implements Invoker {
             requestURI.append(query.deleteCharAt(query.length() - 1).toString());
         }
 
-        return URI.create(requestURI.toString());
+        URL url = new URL(requestURI.toString());
+        return new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
     }
 
     private HttpMethod extractHttpMethod(ExecutionContext executionContext, Request request) {
@@ -243,78 +253,9 @@ public class DefaultHttpInvoker implements Invoker {
         return (overrideMethod == null) ? request.method() : overrideMethod;
     }
 
-    private class ServiceUnavailableConnection implements ProxyConnection {
-
-        private Handler<ProxyResponse> responseHandler;
-
-        @Override
-        public WriteStream<Buffer> write(Buffer content) {
-            return null;
-        }
-
-        @Override
-        public void end() {
-
-        }
-
-        @Override
-        public ProxyConnection responseHandler(Handler<ProxyResponse> responseHandler) {
-            this.responseHandler = responseHandler;
-            return this;
-        }
-
-        private void sendServerUnavailableResponse() {
-            ServiceUnavailableResponse response = new ServiceUnavailableResponse();
-            this.responseHandler.handle(response);
-            response.endHandler().handle(null);
-        }
-    }
-
-    private class ServiceUnavailableResponse implements ProxyResponse {
-
-        private Handler<Buffer> bodyHandler;
-        private Handler<Void> endHandler;
-
-        private final HttpHeaders httpHeaders = new HttpHeaders();
-
-        public ServiceUnavailableResponse() {
-            httpHeaders.set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-        }
-
-        @Override
-        public int status() {
-            return HttpStatusCode.SERVICE_UNAVAILABLE_503;
-        }
-
-        @Override
-        public HttpHeaders headers() {
-            return httpHeaders;
-        }
-
-        @Override
-        public ProxyResponse bodyHandler(Handler<Buffer> bodyHandler) {
-            this.bodyHandler = bodyHandler;
-            return this;
-        }
-
-        Handler<Buffer> bodyHandler() {
-            return this.bodyHandler;
-        }
-
-        @Override
-        public ProxyResponse endHandler(Handler<Void> endHandler) {
-            this.endHandler = endHandler;
-            return this;
-        }
-
-        Handler<Void> endHandler() {
-            return this.endHandler;
-        }
-
-        @Override
-        public ReadStream<Buffer> resume() {
-            endHandler.handle(null);
-            return this;
-        }
+    private static String getStackTraceAsString(Throwable throwable) {
+        StringWriter stringWriter = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(stringWriter));
+        return stringWriter.toString();
     }
 }
