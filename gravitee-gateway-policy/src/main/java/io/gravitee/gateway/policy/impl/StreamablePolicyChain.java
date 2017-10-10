@@ -101,7 +101,7 @@ public abstract class StreamablePolicyChain extends PolicyChain {
     public void end() {
         if (streamablePolicyHandlerChain != null) {
             streamablePolicyHandlerChain.end();
-        } else {
+        } else if (endHandler != null){
             this.endHandler.handle(null);
         }
     }

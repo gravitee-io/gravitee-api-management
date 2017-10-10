@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.netty.buffer.ByteBuf;
 import io.vertx.core.http.HttpServerResponse;
 
 /**
@@ -71,7 +72,7 @@ class VertxHttpServerResponse implements Response {
                 }
             }
 
-            httpServerResponse.write(io.vertx.core.buffer.Buffer.buffer(chunk.getBytes()));
+            httpServerResponse.write(io.vertx.core.buffer.Buffer.buffer((ByteBuf) chunk.getNativeBuffer()));
         }
         return this;
     }
