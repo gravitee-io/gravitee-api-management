@@ -10,10 +10,14 @@ db.subscriptions.createIndex( { "plan" : 1 } );
 db.subscriptions.createIndex( { "application" : 1 } );
 db.keys.createIndex( { "plan" : 1 } );
 db.keys.createIndex( { "application" : 1 } );
+db.keys.createIndex( { "updatedAt" : 1 } );
+db.keys.createIndex( { "revoked" : 1 } );
+db.keys.createIndex( { "plan" : 1 , "revoked" : 1, "updatedAt" : 1 } );
 db.pages.createIndex( { "api" : 1 } );
 db.memberships.createIndex( {"_id.referenceType":1, "_id.referenceId":1, "type":1} );
 db.memberships.createIndex( {"_id.referenceType":1, "_id.userId":1} );
 db.memberships.createIndex( {"_id.referenceType":1, "_id.userId":1, "type":1} );
+db.memberships.createIndex( {"_id.referenceType":1, "_id.referenceId":1, "roles":1} );
 db.roles.createIndex( {"_id.scope": 1 } );
 
 db.apis.reIndex();

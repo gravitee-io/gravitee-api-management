@@ -15,15 +15,20 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
+import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -79,6 +84,13 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 				.stream()
 				.map(apiKey -> mapper.map(apiKey, ApiKey.class))
 				.collect(Collectors.toSet());
+	}
+
+	@Override
+	public List<ApiKey> findByCriteria(ApiKeyCriteria filter) {
+		Page<ApiKeyMongo> apiKeysMongo = internalApiKeyRepo.search(filter);
+
+		return mapper.collection2list(apiKeysMongo.getContent(), ApiKeyMongo.class, ApiKey.class);
 	}
 
 	@Override
