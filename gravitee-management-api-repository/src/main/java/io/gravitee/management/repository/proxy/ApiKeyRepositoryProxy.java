@@ -17,9 +17,11 @@ package io.gravitee.management.repository.proxy;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -49,5 +51,10 @@ public class ApiKeyRepositoryProxy extends AbstractProxy<ApiKeyRepository> imple
     @Override
     public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
         return target.findByPlan(plan);
+    }
+
+    @Override
+    public List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
+        return target.findByCriteria(filter);
     }
 }
