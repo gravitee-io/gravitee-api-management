@@ -228,7 +228,7 @@ public class ApiPlansResource extends AbstractResource {
                     .build();
         }
 
-        return Response.ok(planService.close(plan)).build();
+        return Response.ok(planService.close(plan, getAuthenticatedUsername())).build();
     }
 
     @POST

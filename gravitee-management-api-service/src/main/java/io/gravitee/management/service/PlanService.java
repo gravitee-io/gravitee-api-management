@@ -39,7 +39,7 @@ public interface PlanService {
 
     PlanEntity update(UpdatePlanEntity plan);
 
-    PlanEntity close(String plan);
+    PlanEntity close(String plan, String username);
 
     void delete(String plan);
 

@@ -194,7 +194,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public PlanEntity close(String planId) {
+    public PlanEntity close(String planId, String user) {
         try {
             logger.debug("Close plan {}", planId);
 
@@ -213,14 +213,24 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setClosedAt(new Date());
             plan.setUpdatedAt(plan.getClosedAt());
 
-            // Close active subscriptions
+            // Close active subscriptions and reject pending
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
                 subscriptionService.findByPlan(planId)
                         .stream()
-                        .filter(subscriptionEntity ->
-                                subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED ||
-                                        subscriptionEntity.getStatus() == SubscriptionStatus.PENDING)
+                        .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED)
                         .forEach(subscription -> subscriptionService.close(subscription.getId()));
+
+                final String planName = plan.getName();
+                subscriptionService.findByPlan(planId)
+                        .stream()
+                        .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.PENDING)
+                        .forEach(subscription -> {
+                            ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
+                            processSubscriptionEntity.setId(subscription.getId());
+                            processSubscriptionEntity.setAccepted(false);
+                            processSubscriptionEntity.setReason("Plan " + planName + " has been closed.");
+                            subscriptionService.process(processSubscriptionEntity, user);
+                        });
             }
 
             // Save plan

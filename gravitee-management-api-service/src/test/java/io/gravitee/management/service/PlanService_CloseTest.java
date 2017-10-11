@@ -46,6 +46,7 @@ public class PlanService_CloseTest {
 
     private static final String PLAN_ID = "my-plan";
     private static final String SUBSCRIPTION_ID = "my-subscription";
+    private static final String USER = "user";
 
     @InjectMocks
     private PlanService planService = new PlanServiceImpl();
@@ -66,7 +67,7 @@ public class PlanService_CloseTest {
     public void shouldNotCloseBecauseNotFound() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
 
-        planService.close(PLAN_ID);
+        planService.close(PLAN_ID, USER);
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
@@ -75,14 +76,14 @@ public class PlanService_CloseTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
 
-        planService.close(PLAN_ID);
+        planService.close(PLAN_ID, USER);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCloseBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planService.close(PLAN_ID);
+        planService.close(PLAN_ID, USER);
     }
 
     @Test
@@ -99,11 +100,12 @@ public class PlanService_CloseTest {
         when(plan.getApis()).thenReturn(Collections.singleton("id"));
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(PLAN_ID);
+        planService.close(PLAN_ID, USER);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
         verify(subscriptionService, times(1)).close(SUBSCRIPTION_ID);
+        verify(subscriptionService, never()).process(any(), any());
     }
 
     @Test
@@ -120,11 +122,12 @@ public class PlanService_CloseTest {
         when(plan.getApis()).thenReturn(Collections.singleton("id"));
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(PLAN_ID);
+        planService.close(PLAN_ID, USER);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
-        verify(subscriptionService, times(1)).close(SUBSCRIPTION_ID);
+        verify(subscriptionService, never()).close(SUBSCRIPTION_ID);
+        verify(subscriptionService, times(1)).process(any(), any());
     }
 
     @Test
@@ -141,9 +144,10 @@ public class PlanService_CloseTest {
         when(plan.getApis()).thenReturn(Collections.singleton("id"));
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(PLAN_ID);
+        planService.close(PLAN_ID, USER);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
+        verify(subscriptionService, never()).process(any(), any());
     }
 }

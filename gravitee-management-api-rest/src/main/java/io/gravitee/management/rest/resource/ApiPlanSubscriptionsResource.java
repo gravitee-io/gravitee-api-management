@@ -36,6 +36,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.gravitee.management.model.permissions.RolePermissionAction.*;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -65,10 +67,10 @@ public class ApiPlanSubscriptionsResource extends AbstractResource {
             @PathParam("plan") String plan) {
 
         if (Visibility.PUBLIC.equals(apiService.findById(api).getVisibility())
-                || hasPermission(RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ)) {
+                || hasPermission(RolePermission.API_SUBSCRIPTION, api, READ)) {
 
             Set<SubscriptionEntity> subscriptions = subscriptionService.findByPlan(plan);
-            if (isAdmin()) {
+            if (isAdmin() || hasPermission(RolePermission.API_SUBSCRIPTION, api, CREATE, UPDATE, DELETE)) {
                 return subscriptions;
             } else if (isAuthenticated()) {
                 Set<String> userApps = applicationService.findByUser(getAuthenticatedUsername()).
@@ -94,7 +96,7 @@ public class ApiPlanSubscriptionsResource extends AbstractResource {
             @ApiResponse(code = 200, message = "Get a subscription", response = SubscriptionEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = READ)
     })
     public SubscriptionEntity getApiSubscription(
             @PathParam("api") String api,
@@ -113,7 +115,7 @@ public class ApiPlanSubscriptionsResource extends AbstractResource {
             @ApiResponse(code = 400, message = "Bad subscription format"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = UPDATE)
     })
     public Response updateApiSubscription(
             @PathParam("api") String api,
@@ -144,7 +146,7 @@ public class ApiPlanSubscriptionsResource extends AbstractResource {
             @ApiResponse(code = 400, message = "Bad subscription format"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = UPDATE)
     })
     public Response processApiSubscription(
             @PathParam("api") String api,
