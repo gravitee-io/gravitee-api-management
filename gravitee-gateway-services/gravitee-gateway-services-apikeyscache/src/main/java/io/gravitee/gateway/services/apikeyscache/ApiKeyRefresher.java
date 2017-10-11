@@ -15,17 +15,19 @@
  */
 package io.gravitee.gateway.services.apikeyscache;
 
-import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
-import net.sf.ehcache.Cache;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.model.ApiKey;
+import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,45 +39,63 @@ public class ApiKeyRefresher implements Runnable {
 
     private ApiKeyRepository apiKeyRepository;
 
-    private Cache cache;
+    private Ehcache cache;
 
     private final Api api;
 
-    private Collection<Plan> plans;
+    private Collection<String> plans;
 
-    public ApiKeyRefresher(final Api api) {
+    private long lastRefreshAt = -1;
+
+    ApiKeyRefresher(final Api api) {
         this.api = api;
+        this.plans = api.getPlans().stream().map(Plan::getId).collect(Collectors.toList());
     }
 
     @Override
     public void run() {
-        logger.warn("Refresh api-keys for API [name: {}] [id: {}]", api.getName(), api.getId());
+        long nextLastRefreshAt = System.currentTimeMillis();
+        logger.debug("Refresh api-keys for API [name: {}] [id: {}]", api.getName(), api.getId());
 
-        plans.stream()
-                .flatMap(plan -> {
-                    try {
-                        logger.warn("Loading for api-keys for plan [name: {}] [id: {}]", plan.getName(), plan.getId());
-                        return apiKeyRepository.findByPlan(plan.getId()).stream();
-                    } catch (TechnicalException te) {
-                        logger.error("Not able to refresh api-keys from repository: {}", te);
-                        return Stream.empty();
-                    }
-                })
-                .forEach(apiKey -> {
-                    logger.warn("Caching an api-key [key: {}] [plan: {}] [app: {}]", apiKey.getKey(), apiKey.getPlan(), apiKey.getApplication());
-                    cache.put(new Element(apiKey.getKey(), apiKey));
-                });
+        final ApiKeyCriteria.Builder criteriaBuilder;
+
+        if (lastRefreshAt == -1) {
+            criteriaBuilder = new ApiKeyCriteria.Builder()
+                    .includeRevoked(false)
+                    .plans(plans);
+        } else {
+            criteriaBuilder = new ApiKeyCriteria.Builder()
+                    .plans(plans)
+                    .includeRevoked(true)
+                    .from(lastRefreshAt).to(nextLastRefreshAt);
+        }
+
+        try {
+            apiKeyRepository
+                    .findByCriteria(criteriaBuilder.build())
+                    .forEach(this::saveOrUpdate);
+        } catch (TechnicalException te) {
+            logger.error("Unexpected error while refreshing api-keys", te);
+        }
+
+        lastRefreshAt = nextLastRefreshAt;
+    }
+
+    private void saveOrUpdate(ApiKey apiKey) {
+        if (apiKey.isRevoked()) {
+            logger.debug("Remove a revoked api-key from cache [key: {}] [plan: {}] [app: {}]", apiKey.getKey(), apiKey.getPlan(), apiKey.getApplication());
+            cache.remove(apiKey.getKey());
+        } else {
+            logger.debug("Cache an api-key [key: {}] [plan: {}] [app: {}]", apiKey.getKey(), apiKey.getPlan(), apiKey.getApplication());
+            cache.put(new Element(apiKey.getKey(), apiKey));
+        }
     }
 
     public void setApiKeyRepository(ApiKeyRepository apiKeyRepository) {
         this.apiKeyRepository = apiKeyRepository;
     }
 
-    public void setCache(Cache cache) {
+    public void setCache(Ehcache cache) {
         this.cache = cache;
-    }
-
-    public void setPlans(Collection<Plan> plans) {
-        this.plans = plans;
     }
 }

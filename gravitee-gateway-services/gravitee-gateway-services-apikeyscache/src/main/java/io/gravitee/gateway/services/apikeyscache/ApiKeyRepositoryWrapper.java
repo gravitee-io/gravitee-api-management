@@ -17,12 +17,13 @@ package io.gravitee.gateway.services.apikeyscache;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.Element;
+import net.sf.ehcache.Ehcache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,24 +36,28 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
     private static final Logger logger = LoggerFactory.getLogger(ApiKeyRepositoryWrapper.class);
 
     private final ApiKeyRepository wrapped;
-    private final Cache cache;
+    private final Ehcache cache;
 
-    public ApiKeyRepositoryWrapper(ApiKeyRepository wrapped, Cache cache) {
+    ApiKeyRepositoryWrapper(ApiKeyRepository wrapped, Ehcache cache) {
         this.wrapped = wrapped;
         this.cache = cache;
     }
 
     @Override
     public Optional<ApiKey> findById(String apiKey) throws TechnicalException {
-        logger.warn("Looking for api-key from cache [key: {}]", apiKey);
-        Element elt = cache.get(apiKey);
-        if (elt != null) {
-            logger.warn("An api-key has been found in cache for [key: {}]", apiKey);
-            return Optional.of((ApiKey) elt.getObjectValue());
+        logger.debug("Looking for api-key from cache [key: {}]", apiKey);
+
+        Optional<ApiKey> optApiKey =
+                Optional.ofNullable(cache.get(apiKey))
+                        .map(element -> (ApiKey) element.getObjectValue());
+
+        if (optApiKey.isPresent()) {
+            logger.debug("An api-key has been found in cache for [key: {}]", apiKey);
+        } else {
+            logger.debug("No api-key found from cache for [key: {}]", apiKey);
         }
 
-        logger.warn("No api-key found in cache for [key: {}]", apiKey);
-        return Optional.empty();
+        return optApiKey;
     }
 
     @Override
@@ -67,7 +72,12 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
 
     @Override
     public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
-        return wrapped.findByPlan(plan);
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
+        return wrapped.findByCriteria(filter);
     }
 
     @Override
