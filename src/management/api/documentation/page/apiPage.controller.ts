@@ -44,12 +44,18 @@ class PageController {
     private resolvedApi) {
     'ngInject';
     this.useFetcher = false;
-    this.groups = resolvedGroups;
+
     if (resolvedApi.data.visibility === "private") {
-      const apiGroupIds = resolvedApi.data.groups;
-      this.groups = _.filter(resolvedGroups, (group) => {
-        return apiGroupIds.indexOf(group["id"]) > -1;
-      });
+      if (resolvedApi.data.groups) {
+        const apiGroupIds = resolvedApi.data.groups;
+        this.groups = _.filter(resolvedGroups, (group) => {
+          return apiGroupIds.indexOf(group["id"]) > -1;
+        });
+      } else {
+        this.groups = [];
+      }
+    } else {
+      this.groups = resolvedGroups;
     }
     this.codeMirrorOptions = {
       lineWrapping: true,

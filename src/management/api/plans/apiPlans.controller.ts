@@ -42,12 +42,17 @@ class ApiPlansController {
   ) {
     'ngInject';
     this.plans = resolvedPlans.data;
-    this.groups = resolvedGroups;
     if (resolvedApi.data.visibility === "private") {
-      const apiGroupIds = resolvedApi.data.groups;
-      this.groups = _.filter(resolvedGroups, (group) => {
-        return apiGroupIds.indexOf(group["id"]) > -1;
-      });
+      if (resolvedApi.data.groups) {
+        const apiGroupIds = resolvedApi.data.groups;
+        this.groups = _.filter(resolvedGroups, (group) => {
+          return apiGroupIds.indexOf(group["id"]) > -1;
+        });
+      } else {
+        this.groups = [];
+      }
+    } else {
+      this.groups = resolvedGroups;
     }
     this.dndEnabled = UserService.isUserHasPermissions(['api-plan-u']);
     this.statusFilters = ['staging', 'published', 'closed'];
@@ -85,7 +90,6 @@ class ApiPlansController {
         } else {
           $scope.plan.authorizedGroups = _.map(that.groups, "id");
         }
-        console.log($scope.authorizedGroups);
         if ($scope.plan.paths['/']) {
           _.forEach($scope.plan.paths['/'], function (path) {
             if (path['rate-limit']) {
