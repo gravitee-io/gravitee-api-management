@@ -16,8 +16,10 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -64,4 +66,6 @@ public interface ApiKeyRepository {
 	 * List of {@link ApiKey} for a given {@link io.gravitee.repository.management.model.Plan}
 	 */
 	Set<ApiKey> findByPlan(String plan) throws TechnicalException;
+
+	List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException;
 }
