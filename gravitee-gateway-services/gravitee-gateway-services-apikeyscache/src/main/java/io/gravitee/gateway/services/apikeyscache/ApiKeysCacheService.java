@@ -23,7 +23,6 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.api.PlanRepository;
 import net.sf.ehcache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,9 +62,6 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     private Cache cache;
 
     private ApiKeyRepository apiKeyRepository;
-
-    @Autowired
-    private PlanRepository planRepository;
 
     private ExecutorService executorService;
 
@@ -151,7 +147,6 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             ApiKeyRefresher refresher = new ApiKeyRefresher(api);
             refresher.setCache(cache);
             refresher.setApiKeyRepository(apiKeyRepository);
-            refresher.setPlans(api.getPlans());
 
             LOGGER.info("Add a task to refresh api-keys each {} {} for API [name: {}] [id: {}]", delay, unit.name(), api.getName(), api.getId());
             ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
