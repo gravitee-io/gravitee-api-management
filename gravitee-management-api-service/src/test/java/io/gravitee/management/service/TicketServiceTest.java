@@ -49,6 +49,8 @@ public class TicketServiceTest {
 
     private static final String USERNAME = "my-username";
     private static final String USER_EMAIL = "my@email.com";
+    private static final String USER_FIRSTNAME = "Firstname";
+    private static final String USER_LASTNAME = "Lastname";
     private static final String API_ID = "my-api-id";
     private static final String APPLICATION_ID = "my-application-id";
     private static final String EMAIL_SUBJECT = "email-subject";
@@ -139,6 +141,8 @@ public class TicketServiceTest {
 
         when(userService.findByName(USERNAME, false)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
+        when(user.getFirstname()).thenReturn(USER_FIRSTNAME);
+        when(user.getLastname()).thenReturn(USER_LASTNAME);
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(api);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
 
@@ -151,6 +155,7 @@ public class TicketServiceTest {
         verify(emailService).sendEmailNotification(
                 new EmailNotificationBuilder()
                         .from(USER_EMAIL)
+                        .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
                         .to(EMAIL_SUPPORT)
                         .subject(EMAIL_SUBJECT)
                         .copyToSender(EMAIL_COPY_TO_SENDER)
