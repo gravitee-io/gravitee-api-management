@@ -15,10 +15,13 @@
  */
 package io.gravitee.repository.redis.management.internal.impl;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.redis.management.internal.ApiKeyRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApiKey;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -76,5 +79,44 @@ public class ApiKeyRedisRepositoryImpl extends AbstractRedisRepository implement
         return apiKeyObjects.stream()
                 .map(apiKey -> convert(apiKey, RedisApiKey.class))
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Page<RedisApiKey> search(ApiKeyCriteria criteria) {
+        Set<String> filterKeys = new HashSet<>();
+        String tempDestination = "tmp-" + Math.abs(criteria.hashCode());
+
+        // Implement OR clause for event type
+        if (! criteria.getPlans().isEmpty()) {
+            criteria.getPlans().forEach(type -> filterKeys.add(REDIS_KEY + ":plan:" + type));
+            redisTemplate.opsForZSet().unionAndStore(null, filterKeys, tempDestination);
+            filterKeys.clear();
+            filterKeys.add(tempDestination);
+        }
+
+        // And finally add clause based on event update date
+        filterKeys.add(REDIS_KEY + ":updated_at");
+
+        redisTemplate.opsForZSet().intersectAndStore(null, filterKeys, tempDestination);
+
+        Set<Object> keys;
+
+        if (criteria.getFrom() != 0 && criteria.getTo() != 0) {
+                keys = redisTemplate.opsForZSet().reverseRangeByScore(
+                        tempDestination,
+                        criteria.getFrom(), criteria.getTo());
+        } else {
+                keys = redisTemplate.opsForZSet().reverseRangeByScore(
+                        tempDestination,
+                        0, Long.MAX_VALUE);
+        }
+
+        redisTemplate.opsForZSet().removeRange(tempDestination, 0, -1);
+        List<Object> apiKeysObject = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
+
+        return new Page<>(
+                apiKeysObject.stream()
+                        .map(apiKey -> convert(apiKey, RedisApiKey.class))
+                        .collect(Collectors.toList()), 0, 0, keys.size());
     }
 }

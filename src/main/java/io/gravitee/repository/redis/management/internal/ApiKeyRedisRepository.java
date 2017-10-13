@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.redis.management.model.RedisApiKey;
 
 import java.util.Set;
@@ -34,4 +36,6 @@ public interface ApiKeyRedisRepository {
     Set<RedisApiKey> findBySubscription(String subscription);
 
     Set<RedisApiKey> findByPlan(String plan);
+
+    Page search(ApiKeyCriteria criteria);
 }

@@ -15,8 +15,10 @@
  */
 package io.gravitee.repository.redis.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.redis.management.internal.ApiKeyRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApiKey;
@@ -24,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -79,6 +82,15 @@ public class RedisApiKeyRepository implements ApiKeyRepository {
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
+        Page<RedisApiKey> pagesApiKeys = apiKeyRedisRepository.search(filter);
+        return pagesApiKeys.getContent()
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
 
     private ApiKey convert(RedisApiKey redisApiKey) {
