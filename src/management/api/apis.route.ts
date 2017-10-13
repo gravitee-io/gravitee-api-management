@@ -61,18 +61,17 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
           });
         },
         resolvedTenants: () => [],
-        onEnter: function (UserService, ApiService, $stateParams) {
+        resolvedApiPermissions: (ApiService, $stateParams) => ApiService.getPermissions($stateParams.apiId),
+        onEnter: function (UserService, resolvedApiPermissions) {
           if (!UserService.currentUser.userApiPermissions) {
             UserService.currentUser.userApiPermissions = [];
-            ApiService.getPermissions($stateParams.apiId).then(permissions => {
-              _.forEach(_.keys(permissions.data), function (permission) {
-                _.forEach(permissions.data[permission], function (right) {
-                  let permissionName = 'API-' + permission + '-' + right;
-                  UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
-                });
+            _.forEach(_.keys(resolvedApiPermissions.data), function (permission) {
+              _.forEach(resolvedApiPermissions.data[permission], function (right) {
+                let permissionName = 'API-' + permission + '-' + right;
+                UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
               });
-              UserService.reloadPermissions();
             });
+            UserService.reloadPermissions();
           }
         }
       }

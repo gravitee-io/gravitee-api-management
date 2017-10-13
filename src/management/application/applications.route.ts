@@ -50,18 +50,17 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       resolve: {
         application: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
           ApplicationService.get($stateParams.applicationId).then(response => response.data),
-        onEnter: function (UserService, ApplicationService, $stateParams) {
+        resolvedApplicationPermissions: (ApplicationService, $stateParams) => ApplicationService.getPermissions($stateParams.applicationId),
+        onEnter: function (UserService, resolvedApplicationPermissions) {
           if (!UserService.currentUser.userApplicationPermissions) {
             UserService.currentUser.userApplicationPermissions = [];
-            ApplicationService.getPermissions($stateParams.applicationId).then(permissions => {
-              _.forEach(_.keys(permissions.data), function (permission) {
-                _.forEach(permissions.data[permission], function (right) {
-                  let permissionName = 'APPLICATION-' + permission + '-' + right;
-                  UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
-                });
+            _.forEach(_.keys(resolvedApplicationPermissions.data), function (permission) {
+              _.forEach(resolvedApplicationPermissions.data[permission], function (right) {
+                let permissionName = 'APPLICATION-' + permission + '-' + right;
+                UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
               });
-              UserService.reloadPermissions();
             });
+            UserService.reloadPermissions();
           }
         }
       }
