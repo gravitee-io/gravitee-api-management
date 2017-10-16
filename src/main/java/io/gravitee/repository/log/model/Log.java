@@ -31,8 +31,6 @@ public class Log {
 
     private String uri;
 
-    private String path;
-
     private HttpMethod method;
 
     private int status;
@@ -46,8 +44,6 @@ public class Log {
     private long responseContentLength;
 
     private String apiKey;
-
-    private String user;
 
     private String plan;
 
@@ -97,14 +93,6 @@ public class Log {
 
     public void setUri(String uri) {
         this.uri = uri;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
     }
 
     public HttpMethod getMethod() {
@@ -217,14 +205,6 @@ public class Log {
 
     public void setTenant(String tenant) {
         this.tenant = tenant;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
     }
 
     public String getMessage() {
