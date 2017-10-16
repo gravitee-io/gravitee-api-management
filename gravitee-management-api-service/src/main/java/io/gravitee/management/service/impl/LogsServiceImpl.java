@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -250,7 +251,7 @@ public class LogsServiceImpl implements LogsService {
         req.setTransactionId(log.getTransactionId());
         req.setApplication(log.getApplication());
         req.setMethod(log.getMethod());
-        req.setPath(log.getPath());
+        req.setPath(URI.create(log.getUri()).getPath());
         req.setPlan(log.getPlan());
         req.setResponseTime(log.getResponseTime());
         req.setStatus(log.getStatus());
@@ -264,7 +265,7 @@ public class LogsServiceImpl implements LogsService {
         req.setTransactionId(log.getTransactionId());
         req.setApi(log.getApi());
         req.setMethod(log.getMethod());
-        req.setPath(log.getPath());
+        req.setPath(URI.create(log.getUri()).getPath());
         req.setPlan(log.getPlan());
         req.setResponseTime(log.getResponseTime());
         req.setStatus(log.getStatus());
@@ -282,7 +283,7 @@ public class LogsServiceImpl implements LogsService {
         req.setLocalAddress(log.getLocalAddress());
         req.setRemoteAddress(log.getRemoteAddress());
         req.setMethod(log.getMethod());
-        req.setPath(log.getPath());
+        req.setPath(URI.create(log.getUri()).getPath());
         req.setPlan(log.getPlan());
         req.setRequestContentLength(log.getRequestContentLength());
         req.setResponseContentLength(log.getResponseContentLength());
@@ -291,7 +292,6 @@ public class LogsServiceImpl implements LogsService {
         req.setTenant(log.getTenant());
         req.setTimestamp(log.getTimestamp());
         req.setUri(log.getUri());
-        req.setUser(log.getUser());
         req.setApiKey(log.getApiKey());
         req.setMessage(log.getMessage());
         req.setGateway(log.getGateway());
@@ -337,14 +337,13 @@ public class LogsServiceImpl implements LogsService {
         req.setTransactionId(log.getTransactionId());
         req.setApi(log.getApi());
         req.setMethod(log.getMethod());
-        req.setPath(log.getPath());
+        req.setPath(URI.create(log.getUri()).getPath());
         req.setPlan(log.getPlan());
         req.setRequestContentLength(log.getRequestContentLength());
         req.setResponseContentLength(log.getResponseContentLength());
         req.setResponseTime(log.getResponseTime());
         req.setStatus(log.getStatus());
         req.setTimestamp(log.getTimestamp());
-        req.setUser(log.getUser());
         req.setApiKey(log.getApiKey());
         req.setRequest(createRequest(log.getClientRequest()));
         req.setResponse(createResponse(log.getClientResponse()));
