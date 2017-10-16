@@ -24,7 +24,7 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.reporter.api.http.RequestMetrics;
+import io.gravitee.reporter.api.http.Metrics;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.net.SocketAddress;
@@ -47,20 +47,20 @@ class VertxHttpServerRequest implements Request {
 
     private HttpHeaders headers = null;
 
-    private final RequestMetrics metrics;
+    private final Metrics metrics;
 
     VertxHttpServerRequest(HttpServerRequest httpServerRequest) {
         this.httpServerRequest = httpServerRequest;
         this.instant = Instant.now();
         this.id = UUID.toString(UUID.random());
 
-        this.metrics = RequestMetrics.on(instant.toEpochMilli()).build();
+        this.metrics = Metrics.on(instant.toEpochMilli()).build();
         this.metrics.setRequestId(id());
-        this.metrics.setRequestHttpMethod(method());
-        this.metrics.setRequestLocalAddress(localAddress());
-        this.metrics.setRequestRemoteAddress(remoteAddress());
-        this.metrics.setRequestPath(path());
-        this.metrics.setRequestUri(uri());
+        this.metrics.setHttpMethod(method());
+        this.metrics.setLocalAddress(localAddress());
+        this.metrics.setRemoteAddress(remoteAddress());
+        this.metrics.setPath(path());
+        this.metrics.setUri(uri());
     }
 
     @Override
@@ -172,7 +172,7 @@ class VertxHttpServerRequest implements Request {
     }
 
     @Override
-    public RequestMetrics metrics() {
+    public Metrics metrics() {
         return metrics;
     }
 }

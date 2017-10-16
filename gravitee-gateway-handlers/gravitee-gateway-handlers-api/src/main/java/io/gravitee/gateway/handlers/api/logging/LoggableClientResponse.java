@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.WriteStream;
+import io.gravitee.reporter.api.log.Log;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,11 +30,13 @@ public class LoggableClientResponse implements Response {
 
     private final Response response;
     private final Request request;
+    private final Log log;
     private Buffer buffer;
 
     public LoggableClientResponse(final Request request, final Response response) {
         this.request = request;
         this.response = response;
+        this.log = this.request.metrics().getLog();
     }
 
     @Override
@@ -49,7 +52,7 @@ public class LoggableClientResponse implements Response {
 
     @Override
     public Response status(int statusCode) {
-        this.request.metrics().setClientResponse(new io.gravitee.reporter.api.http.Response(statusCode));
+        log.setClientResponse(new io.gravitee.reporter.api.common.Response(statusCode));
         return response.status(statusCode);
     }
 
@@ -67,12 +70,11 @@ public class LoggableClientResponse implements Response {
 
     private void calculate(Buffer buffer) {
         // Here we are sure that headers has been full processed by policies
-        this.request.metrics().setClientResponse(new io.gravitee.reporter.api.http.Response(status()));
-        this.request.metrics().getClientResponse().setHeaders(headers());
+        log.setClientResponse(new io.gravitee.reporter.api.common.Response(status()));
+        log.getClientResponse().setHeaders(headers());
 
         if (buffer != null) {
-            request.metrics().getClientResponse().setBody(buffer.toString());
-            request.metrics().setResponseContentLength(buffer.length());
+            log.getClientResponse().setBody(buffer.toString());
         }
     }
 

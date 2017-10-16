@@ -23,7 +23,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadStream;
-import io.gravitee.reporter.api.http.RequestMetrics;
+import io.gravitee.reporter.api.http.Metrics;
 
 import java.time.Instant;
 
@@ -152,7 +152,7 @@ class FailoverRequest implements Request {
     }
 
     @Override
-    public RequestMetrics metrics() {
+    public Metrics metrics() {
         return request.metrics();
     }
 }
