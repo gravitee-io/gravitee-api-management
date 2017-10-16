@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import _ = require('lodash');
 
 class ApiEndpointController {
@@ -32,12 +31,10 @@ class ApiEndpointController {
     private $rootScope,
     private $state,
     private $stateParams,
-    private resolvedApi,
-    private resolvedTenants,
-    private $timeout) {
+    private resolvedTenants) {
     'ngInject';
 
-    this.api = resolvedApi.data;
+    this.api = this.$scope.$parent.apiCtrl.api;
     this.tenants = resolvedTenants.data;
 
     this.endpoint = _.find(this.api.proxy.endpoints, { 'name': $stateParams.endpointName});
@@ -91,7 +88,7 @@ class ApiEndpointController {
   }
 
   onApiUpdate() {
-    this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
+    this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
     this.NotificationService.show('Endpoint saved');
     this.$state.go('apis.admin.general.gateway');
   }
