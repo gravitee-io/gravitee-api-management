@@ -15,15 +15,9 @@
  */
 package io.gravitee.reporter.file;
 
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.ZoneOffset;
-import java.util.List;
-
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.file.config.Config;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,9 +28,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.reporter.api.http.RequestMetrics;
-import io.gravitee.reporter.file.config.Config;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.ZoneOffset;
+import java.util.List;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FileReporterTest {
@@ -63,19 +62,19 @@ public class FileReporterTest {
 		try {
 			reporter.start();
 			for (int i = 0; i < ts.length; i++) {
-				RequestMetrics reportable = RequestMetrics.on(ts[i]).build();
+				Metrics reportable = Metrics.on(ts[i]).build();
 				reportable.setApi("myincredibleapi");
 				reportable.setApiKey("kjfhgdjfghdkjhgkdjhgjkdhfghdkghdhdkjfgh");
 				reportable.setApiResponseTimeMs(346);
 				reportable.setProxyResponseTimeMs(123);
 				reportable.setProxyLatencyMs(223);
 				reportable.setRequestContentLength(12345);
-				reportable.setRequestHttpMethod(HttpMethod.POST);
-				reportable.setRequestLocalAddress("12.12.12.12");
-				reportable.setRequestPath("/dfhgkdlfjgklfgjflkd/yeah");
-				reportable.setRequestRemoteAddress("123.123.123.123");
+				reportable.setHttpMethod(HttpMethod.POST);
+				reportable.setLocalAddress("12.12.12.12");
+				reportable.setPath("/dfhgkdlfjgklfgjflkd/yeah");
+				reportable.setRemoteAddress("123.123.123.123");
 				reportable.setResponseContentLength(12345);
-				reportable.setResponseHttpStatus(200);
+				reportable.setStatus(200);
 				
 				reporter.report(reportable);
 			}

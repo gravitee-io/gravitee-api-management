@@ -15,23 +15,22 @@
  */
 package io.gravitee.reporter.file;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.TimeZone;
-
+import io.gravitee.common.service.AbstractService;
+import io.gravitee.reporter.api.Reportable;
+import io.gravitee.reporter.api.Reporter;
+import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.file.config.Config;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.eclipse.jetty.util.RolloverFileOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import io.gravitee.common.service.AbstractService;
-import io.gravitee.reporter.api.Reportable;
-import io.gravitee.reporter.api.Reporter;
-import io.gravitee.reporter.api.http.RequestMetrics;
-import io.gravitee.reporter.file.config.Config;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.TimeZone;
 
 /**
  * Write an access log to a file by using the following line format:
@@ -94,7 +93,7 @@ public class FileReporter extends AbstractService implements Reporter {
 		}
 	}
 
-	private StringBuilder format(RequestMetrics metrics) {
+	private StringBuilder format(Metrics metrics) {
 		StringBuilder buf = accessLogBuffer;
 		StringBuffer dateBuffer = dateFormatBuffer;
 		buf.setLength(0);
@@ -116,11 +115,11 @@ public class FileReporter extends AbstractService implements Reporter {
 
 		// Append local IP
 		buf.append('(');
-		buf.append(metrics.getRequestLocalAddress());
+		buf.append(metrics.getLocalAddress());
 		buf.append(") ");
 
 		// Append remote IP
-		buf.append(metrics.getRequestRemoteAddress());
+		buf.append(metrics.getRemoteAddress());
 		buf.append(' ');
 
 		// Append Api name
@@ -141,13 +140,13 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(' ');
 
 		// Append request method and URI
-		buf.append(metrics.getRequestHttpMethod());
+		buf.append(metrics.getHttpMethod());
 		buf.append(' ');
-		buf.append(metrics.getRequestPath());
+		buf.append(metrics.getPath());
 		buf.append(' ');
 
 		// Append response status
-		int status = metrics.getResponseHttpStatus();
+		int status = metrics.getStatus();
 		if (status <= 0) {
 			status = 404;
 		}
@@ -233,7 +232,7 @@ public class FileReporter extends AbstractService implements Reporter {
 	@Override
 	public void report(Reportable reportable) {
 		try {
-			write(format((RequestMetrics) reportable));
+			write(format((Metrics) reportable));
 		} catch (IOException ioe) {
 			LOGGER.error("", ioe);
 		}
@@ -241,6 +240,6 @@ public class FileReporter extends AbstractService implements Reporter {
 
 	@Override
 	public boolean canHandle(Reportable reportable) {
-		return (reportable instanceof RequestMetrics);
+		return (reportable instanceof Metrics);
 	}
 }
