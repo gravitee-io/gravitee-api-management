@@ -90,7 +90,7 @@ class ApiEndpointController {
   onApiUpdate() {
     this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
     this.NotificationService.show('Endpoint saved');
-    this.$state.go('apis.admin.general.gateway');
+    this.$state.go('management.apis.detail.general.gateway');
   }
 
   reset() {
