@@ -30,7 +30,7 @@ import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
 import io.gravitee.gateway.reactor.handler.transaction.TransactionHandlerFactory;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
-import io.gravitee.reporter.api.http.RequestMetrics;
+import io.gravitee.reporter.api.http.Metrics;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,7 +82,7 @@ public class ReactorTest {
         when(request.headers()).thenReturn(new HttpHeaders());
         when(request.headers()).thenReturn(new HttpHeaders());
         when(request.path()).thenReturn("/team");
-        when(request.metrics()).thenReturn(RequestMetrics.on(System.currentTimeMillis()).build());
+        when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());
 
         when(handlerResolver.resolve(any(Request.class))).thenReturn(new AbstractReactorHandler() {
             @Override

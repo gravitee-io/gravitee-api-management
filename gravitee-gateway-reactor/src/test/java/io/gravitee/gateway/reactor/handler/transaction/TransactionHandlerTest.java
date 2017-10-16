@@ -19,7 +19,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.reporter.api.http.RequestMetrics;
+import io.gravitee.reporter.api.http.Metrics;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -50,7 +50,7 @@ public class TransactionHandlerTest {
         MockitoAnnotations.initMocks(this);
         when(request.headers()).thenReturn(new HttpHeaders());
         when(response.headers()).thenReturn(new HttpHeaders());
-        when(request.metrics()).thenReturn(RequestMetrics.on(System.currentTimeMillis()).build());
+        when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());
     }
 
     @Test

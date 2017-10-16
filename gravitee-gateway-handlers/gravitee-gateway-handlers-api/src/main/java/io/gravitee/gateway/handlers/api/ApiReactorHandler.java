@@ -164,7 +164,13 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
                 // Plug server request stream to request policy chain stream
                 invokeRequest
-                        .bodyHandler(chunk -> requestPolicyChainResult.getPolicyChain().write(chunk))
+                        .bodyHandler(chunk -> {
+                            requestPolicyChainResult.getPolicyChain().write(chunk);
+
+                            invokeRequest.metrics().setRequestContentLength(
+                                    invokeRequest.metrics().getRequestContentLength() + chunk.length()
+                            );
+                        })
                         .endHandler(aVoid -> requestPolicyChainResult.getPolicyChain().end());
             }
         });
@@ -172,7 +178,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         requestPolicyChain.execute(serverRequest, serverResponse, executionContext);
     }
 
-    private void handleProxyResponse(Request serverRequest,final Response serverResponse, ExecutionContext executionContext, ProxyResponse proxyResponse, long serviceInvocationStart, Handler<Response> handler) {
+    private void handleProxyResponse(Request serverRequest, final Response serverResponse, ExecutionContext executionContext, ProxyResponse proxyResponse, long serviceInvocationStart, Handler<Response> handler) {
         if (proxyResponse == null || proxyResponse instanceof DirectProxyConnection.DirectResponse) {
             serverResponse.status((proxyResponse == null) ? HttpStatusCode.SERVICE_UNAVAILABLE_503 : proxyResponse.status());
             serverResponse.end();
@@ -192,11 +198,17 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                     sendPolicyFailure(responsePolicyResult, serverResponse);
                     handler.handle(serverResponse);
                 } else {
-                    responsePolicyChain.bodyHandler(serverResponse::write);
-                    responsePolicyChain.endHandler(responseEndResult -> {
-                        serverResponse.end();
+                    responsePolicyChain.bodyHandler(chunk -> {
+                        serverResponse.write(chunk);
+                        serverRequest.metrics().setResponseContentLength(
+                                serverRequest.metrics().getResponseContentLength() + chunk.length()
+                        );
+                    });
 
+                    responsePolicyChain.endHandler(responseEndResult -> {
                         serverRequest.metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
+
+                        serverResponse.end();
 
                         // Transfer proxy response to the initial consumer
                         handler.handle(serverResponse);
@@ -220,7 +232,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         }
     }
 
-    void sendPolicyFailure(PolicyResult policyResult, Response response) {
+    private void sendPolicyFailure(PolicyResult policyResult, Response response) {
         response.status(policyResult.httpStatusCode());
 
         response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);

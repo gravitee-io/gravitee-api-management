@@ -37,7 +37,7 @@ public class ResponseTimeHandler implements Handler<Response> {
     public void handle(Response response) {
         // Compute response-time and add it to the metrics
         long proxyResponseTimeInMs = System.currentTimeMillis() - serverRequest.metrics().timestamp().toEpochMilli();
-        serverRequest.metrics().setResponseHttpStatus(response.status());
+        serverRequest.metrics().setStatus(response.status());
         serverRequest.metrics().setProxyResponseTimeMs(proxyResponseTimeInMs);
         serverRequest.metrics().setProxyLatencyMs(proxyResponseTimeInMs - serverRequest.metrics().getApiResponseTimeMs());
 

@@ -16,7 +16,6 @@
 package io.gravitee.gateway.http.core.invoker.logging;
 
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
@@ -24,6 +23,9 @@ import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.WriteStream;
+import io.gravitee.reporter.api.common.Request;
+import io.gravitee.reporter.api.log.Log;
+import io.gravitee.reporter.api.common.Response;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,17 +34,17 @@ import io.gravitee.gateway.api.stream.WriteStream;
 public class LoggableProxyConnection implements ProxyConnection {
 
     private final ProxyConnection proxyConnection;
-    private final Request request;
+    private final Log log;
     private Buffer buffer;
 
     public LoggableProxyConnection(final ProxyConnection proxyConnection, final ProxyRequest proxyRequest) {
         this.proxyConnection = proxyConnection;
-        this.request = proxyRequest.request();
+        this.log = proxyRequest.request().metrics().getLog();
 
-        this.request.metrics().setProxyRequest(new io.gravitee.reporter.api.http.Request());
-        this.request.metrics().getProxyRequest().setUri(proxyRequest.uri().toString());
-        this.request.metrics().getProxyRequest().setMethod(proxyRequest.method());
-        this.request.metrics().getProxyRequest().setHeaders(proxyRequest.headers());
+        this.log.setProxyRequest(new Request());
+        this.log.getProxyRequest().setUri(proxyRequest.uri().toString());
+        this.log.getProxyRequest().setMethod(proxyRequest.method());
+        this.log.getProxyRequest().setHeaders(proxyRequest.headers());
     }
 
     @Override
@@ -63,7 +65,7 @@ public class LoggableProxyConnection implements ProxyConnection {
     @Override
     public void end() {
         if (buffer != null) {
-            request.metrics().getProxyRequest().setBody(buffer.toString());
+            this.log.getProxyRequest().setBody(buffer.toString());
         }
 
         proxyConnection.end();
@@ -88,22 +90,20 @@ public class LoggableProxyConnection implements ProxyConnection {
 
         @Override
         public void handle(ProxyResponse proxyResponse) {
-            responseHandler.handle(new LoggableProxyConnection.LoggableProxyResponse(request, proxyResponse));
+            responseHandler.handle(new LoggableProxyConnection.LoggableProxyResponse(proxyResponse));
         }
     }
 
     class LoggableProxyResponse implements ProxyResponse {
 
         private final ProxyResponse proxyResponse;
-        private final Request request;
         private Buffer buffer;
 
-        LoggableProxyResponse(final Request request, final ProxyResponse proxyResponse) {
-            this.request = request;
+        LoggableProxyResponse(final ProxyResponse proxyResponse) {
             this.proxyResponse = proxyResponse;
 
-            this.request.metrics().setProxyResponse(new io.gravitee.reporter.api.http.Response(proxyResponse.status()));
-            this.request.metrics().getProxyResponse().setHeaders(proxyResponse.headers());
+            log.setProxyResponse(new Response(proxyResponse.status()));
+            log.getProxyResponse().setHeaders(proxyResponse.headers());
         }
 
         @Override
@@ -122,7 +122,7 @@ public class LoggableProxyConnection implements ProxyConnection {
         public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
             return proxyResponse.endHandler(result -> {
                 if (buffer != null) {
-                    request.metrics().getProxyResponse().setBody(buffer.toString());
+                    log.getProxyResponse().setBody(buffer.toString());
                 }
 
                 endHandler.handle(result);

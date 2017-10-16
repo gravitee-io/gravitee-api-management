@@ -23,7 +23,8 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadStream;
-import io.gravitee.reporter.api.http.RequestMetrics;
+import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.log.Log;
 
 import java.time.Instant;
 
@@ -34,16 +35,22 @@ import java.time.Instant;
 public class LoggableClientRequest implements Request {
 
     private final Request request;
+    private final Log log;
     private Buffer buffer;
 
     public LoggableClientRequest(final Request request) {
         this.request = request;
+        this.log = new Log(request.metrics().timestamp().getEpochSecond());
+        this.log.setRequestId(request.id());
+
+        // Associate log
+        this.request.metrics().setLog(log);
 
         // Create a copy of HTTP request headers
-        this.request.metrics().setClientRequest(new io.gravitee.reporter.api.http.Request());
-        this.request.metrics().getClientRequest().setMethod(this.method());
-        this.request.metrics().getClientRequest().setUri(this.uri());
-        this.request.metrics().getClientRequest().setHeaders(new HttpHeaders(this.headers()));
+        log.setClientRequest(new io.gravitee.reporter.api.common.Request());
+        log.getClientRequest().setMethod(this.method());
+        log.getClientRequest().setUri(this.uri());
+        log.getClientRequest().setHeaders(new HttpHeaders(this.headers()));
     }
 
     @Override
@@ -63,8 +70,7 @@ public class LoggableClientRequest implements Request {
     public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
         request.endHandler(result -> {
             if (buffer != null) {
-                request.metrics().getClientRequest().setBody(buffer.toString());
-                request.metrics().setRequestContentLength(buffer.length());
+                log.getClientRequest().setBody(buffer.toString());
             }
 
             endHandler.handle(result);
@@ -149,7 +155,7 @@ public class LoggableClientRequest implements Request {
     }
 
     @Override
-    public RequestMetrics metrics() {
+    public Metrics metrics() {
         return request.metrics();
     }
 }
