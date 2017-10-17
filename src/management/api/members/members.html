@@ -122,17 +122,15 @@
             md-selected-item="selectedItem"
             md-search-text="searchText"
             md-search-text-change="searchTextChange(searchText)"
-            md-selected-item-change="apiMembersCtrl.selectedItemChange(item)"
-            md-items="item in apiMembersCtrl.searchUser(searchText)"
-            md-item-text="item.label"
+            md-selected-item-change="apiMembersCtrl.selectedItemChange(member)"
+            md-items="member in apiMembersCtrl.searchUser(searchText)"
+            md-item-text="member.id"
             placeholder="Transfer API ownership to ?"
             md-autofocus="false"
             md-min-length="0"
             md-menu-class="autocomplete-custom-template">
             <md-item-template>
-                <span>
-                  {{item.label}}
-                </span>
+              <span>{{member.firstname}} {{member.lastname}} [{{member.id}}]</span>
             </md-item-template>
             <md-not-found>
               No users matching "{{searchText}}" were found.
