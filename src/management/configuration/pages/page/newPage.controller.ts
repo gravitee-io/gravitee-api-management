@@ -29,10 +29,21 @@ class NewPageController {
   private initialPage: any;
   private editMode: boolean;
   private codeMirrorOptions: any;
+  private groups: any;
 
-	constructor(private PortalPagesService, private $state, private $mdDialog, private $rootScope, private $scope, private NotificationService, private FetcherService, private $mdSidenav) {
+	constructor(
+	  private PortalPagesService,
+    private $state,
+    private $mdDialog,
+    private $rootScope,
+    private $scope,
+    private NotificationService,
+    private FetcherService,
+    private $mdSidenav,
+    private resolvedGroups) {
     'ngInject';
     this.useFetcher = false;
+    this.groups = resolvedGroups;
 
     this.codeMirrorOptions = {
       lineWrapping: true,
@@ -71,6 +82,11 @@ class NewPageController {
         PortalPagesService.get($state.params.pageId).then( response => {
           this.page = response.data;
           this.initialPage = _.clone(response.data);
+          if (this.page.excluded_groups) {
+            this.page.authorizedGroups = _.difference(_.map(this.groups, "id"), this.page.excluded_groups);
+          } else {
+            this.page.authorizedGroups = _.map(this.groups, "id");
+          }
           if(!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
             this.useFetcher = true;
             _.forEach(this.fetchers, fetcher => {
@@ -115,6 +131,11 @@ class NewPageController {
           this.$scope.error = error;
       });
     } else {
+      // convert authorized groups to excludedGroups
+      this.page.excludedGroups = [];
+      if (this.groups) {
+        this.page.excludedGroups = _.difference(_.map(this.groups, "id"), this.page.authorizedGroups);
+      }
       this.PortalPagesService.editPage(this.page.id, this.page)
         .then(() =>{
           this.onPageUpdate();

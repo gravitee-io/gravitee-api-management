@@ -20,6 +20,7 @@ import SidenavService from '../../components/sidenav/sidenav.service';
 import PortalPagesService from '../../services/portalPages.service';
 import MetadataService from "../../services/metadata.service";
 import RoleService from "../../services/role.service";
+import GroupService from "../../services/group.service";
 
 export default configurationRouterConfig;
 
@@ -121,7 +122,12 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/pages',
       component: 'portalPages',
       resolve: {
-        pages: (PortalPagesService: PortalPagesService) => PortalPagesService.list().then(response => response.data)
+        pages: (PortalPagesService: PortalPagesService) => PortalPagesService.list().then(response => response.data),
+        resolvedGroups: (GroupService: GroupService) => {
+          return GroupService.list().then(response => {
+            return response.data;
+          });
+        },
       },
       data: {
         menu: {
