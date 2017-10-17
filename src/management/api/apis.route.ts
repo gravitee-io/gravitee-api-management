@@ -170,7 +170,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       },
       data: {
         menu: {
-          label: 'Gateway',
+          label: 'Proxy',
           icon: 'device_hub'
         },
         perms: {

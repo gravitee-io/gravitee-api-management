@@ -39,7 +39,7 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
       },
       data: {
         menu: {
-          label: 'Instances',
+          label: 'Gateways',
           icon: 'developer_dashboard',
           firstLevel: true,
           order: 30
