@@ -24,6 +24,7 @@ import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.*;
@@ -47,6 +48,9 @@ public class PortalPagesResource extends AbstractResource {
     @Inject
     private PageService pageService;
 
+    @Inject
+    private GroupService groupService;
+
     @GET
     @Path("/{page}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -58,7 +62,7 @@ public class PortalPagesResource extends AbstractResource {
     public PageEntity getPage(
                 @PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page);
-        if (isDisplayable(pageEntity.isPublished())) {
+        if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
             return pageEntity;
         } else {
             throw new UnauthorizedAccessException();
@@ -75,7 +79,7 @@ public class PortalPagesResource extends AbstractResource {
     public Response getPageContent(
             @PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page, true);
-        if (isDisplayable(pageEntity.isPublished())) {
+        if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
             return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
         } else {
             throw new UnauthorizedAccessException();
@@ -93,7 +97,7 @@ public class PortalPagesResource extends AbstractResource {
             @QueryParam("homepage") Boolean homepage) {
         return pageService.findPortalPagesByHomepage(homepage).
                 stream().
-                filter(page -> isDisplayable(page.isPublished())).
+                filter(page -> isDisplayable(page.isPublished(), page.getExcludedGroups())).
                 collect(Collectors.toList());
     }
 
@@ -162,7 +166,8 @@ public class PortalPagesResource extends AbstractResource {
         pageService.delete(page);
     }
 
-    private boolean isDisplayable(boolean isPublished) {
-        return isAuthenticated() && isAdmin() || isPublished;
+    private boolean isDisplayable(boolean isPagePublished, List<String> excludedGroups) {
+        return (isAuthenticated() && isAdmin()) ||
+                (isPagePublished && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUsernameOrNull()));
     }
 }

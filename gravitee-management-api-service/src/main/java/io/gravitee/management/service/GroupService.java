@@ -43,5 +43,7 @@ public interface GroupService {
 
     void delete(String groupId);
 
-    boolean isUserAuthorizedToAccess(ApiEntity api, List<String> excludedGroups, String username);
+    boolean isUserAuthorizedToAccessApiData(ApiEntity api, List<String> excludedGroups, String username);
+
+    boolean isUserAuthorizedToAccessPortalData(List<String> excludedGroups, String username);
 }

@@ -245,7 +245,7 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
     }
 
     @Override
-    public boolean isUserAuthorizedToAccess(ApiEntity api, List<String> excludedGroups, String username) {
+    public boolean isUserAuthorizedToAccessApiData(ApiEntity api, List<String> excludedGroups, String username) {
         // in anonymous mode, only public API without restrictions are authorized
         if (username == null) {
             return (excludedGroups == null || excludedGroups.isEmpty())
@@ -271,6 +271,34 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
                     logger.error("An error occurs while trying to find all groups", ex);
                     throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
                 }
+            }
+
+            authorizedGroups.removeAll(excludedGroups);
+            for (String authorizedGroupId : authorizedGroups) {
+                if (membershipService.getMember(MembershipReferenceType.GROUP, authorizedGroupId, username, RoleScope.API) != null) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isUserAuthorizedToAccessPortalData(List<String> excludedGroups, String username) {
+        // in anonymous mode, only pages without restrictions are authorized
+        if (username == null) {
+            return (excludedGroups == null || excludedGroups.isEmpty());
+        }
+
+        if (excludedGroups != null && !excludedGroups.isEmpty()) {
+            // for public apis, default authorized groups are all groups,
+            Set<String> authorizedGroups;
+            try {
+                authorizedGroups = groupRepository.findAll().stream().map(Group::getId).collect(Collectors.toSet());
+            } catch (TechnicalException ex) {
+                logger.error("An error occurs while trying to find all groups", ex);
+                throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
             }
 
             authorizedGroups.removeAll(excludedGroups);

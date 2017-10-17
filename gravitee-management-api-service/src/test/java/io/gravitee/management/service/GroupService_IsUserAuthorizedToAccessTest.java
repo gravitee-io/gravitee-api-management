@@ -62,7 +62,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
     public void shouldBeAuthorizedForAnonymousAndPublicApiWithoutRestrictions() throws TechnicalException {
         when(api.getVisibility()).thenReturn(Visibility.PUBLIC);
 
-        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccess(api, Collections.emptyList(), null);
+        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.emptyList(), null);
 
         assertTrue(userAuthorizedToAccess);
         verify(membershipService, never()).getMember(any(), any(), any(), any());
@@ -73,7 +73,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
     public void shouldNotBeAuthorizedForAnonymousAndPrivateApiWithoutRestrictions() throws TechnicalException {
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
 
-        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccess(api, Collections.emptyList(), null);
+        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.emptyList(), null);
 
         assertFalse(userAuthorizedToAccess);
         verify(membershipService, never()).getMember(any(), any(), any(), any());
@@ -85,7 +85,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
     public void shouldBeAuthorizedForPublicApiWithoutRestriction() throws TechnicalException {
         when(api.getVisibility()).thenReturn(Visibility.PUBLIC);
 
-        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccess(api, Collections.emptyList(), "user");
+        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.emptyList(), "user");
 
         assertTrue(userAuthorizedToAccess);
         verify(membershipService, never()).getMember(any(), any(), any(), any());
@@ -97,7 +97,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(api.getGroups()).thenReturn(null);
 
-        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccess(api, Collections.singletonList("grp1"), "user");
+        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
         assertFalse(userAuthorizedToAccess);
         verify(membershipService, times(1)).getMember(any(), any(), any(), any());
@@ -109,7 +109,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(api.getGroups()).thenReturn(Collections.singleton("grp1"));
 
-        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccess(api, null, "user");
+        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, null, "user");
 
         assertTrue(userAuthorizedToAccess);
         verify(membershipService, never()).getMember(any(), any(), any(), any());
@@ -128,7 +128,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
                 RoleScope.API)).
                 thenReturn(new MemberEntity());
 
-        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccess(api, Collections.singletonList("grp1"), "user");
+        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
         assertTrue(userAuthorizedToAccess);
         verify(membershipService, times(1)).getMember(any(), any(), any(), any());
@@ -159,7 +159,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
                 RoleScope.API)).
                 thenReturn(new MemberEntity());
 
-        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccess(api, Collections.singletonList("grp1"), "user");
+        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
         assertTrue(userAuthorizedToAccess);
         verify(membershipService, times(2)).getMember(any(), any(), any(), any());
@@ -195,7 +195,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
                 RoleScope.API)).
                 thenReturn(null);
 
-        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccess(api, Collections.singletonList("grp1"), "user");
+        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
         assertFalse(userAuthorizedToAccess);
         verify(membershipService, times(2)).getMember(any(), any(), any(), any());
@@ -236,7 +236,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
                 RoleScope.API)).
                 thenReturn(null);
 
-        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccess(api, Collections.singletonList("grp1"), "user");
+        boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.singletonList("grp1"), "user");
 
         assertFalse(userAuthorizedToAccess);
         verify(membershipService, times(2)).getMember(any(), any(), any(), any());

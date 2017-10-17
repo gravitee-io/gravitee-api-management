@@ -71,7 +71,7 @@ public class ApiPagesResource extends AbstractResource {
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
             PageEntity pageEntity = pageService.findById(page, portal);
-            if (isDisplayable(apiEntity, pageEntity.isPublished(), getAuthenticatedUsernameOrNull())) {
+            if (isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
                 return pageEntity;
             } else {
                 throw new UnauthorizedAccessException();
@@ -110,9 +110,7 @@ public class ApiPagesResource extends AbstractResource {
             final List<PageListItem> pages = pageService.findApiPagesByApiAndHomepage(api, homepage);
 
             return pages.stream()
-                    .filter(page ->
-                            isDisplayable(apiEntity, page.isPublished(), getAuthenticatedUsernameOrNull()) &&
-                            groupService.isUserAuthorizedToAccess(apiEntity, page.getExcludedGroups(), getAuthenticatedUsernameOrNull()))
+                    .filter(page -> isDisplayable(apiEntity, page.isPublished(), page.getExcludedGroups()))
                     .collect(Collectors.toList());
         }
         throw new ForbiddenAccessException();
@@ -186,8 +184,11 @@ public class ApiPagesResource extends AbstractResource {
         pageService.delete(page);
     }
 
-    private boolean isDisplayable(ApiEntity api, boolean pageIsPublished, String username) {
-        return (isAuthenticated() && isAdmin()) || pageService.isDisplayable(api, pageIsPublished, username);
+    private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {
+        return (isAuthenticated() && isAdmin())
+                ||
+                ( pageService.isDisplayable(api, isPagePublished, getAuthenticatedUsernameOrNull()) &&
+                        groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUsernameOrNull()));
 
     }
 }

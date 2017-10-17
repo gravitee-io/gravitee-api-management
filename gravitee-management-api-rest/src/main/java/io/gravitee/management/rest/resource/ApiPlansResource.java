@@ -91,7 +91,7 @@ public class ApiPlansResource extends AbstractResource {
 
             return planService.findByApi(api).stream()
                     .filter(plan -> status.getStatuses().contains(plan.getStatus())
-                            && groupService.isUserAuthorizedToAccess(apiEntity, plan.getExcludedGroups(), getAuthenticatedUsernameOrNull()))
+                            && groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUsernameOrNull()))
                     .sorted(Comparator.comparingInt(PlanEntity::getOrder))
                     .collect(Collectors.toList());
         }
