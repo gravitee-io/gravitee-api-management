@@ -52,7 +52,7 @@ class ApiPropertiesController {
       }
     ];
     this.timeUnits = [ 'SECONDS', 'MINUTES', 'HOURS' ];
-    this.api = resolvedApi.data;
+    this.api = this.$scope.$parent.apiCtrl.api;
     this.$mdSidenav = $mdSidenav;
     this.$mdEditDialog = $mdEditDialog;
 
