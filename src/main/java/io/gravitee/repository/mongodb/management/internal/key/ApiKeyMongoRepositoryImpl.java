@@ -40,7 +40,7 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
         Query query = new Query();
 
         if (! filter.isIncludeRevoked()) {
-            query.addCriteria(Criteria.where("revoked").is(true));
+            query.addCriteria(Criteria.where("revoked").is(false));
         }
 
         if (filter.getPlans() != null) {
