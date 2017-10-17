@@ -156,7 +156,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             ApiKey key = optKey.get();
             if (!key.isRevoked()) {
                 key.setRevoked(true);
-                key.setRevokedAt(new Date());
+                key.setUpdatedAt(new Date());
+                key.setRevokedAt(key.getUpdatedAt());
 
                 apiKeyRepository.update(key);
 
