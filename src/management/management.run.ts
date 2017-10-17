@@ -21,7 +21,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
                   $timeout, UserService: UserService, Constants, PermissionStrategies) {
   'ngInject';
 
-  $transitions.onEnter({}, function (trans) {
+  $transitions.onFinish({}, function (trans) {
     let fromState = trans.from();
     let toState = trans.to();
 
