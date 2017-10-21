@@ -96,7 +96,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private ApiMetadataService apiMetadataService;
 
     @Autowired
-    private RoleService roleService;
+    private SubscriptionService subscriptionService;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
@@ -374,7 +374,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                             "] must be closed before being able to delete the API !");
                 }
 
-                plans.stream().forEach(plan -> planService.delete(plan.getId()));
+                for (PlanEntity plan : plans) {
+                    Set<SubscriptionEntity> subscriptions = subscriptionService.findByPlan(plan.getId());
+                    subscriptions.forEach(sub -> subscriptionService.delete(sub.getId()));
+                    planService.delete(plan.getId());
+                }
 
                 // Delete events
                 eventService.findByApi(apiId)
