@@ -72,6 +72,9 @@ public class ApiService_DeleteTest {
     @Mock
     private EventService eventService;
 
+    @Mock
+    private SubscriptionService subscriptionService;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
@@ -112,6 +115,7 @@ public class ApiService_DeleteTest {
         when(planEntity.getId()).thenReturn(PLAN_ID);
         when(planEntity.getStatus()).thenReturn(PlanStatus.CLOSED);
         when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
 
         apiService.delete(API_ID);
 
@@ -125,6 +129,7 @@ public class ApiService_DeleteTest {
         when(planEntity.getId()).thenReturn(PLAN_ID);
         when(planEntity.getStatus()).thenReturn(PlanStatus.STAGING);
         when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
 
         apiService.delete(API_ID);
 
