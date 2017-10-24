@@ -24,6 +24,9 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class Plan {
+    public enum AuditEvent implements Audit.AuditEvent {
+        PLAN_CREATED, PLAN_UPDATED, PLAN_DELETED, PLAN_PUBLISHED, PLAN_CLOSED
+    }
 
     private String id;
 
@@ -83,6 +86,29 @@ public class Plan {
      * List of excluded groups
      */
     private List<String> excludedGroups;
+
+    public Plan() {
+    }
+
+    public Plan(Plan cloned) {
+        this.id = cloned.getId();
+        this.name = cloned.getName();
+        this.description = cloned.getDescription();
+        this.security = cloned.getSecurity();
+        this.validation = cloned.getValidation();
+        this.type = cloned.getType();
+        this.status = cloned.getStatus();
+        this.order = cloned.getOrder();
+        this.apis = cloned.getApis();
+        this.createdAt = cloned.getCreatedAt();
+        this.updatedAt = cloned.getUpdatedAt();
+        this.publishedAt = cloned.getPublishedAt();
+        this.closedAt = cloned.getClosedAt();
+        this.definition = cloned.getDefinition();
+        this.characteristics = cloned.getCharacteristics();
+        this.excludedGroups = cloned.getExcludedGroups();
+    }
+
 
     public String getId() {
         return id;

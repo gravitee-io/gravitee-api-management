@@ -24,6 +24,10 @@ import java.util.Objects;
  */
 public class Metadata {
 
+    public enum AuditEvent implements Audit.AuditEvent {
+       METADATA_DELETED, METADATA_CREATED, METADATA_UPDATED
+    }
+
     private String key;
     private String referenceId;
     private MetadataReferenceType referenceType;

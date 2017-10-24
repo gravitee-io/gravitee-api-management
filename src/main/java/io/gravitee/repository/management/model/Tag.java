@@ -22,6 +22,9 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Tag {
+    public enum AuditEvent implements Audit.AuditEvent {
+        TAG_CREATED, TAG_UPDATED, TAG_DELETED
+    }
 
     private String id;
 

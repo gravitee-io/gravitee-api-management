@@ -26,7 +26,9 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class Application {
-
+    public enum AuditEvent implements Audit.AuditEvent {
+        APPLICATION_CREATED, APPLICATION_UPDATED, APPLICATION_ARCHIVED
+    }
     /**
      * The application ID.
      */
@@ -63,6 +65,19 @@ public class Application {
     private Set<String> groups;
 
     private ApplicationStatus status;
+
+    public Application(){}
+
+    public Application(Application cloned) {
+        this.id = cloned.id;
+        this.name = cloned.name;
+        this.description = cloned.description;
+        this.type = cloned.type;
+        this.createdAt = cloned.createdAt;
+        this.updatedAt = cloned.updatedAt;
+        this.groups = cloned.groups;
+        this.status = cloned.status;
+    }
 
     public Date getCreatedAt() {
         return createdAt;

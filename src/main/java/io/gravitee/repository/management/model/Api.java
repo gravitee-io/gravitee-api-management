@@ -25,7 +25,9 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class Api {
-
+    public enum AuditEvent implements Audit.AuditEvent {
+        API_CREATED, API_UPDATED, API_DELETED
+    }
     /**
      * The api ID.
      */
@@ -94,6 +96,25 @@ public class Api {
     /**
      */
     private List<String> labels;
+
+    public Api(){}
+
+    public Api(Api cloned) {
+        this.id = cloned.id;
+        this.name = cloned.name;
+        this.description = cloned.description;
+        this.version = cloned.version;
+        this.definition = cloned.definition;
+        this.deployedAt = cloned.deployedAt;
+        this.createdAt = cloned.createdAt;
+        this.updatedAt = cloned.updatedAt;
+        this.visibility = cloned.visibility;
+        this.lifecycleState = cloned.lifecycleState;
+        this.picture = cloned.picture;
+        this.groups = cloned.groups;
+        this.views = cloned.views;
+        this.labels = cloned.labels;
+    }
 
     public Date getCreatedAt() {
         return createdAt;

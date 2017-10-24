@@ -22,6 +22,9 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class View {
+    public enum AuditEvent implements Audit.AuditEvent {
+        VIEW_CREATED, VIEW_UPDATED, VIEW_DELETED
+    }
 
     private String id;
 

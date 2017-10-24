@@ -15,9 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -25,7 +23,9 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Membership {
-
+    public enum AuditEvent implements Audit.AuditEvent {
+        MEMBERSHIP_CREATED, MEMBERSHIP_UPDATED, MEMBERSHIP_DELETED
+    }
     /**
      * The userid
      */
@@ -66,6 +66,15 @@ public class Membership {
         this.userId = userId;
         this.referenceId = referenceId;
         this.referenceType = referenceType;
+    }
+
+    public Membership(Membership cloned) {
+        this.userId = cloned.userId;
+        this.referenceId = cloned.referenceId;
+        this.referenceType = cloned.referenceType;
+        this.roles = new HashMap<>(cloned.roles);
+        this.createdAt = cloned.createdAt;
+        this.updatedAt = cloned.updatedAt;
     }
 
     public Date getCreatedAt() {

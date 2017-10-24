@@ -23,7 +23,9 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Rating {
-
+    public enum RatingEvent implements Audit.AuditEvent {
+        RATING_CREATED, RATING_UPDATED, RATING_DELETED
+    }
     private String id;
     private String api;
     private String user;
@@ -32,6 +34,20 @@ public class Rating {
     private String comment;
     private Date createdAt;
     private Date updatedAt;
+
+    public Rating() {
+    }
+
+    public Rating(Rating cloned) {
+        this.id = cloned.id;
+        this.api = cloned.api;
+        this.user = cloned.user;
+        this.rate = cloned.rate;
+        this.title = cloned.title;
+        this.comment = cloned.comment;
+        this.createdAt = cloned.createdAt;
+        this.updatedAt = cloned.updatedAt;
+    }
 
     public String getId() {
         return id;

@@ -25,6 +25,9 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Page {
+	public enum AuditEvent implements Audit.AuditEvent {
+		PAGE_CREATED, PAGE_UPDATED, PAGE_DELETED, PAGE_PUBLISHED
+	}
 
 	/**
 	 * The page ID.

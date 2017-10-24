@@ -22,7 +22,9 @@ import java.util.Date;
  * @author GraviteeSource Team
  */
 public class Subscription {
-
+    public enum AuditEvent implements Audit.AuditEvent {
+        SUBSCRIPTION_CREATED, SUBSCRIPTION_UPDATED, SUBSCRIPTION_DELETED, SUBSCRIPTION_CLOSED
+    }
     /**
      * Subscription ID.
      */
@@ -76,6 +78,24 @@ public class Subscription {
     private Date updatedAt;
 
     private Date closedAt;
+
+    public Subscription() {}
+
+    public Subscription(Subscription cloned) {
+        this.id = cloned.id;
+        this.plan = cloned.plan;
+        this.application = cloned.application;
+        this.processedAt = cloned.processedAt;
+        this.reason = cloned.reason;
+        this.status = cloned.status;
+        this.processedBy = cloned.processedBy;
+        this.subscribedBy = cloned.subscribedBy;
+        this.startingAt = cloned.startingAt;
+        this.endingAt = cloned.endingAt;
+        this.createdAt = cloned.createdAt;
+        this.updatedAt = cloned.updatedAt;
+        this.closedAt = cloned.closedAt;
+    }
 
     public String getId() {
         return id;

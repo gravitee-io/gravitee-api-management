@@ -23,7 +23,9 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Role {
-
+    public enum AuditEvent implements Audit.AuditEvent {
+        ROLE_CREATED, ROLE_UPDATED, ROLE_DELETED
+    }
     private String name;
     private RoleScope scope;
     private String description;
@@ -32,6 +34,19 @@ public class Role {
     private boolean system;
     private Date createdAt;
     private Date updatedAt;
+
+    public Role(){}
+
+    public Role(Role cloned) {
+        this.name = cloned.name;
+        this.scope = cloned.scope;
+        this.description = cloned.description;
+        this.defaultRole = cloned.defaultRole;
+        this.permissions = cloned.permissions;
+        this.system = cloned.system;
+        this.createdAt = cloned.createdAt;
+        this.updatedAt = cloned.updatedAt;
+    }
 
     public String getName() {
         return name;
@@ -46,13 +61,13 @@ public class Role {
     public void setScope(RoleScope scope) {
         this.scope = scope;
     }
+
     public String getDescription() {
         return description;
     }
     public void setDescription(String description) {
         this.description = description;
     }
-
 
     public boolean isDefaultRole() {
         return defaultRole;

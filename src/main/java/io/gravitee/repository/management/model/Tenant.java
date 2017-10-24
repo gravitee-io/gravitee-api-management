@@ -22,7 +22,9 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Tenant {
-
+    public enum AuditEvent implements Audit.AuditEvent {
+        TENANT_CREATED, TENANT_UPDATED, TENANT_DELETED
+    }
     private String id;
 
     private String name;

@@ -23,6 +23,9 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class ApiKey {
+	public enum AuditEvent implements Audit.AuditEvent {
+		APIKEY_CREATED, APIKEY_RENEWED, APIKEY_REVOKED, APIKEY_EXPIRED
+	}
 
 	/**
 	 * Api Key
@@ -69,6 +72,20 @@ public class ApiKey {
 	 */
 	private Date revokedAt;
 
+
+	public ApiKey() {}
+
+	public ApiKey(ApiKey cloned) {
+		this.key = cloned.key;
+		this.subscription = cloned.subscription;
+		this.application = cloned.application;
+		this.plan = cloned.plan;
+		this.expireAt = cloned.expireAt;
+		this.createdAt = cloned.createdAt;
+		this.updatedAt = cloned.updatedAt;
+		this.revoked = cloned.revoked;
+		this.revokedAt = cloned.revokedAt;
+	}
 	public boolean isRevoked() {
 		return revoked;
 	}

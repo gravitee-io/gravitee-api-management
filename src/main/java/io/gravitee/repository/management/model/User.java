@@ -24,7 +24,9 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class User {
-
+	public enum AuditEvent implements Audit.AuditEvent {
+		USER_CREATED, USER_UPDATED, USER_CONNECTED
+	}
 	/**
 	 * The user name
 	 */
@@ -79,6 +81,22 @@ public class User {
 	 * The user picture
 	 */
 	private String picture;
+
+	public User() {}
+
+	public User(User cloned) {
+		this.username = cloned.username;
+		this.source = cloned.source;
+		this.sourceId = cloned.sourceId;
+		this.password = cloned.password;
+		this.email = cloned.email;
+		this.firstname = cloned.firstname;
+		this.lastname = cloned.lastname;
+		this.createdAt = cloned.createdAt;
+		this.updatedAt = cloned.updatedAt;
+		this.lastConnectionAt = cloned.lastConnectionAt;
+		this.picture = cloned.picture;
+	}
 
 	public String getFirstname() {
 		return firstname;
