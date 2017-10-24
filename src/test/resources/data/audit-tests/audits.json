@@ -1,0 +1,38 @@
+[
+  {
+    "id": "new",
+    "referenceId": "1",
+    "referenceType": "API",
+    "event": "PLAN_CREATED",
+    "properties": {
+      "PLAN": "123"
+    },
+    "username": "JohnDoe",
+    "createdAt": 1439022010883,
+    "patch": "diff"
+  },
+  {
+    "id": "searchable1",
+    "referenceId": "2",
+    "referenceType": "API",
+    "event": "PLAN_CREATED",
+    "properties": {
+      "PLAN": "123"
+    },
+    "username": "JohnDoe",
+    "createdAt": 1000000000000,
+    "patch": "diff"
+  },
+  {
+    "id": "searchable2",
+    "referenceId": "2",
+    "referenceType": "API",
+    "event": "PLAN_UPDATED",
+    "properties": {
+      "PLAN": "456"
+    },
+    "username": "JohnDoe",
+    "createdAt": 2000000000000,
+    "patch": "diff"
+  }
+]

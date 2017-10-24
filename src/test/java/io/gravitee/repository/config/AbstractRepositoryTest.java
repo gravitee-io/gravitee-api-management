@@ -90,6 +90,8 @@ public abstract class AbstractRepositoryTest {
     @Inject
     protected RoleRepository roleRepository;
     @Inject
+    protected AuditRepository auditRepository;
+    @Inject
     protected RatingRepository ratingRepository;
     @Inject
     protected RatingAnswerRepository ratingAnswerRepository;
@@ -167,6 +169,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Role) {
             roleRepository.create((Role) object);
+        }
+        else if (object instanceof Audit) {
+            auditRepository.create((Audit) object);
         }
         else if (object instanceof Rating) {
             ratingRepository.create((Rating) object);
