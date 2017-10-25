@@ -22,6 +22,7 @@ import ApiService from '../../services/api.service';
 import MetadataService from '../../services/metadata.service';
 import GroupService from '../../services/group.service';
 import * as _ from 'lodash';
+import AuditService from "../../services/audit.service";
 
 export default apisRouterConfig;
 
@@ -607,6 +608,28 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         docs: {
           page: 'management-api-events'
         }
+      }
+    })
+    .state('management.apis.detail.audit', {
+      url: '/audit',
+      template: require('./audit/audit.html'),
+      controller: 'ApiAuditController',
+      controllerAs: 'auditCtrl',
+      data: {
+        menu: {
+          label: 'Audit',
+          icon: 'visibility',
+        },
+        perms: {
+          only: ['api-audit-r']
+        },
+        docs: {
+          page: 'management-api-audit'
+        }
+      },
+      resolve: {
+        resolvedEvents:
+          (AuditService: AuditService, $stateParams) => AuditService.listEvents($stateParams.apiId).then(response => response.data)
       }
     });
 }

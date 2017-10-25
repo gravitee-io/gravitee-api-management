@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 import InstancesService from '../services/instances.service';
+import AuditService from "../services/audit.service";
+import ApiService from "../services/api.service";
+import ApplicationService from "../services/applications.service";
 
 function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
   'ngInject';
@@ -120,7 +123,35 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
           dynamic: true
         }
       }
-    });
+    })
+    .state('management.audit', {
+    url: '/audit',
+      template: require('./audit/audit.html'),
+      controller: 'AuditController',
+      controllerAs: 'auditCtrl',
+      data: {
+        menu: {
+          label: 'Audit',
+          icon: 'visibility',
+          firstLevel: true,
+          order: 50
+        },
+        perms: {
+          only: ['management-audit-r']
+        },
+        docs: {
+          page: 'management-audit'
+        }
+      },
+      resolve: {
+        resolvedApis:
+          (ApiService: ApiService) => ApiService.list().then(response => response.data),
+        resolvedApplications:
+          (ApplicationService: ApplicationService) => ApplicationService.list().then(response => response.data),
+        resolvedEvents:
+          (AuditService: AuditService) => AuditService.listEvents().then(response => response.data)
+      }
+  });
 }
 
 export default managementRouterConfig;

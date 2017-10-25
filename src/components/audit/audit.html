@@ -1,0 +1,118 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-card flex>
+    <div class="widget-card" flex>
+        <md-card-title>
+            <md-card-title-text>
+                <span class="md-title"><strong>Audit Logs filters</strong></span>
+            </md-card-title-text>
+        </md-card-title>
+        <md-card-content>
+            <div layout="row" layout-align="space-around end">
+                <div layout="column" layout-align="end start">
+                    <md-checkbox aria-label="Only Portal Audit Logs" ng-model="$ctrl.query.mgmt" ng-if="!$ctrl.api">
+                        Show only portal audit logs
+                    </md-checkbox>
+                    <div layout="row" layout-align="space-around end">
+                        <md-input-container>
+                            <label>Events</label>
+                            <md-select ng-model="$ctrl.query.event">
+                                <md-option ng-value="undefined"></md-option>
+                                <md-option ng-repeat="evt in $ctrl.events" ng-value="evt">
+                                    {{evt}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <md-input-container ng-if="!$ctrl.query.mgmt && !$ctrl.api">
+                            <label>Applications</label>
+                            <md-select ng-model="$ctrl.query.application">
+                                <md-option ng-value="undefined"></md-option>
+                                <md-option ng-repeat="app in $ctrl.applications | orderBy:name" ng-value="app.id">
+                                    {{app.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <md-input-container ng-if="!$ctrl.query.mgmt && !$ctrl.api">
+                            <label>APIs</label>
+                            <md-select ng-model="$ctrl.query.api">
+                                <md-option ng-value="undefined"></md-option>
+                                <md-option ng-repeat="api in $ctrl.apis | orderBy:name" ng-value="api.id">
+                                    {{api.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="space-between end">
+                    <md-datepicker ng-model="$ctrl.query.from" md-placeholder="Select begin date" md-max-date="$ctrl.query.to"></md-datepicker>
+                    <md-datepicker ng-model="$ctrl.query.to" md-placeholder="Select end date" md-min-date="$ctrl.query.from"></md-datepicker>
+                    <md-button class="md-raised" ng-click="$ctrl.search()">Apply</md-button>
+                </div>
+            </div>
+        </md-card-content>
+    </div>
+</md-card>
+
+<md-card flex>
+    <md-table-container>
+        <table md-table>
+            <thead md-head>
+            <tr md-row>
+                <th md-column>Date</th>
+                <th md-column>User</th>
+                <th md-column ng-if="!$ctrl.api">Type</th>
+                <th md-column ng-if="!$ctrl.api">Reference</th>
+                <th md-column>Event</th>
+                <th md-column>Target</th>
+                <th md-column>Patch</th>
+            </tr>
+            </thead>
+            <tbody md-body>
+            <tr ng-if="$ctrl.auditLogs.length > 0" md-row ng-repeat="log in $ctrl.auditLogs">
+                <td md-cell nowrap>{{log.createdAt | date : 'dd/MM/yyyy HH:mm:ss.sss'}}</td>
+                <td md-cell nowrap>{{log.username}}</td>
+                <td md-cell nowrap ng-if="!$ctrl.api">{{log.referenceType}}</td>
+                <td md-cell nowrap ng-if="!$ctrl.api">{{$ctrl.getNameByReference({type: log.referenceType, id: log.referenceId})}}</td>
+                <td md-cell nowrap>{{log.event}}</td>
+                <td md-cell><span ng-repeat="prop in  $ctrl.getDisplayableProperties(log.properties)">{{prop}}</span></td>
+                <td md-cell>
+                    <div ui-codemirror
+                         ui-refresh='true'
+                         ui-codemirror-opts="{lineWrapping: true, readOnly: nocursor, mode: {name: 'javascript', json: true}}"
+                         ng-model="log.prettyPatch"
+                         ng-if="log.displayPatch">
+                    </div>
+                    <a ng-if="!log.displayPatch" ng-click="log.displayPatch=true">show</a>
+                    <a ng-if="log.displayPatch" ng-click="log.displayPatch=false">hide</a>
+                </td>
+            </tr>
+            <tr ng-if="$ctrl.auditLogs.length === 0">
+                <td md-cell colspan="7">No audit logs</td>
+            </tr>
+            </tbody>
+        </table>
+    </md-table-container>
+
+    <md-table-pagination
+            ng-if="$ctrl.result.size > 0"
+            md-limit="$ctrl.result.size"
+            md-page="$ctrl.query.page"
+            md-total="{{$ctrl.result.total}}"
+            md-on-paginate="$ctrl.onPaginate">
+    </md-table-pagination>
+</md-card>

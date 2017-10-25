@@ -315,6 +315,12 @@ import ApiHealthCheckLogController from '../management/api/healthcheck/healthche
 import TicketService from '../services/ticket.service';
 import SupportTicketController from '../support/ticket.controller';
 
+// Audit
+import AuditService from '../services/audit.service';
+import AuditController from '../management/audit/audit.controller';
+import ApiAuditController from '../management/api/audit/audit.controller';
+import AuditComponent from '../components/audit/audit.component';
+
 // Others
 import StringService from '../services/string.service';
 import AuthenticationService from '../services/authentication.service';
@@ -436,6 +442,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('RolesController', RolesController)
   .controller('RoleSaveController', RoleSaveController)
   .controller('SupportTicketController', SupportTicketController)
+  .controller('AuditController', AuditController)
+  .controller('ApiAuditController', ApiAuditController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
@@ -459,6 +467,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('AuthenticationService', AuthenticationService)
   .service('RoleService', RoleService)
   .service('TicketService', TicketService)
+  .service('AuditService', AuditService)
   .directive('filecontent', () => DocumentationDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())
@@ -540,6 +549,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('LogsTimeframeController', LogsTimeframeController)
   .component('log', LogComponent)
 
+  .component("gvAudit", AuditComponent)
   .component('gvContextualDoc', ContextualDocComponent)
   .controller('ContextualDocController', ContextualDocController)
 
