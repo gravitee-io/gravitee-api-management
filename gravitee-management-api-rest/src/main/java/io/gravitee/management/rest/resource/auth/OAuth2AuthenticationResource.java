@@ -164,7 +164,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 //can fail if a group in config does not exist in gravitee --> HTTP 500
                 Set<GroupEntity> groupsToAdd = getGroupsToAddUser(username, mappings, userInfo);
 
-                userService.create(newUser, false);
+                userService.create(newUser, true);
 
                 addUserToApiAndAppGroupsWithDefaultRole(newUser, groupsToAdd);
             }

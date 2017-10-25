@@ -434,7 +434,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         //mock create user
         NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
         UserEntity createdUser = mockUserEntity();
-        mockUserCreation(newExternalUserEntity, createdUser, false);
+        mockUserCreation(newExternalUserEntity, createdUser, true);
 
         //mock group search and association
         when(groupService.findByName("Example group")).thenReturn(Collections.singletonList(mockGroupEntity("group_id_1","Example group")));
@@ -473,7 +473,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- VERIFY
         verify(userService, times(1)).findByName("janedoe@example.com",false);
-        verify(userService, times(1)).create(refEq(newExternalUserEntity),eq(false));
+        verify(userService, times(1)).create(refEq(newExternalUserEntity),eq(true));
 
         verify(userService, times(1)).update(refEq(updateUserEntity));
         verify(userService, times(1)).connect("janedoe@example.com");
@@ -521,7 +521,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         //mock create user
         NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
         UserEntity createdUser = mockUserEntity();
-        mockUserCreation(newExternalUserEntity, createdUser, false);
+        mockUserCreation(newExternalUserEntity, createdUser, true);
 
         //mock DB update user picture
         UpdateUserEntity updateUserEntity = mockUpdateUserPicture(createdUser);
@@ -538,7 +538,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- VERIFY
         verify(userService, times(1)).findByName("janedoe@example.com",false);
-        verify(userService, times(1)).create(refEq(newExternalUserEntity),eq(false));
+        verify(userService, times(1)).create(refEq(newExternalUserEntity),eq(true));
 
         verify(userService, times(1)).update(refEq(updateUserEntity));
         verify(userService, times(1)).connect("janedoe@example.com");
