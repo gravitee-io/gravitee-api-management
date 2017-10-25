@@ -44,7 +44,7 @@
                 <div class="api-box-name-version">
                   <div>{{instance.hostname}}</div>
                   <div>{{instance.ip}}:{{instance.port}}</div>
-                  <span style="font-size: 10px">v.{{instance.version | limitTo:5:0}}</span>
+                  <span style="font-size: 10px">v.{{instance.version | limitTo:instance.version.indexOf("(")}}</span>
                   <span ng-if="instance.tenant" style="font-size: 10px"> - {{instance.tenant}}</span>
                   <div ng-if="instance.tags" style="font-size: 10px">Tags: {{instance.tags.join(', ')}}</div>
                 </div>
