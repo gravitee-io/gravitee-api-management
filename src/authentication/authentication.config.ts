@@ -48,7 +48,7 @@ function authenticationConfig ($authProvider: AuthProvider, Constants) {
       $authProvider.oauth2(_.merge(customConfig, {
         url: Constants.baseURL + 'auth/oauth2',
         oauthType: '2.0',
-        redirectUri: window.location.origin,
+        redirectUri: window.location.origin + window.location.pathname,
         requiredUrlParams: ['scope'],
         scopeDelimiter: ' '
       }));
