@@ -1,0 +1,44 @@
+.contextual-doc-container {
+  display: none;
+  margin-top: 114px;
+  width: 300px;
+  pointer-events: none;
+  right: 0px;
+  &.open {
+    display: block;
+  }
+  div.contextual-doc-content {
+    border-left: 1px solid #e2e5e7;
+    padding: 20px;
+    position: fixed;
+    height: calc(100vh - 150px);
+  }
+  h1 {
+    font-weight: 400;
+    font-size: 2em;
+    &:first-of-type {
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e2e5e7;
+    }
+  }
+  h2 {
+    font-weight: 400;
+    font-size: 1.7em;
+  }
+  h3 {
+    font-weight: 400;
+    font-size: 1.5em;
+  }
+  h4 {
+    font-weight: 400;
+    font-size: 1.4em;
+  }
+  h5 {
+    font-weight: 400;
+    font-size: 1.3em;
+  }
+  ol,li {
+    list-style: inherit;
+  }
+}
+

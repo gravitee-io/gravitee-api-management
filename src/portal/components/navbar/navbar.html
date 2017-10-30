@@ -25,6 +25,10 @@
     <md-button ng-if="$ctrl.supportEnabled" class="gv-navbar-link" ui-sref-active="menu-active" ui-sref="support">{{'menu.support' | translate}}</md-button>
   </div>
   <span flex></span>
+  <span>{{$ctrl.$state.current.name}}</span>
+  <md-button class="gv-navbar-help-button" ng-click="$ctrl.openContextualDocumentation();" ng-if="$ctrl.displayContextualDocumentationButton">
+    <ng-md-icon icon="help" gv-theme-element="portal.navbar.help"></ng-md-icon>
+  </md-button>
   <md-button ng-if="!$ctrl.graviteeUser.username" ui-sref-active="menu-active" ui-sref="login">{{'menu.login' | translate}}</md-button>
   <md-menu ng-if="$ctrl.graviteeUser.username" md-offset="0 54">
     <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" ng-mouseover="$mdMenu.open($event)" aria-label="Open user menu">

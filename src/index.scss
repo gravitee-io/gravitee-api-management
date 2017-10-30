@@ -36,6 +36,7 @@
 @import 'management/instances/_instances.scss';
 @import 'management/platform/dashboard/_dashboard.scss';
 @import 'components/documentation/page.scss';
+@import 'components/contextual/_contextual-doc.component.scss';
 
 $backgroundColor: rgb(45, 50, 62);
 
@@ -467,7 +468,6 @@ md-card.no-box-shadow {
 
 .gv-main-container {
   height: calc(100vh - #{$sidenavHeaderHeight});
-  overflow-y: auto;
   padding-top: $sidenavHeaderHeight;
 }
 

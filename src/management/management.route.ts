@@ -46,6 +46,9 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['management-instance-r']
+        },
+        docs: {
+          page: 'management-gateways'
         }
       }
     })
@@ -65,6 +68,9 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: {
           label: 'Environment',
           icon: 'computer'
+        },
+        docs: {
+          page: 'management-gateway-environment'
         }
       }
     })
@@ -76,6 +82,9 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
           label: 'Monitoring',
           icon: 'graphic_eq'
         },
+        docs: {
+          page: 'management-gateway-monitoring'
+        }
       },
       resolve: {
         monitoringData: ($stateParams: ng.ui.IStateParamsService, InstancesService: InstancesService, instance: any) =>
@@ -96,6 +105,9 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['management-platform-r']
+        },
+        docs: {
+          page: 'management-dashboard'
         }
       },
       params: {

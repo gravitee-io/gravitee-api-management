@@ -17,10 +17,12 @@ import UserService from "../../../services/user.service";
 import {IScope} from "angular";
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),
-  controller: function(UserService: UserService, $scope: IScope, Constants) {
+  controller: function(UserService: UserService, $scope: IScope, Constants, $rootScope: IScope, $state: ng.ui.IStateService, $transitions) {
     'ngInject';
 
     const vm = this;
+    vm.$rootScope = $rootScope;
+    vm.displayContextualDocumentationButton = false;
 
     $scope.$on('graviteeUserRefresh', function () {
       UserService.current().then(function (user) {
@@ -34,6 +36,15 @@ export const NavbarComponent: ng.IComponentOptions = {
       });
 
       vm.supportEnabled = Constants.support.enabled;
+    });
+
+    $transitions.onFinish({}, function (trans) {
+      vm.displayContextualDocumentationButton =
+        !trans.to().name.startsWith('portal') &&
+        !trans.to().name.startsWith('support') &&
+        !trans.to().name.startsWith('login') &&
+        !trans.to().name.startsWith('registration') &&
+        !trans.to().name.startsWith('user');
     });
 
     vm.$onInit = function () {
@@ -50,6 +61,10 @@ export const NavbarComponent: ng.IComponentOptions = {
 
     vm.getUserPicture = function() {
       return 'assets/default_user_picture.png';
+    };
+
+    vm.openContextualDocumentation = function() {
+      vm.$rootScope.$broadcast('openContextualDocumentation');
     };
   }
 };

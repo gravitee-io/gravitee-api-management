@@ -2,7 +2,10 @@
   "portal": {
     "navbar": {
       "background-color": "#2d323e",
-      "color": "#fff"
+      "color": "#fff",
+      "help": {
+        "fill": "#fff"
+      }
     },
     "footer": {
       "content": {

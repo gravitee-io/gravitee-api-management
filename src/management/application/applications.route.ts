@@ -37,7 +37,10 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
           firstLevel: true,
           order: 20
         },
-        devMode: true
+        devMode: true,
+        docs: {
+          page: 'management-applications'
+        }
       },
       resolve: {
         applications: (ApplicationService: ApplicationService) => ApplicationService.list().then(response => response.data)
@@ -76,6 +79,9 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         devMode: true,
         perms: {
           only: ['application-definition-r']
+        },
+        docs: {
+          page: 'management-application'
         }
       },
       resolve: {
@@ -105,6 +111,9 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         devMode: true,
         perms: {
           only: ['application-subscription-r']
+        },
+        docs: {
+          page: 'management-application-subscriptions'
         }
       }
     })
@@ -128,6 +137,9 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         devMode: true,
         perms: {
           only: ['application-member-r']
+        },
+        docs: {
+          page: 'management-application-members'
         }
       }
     })
@@ -142,6 +154,9 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         devMode: true,
         perms: {
           only: ['application-analytics-r']
+        },
+        docs: {
+          page: 'management-application-analytics'
         }
       },
       params: {
@@ -169,6 +184,9 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['application-log-r']
+        },
+        docs: {
+          page: 'management-application-logs'
         }
       },
       params: {

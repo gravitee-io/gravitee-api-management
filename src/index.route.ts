@@ -44,7 +44,10 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
             component: 'gvSidenav'
           },
           '': {
-            template: '<div class="gv-main-container" ui-view layout="column" flex></div>'
+            template: '<div flex layout="row">' +
+            '<div class="gv-main-container" ui-view layout="column" flex></div>' +
+            '<gv-contextual-doc></gv-contextual-doc>' +
+            '</div>'
           }
         },
         resolve: {

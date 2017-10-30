@@ -87,6 +87,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       data: {
         perms: {
           only: ['management-api-c']
+        },
+        docs: {
+          page: 'management-apis-create'
         }
       }
     })
@@ -99,8 +102,10 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       data: {
         perms: {
           only: ['management-api-c']
+        },
+        docs: {
+          page: 'management-apis-create-steps'
         }
-
       }
     })
     .state('management.apis.list', {
@@ -130,6 +135,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
           firstLevel: true,
           order: 10
         },
+        docs: {
+          page: 'management-apis'
+        },
         devMode: true
       },
       params: {
@@ -157,6 +165,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-definition-r']
+        },
+        docs: {
+          page: 'management-api'
         }
       }
     })
@@ -175,6 +186,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-definition-r']
+        },
+        docs: {
+          page: 'management-api-proxy'
         }
       }
     })
@@ -189,6 +203,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       data: {
         perms: {
           only: ['api-definition-r']
+        },
+        docs: {
+          page: 'management-api-proxy-endpoints'
         }
       }
     })
@@ -201,6 +218,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: null,
         perms: {
           only: ['api-health-c']
+        },
+        docs: {
+          page: 'management-api-health-check'
         }
       }
     })
@@ -221,6 +241,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-plan-r']
+        },
+        docs: {
+          page: 'management-api-plans'
         }
       },
       params: {
@@ -247,6 +270,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-subscription-r']
+        },
+        docs: {
+          page: 'management-api-subscriptions'
         }
       }
     })
@@ -265,6 +291,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-definition-r']
+        },
+        docs: {
+          page: 'management-api-resources'
         }
       }
     })
@@ -280,6 +309,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-definition-r']
+        },
+        docs: {
+          page: 'management-api-policies'
         }
       }
     })
@@ -300,6 +332,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-member-r']
+        },
+        docs: {
+          page: 'management-api-members'
         }
       }
     })
@@ -315,6 +350,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-definition-r']
+        },
+        docs: {
+          page: 'management-api-properties'
         }
       }
     })
@@ -338,6 +376,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-metadata-r']
+        },
+        docs: {
+          page: 'management-api-metadata'
         }
       }
     })
@@ -353,6 +394,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-analytics-r']
+        },
+        docs: {
+          page: 'management-api-analytics'
         }
       },
       params: {
@@ -382,6 +426,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-log-r']
+        },
+        docs: {
+          page: 'management-api-logs'
         }
       },
       params: {
@@ -424,6 +471,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-documentation-r']
+        },
+        docs: {
+          page: 'management-api-documentation'
         }
       }
     })
@@ -475,6 +525,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-health-r']
+        },
+        docs: {
+          page: 'management-api-health-check'
         }
       }
     })
@@ -487,6 +540,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         menu: null,
         perms: {
           only: ['api-health-c']
+        },
+        docs: {
+          page: 'management-api-health-check-configure'
         }
       }
     })
@@ -523,6 +579,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-event-r']
+        },
+        docs: {
+          page: 'management-api-history'
         }
       }
     })
@@ -544,6 +603,9 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['api-event-r']
+        },
+        docs: {
+          page: 'management-api-events'
         }
       }
     });

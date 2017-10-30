@@ -214,6 +214,8 @@ import DashboardFilterComponent from '../components/dashboard/dashboard-filter.c
 import DashboardFilterController from '../components/dashboard/dashboard-filter.controller';
 import DashboardTimeframeComponent from '../components/dashboard/dashboard-timeframe.component';
 import DashboardTimeframeController from '../components/dashboard/dashboard-timeframe.controller';
+import ContextualDocComponent from '../components/contextual/contextual-doc.component';
+import ContextualDocController from '../components/contextual/contextual-doc.controller';
 
 // Logs
 import ApiLogsController from '../management/api/logs/logs.controller';
@@ -537,6 +539,9 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvLogsTimeframe', LogsTimeframeComponent)
   .controller('LogsTimeframeController', LogsTimeframeController)
   .component('log', LogComponent)
+
+  .component('gvContextualDoc', ContextualDocComponent)
+  .controller('ContextualDocController', ContextualDocController)
 
   // Healthcheck
   .controller('ApiHealthCheckConfigureController', ApiHealthCheckConfigureController)
