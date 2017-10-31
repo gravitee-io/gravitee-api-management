@@ -19,6 +19,36 @@
 		"expireAt": 1439022010883,
 		"subscription": "subscription1",
 		"createdAt": 1439022010883
+	},
+	{
+		"key": "findByCriteria1",
+		"subscription": "sub1",
+		"application": "app1",
+		"plan": "plan1",
+		"expireAt": 9223372036854775807,
+		"createdAt": 0,
+		"updatedAt": 100,
+		"revoked": false
+	},
+	{
+		"key": "findByCriteria1Revoked",
+		"subscription": "sub1",
+		"application": "app1",
+		"plan": "plan1",
+		"expireAt": 9223372036854775807,
+		"createdAt": 0,
+		"updatedAt": 200,
+		"revoked": true
+	},
+	{
+		"key": "findByCriteria2",
+		"subscription": "sub2",
+		"application": "app2",
+		"plan": "plan1",
+		"expireAt": 9223372036854775807,
+		"createdAt": 0,
+		"updatedAt": 300,
+		"revoked": false
 	}
 ]
 

@@ -17,6 +17,7 @@ package io.gravitee.repository.config;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
@@ -63,6 +64,31 @@ public class MockTestRepositoryConfiguration {
                 return o == null || (o instanceof ApiKey && ((ApiKey)o).getKey().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
+
+        ApiKey mockCriteria1 = mock(ApiKey.class);
+        ApiKey mockCriteria1Revoked = mock(ApiKey.class);
+        ApiKey mockCriteria2 = mock(ApiKey.class);
+        when(mockCriteria1.getKey()).thenReturn("findByCriteria1");
+        when(mockCriteria1Revoked.getKey()).thenReturn("findByCriteria1Revoked");
+        when(mockCriteria2.getKey()).thenReturn("findByCriteria2");
+        when(apiKeyRepository.findByCriteria(argThat(new ArgumentMatcher<ApiKeyCriteria>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).getFrom() == 0);
+            }
+        }))).thenReturn(Arrays.asList(mockCriteria1, mockCriteria2));
+        when(apiKeyRepository.findByCriteria(argThat(new ArgumentMatcher<ApiKeyCriteria>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).getTo() == 150);
+            }
+        }))).thenReturn(Collections.singletonList(mockCriteria1));
+        when(apiKeyRepository.findByCriteria(argThat(new ArgumentMatcher<ApiKeyCriteria>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).isIncludeRevoked());
+            }
+        }))).thenReturn(Arrays.asList(mockCriteria1Revoked,mockCriteria1,mockCriteria2));
 
         return apiKeyRepository;
     }
