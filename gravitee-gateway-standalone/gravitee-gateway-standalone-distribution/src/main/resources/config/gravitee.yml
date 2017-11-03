@@ -112,7 +112,7 @@ reporters:
   elasticsearch:
     enabled: true # Is the reporter enabled or not (default to true)
     endpoints:
-      - http://${ds.elastic.host}:${ds.elastic.port}
+      - http://localhost:9200
 #    index: gravitee
 #    cluster: elasticsearch
 #    bulk:

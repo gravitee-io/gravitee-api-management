@@ -13,35 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.core.loadbalancer;
+package io.gravitee.gateway.http.core.invoker.loadbalancer;
 
-import io.gravitee.definition.model.Endpoint;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.endpoint.Endpoint;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RoundRobinLoadBalancerStrategy extends LoadBalancerSupportStrategy {
+public class RoundRobinLoadBalancer extends LoadBalancer {
 
-    private int counter = -1;
+    private final AtomicInteger counter = new AtomicInteger(0);
 
-    public RoundRobinLoadBalancerStrategy(final List<Endpoint> endpoints) {
+    public RoundRobinLoadBalancer(Collection<Endpoint> endpoints) {
         super(endpoints);
     }
 
     @Override
-    public synchronized Endpoint nextEndpoint() {
-        int size = endpoints().size();
+    public Endpoint nextEndpoint(Request serverRequest, ExecutionContext executionContext) {
+        List<Endpoint> endpoints = endpoints();
+        int size = endpoints.size();
         if (size == 0) {
             return null;
         }
 
-        if (++counter >= size) {
-            counter = 0;
-        }
-        return endpoints().get(counter);
+        return endpoints.get(Math.abs(counter.getAndIncrement() % size));
     }
 
     @Override

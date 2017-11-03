@@ -37,9 +37,11 @@ public class ProxyValidator implements Validator {
             throw new ValidationException("An API must have a proxy part");
         }
 
+        /*
         if (proxyDefinition.getEndpoints() == null || proxyDefinition.getEndpoints().isEmpty()) {
             throw new ValidationException("An API must have a valid target endpoint(s)");
         }
+        */
 
         /*
         if (! urlValidator.isValid(proxyDefinition.getTarget().toString())) {

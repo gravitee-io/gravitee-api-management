@@ -16,7 +16,7 @@
 package io.gravitee.gateway.handlers.api.http.client.spring;
 
 import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManagerFactory;
-import io.gravitee.gateway.http.core.invoker.spring.HttpInvokerFactory;
+import io.gravitee.gateway.http.core.invoker.spring.InvokerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -30,8 +30,8 @@ import org.springframework.context.annotation.Import;
 public class HttpClientConfiguration {
 
     @Bean
-    public HttpInvokerFactory httpInvokerFactory() {
-        return new HttpInvokerFactory();
+    public InvokerFactory httpInvokerFactory() {
+        return new InvokerFactory();
     }
 
     @Bean

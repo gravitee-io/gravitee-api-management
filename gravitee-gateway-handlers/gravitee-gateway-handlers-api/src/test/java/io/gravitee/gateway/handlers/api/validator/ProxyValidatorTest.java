@@ -15,17 +15,16 @@
  */
 package io.gravitee.gateway.handlers.api.validator;
 
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ProxyValidatorTest {
 
@@ -59,7 +58,7 @@ public class ProxyValidatorTest {
         Proxy proxyDefinition = new Proxy();
         proxyDefinition.setContextPath("/context-path");
         proxyDefinition.setEndpoints(new LinkedHashSet<>());
-        proxyDefinition.getEndpoints().add(new Endpoint("name", "http://localhost"));
+        proxyDefinition.getEndpoints().add(new HttpEndpoint("name", "http://localhost"));
 
         Api definition = new Api();
         definition.setProxy(proxyDefinition);

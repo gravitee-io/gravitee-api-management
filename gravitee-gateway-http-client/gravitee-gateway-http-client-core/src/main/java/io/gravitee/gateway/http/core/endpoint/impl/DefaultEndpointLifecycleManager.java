@@ -16,13 +16,15 @@
 package io.gravitee.gateway.http.core.endpoint.impl;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.common.util.ChangeListener;
+import io.gravitee.common.util.ObservableCollection;
+import io.gravitee.common.util.ObservableSet;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.EndpointType;
+import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.endpoint.Endpoint;
-import io.gravitee.gateway.api.http.client.HttpClient;
-import io.gravitee.gateway.api.http.loadbalancer.LoadBalancerStrategy;
 import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
-import io.gravitee.gateway.http.core.loadbalancer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +33,13 @@ import org.springframework.context.ApplicationContextAware;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<EndpointLifecycleManager> implements EndpointLifecycleManager<HttpClient>, ApplicationContextAware {
+public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<EndpointLifecycleManager> implements
+        EndpointLifecycleManager, ChangeListener<io.gravitee.definition.model.Endpoint>, ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultEndpointLifecycleManager.class);
 
@@ -46,66 +48,21 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
 
     private ApplicationContext applicationContext;
 
-    private final Map<String, HttpEndpoint> endpoints = new LinkedHashMap<>();
+    private final Map<String, Endpoint> endpointsByName = new LinkedHashMap<>();
     private final Map<String, String> endpointsTarget = new LinkedHashMap<>();
-
-    private LoadBalancerStrategy loadBalancer;
+    private final ObservableCollection<Endpoint> endpoints = new ObservableCollection<>(new ArrayList<>());
 
     @Override
     protected void doStart() throws Exception {
-        // Select and init endpoints
-        if(api.getProxy().getEndpoints() != null) {
-            api.getProxy().getEndpoints()
-                    .stream()
-                    .filter(filter())
-                    .forEach(endpoint -> {
-                        try {
-                            logger.info("Create new target endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
-                            HttpClient httpClient = applicationContext.getBean(HttpClient.class, endpoint);
-                            httpClient.start();
-                            endpoints.put(endpoint.getName(), new HttpEndpoint(endpoint, httpClient));
-                            endpointsTarget.put(endpoint.getName(), endpoint.getTarget());
-                        } catch (Exception ex) {
-                            logger.error("Unexpected error while creating endpoint connector", ex);
-                        }
-                    });
-        }
+        // Wrap endpointsByName with an observable collection
+        ObservableSet<io.gravitee.definition.model.Endpoint> endpoints = new ObservableSet<>(api.getProxy().getEndpoints());
+        endpoints.addListener(this);
+        api.getProxy().setEndpoints(endpoints);
 
-        // Initialize load balancer
-        List<io.gravitee.definition.model.Endpoint> filteredEndpoints = this.endpoints
-                .values()
+        endpoints
                 .stream()
-                .map(HttpEndpoint::definition)
-                .collect(Collectors.toList());
-
-        // Use a LB strategy only if more than one endpoint
-        if (filteredEndpoints.size() > 1) {
-            io.gravitee.definition.model.LoadBalancer lb = api.getProxy().getLoadBalancer();
-
-            if (lb != null) {
-                switch (lb.getType()) {
-                    case ROUND_ROBIN:
-                        loadBalancer = new RoundRobinLoadBalancerStrategy(filteredEndpoints);
-                        break;
-                    case RANDOM:
-                        loadBalancer = new RandomLoadBalancerStrategy(filteredEndpoints);
-                        break;
-                    case WEIGHTED_RANDOM:
-                        loadBalancer = new WeightedRandomLoadBalancerStrategy(filteredEndpoints);
-                        break;
-                    case WEIGHTED_ROUND_ROBIN:
-                        loadBalancer = new WeightedRoundRobinLoadBalancerStrategy(filteredEndpoints);
-                        break;
-                }
-            }
-        } else if (! filteredEndpoints.isEmpty()){
-            loadBalancer = new SingleEndpointLoadBalancerStrategy(filteredEndpoints.get(0));
-        }
-
-        // Set default LB to round-robin
-        loadBalancer = (loadBalancer != null) ? loadBalancer : new RoundRobinLoadBalancerStrategy(filteredEndpoints);
-
-        logger.info("Create a load-balancer instance of type {}", loadBalancer);
+                .filter(filter())
+                .forEach(this::start);
     }
 
     protected Predicate<io.gravitee.definition.model.Endpoint> filter() {
@@ -114,16 +71,8 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
 
     @Override
     protected void doStop() throws Exception {
-        for(Iterator<Map.Entry<String, HttpEndpoint>> it = endpoints.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<String, HttpEndpoint> endpoint = it.next();
-            try {
-                logger.info("Close target endpoint: {}", endpoint.getKey());
-                endpoint.getValue().connector().stop();
-                it.remove();
-                endpointsTarget.remove(endpoint.getKey());
-            } catch (Exception ex) {
-                logger.error("Unexpected error while closing endpoint connector", ex);
-            }
+        for (String s : endpointsByName.keySet()) {
+            stop(s);
         }
     }
 
@@ -133,19 +82,13 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
     }
 
     @Override
-    public Endpoint<HttpClient> get(String endpointName) {
-        return endpoints.get(endpointName);
+    public Endpoint get(String endpointName) {
+        return endpointsByName.get(endpointName);
     }
 
     @Override
-    public Endpoint<HttpClient> getOrDefault(String endpointName) {
-        Endpoint<HttpClient> endpoint = get(endpointName);
-        return (endpoint != null) ? endpoint : endpoints.values().iterator().next();
-    }
-
-    @Override
-    public Set<String> endpoints() {
-        return Collections.unmodifiableSet(endpoints.keySet());
+    public Collection<Endpoint> endpoints() {
+        return endpoints;
     }
 
     @Override
@@ -153,8 +96,62 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
         return Collections.unmodifiableMap(endpointsTarget);
     }
 
+    public void start(io.gravitee.definition.model.Endpoint endpoint) {
+        try {
+            logger.info("Create new endpoint: name[{}] type[{}] target[{}]",
+                    endpoint.getName(), endpoint.getType(), endpoint.getTarget());
+
+            if (endpoint.getType() == EndpointType.HTTP) {
+                //TODO: Later, when multiple endpoint type will be supported,
+                // select the connector factory according to the endpoint type
+                Connector connector = applicationContext.getBean(Connector.class, endpoint);
+                connector.start();
+                HttpEndpoint httpEndpoint = new HttpEndpoint((io.gravitee.definition.model.endpoint.HttpEndpoint) endpoint, connector);
+                endpoints.add(httpEndpoint);
+                endpointsByName.put(endpoint.getName(), httpEndpoint);
+                endpointsTarget.put(endpoint.getName(), endpoint.getTarget());
+            }
+        } catch (Exception ex) {
+            logger.error("Unexpected error while creating endpoint connector", ex);
+        }
+    }
+
+    public void stop(String endpointName) {
+        logger.info("Closing endpoint: name[{}]", endpointName);
+
+        Endpoint endpoint = endpointsByName.remove(endpointName);
+        if (endpoint != null) {
+            try {
+                endpoints.remove(endpoint);
+                endpointsTarget.remove(endpointName);
+                endpoint.connector().stop();
+            } catch (Exception ex) {
+                logger.error("Unexpected error while closing endpoint connector", ex);
+            }
+        } else {
+            logger.error("Unknown endpoint. You should never reach this point!");
+        }
+    }
+
     @Override
-    public LoadBalancerStrategy loadbalancer() {
-        return loadBalancer;
+    public boolean preAdd(io.gravitee.definition.model.Endpoint endpoint) {
+        return false;
+    }
+
+    @Override
+    public boolean postAdd(io.gravitee.definition.model.Endpoint endpoint) {
+        start(endpoint);
+        return false;
+    }
+
+    @Override
+    public boolean preRemove(io.gravitee.definition.model.Endpoint endpoint) {
+        return false;
+    }
+
+    @Override
+    public boolean postRemove(io.gravitee.definition.model.Endpoint endpoint) {
+        stop(endpoint.getName());
+        return false;
     }
 }

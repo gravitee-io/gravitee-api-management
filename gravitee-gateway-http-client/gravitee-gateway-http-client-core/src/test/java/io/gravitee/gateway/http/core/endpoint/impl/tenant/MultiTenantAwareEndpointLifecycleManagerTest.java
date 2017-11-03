@@ -16,9 +16,10 @@
 package io.gravitee.gateway.http.core.endpoint.impl.tenant;
 
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.endpoint.Endpoint;
-import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import org.junit.Before;
@@ -74,7 +75,7 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
     @Test
     public void shouldNotStartEndpoint_notInTenant() throws Exception {
-        io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.Endpoint.class);
+        io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.endpoint.HttpEndpoint.class);
 
         when(gatewayConfiguration.tenant()).thenReturn(Optional.of("asia"));
 
@@ -83,7 +84,7 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
         endpointLifecycleManager.start();
 
-        verify(applicationContext, never()).getBean(eq(HttpClient.class), any(Endpoint.class));
+        verify(applicationContext, never()).getBean(eq(Connector.class), any(Endpoint.class));
 
         assertTrue(endpointLifecycleManager.targetByEndpoint().isEmpty());
         assertTrue(endpointLifecycleManager.endpoints().isEmpty());
@@ -91,7 +92,7 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
     @Test
     public void shouldNotStartEndpoint_backup() throws Exception {
-        io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.Endpoint.class);
+        io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.endpoint.HttpEndpoint.class);
 
         when(endpoint.isBackup()).thenReturn(true);
         when(proxy.getEndpoints()).thenReturn(Collections.singleton(endpoint));
@@ -99,7 +100,7 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
         when(gatewayConfiguration.tenant()).thenReturn(Optional.of("europe"));
         endpointLifecycleManager.start();
 
-        verify(applicationContext, never()).getBean(eq(HttpClient.class), any(Endpoint.class));
+        verify(applicationContext, never()).getBean(eq(Connector.class), any(Endpoint.class));
 
         assertTrue(endpointLifecycleManager.targetByEndpoint().isEmpty());
         assertTrue(endpointLifecycleManager.endpoints().isEmpty());
@@ -107,15 +108,16 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
     @Test
     public void shouldStartEndpoint_inTenant() throws Exception {
-        io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.Endpoint.class);
+        io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.endpoint.HttpEndpoint.class);
 
         when(gatewayConfiguration.tenant()).thenReturn(Optional.of("europe"));
 
         when(endpoint.getName()).thenReturn("endpoint");
         when(endpoint.getTenant()).thenReturn("europe");
         when(endpoint.isBackup()).thenReturn(false);
+        when(endpoint.getType()).thenReturn(EndpointType.HTTP);
         when(proxy.getEndpoints()).thenReturn(Collections.singleton(endpoint));
-        when(applicationContext.getBean(HttpClient.class, endpoint)).thenReturn(mock(HttpClient.class));
+        when(applicationContext.getBean(Connector.class, endpoint)).thenReturn(mock(Connector.class));
 
         endpointLifecycleManager.start();
 
@@ -123,11 +125,11 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
         assertNotNull(httpClientEndpoint);
 
-        verify(applicationContext, times(1)).getBean(eq(HttpClient.class), any(Endpoint.class));
+        verify(applicationContext, times(1)).getBean(eq(Connector.class), any(Endpoint.class));
         verify(httpClientEndpoint.connector(), times(1)).start();
 
-        assertEquals(httpClientEndpoint, endpointLifecycleManager.getOrDefault("endpoint"));
-        assertEquals(httpClientEndpoint, endpointLifecycleManager.getOrDefault("unknown"));
+        assertEquals(httpClientEndpoint, endpointLifecycleManager.get("endpoint"));
+        assertNull(endpointLifecycleManager.get("unknown"));
 
         assertFalse(endpointLifecycleManager.targetByEndpoint().isEmpty());
         assertFalse(endpointLifecycleManager.endpoints().isEmpty());

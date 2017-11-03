@@ -16,13 +16,12 @@
 package io.gravitee.gateway.http.core.endpoint;
 
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.endpoint.EndpointManager;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EndpointLifecycleManager<T extends Connector> extends EndpointManager<T>, LifecycleComponent<EndpointLifecycleManager> {
+public interface EndpointLifecycleManager extends EndpointManager, LifecycleComponent<EndpointLifecycleManager> {
 
 }

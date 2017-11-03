@@ -21,12 +21,13 @@ import io.gravitee.definition.model.Failover;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.WriteStream;
-import io.gravitee.gateway.http.core.invoker.DefaultHttpInvoker;
+import io.gravitee.gateway.http.core.invoker.DefaultInvoker;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.AsyncResult;
@@ -35,16 +36,25 @@ import io.vertx.core.Vertx;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Objects;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FailoverInvoker extends DefaultHttpInvoker implements InitializingBean {
+public class FailoverInvoker extends DefaultInvoker implements InitializingBean {
 
     @Autowired
     private Vertx vertx;
 
     private CircuitBreaker circuitBreaker;
+
+    private final DefaultInvoker invoker;
+
+    public FailoverInvoker(DefaultInvoker invoker) {
+        Objects.requireNonNull(invoker, "Invoker can not be null");
+        this.invoker = invoker;
+    }
 
     @Override
     public Request invoke(ExecutionContext executionContext, Request serverRequest, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
@@ -53,7 +63,7 @@ public class FailoverInvoker extends DefaultHttpInvoker implements InitializingB
         circuitBreaker.execute(new io.vertx.core.Handler<Future<ProxyConnection>>() {
             @Override
             public void handle(Future<ProxyConnection> event) {
-                FailoverInvoker.super.invoke(executionContext, failoverServerRequest, stream, proxyConnection -> {
+                invoker.invoke(executionContext, failoverServerRequest, stream, proxyConnection -> {
                     proxyConnection.exceptionHandler(event::fail);
                     proxyConnection.responseHandler(
                             response -> event.complete(new FailoverProxyConnection(proxyConnection, response)));
@@ -75,6 +85,11 @@ public class FailoverInvoker extends DefaultHttpInvoker implements InitializingB
         });
 
         return failoverServerRequest;
+    }
+
+    @Override
+    public Endpoint nextEndpoint(Request serverRequest, ExecutionContext executionContext) {
+        return invoker.nextEndpoint(serverRequest, executionContext);
     }
 
     @Override

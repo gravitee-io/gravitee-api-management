@@ -13,26 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.core.loadbalancer;
+package io.gravitee.gateway.http.core.invoker.loadbalancer;
 
-import io.gravitee.definition.model.Endpoint;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.endpoint.Endpoint;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class WeightedRoundRobinLoadBalancerStrategy extends WeightedLoadBalancerStrategy {
+public class WeightedRoundRobinLoadBalancer extends WeightedLoadBalancer {
 
     private int counter;
 
-    public WeightedRoundRobinLoadBalancerStrategy(final List<Endpoint> endpoints) {
+    public WeightedRoundRobinLoadBalancer(Collection<Endpoint> endpoints) {
         super(endpoints);
     }
 
     @Override
-    public synchronized Endpoint nextEndpoint() {
+    public synchronized Endpoint nextEndpoint(Request serverRequest, ExecutionContext executionContext) {
         List<Endpoint> endpoints = endpoints();
         if (endpoints.isEmpty()) {
             return null;

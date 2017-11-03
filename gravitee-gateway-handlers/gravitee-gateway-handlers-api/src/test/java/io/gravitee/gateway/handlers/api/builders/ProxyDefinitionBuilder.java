@@ -15,13 +15,14 @@
  */
 package io.gravitee.gateway.handlers.api.builders;
 
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 
 import java.util.LinkedHashSet;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ProxyDefinitionBuilder {
 
@@ -36,7 +37,7 @@ public class ProxyDefinitionBuilder {
         if (this.proxyDefinition.getEndpoints() == null) {
             this.proxyDefinition.setEndpoints(new LinkedHashSet<>());
         }
-        this.proxyDefinition.getEndpoints().add(new Endpoint(name, target));
+        this.proxyDefinition.getEndpoints().add(new HttpEndpoint(name, target));
         return this;
     }
 

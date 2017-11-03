@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.healthcheck.http;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.Request;
 import io.gravitee.definition.model.services.healthcheck.Response;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
@@ -188,6 +189,6 @@ public class HttpEndpointRuleHandlerTest {
     }
 
     private Endpoint createEndpoint() {
-        return new Endpoint("default", "http://localhost:" + wireMockRule.port());
+        return new HttpEndpoint("default", "http://localhost:" + wireMockRule.port());
     }
 }

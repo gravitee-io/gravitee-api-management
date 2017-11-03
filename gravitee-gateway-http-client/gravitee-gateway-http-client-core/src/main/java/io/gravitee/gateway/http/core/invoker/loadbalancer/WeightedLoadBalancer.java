@@ -13,37 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.core.loadbalancer;
+package io.gravitee.gateway.http.core.invoker.loadbalancer;
 
-import io.gravitee.definition.model.Endpoint;
+import io.gravitee.common.util.ChangeListener;
+import io.gravitee.common.util.ObservableCollection;
+import io.gravitee.gateway.api.endpoint.Endpoint;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class WeightedLoadBalancerStrategy extends LoadBalancerSupportStrategy {
+public abstract class WeightedLoadBalancer extends LoadBalancer implements ChangeListener<Endpoint> {
 
     transient int lastIndex;
 
     private List<WeightRatio> runtimeRatios = new ArrayList<>();
 
-    public WeightedLoadBalancerStrategy(List<Endpoint> endpoints) {
+    WeightedLoadBalancer(Collection<Endpoint> endpoints) {
         super(endpoints);
-        loadRuntimeRatios();
-    }
-
-    protected void loadRuntimeRatios() {
-        int position = 0;
-
-        for(Endpoint endpoint : endpoints()) {
-            runtimeRatios.add(new WeightRatio(position++, endpoint.getWeight()));
+        if (endpoints instanceof ObservableCollection) {
+            ((ObservableCollection<Endpoint>) endpoints).addListener(this);
         }
     }
 
-    protected boolean isRuntimeRatiosZeroed() {
+    protected void refresh() {
+        this.loadRuntimeRatios();
+    }
+
+    private void loadRuntimeRatios() {
+        runtimeRatios.clear();
+
+        int position = 0;
+
+        for(Endpoint endpoint : endpoints()) {
+            runtimeRatios.add(new WeightRatio(position++, endpoint.weight()));
+        }
+    }
+
+    boolean isRuntimeRatiosZeroed() {
         boolean cleared = true;
 
         for (WeightRatio runtimeRatio : runtimeRatios) {
@@ -54,13 +65,35 @@ public abstract class WeightedLoadBalancerStrategy extends LoadBalancerSupportSt
         return cleared;
     }
 
-    protected void resetRuntimeRatios() {
+    void resetRuntimeRatios() {
         for (WeightRatio runtimeRatio : runtimeRatios) {
             runtimeRatio.setRuntime(runtimeRatio.getDistribution());
         }
     }
 
-    public List<WeightRatio> getRuntimeRatios() {
+    List<WeightRatio> getRuntimeRatios() {
         return runtimeRatios;
+    }
+
+    @Override
+    public boolean preAdd(Endpoint object) {
+        return false;
+    }
+
+    @Override
+    public boolean preRemove(Endpoint object) {
+        return false;
+    }
+
+    @Override
+    public boolean postAdd(Endpoint object) {
+        this.refresh();
+        return false;
+    }
+
+    @Override
+    public boolean postRemove(Endpoint object) {
+        this.refresh();
+        return false;
     }
 }
