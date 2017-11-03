@@ -34,7 +34,8 @@ public enum ApiPermission implements Permission {
     GATEWAY_DEFINITION( "GATEWAY_DEFINITION",   2000),
     RATING(             "RATING",               2100),
     RATING_ANSWER(      "RATING_ANSWER",        2200),
-    AUDIT(              "AUDIT",                2100);
+    AUDIT(              "AUDIT",                2100),
+    DISCOVERY(          "DISCOVERY",                2200);
 
     String name;
     int mask;

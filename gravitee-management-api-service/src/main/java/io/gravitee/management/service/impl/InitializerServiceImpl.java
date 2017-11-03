@@ -158,6 +158,7 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
             perms.put(ApiPermission.AUDIT.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             perms.put(ApiPermission.RATING.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             perms.put(ApiPermission.RATING_ANSWER.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
+            perms.put(ApiPermission.DISCOVERY.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             roleService.create(new NewRoleEntity(
                     "OWNER",
                     "API Role. Created by Gravitee.io.",

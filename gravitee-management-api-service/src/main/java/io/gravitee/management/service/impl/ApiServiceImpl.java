@@ -22,9 +22,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -49,10 +49,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_DELETED;
-import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
-import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -118,7 +115,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         Proxy proxy = new Proxy();
         proxy.setContextPath(newApiEntity.getContextPath());
         proxy.setEndpoints(new LinkedHashSet<>());
-        proxy.getEndpoints().add(new Endpoint("default", newApiEntity.getEndpoint()));
+        proxy.getEndpoints().add(new HttpEndpoint("default", newApiEntity.getEndpoint()));
         apiEntity.setProxy(proxy);
 
         List<String> declaredPaths = (newApiEntity.getPaths() != null) ? newApiEntity.getPaths() : new ArrayList<>();
