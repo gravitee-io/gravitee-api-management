@@ -34,7 +34,7 @@ public class ManagementRepositoryProbe implements Probe {
 
     @Override
     public String id() {
-        return "repository-management";
+        return "management";
     }
 
     @Override
