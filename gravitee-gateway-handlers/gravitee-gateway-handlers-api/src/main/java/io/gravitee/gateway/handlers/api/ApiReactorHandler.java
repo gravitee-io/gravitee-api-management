@@ -41,7 +41,7 @@ import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
 import io.gravitee.gateway.http.core.direct.DirectProxyConnection;
 import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager;
-import io.gravitee.gateway.http.core.invoker.DefaultHttpInvoker;
+import io.gravitee.gateway.http.core.invoker.DefaultInvoker;
 import io.gravitee.gateway.policy.PolicyChainResolver;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.StreamType;
@@ -74,7 +74,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
     /**
      * Invoker is the connector to access the remote backend / endpoint.
-     * If not override by a policy, default invoker is {@link DefaultHttpInvoker}.
+     * If not override by a policy, default invoker is {@link DefaultInvoker}.
      */
     @Autowired
     private Invoker invoker;

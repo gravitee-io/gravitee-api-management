@@ -24,16 +24,10 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.client.utils.URIUtils;
 import org.junit.Ignore;
 import org.junit.Test;
-import sun.security.action.GetPropertyAction;
 
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.security.AccessController;
-
 
 import static org.junit.Assert.assertEquals;
 

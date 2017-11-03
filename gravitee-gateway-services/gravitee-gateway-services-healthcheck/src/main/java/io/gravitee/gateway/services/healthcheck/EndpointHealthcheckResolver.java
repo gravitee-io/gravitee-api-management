@@ -17,6 +17,8 @@ package io.gravitee.gateway.services.healthcheck;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointType;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.services.healthcheck.rule.DefaultEndpointRule;
@@ -49,22 +51,27 @@ public class EndpointHealthcheckResolver {
         if (rootHealthCheck != null && rootHealthCheck.isEnabled()) {
             Stream<Endpoint> endpoints = api.getProxy().getEndpoints().stream();
 
+            // Only HTTP endpoint
+            Stream<HttpEndpoint> httpEndpoints = endpoints
+                    .filter(endpoint -> endpoint.getType() == EndpointType.HTTP)
+                    .map(endpoint -> (HttpEndpoint) endpoint);
+
             // Filtering endpoints according to tenancy configuration
             if (api.getProxy().isMultiTenant() && gatewayConfiguration.tenant().isPresent()) {
                 String tenant = gatewayConfiguration.tenant().get();
-                endpoints = endpoints
+                httpEndpoints = httpEndpoints
                         .filter(endpoint -> endpoint.getTenant() != null && endpoint.getTenant().equalsIgnoreCase(tenant));
             }
 
             // Remove backup endpoints
-            endpoints = endpoints.filter(endpoint -> ! endpoint.isBackup());
+            httpEndpoints = httpEndpoints.filter(endpoint -> ! endpoint.isBackup());
 
             // Keep only endpoints where health-check is enabled or not settled (inherit from service)
-            endpoints = endpoints.filter(endpoint ->
+            httpEndpoints = httpEndpoints.filter(endpoint ->
                     (endpoint.getHealthCheck() == null) ||
                             (endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled()));
 
-            return endpoints.map((Function<Endpoint, EndpointRule>) endpoint -> new DefaultEndpointRule(
+            return httpEndpoints.map((Function<HttpEndpoint, EndpointRule>) endpoint -> new DefaultEndpointRule(
                     api.getId(),
                     endpoint,
                     (endpoint.getHealthCheck() == null || endpoint.getHealthCheck().isInherit()) ?

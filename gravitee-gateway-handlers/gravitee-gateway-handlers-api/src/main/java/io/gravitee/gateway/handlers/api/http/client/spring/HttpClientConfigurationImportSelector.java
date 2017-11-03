@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.http.client.spring;
 
-import io.gravitee.gateway.api.http.client.HttpClient;
+import io.gravitee.gateway.api.Connector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.DeferredImportSelector;
@@ -44,7 +44,7 @@ public class HttpClientConfigurationImportSelector implements DeferredImportSele
             throw new IllegalStateException("No HTTP client implementation can be found !");
         }
 
-        LOGGER.debug("\tFound {} {} implementation(s)", configurations.size(), HttpClient.class.getSimpleName());
+        LOGGER.debug("\tFound {} {} implementation(s)", configurations.size(), Connector.class.getSimpleName());
 
         configurations = removeDuplicates(configurations);
         return configurations.toArray(new String[configurations.size()]);
@@ -72,7 +72,7 @@ public class HttpClientConfigurationImportSelector implements DeferredImportSele
      * @return the factory class
      */
     protected Class<?> getSpringFactoriesLoaderFactoryClass() {
-        return HttpClient.class;
+        return Connector.class;
     }
 
     protected final <T> List<T> removeDuplicates(List<T> list) {

@@ -1,2 +1,2 @@
-io.gravitee.gateway.api.http.client.HttpClient=\
+io.gravitee.gateway.api.Connector=\
     io.gravitee.gateway.http.vertx.spring.VertxHttpClientConfiguration

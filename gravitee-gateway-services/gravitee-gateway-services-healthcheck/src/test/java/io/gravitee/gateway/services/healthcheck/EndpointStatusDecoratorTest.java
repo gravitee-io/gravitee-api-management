@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.healthcheck;
 
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -153,6 +154,6 @@ public class EndpointStatusDecoratorTest {
     }
 
     private Endpoint createEndpoint() {
-        return new Endpoint("default", "http://localhost:9099");
+        return new HttpEndpoint("default", "http://localhost:9099");
     }
 }

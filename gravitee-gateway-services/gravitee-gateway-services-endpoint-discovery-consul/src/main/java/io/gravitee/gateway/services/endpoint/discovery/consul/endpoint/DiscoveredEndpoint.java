@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.core.client;
+package io.gravitee.gateway.services.endpoint.discovery.consul.endpoint;
 
-import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.gateway.api.http.client.HttpClient;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractHttpClient extends AbstractLifecycleComponent<HttpClient> implements HttpClient {
+public class DiscoveredEndpoint extends HttpEndpoint {
 
-    protected boolean hasContent(HttpHeaders headers) {
-        return headers.contentLength() > 0 ||
-                headers.contentType() != null ||
-                headers.getFirst(HttpHeaders.TRANSFER_ENCODING) != null;
+    public DiscoveredEndpoint(String name, String target) {
+        super(name, target);
     }
 }

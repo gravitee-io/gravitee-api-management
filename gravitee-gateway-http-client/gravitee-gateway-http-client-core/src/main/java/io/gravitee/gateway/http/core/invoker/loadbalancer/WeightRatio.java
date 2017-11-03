@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.core.loadbalancer;
+package io.gravitee.gateway.http.core.invoker.loadbalancer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

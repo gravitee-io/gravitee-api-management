@@ -15,16 +15,17 @@
  */
 package io.gravitee.gateway.http.vertx;
 
+import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
-import io.gravitee.gateway.http.core.client.AbstractHttpClient;
 import io.netty.channel.ConnectTimeoutException;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
@@ -50,7 +51,7 @@ import java.util.function.Function;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxHttpClient extends AbstractHttpClient {
+public class VertxHttpClient extends AbstractLifecycleComponent<Connector> implements Connector {
 
     private final Logger LOGGER = LoggerFactory.getLogger(VertxHttpClient.class);
 
@@ -59,12 +60,12 @@ public class VertxHttpClient extends AbstractHttpClient {
     @Resource
     private Vertx vertx;
 
-    private final Endpoint endpoint;
+    private final HttpEndpoint endpoint;
 
     private HttpClientOptions httpClientOptions;
 
     @Autowired
-    public VertxHttpClient(Endpoint endpoint) {
+    public VertxHttpClient(HttpEndpoint endpoint) {
         this.endpoint = endpoint;
     }
 

@@ -17,9 +17,9 @@ package io.gravitee.gateway.services.healthcheck.http;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.EndpointStatusDecorator;
 import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
@@ -117,7 +117,7 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
 
     @Override
     public void handle(Long timer) {
-        Endpoint endpoint = rule.endpoint();
+        HttpEndpoint endpoint = (HttpEndpoint) rule.endpoint();
 
         logger.debug("Running health-check for endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
 

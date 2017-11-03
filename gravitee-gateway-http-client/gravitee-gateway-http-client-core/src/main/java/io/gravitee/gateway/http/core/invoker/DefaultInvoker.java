@@ -15,25 +15,22 @@
  */
 package io.gravitee.gateway.http.core.invoker;
 
-import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.endpoint.EndpointManager;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.api.http.client.HttpClient;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.http.core.direct.DirectProxyConnection;
-import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import io.gravitee.gateway.http.core.invoker.logging.LoggableProxyConnection;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +47,7 @@ import java.util.regex.Pattern;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultHttpInvoker implements Invoker {
+public abstract class DefaultInvoker implements Invoker {
 
     // Pattern reuse for duplicate slash removal
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
@@ -77,9 +74,6 @@ public class DefaultHttpInvoker implements Invoker {
         hopHeaders.add(HttpHeaders.TRAILER);
         hopHeaders.add(HttpHeaders.UPGRADE);
 
-        // Gravitee HTTP headers
-        hopHeaders.add(GraviteeHttpHeader.X_GRAVITEE_API_NAME);
-
         HOP_HEADERS = Collections.unmodifiableSet(hopHeaders);
     }
 
@@ -87,15 +81,14 @@ public class DefaultHttpInvoker implements Invoker {
     protected Api api;
 
     @Autowired
-    protected EndpointManager<HttpClient> endpointManager;
+    private EndpointManager endpointManager;
 
     @Override
     public Request invoke(ExecutionContext executionContext, Request serverRequest, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
-        HttpEndpoint endpoint = selectEndpoint(serverRequest, executionContext);
+        Endpoint endpoint = selectEndpoint(serverRequest, executionContext);
         String targetUri = (String) executionContext.getAttribute(TARGET_URI_ATTRIBUTE);
 
-        // No endpoint has been selected by load-balancer strategy nor overridden value
-        if (targetUri == null || endpoint == null || endpoint.definition().getStatus() == Endpoint.Status.DOWN) {
+        if (targetUri == null || endpoint == null || ! endpoint.available()) {
             DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
             connectionHandler.handle(statusOnlyConnection);
             statusOnlyConnection.sendResponse();
@@ -126,7 +119,7 @@ public class DefaultHttpInvoker implements Invoker {
                 ProxyRequest proxyRequest = ProxyRequestBuilder.from(serverRequest)
                         .uri(requestUri)
                         .method(httpMethod)
-                        .headers(setHostHeader(serverRequest.headers(), requestUri, endpoint.definition()))
+                        .headers(setProxyHeaders(serverRequest.headers(), requestUri, endpoint))
                         .build();
 
                 ProxyConnection proxyConnection = endpoint.connector().request(proxyRequest);
@@ -152,58 +145,53 @@ public class DefaultHttpInvoker implements Invoker {
         return serverRequest;
     }
 
-    private HttpHeaders setHostHeader(HttpHeaders headers, URI requestUri, Endpoint endpoint) {
+    private HttpHeaders setProxyHeaders(HttpHeaders headers, URI requestUri, Endpoint endpoint) {
         // Remove hop-by-hop headers.
         for (String header : HOP_HEADERS) {
             headers.remove(header);
         }
 
-        if (endpoint.getHostHeader() != null && !endpoint.getHostHeader().isEmpty()) {
-            headers.set(HttpHeaders.HOST, endpoint.getHostHeader());
-        } else {
-            final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
+        // Get HOST header
+        final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
                     (HTTPS_SCHEME.equals(requestUri.getScheme()) ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT);
-            final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
+        final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
                     requestUri.getHost() : requestUri.getHost() + ':' + port;
+        headers.set(HttpHeaders.HOST, host);
 
-            headers.set(HttpHeaders.HOST, host);
-        }
+        // Override with default headers from endpoint
+        endpoint.headers().forEach(headers::put);
 
         return headers;
     }
 
-    private HttpEndpoint selectEndpoint(Request serverRequest, ExecutionContext executionContext) {
+    private Endpoint selectEndpoint(Request serverRequest, ExecutionContext executionContext) {
         // Get target if overridden by a policy
         String targetUri = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
-        HttpEndpoint endpoint;
 
         // If not defined, use the one provided by the underlying load-balancer
-        if (targetUri == null) {
-            String endpointName = endpointManager.loadbalancer().next();
-            endpoint = (HttpEndpoint) endpointManager.get(endpointName);
-
-            targetUri = (endpoint != null) ? rewriteURI(serverRequest, endpoint.target()) : null;
-
-            // Set the final target URI invoked
-            executionContext.setAttribute(TARGET_URI_ATTRIBUTE, targetUri);
-        } else {
+        if (targetUri != null) {
             // Select a matching endpoint according to the URL
             // If none, select the first (non-backup) from the endpoint list.
-            String finalTargetUri = targetUri;
-            executionContext.setAttribute(TARGET_URI_ATTRIBUTE, finalTargetUri);
+            executionContext.setAttribute(TARGET_URI_ATTRIBUTE, targetUri);
 
-            Optional<String> endpointName = endpointManager.targetByEndpoint()
-                    .entrySet()
+            return endpointManager.endpoints()
                     .stream()
-                    .filter(endpointEntry -> finalTargetUri.startsWith(endpointEntry.getValue()))
-                    .map(Map.Entry::getKey)
-                    .findFirst();
+                    .filter(endpointEntry -> targetUri.startsWith(endpointEntry.target()))
+                    .findFirst()
+                    .orElse(endpointManager.endpoints().iterator().next());
+        } else {
+            Endpoint endpoint = nextEndpoint(serverRequest, executionContext);
 
-            endpoint = (HttpEndpoint) endpointManager.getOrDefault(endpointName.orElse(null));
+            String endpointTarget = (endpoint != null) ? rewriteURI(serverRequest, endpoint.target()) : null;
+
+            // Set the final target URI invoked
+            executionContext.setAttribute(TARGET_URI_ATTRIBUTE, endpointTarget);
+
+            return endpoint;
         }
-
-        return endpoint;
     }
+
+    public abstract Endpoint nextEndpoint(Request serverRequest, ExecutionContext executionContext);
 
     private String rewriteURI(Request request, String endpointUri) {
         return endpointUri + request.pathInfo();

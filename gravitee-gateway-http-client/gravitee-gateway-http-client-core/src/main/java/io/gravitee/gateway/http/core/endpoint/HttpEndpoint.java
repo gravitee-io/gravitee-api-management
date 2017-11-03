@@ -15,25 +15,27 @@
  */
 package io.gravitee.gateway.http.core.endpoint;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.api.http.client.HttpClient;
+import io.gravitee.gateway.api.Connector;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpEndpoint implements io.gravitee.gateway.api.endpoint.Endpoint<HttpClient> {
+public class HttpEndpoint implements io.gravitee.gateway.api.endpoint.Endpoint {
 
-    private final Endpoint endpoint;
-    private final HttpClient httpClient;
+    private final io.gravitee.definition.model.endpoint.HttpEndpoint endpoint;
+    private final Connector connector;
+    private final HttpHeaders headers = new HttpHeaders();
 
-    public HttpEndpoint(final Endpoint endpoint, final HttpClient httpClient) {
+    public HttpEndpoint(final io.gravitee.definition.model.endpoint.HttpEndpoint endpoint, final Connector connector) {
         this.endpoint = endpoint;
-        this.httpClient = httpClient;
-    }
+        this.connector = connector;
 
-    public Endpoint definition() {
-        return endpoint;
+        if (endpoint.getHostHeader() != null && !endpoint.getHostHeader().isEmpty()) {
+            this.headers.set(HttpHeaders.HOST, endpoint.getHostHeader());
+        }
     }
 
     @Override
@@ -47,7 +49,37 @@ public class HttpEndpoint implements io.gravitee.gateway.api.endpoint.Endpoint<H
     }
 
     @Override
-    public HttpClient connector() {
-        return httpClient;
+    public HttpHeaders headers() {
+        return headers;
+    }
+
+    @Override
+    public Connector connector() {
+        return connector;
+    }
+
+    @Override
+    public boolean available() {
+        return endpoint.getStatus() != Endpoint.Status.DOWN;
+    }
+
+    @Override
+    public int weight() {
+        return endpoint.getWeight();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        HttpEndpoint that = (HttpEndpoint) o;
+
+        return name().equals(that.name());
+    }
+
+    @Override
+    public int hashCode() {
+        return name().hashCode();
     }
 }

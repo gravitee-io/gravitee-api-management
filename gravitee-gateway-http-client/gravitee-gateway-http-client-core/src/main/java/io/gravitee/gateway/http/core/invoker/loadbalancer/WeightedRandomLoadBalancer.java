@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.core.loadbalancer;
+package io.gravitee.gateway.http.core.invoker.loadbalancer;
 
-import io.gravitee.definition.model.Endpoint;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.endpoint.Endpoint;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -24,24 +27,35 @@ import java.util.Random;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class WeightedRandomLoadBalancerStrategy extends WeightedLoadBalancerStrategy {
+public class WeightedRandomLoadBalancer extends WeightedLoadBalancer {
 
     private final Random rnd = new Random();
-    private final int distributionRatioSum;
+    private int distributionRatioSum;
     private int runtimeRatioSum;
 
-    public WeightedRandomLoadBalancerStrategy(List<Endpoint> endpoints) {
+    public WeightedRandomLoadBalancer(Collection<Endpoint> endpoints) {
         super(endpoints);
+    }
+
+    @Override
+    protected void refresh() {
+        super.refresh();
+        this.loadRatios();
+    }
+
+    private void loadRatios() {
         int sum = 0;
-        for (Endpoint endpoint : endpoints) {
-            sum += endpoint.getWeight();
+
+        for(Endpoint endpoint : endpoints()) {
+            sum += endpoint.weight();
         }
+
         distributionRatioSum = sum;
         runtimeRatioSum = distributionRatioSum;
     }
 
     @Override
-    public synchronized Endpoint nextEndpoint() {
+    public synchronized Endpoint nextEndpoint(Request serverRequest, ExecutionContext executionContext) {
         List<Endpoint> endpoints = endpoints();
         if (endpoints.isEmpty()) {
             return null;

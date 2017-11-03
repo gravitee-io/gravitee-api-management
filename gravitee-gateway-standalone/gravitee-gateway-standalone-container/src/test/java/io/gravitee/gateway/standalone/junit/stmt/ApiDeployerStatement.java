@@ -18,6 +18,7 @@ package io.gravitee.gateway.standalone.junit.stmt;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
@@ -31,12 +32,10 @@ import org.junit.runners.model.Statement;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiDeployerStatement extends Statement {
@@ -103,10 +102,10 @@ public class ApiDeployerStatement extends Statement {
                     edpt.setName(UUID.random().toString());
                 } else {
                     // Use the first defined endpoint as reference
-                    Endpoint first = endpoints.get(0);
+                    HttpEndpoint first = (HttpEndpoint) endpoints.get(0);
                     URL target = new URL(first.getTarget());
                     URL newTarget = new URL(target.getProtocol(), target.getHost(), port, target.getFile());
-                    Endpoint edpt = new Endpoint(UUID.random().toString(), newTarget.toString());
+                    HttpEndpoint edpt = new HttpEndpoint(UUID.random().toString(), newTarget.toString());
                     edpt.setHttpClientOptions(first.getHttpClientOptions());
                     api.getProxy().getEndpoints().add(edpt);
                 }
