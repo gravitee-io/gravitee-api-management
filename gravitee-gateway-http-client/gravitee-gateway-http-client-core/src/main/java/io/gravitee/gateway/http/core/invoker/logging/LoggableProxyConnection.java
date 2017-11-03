@@ -24,8 +24,8 @@ import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.reporter.api.common.Request;
-import io.gravitee.reporter.api.log.Log;
 import io.gravitee.reporter.api.common.Response;
+import io.gravitee.reporter.api.log.Log;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,8 +39,18 @@ public class LoggableProxyConnection implements ProxyConnection {
 
     public LoggableProxyConnection(final ProxyConnection proxyConnection, final ProxyRequest proxyRequest) {
         this.proxyConnection = proxyConnection;
-        this.log = proxyRequest.request().metrics().getLog();
+        Log log = proxyRequest.request().metrics().getLog();
 
+        // If log is enable only for 'Proxy only' mode, the log structure is not yet created
+        if (log == null) {
+            log = new Log(proxyRequest.request().metrics().timestamp().getEpochSecond());
+            log.setRequestId(proxyRequest.request().id());
+
+            // Associate log
+            proxyRequest.request().metrics().setLog(log);
+        }
+
+        this.log = log;
         this.log.setProxyRequest(new Request());
         this.log.getProxyRequest().setUri(proxyRequest.uri().toString());
         this.log.getProxyRequest().setMethod(proxyRequest.method());
