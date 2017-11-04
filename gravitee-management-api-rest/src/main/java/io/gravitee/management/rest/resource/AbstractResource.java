@@ -92,6 +92,9 @@ public abstract class AbstractResource {
     }
 
     protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
+        if (!isAuthenticated()) {
+            return false;
+        }
         if (isAdmin()) {
             return true;
         }
