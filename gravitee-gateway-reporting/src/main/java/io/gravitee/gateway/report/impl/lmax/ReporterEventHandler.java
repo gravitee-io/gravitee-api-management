@@ -17,12 +17,16 @@ package io.gravitee.gateway.report.impl.lmax;
 
 import com.lmax.disruptor.EventHandler;
 import io.gravitee.reporter.api.Reporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
 class ReporterEventHandler implements EventHandler<ReportableEvent> {
+
+    private final Logger logger = LoggerFactory.getLogger(ReporterEventHandler.class);
 
     private final Reporter reporter;
 
@@ -33,7 +37,11 @@ class ReporterEventHandler implements EventHandler<ReportableEvent> {
     @Override
     public void onEvent(ReportableEvent event, long l, boolean b) throws Exception {
         if (reporter.canHandle(event.getReportable())) {
-            reporter.report(event.getReportable());
+            try {
+                reporter.report(event.getReportable());
+            } catch (Exception ex) {
+                logger.error("Unexpected error while reporting event {}", event.getReportable(), ex);
+            }
         }
     }
 }
