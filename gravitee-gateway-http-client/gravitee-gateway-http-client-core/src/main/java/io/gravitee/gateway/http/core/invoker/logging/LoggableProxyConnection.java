@@ -43,7 +43,7 @@ public class LoggableProxyConnection implements ProxyConnection {
 
         // If log is enable only for 'Proxy only' mode, the log structure is not yet created
         if (log == null) {
-            log = new Log(proxyRequest.request().metrics().timestamp().getEpochSecond());
+            log = new Log(proxyRequest.request().metrics().timestamp().toEpochMilli());
             log.setRequestId(proxyRequest.request().id());
 
             // Associate log

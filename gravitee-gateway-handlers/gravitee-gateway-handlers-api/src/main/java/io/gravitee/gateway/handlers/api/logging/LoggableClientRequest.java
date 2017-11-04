@@ -40,7 +40,7 @@ public class LoggableClientRequest implements Request {
 
     public LoggableClientRequest(final Request request) {
         this.request = request;
-        this.log = new Log(request.metrics().timestamp().getEpochSecond());
+        this.log = new Log(request.metrics().timestamp().toEpochMilli());
         this.log.setRequestId(request.id());
 
         // Associate log
