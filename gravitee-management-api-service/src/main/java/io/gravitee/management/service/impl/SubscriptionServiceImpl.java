@@ -23,6 +23,7 @@ import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,13 +31,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
+import static io.gravitee.repository.management.model.Subscription.AuditEvent.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -72,6 +74,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private ConfigurableEnvironment environment;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public SubscriptionEntity findById(String subscription) {
@@ -212,8 +217,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setSubscribedBy(getAuthenticatedUser().getUsername());
 
             subscription = subscriptionRepository.create(subscription);
+            String apiId = planEntity.getApis().iterator().next();
+            createAudit(apiId, application, SUBSCRIPTION_CREATED, subscription.getCreatedAt(), null, subscription);
 
-            final ApiModelEntity api = apiService.findByIdForTemplates(planEntity.getApis().iterator().next());
+            final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
             final PrimaryOwnerEntity apiOwner = api.getPrimaryOwner();
             final PrimaryOwnerEntity appOwner = applicationEntity.getPrimaryOwner();
 
@@ -275,12 +282,20 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             Subscription subscription = optSubscription.get();
 
             if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
+                Subscription previousSubscription = new Subscription(subscription);
                 subscription.setUpdatedAt(new Date());
                 subscription.setStartingAt(updateSubscription.getStartingAt());
                 subscription.setEndingAt(updateSubscription.getEndingAt());
 
                 subscription = subscriptionRepository.update(subscription);
-
+                final PlanEntity plan = planService.findById(subscription.getPlan());
+                createAudit(
+                        plan.getApis().iterator().next(),
+                        subscription.getApplication(),
+                        SUBSCRIPTION_UPDATED,
+                        subscription.getUpdatedAt(),
+                        previousSubscription,
+                        subscription);
                 // Update the expiration date for not yet revoked api-keys relative to this subscription
                 Date endingAt = subscription.getEndingAt();
                 if (endingAt != null) {
@@ -318,6 +333,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
 
             Subscription subscription = optSubscription.get();
+            Subscription previousSubscription = new Subscription(subscription);
             if (subscription.getStatus() != Subscription.Status.PENDING) {
                 throw new SubscriptionAlreadyProcessedException(subscription.getId());
             }
@@ -346,8 +362,16 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             final ApplicationEntity application = applicationService.findById(subscription.getApplication());
             final PlanEntity plan = planService.findById(subscription.getPlan());
-            final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
+            final String apiId = plan.getApis().iterator().next();
+            final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+            createAudit(
+                    apiId,
+                    subscription.getApplication(),
+                    SUBSCRIPTION_UPDATED,
+                    subscription.getUpdatedAt(),
+                    previousSubscription,
+                    subscription);
 
             if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
                 if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
@@ -404,6 +428,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             Subscription subscription = optSubscription.get();
 
             if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
+                Subscription previousSubscription = new Subscription(subscription);
                 final Date now = new Date();
                 subscription.setUpdatedAt(now);
                 subscription.setStatus(Subscription.Status.CLOSED);
@@ -415,8 +440,17 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 // Send an email to subscriber
                 final ApplicationEntity application = applicationService.findById(subscription.getApplication());
                 final PlanEntity plan = planService.findById(subscription.getPlan());
-                final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
+                String apiId = plan.getApis().iterator().next();
+                final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+                createAudit(
+                        apiId,
+                        subscription.getApplication(),
+                        SUBSCRIPTION_CLOSED,
+                        subscription.getUpdatedAt(),
+                        previousSubscription,
+                        subscription);
+
                 emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                         .to(owner.getEmail())
                         .subject("Your subscription to " + api.getName() + " with plan " + plan.getName() +
@@ -461,6 +495,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             if (!optSubscription.isPresent()) {
                 throw new SubscriptionNotFoundException(subscriptionId);
             }
+            Subscription subscription = optSubscription.get();
 
             // Delete API Keys
             apiKeyService.findBySubscription(subscriptionId)
@@ -468,6 +503,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             // Delete subscription
             subscriptionRepository.delete(subscriptionId);
+            createAudit(
+                    planService.findById(subscription.getPlan()).getApis().iterator().next(),
+                    subscription.getApplication(),
+                    SUBSCRIPTION_DELETED,
+                    subscription.getUpdatedAt(),
+                    subscription,
+                    null);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to delete subscription: {}", subscriptionId, ex);
             throw new TechnicalManagementException(
@@ -493,5 +535,23 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setClosedAt(subscription.getClosedAt());
 
         return entity;
+    }
+
+    private void createAudit(String apiId, String applicationId, Audit.AuditEvent event, Date createdAt,
+                             Subscription oldValue, Subscription newValue) {
+        auditService.createApiAuditLog(
+                apiId,
+                Collections.singletonMap(APPLICATION, applicationId),
+                event,
+                createdAt,
+                oldValue,
+                newValue);
+        auditService.createApplicationAuditLog(
+                applicationId,
+                Collections.singletonMap(API, apiId),
+                event,
+                createdAt,
+                oldValue,
+                newValue);
     }
 }

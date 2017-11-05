@@ -85,6 +85,9 @@ public class ApiKeyServiceTest {
     @Mock
     private PlanEntity plan;
 
+    @Mock
+    private AuditService auditService;
+
     @Test
     public void shouldGenerate() throws TechnicalException {
         // Generated API Key
@@ -94,6 +97,10 @@ public class ApiKeyServiceTest {
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+
+        PlanEntity planEntity = mock(PlanEntity.class);
+        when(planEntity.getApis()).thenReturn(Collections.singleton("apiId"));
+        when(planService.findById(any())).thenReturn(planEntity);
 
         // Stub API Key creation
         when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());

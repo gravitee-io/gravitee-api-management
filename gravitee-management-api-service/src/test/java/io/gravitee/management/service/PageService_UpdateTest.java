@@ -59,6 +59,10 @@ public class PageService_UpdateTest {
     @Mock
     private Page page1;
 
+    @Mock
+    private AuditService auditService;
+
+
     @Test
     public void shouldUpdate() throws TechnicalException {
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));

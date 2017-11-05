@@ -49,6 +49,10 @@ public class RoleService_CreateTest {
     @Mock
     private RoleRepository mockRoleRepository;
 
+    @Mock
+    private AuditService auditService;
+
+
     @Test
     public void shouldCreate() throws TechnicalException {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);

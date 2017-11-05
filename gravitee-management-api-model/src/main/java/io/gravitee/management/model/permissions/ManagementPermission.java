@@ -28,7 +28,8 @@ public enum ManagementPermission implements Permission {
     API(        "API",         1500),
     ROLE(       "ROLE",        1600),
     APPLICATION("APPLICATION", 1700),
-    PLATFORM(   "PLATFORM",    1800);
+    PLATFORM(   "PLATFORM",    1800),
+    AUDIT(      "AUDIT",       1900);
 
     String name;
     int mask;

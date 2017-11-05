@@ -19,6 +19,7 @@ import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.management.model.NewTenantEntity;
 import io.gravitee.management.model.TenantEntity;
 import io.gravitee.management.model.UpdateTenantEntity;
+import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.TenantService;
 import io.gravitee.management.service.exceptions.DuplicateTenantNameException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -31,10 +32,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.gravitee.repository.management.model.Audit.AuditProperties.TENANT;
+import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_CREATED;
+import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_DELETED;
+import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_UPDATED;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,6 +51,9 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
 
     @Autowired
     private TenantRepository tenantRepository;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public TenantEntity findById(String tenantId) {
@@ -96,7 +103,14 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
         final List<TenantEntity> savedTenants = new ArrayList<>(tenantEntities.size());
         tenantEntities.forEach(tenantEntity -> {
             try {
-                savedTenants.add(convert(tenantRepository.create(convert(tenantEntity))));
+                Tenant tenant = convert(tenantEntity);
+                savedTenants.add(convert(tenantRepository.create(tenant)));
+                auditService.createPortalAuditLog(
+                        Collections.singletonMap(TENANT, tenant.getId()),
+                        TENANT_CREATED,
+                        new Date(),
+                        null,
+                        tenant);
             } catch (TechnicalException ex) {
                 LOGGER.error("An error occurs while trying to create tenant {}", tenantEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to create tenant " + tenantEntity.getName(), ex);
@@ -110,7 +124,17 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
         final List<TenantEntity> savedTenants = new ArrayList<>(tenantEntities.size());
         tenantEntities.forEach(tenantEntity -> {
             try {
-                savedTenants.add(convert(tenantRepository.update(convert(tenantEntity))));
+                Tenant tenant = convert(tenantEntity);
+                Optional<Tenant> tenantOptional = tenantRepository.findById(tenant.getId());
+                if (tenantOptional.isPresent()) {
+                    savedTenants.add(convert(tenantRepository.update(tenant)));
+                    auditService.createPortalAuditLog(
+                            Collections.singletonMap(TENANT, tenant.getId()),
+                            TENANT_UPDATED,
+                            new Date(),
+                            tenantOptional.get(),
+                            tenant);
+                }
             } catch (TechnicalException ex) {
                 LOGGER.error("An error occurs while trying to update tenant {}", tenantEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to update tenant " + tenantEntity.getName(), ex);
@@ -122,7 +146,17 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     @Override
     public void delete(final String tenantId) {
         try {
-            tenantRepository.delete(tenantId);
+            Optional<Tenant> tenantOptional = tenantRepository.findById(tenantId);
+            if (tenantOptional.isPresent()) {
+                tenantRepository.delete(tenantId);
+                auditService.createPortalAuditLog(
+                        Collections.singletonMap(TENANT, tenantId),
+                        TENANT_DELETED,
+                        new Date(),
+                        null,
+                        tenantOptional.get());
+                tenantRepository.delete(tenantId);
+            }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete tenant {}", tenantId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete tenant " + tenantId, ex);

@@ -32,7 +32,7 @@ import java.util.Map;
 public interface RoleService {
 
     RoleEntity create(NewRoleEntity role);
-    void createSystemRoles();
+    void createOrResetSystemRoles(boolean create);
     RoleEntity update(UpdateRoleEntity role);
     void delete(RoleScope scope, String name);
     RoleEntity findById(RoleScope scope, String name);

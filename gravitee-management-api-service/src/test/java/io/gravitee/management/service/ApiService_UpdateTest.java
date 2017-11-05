@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.model.UpdateApiEntity;
@@ -84,6 +85,9 @@ public class ApiService_UpdateTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private AuditService auditService;
 
     @Before
     public void setUp() {

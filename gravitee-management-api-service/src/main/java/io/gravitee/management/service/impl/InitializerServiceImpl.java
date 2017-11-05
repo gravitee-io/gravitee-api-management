@@ -76,7 +76,7 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
         // initialize roles.
         if(roleService.findAll().isEmpty()) {
             logger.info("    No role found. Add default ones.");
-            roleService.createSystemRoles();
+            roleService.createOrResetSystemRoles(true);
 
             Map<String, char[]> perms = new HashMap<>();
 
@@ -152,6 +152,7 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
             perms.put(ApiPermission.HEALTH.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             perms.put(ApiPermission.LOG.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             perms.put(ApiPermission.DOCUMENTATION.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
+            perms.put(ApiPermission.AUDIT.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             roleService.create(new NewRoleEntity(
                     "OWNER",
                     "API Role. Created by Gravitee.io.",
@@ -191,7 +192,8 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
             ));
 
         } else {
-            logger.debug("    Roles found, nothing to do.");
+            logger.debug("    Roles found, reset sytem roles.");
+            roleService.createOrResetSystemRoles(false);
         }
     }
 }

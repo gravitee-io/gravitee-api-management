@@ -51,6 +51,10 @@ public class RoleService_UpdateTest {
     @Mock
     private RoleRepository mockRoleRepository;
 
+    @Mock
+    private AuditService auditService;
+
+
     @Test
     public void shouldUpdate() throws TechnicalException {
         UpdateRoleEntity updateRoleEntityMock = mock(UpdateRoleEntity.class);

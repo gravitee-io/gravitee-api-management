@@ -62,6 +62,10 @@ public class PlanService_PublishTest {
     @Mock
     private SubscriptionEntity subscription;
 
+    @Mock
+    private AuditService auditService;
+
+
     @Test(expected = PlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseAlreadyPublished() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);

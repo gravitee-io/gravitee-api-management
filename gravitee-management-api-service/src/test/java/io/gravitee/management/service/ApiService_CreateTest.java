@@ -19,9 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.NewApiEntity;
-import io.gravitee.management.model.permissions.SystemRole;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -81,6 +80,9 @@ public class ApiService_CreateTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private AuditService auditService;
 
     @Test
     public void shouldCreateForUser() throws TechnicalException {

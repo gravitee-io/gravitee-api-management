@@ -27,9 +27,10 @@ import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.management.fetcher.FetcherConfigurationFactory;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.PageType;
+import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
-import io.gravitee.management.model.permissions.RoleScope;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
@@ -38,10 +39,7 @@ import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.plugin.fetcher.FetcherPluginManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageConfiguration;
-import io.gravitee.repository.management.model.PageSource;
+import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -57,6 +55,10 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.PAGE;
+import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_CREATED;
+import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_DELETED;
+import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_UPDATED;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
@@ -98,6 +100,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Autowired
 	private RoleService roleService;
+
+	@Autowired
+	private AuditService auditService;
 
 	@Override
 	public List<PageListItem> findApiPagesByApi(String apiId) {
@@ -245,6 +250,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			//only one homepage is allowed
 			onlyOneHomepage(page);
+			createAuditLog(apiId, PAGE_CREATED, page.getCreatedAt(), null, page);
 			return convert(createdPage);
 		} catch (TechnicalException | FetcherException ex) {
 			logger.error("An error occurs while trying to create {}", newPageEntity, ex);
@@ -282,6 +288,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			//only one homepage is allowed
 			onlyOneHomepage(page);
+			createAuditLog(null, PAGE_CREATED, page.getCreatedAt(), null, page);
 			return convert(createdPage);
 		} catch (TechnicalException | FetcherException ex) {
 			logger.error("An error occurs while trying to create {}", newPageEntity, ex);
@@ -347,6 +354,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				return null;
 			} else {
 				Page updatedPage = pageRepository.update(page);
+				createAuditLog(page.getApi(), PAGE_UPDATED, page.getUpdatedAt(), pageToUpdate, page);
 				return convert(updatedPage);
 			}
 		} catch (TechnicalException ex) {
@@ -387,7 +395,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		final Collection<Page> pages = pageRepository.findApiPageByApiId(pageToReorder.getApi());
         final List<Boolean> increment = asList(true);
         pages.stream()
-            .sorted((o1, o2) -> Integer.compare(o1.getOrder(), o2.getOrder()))
+            .sorted(Comparator.comparingInt(Page::getOrder))
             .forEachOrdered(page -> {
 	            try {
 		            if (page.equals(pageToReorder)) {
@@ -423,13 +431,19 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	}
 
     @Override
-	public void delete(String pageName) {
+	public void delete(String pageId) {
 		try {
-			logger.debug("Delete DOCUMENTATION : {}", pageName);
-			pageRepository.delete(pageName);
+			logger.debug("Delete Page : {}", pageId);
+			Optional<Page> optPage = pageRepository.findById(pageId);
+			if ( !optPage.isPresent()) {
+				throw new PageNotFoundException(pageId);
+			}
+
+			pageRepository.delete(pageId);
+			createAuditLog(optPage.get().getApi(), PAGE_DELETED, new Date(), optPage.get(), null);
 		} catch (TechnicalException ex) {
-			logger.error("An error occurs while trying to delete DOCUMENTATION {}", pageName, ex);
-			throw new TechnicalManagementException("An error occurs while trying to delete DOCUMENTATION " + pageName, ex);
+			logger.error("An error occurs while trying to delete Page {}", pageId, ex);
+			throw new TechnicalManagementException("An error occurs while trying to delete Page " + pageId, ex);
 		}
 	}
 
@@ -640,5 +654,27 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	private void createAuditLog(String apiId, Audit.AuditEvent event, Date createdAt, Page oldValue, Page newValue) {
+		String pageId = oldValue != null ? oldValue.getId() : newValue.getId();
+		if (apiId == null ) {
+			auditService.createPortalAuditLog(
+					Collections.singletonMap(PAGE, pageId),
+					event,
+					createdAt,
+					oldValue,
+					newValue
+			);
+		} else {
+			auditService.createApiAuditLog(
+					apiId,
+					Collections.singletonMap(PAGE, pageId),
+					event,
+					createdAt,
+					oldValue,
+					newValue
+			);
+		}
 	}
 }

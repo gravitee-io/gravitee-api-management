@@ -77,6 +77,10 @@ public class ApplicationService_UpdateTest {
     @Mock
     private Application application;
 
+    @Mock
+    private AuditService auditService;
+
+
     @Test
     public void shouldUpdate() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));

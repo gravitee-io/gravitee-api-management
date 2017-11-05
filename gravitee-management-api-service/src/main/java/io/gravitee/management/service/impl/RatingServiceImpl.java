@@ -18,6 +18,7 @@ package io.gravitee.management.service.impl;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.RatingService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ApiRatingUnavailableException;
@@ -60,6 +61,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AuditService auditService;
+
     @Value("${rating.enabled:false}")
     private boolean enabled;
 
@@ -73,7 +77,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             if (ratingOptional.isPresent()) {
                 throw new RatingAlreadyExistsException(ratingEntity.getApi(), getAuthenticatedUsername());
             }
-            return convert(ratingRepository.create(convert(ratingEntity)));
+            Rating rating = ratingRepository.create(convert(ratingEntity));
+            auditService.createApiAuditLog(rating.getApi(), null, Rating.RatingEvent.RATING_CREATED, rating.getCreatedAt(), null, rating);
+            return convert(rating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to create rating on api {}", ratingEntity.getApi(), ex);
             throw new TechnicalManagementException("An error occurred while trying to create rating on api " + ratingEntity.getApi(), ex);
@@ -92,6 +98,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             ratingAnswer.setComment(answerEntity.getComment());
             ratingAnswer.setCreatedAt(new Date());
             ratingAnswerRepository.create(ratingAnswer);
+            auditService.createApiAuditLog(rating.getApi(), null, RatingAnswer.RatingAnswerEvent.RATING_ANSWER_CREATED, ratingAnswer.getCreatedAt(), null, ratingAnswer);
             return convert(rating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to create a rating answer on rating {}", answerEntity.getRatingId(), ex);
@@ -151,6 +158,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     public RatingEntity update(final UpdateRatingEntity ratingEntity) {
         try {
             final Rating rating = findById(ratingEntity.getId());
+            final Rating oldRating = new Rating(rating);
             if (!rating.getApi().equals(ratingEntity.getApi())) {
                 throw new RatingNotFoundException(ratingEntity.getId(), ratingEntity.getApi());
             }
@@ -165,7 +173,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             if (isBlank(rating.getComment())) {
                 rating.setComment(ratingEntity.getComment());
             }
-            return convert(ratingRepository.update(rating));
+            Rating updatedRating = ratingRepository.update(rating);
+            auditService.createApiAuditLog(rating.getApi(), null, Rating.RatingEvent.RATING_UPDATED, updatedRating.getUpdatedAt(), oldRating, updatedRating);
+            return convert(updatedRating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to update rating {}", ratingEntity.getId(), ex);
             throw new TechnicalManagementException("An error occurred while trying to update rating " + ratingEntity.getId(), ex);
@@ -175,8 +185,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     @Override
     public void delete(final String id) {
         try {
-            findById(id);
+            Rating rating = findById(id);
             ratingRepository.delete(id);
+            auditService.createApiAuditLog(rating.getApi(), null, Rating.RatingEvent.RATING_DELETED, new Date(), rating, null);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete rating {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete rating " + id, ex);
@@ -186,8 +197,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     @Override
     public void deleteAnswer(final String ratingId, final String answerId) {
         try {
-            findById(ratingId);
+            Rating rating = findById(ratingId);
             ratingAnswerRepository.delete(answerId);
+            auditService.createApiAuditLog(rating.getApi(), null, RatingAnswer.RatingAnswerEvent.RATING_ANSWER_DELETED, new Date(), rating, null);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete rating answer {}", answerId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete rating answer " + answerId, ex);

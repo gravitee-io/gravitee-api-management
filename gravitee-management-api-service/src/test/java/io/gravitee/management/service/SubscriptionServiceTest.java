@@ -85,6 +85,9 @@ public class SubscriptionServiceTest {
     private EmailService emailService;
     @Mock
     private ConfigurableEnvironment environment;
+    @Mock
+    private AuditService auditService;
+
 
     @Test
     public void shouldFindById() throws TechnicalException {
@@ -402,6 +405,8 @@ public class SubscriptionServiceTest {
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
 
         // Run
         subscriptionService.update(updatedSubscription);
@@ -431,6 +436,8 @@ public class SubscriptionServiceTest {
         when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKeyEntity));
         when(apiKeyEntity.isRevoked()).thenReturn(false);
         when(apiKeyEntity.getExpireAt()).thenReturn(null);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
 
         // Run
         subscriptionService.update(updatedSubscription);
@@ -461,6 +468,8 @@ public class SubscriptionServiceTest {
         when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKeyEntity));
         when(apiKeyEntity.isRevoked()).thenReturn(true);
         when(apiKeyEntity.getExpireAt()).thenReturn(null);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
 
         // Run
         subscriptionService.update(updatedSubscription);
@@ -491,6 +500,8 @@ public class SubscriptionServiceTest {
         when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKeyEntity));
         when(apiKeyEntity.isRevoked()).thenReturn(false);
         when(apiKeyEntity.getExpireAt()).thenReturn(new Date());
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
 
         // Run
         subscriptionService.update(updatedSubscription);

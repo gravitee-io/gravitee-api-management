@@ -58,6 +58,10 @@ public class PlanService_DeleteTest {
     @Mock
     private SubscriptionEntity subscription;
 
+    @Mock
+    private AuditService auditService;
+
+
     @Test(expected = PlanWithSubscriptionsException.class)
     public void shouldNotDeleteBecauseSubscriptionsExist() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);

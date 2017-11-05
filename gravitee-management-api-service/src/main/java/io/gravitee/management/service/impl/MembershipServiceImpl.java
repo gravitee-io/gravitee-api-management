@@ -22,6 +22,7 @@ import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
@@ -31,17 +32,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.gravitee.management.model.permissions.SystemRole.PRIMARY_OWNER;
+import static io.gravitee.repository.management.model.Membership.AuditEvent.*;
+import static io.gravitee.repository.management.model.MembershipReferenceType.API;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class MembershipServiceImpl extends TransactionalService implements MembershipService {
+public class MembershipServiceImpl extends AbstractService implements MembershipService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(MembershipServiceImpl.class);
 
@@ -68,6 +70,9 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope) {
@@ -162,7 +167,7 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
             LOGGER.debug("Add a new member for {} {}", referenceType, referenceId);
 
             RoleEntity roleEntity = roleService.findById(roleScope, roleName);
-            if (MembershipReferenceType.API.equals(referenceType)
+            if (API.equals(referenceType)
                     && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())) {
                 throw new NotAuthorizedMembershipException(roleName);
             } else if (MembershipReferenceType.APPLICATION.equals(referenceType)
@@ -201,15 +206,19 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
             Date updateDate = new Date();
             Membership returnedMembership;
             if (optionalMembership.isPresent()) {
-                optionalMembership.get().getRoles().put(roleScope.getId(), roleName);
-                optionalMembership.get().setUpdatedAt(updateDate);
+                Membership updatedMembership = optionalMembership.get();
+                Membership previousMembership = new Membership(updatedMembership);
+                updatedMembership.getRoles().put(roleScope.getId(), roleName);
+                updatedMembership.setUpdatedAt(updateDate);
                 returnedMembership = membershipRepository.update(optionalMembership.get());
+                createAuditLog(MEMBERSHIP_UPDATED, updatedMembership.getUpdatedAt(), previousMembership, updatedMembership);
             } else {
                 Membership membership = new Membership(username, referenceId, referenceType);
                 membership.setRoles(Collections.singletonMap(roleScope.getId(), roleName));
                 membership.setCreatedAt(updateDate);
                 membership.setUpdatedAt(updateDate);
                 returnedMembership = membershipRepository.create(membership);
+                createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
             }
 
             if (user.getEmail() != null && !user.getEmail().isEmpty()) {
@@ -236,13 +245,14 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
                 RoleEntity roleEntity = this.getRole(referenceType, referenceId, username, roleScope);
                 if (roleEntity != null && PRIMARY_OWNER.name().equals(roleEntity.getName())) {
                     throw new SinglePrimaryOwnerException(
-                            referenceType.equals(MembershipReferenceType.API)
+                            referenceType.equals(API)
                                     ? RoleScope.API : RoleScope.APPLICATION
                     );
                 }
             }
-            membershipRepository.delete(new Membership(username, referenceId, referenceType));
-
+            Membership membership = new Membership(username, referenceId, referenceType);
+            membershipRepository.delete(membership);
+            createAuditLog(MEMBERSHIP_DELETED, new Date(), membership, null);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete member {} for {} {}", username, referenceType, referenceId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for " + referenceType + " " + referenceId, ex);
@@ -254,18 +264,18 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
         RoleEntity defaultRole = roleService.findDefaultRoleByScopes(RoleScope.API).get(0);
 
         // Set the new primary owner
-        this.addOrUpdateMember(MembershipReferenceType.API, apiId, username, RoleScope.API, PRIMARY_OWNER.name());
+        this.addOrUpdateMember(API, apiId, username, RoleScope.API, PRIMARY_OWNER.name());
 
         // Update the role for previous primary_owner
-        this.getMembers(MembershipReferenceType.API, apiId, RoleScope.API, PRIMARY_OWNER.name())
+        this.getMembers(API, apiId, RoleScope.API, PRIMARY_OWNER.name())
                 .stream()
                 .filter(memberEntity -> ! memberEntity.getUsername().equals(username))
-                .forEach(m -> this.addOrUpdateMember(MembershipReferenceType.API, apiId, m.getUsername(), RoleScope.API, defaultRole.getName()));
+                .forEach(m -> this.addOrUpdateMember(API, apiId, m.getUsername(), RoleScope.API, defaultRole.getName()));
     }
 
     @Override
     public Map<String, char[]> getMemberPermissions(ApiEntity api, String username) {
-        return getMemberPermissions(MembershipReferenceType.API,
+        return getMemberPermissions(API,
                 api.getId(),
                 username,
                 api.getGroups(),
@@ -287,11 +297,14 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
             Optional<Membership> optionalMembership = membershipRepository.findById(username, referenceType, referenceId);
             if (optionalMembership.isPresent()) {
                 Membership membership = optionalMembership.get();
+                Membership previousMembership = new Membership(membership);
                 membership.getRoles().remove(roleScope.getId());
+                membership.setUpdatedAt(new Date());
                 if (membership.getRoles().isEmpty()) {
                     throw new MemberWithoutRoleException(membership.getUserId());
                 } else {
                     membershipRepository.update(membership);
+                    createAuditLog(MEMBERSHIP_UPDATED, membership.getUpdatedAt(), previousMembership, membership);
                     return true;
                 }
             }
@@ -415,10 +428,58 @@ public class MembershipServiceImpl extends TransactionalService implements Membe
             return RoleScope.MANAGEMENT;
         } else if (MembershipReferenceType.APPLICATION.equals(type)) {
             return RoleScope.APPLICATION;
-        } else if (MembershipReferenceType.API.equals(type)) {
+        } else if (API.equals(type)) {
             return RoleScope.API;
         } else {
             throw new TechnicalManagementException("the MembershipType is not associated to a RoleScope");
+        }
+    }
+
+    private void createAuditLog(Audit.AuditEvent event, Date date, Membership oldValue, Membership newValue) {
+        MembershipReferenceType referenceType = oldValue != null ? oldValue.getReferenceType() : newValue.getReferenceType();
+        String referenceId = oldValue != null ? oldValue.getReferenceId() : newValue.getReferenceId();
+        String username = oldValue != null ? oldValue.getUserId() : newValue.getUserId();
+
+        Map<Audit.AuditProperties, String> properties = new HashMap<>();
+        properties.put(Audit.AuditProperties.USER, username);
+        switch (referenceType) {
+            case API:
+                auditService.createApiAuditLog(
+                        referenceId,
+                        properties,
+                        event,
+                        date,
+                        oldValue,
+                        newValue);
+                break;
+            case APPLICATION:
+                auditService.createApplicationAuditLog(
+                        referenceId,
+                        properties,
+                        event,
+                        date,
+                        oldValue,
+                        newValue);
+                break;
+            case GROUP:
+                properties.put(Audit.AuditProperties.GROUP, referenceId);
+                auditService.createPortalAuditLog(
+                        properties,
+                        event,
+                        isAuthenticated()?getAuthenticatedUsername():username,
+                        date,
+                        oldValue,
+                        newValue);
+                break;
+            default:
+                auditService.createPortalAuditLog(
+                        properties,
+                        event,
+                        isAuthenticated()?getAuthenticatedUsername():username,
+                        date,
+                        oldValue,
+                        newValue);
+                break;
         }
     }
 }

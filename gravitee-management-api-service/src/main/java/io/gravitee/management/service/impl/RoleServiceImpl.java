@@ -19,6 +19,7 @@ import io.gravitee.management.model.NewRoleEntity;
 import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.UpdateRoleEntity;
 import io.gravitee.management.model.permissions.*;
+import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.RoleService;
 import io.gravitee.management.service.exceptions.RoleAlreadyExistsException;
 import io.gravitee.management.service.exceptions.RoleNotFoundException;
@@ -34,23 +35,32 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.gravitee.management.model.permissions.RolePermissionAction.*;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ROLE;
+import static io.gravitee.repository.management.model.Role.AuditEvent.ROLE_CREATED;
+import static io.gravitee.repository.management.model.Role.AuditEvent.ROLE_DELETED;
+import static io.gravitee.repository.management.model.Role.AuditEvent.ROLE_UPDATED;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class RoleServiceImpl extends TransactionalService implements RoleService {
+public class RoleServiceImpl extends AbstractService implements RoleService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(RoleServiceImpl.class);
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public RoleEntity findById(final RoleScope scope, final String name) {
@@ -88,7 +98,16 @@ public class RoleServiceImpl extends TransactionalService implements RoleService
             if (roleRepository.findById(role.getScope(), role.getName()).isPresent()) {
                 throw new RoleAlreadyExistsException(role.getScope(), role.getName());
             }
+            role.setCreatedAt(new Date());
+            role.setUpdatedAt(role.getCreatedAt());
             RoleEntity entity = convert(roleRepository.create(role));
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
+                    ROLE_CREATED,
+                    isAuthenticated() ? getAuthenticatedUsername() : "init",
+                    role.getCreatedAt(),
+                    null,
+                    role);
             if (entity.isDefaultRole()) {
                 toggleDefaultRole(convert(roleEntity.getScope()), entity.getName());
             }
@@ -100,7 +119,7 @@ public class RoleServiceImpl extends TransactionalService implements RoleService
     }
 
     @Override
-    public void createSystemRoles() {
+    public void createOrResetSystemRoles(boolean create) {
         try {
             Date now = new Date();
             Role systemRole;
@@ -112,7 +131,11 @@ public class RoleServiceImpl extends TransactionalService implements RoleService
                 perms.put(managementPermission.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             }
             systemRole.setPermissions(convertPermissions(io.gravitee.management.model.permissions.RoleScope.MANAGEMENT , perms));
-            roleRepository.create(systemRole);
+            if(create) {
+                roleRepository.create(systemRole);
+            } else {
+                roleRepository.update(systemRole);
+            }
 
             //PORTAL - ADMIN
             systemRole = createSystemRoleWithoutPermissions(SystemRole.ADMIN.name(), RoleScope.PORTAL, now);
@@ -121,7 +144,11 @@ public class RoleServiceImpl extends TransactionalService implements RoleService
                 perms.put(portalPermission.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             }
             systemRole.setPermissions(convertPermissions(io.gravitee.management.model.permissions.RoleScope.PORTAL , perms));
-            roleRepository.create(systemRole);
+            if(create) {
+                roleRepository.create(systemRole);
+            } else {
+                roleRepository.update(systemRole);
+            }
 
             //API - PRIMARY_OWNER
             systemRole = createSystemRoleWithoutPermissions(SystemRole.PRIMARY_OWNER.name(), RoleScope.API, now);
@@ -130,7 +157,11 @@ public class RoleServiceImpl extends TransactionalService implements RoleService
                 perms.put(apiPermission.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             }
             systemRole.setPermissions(convertPermissions(io.gravitee.management.model.permissions.RoleScope.API , perms));
-            roleRepository.create(systemRole);
+            if(create) {
+                roleRepository.create(systemRole);
+            } else {
+                roleRepository.update(systemRole);
+            }
 
             //APPLICATION - PRIMARY_OWNER
             systemRole = createSystemRoleWithoutPermissions(SystemRole.PRIMARY_OWNER.name(), RoleScope.APPLICATION, now);
@@ -139,8 +170,11 @@ public class RoleServiceImpl extends TransactionalService implements RoleService
                 perms.put(applicationPermission.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             }
             systemRole.setPermissions(convertPermissions(io.gravitee.management.model.permissions.RoleScope.APPLICATION , perms));
-            roleRepository.create(systemRole);
-
+            if(create) {
+                roleRepository.create(systemRole);
+            } else {
+                roleRepository.update(systemRole);
+            }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create admin roles", ex);
             throw new TechnicalManagementException("An error occurs while trying to create admin roles ", ex);
@@ -154,11 +188,20 @@ public class RoleServiceImpl extends TransactionalService implements RoleService
         }
         RoleScope scope = convert(roleEntity.getScope());
         try {
-            Optional<Role> role = roleRepository.findById(scope, roleEntity.getName());
-            if (!role.isPresent()) {
+            Optional<Role> optRole = roleRepository.findById(scope, roleEntity.getName());
+            if (!optRole.isPresent()) {
                 throw new RoleNotFoundException(scope, roleEntity.getName());
             }
-            RoleEntity entity = convert(roleRepository.update(convert(roleEntity)));
+            Role role = optRole.get();
+            Role updatedRole = convert(roleEntity);
+            updatedRole.setCreatedAt(role.getCreatedAt());
+            RoleEntity entity = convert(roleRepository.update(updatedRole));
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(ROLE, role.getScope()+":"+role.getName()),
+                    ROLE_UPDATED,
+                    updatedRole.getUpdatedAt(),
+                    role,
+                    updatedRole);
             if (entity.isDefaultRole()) {
                 toggleDefaultRole(scope, entity.getName());
             }
@@ -175,11 +218,18 @@ public class RoleServiceImpl extends TransactionalService implements RoleService
             throw new RoleReservedNameException(SystemRole.ADMIN.name());
         }
         try {
-            Optional<Role> role = roleRepository.findById(scope, name);
-            if (!role.isPresent()) {
+            Optional<Role> optRole = roleRepository.findById(scope, name);
+            if (!optRole.isPresent()) {
                 throw new RoleNotFoundException(scope, name);
             }
+            Role role = optRole.get();
             roleRepository.delete(scope, name);
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(ROLE, role.getScope()+":"+role.getName()),
+                    ROLE_DELETED,
+                    role.getUpdatedAt(),
+                    role,
+                    null);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete role {}/{}", scope, name, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete role " + scope + "/" + name, ex);
@@ -247,9 +297,16 @@ public class RoleServiceImpl extends TransactionalService implements RoleService
                 collect(Collectors.toList());
         for (Role role : roles) {
             if(!role.getName().equals(newDefaultRoleName)) {
+                Role previousRole = new Role(role);
                 role.setDefaultRole(false);
                 role.setUpdatedAt(new Date());
                 roleRepository.update(role);
+                auditService.createPortalAuditLog(
+                        Collections.singletonMap(ROLE, role.getScope()+":"+role.getName()),
+                        ROLE_UPDATED,
+                        role.getUpdatedAt(),
+                        previousRole,
+                        role);
             }
         }
     }

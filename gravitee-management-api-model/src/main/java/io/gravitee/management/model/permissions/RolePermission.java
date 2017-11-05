@@ -28,6 +28,7 @@ public enum RolePermission {
     MANAGEMENT_ROLE         (RoleScope.MANAGEMENT, ManagementPermission.ROLE),
     MANAGEMENT_APPLICATION  (RoleScope.MANAGEMENT, ManagementPermission.APPLICATION),
     MANAGEMENT_PLATFORM     (RoleScope.MANAGEMENT, ManagementPermission.PLATFORM),
+    MANAGEMENT_AUDIT        (RoleScope.MANAGEMENT, ManagementPermission.AUDIT),
 
     PORTAL_METADATA         (RoleScope.PORTAL, PortalPermission.METADATA),
     PORTAL_DOCUMENTATION    (RoleScope.PORTAL, PortalPermission.DOCUMENTATION),
@@ -45,6 +46,7 @@ public enum RolePermission {
     API_LOG                 (RoleScope.API, ApiPermission.LOG),
     API_DOCUMENTATION       (RoleScope.API, ApiPermission.DOCUMENTATION),
     API_GATEWAY_DEFINITION  (RoleScope.API, ApiPermission.GATEWAY_DEFINITION),
+    API_AUDIT               (RoleScope.API, ApiPermission.AUDIT),
     API_RATING              (RoleScope.API, ApiPermission.RATING),
     API_RATING_ANSWER       (RoleScope.API, ApiPermission.RATING_ANSWER),
 

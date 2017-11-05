@@ -84,6 +84,8 @@ public class UserServiceTest {
     private User user;
     @Mock
     private Date date;
+    @Mock
+    private AuditService auditService;
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {

@@ -21,8 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Path;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.Visibility;
-import io.gravitee.management.service.MembershipService;
+import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.SubscriptionService;
 import io.gravitee.management.service.exceptions.*;
@@ -37,6 +36,9 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.gravitee.repository.management.model.Audit.AuditProperties.PLAN;
+import static io.gravitee.repository.management.model.Plan.AuditEvent.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -61,7 +63,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     private ObjectMapper objectMapper;
 
     @Autowired
-    private MembershipService membershipService;
+    private AuditService auditService;
 
     @Override
     public PlanEntity findById(String plan) {
@@ -131,6 +133,14 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setDefinition(planPolicies);
 
             plan = planRepository.create(plan);
+
+            auditService.createApiAuditLog(
+                    newPlan.getApi(),
+                    Collections.singletonMap(PLAN, plan.getId()),
+                    PLAN_CREATED,
+                    plan.getCreatedAt(),
+                    null,
+                    plan);
             return convert(plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to create a plan {} for API {}", newPlan.getName(), newPlan.getApi(), ex);
@@ -152,34 +162,54 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             if (! optPlan.isPresent()) {
                 throw new PlanNotFoundException(updatePlan.getId());
             }
+            Plan oldPlan = optPlan.get();
 
-            Plan plan = optPlan.get();
-            plan.setName(updatePlan.getName());
-            plan.setDescription(updatePlan.getDescription());
-            plan.setUpdatedAt(new Date());
+            Plan newPlan = new Plan();
+            //copy immutable values
+            newPlan.setId(oldPlan.getId());
+            newPlan.setSecurity(oldPlan.getSecurity());
+            newPlan.setType(oldPlan.getType());
+            newPlan.setStatus(oldPlan.getStatus());
+            newPlan.setOrder(oldPlan.getOrder());
+            newPlan.setApis(oldPlan.getApis());
+            newPlan.setCreatedAt(oldPlan.getCreatedAt());
+            newPlan.setPublishedAt(oldPlan.getPublishedAt());
+            newPlan.setClosedAt(oldPlan.getClosedAt());
+
+            // update datas
+            newPlan.setName(updatePlan.getName());
+            newPlan.setDescription(updatePlan.getDescription());
+            newPlan.setUpdatedAt(new Date());
 
             String planPolicies = objectMapper.writeValueAsString(updatePlan.getPaths());
-            plan.setDefinition(planPolicies);
+            newPlan.setDefinition(planPolicies);
 
-            plan.setExcludedGroups(updatePlan.getExcludedGroups());
+            newPlan.setExcludedGroups(updatePlan.getExcludedGroups());
 
-            if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
+            if (newPlan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // There is no need for a validation when authentication is KEY_LESS, force to AUTO
-                plan.setValidation(Plan.PlanValidationType.AUTO);
+                newPlan.setValidation(Plan.PlanValidationType.AUTO);
             } else {
-                plan.setValidation(Plan.PlanValidationType.valueOf(updatePlan.getValidation().name()));
+                newPlan.setValidation(Plan.PlanValidationType.valueOf(updatePlan.getValidation().name()));
             }
 
-            plan.setCharacteristics(updatePlan.getCharacteristics());
+            newPlan.setCharacteristics(updatePlan.getCharacteristics());
 
             // if order change, reorder all pages
-            if (plan.getOrder() != updatePlan.getOrder()) {
-                plan.setOrder(updatePlan.getOrder());
-                reorderAndSavePlans(plan);
+            if (newPlan.getOrder() != updatePlan.getOrder()) {
+                newPlan.setOrder(updatePlan.getOrder());
+                reorderAndSavePlans(newPlan);
                 return null;
             } else {
-                plan = planRepository.update(plan);
-                return convert(plan);
+                newPlan = planRepository.update(newPlan);
+                auditService.createApiAuditLog(
+                        newPlan.getApis().iterator().next(),
+                        Collections.singletonMap(PLAN, newPlan.getId()),
+                        PLAN_UPDATED,
+                        newPlan.getUpdatedAt(),
+                        oldPlan,
+                        newPlan);
+                return convert(newPlan);
             }
 
         } catch (TechnicalException ex) {
@@ -204,6 +234,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             }
 
             Plan plan = optPlan.get();
+            Plan previousPlan = new Plan(plan);
+
             if (plan.getStatus() == Plan.Status.CLOSED) {
                 throw new PlanAlreadyClosedException(planId);
             }
@@ -236,6 +268,15 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             // Save plan
             plan = planRepository.update(plan);
 
+            // Audit
+            auditService.createApiAuditLog(
+                    plan.getApis().iterator().next(),
+                    Collections.singletonMap(PLAN, plan.getId()),
+                    PLAN_CLOSED,
+                    plan.getUpdatedAt(),
+                    previousPlan,
+                    plan);
+
             //reorder plan
             reorderedAndSavePlansAfterRemove(optPlan.get());
 
@@ -266,7 +307,14 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Delete plan
             planRepository.delete(plan);
-
+            // Audit
+            auditService.createApiAuditLog(
+                    optPlan.get().getApis().iterator().next(),
+                    Collections.singletonMap(PLAN, optPlan.get().getId()),
+                    PLAN_DELETED,
+                    new Date(),
+                    optPlan.get(),
+                    null);
             //reorder plan
             reorderedAndSavePlansAfterRemove(optPlan.get());
         } catch (TechnicalException ex) {
@@ -287,6 +335,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             }
 
             Plan plan = optPlan.get();
+            Plan previousPlan = new Plan(plan);
             if (plan.getStatus() == Plan.Status.CLOSED) {
                 throw new PlanAlreadyClosedException(planId);
             } else if (plan.getStatus() == Plan.Status.PUBLISHED) {
@@ -321,6 +370,16 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Save plan
             plan = planRepository.update(plan);
+
+            // Audit
+            auditService.createApiAuditLog(
+                    plan.getApis().iterator().next(),
+                    Collections.singletonMap(PLAN, plan.getId()),
+                    PLAN_PUBLISHED,
+                    plan.getUpdatedAt(),
+                    previousPlan,
+                    plan);
+
             return convert(plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to publish plan: {}", planId, ex);

@@ -378,6 +378,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiRatingResource.class);
     }
 
+    @Path("audit")
+    public ApiAuditResource getApiAuditResource() {
+        return resourceContext.getResource(ApiAuditResource.class);
+    }
+
     private void setSynchronizationState(io.gravitee.management.rest.model.ApiEntity apiEntity) {
         if (apiService.isSynchronized(apiEntity.getApiId())) {
             apiEntity.setIsSynchronized(true);

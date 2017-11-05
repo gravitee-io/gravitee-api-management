@@ -69,6 +69,10 @@ public class MembershipService_AddOrUpdateMemberTest {
     @Mock
     private GroupService groupService;
 
+    @Mock
+    private AuditService auditService;
+
+
     @Test
     public void shouldAddApiGroupMembership() throws Exception {
         UserEntity userEntity = new UserEntity();
@@ -105,6 +109,8 @@ public class MembershipService_AddOrUpdateMemberTest {
         userEntity.setEmail("me@mail.com");
         Membership membership = new Membership();
         membership.setUserId(userEntity.getUsername());
+        membership.setReferenceType(MembershipReferenceType.GROUP);
+        membership.setReferenceId(GROUP_ID);
         Map<Integer, String> roles = new HashMap<>();
         roles.put(RoleScope.API.getId(), "USER");
         membership.setRoles(roles);

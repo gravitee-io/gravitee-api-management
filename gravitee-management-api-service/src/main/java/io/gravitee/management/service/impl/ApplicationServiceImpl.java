@@ -35,6 +35,10 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_ARCHIVED;
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_DELETED;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonMap;
 
@@ -45,7 +49,7 @@ import static java.util.Collections.singletonMap;
  * @author GraviteeSource Team
  */
 @Component
-public class ApplicationServiceImpl extends TransactionalService implements ApplicationService {
+public class ApplicationServiceImpl extends AbstractService implements ApplicationService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ApplicationServiceImpl.class);
 
@@ -66,6 +70,9 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
 
     @Autowired
     private ApiKeyService apiKeyService;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public ApplicationEntity findById(String applicationId) {
@@ -210,6 +217,15 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             application.setUpdatedAt(application.getCreatedAt());
 
             Application createdApplication = applicationRepository.create(application);
+            // Audit
+            auditService.createApplicationAuditLog(
+                    createdApplication.getId(),
+                    Collections.emptyMap(),
+                    APPLICATION_CREATED,
+                    isAuthenticated()?getAuthenticatedUsername():username,
+                    createdApplication.getCreatedAt(),
+                    null,
+                    createdApplication);
 
             // Add the primary owner of the newly created API
             Membership membership = new Membership(username, createdApplication.getId(), MembershipReferenceType.APPLICATION);
@@ -217,7 +233,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             membership.setCreatedAt(application.getCreatedAt());
             membership.setUpdatedAt(application.getCreatedAt());
             membershipRepository.create(membership);
-
+            //TODO add membership log
             return convert(createdApplication, userService.findByName(username, false));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, username, ex);
@@ -245,6 +261,14 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             application.setUpdatedAt(new Date());
 
             Application updatedApplication =  applicationRepository.update(application);
+            // Audit
+            auditService.createApplicationAuditLog(
+                    updatedApplication.getId(),
+                    Collections.emptyMap(),
+                    APPLICATION_CREATED,
+                    updatedApplication.getUpdatedAt(),
+                    optApplicationToUpdate.get(),
+                    updatedApplication);
             return convert(Collections.singleton(updatedApplication)).iterator().next();
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update application {}", applicationId, ex);
@@ -263,6 +287,7 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
                 throw new ApplicationNotFoundException(applicationId);
             }
             Application application = optApplication.get();
+            Application previousApplication = new Application(application);
             Set<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(applicationId, null);
 
             subscriptions.forEach(subscription -> {
@@ -287,6 +312,14 @@ public class ApplicationServiceImpl extends TransactionalService implements Appl
             application.setUpdatedAt(new Date());
             application.setStatus(ApplicationStatus.ARCHIVED);
             applicationRepository.update(application);
+            // Audit
+            auditService.createApplicationAuditLog(
+                    application.getId(),
+                    Collections.emptyMap(),
+                    APPLICATION_ARCHIVED,
+                    application.getUpdatedAt(),
+                    previousApplication,
+                    application);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete application {}", applicationId, ex);
             throw new TechnicalManagementException(String.format(

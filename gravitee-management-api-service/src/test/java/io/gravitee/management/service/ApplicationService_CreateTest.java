@@ -73,6 +73,9 @@ public class ApplicationService_CreateTest {
     @Mock
     private Application application;
 
+    @Mock
+    private AuditService auditService;
+
     @Test
     public void shouldCreateForUser() throws TechnicalException {
         when(application.getName()).thenReturn(APPLICATION_NAME);

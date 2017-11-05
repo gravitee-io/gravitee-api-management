@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -55,7 +56,7 @@ import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFA
  * @author GraviteeSource Team
  */
 @Component
-public class UserServiceImpl extends TransactionalService implements UserService {
+public class UserServiceImpl extends AbstractService implements UserService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
@@ -77,6 +78,9 @@ public class UserServiceImpl extends TransactionalService implements UserService
     @Autowired
     private MembershipService membershipService;
 
+    @Autowired
+    private AuditService auditService;
+
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
 
@@ -92,7 +96,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
             }
 
             User user = checkUser.get();
-
+            User previousUser = new User(user);
             // First connection: create default application for user
             if (defaultApplicationForFirstConnection && user.getLastConnectionAt() == null) {
                 LOGGER.debug("Create a default application for {}", username);
@@ -107,6 +111,13 @@ public class UserServiceImpl extends TransactionalService implements UserService
             user.setUpdatedAt(user.getLastConnectionAt());
 
             User updatedUser = userRepository.update(user);
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(USER, username),
+                    User.AuditEvent.USER_CONNECTED,
+                    isAuthenticated()?getAuthenticatedUsername():username,
+                    user.getUpdatedAt(),
+                    previousUser,
+                    user);
             return convert(updatedUser, true);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to connect {}", username, ex);
@@ -194,8 +205,15 @@ public class UserServiceImpl extends TransactionalService implements UserService
 
             // Set date fields
             user.setUpdatedAt(new Date());
-
-            return convert(userRepository.update(user), true);
+            user = userRepository.update(user);
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(USER, user.getUsername()),
+                    User.AuditEvent.USER_CREATED,
+                    isAuthenticated()?getAuthenticatedUsername():user.getUsername(),
+                    user.getUpdatedAt(),
+                    null,
+                    user);
+            return convert(user, true);
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to create an internal user with the token {}", registerUserEntity.getToken(), ex);
             throw new TechnicalManagementException(ex.getMessage(), ex);
@@ -223,7 +241,13 @@ public class UserServiceImpl extends TransactionalService implements UserService
             user.setUpdatedAt(user.getCreatedAt());
 
             User createdUser = userRepository.create(user);
-
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(USER, user.getUsername()),
+                    User.AuditEvent.USER_CREATED,
+                    isAuthenticated()?getAuthenticatedUsername():newExternalUserEntity.getUsername(),
+                    user.getCreatedAt(),
+                    null,
+                    user);
             if (addDefaultRole) {
                 addDefaultMembership(createdUser);
             }
@@ -334,6 +358,7 @@ public class UserServiceImpl extends TransactionalService implements UserService
             }
 
             User user = checkUser.get();
+            User previousUser = new User(user);
 
             // Set date fields
             user.setUpdatedAt(new Date());
@@ -342,6 +367,12 @@ public class UserServiceImpl extends TransactionalService implements UserService
             user.setPicture(updateUserEntity.getPicture());
 
             User updatedUser = userRepository.update(user);
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(USER, user.getUsername()),
+                    User.AuditEvent.USER_UPDATED,
+                    user.getUpdatedAt(),
+                    previousUser,
+                    user);
             return convert(updatedUser, true);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update {}", updateUserEntity, ex);

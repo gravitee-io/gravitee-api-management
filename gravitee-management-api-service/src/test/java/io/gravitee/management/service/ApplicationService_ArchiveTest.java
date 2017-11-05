@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.ApiKeyEntity;
+import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
@@ -65,6 +66,9 @@ public class ApplicationService_ArchiveTest {
 
     @Mock
     private ApiKeyEntity apiKeyEntity;
+
+    @Mock
+    private AuditService auditService;
 
     @Test
     public void shouldArchive() throws TechnicalException {

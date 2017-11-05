@@ -19,14 +19,16 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.PageServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.model.Page;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import java.util.Optional;
+
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -44,8 +46,16 @@ public class PageService_DeleteTest {
     @Mock
     private PageRepository pageRepository;
 
+    @Mock
+    private AuditService auditService;
+
+
     @Test
     public void shouldDeletePage() throws TechnicalException {
+        Page page = mock(Page.class);
+        when(page.getId()).thenReturn(PAGE_ID);
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
+
         pageService.delete(PAGE_ID);
 
         verify(pageRepository).delete(PAGE_ID);
@@ -53,6 +63,9 @@ public class PageService_DeleteTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotDeletePageBecauseTechnicalException() throws TechnicalException {
+        Page page = mock(Page.class);
+        when(page.getId()).thenReturn(PAGE_ID);
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
         doThrow(TechnicalException.class).when(pageRepository).delete(PAGE_ID);
 
         pageService.delete(PAGE_ID);

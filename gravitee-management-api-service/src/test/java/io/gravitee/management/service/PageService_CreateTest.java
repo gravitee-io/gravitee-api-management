@@ -62,6 +62,10 @@ public class PageService_CreateTest {
     @Mock
     private Page page1;
 
+    @Mock
+    private AuditService auditService;
+
+
     @Test
     public void shouldCreatePage() throws TechnicalException {
         final String name = "MARKDOWN";

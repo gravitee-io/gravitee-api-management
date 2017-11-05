@@ -20,6 +20,7 @@ import io.gravitee.management.model.MetadataEntity;
 import io.gravitee.management.model.MetadataFormat;
 import io.gravitee.management.model.NewMetadataEntity;
 import io.gravitee.management.model.UpdateMetadataEntity;
+import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.MetadataService;
 import io.gravitee.management.service.exceptions.DuplicateMetadataNameException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -35,11 +36,16 @@ import org.springframework.stereotype.Component;
 import javax.mail.internet.InternetAddress;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_CREATED;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_DELETED;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_UPDATED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
@@ -55,6 +61,9 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
 
     @Autowired
     private MetadataRepository metadataRepository;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public List<MetadataEntity> findAllDefault() {
@@ -92,7 +101,15 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             final Date now = new Date();
             metadata.setCreatedAt(now);
             metadata.setUpdatedAt(now);
-            return convert(metadataRepository.create(metadata));
+            metadataRepository.create(metadata);
+            // Audit
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(METADATA, metadata.getKey()),
+                    METADATA_CREATED,
+                    metadata.getCreatedAt(),
+                    null,
+                    metadata);
+            return convert(metadata);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to create metadata {}", metadataEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurred while trying to create metadata " + metadataEntity.getName(), ex);
@@ -116,7 +133,15 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             final Metadata metadata = convert(metadataEntity);
             final Date now = new Date();
             metadata.setUpdatedAt(now);
-            return convert(metadataRepository.update(metadata));
+            metadataRepository.update(metadata);
+            // Audit
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(METADATA, metadata.getKey()),
+                    METADATA_UPDATED,
+                    metadata.getCreatedAt(),
+                    null,
+                    metadata);
+            return convert(metadata);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to update metadata {}", metadataEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurred while trying to update metadata " + metadataEntity.getName(), ex);
@@ -126,15 +151,32 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     @Override
     public void delete(final String key) {
         try {
-            metadataRepository.delete(key, DEFAUT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
+            final Optional<Metadata> optMetadata = metadataRepository.findById(key, DEFAUT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
+            if (optMetadata.isPresent()) {
+                metadataRepository.delete(key, DEFAUT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
+                // Audit
+                auditService.createPortalAuditLog(
+                        Collections.singletonMap(METADATA, key),
+                        METADATA_DELETED,
+                        new Date(),
+                        optMetadata.get(),
+                        null);
+                // delete all overridden API metadata
+                final List<Metadata> apiMetadata = metadataRepository.findByKeyAndReferenceType(key, MetadataReferenceType.API);
 
-            // delete all overridden API metadata
-            final List<Metadata> apiMetadata = metadataRepository.findByKeyAndReferenceType(key, MetadataReferenceType.API);
-
-            for (final Metadata metadata : apiMetadata) {
-                metadataRepository.delete(key, metadata.getReferenceId(), metadata.getReferenceType());
+                for (final Metadata metadata : apiMetadata) {
+                    metadataRepository.delete(key, metadata.getReferenceId(), metadata.getReferenceType());
+                    // Audit
+                    auditService.createApiAuditLog(
+                            metadata.getReferenceId(),
+                            Collections.singletonMap(METADATA, key),
+                            METADATA_DELETED,
+                            new Date(),
+                            metadata,
+                            null);
+                }
             }
-        } catch (TechnicalException ex) {
+        } catch(TechnicalException ex){
             LOGGER.error("An error occurs while trying to delete metadata {}", key, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete metadata " + key, ex);
         }
@@ -231,5 +273,9 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         metadata.setReferenceType(MetadataReferenceType.DEFAULT);
 
         return metadata;
+    }
+
+    static String getDefautReferenceId() {
+        return DEFAUT_REFERENCE_ID;
     }
 }

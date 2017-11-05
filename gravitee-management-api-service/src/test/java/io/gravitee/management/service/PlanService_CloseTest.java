@@ -63,6 +63,10 @@ public class PlanService_CloseTest {
     @Mock
     private SubscriptionEntity subscription;
 
+    @Mock
+    private AuditService auditService;
+
+
     @Test(expected = PlanNotFoundException.class)
     public void shouldNotCloseBecauseNotFound() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());

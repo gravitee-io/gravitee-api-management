@@ -49,6 +49,11 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_DELETED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -97,6 +102,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private SubscriptionService subscriptionService;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
@@ -168,6 +176,14 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 }
 
                 Api createdApi = apiRepository.create(repoApi);
+                // Audit
+                auditService.createApiAuditLog(
+                        createdApi.getId(),
+                        Collections.emptyMap(),
+                        API_CREATED,
+                        createdApi.getCreatedAt(),
+                        null,
+                        createdApi);
 
                 // Add the primary owner of the newly created API
                 UserEntity primaryOwner = userService.findByName(username, false);
@@ -176,7 +192,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 membership.setCreatedAt(repoApi.getCreatedAt());
                 membership.setUpdatedAt(repoApi.getCreatedAt());
                 membershipRepository.create(membership);
-
+                //TODO add membership log
                 return convert(createdApi, primaryOwner, true);
             } else {
                 LOGGER.error("Unable to create API {} because of previous error.");
@@ -338,6 +354,16 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 }
 
                 Api updatedApi = apiRepository.update(api);
+
+                // Audit
+                auditService.createApiAuditLog(
+                        updatedApi.getId(),
+                        Collections.emptyMap(),
+                        API_UPDATED,
+                        updatedApi.getUpdatedAt(),
+                        apiToUpdate,
+                        updatedApi);
+
                 return convert(Collections.singleton(updatedApi), true).iterator().next();
             } else {
                 LOGGER.error("Unable to update API {} because of previous error.");
@@ -386,6 +412,14 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
                 // Delete API
                 apiRepository.delete(apiId);
+                // Audit
+                auditService.createApiAuditLog(
+                        apiId,
+                        Collections.emptyMap(),
+                        API_DELETED,
+                        new Date(),
+                        optApi.get(),
+                        null);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete API {}", apiId, ex);
@@ -764,8 +798,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Optional<Api> optApi = apiRepository.findById(apiId);
             if (optApi.isPresent()) {
                 Api api = optApi.get();
+                Api previousApi = new Api(api);
                 api.getViews().remove(viewId);
+                api.setUpdatedAt(new Date());
                 apiRepository.update(api);
+                // Audit
+                auditService.createApiAuditLog(
+                        apiId,
+                        Collections.emptyMap(),
+                        API_UPDATED,
+                        api.getUpdatedAt(),
+                        previousApi,
+                        api);
             } else {
                 throw new ApiNotFoundException(apiId);
             }
@@ -837,9 +881,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         Optional<Api> optApi = apiRepository.findById(apiId);
         if (optApi.isPresent()) {
             Api api = optApi.get();
+            Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
             apiRepository.update(api);
+            // Audit
+            auditService.createApiAuditLog(
+                    apiId,
+                    Collections.emptyMap(),
+                    API_UPDATED,
+                    api.getUpdatedAt(),
+                    previousApi,
+                    api);
 
             switch (lifecycleState) {
                 case STARTED:

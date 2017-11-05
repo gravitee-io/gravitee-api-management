@@ -20,6 +20,7 @@ import io.gravitee.management.model.NewViewEntity;
 import io.gravitee.management.model.UpdateViewEntity;
 import io.gravitee.management.model.ViewEntity;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.ViewService;
 import io.gravitee.management.service.exceptions.DuplicateViewNameException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -31,10 +32,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.gravitee.repository.management.model.Audit.AuditProperties.VIEW;
+import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_CREATED;
+import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_DELETED;
+import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_UPDATED;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -50,6 +54,9 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
 
     @Autowired
     private ApiService apiService;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public List<ViewEntity> findAll() {
@@ -82,7 +89,14 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         final List<ViewEntity> savedViews = new ArrayList<>(viewEntities.size());
         viewEntities.forEach(viewEntity -> {
             try {
-                savedViews.add(convert(viewRepository.create(convert(viewEntity))));
+                View view = convert(viewEntity);
+                savedViews.add(convert(viewRepository.create(view)));
+                auditService.createPortalAuditLog(
+                        Collections.singletonMap(VIEW, view.getId()),
+                        VIEW_CREATED,
+                        new Date(),
+                        null,
+                        view);
             } catch (TechnicalException ex) {
                 LOGGER.error("An error occurs while trying to create view {}", viewEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to create view " + viewEntity.getName(), ex);
@@ -96,7 +110,17 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         final List<ViewEntity> savedViews = new ArrayList<>(viewEntities.size());
         viewEntities.forEach(viewEntity -> {
             try {
-                savedViews.add(convert(viewRepository.update(convert(viewEntity))));
+                View view = convert(viewEntity);
+                Optional<View> viewOptional = viewRepository.findById(view.getId());
+                if (viewOptional.isPresent()) {
+                    savedViews.add(convert(viewRepository.update(view)));
+                    auditService.createPortalAuditLog(
+                            Collections.singletonMap(VIEW, view.getId()),
+                            VIEW_UPDATED,
+                            new Date(),
+                            viewOptional.get(),
+                            view);
+                }
             } catch (TechnicalException ex) {
                 LOGGER.error("An error occurs while trying to update view {}", viewEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to update view " + viewEntity.getName(), ex);
@@ -108,10 +132,20 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     @Override
     public void delete(final String viewId) {
         try {
-            viewRepository.delete(viewId);
+            Optional<View> viewOptional = viewRepository.findById(viewId);
+            if (viewOptional.isPresent()) {
+                viewRepository.delete(viewId);
+                auditService.createPortalAuditLog(
+                        Collections.singletonMap(VIEW, viewId),
+                        VIEW_DELETED,
+                        new Date(),
+                        null,
+                        viewOptional.get());
+                viewRepository.delete(viewId);
 
-            // delete all reference on APIs
-            apiService.deleteViewFromAPIs(viewId);
+                // delete all reference on APIs
+                apiService.deleteViewFromAPIs(viewId);
+            }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete view {}", viewId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete view " + viewId, ex);

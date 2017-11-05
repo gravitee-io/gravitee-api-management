@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.model.EventType;
+import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.mixin.ApiMixin;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -75,6 +76,9 @@ public class ApiService_StartTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private AuditService auditService;
 
     @Before
     public void setUp() {

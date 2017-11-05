@@ -20,21 +20,26 @@ import io.gravitee.management.model.NewTagEntity;
 import io.gravitee.management.model.UpdateTagEntity;
 import io.gravitee.management.model.TagEntity;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.TagService;
 import io.gravitee.management.service.exceptions.DuplicateTagNameException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TagRepository;
+import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.gravitee.repository.management.model.Audit.AuditProperties.TAG;
+import static io.gravitee.repository.management.model.Tag.AuditEvent.TAG_CREATED;
+import static io.gravitee.repository.management.model.Tag.AuditEvent.TAG_DELETED;
+import static io.gravitee.repository.management.model.Tag.AuditEvent.TAG_UPDATED;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -50,6 +55,9 @@ public class TagServiceImpl extends TransactionalService implements TagService {
 
     @Autowired
     private ApiService apiService;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public List<TagEntity> findAll() {
@@ -82,7 +90,14 @@ public class TagServiceImpl extends TransactionalService implements TagService {
         final List<TagEntity> savedTags = new ArrayList<>(tagEntities.size());
         tagEntities.forEach(tagEntity -> {
             try {
-                savedTags.add(convert(tagRepository.create(convert(tagEntity))));
+                Tag tag = convert(tagEntity);
+                savedTags.add(convert(tagRepository.create(tag)));
+                auditService.createPortalAuditLog(
+                        Collections.singletonMap(TAG, tag.getId()),
+                        TAG_CREATED,
+                        new Date(),
+                        null,
+                        tag);
             } catch (TechnicalException ex) {
                 LOGGER.error("An error occurs while trying to create tag {}", tagEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to create tag " + tagEntity.getName(), ex);
@@ -96,7 +111,17 @@ public class TagServiceImpl extends TransactionalService implements TagService {
         final List<TagEntity> savedTags = new ArrayList<>(tagEntities.size());
         tagEntities.forEach(tagEntity -> {
             try {
-                savedTags.add(convert(tagRepository.update(convert(tagEntity))));
+                Tag tag = convert(tagEntity);
+                Optional<Tag> tagOptional = tagRepository.findById(tag.getId());
+                if (tagOptional.isPresent()) {
+                    savedTags.add(convert(tagRepository.update(tag)));
+                    auditService.createPortalAuditLog(
+                            Collections.singletonMap(TAG, tag.getId()),
+                            TAG_UPDATED,
+                            new Date(),
+                            tagOptional.get(),
+                            tag);
+                }
             } catch (TechnicalException ex) {
                 LOGGER.error("An error occurs while trying to update tag {}", tagEntity.getName(), ex);
                 throw new TechnicalManagementException("An error occurs while trying to update tag " + tagEntity.getName(), ex);
@@ -108,10 +133,18 @@ public class TagServiceImpl extends TransactionalService implements TagService {
     @Override
     public void delete(final String tagId) {
         try {
-            tagRepository.delete(tagId);
-
-            // delete all reference on APIs
-            apiService.deleteTagFromAPIs(tagId);
+            Optional<Tag> tagOptional = tagRepository.findById(tagId);
+            if (tagOptional.isPresent()) {
+                tagRepository.delete(tagId);
+                auditService.createPortalAuditLog(
+                        Collections.singletonMap(TAG, tagId),
+                        TAG_DELETED,
+                        new Date(),
+                        null,
+                        tagOptional.get());
+                // delete all reference on APIs
+                apiService.deleteTagFromAPIs(tagId);
+            }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete tag {}", tagId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete tag " + tagId, ex);

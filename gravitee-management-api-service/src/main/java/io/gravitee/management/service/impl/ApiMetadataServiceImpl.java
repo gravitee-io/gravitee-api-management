@@ -19,6 +19,7 @@ import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.ApiMetadataService;
 import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.MetadataService;
 import io.gravitee.management.service.exceptions.ApiMetadataNotFoundException;
 import io.gravitee.management.service.exceptions.DuplicateMetadataNameException;
@@ -32,11 +33,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_CREATED;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_DELETED;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_UPDATED;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -56,6 +58,9 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
 
     @Autowired
     private ApiService apiService;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public List<ApiMetadataEntity> findAllByApi(final String apiId) {
@@ -121,6 +126,14 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
         final ApiMetadataEntity apiMetadata = findByIdAndApi(metadataId, apiId);
         try {
             metadataRepository.delete(metadataId, apiMetadata.getApiId(), MetadataReferenceType.API);
+            // Audit
+            auditService.createApiAuditLog(
+                    apiId,
+                    Collections.singletonMap(METADATA, metadataId),
+                    METADATA_DELETED,
+                    new Date(),
+                    apiMetadata,
+                    null);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete metadata {}", metadataId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete metadata " + metadataId, ex);
@@ -152,7 +165,16 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
             final Date now = new Date();
             metadata.setCreatedAt(now);
             metadata.setUpdatedAt(now);
-            return convert(metadataRepository.create(metadata), metadataEntity.getApiId());
+            metadataRepository.create(metadata);
+            // Audit
+            auditService.createApiAuditLog(
+                    apiEntity.getId(),
+                    Collections.singletonMap(METADATA, metadata.getKey()),
+                    METADATA_CREATED,
+                    metadata.getCreatedAt(),
+                    null,
+                    metadata);
+            return convert(metadata, metadataEntity.getApiId());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to create metadata {} on API {}", metadataEntity.getName(), metadataEntity.getApiId(), ex);
             throw new TechnicalManagementException("An error occurred while trying to create metadata " +
@@ -186,10 +208,26 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
             if (apiMetadata.isPresent()) {
                 metadata.setUpdatedAt(now);
                 savedMetadata = metadataRepository.update(metadata);
+                // Audit
+                auditService.createApiAuditLog(
+                        apiEntity.getId(),
+                        Collections.singletonMap(METADATA, metadata.getKey()),
+                        METADATA_UPDATED,
+                        metadata.getUpdatedAt(),
+                        apiMetadata.get(),
+                        metadata);
             } else {
                 metadata.setCreatedAt(now);
                 metadata.setUpdatedAt(now);
                 savedMetadata = metadataRepository.create(metadata);
+                // Audit
+                auditService.createApiAuditLog(
+                        apiEntity.getId(),
+                        Collections.singletonMap(METADATA, metadata.getKey()),
+                        METADATA_CREATED,
+                        metadata.getCreatedAt(),
+                        null,
+                        metadata);
             }
             final ApiMetadataEntity apiMetadataEntity = convert(savedMetadata, null);
             optDefaultMetadata.ifPresent(defaultMetadata -> apiMetadataEntity.setDefaultValue(defaultMetadata.getValue()));

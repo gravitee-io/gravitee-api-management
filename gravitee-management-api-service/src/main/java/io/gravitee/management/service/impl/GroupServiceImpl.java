@@ -18,6 +18,7 @@ package io.gravitee.management.service.impl;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.exceptions.GroupNameAlreadyExistsException;
@@ -37,6 +38,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.gravitee.repository.management.model.Audit.AuditProperties.GROUP;
+import static io.gravitee.repository.management.model.Group.AuditEvent.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -60,6 +64,9 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
 
     @Autowired
     private MembershipService membershipService;
+
+    @Autowired
+    private AuditService auditService;
 
     @Override
     public List<GroupEntity> findAll() {
@@ -107,6 +114,13 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
             newGroup.setCreatedAt(new Date());
             newGroup.setUpdatedAt(newGroup.getCreatedAt());
             GroupEntity grp = this.map(groupRepository.create(newGroup));
+            // Audit
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(GROUP, newGroup.getId()),
+                    GROUP_CREATED,
+                    newGroup.getCreatedAt(),
+                    null,
+                    newGroup);
             logger.debug("create {} - DONE", grp);
             return grp;
         } catch (TechnicalException ex) {
@@ -119,12 +133,22 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
     public GroupEntity update(String groupId, UpdateGroupEntity group) {
         try {
             logger.debug("update {}", group);
-            GroupEntity updatedGroup = this.findById(groupId);
-            updatedGroup.setName(group.getName());
-            updatedGroup.setUpdatedAt(new Date());
-            updatedGroup.setEventRules(group.getEventRules());
-            GroupEntity grp = this.map(groupRepository.update(this.map(updatedGroup)));
+            GroupEntity updatedGroupEntity = this.findById(groupId);
+            Group previousGroup = this.map(updatedGroupEntity);
+            updatedGroupEntity.setName(group.getName());
+            updatedGroupEntity.setUpdatedAt(new Date());
+            updatedGroupEntity.setEventRules(group.getEventRules());
+            Group updatedGroup = this.map(updatedGroupEntity);
+            GroupEntity grp = this.map(groupRepository.update(updatedGroup));
             logger.debug("update {} - DONE", grp);
+
+            // Audit
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(GROUP, groupId),
+                    GROUP_UPDATED,
+                    updatedGroupEntity.getUpdatedAt(),
+                    previousGroup,
+                    updatedGroup);
             return grp;
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to update a group", ex);
@@ -196,7 +220,10 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
     public void delete(String groupId) {
         try {
             logger.debug("delete {}", groupId);
-            GroupEntity groupEntity = this.findById(groupId);
+            Optional<Group> group = groupRepository.findById(groupId);
+            if (!group.isPresent()) {
+                throw new GroupNotFoundException(groupId);
+            }
             //remove all members
             membershipRepository.findByReferenceAndRole(
                     MembershipReferenceType.GROUP,
@@ -236,6 +263,15 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
             });
             //remove group
             groupRepository.delete(groupId);
+
+            // Audit
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(GROUP, groupId),
+                    GROUP_DELETED,
+                    new Date(),
+                    group.get(),
+                    null);
+
             logger.debug("delete {} - DONE", groupId);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to delete a group", ex);

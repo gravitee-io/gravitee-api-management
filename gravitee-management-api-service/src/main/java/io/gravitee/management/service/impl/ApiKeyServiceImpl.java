@@ -35,6 +35,9 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.management.model.ApiKey.AuditEvent.*;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.API_KEY;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -68,6 +71,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Autowired
     private PlanService planService;
 
+    @Autowired
+    private AuditService auditService;
+
     @Override
     public ApiKeyEntity generate(String subscription) {
         try {
@@ -78,6 +84,15 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             //TODO: Send a notification to the application owner
 
+            // Audit
+            final PlanEntity plan = planService.findById(apiKey.getPlan());
+            auditService.createApiAuditLog(
+                    plan.getApis().iterator().next(),
+                    Collections.singletonMap(API_KEY, apiKey.getKey()),
+                    APIKEY_CREATED,
+                    apiKey.getCreatedAt(),
+                    null,
+                    apiKey);
             return convert(apiKey);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to generate an API Key for {} - {}", subscription, ex);
@@ -108,6 +123,15 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             //TODO: Send a notification to the application owner
 
+            // Audit
+            final PlanEntity plan = planService.findById(newApiKey.getPlan());
+            auditService.createApiAuditLog(
+                    plan.getApis().iterator().next(),
+                    Collections.singletonMap(API_KEY, newApiKey.getKey()),
+                    APIKEY_RENEWED,
+                    newApiKey.getCreatedAt(),
+                    null,
+                    newApiKey);
             return convert(newApiKey);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to renew an API Key for {}", subscription, ex);
@@ -155,6 +179,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             ApiKey key = optKey.get();
             if (!key.isRevoked()) {
+                ApiKey previousApiKey = new ApiKey(key);
                 key.setRevoked(true);
                 key.setUpdatedAt(new Date());
                 key.setRevokedAt(key.getUpdatedAt());
@@ -181,6 +206,16 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                                 .build());
                     }
                 }
+
+                // Audit
+                final PlanEntity plan = planService.findById(key.getPlan());
+                auditService.createApiAuditLog(
+                        plan.getApis().iterator().next(),
+                        Collections.singletonMap(API_KEY, key.getKey()),
+                        APIKEY_REVOKED,
+                        key.getUpdatedAt(),
+                        previousApiKey,
+                        key);
             } else {
                 LOGGER.info("API Key {} already revoked. Skipping...", apiKey);
             }
@@ -267,8 +302,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         */
     }
 
-    private void setExpiration(Date expirationDate, ApiKey key) throws TechnicalException {
-        if (!key.isRevoked() && key.getExpireAt() == null) {
+    private void setExpiration(Date expirationDate, ApiKey oldkey) throws TechnicalException {
+        if (!oldkey.isRevoked() && oldkey.getExpireAt() == null) {
+            ApiKey key = new ApiKey(oldkey);
+            key.setUpdatedAt(new Date());
             key.setExpireAt(expirationDate);
             apiKeyRepository.update(key);
 
@@ -296,6 +333,15 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                         .params(params)
                         .build());
             }
+
+            // Audit
+            auditService.createApiAuditLog(
+                    plan.getApis().iterator().next(),
+                    Collections.singletonMap(API_KEY, key.getKey()),
+                    APIKEY_EXPIRED,
+                    key.getUpdatedAt(),
+                    oldkey,
+                    key);
         }
     }
 

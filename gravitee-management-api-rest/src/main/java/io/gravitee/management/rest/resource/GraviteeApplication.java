@@ -69,6 +69,7 @@ public class GraviteeApplication extends ResourceConfig {
         register(ConfigurationResource.class);
         register(GroupsResource.class);
         register(PortalResource.class);
+        register(AuditResource.class);
 
         // Dynamically register authentication endpoints
         register(new AuthenticationBinder(authenticationProviderManager));
