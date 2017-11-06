@@ -49,36 +49,46 @@ public class ApiKeyRefresher implements Runnable {
 
     ApiKeyRefresher(final Api api) {
         this.api = api;
-        this.plans = api.getPlans().stream().map(Plan::getId).collect(Collectors.toList());
+    }
+
+    void initialize() {
+        this.plans = api.getPlans()
+                .stream()
+                .filter(plan -> io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY.name()
+                        .equals(plan.getSecurity()))
+                .map(Plan::getId)
+                .collect(Collectors.toList());
     }
 
     @Override
     public void run() {
-        long nextLastRefreshAt = System.currentTimeMillis();
-        logger.debug("Refresh api-keys for API [name: {}] [id: {}]", api.getName(), api.getId());
+        if (! plans.isEmpty()) {
+            long nextLastRefreshAt = System.currentTimeMillis();
+            logger.debug("Refresh api-keys for API [name: {}] [id: {}]", api.getName(), api.getId());
 
-        final ApiKeyCriteria.Builder criteriaBuilder;
+            final ApiKeyCriteria.Builder criteriaBuilder;
 
-        if (lastRefreshAt == -1) {
-            criteriaBuilder = new ApiKeyCriteria.Builder()
-                    .includeRevoked(false)
-                    .plans(plans);
-        } else {
-            criteriaBuilder = new ApiKeyCriteria.Builder()
-                    .plans(plans)
-                    .includeRevoked(true)
-                    .from(lastRefreshAt).to(nextLastRefreshAt);
+            if (lastRefreshAt == -1) {
+                criteriaBuilder = new ApiKeyCriteria.Builder()
+                        .includeRevoked(false)
+                        .plans(plans);
+            } else {
+                criteriaBuilder = new ApiKeyCriteria.Builder()
+                        .plans(plans)
+                        .includeRevoked(true)
+                        .from(lastRefreshAt).to(nextLastRefreshAt);
+            }
+
+            try {
+                apiKeyRepository
+                        .findByCriteria(criteriaBuilder.build())
+                        .forEach(this::saveOrUpdate);
+            } catch (TechnicalException te) {
+                logger.error("Unexpected error while refreshing api-keys", te);
+            }
+
+            lastRefreshAt = nextLastRefreshAt;
         }
-
-        try {
-            apiKeyRepository
-                    .findByCriteria(criteriaBuilder.build())
-                    .forEach(this::saveOrUpdate);
-        } catch (TechnicalException te) {
-            logger.error("Unexpected error while refreshing api-keys", te);
-        }
-
-        lastRefreshAt = nextLastRefreshAt;
     }
 
     private void saveOrUpdate(ApiKey apiKey) {

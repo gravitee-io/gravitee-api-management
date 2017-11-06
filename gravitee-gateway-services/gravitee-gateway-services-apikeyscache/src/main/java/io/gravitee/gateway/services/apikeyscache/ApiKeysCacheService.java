@@ -147,6 +147,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             ApiKeyRefresher refresher = new ApiKeyRefresher(api);
             refresher.setCache(cache);
             refresher.setApiKeyRepository(apiKeyRepository);
+            refresher.initialize();
 
             LOGGER.info("Add a task to refresh api-keys each {} {} for API [name: {}] [id: {}]", delay, unit.name(), api.getName(), api.getId());
             ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
