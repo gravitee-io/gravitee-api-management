@@ -19,37 +19,42 @@
 
 <div class="log-table" layout="row" flex layout-padding layout-align="space-around center">
   <div layout="column" flex="33">
-    <span class="log-header" style="text-align: center">IDs</span>
+    <span class="log-header" style="text-align: center">Request</span>
     <md-table-container>
       <table md-table>
         <tbody md-body>
         <tr md-row style="height: 30px;">
+          <td md-cell><span style="font-weight: bold">Date</span></td>
+          <td md-cell>{{$ctrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
+        </tr>
+        <tr md-row>
           <td md-cell><span style="font-weight: bold">Request</span></td>
+          <td md-cell>
+            <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected">
+                  {{$ctrl.log.method | uppercase}}
+            </span>
+            <span>{{$ctrl.log.path}}</span>
+          </td>
+        </tr>
+        <tr md-row style="height: 30px;">
+          <td md-cell><span style="font-weight: bold">Content-length (in / out)</span></td>
+          <td md-cell>{{$ctrl.log.requestContentLength}} / {{$ctrl.log.responseContentLength}}</td>
+        </tr>
+        <tr md-row style="height: 30px;">
+          <td md-cell><span style="font-weight: bold">Status</span></td>
+          <td md-cell>{{$ctrl.log.status}}</td>
+        </tr>
+        <tr md-row style="height: 30px;">
+          <td md-cell><span style="font-weight: bold">Response time</span></td>
+          <td md-cell>{{$ctrl.log.responseTime | number}} ms (api: {{$ctrl.log.apiResponseTime | number}} ms / lat.: {{$ctrl.log.responseTime - $ctrl.log.apiResponseTime | number}} ms)</td>
+        </tr>
+        <tr md-row style="height: 30px;">
+          <td md-cell><span style="font-weight: bold">Request ID</span></td>
           <td md-cell>{{$ctrl.log.id}}</td>
         </tr>
         <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Transaction</span></td>
+          <td md-cell><span style="font-weight: bold">Transaction ID</span></td>
           <td md-cell>{{$ctrl.log.transactionId}}</td>
-        </tr>
-        <tr md-row style="height: 30px;" ng-if="$ctrl.log.apiKey">
-          <td md-cell><span style="font-weight: bold">API Key</span></td>
-          <td md-cell>{{$ctrl.log.apiKey}}</td>
-        </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Application</span></td>
-          <td md-cell>{{$ctrl.log.application}}</td>
-        </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Plan</span></td>
-          <td md-cell>{{$ctrl.log.plan}}</td>
-        </tr>
-        <tr md-row style="height: 30px;" ng-if="$ctrl.log.tenant">
-          <td md-cell><span style="font-weight: bold">Tenant</span></td>
-          <td md-cell>{{$ctrl.log.tenant}}</td>
-        </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Gateway</span></td>
-          <td md-cell>{{$ctrl.log.gateway}}</td>
         </tr>
         <tr md-row style="height: 30px;">
           <td md-cell><span style="font-weight: bold">Remote IP</span></td>
@@ -61,25 +66,47 @@
   </div>
 
   <div layout="column" flex="33">
-    <span class="log-header" style="text-align: center">RUNTIME</span>
+    <span class="log-header" style="text-align: center">Context</span>
     <md-table-container>
       <table md-table>
         <tbody md-body>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Timestamp</span></td>
-          <td md-cell>{{$ctrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
+        <tr md-row style="height: 30px;" ng-if="$ctrl.log.apiKey">
+          <td md-cell><span style="font-weight: bold">API Key</span></td>
+          <td md-cell>{{$ctrl.log.apiKey}}</td>
         </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Response time</span></td>
-          <td md-cell>{{$ctrl.log.responseTime | number}} ms</td>
+        <tr md-row style="height: 30px;" ng-if="$ctrl.log.application">
+          <td md-cell><span style="font-weight: bold">Application</span></td>
+          <td md-cell>{{$ctrl.log.metadata[$ctrl.log.application].name}}</td>
         </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">API response time</span></td>
-          <td md-cell>{{$ctrl.log.apiResponseTime | number}} ms</td>
+        <tr md-row style="height: 30px;" ng-if="$ctrl.log.plan">
+          <td md-cell><span style="font-weight: bold">Plan</span></td>
+          <td md-cell>{{$ctrl.log.metadata[$ctrl.log.plan].name}}</td>
         </tr>
         <tr md-row style="height: 30px;">
           <td md-cell><span style="font-weight: bold">Endpoint</span></td>
           <td md-cell>{{$ctrl.log.endpoint}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </md-table-container>
+
+    <br>
+
+    <span class="log-header" style="text-align: center">Gateway</span>
+    <md-table-container>
+      <table md-table>
+        <tbody md-body>
+        <tr md-row style="height: 30px;">
+          <td md-cell><span style="font-weight: bold">Host</span></td>
+          <td md-cell>{{$ctrl.log.metadata[$ctrl.log.gateway].hostname}}</td>
+        </tr>
+        <tr md-row style="height: 30px;">
+          <td md-cell><span style="font-weight: bold">IP</span></td>
+          <td md-cell>{{$ctrl.log.metadata[$ctrl.log.gateway].ip}}</td>
+        </tr>
+        <tr md-row style="height: 30px;" ng-if="$ctrl.log.tenant">
+          <td md-cell><span style="font-weight: bold">Tenant</span></td>
+          <td md-cell>{{$ctrl.log.tenant}}</td>
         </tr>
         </tbody>
       </table>
