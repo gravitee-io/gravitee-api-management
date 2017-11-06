@@ -50,6 +50,9 @@ public class ApiKeyRepositoryRefresherTest {
     @Mock
     private Api api;
 
+    @Mock
+    private Plan plan;
+
     @Before
     public void setUp() {
         refresher = new ApiKeyRefresher(api);
@@ -59,9 +62,11 @@ public class ApiKeyRepositoryRefresherTest {
 
     @Test
     public void shouldInitWithNonRevokedApiKey() throws TechnicalException {
-        List<Plan> plans = Collections.emptyList();
+        Mockito.when(plan.getSecurity()).thenReturn(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY.name());
+        List<Plan> plans = Collections.singletonList(plan);
         Mockito.when(api.getPlans()).thenReturn(plans);
 
+        refresher.initialize();
         refresher.run();
 
         Mockito.verify(apiKeyRepository).findByCriteria(Matchers.argThat(new ArgumentMatcher<ApiKeyCriteria>() {
@@ -71,16 +76,30 @@ public class ApiKeyRepositoryRefresherTest {
                 return !criteria.isIncludeRevoked() &&
                         criteria.getFrom() == 0 &&
                         criteria.getTo() == 0 &&
-                        criteria.getPlans().equals(plans);
+                        criteria.getPlans().size() == 1;
             }
         }));
     }
 
     @Test
-    public void shouldRefreshWithRevokedApiKey() throws TechnicalException {
-        List<Plan> plans = Collections.emptyList();
+    public void shouldNotRefreshKeylessPlan() throws TechnicalException {
+        Mockito.when(plan.getSecurity()).thenReturn(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS.name());
+        List<Plan> plans = Collections.singletonList(plan);
         Mockito.when(api.getPlans()).thenReturn(plans);
 
+        refresher.initialize();
+        refresher.run();
+
+        Mockito.verifyZeroInteractions(apiKeyRepository);
+    }
+
+    @Test
+    public void shouldRefreshWithRevokedApiKey() throws TechnicalException {
+        Mockito.when(plan.getSecurity()).thenReturn(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY.name());
+        List<Plan> plans = Collections.singletonList(plan);
+        Mockito.when(api.getPlans()).thenReturn(plans);
+
+        refresher.initialize();
         refresher.run();
         refresher.run();
 
@@ -93,7 +112,7 @@ public class ApiKeyRepositoryRefresherTest {
                         return !criteria.isIncludeRevoked() &&
                                 criteria.getFrom() == 0 &&
                                 criteria.getTo() == 0 &&
-                                criteria.getPlans().equals(plans);
+                                criteria.getPlans().size() == 1;
                     }
                 }));
 
@@ -104,14 +123,15 @@ public class ApiKeyRepositoryRefresherTest {
                 return criteria.isIncludeRevoked() &&
                         criteria.getFrom() != 0 &&
                         criteria.getTo() != 0 &&
-                        criteria.getPlans().equals(plans);
+                        criteria.getPlans().size() == 1;
             }
         }));
     }
 
     @Test
     public void shouldRefreshWithRevokedApiKeyAndPutIntoCache() throws TechnicalException {
-        List<Plan> plans = Collections.emptyList();
+        Mockito.when(plan.getSecurity()).thenReturn(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY.name());
+        List<Plan> plans = Collections.singletonList(plan);
         Mockito.when(api.getPlans()).thenReturn(plans);
 
         ApiKey apiKey1 = Mockito.mock(ApiKey.class);
@@ -120,6 +140,7 @@ public class ApiKeyRepositoryRefresherTest {
         Mockito.when(apiKeyRepository.findByCriteria(Mockito.any(ApiKeyCriteria.class)))
                 .thenReturn(Collections.singletonList(apiKey1));
 
+        refresher.initialize();
         refresher.run();
         refresher.run();
 
@@ -132,7 +153,7 @@ public class ApiKeyRepositoryRefresherTest {
                 return !criteria.isIncludeRevoked() &&
                         criteria.getFrom() == 0 &&
                         criteria.getTo() == 0 &&
-                        criteria.getPlans().equals(plans);
+                        criteria.getPlans().size() == 1;
             }
         }));
 
@@ -143,7 +164,7 @@ public class ApiKeyRepositoryRefresherTest {
                 return criteria.isIncludeRevoked() &&
                         criteria.getFrom() != 0 &&
                         criteria.getTo() != 0 &&
-                        criteria.getPlans().equals(plans);
+                        criteria.getPlans().size() == 1;
             }
         }));
 
@@ -154,7 +175,8 @@ public class ApiKeyRepositoryRefresherTest {
     public void shouldRefreshWithRevokedApiKeyAndRemoveFromCache() throws TechnicalException {
         String apiKey = "1234-4567-7890";
 
-        List<Plan> plans = Collections.emptyList();
+        Mockito.when(plan.getSecurity()).thenReturn(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY.name());
+        List<Plan> plans = Collections.singletonList(plan);
         Mockito.when(api.getPlans()).thenReturn(plans);
 
         ApiKey apiKey1 = Mockito.mock(ApiKey.class);
@@ -169,6 +191,7 @@ public class ApiKeyRepositoryRefresherTest {
                 .thenReturn(Collections.singletonList(apiKey1))
                 .thenReturn(Collections.singletonList(apiKey2));
 
+        refresher.initialize();
         refresher.run();
         refresher.run();
 
@@ -181,7 +204,7 @@ public class ApiKeyRepositoryRefresherTest {
                 return !criteria.isIncludeRevoked() &&
                         criteria.getFrom() == 0 &&
                         criteria.getTo() == 0 &&
-                        criteria.getPlans().equals(plans);
+                        criteria.getPlans().size() == 1;
             }
         }));
 
@@ -192,7 +215,7 @@ public class ApiKeyRepositoryRefresherTest {
                 return criteria.isIncludeRevoked() &&
                         criteria.getFrom() != 0 &&
                         criteria.getTo() != 0 &&
-                        criteria.getPlans().equals(plans);
+                        criteria.getPlans().size() == 1;
             }
         }));
 
