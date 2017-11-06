@@ -33,10 +33,13 @@ import org.springframework.ldap.filter.EqualsFilter;
 import org.springframework.ldap.filter.WhitespaceWildcardsFilter;
 import org.springframework.ldap.query.LdapQuery;
 import org.springframework.ldap.query.LdapQueryBuilder;
+import org.springframework.ldap.query.SearchScope;
+import org.springframework.ldap.support.LdapNameBuilder;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
+import javax.naming.ldap.LdapName;
 import java.util.Collection;
 import java.util.List;
 
@@ -57,6 +60,8 @@ public class LdapIdentityLookup implements IdentityLookup<String>, InitializingB
 
     private String identifierAttribute = "uid";
 
+    private LdapName baseDn;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         String searchFilter = environment.getProperty("user-search-filter");
@@ -68,6 +73,14 @@ public class LdapIdentityLookup implements IdentityLookup<String>, InitializingB
         }
 
         LOGGER.info("User identifier is based on the [{}] attribute", identifierAttribute);
+
+        // Base DN to search for users
+        baseDn = LdapNameBuilder
+                .newInstance(environment.getProperty("context-source-base"))
+                .add(environment.getProperty("user-search-base"))
+                .build();
+
+        LOGGER.info("User search is based on DN [{}]", baseDn);
     }
 
     @Override
@@ -78,8 +91,10 @@ public class LdapIdentityLookup implements IdentityLookup<String>, InitializingB
 
         LdapQuery ldapQuery = LdapQueryBuilder
                 .query()
+                .base(baseDn)
                 .countLimit(20)
                 .timeLimit(5000)
+                .searchScope(SearchScope.SUBTREE)
                 .attributes(identifierAttribute, "givenname", "sn", "mail")
                 .filter(filter);
 
@@ -95,8 +110,10 @@ public class LdapIdentityLookup implements IdentityLookup<String>, InitializingB
 
         LdapQuery ldapQuery = LdapQueryBuilder
                 .query()
+                .base(baseDn)
                 .countLimit(1)
                 .timeLimit(5000)
+                .searchScope(SearchScope.SUBTREE)
                 .attributes(identifierAttribute, "givenname", "sn", "mail")
                 .filter(filter);
 
