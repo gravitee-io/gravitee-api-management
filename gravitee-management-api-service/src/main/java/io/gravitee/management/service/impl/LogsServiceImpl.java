@@ -17,15 +17,13 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.InstanceListItem;
 import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.analytics.query.LogQuery;
 import io.gravitee.management.model.log.*;
 import io.gravitee.management.model.log.extended.Request;
 import io.gravitee.management.model.log.extended.Response;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.LogsService;
-import io.gravitee.management.service.PlanService;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.PlanNotFoundException;
@@ -45,6 +43,7 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -73,6 +72,9 @@ public class LogsServiceImpl implements LogsService {
 
     @Autowired
     private PlanService planService;
+
+    @Autowired
+    private InstanceService instanceService;
 
     @Override
     public SearchLogResponse findByApi(String api, LogQuery query) {
@@ -245,6 +247,28 @@ public class LogsServiceImpl implements LogsService {
         };
     }
 
+    private Function<String, Map<String, String>> getGatewayMetadata(String gateway) {
+        return s -> {
+            Map<String, String> metadata = new HashMap<>();
+
+            Optional<InstanceListItem> instanceOptional = instanceService.findInstances(true).stream()
+                    .filter(instanceListItem -> instanceListItem.getId().equals(gateway))
+                    .findFirst();
+
+            if (instanceOptional.isPresent()) {
+                metadata.put("hostname", instanceOptional.get().getHostname());
+                metadata.put("ip", instanceOptional.get().getIp());
+                if (instanceOptional.get().getTenant() != null) {
+                    metadata.put("tenant", instanceOptional.get().getTenant());
+                }
+            } else {
+                metadata.put("deleted", "true");
+            }
+
+            return metadata;
+        };
+    }
+
     private ApiRequestItem toApiRequestItem(io.gravitee.repository.log.model.Log log) {
         ApiRequestItem req = new ApiRequestItem();
         req.setId(log.getId());
@@ -301,6 +325,24 @@ public class LogsServiceImpl implements LogsService {
         req.setClientResponse(createResponse(log.getClientResponse()));
         req.setProxyResponse(createResponse(log.getProxyResponse()));
 
+        Map<String, Map<String, String>> metadata = new HashMap<>();
+
+        String application = log.getApplication();
+        String plan = log.getPlan();
+        String gateway = log.getGateway();
+
+        if (application != null) {
+            metadata.computeIfAbsent(application, getApplicationMetadata(application));
+        }
+        if (plan != null) {
+            metadata.computeIfAbsent(plan, getPlanMetadata(plan));
+        }
+        if (gateway != null) {
+            metadata.computeIfAbsent(gateway, getGatewayMetadata(gateway));
+        }
+
+        req.setMetadata(metadata);
+
         return req;
     }
 
@@ -347,6 +389,24 @@ public class LogsServiceImpl implements LogsService {
         req.setApiKey(log.getApiKey());
         req.setRequest(createRequest(log.getClientRequest()));
         req.setResponse(createResponse(log.getClientResponse()));
+
+        Map<String, Map<String, String>> metadata = new HashMap<>();
+
+        String api = log.getApi();
+        String plan = log.getPlan();
+        String gateway = log.getGateway();
+
+        if (api != null) {
+            metadata.computeIfAbsent(api, getAPIMetadata(api));
+        }
+        if (plan != null) {
+            metadata.computeIfAbsent(plan, getPlanMetadata(plan));
+        }
+        if (gateway != null) {
+            metadata.computeIfAbsent(gateway, getGatewayMetadata(gateway));
+        }
+
+        req.setMetadata(metadata);
 
         return req;
     }

@@ -19,6 +19,8 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.management.model.log.extended.Request;
 import io.gravitee.management.model.log.extended.Response;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -45,8 +47,6 @@ public class ApplicationRequest {
 
     private String apiKey;
 
-    private String user;
-
     private String plan;
 
     private String api;
@@ -54,6 +54,8 @@ public class ApplicationRequest {
     private Request request;
 
     private Response response;
+
+    private Map<String, Map<String, String>> metadata;
 
     public String getId() {
         return id;
@@ -143,14 +145,6 @@ public class ApplicationRequest {
         this.api = api;
     }
 
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
     public String getApiKey() {
         return apiKey;
     }
@@ -173,6 +167,14 @@ public class ApplicationRequest {
 
     public void setResponse(Response response) {
         this.response = response;
+    }
+
+    public Map<String, Map<String, String>> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Map<String, String>> metadata) {
+        this.metadata = metadata;
     }
 
     @Override
