@@ -72,6 +72,10 @@ public class ApiPathResolverTest {
                 Path p4 = new Path();
                 p4.setPath("/stores/:storeId");
                 put(p4.getPath(), p4);
+
+                Path p5 = new Path();
+                p5.setPath("/[0-9,;]+");
+                put(p5.getPath(), p5);
             }
         });
 
@@ -197,5 +201,23 @@ public class ApiPathResolverTest {
 
         Assert.assertEquals("/v1/products/stores/:storeId", path.getPath());
         Assert.assertEquals("/stores/:storeId", path.getResolvedPath());
+    }
+
+    @Test
+    public void resolve_pathWithContextPath_mustReturnParameterizedPath5() {
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/2124%3B2125");
+        Assert.assertNotNull(path);
+
+        Assert.assertEquals("/v1/products/[0-9,;]+", path.getPath());
+        Assert.assertEquals("/[0-9,;]+", path.getResolvedPath());
+    }
+
+    @Test
+    public void resolve_pathWithContextPath_mustReturnParameterizedPath5_notEncoded() {
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/2124;2125");
+        Assert.assertNotNull(path);
+
+        Assert.assertEquals("/v1/products/[0-9,;]+", path.getPath());
+        Assert.assertEquals("/[0-9,;]+", path.getResolvedPath());
     }
 }
