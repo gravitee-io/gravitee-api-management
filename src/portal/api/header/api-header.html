@@ -20,7 +20,19 @@
   <div layout="column" flex="65">
     <div layout="row" layout-align="start center">
       <img width="60" height="60" ng-src="{{$ctrl.api.picture_url}}" alt="api-logo" />
-      <span class="api-title" ui-sref="portal.api.plans({apiId: $ctrl.api.id})">{{::$ctrl.api.name}}</span>
+      <div layout="column">
+        <span class="api-title" ui-sref="portal.api.detail({apiId: $ctrl.api.id})">{{::$ctrl.api.name}}</span>
+
+        <a permission permission-only="'api-rating-r'" ui-sref="portal.api.rating({apiId: $ctrl.api.id})">
+          <gv-star-rating ng-if="$ctrl.ratingEnabled" class="api-rating" summary="$ctrl.apiRatingSummary"
+                          message="'api.rating.rate' | translate:{numberOfRatings: $ctrl.apiRatingSummary.numberOfRatings}"
+                          display-none-message="true"></gv-star-rating>
+        </a>
+        <gv-star-rating permission permission-except="'api-rating-r'"
+                        ng-if="$ctrl.ratingEnabled" class="api-rating" summary="$ctrl.apiRatingSummary"
+                        message="'api.rating.rate' | translate:{numberOfRatings: $ctrl.apiRatingSummary.numberOfRatings}"
+                        display-none-message="true"></gv-star-rating>
+      </div>
     </div>
 
     <div layout="row" style="margin-top: 18px;">
@@ -38,7 +50,7 @@
       <div layout="column" layout-align="center center" flex="20">
         <md-button class="md-raised" ui-sref="portal.api.pages({apiId: $ctrl.api.id})">{{'api.documentation.title' | translate}}</md-button>
         <md-button class="md-raised md-primary" style="background-color: #006CAB"
-                   ui-sref="portal.api.plans({apiId: $ctrl.api.id, '#': 'plans'})">{{'api.plan.subscribe' | translate}}</md-button>
+                   ui-sref="portal.api.detail({apiId: $ctrl.api.id, '#': 'plans'})">{{'api.plan.subscribe' | translate}}</md-button>
       </div>
 
       <div flex></div>

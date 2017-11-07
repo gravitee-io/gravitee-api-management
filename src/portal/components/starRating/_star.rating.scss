@@ -1,0 +1,79 @@
+.star-rating-container {
+  position: relative;
+  height: 35px;
+  min-width: 110px;
+  max-width: 90%;
+  outline: none;
+}
+
+.star-rating-title {
+  position: absolute;
+  top: 15px;
+  width: 200px;
+}
+
+.star-rating-small-size {
+  .star-rating-container {
+    height: 18px;
+  }
+
+  .star-rating-title {
+    position: absolute;
+    top: 1px;
+    left: 100px;
+  }
+}
+
+.star-rating {
+  width: 96px;
+  height: 18px;
+  background-image: url('assets/stars.png');
+  background-repeat: no-repeat;
+  background-position-x: -95px;
+  background-position-y: 0;
+  position: absolute;
+}
+
+.star-rating-10 {
+  background-position-x: -77px;
+}
+
+.star-rating-20 {
+  background-position-x: -57px;
+}
+
+.star-rating-30 {
+  background-position-x: -38px;
+}
+
+.star-rating-40 {
+  background-position-x: -20px;
+}
+
+.star-rating-50 {
+  background-position-x: 0;
+}
+
+.star-rating-15 {
+  background-position-x: -250px;
+}
+
+.star-rating-25 {
+  background-position-x: -231px;
+}
+
+.star-rating-35 {
+  background-position-x: -212px;
+}
+
+.star-rating-45 {
+  background-position-x: -192px;
+}
+
+span:focus, p:focus {
+  outline: 0;
+}
+
+.star-rating-readonly, .star-rating-readonly [role=button] {
+  cursor: initial;
+}

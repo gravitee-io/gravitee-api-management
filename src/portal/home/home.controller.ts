@@ -18,12 +18,14 @@ import angular = require('angular');
 export class HomeController {
   private apis: any[];
   private homepage: any;
+  private ratingEnabled: boolean;
 
   constructor (private resolvedApis, private $state, private resolvedHomepage, private Constants) {
     'ngInject';
     this.apis = resolvedApis.data;
     this.homepage = resolvedHomepage;
     this.$state = $state;
+    this.ratingEnabled = Constants.rating.enabled;
   }
 
   querySearch(query) {
@@ -40,7 +42,7 @@ export class HomeController {
 
   selectedItemChange(api) {
     if (api) {
-      this.$state.go('portal.api.plans', {'apiId': api.id});
+      this.$state.go('portal.api.detail', {'apiId': api.id});
     }
   }
 
@@ -49,11 +51,16 @@ export class HomeController {
   }
 
   goToApi(api) {
-    this.$state.go('portal.api.plans', {apiId: api.id});
+    this.$state.go('portal.api.detail', {apiId: api.id});
   }
 
   goToView(event, view) {
     event.stopPropagation();
     this.$state.go('portal.apis.list', {view: view});
+  }
+
+  goToRating(event, api) {
+    event.stopPropagation();
+    this.$state.go('portal.api.rating', {apiId: api.id});
   }
 }

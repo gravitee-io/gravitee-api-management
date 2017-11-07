@@ -16,7 +16,7 @@
 
 -->
 <div layout="column" flex layout-align="center center" style="color: #424E5A;">
-  <ng-md-icon icon="{{icon}}" style="fill: #cdcccc;" size="120"></ng-md-icon>
+  <ng-md-icon icon="{{icon}}" ng-style="{'fill':fill?fill:'#cdcccc'}" size="120"></ng-md-icon>
   <h2>{{message}}</h2>
   <div>
     <h5>{{subMessage}}</h5>

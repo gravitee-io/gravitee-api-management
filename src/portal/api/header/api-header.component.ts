@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import ApiService from "../../../services/api.service";
+
 const ApiHeaderComponent: ng.IComponentOptions = {
   bindings: {
-    api: '<'
+    api: '<',
+    apiRatingSummary: '<'
   },
   template: require('./api-header.html'),
-  controller: function(Constants) {
+  controller: function(Constants, ApiService: ApiService, $stateParams, $rootScope) {
     'ngInject';
+    this.ratingEnabled = Constants.rating.enabled;
 
     this.getEndpoint = function () {
       return Constants.portal.entrypoint + this.api.context_path;
-    }
+    };
+
+    $rootScope.$on('onRatingSave', () => {
+      ApiService.getApiRatingSummaryByApi($stateParams.apiId).then((response) => {
+        this.apiRatingSummary = response.data;
+      });
+    });
   }
 };
 

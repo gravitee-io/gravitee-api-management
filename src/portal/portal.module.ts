@@ -34,6 +34,7 @@ import ApiHeaderComponent from './api/header/api-header.component';
 import ApiHomepageComponent from './api/home/api-homepage.component';
 import ApiPlansComponent from './api/plan/api-plans.component';
 import ApiSubscribeComponent from './api/subscribe/api-subscribe.component';
+import ApiRatingsComponent from './api/rating/api-ratings.component';
 
 // API documentation
 import ApiPagesComponent from './api/documentation/api-pages.component';
@@ -48,6 +49,7 @@ import ThemeElementDirective from './components/theme/theme-element.directive';
 
 import uiRouter from 'angular-ui-router';
 import {permission, uiPermission} from 'angular-permission';
+import StarRatingDirective from "./components/starRating/star.rating.directive";
 
 angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMaterial', 'pascalprecht.translate',
   'duScroll', 'satellizer'])
@@ -67,16 +69,9 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
   .component('page', PageComponent)
   .component('apiSubscribe', ApiSubscribeComponent)
   .component('graviteeNavbar', NavbarComponent)
+  .component('apiRatings', ApiRatingsComponent)
   .directive('gvThemeElement', () => ThemeElementDirective)
-  .filter('humanDateFilter', function () {
-    return function(input) {
-      if (!moment().subtract(1, 'weeks').isAfter(input)) {
-        return moment(input).fromNow();
-      } else {
-        return moment(input).format('D MMM. YYYY');
-      }
-    };
-  })
+  .directive('gvStarRating', () => StarRatingDirective)
   .config(function ($mdThemingProvider: ng.material.IThemingProvider) {
     $mdThemingProvider.theme('default')
       .primaryPalette('blue-grey')

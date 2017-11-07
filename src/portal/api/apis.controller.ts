@@ -21,15 +21,18 @@ export class PortalApisController {
   private apis: any[];
   private views: any[];
   private view: any;
+  private ratingEnabled: boolean;
 
   constructor (private resolvedApis,
                private resolvedViews,
                private $scope: IScope,
                private $state,
-               private $stateParams) {
+               private $stateParams,
+               private Constants) {
     'ngInject';
     this.apis = resolvedApis.data;
     this.views = resolvedViews;
+    this.ratingEnabled = Constants.rating.enabled;
 
     this.view = _.find(this.views, function (view) {
       return $stateParams.view === view.id;
@@ -41,11 +44,16 @@ export class PortalApisController {
   }
 
   goToApi(api) {
-    this.$state.go('portal.api.plans', {apiId: api.id});
+    this.$state.go('portal.api.detail', {apiId: api.id});
   }
 
   changeView(event, view) {
     event.stopPropagation();
     this.$state.go('portal.apis.list', {view: view});
+  }
+
+  goToRating(event, api) {
+    event.stopPropagation();
+    this.$state.go('portal.api.rating', {apiId: api.id});
   }
 }

@@ -18,5 +18,8 @@
   },
   "support": {
     "enabled": false
+  },
+  "rating": {
+    "enabled": false
   }
 }

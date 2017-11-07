@@ -1,0 +1,22 @@
+#ratings {
+  width: 70%;
+  margin: 30px auto;
+
+  & md-card p {
+    text-align: center;
+  }
+}
+
+.rating-comment {
+  margin: 20px;
+  white-space: pre-line;
+}
+
+.rating-answers {
+  margin: 10px 50px;
+}
+
+.rating-delete {
+  fill: #cdcccc;
+  float: right;
+}

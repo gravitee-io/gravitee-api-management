@@ -10,7 +10,17 @@
     "DAYS": "jours",
     "close": "Fermer",
     "create": "Créer",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "ok": "OK",
+    "submit": "Soumettre",
+    "answer": "Répondre",
+    "ratings.none": "Aucune note",
+    "paging": {
+      "first": "Premier",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "last": "Dernier"
+    }
   },
   "home": {
     "title": "Gravitee.io",
@@ -79,6 +89,44 @@
       "title": "Méta-données",
       "name": "Nom",
       "value": "Valeur"
+    },
+    "rating": {
+      "title": "Titre ou résumé pour votre commentaire",
+      "comment": "Commentaire",
+      "by": "Par",
+      "rate": "{{numberOfRatings}} note(s)",
+      "empty": {
+        "title": "Aucune note sur cette API",
+        "message": "Soyez le premier à la noter",
+        "rights.message": "Vous n'avez pas les droits requis pour noter cette API"
+      },
+      "messages": {
+        "1": "Je déteste cette API",
+        "2": "Je n'aime pas cette API",
+        "3": "J'aime cette API",
+        "4": "J'adore cette API",
+        "5": "Cette API est parfaite"
+      },
+      "successCreation": "Votre note a été soumise avec succès",
+      "successUpdate": "Votre note a été mise à jour avec succès",
+      "successDeletion": "Cette note a été supprimée avec succès",
+      "deletion": "Êtes-vous sûr de vouloir supprimer cette note ?",
+      "list": {
+        "title": "{{numberOfRatings}} note(s)"
+      },
+      "answer": {
+        "label": "{{numberOfAnswers}} réponse(s)",
+        "successCreation": "Votre réponse a été soumise avec succès",
+        "successDeletion": "Cette réponse a été supprimée avec succès",
+        "deletion": "Êtes-vous sûr de vouloir supprimer cette réponse ?",
+        "new": {
+          "label": "Répondre"
+        }
+      },
+      "summary": {
+        "title": "{{averageRate}} étoiles sur 5",
+        "link": "Consulter les {{numberOfRatings}} note(s)"
+      }
     }
   },
   "applications": {

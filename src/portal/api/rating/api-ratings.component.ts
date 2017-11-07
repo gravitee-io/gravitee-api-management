@@ -13,25 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class EmptyStateDirective {
-  constructor() {
-    'ngInject';
+import ApiPortalRatingController from "./apiRating.controller";
 
-    let directive = {
-      restrict: 'E',
-      scope: {
-        icon: '@icon',
-        model: '@model',
-        message: '@message',
-        subMessage: '@subMessage',
-        createMode: '=',
-        fill: '@fill'
-      },
-      template: require('./emptystate.html')
-    };
+const ApiRatingsComponent: ng.IComponentOptions = {
+  bindings: {
+    api: '<',
+    rating: '<',
+    ratings: '<',
+    isAuthenticated: '<'
+  },
+  template: require('./api-ratings.html'),
+  controller: ApiPortalRatingController
+};
 
-    return directive;
-  }
-}
-
-export default EmptyStateDirective;
+export default ApiRatingsComponent;

@@ -1,0 +1,53 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="star-rating-container" ng-class="{'star-rating-small-size': !isBigSize, 'star-rating-readonly': isReadonly}">
+
+  <span ng-if="isBigSize" ng-md-icon icon="star_rate" ng-style="{'fill':starValue?'#ffc600':'#cdcccc'}" size="50"
+        ng-repeat="starValue in starsValue track by $index"
+        ng-click="selectValue($index + 1)"
+        ng-mouseenter="setValue($index + 1)"
+        ng-mouseleave="setValue(initialValue)">
+  </span>
+
+  <i ng-if="!isBigSize" class="star-rating star-rating-{{stylePos}}"></i>
+
+  <b class="star-rating-title">
+    <span ng-if="summary" ng-md-icon icon="expand_more" size="15"></span>
+    <span ng-if="value && isBigSize" translate="{{'api.rating.messages.' + value}}"></span>
+    <span ng-if="value">{{message}}</span>
+    <span ng-if="!value && displayNoneMessage" translate="common.ratings.none"></span>
+  </b>
+
+  <md-menu ng-if="summary && summary.averageRate" md-offset="90 34">
+    <md-button ng-click="$mdMenu.open($event)" ng-mouseover="$mdMenu.open($event)" aria-label="Open summary menu"></md-button>
+    <md-menu-content layout-padding>
+      <div layout="column" layout-align="center center">
+        <div layout="row" layout-align="center center">
+          <h4 translate="api.rating.summary.title" translate-values="{averageRate: (summary.averageRate | number:1)}"></h4>
+        </div>
+        <div ng-repeat="rate in [5,4,3,2,1]" layout="row" layout-padding layout-align="start center" style="height: 35px;">
+          <gv-star-rating value="rate"></gv-star-rating>
+          <progress value="{{summary.numberOfRatingsByRate[rate] || 0}}" max="{{summary.numberOfRatings}}"></progress>
+          <b>{{summary.numberOfRatingsByRate[rate] || 0}}</b>
+        </div>
+        <a ui-sref="portal.api.rating" translate="api.rating.summary.link" translate-values="{numberOfRatings: summary.numberOfRatings}"></a>
+      </div>
+    </md-menu-content>
+  </md-menu>
+
+</div>

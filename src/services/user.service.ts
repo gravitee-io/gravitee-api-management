@@ -115,6 +115,8 @@ class UserService {
             }
           }
 
+          that.reloadPermissions();
+
           return that.currentUser;
         }).then(response => {
           if (!that.routerInitialized) {

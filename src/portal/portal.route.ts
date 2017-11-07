@@ -19,6 +19,7 @@ import DocumentationService from "../services/apiDocumentation.service";
 import PortalPagesService from "../services/portalPages.service";
 import ApplicationService from "../services/applications.service";
 import UserService from '../services/user.service';
+import _ = require('lodash');
 
 function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
   'ngInject';
@@ -90,12 +91,27 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/apis/:apiId',
       resolve: {
         api: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
-          ApiService.get($stateParams['apiId']).then(response => response.data)
+          ApiService.get($stateParams['apiId']).then(response => response.data),
+        apiRatingSummary: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getApiRatingSummaryByApi($stateParams['apiId']).then(response => response.data),
+        resolvedApiPermissions: (ApiService, $stateParams) => ApiService.getPermissions($stateParams.apiId),
+        onEnter: function (UserService, resolvedApiPermissions) {
+          if (!UserService.currentUser.userApiPermissions) {
+            UserService.currentUser.userApiPermissions = [];
+            _.forEach(_.keys(resolvedApiPermissions.data), function (permission) {
+              _.forEach(resolvedApiPermissions.data[permission], function (right) {
+                let permissionName = 'API-' + permission + '-' + right;
+                UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
+              });
+            });
+            UserService.reloadPermissions();
+          }
+        }
       },
       component: 'api'
     })
-    .state('portal.api.plans', {
-      url: '/plans',
+    .state('portal.api.detail', {
+      url: '/detail',
       views: {
         'header': { component: 'apiPortalHeader' },
         'content': { component: 'apiHomepage' },
@@ -172,6 +188,27 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
           ApiService.getApiPlan($stateParams['apiId'], $stateParams['planId']).then(response => response.data),
         subscriptions: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
           ApiService.getPlanSubscriptions($stateParams['apiId'], $stateParams['planId']).then(response => response.data)
+      }
+    })
+    .state('portal.api.rating', {
+      url: '/ratings?:pageNumber',
+      views: {
+        'header': { component: 'apiPortalHeader' },
+        'content': { component: 'apiRatings' }
+      },
+      params: {
+        pageNumber: {
+          type: 'string',
+          value: '1'
+        }
+      },
+      resolve: {
+        isAuthenticated: ($stateParams: ng.ui.IStateParamsService, UserService: UserService) =>
+          UserService.isAuthenticated(),
+        rating: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getApiRatingForConnectedUser($stateParams['apiId']).then(response => response.data),
+        ratings: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getApiRatings($stateParams['apiId'], $stateParams['pageNumber']).then(response => response.data)
       }
     });
 }

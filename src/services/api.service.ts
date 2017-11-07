@@ -320,6 +320,41 @@ class ApiService {
     return this.$http.get(this.apisURL + api + '/health/logs/' + log);
   }
 
+  /*
+   * API ratings
+   */
+  getApiRatings(api, pageNumber) {
+    return this.$http.get(this.apisURL + api + '/ratings?pageSize=10&pageNumber=' + pageNumber);
+  }
+
+  getApiRatingForConnectedUser(api) {
+    return this.$http.get(this.apisURL + api + '/ratings/current');
+  }
+
+  getApiRatingSummaryByApi(api) {
+    return this.$http.get(this.apisURL + api + '/ratings/summary');
+  }
+
+  createRating(api, rating) {
+    return this.$http.post(this.apisURL + api + '/ratings', rating);
+  }
+
+  createRatingAnswer(api, ratingId, ratingAnswer) {
+    return this.$http.post(this.apisURL + api + '/ratings/' + ratingId + '/answers', ratingAnswer);
+  }
+
+  updateRating(api, rating) {
+    return this.$http.put(this.apisURL + api + '/ratings/' + rating.id,
+      {'rate': rating.rate, 'title': rating.title, 'comment': rating.comment});
+  }
+
+  deleteRating(api, ratingId) {
+    return this.$http.delete(this.apisURL + api + '/ratings/' + ratingId);
+  }
+
+  deleteRatingAnswer(api, ratingId, answerId) {
+    return this.$http.delete(this.apisURL + api + '/ratings/' + ratingId + '/answers/' + answerId);
+  }
 }
 
 export default ApiService;

@@ -71,9 +71,15 @@
             <div class="api-infos">
               <small>{{api.description}}</small>
             </div>
-            <div class="api-views">
-              <a ng-if="api.views" ng-repeat="view in api.views" class="ui label" ng-click="homeCtrl.goToView($event, view)">{{view}}</a>
-              <div ng-if="!api.views || api.views.length === 0" class="no-view"></div>
+            <div class="api-views" layout="row">
+              <div flex="65">
+                <a ng-if="api.views" ng-repeat="view in api.views" class="ui label" ng-click="homeCtrl.goToView($event, view)">{{view}}</a>
+                <div ng-if="!api.views || api.views.length === 0" class="no-view"></div>
+              </div>
+
+              <gv-star-rating flex ng-if="homeCtrl.ratingEnabled && api.rate" value="api.rate"
+                              message="'api.rating.rate' | translate:{numberOfRatings: api.numberOfRatings}" display-none-message="true"
+                              ng-click="homeCtrl.goToRating($event, api)"></gv-star-rating>
             </div>
           </md-card-content>
         </md-card>

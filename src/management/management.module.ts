@@ -548,7 +548,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
       if (!moment().subtract(1, 'weeks').isAfter(input)) {
         return moment(input).fromNow();
       } else {
-        return moment(input).format('D MMM. YYYY');
+        return moment(input).format('ll');
       }
     };
   })
@@ -557,7 +557,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
       if (!moment().subtract(1, 'weeks').isAfter(input)) {
         return moment(input).fromNow();
       } else {
-        return moment(input).format('D MMM. YYYY HH:mm:ss');
+        return moment(input).format('D MMM YYYY HH:mm:ss');
       }
     };
   })

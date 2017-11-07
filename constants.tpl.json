@@ -43,5 +43,9 @@
   // Enable the creation of support tickets
   "support": {
     "enabled": false
+  },
+  // Enable rating on APIs
+  "rating": {
+    "enabled": false
   }
 }

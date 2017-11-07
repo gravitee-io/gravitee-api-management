@@ -4,6 +4,7 @@
 @import 'api/documentation/_documentation';
 
 @import 'components/navbar/_navbar';
+@import 'components/starRating/_star.rating';
 
 .browsehappy {
   margin: 0.2em 0;
@@ -14,7 +15,7 @@
 
 #header {
   padding-top: 70px;
-  padding-bottom: 50px;
+  padding-bottom: 30px;
 }
 
 .main-container {

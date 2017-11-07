@@ -1,4 +1,5 @@
 @import 'plan/api-plan';
+@import 'rating/api.rating';
 
 #header {
   color: #000;
@@ -24,6 +25,10 @@
     span {
       margin-top: 4px;
     }
+  }
+
+  .api-rating {
+    margin-left: 25px;
   }
 
   .md-button {
@@ -153,6 +158,7 @@ md-card-content {
 .api-views {
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   padding-top: 10px;
+  height: 34px;
 }
 
 .ui.label {
