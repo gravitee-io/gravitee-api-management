@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import org.mockito.ArgumentMatcher;
@@ -61,7 +62,7 @@ public class MockTestRepositoryConfiguration {
         when(apiKeyRepository.update(argThat(new ArgumentMatcher<ApiKey>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof ApiKey && ((ApiKey)o).getKey().equals("unknown"));
+                return o == null || (o instanceof ApiKey && ((ApiKey) o).getKey().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -155,7 +156,7 @@ public class MockTestRepositoryConfiguration {
         when(apiRepository.update(argThat(new ArgumentMatcher<Api>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Api && ((Api)o).getId().equals("unknown"));
+                return o == null || (o instanceof Api && ((Api) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -236,7 +237,7 @@ public class MockTestRepositoryConfiguration {
         when(applicationRepository.update(argThat(new ArgumentMatcher<Application>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Application && ((Application)o).getId().equals("unknown"));
+                return o == null || (o instanceof Application && ((Application) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -337,9 +338,9 @@ public class MockTestRepositoryConfiguration {
         when(pageEvent6.getContent()).thenReturn(asList(event2, event1));
         when(eventRepository.search(
                 new EventCriteria.Builder()
-                .from(1451606400000L).to(1470157767000L)
-                .property(Event.EventProperties.API_ID.getValue(), "api-1")
-                .build(),
+                        .from(1451606400000L).to(1470157767000L)
+                        .property(Event.EventProperties.API_ID.getValue(), "api-1")
+                        .build(),
                 null)).thenReturn(pageEvent6);
 
         when(pageEvent7.getTotalElements()).thenReturn(3L);
@@ -365,12 +366,12 @@ public class MockTestRepositoryConfiguration {
         when(eventRepository.search(
                 new EventCriteria.Builder().types(EventType.GATEWAY_STARTED).build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(
-                        new io.gravitee.common.data.domain.Page<>(Collections.emptyList(), 0, 0, 0));
+                new io.gravitee.common.data.domain.Page<>(Collections.emptyList(), 0, 0, 0));
 
         when(eventRepository.update(argThat(new ArgumentMatcher<Event>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Event && ((Event)o).getId().equals("unknown"));
+                return o == null || (o instanceof Event && ((Event) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -389,14 +390,14 @@ public class MockTestRepositoryConfiguration {
         when(userRepository.create(any(User.class))).thenReturn(user);
         when(userRepository.findByUsername("createuser1")).thenReturn(of(user));
         when(userRepository.findByUsername("user0")).thenReturn(of(user));
-        when(userRepository.findByUsernames(asList("user0", "user4"))).thenReturn(new HashSet<>(asList(user,user4)));
+        when(userRepository.findByUsernames(asList("user0", "user4"))).thenReturn(new HashSet<>(asList(user, user4)));
         when(user.getUsername()).thenReturn("createuser1");
         when(user.getEmail()).thenReturn("createuser1@gravitee.io");
 
         when(userRepository.update(argThat(new ArgumentMatcher<User>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof User && ((User)o).getUsername().equals("unknown"));
+                return o == null || (o instanceof User && ((User) o).getUsername().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -434,7 +435,7 @@ public class MockTestRepositoryConfiguration {
         when(viewRepository.update(argThat(new ArgumentMatcher<View>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof View && ((View)o).getId().equals("unknown"));
+                return o == null || (o instanceof View && ((View) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -471,7 +472,7 @@ public class MockTestRepositoryConfiguration {
         when(tagRepository.update(argThat(new ArgumentMatcher<Tag>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Tag && ((Tag)o).getId().equals("unknown"));
+                return o == null || (o instanceof Tag && ((Tag) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -512,14 +513,14 @@ public class MockTestRepositoryConfiguration {
         when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
             @Override
             public boolean matches(Object o) {
-                return o != null && o instanceof Group && ((Group)o).getId().equals("unknown");
+                return o != null && o instanceof Group && ((Group) o).getId().equals("unknown");
             }
         }))).thenThrow(new TechnicalException());
 
         when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
             @Override
             public boolean matches(Object o) {
-                return o != null && o instanceof Group && ((Group)o).getId().equals("group-application-1");
+                return o != null && o instanceof Group && ((Group) o).getId().equals("group-application-1");
             }
         }))).thenReturn(group_updated);
 
@@ -529,7 +530,7 @@ public class MockTestRepositoryConfiguration {
         when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Group && ((Group)o).getId().equals("unknown"));
+                return o == null || (o instanceof Group && ((Group) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -590,7 +591,7 @@ public class MockTestRepositoryConfiguration {
         when(planRepository.update(argThat(new ArgumentMatcher<Plan>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Plan && ((Plan)o).getId().equals("unknown"));
+                return o == null || (o instanceof Plan && ((Plan) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -647,7 +648,7 @@ public class MockTestRepositoryConfiguration {
         when(repo.update(argThat(new ArgumentMatcher<Membership>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Membership && ((Membership)o).getReferenceId().equals("unknown"));
+                return o == null || (o instanceof Membership && ((Membership) o).getReferenceId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -721,7 +722,7 @@ public class MockTestRepositoryConfiguration {
         when(pageRepository.update(argThat(new ArgumentMatcher<Page>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Page && ((Page)o).getId().equals("unknown"));
+                return o == null || (o instanceof Page && ((Page) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -744,7 +745,6 @@ public class MockTestRepositoryConfiguration {
         when(pageRepository.findMaxApiPageOrderByApiId("my-api-2")).thenReturn(2);
         when(pageRepository.findMaxApiPageOrderByApiId("unknown api id")).thenReturn(0);
         when(pageRepository.findMaxPortalPageOrder()).thenReturn(20);
-
 
 
         return pageRepository;
@@ -772,7 +772,7 @@ public class MockTestRepositoryConfiguration {
         when(subscriptionRepository.update(argThat(new ArgumentMatcher<Subscription>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Subscription && ((Subscription)o).getId().equals("unknown"));
+                return o == null || (o instanceof Subscription && ((Subscription) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
         return subscriptionRepository;
@@ -808,7 +808,7 @@ public class MockTestRepositoryConfiguration {
         when(tenantRepository.update(argThat(new ArgumentMatcher<Tenant>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Tenant && ((Tenant)o).getId().equals("unknown"));
+                return o == null || (o instanceof Tenant && ((Tenant) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -856,7 +856,7 @@ public class MockTestRepositoryConfiguration {
         when(metadataRepository.update(argThat(new ArgumentMatcher<Metadata>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Metadata && ((Metadata)o).getKey().equals("unknown"));
+                return o == null || (o instanceof Metadata && ((Metadata) o).getKey().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
@@ -875,14 +875,14 @@ public class MockTestRepositoryConfiguration {
         final Role toDelete = mock(Role.class);
         when(toDelete.getName()).thenReturn("to delete");
         when(toDelete.getScope()).thenReturn(RoleScope.MANAGEMENT);
-        when(toDelete.getPermissions()).thenReturn(new int[]{1,2,3});
+        when(toDelete.getPermissions()).thenReturn(new int[]{1, 2, 3});
 
         final Role toUpdate = mock(Role.class);
         when(toUpdate.getName()).thenReturn("to update");
         when(toUpdate.getDescription()).thenReturn("new description");
         when(toUpdate.getScope()).thenReturn(RoleScope.MANAGEMENT);
         when(toUpdate.isDefaultRole()).thenReturn(true);
-        when(toUpdate.getPermissions()).thenReturn(new int[]{4,5});
+        when(toUpdate.getPermissions()).thenReturn(new int[]{4, 5});
 
         final Role findByScope1 = mock(Role.class);
         when(findByScope1.getName()).thenReturn("find by scope 1");
@@ -900,21 +900,95 @@ public class MockTestRepositoryConfiguration {
 
         when(roleRepository.findById(findByScope1.getScope(), findByScope1.getName())).thenReturn(of(findByScope1));
         when(roleRepository.findById(toUpdate.getScope(), toUpdate.getName())).thenReturn(of(toUpdate));
-        when(roleRepository.findById(toCreate.getScope(), toCreate.getName())).thenReturn(empty(),of(findByScope1));
+        when(roleRepository.findById(toCreate.getScope(), toCreate.getName())).thenReturn(empty(), of(findByScope1));
         when(roleRepository.findById(toDelete.getScope(), toDelete.getName())).thenReturn(of(findByScope1), empty());
         when(roleRepository.findById(findByScope2.getScope(), findByScope2.getName())).thenReturn(of(findByScope2));
         when(roleRepository.create(any(Role.class))).thenReturn(toCreate);
-        when(roleRepository.findAll()).thenReturn(newSet(toDelete,toUpdate, findByScope1, findByScope2));
+        when(roleRepository.findAll()).thenReturn(newSet(toDelete, toUpdate, findByScope1, findByScope2));
         when(roleRepository.findByScope(RoleScope.PORTAL)).thenReturn(newSet(findByScope1, findByScope2));
         when(roleRepository.update(any())).thenReturn(toUpdate);
 
         when(roleRepository.update(argThat(new ArgumentMatcher<Role>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof Role && ((Role)o).getName().equals("unknown"));
+                return o == null || (o instanceof Role && ((Role) o).getName().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
         return roleRepository;
+    }
+
+    @Bean
+    public RatingRepository ratingRepository() throws Exception {
+        final RatingRepository ratingRepository = mock(RatingRepository.class);
+
+        final Rating rating = mockRating("rating-id", "api", "user", "title", "My comment", "1");
+        final Rating rating2 = mockRating("rating2-id", "api", "toto", "title2", "My comment2", "5");
+        final Rating rating3 = mockRating("rating3-id", "api2", "admin", "title3", "My comment3", "2");
+        final Rating rating4 = mockRating("rating4-id", "api", "admin", "title4", "My comment4", "2");
+        final Rating newRating = mockRating("new-rating", "api", "user", "title", "comment", "5");
+
+        when(ratingRepository.findById("rating-id")).thenReturn(of(rating));
+        when(ratingRepository.findById("new-rating")).thenReturn(empty(), of(newRating));
+        when(ratingRepository.findByApiPageable(eq("api"), any(Pageable.class))).thenReturn(
+                new io.gravitee.common.data.domain.Page<>(asList(rating, rating4), 1, 2, 3),
+                new io.gravitee.common.data.domain.Page<>(asList(rating2), 2, 1, 3));
+
+        final Rating updatedRating = mockRating("rating-id", "api-new", "user10", "title10", "comment10", "3");
+        when(ratingRepository.update(any(Rating.class))).thenReturn(updatedRating);
+
+        when(ratingRepository.findById("rating3-id")).thenReturn(of(rating3), empty());
+
+        when(ratingRepository.findByApiAndUser("api", "user")).thenReturn(of(rating));
+        when(ratingRepository.findByApi("api")).thenReturn(asList(rating, rating2, rating4));
+
+        return ratingRepository;
+    }
+
+    private Rating mockRating(final String id, final String api, final String user, final String title,
+                              final String comment, final String rate) {
+        final Rating rating = mock(Rating.class);
+        when(rating.getId()).thenReturn(id);
+        when(rating.getApi()).thenReturn(api);
+        when(rating.getUser()).thenReturn(user);
+        when(rating.getTitle()).thenReturn(title);
+        when(rating.getComment()).thenReturn(comment);
+        when(rating.getRate()).thenReturn(new Byte(rate));
+        when(rating.getCreatedAt()).thenReturn(parse("11/02/2017"));
+        when(rating.getUpdatedAt()).thenReturn(parse("11/02/2017"));
+        return rating;
+    }
+
+    @Bean
+    public RatingAnswerRepository ratingAnswerRepository() throws Exception {
+        final RatingAnswerRepository ratingAnswerRepository = mock(RatingAnswerRepository.class);
+
+        final RatingAnswer ratingAnswer = new RatingAnswer();
+        ratingAnswer.setId("answer-id");
+        ratingAnswer.setRating("rating-id");
+        ratingAnswer.setUser("user");
+        ratingAnswer.setComment("Answer");
+        ratingAnswer.setCreatedAt(parse("11/02/2017"));
+
+        final RatingAnswer ratingAnswer2 = new RatingAnswer();
+        ratingAnswer2.setId("answer2-id");
+        ratingAnswer2.setRating("rating3-id");
+        ratingAnswer2.setUser("admin");
+        ratingAnswer2.setComment("Answer2");
+        ratingAnswer2.setCreatedAt(parse("11/02/2017"));
+
+        final RatingAnswer newRatingAnswer = new RatingAnswer();
+        newRatingAnswer.setId("new-answer-id");
+        newRatingAnswer.setRating("new-rating");
+        newRatingAnswer.setUser("user");
+        newRatingAnswer.setComment("My answer");
+        newRatingAnswer.setCreatedAt(parse("11/02/2017"));
+
+        when(ratingAnswerRepository.findByRating("rating-id")).thenReturn(singletonList(ratingAnswer));
+        when(ratingAnswerRepository.findByRating("rating3-id")).thenReturn(singletonList(ratingAnswer2));
+        when(ratingAnswerRepository.findByRating("new-rating")).thenReturn(singletonList(newRatingAnswer));
+        when(ratingAnswerRepository.findById("answer-id")).thenReturn(of(ratingAnswer), empty());
+
+        return ratingAnswerRepository;
     }
 }

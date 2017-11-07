@@ -1,0 +1,42 @@
+[
+   {
+      "id":"rating-id",
+      "api":"api",
+      "user":"user",
+      "title":"title",
+      "comment":"My comment",
+      "rate":1,
+      "createdAt": 1486767600000,
+      "updatedAt": 1486767600000
+   },
+   {
+      "id":"rating2-id",
+      "api":"api",
+      "user":"toto",
+      "title":"title2",
+      "comment":"My comment2",
+      "rate":5,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"rating3-id",
+      "api":"api2",
+      "user":"admin",
+      "title":"title3",
+      "comment":"My comment3",
+      "rate":2,
+      "createdAt": 1459032010883,
+      "updatedAt": 1459032010883
+   },
+   {
+      "id":"rating4-id",
+      "api":"api",
+      "user":"admin",
+      "title":"title4",
+      "comment":"My comment4",
+      "rate":2,
+      "createdAt": 1449032010883,
+      "updatedAt": 1449032010883
+   }
+]

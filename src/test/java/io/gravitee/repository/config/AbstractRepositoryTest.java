@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.config;
 
+import io.gravitee.repository.RatingRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.model.*;
@@ -88,6 +89,10 @@ public abstract class AbstractRepositoryTest {
     protected MetadataRepository metadataRepository;
     @Inject
     protected RoleRepository roleRepository;
+    @Inject
+    protected RatingRepository ratingRepository;
+    @Inject
+    protected RatingAnswerRepository ratingAnswerRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -162,6 +167,12 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Role) {
             roleRepository.create((Role) object);
+        }
+        else if (object instanceof Rating) {
+            ratingRepository.create((Rating) object);
+        }
+        else if (object instanceof RatingAnswer) {
+            ratingAnswerRepository.create((RatingAnswer) object);
         }
     }
 
