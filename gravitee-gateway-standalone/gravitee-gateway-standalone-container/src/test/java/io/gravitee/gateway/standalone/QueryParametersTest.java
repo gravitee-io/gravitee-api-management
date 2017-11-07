@@ -94,7 +94,7 @@ public class QueryParametersTest extends AbstractGatewayTest {
         assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
 
         String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
-        assertEquals("myparam:test AND myotherparam:12", responseContent);
+        assertEquals(query, responseContent);
     }
 
     @Test

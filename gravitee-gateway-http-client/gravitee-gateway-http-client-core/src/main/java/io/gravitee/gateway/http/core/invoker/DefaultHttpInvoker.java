@@ -35,6 +35,7 @@ import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.http.core.direct.DirectProxyConnection;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import io.gravitee.gateway.http.core.invoker.logging.LoggableProxyConnection;
+import io.netty.handler.codec.http.QueryStringEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.PrintWriter;
@@ -42,7 +43,6 @@ import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -52,8 +52,8 @@ import java.util.regex.Pattern;
  */
 public class DefaultHttpInvoker implements Invoker {
 
-	// Pattern reuse for duplicate slash removal
-	private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
+    // Pattern reuse for duplicate slash removal
+    private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
 
     private static final String HTTPS_SCHEME = "https";
     private static final int DEFAULT_HTTP_PORT = 80;
@@ -218,33 +218,19 @@ public class DefaultHttpInvoker implements Invoker {
     }
 
     private URI encodeQueryParameters(Request request, String endpointUri) throws MalformedURLException, URISyntaxException {
-        final StringBuilder requestURI = new StringBuilder(endpointUri);
+        QueryStringEncoder encoder = new QueryStringEncoder(endpointUri);
 
         if (request.parameters() != null && !request.parameters().isEmpty()) {
-            StringBuilder query = new StringBuilder();
-            query.append('?');
-
             for (Map.Entry<String, List<String>> queryParam : request.parameters().entrySet()) {
                 if (queryParam.getValue() != null) {
                     for (String value : queryParam.getValue()) {
-                        query.append(queryParam.getKey());
-                        if (value != null && !value.isEmpty()) {
-                            query
-                                    .append('=')
-                                    .append(value);
-                        }
-
-                        query.append('&');
+                        encoder.addParam(queryParam.getKey(), (value != null && !value.isEmpty()) ? value : null);
                     }
                 }
             }
-
-            // Removing latest & separator and encode query parameters
-            requestURI.append(query.deleteCharAt(query.length() - 1).toString());
         }
 
-        URL url = new URL(requestURI.toString());
-        return new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+        return encoder.toUri();
     }
 
     private HttpMethod extractHttpMethod(ExecutionContext executionContext, Request request) {
