@@ -18,6 +18,9 @@ package io.gravitee.gateway.handlers.api.path.impl;
 import io.gravitee.gateway.handlers.api.path.Path;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -32,11 +35,13 @@ public abstract class AbstractPathResolver implements PathResolver {
 
     private final static String URL_PATH_SEPARATOR = "/";
     private final static String PATH_PARAM_PREFIX = ":";
-    private final static String PATH_PARAM_REGEX = "[a-z0-9\\-._~%!$&'()*+,;=:@/]+";
+    private final static String PATH_PARAM_REGEX = "[a-z0-9\\-._~%!$&'()* +,;=:@/]+";
 
     private final List<Path> registeredPaths = new ArrayList<>();
 
     private final String contextPath;
+
+    private final String DEFAULT_CHARSET =  Charset.defaultCharset().name();
 
     protected AbstractPathResolver(String contextPath) {
         this.contextPath = contextPath;
@@ -44,13 +49,21 @@ public abstract class AbstractPathResolver implements PathResolver {
 
     @Override
     public Path resolve(final String path) {
-        String tmpPath = path + '/';
+        String decodedPath;
+
+        try {
+            decodedPath = URLDecoder.decode(path, DEFAULT_CHARSET);
+        } catch (UnsupportedEncodingException uee) {
+            decodedPath = path;
+        }
+
+        decodedPath += '/';
 
         int pieces = -1;
         Path bestPath = null;
 
         for(Path registerPath : registeredPaths) {
-            if (registerPath.getPattern().matcher(tmpPath).lookingAt()) {
+            if (registerPath.getPattern().matcher(decodedPath).lookingAt()) {
                 int split = registerPath.getPath().split(URL_PATH_SEPARATOR).length;
                 if (split > pieces) {
                     pieces = split;
