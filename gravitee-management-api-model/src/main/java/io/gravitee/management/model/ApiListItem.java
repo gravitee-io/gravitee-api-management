@@ -65,6 +65,10 @@ public class ApiListItem {
 
     private boolean manageable;
 
+    private Double rate;
+
+    private int numberOfRatings;
+
     public String getId() {
         return id;
     }
@@ -185,6 +189,22 @@ public class ApiListItem {
         this.manageable = manageable;
     }
 
+    public Double getRate() {
+        return rate;
+    }
+
+    public void setRate(Double rate) {
+        this.rate = rate;
+    }
+
+    public int getNumberOfRatings() {
+        return numberOfRatings;
+    }
+
+    public void setNumberOfRatings(int numberOfRatings) {
+        this.numberOfRatings = numberOfRatings;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -212,6 +232,8 @@ public class ApiListItem {
             ", primaryOwner=" + primaryOwner +
             ", role=" + role +
             ", manageable=" + manageable +
+            ", rate=" + rate +
+            ", numberOfRatings=" + numberOfRatings +
             '}';
     }
 }

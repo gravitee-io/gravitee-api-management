@@ -24,10 +24,7 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.VerifyApiParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.MembershipService;
-import io.gravitee.management.service.SwaggerService;
-import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
@@ -75,6 +72,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private MembershipService membershipService;
+
+    @Inject
+    private RatingService ratingService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -241,6 +241,10 @@ public class ApisResource extends AbstractResource {
             owner.setLastname(user.getLastname());
             apiItem.setPrimaryOwner(owner);
         }
+
+        final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(api.getId());
+        apiItem.setRate(ratingSummary.getAverageRate());
+        apiItem.setNumberOfRatings(ratingSummary.getNumberOfRatings());
 
         return apiItem;
     }

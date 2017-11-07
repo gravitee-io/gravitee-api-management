@@ -271,3 +271,7 @@ user:
 # Allows to create support ticket (default value: false)
 #support:
   #enabled: true
+
+# Allows to rate an API (default value: false)
+#rating :
+  #enabled: true

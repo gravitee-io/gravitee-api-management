@@ -18,16 +18,7 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.management.rest.JerseySpringTest;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.FetcherService;
-import io.gravitee.management.service.GroupService;
-import io.gravitee.management.service.MembershipService;
-import io.gravitee.management.service.PageService;
-import io.gravitee.management.service.PolicyService;
-import io.gravitee.management.service.RoleService;
-import io.gravitee.management.service.SwaggerService;
-import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -104,6 +95,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected GroupService groupService;
 
+    @Autowired
+    protected RatingService ratingService;
+
     @Configuration
     @PropertySource("classpath:/io/gravitee/management/rest/resource/jwt.properties")
     static class ContextConfiguration {
@@ -161,6 +155,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public GroupService groupService() {
             return mock(GroupService.class);
+        }
+
+        @Bean
+        public RatingService ratingService() {
+            return mock(RatingService.class);
         }
     }
 }

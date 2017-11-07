@@ -45,6 +45,8 @@ public enum RolePermission {
     API_LOG                 (RoleScope.API, ApiPermission.LOG),
     API_DOCUMENTATION       (RoleScope.API, ApiPermission.DOCUMENTATION),
     API_GATEWAY_DEFINITION  (RoleScope.API, ApiPermission.GATEWAY_DEFINITION),
+    API_RATING              (RoleScope.API, ApiPermission.RATING),
+    API_RATING_ANSWER       (RoleScope.API, ApiPermission.RATING_ANSWER),
 
     APPLICATION_DEFINITION  (RoleScope.APPLICATION, ApplicationPermission.DEFINITION),
     APPLICATION_MEMBER      (RoleScope.APPLICATION, ApplicationPermission.MEMBER),

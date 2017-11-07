@@ -21,17 +21,19 @@ package io.gravitee.management.model.permissions;
  * @author GraviteeSource Team
  */
 public enum ApiPermission implements Permission {
-    DEFINITION(   "DEFINITION",    1000),
-    PLAN(         "PLAN",          1100),
-    SUBSCRIPTION( "SUBSCRIPTION",  1200),
-    MEMBER(       "MEMBER",        1300),
-    METADATA(     "METADATA",      1400),
-    ANALYTICS(    "ANALYTICS",      1500),
-    EVENT(        "EVENT",         1600),
-    HEALTH(       "HEALTH",        1700),
-    LOG(          "LOG",           1800),
-    DOCUMENTATION("DOCUMENTATION", 1900),
-    GATEWAY_DEFINITION("GATEWAY_DEFINITION", 2000);
+    DEFINITION(         "DEFINITION",           1000),
+    PLAN(               "PLAN",                 1100),
+    SUBSCRIPTION(       "SUBSCRIPTION",         1200),
+    MEMBER(             "MEMBER",               1300),
+    METADATA(           "METADATA",             1400),
+    ANALYTICS(          "ANALYTICS",            1500),
+    EVENT(              "EVENT",                1600),
+    HEALTH(             "HEALTH",               1700),
+    LOG(                "LOG",                  1800),
+    DOCUMENTATION(      "DOCUMENTATION",        1900),
+    GATEWAY_DEFINITION( "GATEWAY_DEFINITION",   2000),
+    RATING(             "RATING",               2100),
+    RATING_ANSWER(      "RATING_ANSWER",        2200);
 
     String name;
     int mask;
