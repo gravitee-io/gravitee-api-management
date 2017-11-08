@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>7</version>
+        <version>8</version>
     </parent>
 
     <groupId>io.gravitee.management</groupId>
@@ -41,7 +41,6 @@
         <gravitee-gateway-api.version>1.6.0</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.0.0</gravitee-fetcher-api.version>
         <gravitee-expression-language.version>1.0.0</gravitee-expression-language.version>
-        <vertx.version>3.4.1</vertx.version>
         <apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
         <jersey.version>2.26-b03</jersey.version>
