@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ReporterHandler implements Handler<Response> {
@@ -47,6 +47,13 @@ public class ReporterHandler implements Handler<Response> {
 
         try {
             reporterService.report(serverRequest.metrics());
+
+            if (serverRequest.metrics().getLog() != null) {
+                reporterService.report(serverRequest.metrics().getLog());
+
+                // Dispose the log reference since it must not be used anymore
+                serverRequest.metrics().setLog(null);
+            }
         } catch (Exception ex) {
             LOGGER.error("An error occurs while reporting metrics", ex);
         }
