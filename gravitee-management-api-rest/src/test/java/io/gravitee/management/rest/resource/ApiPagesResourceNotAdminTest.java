@@ -90,6 +90,7 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
+        when(groupService.isUserAuthorizedToAccessApiData(any(), any(), any())).thenReturn(Boolean.TRUE);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, false);
         doReturn(true).when(pageService).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
 
@@ -121,6 +122,7 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         final RoleEntity roleMock = mock(RoleEntity.class);
         doReturn(roleMock).when(membershipService).getRole(MembershipReferenceType.API, API_NAME, USER_NAME, RoleScope.API);
         doReturn(true).when(roleService).hasPermission(any(), eq(ApiPermission.DOCUMENTATION), eq(new RolePermissionAction[]{RolePermissionAction.READ}));
+        when(groupService.isUserAuthorizedToAccessApiData(any(), any(), any())).thenReturn(Boolean.FALSE);
 
         final Response response = target().request().get();
 
