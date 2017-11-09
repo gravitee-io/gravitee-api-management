@@ -21,6 +21,8 @@ import './portal/portal.module';
 import './management/management.module';
 
 let constants: any;
+let configNoCache = {headers: {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'}};
+
 fetchData().then(initLoader).then(initTheme).then(bootstrapApplication);
 
 function fetchData() {
@@ -28,7 +30,7 @@ function fetchData() {
   let $http: ng.IHttpService = initInjector.get('$http');
   let $q: ng.IQService = initInjector.get('$q');
 
-  return $q.all([$http.get('constants.json'), $http.get('build.json')]).then(function (responses: any) {
+  return $q.all([$http.get('constants.json', configNoCache), $http.get('build.json', configNoCache)]).then(function (responses: any) {
     constants = responses[0].data;
     angular.module('gravitee-management').constant('Constants', constants);
     angular.module('gravitee-management').constant('Build', responses[1].data);
@@ -55,7 +57,7 @@ function initTheme() {
   let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
   let $http: ng.IHttpService = initInjector.get('$http');
 
-  return $http.get(`./themes/${constants.theme.name}-theme.json`)
+  return $http.get(`./themes/${constants.theme.name}-theme.json`, configNoCache)
     .then((response: any) => {
       angular.module('gravitee-portal').constant('Theme', response.data);
     });

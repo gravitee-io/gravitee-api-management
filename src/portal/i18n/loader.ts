@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import * as angular from 'angular';
 
 function $translateCustomStaticFilesLoader($q, $http) {
-
-  'use strict';
+  'ngInject';
 
   return function (options) {
 
@@ -51,6 +49,7 @@ function $translateCustomStaticFilesLoader($q, $http) {
       return $http(angular.extend({
         url: fileUrl,
         method: 'GET',
+        headers: {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'},
         silentCall: true
       }, options.$http))
         .then(function(result) {
