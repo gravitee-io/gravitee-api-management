@@ -47,5 +47,12 @@
   // Enable rating on APIs
   "rating": {
     "enabled": false
+  },
+  // Analytics of portal navigation
+  "analytics": {
+    "google": {
+      "enabled": false,
+      "trackingId": ""
+    }
   }
 }

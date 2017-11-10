@@ -51,8 +51,10 @@ import uiRouter from 'angular-ui-router';
 import {permission, uiPermission} from 'angular-permission';
 import StarRatingDirective from "./components/starRating/star.rating.directive";
 
+require('angulartics');
+
 angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMaterial', 'pascalprecht.translate',
-  'duScroll', 'satellizer'])
+  'duScroll', 'satellizer', 'angulartics', require('angulartics-google-analytics')])
   .value('duScrollOffset', 54)
   .config(portalRouterConfig)
   .config(portalI18nConfig)
@@ -72,7 +74,16 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
   .component('apiRatings', ApiRatingsComponent)
   .directive('gvThemeElement', () => ThemeElementDirective)
   .directive('gvStarRating', () => StarRatingDirective)
-  .config(function ($mdThemingProvider: ng.material.IThemingProvider) {
+  .filter('humanDateFilter', function () {
+    return function(input) {
+      if (!moment().subtract(1, 'weeks').isAfter(input)) {
+        return moment(input).fromNow();
+      } else {
+        return moment(input).format('D MMM. YYYY');
+      }
+    };
+  })
+  .config(function ($mdThemingProvider: ng.material.IThemingProvider, $analyticsProvider) {
     $mdThemingProvider.theme('default')
       .primaryPalette('blue-grey')
       .accentPalette('blue');
@@ -84,4 +95,12 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
 
     $mdThemingProvider.theme('toast-success');
     $mdThemingProvider.theme('toast-error');
+  }).run(function(Constants, $window, $rootScope, $location) {
+    if (Constants.analytics.enabled) {
+      $window.ga('create', Constants.analytics.trackingId, { 'cookieDomain': 'none' });
+
+      $rootScope.$on('$stateChangeSuccess', function () {
+        $window.ga('send', 'pageview', $location.path());
+      });
+    }
   });

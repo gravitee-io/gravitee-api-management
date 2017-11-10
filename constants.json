@@ -21,5 +21,9 @@
   },
   "rating": {
     "enabled": false
+  },
+  "analytics": {
+    "enabled": false,
+    "trackingId": ""
   }
 }

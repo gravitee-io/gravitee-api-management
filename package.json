@@ -29,6 +29,8 @@
     "angular-ui-tree": "^2.22.2",
     "angular-ui-validate": "^1.2.2",
     "angular-utf8-base64": "0.0.5",
+    "angulartics": "^1.4.0",
+    "angulartics-google-analytics": "^0.4.0",
     "api-console": "^3.0.15",
     "bootstrap": "^3.3.7",
     "codemirror": "^5.25.2",

@@ -300,6 +300,14 @@ angular@^1.0.1, angular@^1.3.15, angular@^1.3.2, angular@^1.4.0, angular@^1.4.8,
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.4.tgz#03b7b15c01a0802d7e2cf593240e604054dc77fb"
 
+angulartics-google-analytics@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/angulartics-google-analytics/-/angulartics-google-analytics-0.4.0.tgz#af32db0d0aa704d05836acea72f069f0911b7a51"
+
+angulartics@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/angulartics/-/angulartics-1.4.0.tgz#0eb234b024a6dd9273e45c96df434c33427884e4"
+
 ansi-escapes@^1.1.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/ansi-escapes/-/ansi-escapes-1.4.0.tgz#d3a8a83b319aa67793662b13e761c7911422306e"
