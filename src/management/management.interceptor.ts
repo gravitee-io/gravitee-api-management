@@ -53,7 +53,7 @@ function interceptorConfig(
             errorMessage = error.data ? error.data.message : 'Server unavailable';
           }
         }
-        if (!sessionExpired && error && error.status > 0) {
+        if (!sessionExpired && error && error.status > 0 && !error.config.silentCall) {
           notificationService.showError(error, errorMessage);
         }
       }

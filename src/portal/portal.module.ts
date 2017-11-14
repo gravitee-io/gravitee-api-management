@@ -25,6 +25,9 @@ import portalRouterConfig from './portal.route';
 import authenticationConfig from '../authentication/authentication.config';
 import portalI18nConfig from './portal.i18n';
 
+// i18n
+import i18nCustomLoader from './i18n/loader';
+
 import { HomeController } from './home/home.controller';
 import { PortalApisController } from './api/apis.controller';
 
@@ -59,6 +62,7 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
   .config(portalRouterConfig)
   .config(portalI18nConfig)
   .config(authenticationConfig)
+  .factory('i18nCustomLoader', i18nCustomLoader)
   .controller('HomeController', HomeController)
   .controller('PortalApisController', PortalApisController)
   .component('api', ApiComponent)

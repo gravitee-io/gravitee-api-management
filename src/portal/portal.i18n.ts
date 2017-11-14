@@ -18,7 +18,7 @@ import * as moment from 'moment';
 function portalI18nConfig($translateProvider, $windowProvider) {
   'ngInject';
 
-  $translateProvider.useStaticFilesLoader({
+  $translateProvider.useLoader('i18nCustomLoader', {
     prefix: 'portal/i18n/',
     suffix: '.json'
   });
