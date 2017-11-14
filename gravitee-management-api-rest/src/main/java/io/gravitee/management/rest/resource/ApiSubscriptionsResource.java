@@ -20,23 +20,24 @@ import io.gravitee.management.model.*;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.model.Subscription;
+import io.gravitee.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiKeyService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.SubscriptionService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
+import javax.naming.OperationNotSupportedException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static io.gravitee.management.model.SubscriptionStatus.CLOSED;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -74,6 +75,34 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
+    }
+
+    @POST
+    @Path("{subscription}/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Change the status of a subscription",
+            notes = "User must have the MANAGE_PLANS permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "API subscription successfully closed"),
+            @ApiResponse(code = 400, message = "Status changes not authorized"),
+            @ApiResponse(code = 404, message = "API subscription does not exist"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
+    })
+    public Response changeStatus(
+            @PathParam("api") String api,
+            @PathParam("subscription") String subscription,
+            @ApiParam(required = true, allowableValues = "CLOSED")
+            @QueryParam("status") SubscriptionStatus subscriptionStatus) {
+        subscriptionService.findById(subscription);
+        if (CLOSED.equals(subscriptionStatus)) {
+            subscriptionService.close(subscription);
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 
     @GET

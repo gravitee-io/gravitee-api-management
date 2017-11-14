@@ -194,7 +194,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .stream()
                     .filter(subscription ->
                             subscription.getPlan().equals(plan) &&
-                                    subscription.getStatus() != Subscription.Status.REJECTED)
+                                    subscription.getStatus() != Subscription.Status.REJECTED &&
+                                    subscription.getStatus() != Subscription.Status.CLOSED)
                     .count();
 
             if (subscriptionCount > 0) {
