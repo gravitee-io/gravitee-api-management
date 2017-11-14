@@ -18,12 +18,15 @@ package io.gravitee.repository.utils;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class DateUtils {
 
     public static Date parse(final String stringDate) {
         try {
-            return new SimpleDateFormat("dd/MM/yyyy").parse(stringDate);
+            final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+            return simpleDateFormat.parse(stringDate);
         } catch (final ParseException pe) {
             throw new RuntimeException(pe);
         }

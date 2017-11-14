@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
 
 public class RatingRepositoryTest extends AbstractRepositoryTest {
 
-    private final Calendar cal = GregorianCalendar.getInstance();
+    private final Calendar cal = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT"));
 
     @Override
     protected String getTestCasesPath() {
