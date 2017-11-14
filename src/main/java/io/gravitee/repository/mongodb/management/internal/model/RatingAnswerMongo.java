@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.Date;
 import java.util.Objects;
 
@@ -22,6 +24,7 @@ import java.util.Objects;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Document(collection = "ratingAnswers")
 public class RatingAnswerMongo {
 
 	private String id;
