@@ -43,9 +43,11 @@ class SubscriptionsController {
     this.applyFilters();
   }
 
-  changeFilter(statusFilter) {
+  changeFilter(statusFilter, notPull) {
     if (_.includes(this.selectedStatus, statusFilter)) {
-      _.pull(this.selectedStatus, statusFilter);
+      if (!notPull) {
+        _.pull(this.selectedStatus, statusFilter);
+      }
     } else {
       this.selectedStatus.push(statusFilter);
     }
@@ -168,8 +170,8 @@ class SubscriptionsController {
       template: require('../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Are you sure you want to renew your API Key ?',
-        msg: 'Your previous API Key will be no longer valid in 1 hour !',
+        title: 'Are you sure you want to renew your API Key?',
+        msg: 'Your previous API Key will be no longer valid in 1 hour!',
         confirmButton: 'Renew'
       }
     }).then(function (response) {
@@ -210,6 +212,31 @@ class SubscriptionsController {
           });
         }
       });
+    });
+  }
+
+  closeSubscription(apiId, subscription) {
+    let _this = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        title: 'Are you sure you want to close this subscription?',
+        msg: 'Your API Keys will be revoked!',
+        confirmButton: 'Close'
+      }
+    }).then(function (response) {
+      if (response) {
+        _this.ApiService.closeSubscription(apiId, subscription.id).then(() => {
+          _this.NotificationService.show('The subscription has been closed successfully');
+          _this.ApiService.getSubscriptions(apiId).then((response) => {
+            _this.subscriptions = response.data;
+            _this.changeFilter('closed', true);
+          });
+        });
+      }
     });
   }
 }

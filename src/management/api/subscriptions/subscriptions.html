@@ -81,10 +81,13 @@
               </span>
             </div>
             <div ng-if="'accepted' === subscription.status">
-              <span>
-                <md-tooltip permission permission-only="'api-subscription-u'" md-direction="left">Renew your API Key</md-tooltip>
-                <ng-md-icon permission permission-only="'api-subscription-u'" icon="autorenew" style="top: 0;"
-                            ng-click="subscriptionsCtrl.generateAPIKey(subscriptionsCtrl.api.id, subscription)"></ng-md-icon>
+              <span permission permission-only="'api-subscription-u'">
+                <md-tooltip md-direction="left">Renew your API Key</md-tooltip>
+                <ng-md-icon icon="autorenew" style="top: 0;" ng-click="$event.stopPropagation();subscriptionsCtrl.generateAPIKey(subscriptionsCtrl.api.id, subscription)"></ng-md-icon>
+              </span>
+              <span permission permission-only="'api-subscription-u'">
+                <md-tooltip md-direction="left">Close subscription</md-tooltip>
+                <ng-md-icon icon="not_interested" style="top: 0;" ng-click="$event.stopPropagation();subscriptionsCtrl.closeSubscription(subscriptionsCtrl.api.id, subscription)"></ng-md-icon>
               </span>
             </div>
           </td>

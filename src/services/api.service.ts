@@ -263,6 +263,10 @@ class ApiService {
     return this.$http.put(this.apisURL + apiId + '/keys/' + apiKey.key, apiKey);
   }
 
+  closeSubscription(apiId, subscriptionId) {
+    return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/status?status=CLOSED');
+  }
+
   listApiMetadata(apiId) {
     return this.$http.get(this.apisURL + apiId + '/metadata');
   }
