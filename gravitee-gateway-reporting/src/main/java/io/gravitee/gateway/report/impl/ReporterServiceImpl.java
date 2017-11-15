@@ -70,7 +70,7 @@ public class ReporterServiceImpl extends AbstractService implements ReporterServ
             try {
                 reporter.stop();
             } catch (Exception ex) {
-                logger.error("Unexpected error while starting reporter", ex);
+                logger.error("Unexpected error while stopping reporter", ex);
             }
         }
     }
