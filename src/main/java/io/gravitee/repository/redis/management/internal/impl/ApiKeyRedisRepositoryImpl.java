@@ -49,6 +49,8 @@ public class ApiKeyRedisRepositoryImpl extends AbstractRedisRepository implement
     public RedisApiKey saveOrUpdate(RedisApiKey apiKey) {
         redisTemplate.opsForHash().put(REDIS_KEY, apiKey.getKey(), apiKey);
         redisTemplate.opsForSet().add(REDIS_KEY + ":plan:" + apiKey.getPlan(), apiKey.getKey());
+        redisTemplate.opsForSet().add(REDIS_KEY + ":revoked:" + apiKey.isRevoked(), apiKey.getKey());
+        redisTemplate.opsForZSet().add(REDIS_KEY + ":updated_at", apiKey.getKey(), apiKey.getUpdatedAt());
         redisTemplate.opsForSet().add(REDIS_KEY + ":subscription:" + apiKey.getSubscription(), apiKey.getKey());
         return apiKey;
     }
@@ -58,6 +60,8 @@ public class ApiKeyRedisRepositoryImpl extends AbstractRedisRepository implement
         RedisApiKey redisApiKey = find(apiKey);
         redisTemplate.opsForHash().delete(REDIS_KEY, apiKey);
         redisTemplate.opsForSet().remove(REDIS_KEY + ":plan:" + redisApiKey.getPlan(), apiKey);
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":revoked:" + redisApiKey.isRevoked(), apiKey);
+        redisTemplate.opsForZSet().remove(REDIS_KEY + ":updated_at", redisApiKey.getKey());
         redisTemplate.opsForSet().remove(REDIS_KEY + ":subscription:" + redisApiKey.getSubscription(), apiKey);
     }
 
@@ -96,6 +100,10 @@ public class ApiKeyRedisRepositoryImpl extends AbstractRedisRepository implement
 
         // And finally add clause based on event update date
         filterKeys.add(REDIS_KEY + ":updated_at");
+
+        if (! criteria.isIncludeRevoked()) {
+            filterKeys.add(REDIS_KEY + ":revoked:" + false);
+        }
 
         redisTemplate.opsForZSet().intersectAndStore(null, filterKeys, tempDestination);
 

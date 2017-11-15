@@ -141,7 +141,7 @@ public class RedisApiKeyRepository implements ApiKeyRepository {
         if (apiKey.getRevokedAt() != null) {
             redisApiKey.setRevokeAt(apiKey.getRevokedAt().getTime());
         }
-        redisApiKey.setRevoked(redisApiKey.isRevoked());
+        redisApiKey.setRevoked(apiKey.isRevoked());
 
         return redisApiKey;
     }
