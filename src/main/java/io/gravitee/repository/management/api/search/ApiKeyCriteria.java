@@ -32,7 +32,7 @@ public class ApiKeyCriteria {
     ApiKeyCriteria(ApiKeyCriteria.Builder builder) {
         this.from = builder.from;
         this.to = builder.to;
-        this.plans = builder.plan;
+        this.plans = builder.plans;
         this.includeRevoked = builder.includeRevoked;
     }
 
@@ -53,7 +53,7 @@ public class ApiKeyCriteria {
     }
 
     public static class Builder {
-        private Collection<String> plan;
+        private Collection<String> plans;
 
         private long from, to;
 
@@ -70,7 +70,7 @@ public class ApiKeyCriteria {
         }
 
         public ApiKeyCriteria.Builder plans(Collection<String> plans) {
-            this.plan = plans;
+            this.plans = plans;
             return this;
         }
 
