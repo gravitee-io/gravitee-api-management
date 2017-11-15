@@ -302,9 +302,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         */
     }
 
-    private void setExpiration(Date expirationDate, ApiKey oldkey) throws TechnicalException {
-        if (!oldkey.isRevoked() && oldkey.getExpireAt() == null) {
-            ApiKey key = new ApiKey(oldkey);
+    private void setExpiration(Date expirationDate, ApiKey key) throws TechnicalException {
+        ApiKey oldkey = new ApiKey(key);
+        if (!key.isRevoked() && key.getExpireAt() == null) {
             key.setUpdatedAt(new Date());
             key.setExpireAt(expirationDate);
             apiKeyRepository.update(key);

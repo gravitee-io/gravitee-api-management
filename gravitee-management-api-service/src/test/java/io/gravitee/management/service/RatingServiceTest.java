@@ -87,6 +87,8 @@ public class RatingServiceTest {
     private RatingAnswer ratingAnswer;
     @Mock
     private UserEntity user;
+    @Mock
+    private AuditService auditService;
 
     @Before
     public void init() {
