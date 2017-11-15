@@ -93,7 +93,7 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
             subscriptions.stream()
                     .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED)
                     .forEach(subscription -> {
-                        if (subscription.getEndingAt() != null && subscription.getEndingAt().after(now)) {
+                        if (subscription.getEndingAt() != null && subscription.getEndingAt().before(now)) {
                             subscriptionService.close(subscription.getId());
                         }
                     });
