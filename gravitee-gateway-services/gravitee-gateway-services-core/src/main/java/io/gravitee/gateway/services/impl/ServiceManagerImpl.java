@@ -68,15 +68,19 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     protected void doStop() throws Exception {
         super.doStop();
 
-        if (serverConfiguration.isEnabled()) {
-            httpServer.stop();
-        }
-
         for(AbstractService service: services) {
             try {
                 service.stop();
             } catch (Exception ex) {
-                LOGGER.error("Unexpected error while starting service", ex);
+                LOGGER.error("Unexpected error while stopping service", ex);
+            }
+        }
+
+        if (serverConfiguration.isEnabled()) {
+            try {
+                httpServer.stop();
+            } catch (Exception ex) {
+                LOGGER.error("Unexpected error while stopping HTTP server for gateway API", ex);
             }
         }
     }
