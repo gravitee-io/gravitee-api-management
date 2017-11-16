@@ -233,4 +233,13 @@ public class ApiPathResolverTest {
         Assert.assertEquals("/v1/products/Stores/:storeId", path.getPath());
         Assert.assertEquals("/Stores/:storeId", path.getResolvedPath());
     }
+
+    @Test
+    public void resolve_pathWithContextPath_mustReturnParameterizedPath_notCaseSensitive1() {
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/stores/Stores");
+        Assert.assertNotNull(path);
+
+        Assert.assertEquals("/v1/products/stores/:storeId", path.getPath());
+        Assert.assertEquals("/stores/:storeId", path.getResolvedPath());
+    }
 }
