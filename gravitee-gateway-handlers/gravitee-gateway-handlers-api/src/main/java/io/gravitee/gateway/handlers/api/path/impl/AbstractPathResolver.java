@@ -35,7 +35,7 @@ public abstract class AbstractPathResolver implements PathResolver {
 
     private final static String URL_PATH_SEPARATOR = "/";
     private final static String PATH_PARAM_PREFIX = ":";
-    private final static String PATH_PARAM_REGEX = "[a-z0-9\\-._~%!$&'()* +,;=:@/]+";
+    private final static String PATH_PARAM_REGEX = "[a-zA-Z0-9\\-._~%!$&'()* +,;=:@/]+";
 
     private final List<Path> registeredPaths = new ArrayList<>();
 
