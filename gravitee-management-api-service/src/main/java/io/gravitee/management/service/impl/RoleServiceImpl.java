@@ -117,63 +117,50 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         }
     }
 
+    private boolean permissionsAreDifferent(Role role1, Role role2) {
+        return Arrays.stream(role1.getPermissions()).reduce(Math::addExact).orElse(0) !=
+                Arrays.stream(role2.getPermissions()).reduce(Math::addExact).orElse(0);
+    }
+
+    private void createOrUpdateSystemRole(SystemRole roleName, RoleScope roleScope, io.gravitee.management.model.permissions.RoleScope permRoleScope, Permission[] permissions) throws TechnicalException {
+        Role systemRole = createSystemRoleWithoutPermissions(roleName.name(), roleScope, new Date());
+        Map<String, char[]> perms = new HashMap<>();
+        for (Permission perm : permissions) {
+            perms.put(perm.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
+        }
+        systemRole.setPermissions(convertPermissions(permRoleScope , perms));
+
+        Optional<Role> existingRole = roleRepository.findById(systemRole.getScope(), systemRole.getName());
+        if (existingRole.isPresent() && permissionsAreDifferent(existingRole.get(), systemRole)) {
+            roleRepository.update(systemRole);
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
+                    ROLE_UPDATED,
+                    systemRole.getCreatedAt(),
+                    existingRole,
+                    systemRole);
+        } else if (!existingRole.isPresent()) {
+            roleRepository.create(systemRole);
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
+                    ROLE_CREATED,
+                    systemRole.getCreatedAt(),
+                    null,
+                    systemRole);
+        }
+    }
+
     @Override
-    public void createOrResetSystemRoles(boolean create) {
+    public void createOrUpdateSystemRoles() {
         try {
-            Date now = new Date();
-            Role systemRole;
-
             //MANAGEMENT - ADMIN
-            systemRole = createSystemRoleWithoutPermissions(SystemRole.ADMIN.name(), RoleScope.MANAGEMENT, now);
-            Map<String, char[]> perms = new HashMap<>();
-            for (ManagementPermission managementPermission : ManagementPermission.values()) {
-                perms.put(managementPermission.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
-            }
-            systemRole.setPermissions(convertPermissions(io.gravitee.management.model.permissions.RoleScope.MANAGEMENT , perms));
-            if(create) {
-                roleRepository.create(systemRole);
-            } else {
-                roleRepository.update(systemRole);
-            }
-
+            createOrUpdateSystemRole(SystemRole.ADMIN, RoleScope.MANAGEMENT, io.gravitee.management.model.permissions.RoleScope.MANAGEMENT, ManagementPermission.values());
             //PORTAL - ADMIN
-            systemRole = createSystemRoleWithoutPermissions(SystemRole.ADMIN.name(), RoleScope.PORTAL, now);
-            perms.clear();
-            for (PortalPermission portalPermission : PortalPermission.values()) {
-                perms.put(portalPermission.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
-            }
-            systemRole.setPermissions(convertPermissions(io.gravitee.management.model.permissions.RoleScope.PORTAL , perms));
-            if(create) {
-                roleRepository.create(systemRole);
-            } else {
-                roleRepository.update(systemRole);
-            }
-
+            createOrUpdateSystemRole(SystemRole.ADMIN, RoleScope.PORTAL, io.gravitee.management.model.permissions.RoleScope.PORTAL, PortalPermission.values());
             //API - PRIMARY_OWNER
-            systemRole = createSystemRoleWithoutPermissions(SystemRole.PRIMARY_OWNER.name(), RoleScope.API, now);
-            perms.clear();
-            for (ApiPermission apiPermission : ApiPermission.values()) {
-                perms.put(apiPermission.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
-            }
-            systemRole.setPermissions(convertPermissions(io.gravitee.management.model.permissions.RoleScope.API , perms));
-            if(create) {
-                roleRepository.create(systemRole);
-            } else {
-                roleRepository.update(systemRole);
-            }
-
+            createOrUpdateSystemRole(SystemRole.PRIMARY_OWNER, RoleScope.API, io.gravitee.management.model.permissions.RoleScope.API, ApiPermission.values());
             //APPLICATION - PRIMARY_OWNER
-            systemRole = createSystemRoleWithoutPermissions(SystemRole.PRIMARY_OWNER.name(), RoleScope.APPLICATION, now);
-            perms.clear();
-            for (ApplicationPermission applicationPermission : ApplicationPermission.values()) {
-                perms.put(applicationPermission.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
-            }
-            systemRole.setPermissions(convertPermissions(io.gravitee.management.model.permissions.RoleScope.APPLICATION , perms));
-            if(create) {
-                roleRepository.create(systemRole);
-            } else {
-                roleRepository.update(systemRole);
-            }
+            createOrUpdateSystemRole(SystemRole.PRIMARY_OWNER, RoleScope.APPLICATION, io.gravitee.management.model.permissions.RoleScope.APPLICATION, ApplicationPermission.values());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create admin roles", ex);
             throw new TechnicalManagementException("An error occurs while trying to create admin roles ", ex);

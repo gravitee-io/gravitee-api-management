@@ -74,9 +74,9 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
         }
 
         // initialize roles.
+        roleService.createOrUpdateSystemRoles();
         if(roleService.findAll().isEmpty()) {
             logger.info("    No role found. Add default ones.");
-            roleService.createOrResetSystemRoles(true);
 
             Map<String, char[]> perms = new HashMap<>();
 
@@ -131,6 +131,7 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
             perms.put(ApiPermission.METADATA.getName(), new char[]{READ.getId()});
             perms.put(ApiPermission.EVENT.getName(), new char[]{READ.getId()});
             perms.put(ApiPermission.DOCUMENTATION.getName(), new char[]{READ.getId()});
+            perms.put(ApiPermission.RATING.getName(), new char[]{CREATE.getId(), READ.getId()});
             roleService.create(new NewRoleEntity(
                     "USER",
                     "Default API Role. Created by Gravitee.io.",
@@ -153,6 +154,8 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
             perms.put(ApiPermission.LOG.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             perms.put(ApiPermission.DOCUMENTATION.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             perms.put(ApiPermission.AUDIT.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
+            perms.put(ApiPermission.RATING.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
+            perms.put(ApiPermission.RATING_ANSWER.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
             roleService.create(new NewRoleEntity(
                     "OWNER",
                     "API Role. Created by Gravitee.io.",
@@ -191,9 +194,6 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
                     perms
             ));
 
-        } else {
-            logger.debug("    Roles found, reset sytem roles.");
-            roleService.createOrResetSystemRoles(false);
         }
     }
 }
