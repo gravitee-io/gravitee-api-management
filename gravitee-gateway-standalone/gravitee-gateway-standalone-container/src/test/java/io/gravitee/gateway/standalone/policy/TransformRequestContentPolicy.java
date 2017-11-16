@@ -16,16 +16,12 @@
 package io.gravitee.gateway.standalone.policy;
 
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.api.stream.SimpleReadWriteStream;
-import io.gravitee.policy.api.PolicyChain;
-import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
 
 /**
@@ -33,13 +29,6 @@ import io.gravitee.policy.api.annotations.OnRequestContent;
  * @author GraviteeSource Team
  */
 public class TransformRequestContentPolicy {
-
-    @OnRequest
-    public void onRequest(Request request, Response response, PolicyChain policyChain) {
-        request.headers().set(HttpHeaders.TRANSFER_ENCODING, HttpHeadersValues.TRANSFER_ENCODING_CHUNKED);
-
-        policyChain.doNext(request, response);
-    }
 
     @OnRequestContent
     public ReadWriteStream onRequestContent(Request request, ExecutionContext executionContext) {
@@ -58,6 +47,8 @@ public class TransformRequestContentPolicy {
             public void end() {
                 String content = executionContext.getTemplateEngine().convert(buffer.toString());
                 Buffer contentBuf = Buffer.buffer(content);
+
+                request.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(contentBuf.length()));
 
                 // Write content
                 super.write(contentBuf);

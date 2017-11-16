@@ -17,13 +17,10 @@ package io.gravitee.gateway.standalone.policy;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.api.stream.SimpleReadWriteStream;
-import io.gravitee.policy.api.PolicyChain;
-import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
 
 /**
@@ -33,13 +30,6 @@ import io.gravitee.policy.api.annotations.OnRequestContent;
 public class OverrideRequestContentPolicy {
 
     public final static String STREAM_POLICY_CONTENT = "Intercepted streamable request content";
-
-    @OnRequest
-    public void onRequest(Request request, Response response, PolicyChain policyChain) {
-        request.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString((STREAM_POLICY_CONTENT.length())));
-
-        policyChain.doNext(request, response);
-    }
 
     @OnRequestContent
     public ReadWriteStream onRequestContent(Request request) {
@@ -54,6 +44,8 @@ public class OverrideRequestContentPolicy {
             @Override
             public void end() {
                 Buffer content = Buffer.buffer(STREAM_POLICY_CONTENT);
+
+                request.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(content.length()));
 
                 // Write content
                 super.write(content);
