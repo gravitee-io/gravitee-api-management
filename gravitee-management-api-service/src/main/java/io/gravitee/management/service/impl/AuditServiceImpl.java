@@ -194,7 +194,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 applicationId,
                 properties,
                 event,
-                getAuthenticatedUsername(),
+                getAuthenticatedUsernameOrSystem(),
                 createdAt,
                 oldValue,
                 newValue);
@@ -218,7 +218,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
        createPortalAuditLog(
                properties,
                event,
-               getAuthenticatedUsername(),
+               getAuthenticatedUsernameOrSystem(),
                createdAt,
                oldValue,
                newValue);
@@ -282,5 +282,9 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         auditEntity.setCreatedAt(audit.getCreatedAt());
 
         return auditEntity;
+    }
+
+    private String getAuthenticatedUsernameOrSystem() {
+        return isAuthenticated() ? getAuthenticatedUsername() : "system";
     }
 }

@@ -104,7 +104,6 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             auditService.createPortalAuditLog(
                     Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
                     ROLE_CREATED,
-                    isAuthenticated() ? getAuthenticatedUsername() : "init",
                     role.getCreatedAt(),
                     null,
                     role);

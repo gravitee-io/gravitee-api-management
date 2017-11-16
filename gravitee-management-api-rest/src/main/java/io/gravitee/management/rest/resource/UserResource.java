@@ -74,7 +74,12 @@ public class UserResource extends AbstractResource {
             try {
                 userEntity = userService.findByName(username, true);
             } catch (final UserNotFoundException unfe) {
-                LOG.info("User '{}' no longer exists.", username, unfe);
+                final String unfeMessage = "User '{}' no longer exists.";
+                if (LOG.isDebugEnabled()) {
+                    LOG.info(unfeMessage, username, unfe);
+                } else {
+                    LOG.info(unfeMessage, username);
+                }
                 return logout();
             }
 

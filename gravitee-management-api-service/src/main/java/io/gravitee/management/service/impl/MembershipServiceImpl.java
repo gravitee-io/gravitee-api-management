@@ -466,7 +466,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 auditService.createPortalAuditLog(
                         properties,
                         event,
-                        isAuthenticated()?getAuthenticatedUsername():username,
                         date,
                         oldValue,
                         newValue);
@@ -475,7 +474,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 auditService.createPortalAuditLog(
                         properties,
                         event,
-                        isAuthenticated()?getAuthenticatedUsername():username,
                         date,
                         oldValue,
                         newValue);

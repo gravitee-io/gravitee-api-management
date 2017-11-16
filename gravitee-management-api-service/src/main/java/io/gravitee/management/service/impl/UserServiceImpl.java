@@ -114,7 +114,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
             auditService.createPortalAuditLog(
                     Collections.singletonMap(USER, username),
                     User.AuditEvent.USER_CONNECTED,
-                    isAuthenticated()?getAuthenticatedUsername():username,
                     user.getUpdatedAt(),
                     previousUser,
                     user);
@@ -209,7 +208,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
             auditService.createPortalAuditLog(
                     Collections.singletonMap(USER, user.getUsername()),
                     User.AuditEvent.USER_CREATED,
-                    isAuthenticated()?getAuthenticatedUsername():user.getUsername(),
                     user.getUpdatedAt(),
                     null,
                     user);
@@ -244,7 +242,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
             auditService.createPortalAuditLog(
                     Collections.singletonMap(USER, user.getUsername()),
                     User.AuditEvent.USER_CREATED,
-                    isAuthenticated()?getAuthenticatedUsername():newExternalUserEntity.getUsername(),
                     user.getCreatedAt(),
                     null,
                     user);
