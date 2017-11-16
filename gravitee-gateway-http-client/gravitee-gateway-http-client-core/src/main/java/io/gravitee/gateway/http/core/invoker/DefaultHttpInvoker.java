@@ -123,15 +123,10 @@ public class DefaultHttpInvoker implements Invoker {
 
                 final HttpMethod httpMethod = extractHttpMethod(executionContext, serverRequest);
 
-                final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
-                        (HTTPS_SCHEME.equals(requestUri.getScheme()) ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT);
-                final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
-                        requestUri.getHost() : requestUri.getHost() + ':' + port;
-
                 ProxyRequest proxyRequest = ProxyRequestBuilder.from(serverRequest)
                         .uri(requestUri)
                         .method(httpMethod)
-                        .headers(proxyRequestHeaders(serverRequest.headers(), host, endpoint.definition()))
+                        .headers(setHostHeader(serverRequest.headers(), requestUri, endpoint.definition()))
                         .build();
 
                 ProxyConnection proxyConnection = endpoint.connector().request(proxyRequest);
@@ -157,27 +152,24 @@ public class DefaultHttpInvoker implements Invoker {
         return serverRequest;
     }
 
-    private HttpHeaders proxyRequestHeaders(HttpHeaders serverHeaders, String host, Endpoint endpoint) {
-        HttpHeaders proxyRequestHeaders = new HttpHeaders();
-        for (Map.Entry<String, List<String>> headerValues : serverHeaders.entrySet()) {
-            String headerName = headerValues.getKey();
-            String lowerHeaderName = headerName.toLowerCase(Locale.ENGLISH);
-
-            // Remove hop-by-hop headers.
-            if (HOP_HEADERS.contains(lowerHeaderName)) {
-                continue;
-            }
-
-            proxyRequestHeaders.put(headerName, headerValues.getValue());
+    private HttpHeaders setHostHeader(HttpHeaders headers, URI requestUri, Endpoint endpoint) {
+        // Remove hop-by-hop headers.
+        for (String header : HOP_HEADERS) {
+            headers.remove(header);
         }
 
         if (endpoint.getHostHeader() != null && !endpoint.getHostHeader().isEmpty()) {
-            proxyRequestHeaders.set(HttpHeaders.HOST, endpoint.getHostHeader());
+            headers.set(HttpHeaders.HOST, endpoint.getHostHeader());
         } else {
-            proxyRequestHeaders.set(HttpHeaders.HOST, host);
+            final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
+                    (HTTPS_SCHEME.equals(requestUri.getScheme()) ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT);
+            final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
+                    requestUri.getHost() : requestUri.getHost() + ':' + port;
+
+            headers.set(HttpHeaders.HOST, host);
         }
 
-        return proxyRequestHeaders;
+        return headers;
     }
 
     private HttpEndpoint selectEndpoint(Request serverRequest, ExecutionContext executionContext) {

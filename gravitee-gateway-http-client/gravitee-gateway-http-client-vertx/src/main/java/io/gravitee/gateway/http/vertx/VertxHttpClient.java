@@ -42,7 +42,6 @@ import java.net.NoRouteToHostException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
@@ -87,7 +86,7 @@ public class VertxHttpClient extends AbstractHttpClient {
         clientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
         clientRequest.setFollowRedirects(endpoint.getHttpClientOptions().isFollowRedirects());
 
-        VertxProxyConnection proxyConnection = new VertxProxyConnection(clientRequest);
+        VertxProxyConnection proxyConnection = new VertxProxyConnection(proxyRequest, clientRequest);
         clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse));
 
         clientRequest.connectionHandler(connection -> {
@@ -117,18 +116,6 @@ public class VertxHttpClient extends AbstractHttpClient {
             }
         });
 
-        // Copy headers to upstream
-        copyRequestHeaders(proxyRequest.headers(), clientRequest);
-
-        // Check chunk flag on the request if there are some content to push and if transfer_encoding is set
-        // with chunk value
-        if (hasContent(proxyRequest.headers())) {
-            String transferEncoding = proxyRequest.headers().getFirst(HttpHeaders.TRANSFER_ENCODING);
-            if (HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding)) {
-                clientRequest.setChunked(true);
-            }
-        }
-
         return proxyConnection;
     }
 
@@ -149,12 +136,6 @@ public class VertxHttpClient extends AbstractHttpClient {
         clientResponse.endHandler(v -> proxyClientResponse.endHandler().handle(null));
 
         proxyConnection.handleResponse(proxyClientResponse);
-    }
-
-    private void copyRequestHeaders(HttpHeaders headers, HttpClientRequest httpClientRequest) {
-        for (Map.Entry<String, List<String>> headerValues : headers.entrySet()) {
-            httpClientRequest.putHeader(headerValues.getKey(), headerValues.getValue());
-        }
     }
 
     private HttpMethod convert(io.gravitee.common.http.HttpMethod httpMethod) {

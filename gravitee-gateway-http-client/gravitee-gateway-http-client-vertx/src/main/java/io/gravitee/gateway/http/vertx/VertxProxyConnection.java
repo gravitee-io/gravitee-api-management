@@ -15,11 +15,16 @@
  */
 package io.gravitee.gateway.http.vertx;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
+import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.vertx.core.http.HttpClientRequest;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,13 +33,16 @@ import io.vertx.core.http.HttpClientRequest;
 class VertxProxyConnection implements ProxyConnection {
 
     private final HttpClientRequest httpClientRequest;
+    private final ProxyRequest proxyRequest;
     private ProxyResponse proxyResponse;
     private Handler<Throwable> timeoutHandler;
     private Handler<ProxyResponse> responseHandler;
     private boolean canceled = false;
     private boolean transmitted = false;
+    private boolean headersWritten = false;
 
-    VertxProxyConnection(final HttpClientRequest httpClientRequest) {
+    VertxProxyConnection(final ProxyRequest proxyRequest, final HttpClientRequest httpClientRequest) {
+        this.proxyRequest = proxyRequest;
         this.httpClientRequest = httpClientRequest;
     }
 
@@ -87,13 +95,48 @@ class VertxProxyConnection implements ProxyConnection {
 
     @Override
     public VertxProxyConnection write(Buffer chunk) {
+        if (! headersWritten) {
+            this.writeHeaders();
+        }
+
         httpClientRequest.write(io.vertx.core.buffer.Buffer.buffer(chunk.getBytes()));
 
         return this;
     }
 
+    private void writeHeaders() {
+        // Copy headers to upstream
+        copyRequestHeaders(proxyRequest.headers(), httpClientRequest);
+
+        // Check chunk flag on the request if there are some content to push and if transfer_encoding is set
+        // with chunk value
+        if (hasContent(proxyRequest.headers())) {
+            String contentLengthHeader = proxyRequest.headers().getFirst(HttpHeaders.CONTENT_LENGTH);
+            if (contentLengthHeader == null) {
+                // No content-length... so let's go for chunked transfer-encoding
+                httpClientRequest.setChunked(true);
+            }
+        }
+
+        headersWritten = true;
+    }
+
+    private boolean hasContent(HttpHeaders headers) {
+        return headers.contentLength() > 0 || headers.contentType() != null;
+    }
+
+    private void copyRequestHeaders(HttpHeaders headers, HttpClientRequest httpClientRequest) {
+        for (Map.Entry<String, List<String>> headerValues : headers.entrySet()) {
+            httpClientRequest.putHeader(headerValues.getKey(), headerValues.getValue());
+        }
+    }
+
     @Override
     public void end() {
+        if (! headersWritten) {
+            this.writeHeaders();
+        }
+
         httpClientRequest.end();
     }
 }
