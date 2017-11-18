@@ -15,14 +15,18 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Objects;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateViewEntity {
 
     private String id;
@@ -30,6 +34,9 @@ public class UpdateViewEntity {
     @Size(min = 1)
     private String name;
     private String description;
+    private boolean defaultView;
+    private boolean hidden;
+    private int order;
 
     public String getId() {
         return id;
@@ -55,14 +62,36 @@ public class UpdateViewEntity {
         this.description = description;
     }
 
+    public boolean isDefaultView() {
+        return defaultView;
+    }
+
+    public void setDefaultView(boolean defaultView) {
+        this.defaultView = defaultView;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof UpdateViewEntity)) return false;
         UpdateViewEntity that = (UpdateViewEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description);
+        return Objects.equals(id, that.id);
     }
 
     @Override
@@ -76,6 +105,9 @@ public class UpdateViewEntity {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", defaultView='" + defaultView + '\'' +
+                ", hidden='" + hidden + '\'' +
+                ", order='" + order + '\'' +
                 '}';
     }
 }

@@ -131,6 +131,10 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
 
     @Override
     public void delete(final String viewId) {
+        if (View.ALL_ID.equals(viewId)) {
+            LOGGER.error("Delete the default view is forbidden");
+            throw new TechnicalManagementException("Delete the default view is forbidden");
+        }
         try {
             Optional<View> viewOptional = viewRepository.findById(viewId);
             if (viewOptional.isPresent()) {
@@ -141,7 +145,6 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
                         new Date(),
                         null,
                         viewOptional.get());
-                viewRepository.delete(viewId);
 
                 // delete all reference on APIs
                 apiService.deleteViewFromAPIs(viewId);
@@ -152,11 +155,30 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         }
     }
 
+    @Override
+    public void createDefaultView() {
+            View view = new View();
+            view.setId(View.ALL_ID);
+            view.setName("All");
+            view.setDefaultView(true);
+            view.setOrder(0);
+            view.setCreatedAt(new Date());
+            view.setUpdatedAt(view.getCreatedAt());
+        try{
+            viewRepository.create(view);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to create view {}", view.getName(), ex);
+            throw new TechnicalManagementException("An error occurs while trying to create view " + view.getName(), ex);
+        }
+    }
+
     private View convert(final NewViewEntity viewEntity) {
         final View view = new View();
         view.setId(IdGenerator.generate(viewEntity.getName()));
         view.setName(viewEntity.getName());
         view.setDescription(viewEntity.getDescription());
+        view.setOrder(viewEntity.getOrder());
+        view.setHidden(viewEntity.isHidden());
         return view;
     }
 
@@ -165,6 +187,9 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         view.setId(viewEntity.getId());
         view.setName(viewEntity.getName());
         view.setDescription(viewEntity.getDescription());
+        view.setDefaultView(viewEntity.isDefaultView());
+        view.setOrder(viewEntity.getOrder());
+        view.setHidden(viewEntity.isHidden());
         return view;
     }
 
@@ -173,6 +198,11 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         viewEntity.setId(view.getId());
         viewEntity.setName(view.getName());
         viewEntity.setDescription(view.getDescription());
+        viewEntity.setDefaultView(view.isDefaultView());
+        viewEntity.setOrder(view.getOrder());
+        viewEntity.setHidden(view.isHidden());
+        viewEntity.setUpdatedAt(view.getUpdatedAt());
+        viewEntity.setCreatedAt(view.getCreatedAt());
         return viewEntity;
     }
 }

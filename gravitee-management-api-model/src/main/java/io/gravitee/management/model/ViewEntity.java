@@ -17,6 +17,7 @@ package io.gravitee.management.model;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -30,6 +31,11 @@ public class ViewEntity {
     @Size(min = 1)
     private String name;
     private String description;
+    private boolean defaultView;
+    private boolean hidden;
+    private int order;
+    private Date createdAt;
+    private Date updatedAt;
     private long totalApis;
 
     public String getId() {
@@ -64,6 +70,46 @@ public class ViewEntity {
         this.totalApis = totalApis;
     }
 
+    public boolean isDefaultView() {
+        return defaultView;
+    }
+
+    public void setDefaultView(boolean defaultView) {
+        this.defaultView = defaultView;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -85,6 +131,11 @@ public class ViewEntity {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", defaultView='" + defaultView + '\'' +
+                ", order='" + order + '\'' +
+                ", hidden='" + hidden + '\'' +
+                ", updatedAt='" + updatedAt + '\'' +
+                ", createdAt='" + createdAt + '\'' +
                 '}';
     }
 }

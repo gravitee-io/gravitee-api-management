@@ -30,7 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,7 +55,7 @@ public class ViewsResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ViewEntity> list()  {
+    public List<ViewEntity> list(@QueryParam("all") boolean all)  {
         Set<ApiEntity> apis;
         if (isAdmin()) {
             apis = apiService.findAll();
@@ -63,11 +65,30 @@ public class ViewsResource extends AbstractResource  {
             apis = apiService.findByVisibility(Visibility.PUBLIC);
         }
 
+        boolean viewAll = (all && hasPermission(RolePermission.PORTAL_VIEW, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE));
+
         return viewService.findAll()
                 .stream()
-                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+                .filter(v -> viewAll || !v.isHidden())
+                .sorted(Comparator.comparingInt(ViewEntity::getOrder))
                 .map(v -> viewEnhancer.enhance(apis).apply(v))
                 .collect(Collectors.toList());
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/default")
+    public ViewEntity getDefault() {
+        return viewService.
+                findAll().
+                stream().
+                filter(v-> v.isDefaultView() && !v.isHidden()).
+                findFirst().
+                orElse(
+                        this.list(false).
+                                stream().
+                                findFirst().
+                                orElse(null));
     }
 
     @POST

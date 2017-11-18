@@ -17,6 +17,7 @@ package io.gravitee.management.rest.enhancer;
 
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ViewEntity;
+import io.gravitee.repository.management.model.View;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -32,7 +33,8 @@ public class ViewEnhancer {
     public Function<ViewEntity, ViewEntity> enhance(Set<ApiEntity> apis) {
         return view -> {
             long totalApis = apis.stream()
-                                    .filter(api -> api.getViews() != null && api.getViews().contains(view.getId()))
+                                    .filter(api -> View.ALL_ID.equals(view.getId())
+                                            || (api.getViews() != null && api.getViews().contains(view.getId())))
                                     .count();
             view.setTotalApis(totalApis);
 

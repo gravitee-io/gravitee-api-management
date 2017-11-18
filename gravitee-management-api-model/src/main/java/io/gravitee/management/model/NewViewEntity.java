@@ -29,6 +29,8 @@ public class NewViewEntity {
     @Size(min = 1)
     private String name;
     private String description;
+    private boolean hidden;
+    private int order;
 
     public String getName() {
         return name;
@@ -44,6 +46,22 @@ public class NewViewEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
     }
 
     @Override
@@ -65,6 +83,8 @@ public class NewViewEntity {
         return "NewViewEntity{" +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", order='" + order + '\'' +
+                ", hidden='" + hidden + '\'' +
                 '}';
     }
 }

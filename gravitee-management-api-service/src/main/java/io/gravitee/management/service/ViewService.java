@@ -34,4 +34,6 @@ public interface ViewService {
     List<ViewEntity> update(List<UpdateViewEntity> views);
 
     void delete(String viewId);
+
+    void createDefaultView();
 }

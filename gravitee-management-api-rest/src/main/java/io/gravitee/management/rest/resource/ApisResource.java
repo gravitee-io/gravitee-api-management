@@ -29,6 +29,7 @@ import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.repository.management.model.View;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -97,7 +98,7 @@ public class ApisResource extends AbstractResource {
         }
 
         return apis.stream()
-                .filter(apiEntity -> view == null || (apiEntity.getViews() != null && apiEntity.getViews().contains(view)))
+                .filter(apiEntity -> view == null || View.ALL_ID.equals(view) || (apiEntity.getViews() != null && apiEntity.getViews().contains(view)))
                 .filter(apiEntity -> group == null || (apiEntity.getGroups() != null && apiEntity.getGroups().contains(group)))
                 .map(this::convert)
                 .map(this::setManageable)
