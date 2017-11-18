@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -26,11 +27,16 @@ public class View {
         VIEW_CREATED, VIEW_UPDATED, VIEW_DELETED
     }
 
+    public static final String ALL_ID = "all";
+
     private String id;
-
     private String name;
-
     private String description;
+    private boolean defaultView;
+    private boolean hidden;
+    private int order;
+    private Date createdAt;
+    private Date updatedAt;
 
     public String getId() {
         return id;
@@ -56,6 +62,46 @@ public class View {
         this.description = description;
     }
 
+    public boolean isDefaultView() {
+        return defaultView;
+    }
+
+    public void setDefaultView(boolean defaultView) {
+        this.defaultView = defaultView;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -77,6 +123,11 @@ public class View {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", defaultView='" + defaultView + '\'' +
+                ", hidden='" + hidden + '\'' +
+                ", order='" + order + '\'' +
+                ", updatedAt='" + updatedAt + '\'' +
+                ", createdAt='" + createdAt + '\'' +
                 '}';
     }
 }

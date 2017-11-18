@@ -22,6 +22,7 @@ import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ViewRepository extends CrudRepository<View, String>{
