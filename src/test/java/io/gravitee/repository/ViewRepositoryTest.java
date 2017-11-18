@@ -20,8 +20,7 @@ import io.gravitee.repository.management.model.View;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -46,6 +45,11 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         view.setId("new-view");
         view.setName("View name");
         view.setDescription("Description for the new view");
+        view.setCreatedAt(new Date(123456789));
+        view.setUpdatedAt(new Date(987654321));
+        view.setHidden(true);
+        view.setOrder(1);
+        view.setDefaultView(true);
 
         int nbViewsBeforeCreation = viewRepository.findAll().size();
         viewRepository.create(view);
@@ -59,6 +63,11 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         final View viewSaved = optional.get();
         Assert.assertEquals("Invalid saved view name.", view.getName(), viewSaved.getName());
         Assert.assertEquals("Invalid view description.", view.getDescription(), viewSaved.getDescription());
+        Assert.assertEquals("Invalid view createdAt.", view.getCreatedAt(), viewSaved.getCreatedAt());
+        Assert.assertEquals("Invalid view updatedAt.", view.getUpdatedAt(), viewSaved.getUpdatedAt());
+        Assert.assertEquals("Invalid view hidden.", view.isHidden(), viewSaved.isHidden());
+        Assert.assertEquals("Invalid view order.", view.getOrder(), viewSaved.getOrder());
+        Assert.assertEquals("Invalid view defaultView.", view.isDefaultView(), viewSaved.isDefaultView());
     }
 
     @Test
@@ -70,6 +79,12 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         final View view = optional.get();
         view.setName("New product");
         view.setDescription("New description");
+        view.setOrder(10);
+        view.setDefaultView(true);
+        view.setHidden(true);
+        view.setCreatedAt(new Date(123456789));
+        view.setUpdatedAt(new Date(987654321));
+
 
         int nbViewsBeforeUpdate = viewRepository.findAll().size();
         viewRepository.update(view);
@@ -81,8 +96,13 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("View to update not found", optionalUpdated.isPresent());
 
         final View viewUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved view name.", "New product", viewUpdated.getName());
-        Assert.assertEquals("Invalid view description.", "New description", viewUpdated.getDescription());
+        Assert.assertEquals("Invalid saved view name.", view.getName(), viewUpdated.getName());
+        Assert.assertEquals("Invalid view description.", view.getDescription(), viewUpdated.getDescription());
+        Assert.assertEquals("Invalid view createdAt.", view.getCreatedAt(), viewUpdated.getCreatedAt());
+        Assert.assertEquals("Invalid view updatedAt.", view.getUpdatedAt(), viewUpdated.getUpdatedAt());
+        Assert.assertEquals("Invalid view hidden.", view.isHidden(), viewUpdated.isHidden());
+        Assert.assertEquals("Invalid view order.", view.getOrder(), viewUpdated.getOrder());
+        Assert.assertEquals("Invalid view defaultView.", view.isDefaultView(), viewUpdated.isDefaultView());
     }
 
     @Test

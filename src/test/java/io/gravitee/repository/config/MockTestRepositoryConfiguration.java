@@ -103,7 +103,7 @@ public class MockTestRepositoryConfiguration {
                         }
                 ), any())).
                 thenReturn(new io.gravitee.common.data.domain.Page<>(
-                        Arrays.asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)),
+                        asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)),
                         1,
                         3,
                         3));
@@ -134,7 +134,7 @@ public class MockTestRepositoryConfiguration {
                             }
                         }
                 ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(Arrays.asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)), 1, 3, 3));
+                thenReturn(new io.gravitee.common.data.domain.Page<>(asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)), 1, 3, 3));
         //shouldSearchTo
         when(auditRepository.search(
                 argThat(new ArgumentMatcher<AuditCriteria>() {
@@ -184,7 +184,7 @@ public class MockTestRepositoryConfiguration {
             public boolean matches(Object o) {
                 return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).getFrom() == 0);
             }
-        }))).thenReturn(Arrays.asList(mockCriteria1, mockCriteria2));
+        }))).thenReturn(asList(mockCriteria1, mockCriteria2));
         when(apiKeyRepository.findByCriteria(argThat(new ArgumentMatcher<ApiKeyCriteria>() {
             @Override
             public boolean matches(Object o) {
@@ -196,7 +196,7 @@ public class MockTestRepositoryConfiguration {
             public boolean matches(Object o) {
                 return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).isIncludeRevoked());
             }
-        }))).thenReturn(Arrays.asList(mockCriteria1Revoked,mockCriteria1,mockCriteria2));
+        }))).thenReturn(asList(mockCriteria1Revoked,mockCriteria1,mockCriteria2));
 
         return apiKeyRepository;
     }
@@ -252,13 +252,13 @@ public class MockTestRepositoryConfiguration {
         when(apiToFindById.getDefinition()).thenReturn("{}");
         when(apiToFindById.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(apiToFindById.getUpdatedAt()).thenReturn(parse("12/02/2016"));
-        when(apiToFindById.getLabels()).thenReturn(Arrays.asList("label 1", "label 2"));
+        when(apiToFindById.getLabels()).thenReturn(asList("label 1", "label 2"));
         when(apiRepository.findById("api-to-findById")).thenReturn(of(apiToFindById));
 
-        when(apiRepository.findAll()).thenReturn(new HashSet<>(Arrays.asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class))));
+        when(apiRepository.findAll()).thenReturn(new HashSet<>(asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class))));
 
-        when(apiRepository.findByIds(Arrays.asList("api-to-delete", "api-to-update", "unknown"))).
-                thenReturn(new HashSet<>(Arrays.asList(apiToUpdate, apiToDelete)));
+        when(apiRepository.findByIds(asList("api-to-delete", "api-to-update", "unknown"))).
+                thenReturn(new HashSet<>(asList(apiToUpdate, apiToDelete)));
 
         when(apiRepository.update(argThat(new ArgumentMatcher<Api>() {
             @Override
@@ -338,8 +338,8 @@ public class MockTestRepositoryConfiguration {
         when(applicationRepository.findByGroups(singletonList("application-group"), ApplicationStatus.ARCHIVED)).thenReturn(newSet(groupedApplication2));
 
 
-        when(applicationRepository.findByIds(Arrays.asList("application-sample", "updated-app", "unknown"))).
-                thenReturn(new HashSet<>(Arrays.asList(application, updatedApplication)));
+        when(applicationRepository.findByIds(asList("application-sample", "updated-app", "unknown"))).
+                thenReturn(new HashSet<>(asList(application, updatedApplication)));
 
         when(applicationRepository.update(argThat(new ArgumentMatcher<Application>() {
             @Override
@@ -515,29 +515,45 @@ public class MockTestRepositoryConfiguration {
     public ViewRepository viewRepository() throws Exception {
         final ViewRepository viewRepository = mock(ViewRepository.class);
 
-        final View view = mock(View.class);
-        when(view.getName()).thenReturn("View name");
-        when(view.getDescription()).thenReturn("Description for the new view");
+        final View newView = mock(View.class);
+        when(newView.getName()).thenReturn("View name");
+        when(newView.getDescription()).thenReturn("Description for the new view");
+        when(newView.getCreatedAt()).thenReturn(new Date(123456789));
+        when(newView.getUpdatedAt()).thenReturn(new Date(987654321));
+        when(newView.isHidden()).thenReturn(true);
+        when(newView.getOrder()).thenReturn(1);
+        when(newView.isDefaultView()).thenReturn(true);
 
-        final View view2 = mock(View.class);
-        when(view2.getId()).thenReturn("view");
-        when(view2.getName()).thenReturn("Products");
 
-        final View view2Updated = mock(View.class);
-        when(view2Updated.getName()).thenReturn("New product");
-        when(view2Updated.getDescription()).thenReturn("New description");
+        final View viewProducts = new View();
+        viewProducts.setId("view");
+        viewProducts.setName("Products");
+        viewProducts.setCreatedAt(new Date(0));
+        viewProducts.setUpdatedAt(new Date(1111111111111L));
+        viewProducts.setHidden(false);
+        viewProducts.setOrder(1);
+        viewProducts.setDefaultView(false);
 
-        final Set<View> views = newSet(view, view2, mock(View.class));
-        final Set<View> viewsAfterDelete = newSet(view, view2);
-        final Set<View> viewsAfterAdd = newSet(view, view2, mock(View.class), mock(View.class));
+        final View viewProductsUpdated = mock(View.class);
+        when(viewProductsUpdated.getName()).thenReturn("New product");
+        when(viewProductsUpdated.getDescription()).thenReturn("New description");
+        when(viewProductsUpdated.getCreatedAt()).thenReturn(new Date(123456789));
+        when(viewProductsUpdated.getUpdatedAt()).thenReturn(new Date(987654321));
+        when(viewProductsUpdated.isHidden()).thenReturn(true);
+        when(viewProductsUpdated.getOrder()).thenReturn(10);
+        when(viewProductsUpdated.isDefaultView()).thenReturn(true);
+
+        final Set<View> views = newSet(newView, viewProducts, mock(View.class));
+        final Set<View> viewsAfterDelete = newSet(newView, viewProducts);
+        final Set<View> viewsAfterAdd = newSet(newView, viewProducts, mock(View.class), mock(View.class));
 
         when(viewRepository.findAll()).thenReturn(views, viewsAfterAdd, views, viewsAfterDelete, views);
 
-        when(viewRepository.create(any(View.class))).thenReturn(view);
+        when(viewRepository.create(any(View.class))).thenReturn(newView);
 
-        when(viewRepository.findById("new-view")).thenReturn(of(view));
+        when(viewRepository.findById("new-view")).thenReturn(of(newView));
         when(viewRepository.findById("unknown")).thenReturn(empty());
-        when(viewRepository.findById("products")).thenReturn(of(view2), of(view2Updated));
+        when(viewRepository.findById("products")).thenReturn(of(viewProducts), of(viewProductsUpdated));
 
         when(viewRepository.update(argThat(new ArgumentMatcher<View>() {
             @Override
@@ -604,7 +620,7 @@ public class MockTestRepositoryConfiguration {
         eventRule1.setEvent(GroupEvent.API_CREATE);
         GroupEventRule eventRule2 = new GroupEventRule();
         eventRule2.setEvent(GroupEvent.APPLICATION_CREATE);
-        group_application_1.setEventRules(Arrays.asList(eventRule1, eventRule2));
+        group_application_1.setEventRules(asList(eventRule1, eventRule2));
         final Group group_api_to_delete = new Group();
         group_api_to_delete.setId("group-api-to-delete");
         group_api_to_delete.setName("group-api-to-delete");
@@ -631,8 +647,8 @@ public class MockTestRepositoryConfiguration {
             }
         }))).thenReturn(group_updated);
 
-        when(groupRepository.findByIds(new HashSet<>(Arrays.asList("group-application-1", "group-api-to-delete", "unknown")))).
-                thenReturn(new HashSet<>(Arrays.asList(group_application_1, group_api_to_delete)));
+        when(groupRepository.findByIds(new HashSet<>(asList("group-application-1", "group-api-to-delete", "unknown")))).
+                thenReturn(new HashSet<>(asList(group_application_1, group_api_to_delete)));
 
         when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
             @Override
@@ -675,7 +691,7 @@ public class MockTestRepositoryConfiguration {
         when(plan2.getUpdatedAt()).thenReturn(new Date(1507032062000L));
         when(plan2.getPublishedAt()).thenReturn(new Date(1506878460000L));
         when(plan2.getClosedAt()).thenReturn(new Date(1507611600000L));
-        when(plan2.getCharacteristics()).thenReturn(Arrays.asList("charac 1", "charac 2"));
+        when(plan2.getCharacteristics()).thenReturn(asList("charac 1", "charac 2"));
         when(plan2.getExcludedGroups()).thenReturn(singletonList("grp1"));
 
         final Plan updatedPlan = mock(Plan.class);
@@ -749,8 +765,8 @@ public class MockTestRepositoryConfiguration {
         when(repo.findByIds(
                 "user_findByIds",
                 MembershipReferenceType.API,
-                new HashSet<>(Arrays.asList("api1_findByIds", "api2_findByIds", "unknown")))).
-                thenReturn(new HashSet<>(Arrays.asList(api1_findByIds, api2_findByIds)));
+                new HashSet<>(asList("api1_findByIds", "api2_findByIds", "unknown")))).
+                thenReturn(new HashSet<>(asList(api1_findByIds, api2_findByIds)));
 
         when(repo.update(argThat(new ArgumentMatcher<Membership>() {
             @Override
@@ -784,7 +800,7 @@ public class MockTestRepositoryConfiguration {
         pageConfiguration.setTryItURL("http://company.com");
         when(findApiPage.getConfiguration()).thenReturn(pageConfiguration);
         when(findApiPage.isHomepage()).thenReturn(true);
-        when(findApiPage.getExcludedGroups()).thenReturn(Arrays.asList("grp1", "grp2"));
+        when(findApiPage.getExcludedGroups()).thenReturn(asList("grp1", "grp2"));
         when(findApiPage.getCreatedAt()).thenReturn(new Date(1439022010883L));
         when(findApiPage.getUpdatedAt()).thenReturn(new Date(1119022010883L));
 

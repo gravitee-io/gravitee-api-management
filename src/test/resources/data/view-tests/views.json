@@ -2,16 +2,31 @@
    {
       "id":"international",
       "name":"International",
-      "description": "Description for international view"
+      "description": "Description for international view",
+      "defaultView": true,
+      "hidden": false,
+      "order": 0,
+      "createdAt": 0,
+      "updatedAt": 1111111111111
    },
    {
       "id":"products",
       "name":"Products",
-      "description": "Description for products view"
+      "description": "Description for products view",
+      "defaultView": false,
+      "hidden": false,
+      "order": 1,
+      "createdAt": 0,
+      "updatedAt": 1111111111111
    },
    {
       "id":"stores",
       "name":"Stores",
-      "description": "Description for stores view"
+      "description": "Description for stores view",
+      "defaultView": false,
+      "hidden": false,
+      "order": 2,
+      "createdAt": 0,
+      "updatedAt": 1111111111111
    }
 ]
