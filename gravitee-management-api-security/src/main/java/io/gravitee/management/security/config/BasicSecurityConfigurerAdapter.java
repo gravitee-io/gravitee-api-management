@@ -23,6 +23,7 @@ import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.security.filter.AuthenticationSuccessFilter;
 import io.gravitee.management.security.filter.CORSFilter;
 import io.gravitee.management.security.filter.JWTAuthenticationFilter;
+import io.gravitee.management.security.listener.AuthenticationSuccessListener;
 import io.gravitee.management.service.MembershipService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,6 +116,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 throw new IllegalStateException("No authentication provider found for type: " + provider.type());
             }
         }
+    }
+
+    @Bean
+    public AuthenticationSuccessListener authenticationSuccessListener() {
+        return new AuthenticationSuccessListener();
     }
 
     /*
