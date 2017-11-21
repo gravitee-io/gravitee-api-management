@@ -367,6 +367,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setOrder(orderedPublishedPlans.isEmpty() ? 1 : (orderedPublishedPlans.get(orderedPublishedPlans.size()-1).getOrder() + 1));
 
             plan.setPublishedAt(new Date());
+            plan.setUpdatedAt(plan.getPublishedAt());
 
             // Save plan
             plan = planRepository.update(plan);
