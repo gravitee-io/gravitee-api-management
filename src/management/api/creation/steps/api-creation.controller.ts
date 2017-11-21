@@ -47,7 +47,8 @@ class ApiCreationController {
 
   private pages: any;
   private securityTypes: { id: string; name: string }[];
-  private timeUnits: string[];
+  private rateLimitTimeUnits: string[];
+  private quotaTimeUnits: string[];
   private methods: string[];
   private resourceFiltering:{
     whitelist: any
@@ -85,7 +86,10 @@ class ApiCreationController {
         'id': 'KEY_LESS',
         'name': 'Keyless (public)'
       }];
-    this.timeUnits = ['SECONDS', 'MINUTES', 'HOURS', 'DAYS'];
+
+    this.rateLimitTimeUnits = ['SECONDS', 'MINUTES'];
+    this.quotaTimeUnits = ['HOURS', 'DAYS', "WEEKS", "MONTHS"];
+
     this.methods = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS', 'TRACE', 'CONNECT'];
 
     this.resourceFiltering = {

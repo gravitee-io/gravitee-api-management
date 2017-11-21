@@ -78,7 +78,7 @@
               <md-input-container class="md-block" flex>
                 <label>Period time unit</label>
                 <md-select ng-model="$ctrl.parent.rateLimit.periodTimeUnit" placeholder="Time unit" ng-required="$ctrl.parent.rateLimit.limit">
-                  <md-option ng-value="timeUnit" ng-repeat="timeUnit in $ctrl.parent.timeUnits">{{timeUnit}}</md-option>
+                  <md-option ng-value="timeUnit" ng-repeat="timeUnit in $ctrl.parent.rateLimitTimeUnits">{{timeUnit}}</md-option>
                 </md-select>
               </md-input-container>
             </div>
@@ -104,7 +104,7 @@
               <md-input-container class="md-block" flex>
                 <label>Period time unit</label>
                 <md-select ng-model="$ctrl.parent.quota.periodTimeUnit" placeholder="Time unit" ng-required="$ctrl.parent.quota.limit">
-                  <md-option ng-value="timeUnit" ng-repeat="timeUnit in $ctrl.parent.timeUnits">{{timeUnit}}</md-option>
+                  <md-option ng-value="timeUnit" ng-repeat="timeUnit in $ctrl.parent.quotaTimeUnits">{{timeUnit}}</md-option>
                 </md-select>
               </md-input-container>
             </div>
