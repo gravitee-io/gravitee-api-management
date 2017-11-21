@@ -21,12 +21,9 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.audit.AuditEntity;
 import io.gravitee.management.model.audit.AuditQuery;
 import io.gravitee.management.service.AuditService;
-import io.gravitee.management.service.GroupService;
-import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.AuditCriteria.Builder;
@@ -114,60 +111,62 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     private Map<String, String> getMetadata(List<AuditEntity> content) {
         Map<String, String> metadata = new HashMap<>();
         for (AuditEntity auditEntity : content) {
-            for (Map.Entry<String, String> property : auditEntity.getProperties().entrySet()) {
-                String metadataKey = new StringJoiner(":").
-                        add(property.getKey()).
-                        add(property.getValue()).
-                        add("name").
-                        toString();
-                if (!metadata.containsKey(metadataKey)) {
-                    String name = property.getValue();
-                    try {
-                        switch (Audit.AuditProperties.valueOf(property.getKey())) {
-                            case PAGE:
-                                Optional<io.gravitee.repository.management.model.Page> optPage = pageRepository.findById(property.getValue());
-                                if (optPage.isPresent()) {
-                                    name = optPage.get().getName();
-                                }
-                                break;
-                            case PLAN:
-                                Optional<Plan> optPlan = planRepository.findById(property.getValue());
-                                if (optPlan.isPresent()) {
-                                    name = optPlan.get().getName();
-                                }
-                                break;
-                            case METADATA:
-                                MetadataReferenceType refType = (Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType()))
-                                        ? MetadataReferenceType.API :
-                                        (Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType())) ?
-                                                MetadataReferenceType.APPLICATION :
-                                                MetadataReferenceType.DEFAULT;
-                                String refId = refType.equals(MetadataReferenceType.DEFAULT) ? getDefautReferenceId() : auditEntity.getReferenceId();
+            if (auditEntity.getProperties() != null) {
+                for (Map.Entry<String, String> property : auditEntity.getProperties().entrySet()) {
+                    String metadataKey = new StringJoiner(":").
+                            add(property.getKey()).
+                            add(property.getValue()).
+                            add("name").
+                            toString();
+                    if (!metadata.containsKey(metadataKey)) {
+                        String name = property.getValue();
+                        try {
+                            switch (Audit.AuditProperties.valueOf(property.getKey())) {
+                                case PAGE:
+                                    Optional<io.gravitee.repository.management.model.Page> optPage = pageRepository.findById(property.getValue());
+                                    if (optPage.isPresent()) {
+                                        name = optPage.get().getName();
+                                    }
+                                    break;
+                                case PLAN:
+                                    Optional<Plan> optPlan = planRepository.findById(property.getValue());
+                                    if (optPlan.isPresent()) {
+                                        name = optPlan.get().getName();
+                                    }
+                                    break;
+                                case METADATA:
+                                    MetadataReferenceType refType = (Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType()))
+                                            ? MetadataReferenceType.API :
+                                            (Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType())) ?
+                                                    MetadataReferenceType.APPLICATION :
+                                                    MetadataReferenceType.DEFAULT;
+                                    String refId = refType.equals(MetadataReferenceType.DEFAULT) ? getDefautReferenceId() : auditEntity.getReferenceId();
 
-                                Optional<Metadata> optMetadata = metadataRepository.findById(property.getValue(), refId, refType);
-                                if (optMetadata.isPresent()) {
-                                    name = optMetadata.get().getName();
-                                }
-                                break;
-                            case GROUP:
-                                Optional<Group> optGroup = groupRepository.findById(property.getValue());
-                                if (optGroup.isPresent()) {
-                                    name = optGroup.get().getName();
-                                }
-                                break;
-                            case USER:
-                                Optional<User> optUser = userRepository.findByUsername(property.getValue());
-                                if (optUser.isPresent() && optUser.get().getFirstname() != null && optUser.get().getLastname() != null) {
-                                    name = optUser.get().getFirstname() + " " + optUser.get().getLastname();
-                                }
-                            default:
-                                break;
+                                    Optional<Metadata> optMetadata = metadataRepository.findById(property.getValue(), refId, refType);
+                                    if (optMetadata.isPresent()) {
+                                        name = optMetadata.get().getName();
+                                    }
+                                    break;
+                                case GROUP:
+                                    Optional<Group> optGroup = groupRepository.findById(property.getValue());
+                                    if (optGroup.isPresent()) {
+                                        name = optGroup.get().getName();
+                                    }
+                                    break;
+                                case USER:
+                                    Optional<User> optUser = userRepository.findByUsername(property.getValue());
+                                    if (optUser.isPresent() && optUser.get().getFirstname() != null && optUser.get().getLastname() != null) {
+                                        name = optUser.get().getFirstname() + " " + optUser.get().getLastname();
+                                    }
+                                default:
+                                    break;
+                            }
+                        } catch (TechnicalException e) {
+                            LOGGER.error("Error finding metadata {}", metadataKey);
+                            name = property.getValue();
                         }
-                    } catch (TechnicalException e) {
-                        LOGGER.error("Error finding metadata {}", metadataKey);
-                        name = property.getValue();
+                        metadata.put(metadataKey, name);
                     }
-                    metadata.put(metadataKey, name);
                 }
             }
         }
