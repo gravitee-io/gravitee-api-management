@@ -74,7 +74,6 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
         }
 
         // initialize roles.
-        roleService.createOrUpdateSystemRoles();
         if(roleService.findAll().isEmpty()) {
             logger.info("    No role found. Add default ones.");
 
@@ -195,6 +194,7 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
             ));
 
         }
+        roleService.createOrUpdateSystemRoles();
     }
 }
 
