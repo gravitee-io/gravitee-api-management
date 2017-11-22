@@ -17,8 +17,11 @@ package io.gravitee.definition.jackson.datatype.api;
 
 import io.gravitee.definition.jackson.datatype.GraviteeModule;
 import io.gravitee.definition.jackson.datatype.api.deser.*;
+import io.gravitee.definition.jackson.datatype.api.deser.endpoint.HttpEndpointDeserializer;
 import io.gravitee.definition.jackson.datatype.api.ser.*;
+import io.gravitee.definition.jackson.datatype.api.ser.endpoint.HttpEndpointSerializer;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,7 +47,7 @@ public class ApiModule extends GraviteeModule {
         addDeserializer(HttpProxy.class, new HttpProxyDeserializer(HttpProxy.class));
         addDeserializer(HttpClientOptions.class, new HttpClientOptionsDeserializer(HttpClientOptions.class));
         addDeserializer(HttpClientSslOptions.class, new HttpClientSslOptionsDeserializer(HttpClientSslOptions.class));
-        addDeserializer(Endpoint.class, new EndpointDeserializer(Endpoint.class));
+        addDeserializer(HttpEndpoint.class, new HttpEndpointDeserializer(HttpEndpoint.class));
         addDeserializer(Properties.class, new PropertiesDeserializer(Properties.class));
         addDeserializer(Property.class, new PropertyDeserializer(Property.class));
         addDeserializer(Cors.class, new CorsDeserializer(Cors.class));
@@ -61,7 +64,7 @@ public class ApiModule extends GraviteeModule {
         addSerializer(HttpProxy.class, new HttpProxySerializer(HttpProxy.class));
         addSerializer(HttpClientOptions.class, new HttpClientOptionsSerializer(HttpClientOptions.class));
         addSerializer(HttpClientSslOptions.class, new HttpClientSslOptionsSerializer(HttpClientSslOptions.class));
-        addSerializer(Endpoint.class, new EndpointSerializer(Endpoint.class));
+        addSerializer(HttpEndpoint.class, new HttpEndpointSerializer(HttpEndpoint.class));
         addSerializer(Properties.class, new PropertiesSerializer(Properties.class));
         addSerializer(Property.class, new PropertySerializer(Property.class));
         addSerializer(Cors.class, new CorsSerializer(Cors.class));

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,8 +38,10 @@ public class ApiDeserializerTest extends AbstractTest {
 
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
         Assert.assertEquals("http://localhost:1234", endpoint.getTarget());
-        Assert.assertNotNull(endpoint.getHttpClientOptions());
-        Assert.assertTrue(endpoint.getHttpClientOptions().isUseCompression());
+        Assert.assertSame(HttpEndpoint.class, endpoint.getClass());
+
+        Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
+        Assert.assertTrue(((HttpEndpoint) endpoint).getHttpClientOptions().isUseCompression());
     }
 
     @Test
@@ -47,8 +50,8 @@ public class ApiDeserializerTest extends AbstractTest {
 
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
         Assert.assertEquals("http://localhost:1234", endpoint.getTarget());
-        Assert.assertNotNull(endpoint.getHttpProxy());
-        Assert.assertTrue(endpoint.getHttpProxy().isEnabled());
+        Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpProxy());
+        Assert.assertTrue(((HttpEndpoint) endpoint).getHttpProxy().isEnabled());
     }
 
     @Test(expected = JsonMappingException.class)
@@ -264,8 +267,8 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions.json", Api.class);
 
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
-        Assert.assertNotNull(endpoint.getHttpClientOptions());
-        Assert.assertNotNull(endpoint.getHttpClientSslOptions());
+        Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
+        Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientSslOptions());
     }
 
     @Test
@@ -273,8 +276,8 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nossl.json", Api.class);
 
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
-        Assert.assertNotNull(endpoint.getHttpClientOptions());
-        Assert.assertNull(endpoint.getHttpClientSslOptions());
+        Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
+        Assert.assertNull(((HttpEndpoint) endpoint).getHttpClientSslOptions());
     }
 
     @Test
@@ -282,8 +285,8 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json", Api.class);
 
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
-        Assert.assertNotNull(endpoint.getHttpClientOptions());
-        Assert.assertNull(endpoint.getHttpClientSslOptions());
+        Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
+        Assert.assertNull(((HttpEndpoint) endpoint).getHttpClientSslOptions());
     }
 
     @Test
@@ -291,8 +294,8 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json", Api.class);
 
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
-        Assert.assertNotNull(endpoint.getHttpClientOptions());
-        HttpClientOptions options = endpoint.getHttpClientOptions();
+        Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
+        HttpClientOptions options = ((HttpEndpoint) endpoint).getHttpClientOptions();
         Assert.assertNotNull(options);
         Assert.assertEquals(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT, options.getConnectTimeout());
         Assert.assertEquals(HttpClientOptions.DEFAULT_IDLE_TIMEOUT, options.getIdleTimeout());
@@ -391,7 +394,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-empty-hostHeader.json", Api.class);
 
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
-        Assert.assertNull(endpoint.getHostHeader());
+        Assert.assertNull(((HttpEndpoint) endpoint).getHostHeader());
     }
 
     @Test
@@ -399,7 +402,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-hostHeader.json", Api.class);
 
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
-        Assert.assertNotNull(endpoint.getHostHeader());
+        Assert.assertNotNull(((HttpEndpoint) endpoint).getHostHeader());
     }
 
     @Test
@@ -407,7 +410,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
 
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
-        Assert.assertFalse(endpoint.getHttpClientOptions().isFollowRedirects());
+        Assert.assertFalse(((HttpEndpoint) endpoint).getHttpClientOptions().isFollowRedirects());
     }
 
     @Test
@@ -415,8 +418,8 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions.json", Api.class);
 
         Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
-        Assert.assertNotNull(endpoint.getHttpClientOptions());
-        Assert.assertTrue(endpoint.getHttpClientOptions().isFollowRedirects());
+        Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
+        Assert.assertTrue(((HttpEndpoint) endpoint).getHttpClientOptions().isFollowRedirects());
     }
 
     @Test

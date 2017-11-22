@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -54,12 +55,27 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         if (nodeEndpoints != null && nodeEndpoints.isArray()) {
             Set<Endpoint> endpoints = new LinkedHashSet<>(nodeEndpoints.size());
             for (JsonNode jsonNode : nodeEndpoints) {
-                Endpoint endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(Endpoint.class);
-                boolean added = endpoints.add(endpoint);
-                if(!added) {
-                    throw ctxt.mappingException("[api] API must have single endpoint names");
+                EndpointType type = EndpointType.valueOf(
+                        jsonNode.path("type").asText(EndpointType.HTTP.name()).toUpperCase());
+
+                Endpoint endpoint;
+                switch (type) {
+                    case HTTP:
+                        endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(HttpEndpoint.class);
+                        break;
+                    default:
+                        endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(HttpEndpoint.class);
+                        break;
+                }
+
+                if (endpoint != null) {
+                    boolean added = endpoints.add(endpoint);
+                    if (!added) {
+                        throw ctxt.mappingException("[api] API must have single endpoint names");
+                    }
                 }
             }
+
             proxy.setEndpoints(endpoints);
         }
 

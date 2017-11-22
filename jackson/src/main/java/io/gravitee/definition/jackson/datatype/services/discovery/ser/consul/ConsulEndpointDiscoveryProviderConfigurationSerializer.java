@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson.datatype.api.ser;
+package io.gravitee.definition.jackson.datatype.services.discovery.ser.consul;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.services.discovery.consul.ConsulEndpointDiscoveryConfiguration;
 
 import java.io.IOException;
 
@@ -26,24 +26,27 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class EndpointSerializer<T extends Endpoint> extends StdScalarSerializer<T> {
+public class ConsulEndpointDiscoveryProviderConfigurationSerializer extends StdScalarSerializer<ConsulEndpointDiscoveryConfiguration> {
 
-    public EndpointSerializer(Class<T> t) {
+    public ConsulEndpointDiscoveryProviderConfigurationSerializer(Class<ConsulEndpointDiscoveryConfiguration> t) {
         super(t);
     }
 
     @Override
-    public void serialize(T endpoint, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(ConsulEndpointDiscoveryConfiguration configuration, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
-        doSerialize(endpoint, jgen, provider);
-        jgen.writeEndObject();
-    }
 
-    protected void doSerialize(T endpoint, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
-        jgen.writeStringField("name", endpoint.getName());
-        jgen.writeStringField("target", endpoint.getTarget());
-        jgen.writeNumberField("weight", endpoint.getWeight());
-        jgen.writeBooleanField("backup", endpoint.isBackup());
-        jgen.writeStringField("type", endpoint.getType().name());
+        jgen.writeStringField("url", configuration.getUrl());
+        jgen.writeStringField("service", configuration.getService());
+
+        if (configuration.getDc() != null) {
+            jgen.writeStringField("dc", configuration.getDc());
+        }
+
+        if (configuration.getAcl() != null) {
+            jgen.writeStringField("acl", configuration.getAcl());
+        }
+
+        jgen.writeEndObject();
     }
 }

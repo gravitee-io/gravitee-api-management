@@ -15,13 +15,11 @@
  */
 package io.gravitee.definition.model;
 
-import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Endpoint {
+public abstract class Endpoint {
 
     public static int DEFAULT_WEIGHT = 1;
 
@@ -35,26 +33,14 @@ public class Endpoint {
 
     private Status status = Status.UP;
 
-    private HttpProxy httpProxy;
-
-    private HttpClientOptions httpClientOptions;
-
-    private HttpClientSslOptions httpClientSslOptions;
-
     private String tenant;
 
-    private String hostHeader;
+    private final EndpointType type;
 
-    private EndpointHealthCheckService healthCheck;
-
-    public Endpoint(String name, String target) {
-        this();
+    public Endpoint(EndpointType type, String name, String target) {
+        this.type = type;
         this.name = name;
         this.target = target;
-    }
-
-    public Endpoint() {
-        this.weight = DEFAULT_WEIGHT;
     }
 
     public String getName() {
@@ -97,30 +83,6 @@ public class Endpoint {
         this.status = status;
     }
 
-    public HttpProxy getHttpProxy() {
-        return httpProxy;
-    }
-
-    public void setHttpProxy(HttpProxy httpProxy) {
-        this.httpProxy = httpProxy;
-    }
-
-    public HttpClientOptions getHttpClientOptions() {
-        return httpClientOptions;
-    }
-
-    public void setHttpClientOptions(HttpClientOptions httpClientOptions) {
-        this.httpClientOptions = httpClientOptions;
-    }
-
-    public HttpClientSslOptions getHttpClientSslOptions() {
-        return httpClientSslOptions;
-    }
-
-    public void setHttpClientSslOptions(HttpClientSslOptions httpClientSslOptions) {
-        this.httpClientSslOptions = httpClientSslOptions;
-    }
-
     public String getTenant() {
         return tenant;
     }
@@ -129,28 +91,8 @@ public class Endpoint {
         this.tenant = tenant;
     }
 
-    public String getHostHeader() {
-        return hostHeader;
-    }
-
-    public void setHostHeader(String hostHeader) {
-        this.hostHeader = hostHeader;
-    }
-
-    public static int getDefaultWeight() {
-        return DEFAULT_WEIGHT;
-    }
-
-    public static void setDefaultWeight(int defaultWeight) {
-        DEFAULT_WEIGHT = defaultWeight;
-    }
-
-    public EndpointHealthCheckService getHealthCheck() {
-        return healthCheck;
-    }
-
-    public void setHealthCheck(EndpointHealthCheckService healthCheck) {
-        this.healthCheck = healthCheck;
+    public EndpointType getType() {
+        return type;
     }
 
     @Override

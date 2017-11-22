@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.Service;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 
@@ -39,6 +40,7 @@ public class ServicesDeserializer extends StdScalarDeserializer<Services> {
     {
         registeredServices.put(HealthCheckService.SERVICE_KEY, HealthCheckService.class);
         registeredServices.put(DynamicPropertyService.SERVICE_KEY, DynamicPropertyService.class);
+        registeredServices.put(EndpointDiscoveryService.SERVICE_KEY, EndpointDiscoveryService.class);
     }
 
     public ServicesDeserializer(Class<Services> vc) {

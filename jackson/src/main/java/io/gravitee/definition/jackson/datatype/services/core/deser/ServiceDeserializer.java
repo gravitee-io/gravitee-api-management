@@ -35,7 +35,7 @@ public abstract class ServiceDeserializer<T extends Service> extends StdScalarDe
     }
 
     @Override
-    public T deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+    public T deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
 
         try {
@@ -49,7 +49,7 @@ public abstract class ServiceDeserializer<T extends Service> extends StdScalarDe
         }
     }
 
-    protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException {
         final JsonNode serviceEnabledNode = node.get("enabled");
         if (serviceEnabledNode != null) {
             service.setEnabled(serviceEnabledNode.asBoolean(false));

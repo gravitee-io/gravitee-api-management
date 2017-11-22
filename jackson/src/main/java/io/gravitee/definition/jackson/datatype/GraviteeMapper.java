@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import io.gravitee.definition.jackson.datatype.api.ApiModule;
 import io.gravitee.definition.jackson.datatype.plugins.resource.ResourceModule;
 import io.gravitee.definition.jackson.datatype.services.core.ServiceModule;
+import io.gravitee.definition.jackson.datatype.services.discovery.EndpointDiscoveryModule;
 import io.gravitee.definition.jackson.datatype.services.dynamicproperty.DynamicPropertyModule;
 import io.gravitee.definition.jackson.datatype.services.healthcheck.HealthCheckModule;
 
@@ -36,6 +37,7 @@ public class GraviteeMapper extends ObjectMapper {
         registerModule(new ServiceModule());
         registerModule(new HealthCheckModule());
         registerModule(new DynamicPropertyModule());
+        registerModule(new EndpointDiscoveryModule());
         registerModule(new ResourceModule());
 
         enable(SerializationFeature.INDENT_OUTPUT);

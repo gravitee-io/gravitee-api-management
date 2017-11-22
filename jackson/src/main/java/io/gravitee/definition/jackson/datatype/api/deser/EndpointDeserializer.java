@@ -16,14 +16,11 @@
 package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.HttpClientOptions;
-import io.gravitee.definition.model.HttpClientSslOptions;
-import io.gravitee.definition.model.HttpProxy;
-import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 
 import java.io.IOException;
 
@@ -31,29 +28,14 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
+public abstract class EndpointDeserializer<T extends Endpoint> extends StdScalarDeserializer<T> {
 
-    public EndpointDeserializer(Class<Endpoint> vc) {
+    public EndpointDeserializer(Class<T> vc) {
         super(vc);
     }
 
-    @Override
-    public Endpoint deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
-
-        Endpoint endpoint = new Endpoint();
-        endpoint.setTarget(node.get("target").asText());
-
-        JsonNode nameNode = node.get("name");
-        if (nameNode != null) {
-            String name = nameNode.asText();
-            endpoint.setName(name);
-        } else {
-            throw ctxt.mappingException("Endpoint name is required");
-        }
-
-        JsonNode weightNode = node.get("weight");
+    protected void deserialize(T endpoint, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        final JsonNode weightNode = node.get("weight");
         if (weightNode != null) {
             int weight = weightNode.asInt(Endpoint.DEFAULT_WEIGHT);
             endpoint.setWeight(weight);
@@ -61,7 +43,7 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
             endpoint.setWeight(Endpoint.DEFAULT_WEIGHT);
         }
 
-        JsonNode backupNode = node.get("backup");
+        final JsonNode backupNode = node.get("backup");
         if (backupNode != null) {
             boolean backup = backupNode.asBoolean(false);
             endpoint.setBackup(backup);
@@ -69,46 +51,10 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
             endpoint.setBackup(false);
         }
 
-        JsonNode httpProxyNode = node.get("proxy");
-        if (httpProxyNode != null) {
-            HttpProxy httpProxy = httpProxyNode.traverse(jp.getCodec()).readValueAs(HttpProxy.class);
-            endpoint.setHttpProxy(httpProxy);
-        }
-
-        JsonNode httpClientOptionsNode = node.get("http");
-        if (httpClientOptionsNode != null) {
-            HttpClientOptions httpClientOptions = httpClientOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientOptions.class);
-            endpoint.setHttpClientOptions(httpClientOptions);
-        } else {
-            endpoint.setHttpClientOptions(new HttpClientOptions());
-        }
-
-        JsonNode httpClientSslOptionsNode = node.get("ssl");
-        if (httpClientSslOptionsNode != null) {
-            HttpClientSslOptions httpClientSslOptions = httpClientSslOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientSslOptions.class);
-            endpoint.setHttpClientSslOptions(httpClientSslOptions);
-        }
-
-        JsonNode tenantNode = node.get("tenant");
+        final JsonNode tenantNode = node.get("tenant");
         if (tenantNode != null) {
             String tenant = tenantNode.asText();
             endpoint.setTenant(tenant);
         }
-
-        JsonNode hostHeaderNode = node.get("hostHeader");
-        if (hostHeaderNode != null) {
-            String hostHeader = hostHeaderNode.asText();
-            if (! hostHeader.trim().isEmpty()) {
-                endpoint.setHostHeader(hostHeader);
-            }
-        }
-
-        JsonNode healthcheckNode = node.get("healthcheck");
-        if (healthcheckNode != null && healthcheckNode.isObject()) {
-            EndpointHealthCheckService healthCheckService = healthcheckNode.traverse(jp.getCodec()).readValueAs(EndpointHealthCheckService.class);
-            endpoint.setHealthCheck(healthCheckService);
-        }
-
-        return endpoint;
     }
 }
