@@ -128,7 +128,7 @@ public class MongoFactory implements FactoryBean<Mongo> {
             List<MongoCredential> credentials = null;
             if (username != null || password != null) {
                 String authSource = readPropertyValue(propertyPrefix + "authSource", String.class, "gravitee");
-                credentials = Collections.singletonList(MongoCredential.createScramSha1Credential(
+                credentials = Collections.singletonList(MongoCredential.createCredential(
                         username, authSource, password.toCharArray()));
             }
 
