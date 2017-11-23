@@ -169,10 +169,11 @@
     </md-input-container>
 
     <div layout="row">
-      <md-input-container class="md-block" flex="33">
-        <label>Auto validation</label>
-        <md-switch aria-label="Auto validation"
-          ng-model="plan.validation" ng-true-value="'auto'" ng-disabled="plan.security == 'key_less'" ng-false-value="'manual'"></md-switch>
+      <md-input-container class="md-block" flex>
+        <md-switch aria-label="Auto validate subscription"
+          ng-model="plan.validation" ng-true-value="'auto'" ng-disabled="plan.security == 'key_less'" ng-false-value="'manual'">
+          &nbsp;&nbsp;Auto validate subscription
+        </md-switch>
       </md-input-container>
     </div>
 

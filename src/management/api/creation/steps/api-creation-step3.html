@@ -38,9 +38,10 @@
             </md-select>
           </md-input-container>
           <md-input-container class="md-block" flex-gt-sm style="margin-left: 10px;">
-            <label>Auto validation</label>
-            <md-switch aria-label="Auto validation"
-                       ng-model="$ctrl.parent.plan.validation" ng-true-value="'AUTO'" ng-disabled="$ctrl.parent.plan.security == 'KEY_LESS'" ng-false-value="'MANUAL'"></md-switch>
+            <md-switch aria-label="Auto validate subscription"
+                       ng-model="$ctrl.parent.plan.validation" ng-true-value="'AUTO'" ng-disabled="$ctrl.parent.plan.security == 'KEY_LESS'" ng-false-value="'MANUAL'">
+              &nbsp;&nbsp;Auto validate subscription
+            </md-switch>
           </md-input-container>
         </div>
         <div layout-gt-sm="row">
