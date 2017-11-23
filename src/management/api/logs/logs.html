@@ -18,11 +18,14 @@
 
 <gv-logs-timeframe on-timeframe-change="logsCtrl.timeframeChange(timeframe)"></gv-logs-timeframe>
 
+<gv-logs-filters on-filters-change="logsCtrl.filtersChange(filters)" metadata="logsCtrl.logs.metadata"></gv-logs-filters>
+
 <md-table-container>
   <table md-table class="gravitee-analytics-top-hits-table" multiple md-row-select="logsCtrl.widget.chart.selectable" data-ng-model="logsCtrl.selected">
     <thead md-head>
     <tr md-row>
       <th md-column>Request Id</th>
+      <th md-column>Transaction Id</th>
       <th md-column>Method</th>
       <th md-column>Path</th>
       <th md-column md-numeric>Status</th>
@@ -39,6 +42,7 @@
         md-auto-select md-select="log" md-select-id="key"
         md-on-select="logsCtrl.selectLog" ng-class="{'log-error': log.status >= 400}">
       <td md-cell>{{log.id}}</td>
+      <td md-cell>{{log.transactionId}}</td>
       <td md-cell>
         <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{log.method | uppercase}}-selected">
           {{log.method | uppercase}}

@@ -58,7 +58,6 @@ class ApiLogsController {
   }
 
   selectLog(log) {
-    console.log(log);
   }
 
   refresh() {
@@ -69,6 +68,12 @@ class ApiLogsController {
 
   getMetadata(id) {
     return this.logs.metadata[id];
+  }
+
+  filtersChange(filters) {
+    this.query.page = 1;
+    this.query.query = filters;
+    this.refresh();
   }
 }
 

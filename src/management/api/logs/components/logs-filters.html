@@ -1,0 +1,78 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-card flex>
+  <div class="widget-card logs-filters-container" flex>
+    <md-card-title>
+      <md-card-title-text>
+        <span class="md-title"><strong>Filters</strong></span>
+      </md-card-title-text>
+    </md-card-title>
+    <md-card-content>
+      <form ng-submit="$ctrl.search()" name="logsFiltersForm">
+        <div layout-gt-sm="row">
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>Request ID</label>
+            <input ng-model="$ctrl.filters.id">
+          </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>Transaction ID</label>
+            <input ng-model="$ctrl.filters.transaction">
+          </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>Methods</label>
+            <md-select ng-model="$ctrl.filters.method" placeholder="Methods" multiple>
+              <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.methods">{{ value }}</md-option>
+            </md-select>
+          </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>Path</label>
+            <input ng-model="$ctrl.filters.path">
+          </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>Response times</label>
+            <md-select ng-model="$ctrl.filters.responseTime" placeholder="Response times" multiple>
+              <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.responseTimes">{{ value }}</md-option>
+            </md-select>
+          </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>HTTP Status</label>
+            <md-select ng-model="$ctrl.filters.status" placeholder="HTTP Status" multiple>
+              <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.httpStatus">{{ value }}</md-option>
+            </md-select>
+          </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>Application</label>
+            <input ng-model="$ctrl.filters.application">
+          </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>Plan</label>
+            <input ng-model="$ctrl.filters.plan">
+          </md-input-container>
+          <div>
+            <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="logsFiltersForm.$pristine">
+              Clear filters
+            </md-button>
+            <md-button type="submit" class="md-raised md-primary" ng-disabled="!$ctrl.hasFilters()">
+              Search
+            </md-button>
+          </div>
+        </div>
+      </form>
+    </md-card-content>
+  </div>
+</md-card>

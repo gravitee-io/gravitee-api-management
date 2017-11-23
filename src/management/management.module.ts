@@ -223,6 +223,8 @@ import ApiLogsController from '../management/api/logs/logs.controller';
 import LogsTimeframeComponent from '../management/api/logs/components/logs-timeframe.component';
 import LogsTimeframeController from '../management/api/logs/components/logs-timeframe.controller';
 import LogComponent from '../management/api/logs/log.component';
+import LogsFiltersComponent from '../management/api/logs/components/logs-filters.component';
+import LogsFiltersController from '../management/api/logs/components/logs-filters.controller';
 
 // Others
 import ImageDirective from '../components/image/image.directive';
@@ -556,6 +558,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvLogsTimeframe', LogsTimeframeComponent)
   .controller('LogsTimeframeController', LogsTimeframeController)
   .component('log', LogComponent)
+  .component('gvLogsFilters', LogsFiltersComponent)
+  .controller('LogsFiltersController', LogsFiltersController)
 
   .component("gvAudit", AuditComponent)
   .component('gvContextualDoc', ContextualDocComponent)
