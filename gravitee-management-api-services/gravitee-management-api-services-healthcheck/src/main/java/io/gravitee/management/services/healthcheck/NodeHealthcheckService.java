@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -38,6 +40,9 @@ import java.util.List;
 public class NodeHealthcheckService extends AbstractService {
 
     private final Logger logger = LoggerFactory.getLogger(NodeHealthcheckService.class);
+
+    private final static Collection<Class<? extends Probe>> PROBES = Arrays.asList(
+            ManagementApiProbe.class, ManagementRepositoryProbe.class, AnalyticsRepositoryProbe.class);
 
     private final static String PATH = "/health";
 
@@ -60,30 +65,28 @@ public class NodeHealthcheckService extends AbstractService {
     private Handler<RoutingContext> createHandler() {
         HealthcheckHandler handler = new HealthcheckHandler();
 
-        // Create probes
-        // What must be checked:
-        // 1_ Management API HTTP port
-        // 2_ Repository
-        // 3_ Reporter
-        // X_ Health-check extensions
         List<Probe> probes = new ArrayList<>();
-        probes.add(createProbe(ManagementApiProbe.class));
-        probes.add(createProbe(ManagementRepositoryProbe.class));
-        probes.add(createProbe(AnalyticsRepositoryProbe.class));
+        for(Class<? extends Probe> clazz : PROBES) {
+            Probe probe = createProbe(clazz);
+            if (probe != null) {
+                probes.add(probe);
+            }
+        }
+
         handler.setProbes(probes);
         return handler;
     }
 
     private Probe createProbe(Class<? extends Probe> probeClass) {
+        Probe probe = null;
         try {
-            Probe probe = probeClass.newInstance();
+            probe = probeClass.newInstance();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(probe);
-            return probe;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            logger.error("Unexpected error while creating an health-check probe for {}", probeClass.getName(), ex);
         }
 
-        return null;
+        return probe;
     }
 
     @Override
