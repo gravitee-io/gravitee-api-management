@@ -35,7 +35,7 @@ export const NavbarComponent: ng.IComponentOptions = {
         }
       });
 
-      vm.supportEnabled = Constants.support.enabled;
+      vm.supportEnabled = Constants.support && Constants.support.enabled;
     });
 
     $transitions.onFinish({}, function (trans) {

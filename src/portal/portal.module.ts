@@ -100,7 +100,7 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
     $mdThemingProvider.theme('toast-success');
     $mdThemingProvider.theme('toast-error');
   }).run(function(Constants, $window, $rootScope, $location) {
-    if (Constants.analytics.enabled) {
+    if ((Constants.analytics && Constants.analytics.enabled)) {
       $window.ga('create', Constants.analytics.trackingId, { 'cookieDomain': 'none' });
 
       $rootScope.$on('$stateChangeSuccess', function () {

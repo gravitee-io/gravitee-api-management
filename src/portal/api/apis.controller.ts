@@ -32,7 +32,7 @@ export class PortalApisController {
     'ngInject';
     this.apis = resolvedApis.data;
     this.views = resolvedViews;
-    this.ratingEnabled = Constants.rating.enabled;
+    this.ratingEnabled = Constants.rating && Constants.rating.enabled;
 
     this.view = _.find(this.views, function (view) {
       return $stateParams.view === view.id;

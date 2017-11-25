@@ -34,7 +34,7 @@ class ApiPortalRatingController {
               private UserService) {
     'ngInject';
 
-    if (!Constants.rating.enabled) {
+    if (!(Constants.rating && Constants.rating.enabled)) {
       $state.go('portal.home');
     }
   }

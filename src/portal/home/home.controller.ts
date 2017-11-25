@@ -25,7 +25,7 @@ export class HomeController {
     this.apis = resolvedApis.data;
     this.homepage = resolvedHomepage;
     this.$state = $state;
-    this.ratingEnabled = Constants.rating.enabled;
+    this.ratingEnabled = Constants.rating && Constants.rating.enabled;
   }
 
   querySearch(query) {
