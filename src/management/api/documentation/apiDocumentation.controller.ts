@@ -68,18 +68,22 @@ class DocumentationController {
       return {pages: this.pages};
     }).then( response => {
       if(response.pages && response.pages.length > 0) {
-        if (this.$state.params.pageId !== undefined) {
-          this.$state.go("management.apis.detail.documentation.page", {pageId: this.$state.params.pageId});
-        } else {
-          this.$state.go("management.apis.detail.documentation.page", {pageId: response.pages[0].id});
-        }
+        this.$state.go("management.apis.detail.documentation.page", {pageId: this.getPageId(response.pages[0].id)});
       }
       return response;
     });
   }
 
   showNewPageDialog(pageType) {
-    this.$state.go('management.apis.detail.documentation.new', {type: pageType});
+	  this.$state.go('management.apis.detail.documentation.new', {type: pageType, fallbackPageId: this.getPageId()});
+  }
+
+  getPageId(defaultPageId?: string) {
+    if (this.$state.params.pageId !== undefined) {
+      return this.$state.params.pageId;
+    } else {
+      return defaultPageId;
+    }
   }
 }
 

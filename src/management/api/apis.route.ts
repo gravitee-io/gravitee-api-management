@@ -494,7 +494,13 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
           type: 'string',
           value: '',
           squash: false
+        },
+        fallbackPageId: {
+          type: 'string',
+          value: '',
+          squash: false
         }
+
       }
     })
     .state('management.apis.detail.documentation.page', {

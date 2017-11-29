@@ -164,6 +164,11 @@ class PageController {
     if (this.initialPage) {
       this.page = _.clone(this.initialPage);
     }
+    if (this.$state.params.fallbackPageId) {
+      this.$state.go("management.apis.detail.documentation.page", {pageId: this.$state.params.fallbackPageId});
+    } else {
+      this.$state.go("management.apis.detail.documentation");
+    }
   }
 
   remove() {
