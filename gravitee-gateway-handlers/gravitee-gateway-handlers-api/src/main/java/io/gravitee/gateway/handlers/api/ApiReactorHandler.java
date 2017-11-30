@@ -214,7 +214,17 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                         handler.handle(serverResponse);
                     });
 
-                    proxyResponse.bodyHandler(responsePolicyChain::write);
+                    proxyResponse.bodyHandler(buffer -> {
+                        if(serverResponse.writeQueueFull()) {
+                            System.out.println("pausing");
+                            proxyResponse.pause();
+                            serverResponse.drainHandler(aVoid -> {
+                                System.out.println("resuming");
+                                proxyResponse.resume();
+                            });
+                        }
+                        responsePolicyChain.write(buffer);
+                    });
                     proxyResponse.endHandler(aVoid -> responsePolicyChain.end());
                 }
             });
