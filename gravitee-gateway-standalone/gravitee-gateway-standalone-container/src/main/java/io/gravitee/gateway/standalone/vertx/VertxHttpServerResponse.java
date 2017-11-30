@@ -19,6 +19,8 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.stream.WriteStream;
 import io.netty.buffer.ByteBuf;
 import io.vertx.core.http.HttpServerResponse;
 
@@ -34,6 +36,7 @@ class VertxHttpServerResponse implements Response {
 
     VertxHttpServerResponse(HttpServerResponse httpServerResponse) {
         this.httpServerResponse = httpServerResponse;
+        httpServerResponse.setWriteQueueMaxSize(16384);
     }
 
     @Override
@@ -75,6 +78,17 @@ class VertxHttpServerResponse implements Response {
             httpServerResponse.write(io.vertx.core.buffer.Buffer.buffer((ByteBuf) chunk.getNativeBuffer()));
         }
         return this;
+    }
+
+    @Override
+    public WriteStream<Buffer> drainHandler(Handler<Void> drainHandler) {
+        httpServerResponse.drainHandler((aVoid -> drainHandler.handle(null)));
+        return this;
+    }
+
+    @Override
+    public boolean writeQueueFull() {
+        return httpServerResponse.writeQueueFull();
     }
 
     @Override
