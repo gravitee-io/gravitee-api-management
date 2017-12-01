@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
+import io.gravitee.gateway.api.stream.WriteStream;
 import io.vertx.core.http.HttpClientRequest;
 
 import java.util.List;
@@ -102,6 +103,17 @@ class VertxProxyConnection implements ProxyConnection {
         httpClientRequest.write(io.vertx.core.buffer.Buffer.buffer(chunk.getBytes()));
 
         return this;
+    }
+
+    @Override
+    public WriteStream<Buffer> drainHandler(Handler<Void> drainHandler) {
+        httpClientRequest.drainHandler(aVoid -> drainHandler.handle(null));
+        return this;
+    }
+
+    @Override
+    public boolean writeQueueFull() {
+        return httpClientRequest.writeQueueFull();
     }
 
     private void writeHeaders() {

@@ -30,6 +30,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.handlers.api.cors.CorsHandler;
 import io.gravitee.gateway.handlers.api.cors.CorsResponseHandler;
@@ -58,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -150,7 +152,9 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
                 long serviceInvocationStart = System.currentTimeMillis();
 
+                AtomicReference<ProxyConnection> proxyConnection = new AtomicReference<>();
                 Request invokeRequest = upstreamInvoker.invoke(executionContext, serverRequest, requestPolicyChainResult.getPolicyChain(), connection -> {
+                    proxyConnection.set(connection);
                     connection.responseHandler(
                             proxyResponse -> handleProxyResponse(serverRequest, serverResponse, executionContext, proxyResponse, serviceInvocationStart, handler));
 
@@ -165,6 +169,11 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                 // Plug server request stream to request policy chain stream
                 invokeRequest
                         .bodyHandler(chunk -> {
+                            ProxyConnection connection = proxyConnection.get();
+                            if(connection.writeQueueFull()) {
+                                serverRequest.pause();
+                                connection.drainHandler(aVoid -> serverRequest.resume());
+                            }
                             requestPolicyChainResult.getPolicyChain().write(chunk);
 
                             invokeRequest.metrics().setRequestContentLength(
@@ -216,12 +225,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
                     proxyResponse.bodyHandler(buffer -> {
                         if(serverResponse.writeQueueFull()) {
-                            System.out.println("pausing");
                             proxyResponse.pause();
-                            serverResponse.drainHandler(aVoid -> {
-                                System.out.println("resuming");
-                                proxyResponse.resume();
-                            });
+                            serverResponse.drainHandler(aVoid -> proxyResponse.resume());
                         }
                         responsePolicyChain.write(buffer);
                     });

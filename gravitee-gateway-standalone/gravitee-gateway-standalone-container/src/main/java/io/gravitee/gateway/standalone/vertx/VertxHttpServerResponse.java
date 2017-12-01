@@ -36,7 +36,6 @@ class VertxHttpServerResponse implements Response {
 
     VertxHttpServerResponse(HttpServerResponse httpServerResponse) {
         this.httpServerResponse = httpServerResponse;
-        httpServerResponse.setWriteQueueMaxSize(16384);
     }
 
     @Override
