@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -25,19 +26,19 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 @Document(collection = "views")
-public class ViewMongo {
+public class ViewMongo extends Auditable{
 
 	@Id
 	private String id;
-
 	private String name;
-
 	private String description;
+	private boolean defaultView;
+	private boolean hidden;
+	private int order;
 
 	public String getId() {
 		return id;
 	}
-
 	public void setId(String id) {
 		this.id = id;
 	}
@@ -45,7 +46,6 @@ public class ViewMongo {
 	public String getName() {
 		return name;
 	}
-
 	public void setName(String name) {
 		this.name = name;
 	}
@@ -53,9 +53,29 @@ public class ViewMongo {
 	public String getDescription() {
 		return description;
 	}
-
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public boolean isDefaultView() {
+		return defaultView;
+	}
+	public void setDefaultView(boolean defaultView) {
+		this.defaultView = defaultView;
+	}
+
+	public boolean isHidden() {
+		return hidden;
+	}
+	public void setHidden(boolean hidden) {
+		this.hidden = hidden;
+	}
+
+	public int getOrder() {
+		return order;
+	}
+	public void setOrder(int order) {
+		this.order = order;
 	}
 
 	@Override
@@ -77,6 +97,9 @@ public class ViewMongo {
 				"id='" + id + '\'' +
 				", name='" + name + '\'' +
 				", description='" + description + '\'' +
+				", defaultView='" + defaultView + '\'' +
+				", hidden='" + hidden + '\'' +
+				", order='" + order + '\'' +
 				'}';
 	}
 }

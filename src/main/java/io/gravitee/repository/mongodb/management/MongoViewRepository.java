@@ -83,13 +83,8 @@ public class MongoViewRepository implements ViewRepository {
         }
 
         try {
-            //Update
-            viewMongo.setName(view.getName());
-            viewMongo.setDescription(view.getDescription());
-
-            ViewMongo viewMongoUpdated = internalViewRepo.save(viewMongo);
+            ViewMongo viewMongoUpdated = internalViewRepo.save(mapper.map(view, ViewMongo.class));
             return mapper.map(viewMongoUpdated, View.class);
-
         } catch (Exception e) {
 
             LOGGER.error("An error occured when updating view", e);
@@ -111,13 +106,7 @@ public class MongoViewRepository implements ViewRepository {
     public Set<View> findAll() throws TechnicalException {
         final List<ViewMongo> views = internalViewRepo.findAll();
         return views.stream()
-                .map(viewMongo -> {
-                    final View view = new View();
-                    view.setId(viewMongo.getId());
-                    view.setName(viewMongo.getName());
-                    view.setDescription(viewMongo.getDescription());
-                    return view;
-                })
+                .map(viewMongo -> mapper.map(viewMongo, View.class))
                 .collect(Collectors.toSet());
     }
 }
