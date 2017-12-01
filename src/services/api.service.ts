@@ -60,6 +60,14 @@ class ApiService {
   }
 
   update(api) {
+    //clean endpoint http proxy
+    if (api.proxy && api.proxy.endpoints) {
+      _.forEach(api.proxy.endpoints, (endpoint) => {
+        if (endpoint.proxy && (!endpoint.proxy.host || !endpoint.proxy.port)) {
+          delete endpoint.proxy;
+        }
+      });
+    }
     return this.$http.put(this.apisURL + api.id,
       {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private,
         'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
