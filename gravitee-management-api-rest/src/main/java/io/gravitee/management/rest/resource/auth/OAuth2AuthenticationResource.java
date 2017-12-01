@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource.auth;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.NewExternalUserEntity;
 import io.gravitee.management.model.RoleEntity;
@@ -36,6 +37,8 @@ import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -53,11 +56,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -143,6 +142,11 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         if (username == null) {
             throw new BadRequestException("No public email linked to your account");
         }
+
+        //set user to Authentication Context
+        UserDetails userDetails = new UserDetails(username, "", Collections.emptyList());
+        userDetails.setEmail(username);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
 
         try {
             userService.findByName(username, false);
