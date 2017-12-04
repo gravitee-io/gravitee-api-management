@@ -66,24 +66,26 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       controller: 'PortalApisController',
       controllerAs: 'apisCtrl',
       resolve: {
-        resolvedApis: function ($stateParams, ApiService) {
-          if ($stateParams.view && $stateParams.view !== 'all') {
+        resolvedApis: function ($stateParams, ApiService, ViewService: ViewService) {
+          if ($stateParams.view) {
             return ApiService.list($stateParams.view);
           }
-          return ApiService.list();
+          return ViewService.getDefaultOrFirstOne().then(response => {
+            if (response) {
+              return ApiService.list(response.id);
+            } else {
+              return [];
+            }
+          });
         },
-        resolvedViews: (ViewService: ViewService, $translate) => {
+        resolvedViews: (ViewService: ViewService) => {
           return ViewService.list().then(response => {
-            let views = response.data;
-            $translate('apis.all').then(function (all) {
-              views.unshift({id: 'all', name: all});
-            });
-            return views;
+            return response.data;
           });
         }
       },
       params: {
-        view: 'all',
+        view: undefined,
       }
     })
     .state('portal.api', {

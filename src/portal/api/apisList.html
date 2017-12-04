@@ -20,8 +20,8 @@
     <div flex="15" layout="column" class="apis-sidenav" layout-padding>
       <ul>
         <li class="sidenav_item"
-            ng-class="{'active': view.id == $resolve.$stateParams.view}"
-            ng-if="view.id === 'all' || view.totalApis > 0"
+            ng-class="{'active': view.id == apisCtrl.selectedView}"
+            ng-if="view.totalApis > 0"
             ng-repeat="view in apisCtrl.views track by view.id"
             ui-sref=".({ view: view.id })">
           <span>{{view.name}}</span>

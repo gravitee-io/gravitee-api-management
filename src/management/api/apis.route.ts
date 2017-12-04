@@ -123,9 +123,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         resolvedViews: (ViewService: ViewService) => {
           return ViewService.list().then(response => {
-            let views = response.data;
-            views.unshift({id: 'all', name: 'All APIs'});
-            return views;
+            return response.data;
           });
         }
       },

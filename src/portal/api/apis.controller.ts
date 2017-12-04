@@ -15,6 +15,7 @@
  */
 import {IScope} from 'angular';
 import * as _ from 'lodash';
+import ViewService from "../../services/view.service";
 
 export class PortalApisController {
 
@@ -22,21 +23,31 @@ export class PortalApisController {
   private views: any[];
   private view: any;
   private ratingEnabled: boolean;
+  private selectedView: string;
 
   constructor (private resolvedApis,
                private resolvedViews,
                private $scope: IScope,
                private $state,
                private $stateParams,
-               private Constants) {
+               private Constants,
+               private ViewService) {
     'ngInject';
     this.apis = resolvedApis.data;
     this.views = resolvedViews;
     this.ratingEnabled = Constants.rating && Constants.rating.enabled;
-
-    this.view = _.find(this.views, function (view) {
-      return $stateParams.view === view.id;
-    });
+    let that = this;
+    if($stateParams.view) {
+      this.selectedView = $stateParams.view;
+      this.view = _.find(this.views, function (view) {
+        return that.selectedView === view.id;
+      });
+    } else {
+      ViewService.getDefaultOrFirstOne().then( (response) => {
+        that.selectedView = response.id;
+        that.view = response.data;
+      })
+    }
 
     $scope.$on('$stateChangeStart', function() {
       this.hideApis = true;

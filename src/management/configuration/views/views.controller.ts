@@ -35,6 +35,13 @@ class ViewsController {
     this.viewsToUpdate = [];
   }
 
+  $onInit() {
+    this.views = _.sortBy(this.views, 'order');
+    _.forEach(this.views, (view, idx) => {
+      view.order = idx;
+    });
+  }
+
   newView(event) {
     event.stopPropagation();
 
@@ -42,9 +49,13 @@ class ViewsController {
       .small({
         placeholder: 'Add a name',
         save: input =>{
-          const view = {name: input.$modelValue};
-          this.views.push(view);
+          const view = {
+            name: input.$modelValue,
+            order: _.size(this.views),
+            hidden: false
+          };
           this.viewsToCreate.push(view);
+          this.save();
         },
         targetEvent: event,
         validators: {
@@ -61,19 +72,37 @@ class ViewsController {
       });
   }
 
+  toggleDefault(view) {
+    _.forEach(this.views, (v) => {
+      if (v.id !== view.id && v.defaultView) {
+        v.defaultView = false;
+        this.viewsToUpdate.push(v);
+      }
+    });
+    this.viewsToUpdate.push(view);
+    this.save();
+  }
+
+  toggleVisibility(view) {
+    view.hidden = !view.hidden;
+    this.viewsToUpdate.push(view);
+    this.save();
+  }
+
   editName(event, view) {
     event.stopPropagation();
 
-    var that = this;
+    let that = this;
 
-    var promise = this.$mdEditDialog.small({
+    let promise = this.$mdEditDialog.small({
       modelValue: view.name,
       placeholder: 'Add a name',
+      clickOutsideToClose: false,
       save: function (input) {
         view.name = input.$modelValue;
         if (!_.includes(that.viewsToCreate, view)) {
-          delete view.totalApis;
           that.viewsToUpdate.push(view);
+          that.save();
         }
       },
       targetEvent: event,
@@ -83,7 +112,7 @@ class ViewsController {
     });
 
     promise.then(function (ctrl) {
-      var input = ctrl.getInput();
+      let input = ctrl.getInput();
 
       input.$viewChangeListeners.push(function () {
         input.$setValidity('empty', input.$modelValue.length !== 0);
@@ -94,16 +123,17 @@ class ViewsController {
   editDescription(event, view) {
     event.stopPropagation();
 
-    var that = this;
+    let that = this;
 
     this.$mdEditDialog.small({
       modelValue: view.description,
       placeholder: 'Add a description',
+      clickOutsideToClose: false,
       save: function (input) {
         view.description = input.$modelValue;
         if (!_.includes(that.viewsToCreate, view)) {
-          delete view.totalApis;
           that.viewsToUpdate.push(view);
+          that.save();
         }
       },
       targetEvent: event,
@@ -113,8 +143,30 @@ class ViewsController {
     });
   }
 
-  saveViews() {
-    var that = this;
+  upward(index) {
+    if (index > 0) {
+      this.reorder(index, index - 1);
+    }
+  }
+
+  downward(index) {
+    if (index < _.size(this.views) - 1 ) {
+      this.reorder(index, index + 1);
+    }
+  }
+
+  private reorder(from, to) {
+    this.views[from].order = to;
+    this.views[to].order = from;
+    this.views = _.sortBy(this.views, 'order');
+
+    this.viewsToUpdate.push(this.views[from]);
+    this.viewsToUpdate.push(this.views[to]);
+    this.save();
+  }
+
+  private save() {
+    let that = this;
 
     this.$q.all([
       this.ViewService.create(that.viewsToCreate),
@@ -125,13 +177,13 @@ class ViewsController {
       that.viewsToUpdate = [];
       let createResult = resultArray[0];
       if (createResult) {
-        that.views = _.unionBy(createResult.data, that.views, 'name');
+        that.views = _.sortBy(_.unionBy(createResult.data, that.views, 'name'), 'order');
       }
     });
   }
 
   deleteView(view) {
-    var that = this;
+    let that = this;
     this.$mdDialog.show({
       controller: 'DeleteViewDialogController',
       template: require('./delete.view.dialog.html'),
@@ -151,12 +203,6 @@ class ViewsController {
         }
       }
     });
-  }
-
-  reset() {
-    this.views = _.cloneDeep(this.initialViews);
-    this.viewsToCreate = [];
-    this.viewsToUpdate = [];
   }
 }
 

@@ -28,11 +28,14 @@
     <tr md-row>
       <th md-column md-order-by="name">Name</th>
       <th md-column md-order-by="description">Description</th>
+      <th md-column md-order-by="defaultView">Default</th>
+      <th md-column md-order-by="hidden">Visibility</th>
+      <th md-column md-order-by="hidden">APIs</th>
       <th permission permission-only="'portal-view-d'"></th>
     </tr>
     </thead>
     <tbody md-body>
-    <tr md-row ng-repeat="view in $ctrl.views | orderBy: order">
+    <tr md-row ng-repeat="view in $ctrl.views">
       <td permission permission-only="'portal-view-u'"
           md-cell ng-click="$ctrl.editName($event, view)" ng-class="{'gravitee-placeholder': !view.name}">
         {{view.name || 'Add a name'}}
@@ -41,28 +44,43 @@
           md-cell ng-click="$ctrl.editDescription($event, view)" ng-class="{'gravitee-placeholder': !view.description}">
         {{view.description || 'Add a description'}}
       </td>
+      <td permission permission-only="'portal-view-u'" md-cell>
+        <md-checkbox ng-model="view.defaultView" aria-label="default" ng-change="$ctrl.toggleDefault(view)"></md-checkbox>
+      </td>
+      <td permission permission-only="'portal-view-u'" md-cell>
+        <ng-md-icon icon="visibility{{view.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility(view)"></ng-md-icon>
+      </td>
+      <td permission permission-only="'portal-view-u'" md-cell ng-click="">
+        {{view.totalApis}}
+      </td>
+      <td md-cell permission permission-only="'portal-view-d'" layout="row">
+        <ng-md-icon icon="arrow_upwards" ng-click="$ctrl.upward($index)"></ng-md-icon>
+        <ng-md-icon icon="arrow_downward" ng-click="$ctrl.downward($index)"></ng-md-icon>
+        <ng-md-icon icon="delete" ng-click="$ctrl.deleteView(view)" ng-if="view.id !== 'all'"></ng-md-icon>
+      </td>
+      <!-- --------------------------------------------------------------------------------------------------------- -->
+      <td permission permission-except="'portal-view-u'">{{view.name}}</td>
+      <td permission permission-except="'portal-view-u'">{{view.description}}</td>
       <td permission permission-except="'portal-view-u'">
-        {{view.name}}
+        <md-checkbox ng-model="view.defaultView" aria-label="default"></md-checkbox>
       </td>
       <td permission permission-except="'portal-view-u'">
-        {{view.description}}
+        <ng-md-icon icon="visibility{{view.hidden?'_off':''}}" ng-click="$ctrl.deleteView(view)"></ng-md-icon>
       </td>
-      <td md-cell permission permission-only="'portal-view-d'"><ng-md-icon icon="delete" ng-click="$ctrl.deleteView(view)"></ng-md-icon></td>
+      <td permission permission-except="'portal-view-u'" md-cell>
+        {{view.totalApis}}
+      </td>
     </tr>
     <tr md-row permission permission-only="'portal-view-c'">
       <td md-cell ng-click="$ctrl.newView($event)" class="gravitee-placeholder">
         New view
       </td>
-      <td md-cell></td>
-      <td md-cell></td>
+      <td md-cell></td><!-- description -->
+      <td md-cell></td><!-- default     -->
+      <td md-cell></td><!-- visibility  -->
+      <td md-cell></td><!-- apis        -->
+      <td md-cell></td><!-- actions     -->
     </tr>
     </tbody>
   </table>
 </md-table-container>
-<md-card-actions layout="row" layout-align="end center" permission permission-only="['portal-view-c', 'portal-view-u']">
-  <md-button ng-click="$ctrl.saveViews()"
-             ng-disabled="!$ctrl.viewsToCreate.length && !$ctrl.viewsToUpdate.length">Save</md-button>
-  <md-button ng-click="$ctrl.reset()"
-             ng-disabled="!$ctrl.viewsToCreate.length && !$ctrl.viewsToUpdate.length">Reset
-  </md-button>
-</md-card-actions>

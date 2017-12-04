@@ -47,7 +47,6 @@
     "support": "Support"
   },
   "apis": {
-    "all": "All APIs",
     "filter": "Filter APIs..."
   },
   "api": {

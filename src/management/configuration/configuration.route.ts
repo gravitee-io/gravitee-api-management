@@ -62,7 +62,7 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/views',
       component: 'views',
       resolve: {
-        views: (ViewService: ViewService) => ViewService.list().then(response => response.data)
+        views: (ViewService: ViewService) => ViewService.list(true).then(response => response.data)
       },
       data: {
         menu: {
