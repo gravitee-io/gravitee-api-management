@@ -26,6 +26,11 @@ public class RedisView {
     private String id;
     private String name;
     private String description;
+    private boolean defaultView;
+    private boolean hidden;
+    private int order;
+    private long createdAt;
+    private long updatedAt;
 
     public String getId() {
         return id;
@@ -49,6 +54,46 @@ public class RedisView {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isDefaultView() {
+        return defaultView;
+    }
+
+    public void setDefaultView(boolean defaultView) {
+        this.defaultView = defaultView;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public long getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(long updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     @Override

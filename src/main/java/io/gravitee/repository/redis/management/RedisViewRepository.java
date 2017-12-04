@@ -23,6 +23,7 @@ import io.gravitee.repository.redis.management.model.RedisView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -87,6 +88,15 @@ public class RedisViewRepository implements ViewRepository {
         view.setId(redisView.getId());
         view.setName(redisView.getName());
         view.setDescription(redisView.getDescription());
+        view.setDefaultView(redisView.isDefaultView());
+        view.setHidden(redisView.isHidden());
+        view.setOrder(redisView.getOrder());
+        if (redisView.getCreatedAt() > 0) {
+            view.setCreatedAt(new Date(redisView.getCreatedAt()));
+        }
+        if (redisView.getUpdatedAt() > 0) {
+            view.setUpdatedAt(new Date(redisView.getUpdatedAt()));
+        }
         return view;
     }
 
@@ -98,6 +108,15 @@ public class RedisViewRepository implements ViewRepository {
         redisView.setId(view.getId());
         redisView.setName(view.getName());
         redisView.setDescription(view.getDescription());
+        redisView.setDefaultView(view.isDefaultView());
+        redisView.setHidden(view.isHidden());
+        redisView.setOrder(view.getOrder());
+        if (view.getCreatedAt() != null) {
+            redisView.setCreatedAt(view.getCreatedAt().getTime());
+        }
+        if (view.getUpdatedAt() != null) {
+            redisView.setUpdatedAt(view.getUpdatedAt().getTime());
+        }
         return redisView;
     }
 }
