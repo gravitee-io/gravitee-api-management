@@ -51,6 +51,9 @@ public class SyncManager {
 
     private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
 
+    private static final int TIMEFRAME_BEFORE_DELAY = 10 * 60 * 1000;
+    private static final int TIMEFRAME_AFTER_DELAY = 1 * 60 * 1000;
+
     @Autowired
     private ApiRepository apiRepository;
 
@@ -232,7 +235,8 @@ public class SyncManager {
         } else {
             eventCriteriaBuilder = new EventCriteria.Builder()
                     .property(Event.EventProperties.API_ID.getValue(), api)
-                    .from(lastRefreshAt).to(nextLastRefreshAt);
+                    .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                    .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
         }
 
         List<Event> events = eventRepository.search(eventCriteriaBuilder
