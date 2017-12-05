@@ -37,6 +37,9 @@ public class ApiKeyRefresher implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiKeyRefresher.class);
 
+    private static final int TIMEFRAME_BEFORE_DELAY = 10 * 60 * 1000;
+    private static final int TIMEFRAME_AFTER_DELAY = 1 * 60 * 1000;
+
     private ApiKeyRepository apiKeyRepository;
 
     private Ehcache cache;
@@ -76,18 +79,19 @@ public class ApiKeyRefresher implements Runnable {
                 criteriaBuilder = new ApiKeyCriteria.Builder()
                         .plans(plans)
                         .includeRevoked(true)
-                        .from(lastRefreshAt).to(nextLastRefreshAt);
+                        .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                        .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
             }
 
             try {
                 apiKeyRepository
                         .findByCriteria(criteriaBuilder.build())
                         .forEach(this::saveOrUpdate);
+
+                lastRefreshAt = nextLastRefreshAt;
             } catch (TechnicalException te) {
                 logger.error("Unexpected error while refreshing api-keys", te);
             }
-
-            lastRefreshAt = nextLastRefreshAt;
         }
     }
 
