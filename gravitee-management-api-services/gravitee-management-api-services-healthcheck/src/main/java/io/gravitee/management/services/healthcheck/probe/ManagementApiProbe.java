@@ -17,14 +17,12 @@ package io.gravitee.management.services.healthcheck.probe;
 
 import io.gravitee.management.services.healthcheck.Probe;
 import io.gravitee.management.services.healthcheck.Result;
-import io.gravitee.management.services.healthcheck.vertx.VertxCompletableFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * HTTP Probe used to check the Management API itself.
@@ -49,22 +47,22 @@ public class ManagementApiProbe implements Probe {
     }
 
     @Override
-    public CompletableFuture<Result> check() {
-        VertxCompletableFuture<Result> result = new VertxCompletableFuture<>(vertx);
+    public Future<Result> check() {
+        Future<Result> future = Future.future();
 
         NetClientOptions options = new NetClientOptions().setConnectTimeout(500);
         NetClient client = vertx.createNetClient(options);
 
         client.connect(port, host, res -> {
             if (res.succeeded()) {
-                result.complete(Result.healthy());
+                future.complete(Result.healthy());
             } else {
-                result.complete(Result.unhealthy(res.cause()));
+                future.complete(Result.unhealthy(res.cause()));
             }
 
             client.close();
         });
 
-        return result;
+        return future;
     }
 }

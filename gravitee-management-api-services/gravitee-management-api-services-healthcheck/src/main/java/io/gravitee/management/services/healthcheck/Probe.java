@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.services.healthcheck;
 
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -25,5 +25,5 @@ public interface Probe {
 
     String id();
 
-    CompletableFuture<Result> check();
+    Future<Result> check();
 }

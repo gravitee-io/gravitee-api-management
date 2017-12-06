@@ -19,9 +19,11 @@ import io.gravitee.management.services.healthcheck.Probe;
 import io.gravitee.management.services.healthcheck.Result;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.count.CountQuery;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,18 +34,35 @@ public class AnalyticsRepositoryProbe implements Probe {
     @Autowired
     private AnalyticsRepository analyticsRepository;
 
+    @Autowired
+    private Vertx vertx;
+
     @Override
     public String id() {
         return "repository-analytics";
     }
 
     @Override
-    public CompletableFuture<Result> check() {
-        try {
-            analyticsRepository.query(new CountQuery());
-            return CompletableFuture.completedFuture(Result.healthy());
-        } catch (Exception ex) {
-            return CompletableFuture.completedFuture(Result.unhealthy(ex));
-        }
+    public Future<Result> check() {
+        Future<Result> future = Future.future();
+
+        vertx.executeBlocking(new Handler<Future<Result>>() {
+            @Override
+            public void handle(Future<Result> event) {
+                try {
+                    analyticsRepository.query(new CountQuery());
+                    event.complete(Result.healthy());
+                } catch (Exception ex) {
+                    event.complete(Result.unhealthy(ex));
+                }
+            }
+        }, new Handler<AsyncResult<Result>>() {
+            @Override
+            public void handle(AsyncResult<Result> event) {
+                future.complete(event.result());
+            }
+        });
+
+        return future;
     }
 }

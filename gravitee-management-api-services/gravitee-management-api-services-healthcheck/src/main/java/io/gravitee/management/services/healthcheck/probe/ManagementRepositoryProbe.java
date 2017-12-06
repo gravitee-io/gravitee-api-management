@@ -19,9 +19,11 @@ import io.gravitee.management.services.healthcheck.Probe;
 import io.gravitee.management.services.healthcheck.Result;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,20 +34,36 @@ public class ManagementRepositoryProbe implements Probe {
     @Autowired
     private EventRepository eventRepository;
 
+    @Autowired
+    private Vertx vertx;
+
     @Override
     public String id() {
         return "management";
     }
 
     @Override
-    public CompletableFuture<Result> check() {
-        // Search for an event to check repository connection
-        try {
-            eventRepository.search(new EventCriteria.Builder()
-                    .from(System.currentTimeMillis()).to(System.currentTimeMillis()).build());
-            return CompletableFuture.completedFuture(Result.healthy());
-        } catch (Exception ex) {
-            return CompletableFuture.completedFuture(Result.unhealthy(ex));
-        }
+    public Future<Result> check() {
+        Future<Result> future = Future.future();
+
+        vertx.executeBlocking(new Handler<Future<Result>>() {
+            @Override
+            public void handle(Future<Result> event) {
+                try {
+                    eventRepository.search(new EventCriteria.Builder()
+                            .from(System.currentTimeMillis()).to(System.currentTimeMillis()).build());
+                    event.complete(Result.healthy());
+                } catch (Exception ex) {
+                    event.complete(Result.unhealthy(ex));
+                }
+            }
+        }, new Handler<AsyncResult<Result>>() {
+            @Override
+            public void handle(AsyncResult<Result> event) {
+                future.complete(event.result());
+            }
+        });
+
+        return future;
     }
 }

@@ -62,8 +62,10 @@ public class HttpServerSpringConfiguration {
         return new HttpServerConfiguration();
     }
 
+    /*
     @Bean
     public Vertx vertx() {
         return Vertx.vertx();
     }
+    */
 }

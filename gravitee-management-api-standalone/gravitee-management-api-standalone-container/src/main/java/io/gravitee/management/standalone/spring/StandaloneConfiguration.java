@@ -23,6 +23,7 @@ import io.gravitee.management.standalone.jetty.JettyConfiguration;
 import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.management.standalone.jetty.JettyServerFactory;
 import io.gravitee.management.standalone.node.ManagementNode;
+import io.vertx.core.Vertx;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -38,6 +39,11 @@ public class StandaloneConfiguration {
     @Bean
     public Node node() {
         return new ManagementNode();
+    }
+
+    @Bean
+    public Vertx vertx() {
+        return Vertx.vertx();
     }
 
     @Bean

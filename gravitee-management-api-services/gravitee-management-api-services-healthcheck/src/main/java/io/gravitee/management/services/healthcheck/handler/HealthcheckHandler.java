@@ -22,7 +22,9 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.services.healthcheck.Probe;
 import io.gravitee.management.services.healthcheck.Result;
-import io.gravitee.management.services.healthcheck.vertx.VertxCompletableFuture;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
@@ -30,10 +32,10 @@ import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -48,43 +50,38 @@ public class HealthcheckHandler implements Handler<RoutingContext> {
 
     @Override
     public void handle(RoutingContext ctx) {
-        Map<String, CompletableFuture<Result>> probeResults = this.probes.stream().collect(
+        Map<String, Future<Result>> probeResults = this.probes.stream().collect(
                 Collectors.toMap(Probe::id, Probe::check));
 
-        VertxCompletableFuture.allOf(ctx.vertx(), probeResults.values().toArray(new CompletableFuture[]{})).thenAccept(aVoid -> {
-            boolean unhealthyProbe = probeResults.values().stream().anyMatch(completableFuture -> {
+        CompositeFuture.join(new ArrayList<>(probeResults.values())).setHandler(new Handler<AsyncResult<CompositeFuture>>() {
+            @Override
+            public void handle(AsyncResult<CompositeFuture> event) {
+                HttpServerResponse response = ctx.response();
+                response.setStatusCode((event.failed()) ? HttpStatusCode.INTERNAL_SERVER_ERROR_500 : HttpStatusCode.OK_200);
+                response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+                response.setChunked(true);
+
+                Map<String, Result> results = new HashMap<>();
+
+
+                probeResults.forEach((probe, resultCompletableFuture) -> {
+                    try {
+                        results.put(probe, resultCompletableFuture.result());
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to check probe health", ex);
+                    }
+                });
+
                 try {
-                    return !completableFuture.get().isHealthy();
-                } catch (Exception ex) {
-                    LOGGER.error("Unable to check probe health", ex);
-                    return false;
+                    Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                    response.write(Json.prettyMapper.writeValueAsString(results));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
                 }
-            });
 
-            HttpServerResponse response = ctx.response();
-            response.setStatusCode((unhealthyProbe) ? HttpStatusCode.INTERNAL_SERVER_ERROR_500 : HttpStatusCode.OK_200);
-            response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-            response.setChunked(true);
-
-            Map<String, Result> results = new HashMap<>();
-
-            probeResults.forEach((probe, resultCompletableFuture) -> {
-                try {
-                    results.put(probe, resultCompletableFuture.get());
-                } catch (Exception ex) {
-                    LOGGER.error("Unable to check probe health", ex);
-                }
-            });
-
-            try {
-                Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                response.write(Json.prettyMapper.writeValueAsString(results));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                // End the response
+                response.end();
             }
-
-            // End the response
-            response.end();
         });
     }
 
