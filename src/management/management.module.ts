@@ -192,6 +192,7 @@ import ApplicationLogComponent from './application/details/logs/application-log.
 import DialogApplicationController from './application/dialog/applicationDialog.controller';
 import DialogAddMemberController from './application/details/members/addMemberDialog.controller';
 import DialogApplicationPermissionsHelpController from './application/details/members/application-permissions-dialog.controller';
+import DialogTransferApplicationController from './application/details/members/transferApplicationDialog.controller';
 
 // Instances
 import InstancesService from '../services/instances.service';
@@ -530,6 +531,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController)
   .controller('ApplicationAnalyticsController', ApplicationAnalyticsController)
   .controller('ApplicationLogsController', ApplicationLogsController)
+  .controller('DialogTransferApplicationController', DialogTransferApplicationController)
   .component('user', UserComponent)
 
   .component('gvPage', PageComponent)

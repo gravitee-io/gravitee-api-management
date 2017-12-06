@@ -105,6 +105,42 @@
         </div>
       </md-content>
     </div>
+    <div ng-if="$ctrl.isAllowedToTransferOwnership()">
+      <hr />
+      <h4>
+        Transfer ownership
+      </h4>
+      <md-card>
+        <md-card-content>
+          <p>
+            Use <code>transfer-ownership</code> to give full access to this Application to the new chosen person.
+            If you are the primary owner of this Application, your privilege will be set to <code>owner</code> level.
+          </p>
+          <md-autocomplete
+                  md-selected-item="selectedItem"
+                  md-search-text="searchText"
+                  md-search-text-change="searchTextChange(searchText)"
+                  md-selected-item-change="$ctrl.selectedItemChange(member)"
+                  md-items="member in $ctrl.searchUser(searchText)"
+                  md-item-text="member.id"
+                  placeholder="Transfer Application ownership to ?"
+                  md-autofocus="false"
+                  md-min-length="0"
+                  md-menu-class="autocomplete-custom-template">
+            <md-item-template>
+              <span>{{member.firstname}} {{member.lastname}} [{{member.id}}]</span>
+            </md-item-template>
+            <md-not-found>
+              No users matching "{{searchText}}" were found.
+            </md-not-found>
+          </md-autocomplete>
+        </md-card-content>
+        <label></label>
+        <md-card-actions layout="row" layout-align="end center">
+          <md-button ng-disabled="$ctrl.newPrimaryOwner == null" class="md-primary" ng-click="$ctrl.showTransferOwnershipConfirm($event)">Transfer</md-button>
+        </md-card-actions>
+      </md-card>
+    </div>
   </md-content>
 </section>
 

@@ -19,6 +19,8 @@ import _ = require('lodash');
 import ApplicationService from '../../../../services/applications.service';
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
+import GroupService from "../../../../services/group.service";
+import UserService from "../../../../services/user.service";
 
 class ApplicationMembersController {
   private application: any;
@@ -29,6 +31,7 @@ class ApplicationMembersController {
   private groupMembers: any;
   private groupIdsWithMembers: any;
   private resolvedGroups: any;
+  private newPrimaryOwner: any;
 
   constructor(
     private ApplicationService: ApplicationService,
@@ -36,11 +39,13 @@ class ApplicationMembersController {
     private $mdDialog: angular.material.IDialogService,
     private $state: ng.ui.IStateService,
     private RoleService: RoleService,
-    private GroupService
+    private GroupService: GroupService,
+    private UserService: UserService
   ) {
     'ngInject';
 
     const that = this;
+    this.newPrimaryOwner = null;
     RoleService.list('APPLICATION').then(function (roles) {
       that.roles = roles;
     });
@@ -134,6 +139,66 @@ class ApplicationMembersController {
       parent: angular.element(document.body),
       clickOutsideToClose:true
     });
+  }
+
+  searchUser(query) {
+    if (query) {
+      return this.UserService.search(query).then((response) => {
+        const usersFound = response.data;
+        let filterUsers = _.filter(usersFound, (user:any) => {
+          return _.findIndex(this.members,
+            function(applicationMember: any) {
+              return applicationMember.username === user.id && applicationMember.role === 'PRIMARY_OWNER';
+            }) === -1;
+        });
+        return filterUsers;
+      });
+    } else {
+      let filterMembers = _.filter(this.members, function(member: any) { return member.role !== 'PRIMARY_OWNER'; });
+      let members = _.flatMap(filterMembers, function(member: any) { return { 'id' : member.username, 'label' : member.firstname? member.firstname + ' ' + member.lastname : member.username}; });
+      return members;
+    }
+  }
+
+  selectedItemChange(item) {
+    if (item) {
+      this.newPrimaryOwner = item;
+    } else {
+      if (this.newPrimaryOwner !== null) {
+        this.newPrimaryOwner = null;
+      }
+    }
+  }
+
+  showTransferOwnershipConfirm(ev) {
+    this.$mdDialog.show({
+      controller: 'DialogTransferApplicationController',
+      template: require('./transferApplication.dialog.html'),
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      clickOutsideToClose:true
+    }).then((transferApplication) => {
+      if (transferApplication) {
+        this.transferOwnership();
+      }
+    }, () => {
+      // You cancelled the dialog
+    });
+  }
+
+  transferOwnership() {
+    this.ApplicationService.transferOwnership(this.application.id, this.newPrimaryOwner.id).then(() => {
+      this.NotificationService.show("API ownership changed !");
+      this.$state.go('management.applications.list');
+    });
+  }
+
+  isAllowedToTransferOwnership() {
+    return this.UserService.currentUser.isAdmin() || this.isPrimaryOwner();
+  }
+
+  isPrimaryOwner() {
+    return this.UserService.currentUser.username === this.application.owner.username;
   }
 }
 

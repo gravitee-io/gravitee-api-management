@@ -151,13 +151,13 @@ class ApiMembersController {
         var filterUsers = _.filter(usersFound, (user:any) => {
           return _.findIndex(this.members,
               function(apiMember: any) {
-                return apiMember.username === user.id && apiMember.type === 'primary_owner';
+                return apiMember.username === user.id && apiMember.role === 'PRIMARY_OWNER';
               }) === -1;
         });
         return filterUsers;
       });
     } else {
-      var filterMembers = _.filter(this.members, function(member: any) { return member.type !== 'primary_owner'; });
+      var filterMembers = _.filter(this.members, function(member: any) { return member.role !== 'PRIMARY_OWNER'; });
       var members = _.flatMap(filterMembers, function(member: any) { return { 'id' : member.username, 'label' : member.firstname? member.firstname + ' ' + member.lastname : member.username}; });
       return members;
     }
@@ -192,7 +192,7 @@ class ApiMembersController {
   transferOwnership() {
       this.ApiService.transferOwnership(this.api.id, this.newPrimaryOwner.id).then(() => {
         this.NotificationService.show("API ownership changed !");
-        this.$state.go(this.$state.current, {}, {reload: true});
+        this.$state.go('management.apis.list');
     });
   }
 

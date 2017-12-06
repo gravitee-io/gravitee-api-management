@@ -59,9 +59,13 @@ class ApplicationService {
 		return this.$http.delete(this.applicationsURL + applicationId + '/members?user=' + memberUsername);
 	}
 
+  transferOwnership(applicationId, memberUsername): ng.IHttpPromise<any> {
+    return this.$http.post(this.applicationsURL + applicationId + '/members/transfer_ownership?user=' + memberUsername, '');
+  }
+
   list(): ng.IHttpPromise<any> {
     return this.$http.get(this.applicationsURL);
-  }
+  }ô
 
   listByGroup(group) {
     return this.$http.get(this.applicationsURL + "?group=" + group);
