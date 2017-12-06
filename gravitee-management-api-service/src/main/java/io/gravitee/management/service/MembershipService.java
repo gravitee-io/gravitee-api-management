@@ -45,6 +45,8 @@ public interface MembershipService {
 
     void transferApiOwnership(String apiId, String username);
 
+    void transferApplicationOwnership(String applicationId, String username);
+
     Map<String, char[]> getMemberPermissions(ApiEntity api, String username);
 
     Map<String, char[]> getMemberPermissions(ApplicationEntity application, String username);

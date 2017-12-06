@@ -163,4 +163,20 @@ public class ApplicationMembersResource  extends AbstractResource {
         membershipService.deleteMember(MembershipReferenceType.APPLICATION, application, username);
         return Response.ok().build();
     }
+
+    @POST
+    @Path("transfer_ownership")
+    @ApiOperation(value = "Transfer the ownership of the APPLICATION",
+            notes = "User must have the TRANSFER_OWNERSHIP permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Ownership has been transferred successfully"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE)
+    })
+    public Response transferOwnership(@PathParam("application") String application, @NotNull @QueryParam("user") String username) {
+        applicationService.findById(application);
+        membershipService.transferApplicationOwnership(application, username);
+        return Response.ok().build();
+    }
 }
