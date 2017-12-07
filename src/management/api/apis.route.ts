@@ -223,6 +223,24 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
+    .state('management.apis.detail.discovery', {
+      url: '/audit',
+      template: require('./discovery/discovery.html'),
+      controller: 'ApiDiscoveryController',
+      controllerAs: 'discoveryCtrl',
+      data: {
+        menu: {
+          label: 'Discovery',
+          icon: 'settings_input_antenna'
+        },
+        perms: {
+          only: ['api-discovery-c']
+        },
+        docs: {
+          page: 'management-api-discovery'
+        }
+      }
+    })
     .state('management.apis.detail.plans', {
       url: '/plans?state',
       template: require('./plans/apiPlans.html'),
