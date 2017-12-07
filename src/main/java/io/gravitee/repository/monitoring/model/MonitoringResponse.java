@@ -76,7 +76,7 @@ public class MonitoringResponse {
     private int osMemFreePercent;
     private int osMemUsedPercent;
 
-    private Map<String, Double> osCPULoadAverage;
+    private Map<String, ? super Number> osCPULoadAverage;
     private int osCPUPercent;
 
     public String getGatewayId() {
@@ -367,11 +367,11 @@ public class MonitoringResponse {
         this.osMemUsedPercent = osMemUsedPercent;
     }
 
-    public Map<String, Double> getOsCPULoadAverage() {
+    public Map<String, ? super Number> getOsCPULoadAverage() {
         return osCPULoadAverage;
     }
 
-    public void setOsCPULoadAverage(Map<String, Double> osCPULoadAverage) {
+    public void setOsCPULoadAverage(Map<String, ? super Number> osCPULoadAverage) {
         this.osCPULoadAverage = osCPULoadAverage;
     }
 
