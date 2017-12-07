@@ -66,6 +66,7 @@
 		<dependency>
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository</artifactId>
+			<version>1.12.0-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>

@@ -29,7 +29,7 @@ public class MonitoringCPU {
     @JsonProperty("percent_use")
     private int percentUse;
     @JsonProperty("load_average")
-    private Map<String, Double> loadAverage;
+    private Map<String, ? super Number> loadAverage;
 
     public int getPercentUse() {
         return percentUse;
@@ -39,13 +39,14 @@ public class MonitoringCPU {
         this.percentUse = percentUse;
     }
 
-    public Map<String, Double> getLoadAverage() {
+    public Map<String, ? super Number> getLoadAverage() {
         return loadAverage;
     }
 
-    public void setLoadAverage(Map<String, Double> loadAverage) {
+    public void setLoadAverage(Map<String, ? super Number> loadAverage) {
         this.loadAverage = loadAverage;
     }
+
 
     @Override
     public boolean equals(Object o) {
