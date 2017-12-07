@@ -25,10 +25,13 @@ import org.springframework.core.env.Environment;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
+ * @author Guillaume GILLON (guillaume.gillon@outlook.com)
  */
 public class MongoFactory implements FactoryBean<Mongo> {
 
@@ -69,6 +72,9 @@ public class MongoFactory implements FactoryBean<Mongo> {
         Integer threadsAllowedToBlockForConnectionMultiplier = readPropertyValue(propertyPrefix + "threadsAllowedToBlockForConnectionMultiplier", Integer.class);
         Boolean cursorFinalizerEnabled = readPropertyValue(propertyPrefix + "cursorFinalizerEnabled", Boolean.class);
 
+        String readPreference = readPropertyValue(propertyPrefix + "readPreference", String.class);
+        String readPreferenceTags = readPropertyValue(propertyPrefix + "readPreferenceTags", String.class);
+
         if (connectionsPerHost != null)
             builder.connectionsPerHost(connectionsPerHost);
         if (maxWaitTime != null)
@@ -105,6 +111,30 @@ public class MongoFactory implements FactoryBean<Mongo> {
             builder.cursorFinalizerEnabled(cursorFinalizerEnabled);
         if (serverSelectionTimeout != null)
             builder.serverSelectionTimeout(serverSelectionTimeout);
+
+        if (readPreference != null)  {
+            TagSet tagSet = null;
+            ReadPreference readPrefObj = null;
+
+            if(readPreferenceTags != null) {
+                tagSet = buildTagSet(readPreferenceTags);
+            }
+
+            switch (readPreference) {
+                case "nearest":
+                    readPrefObj = tagSet != null ? ReadPreference.nearest(tagSet) : ReadPreference.nearest(); break;
+                case "primary":
+                    readPrefObj = ReadPreference.primary(); break;
+                case "primaryPreferred":
+                    readPrefObj = ReadPreference.primaryPreferred(); break;
+                case "secondary":
+                    readPrefObj = tagSet != null ? ReadPreference.secondary(tagSet) : ReadPreference.secondary(); break;
+                case "secondaryPreferred":
+                    readPrefObj = tagSet != null ? ReadPreference.secondaryPreferred(tagSet) : ReadPreference.secondaryPreferred(); break;
+            }
+
+            builder.readPreference(readPrefObj);
+        }
 
         return builder;
     }
@@ -176,6 +206,21 @@ public class MongoFactory implements FactoryBean<Mongo> {
         int port = readPropertyValue(propertyPrefix + "servers[" + idx + "].port", int.class, 27017);
 
         return new ServerAddress(host, port);
+    }
+
+    private TagSet buildTagSet(String readPreferenceTags)  {
+        List<Tag> tags = Pattern.compile(",").splitAsStream(readPreferenceTags)
+                .map((String::trim))
+                .map((tag) -> {
+                    String[] tagString = tag.split(":");
+                    return new Tag(tagString[0].trim(), tagString[1].trim());
+                }).collect(Collectors.toList());
+
+        if(tags.size() >  1) {
+            return new TagSet(tags);
+        } else {
+            return new TagSet(tags.get(0));
+        }
     }
 
     private String readPropertyValue(String propertyName) {

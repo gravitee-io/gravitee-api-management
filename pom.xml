@@ -39,6 +39,7 @@
 		<spring.data.mongodb.version>1.7.2.RELEASE</spring.data.mongodb.version>
 		<dozer.version>5.4.0</dozer.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
+		<snakeyaml.version>1.15</snakeyaml.version>
 	</properties>
 
 	<dependencies>
@@ -127,6 +128,13 @@
             <version>${embed.mongo.version}</version>
             <scope>test</scope>
         </dependency>
+
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>${snakeyaml.version}</version>
+			<scope>test</scope>
+		</dependency>
 
         <dependency>
             <groupId>io.gravitee.repository</groupId>
