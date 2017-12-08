@@ -59,8 +59,10 @@ class ApplicationService {
 		return this.$http.delete(this.applicationsURL + applicationId + '/members?user=' + memberUsername);
 	}
 
-  transferOwnership(applicationId, memberUsername): ng.IHttpPromise<any> {
-    return this.$http.post(this.applicationsURL + applicationId + '/members/transfer_ownership?user=' + memberUsername, '');
+  transferOwnership(applicationId, memberUsername, newRole: string): ng.IHttpPromise<any> {
+    return this.$http.post(this.applicationsURL + applicationId + '/members/transfer_ownership?user=' + memberUsername, {
+      role: newRole
+    });
   }
 
   list(): ng.IHttpPromise<any> {

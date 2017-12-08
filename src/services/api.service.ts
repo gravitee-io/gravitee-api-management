@@ -166,8 +166,10 @@ class ApiService {
     return this.$http.delete(this.apisURL + api + '/members?user=' + memberUsername);
   }
 
-  transferOwnership(api, memberUsername) {
-    return this.$http.post(this.apisURL + api + '/members/transfer_ownership?user=' + memberUsername);
+  transferOwnership(api, memberUsername, newRole: string) {
+    return this.$http.post(this.apisURL + api + '/members/transfer_ownership?user=' + memberUsername, {
+      role: newRole
+    });
   }
 
   /*

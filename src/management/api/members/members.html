@@ -115,27 +115,35 @@
       <md-card>
         <md-card-content>
           <p>
-            Use <code>transfer-ownership</code> to give full access to this API to the new chosen person.
-            If you are the primary owner of this API, your privilege will be set to <code>owner</code> level.
+            Use <code>Transfer ownership</code> to give full access to this API to the new chosen person.
           </p>
-          <md-autocomplete
-            md-selected-item="selectedItem"
-            md-search-text="searchText"
-            md-search-text-change="searchTextChange(searchText)"
-            md-selected-item-change="apiMembersCtrl.selectedItemChange(member)"
-            md-items="member in apiMembersCtrl.searchUser(searchText)"
-            md-item-text="member.id"
-            placeholder="Transfer API ownership to ?"
-            md-autofocus="false"
-            md-min-length="0"
-            md-menu-class="autocomplete-custom-template">
-            <md-item-template>
-              <span>{{member.firstname}} {{member.lastname}} [{{member.id}}]</span>
-            </md-item-template>
-            <md-not-found>
-              No users matching "{{searchText}}" were found.
-            </md-not-found>
-          </md-autocomplete>
+          <div layout="row" layout-align="space-around center">
+            <md-autocomplete
+                    flex="55"
+                    md-selected-item="selectedItem"
+                    md-search-text="searchText"
+                    md-search-text-change="searchTextChange(searchText)"
+                    md-selected-item-change="apiMembersCtrl.selectedItemChange(member)"
+                    md-items="member in apiMembersCtrl.searchUser(searchText)"
+                    md-item-text="member.id"
+                    placeholder="Transfer API ownership to ?"
+                    md-autofocus="false"
+                    md-min-length="0"
+                    md-menu-class="autocomplete-custom-template">
+              <md-item-template>
+                <span>{{member.firstname}} {{member.lastname}} [{{member.id}}]</span>
+              </md-item-template>
+              <md-not-found>
+                No users matching "{{searchText}}" were found.
+              </md-not-found>
+            </md-autocomplete>
+            <md-input-container flex="40">
+              <label>New Role for the current Primary Owner</label>
+              <md-select ng-model="apiMembersCtrl.newPORole">
+                <md-option ng-value="role" ng-repeat="role in apiMembersCtrl.newPORoles">{{role.name}}</md-option>
+              </md-select>
+            </md-input-container>
+          </div>
         </md-card-content>
         <label></label>
         <md-card-actions layout="row" layout-align="end center">

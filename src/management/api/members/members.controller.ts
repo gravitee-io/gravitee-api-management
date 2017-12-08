@@ -24,6 +24,8 @@ class ApiMembersController {
   private groupMembers: any;
   private groupIdsWithMembers: any;
   private roles: any;
+  private newPORoles: any[];
+  private newPORole: any;
   private groupById: any;
   private displayGroups: any;
   constructor (
@@ -70,6 +72,11 @@ class ApiMembersController {
     const that = this;
     RoleService.list('API').then(function (roles) {
       that.roles = roles;
+      that.newPORoles = _.filter(roles, (role: any)=>{
+        return role.name !== "PRIMARY_OWNER";});
+      that.newPORole = _.find(roles, (role: any) => {
+        return role.default;
+      });
     });
   }
 
@@ -176,21 +183,25 @@ class ApiMembersController {
   showTransferOwnershipConfirm(ev) {
     this.$mdDialog.show({
       controller: 'DialogTransferApiController',
+      controllerAs: '$ctrl',
       template: require('./transferAPI.dialog.html'),
       parent: angular.element(document.body),
       targetEvent: ev,
-      clickOutsideToClose:true
+      clickOutsideToClose:true,
+      locals: {
+        newRole: this.newPORole
+      }
     }).then((transferAPI) => {
       if (transferAPI) {
-        this.transferOwnership();
+        this.transferOwnership(this.newPORole.name);
       }
     }, () => {
       // You cancelled the dialog
     });
   }
 
-  transferOwnership() {
-      this.ApiService.transferOwnership(this.api.id, this.newPrimaryOwner.id).then(() => {
+  private transferOwnership(newRole: string) {
+      this.ApiService.transferOwnership(this.api.id, this.newPrimaryOwner.id, newRole).then(() => {
         this.NotificationService.show("API ownership changed !");
         this.$state.go('management.apis.list');
     });

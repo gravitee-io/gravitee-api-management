@@ -26,6 +26,8 @@ class ApplicationMembersController {
   private application: any;
   private members: any;
   private roles: any;
+  private newPORoles: any[];
+  private newPORole: any;
   private groupById: any;
   private displayGroups: any;
   private groupMembers: any;
@@ -48,6 +50,11 @@ class ApplicationMembersController {
     this.newPrimaryOwner = null;
     RoleService.list('APPLICATION').then(function (roles) {
       that.roles = roles;
+      that.newPORoles = _.filter(roles, (role: any)=>{
+        return role.name !== "PRIMARY_OWNER";});
+      that.newPORole = _.find(roles, (role: any) => {
+        return role.default;
+      });
     });
   }
   $onInit() {
@@ -173,21 +180,25 @@ class ApplicationMembersController {
   showTransferOwnershipConfirm(ev) {
     this.$mdDialog.show({
       controller: 'DialogTransferApplicationController',
+      controllerAs: '$ctrl',
       template: require('./transferApplication.dialog.html'),
       parent: angular.element(document.body),
       targetEvent: ev,
-      clickOutsideToClose:true
+      clickOutsideToClose:true,
+      locals: {
+        newRole: this.newPORole
+      }
     }).then((transferApplication) => {
       if (transferApplication) {
-        this.transferOwnership();
+        this.transferOwnership(this.newPORole.name);
       }
     }, () => {
       // You cancelled the dialog
     });
   }
 
-  transferOwnership() {
-    this.ApplicationService.transferOwnership(this.application.id, this.newPrimaryOwner.id).then(() => {
+  private transferOwnership(newRole: String) {
+    this.ApplicationService.transferOwnership(this.application.id, this.newPrimaryOwner.id, newRole).then(() => {
       this.NotificationService.show("API ownership changed !");
       this.$state.go('management.applications.list');
     });

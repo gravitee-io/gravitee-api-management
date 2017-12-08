@@ -16,9 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogTransferAppplicationController($scope, $mdDialog) {
+function DialogTransferAppplicationController($scope, $mdDialog, newRole) {
   'ngInject';
 
+  this.newRole = newRole;
   $scope.cancel = function() {
     $mdDialog.cancel();
   };
