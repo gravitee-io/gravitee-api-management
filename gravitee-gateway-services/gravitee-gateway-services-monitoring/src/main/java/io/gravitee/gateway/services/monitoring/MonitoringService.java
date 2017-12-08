@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.monitoring;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.common.node.Node;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
@@ -24,10 +25,12 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.services.monitoring.event.InstanceEventPayload;
 import io.gravitee.gateway.services.monitoring.event.Plugin;
+import io.gravitee.gateway.services.monitoring.handler.MonitorHandler;
 import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,12 +46,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class MonitoringService extends AbstractService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MonitoringService.class);
+
+    private final static String PATH = "/monitor";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -81,6 +86,9 @@ public class MonitoringService extends AbstractService {
     @Autowired
     private GatewayConfiguration gatewayConfiguration;
 
+    @Autowired
+    private Router router;
+
     @Override
     protected void doStart() throws Exception {
         if (enabled) {
@@ -101,6 +109,13 @@ public class MonitoringService extends AbstractService {
 
             ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
                     monitorThread, 0, delay, unit);
+
+            LOGGER.info("Associate a new HTTP handler on {}", PATH);
+
+            // Create and associate handler
+            MonitorHandler monitorHandler = new MonitorHandler();
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(monitorHandler);
+            router.get(PATH).produces(MediaType.APPLICATION_JSON).handler(monitorHandler);
 
             LOGGER.info("Start gateway monitor : DONE");
         }
