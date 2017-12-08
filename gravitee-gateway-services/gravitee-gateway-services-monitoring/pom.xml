@@ -86,6 +86,13 @@
             <version>${jackson.version}</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- Vert.x -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
