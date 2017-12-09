@@ -25,7 +25,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
     let fromState = trans.from();
     let toState = trans.to();
 
-    var notEligibleForDevMode = Constants.devMode && !toState.data.devMode;
+    var notEligibleForDevMode = Constants.devMode && toState.data && !toState.data.devMode;
     var notEligibleForUserCreation = !Constants.userCreationEnabled && (fromState.name === 'registration' || fromState === 'confirm');
 
     if (notEligibleForDevMode || notEligibleForUserCreation) {

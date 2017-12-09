@@ -182,6 +182,7 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
           label: 'Logs',
           icon: 'receipt'
         },
+        devMode: true,
         perms: {
           only: ['application-log-r']
         },
@@ -212,6 +213,7 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
           ApplicationService.getLog($stateParams['applicationId'], $stateParams['logId']).then(response => response.data)
       },
       data: {
+        devMode: true,
         perms: {
           only: ['application-log-r']
         }
