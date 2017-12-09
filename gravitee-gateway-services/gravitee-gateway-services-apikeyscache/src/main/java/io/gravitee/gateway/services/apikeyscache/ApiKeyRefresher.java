@@ -58,7 +58,7 @@ public class ApiKeyRefresher implements Runnable {
         this.plans = api.getPlans()
                 .stream()
                 .filter(plan -> io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY.name()
-                        .equals(plan.getSecurity()))
+                        .equalsIgnoreCase(plan.getSecurity()))
                 .map(Plan::getId)
                 .collect(Collectors.toList());
     }

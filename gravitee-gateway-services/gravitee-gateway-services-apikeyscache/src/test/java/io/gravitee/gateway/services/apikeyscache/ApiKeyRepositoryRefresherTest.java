@@ -82,6 +82,27 @@ public class ApiKeyRepositoryRefresherTest {
     }
 
     @Test
+    public void shouldInitWithNonRevokedApiKey_lowerCase() throws TechnicalException {
+        Mockito.when(plan.getSecurity()).thenReturn(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY.name().toLowerCase());
+        List<Plan> plans = Collections.singletonList(plan);
+        Mockito.when(api.getPlans()).thenReturn(plans);
+
+        refresher.initialize();
+        refresher.run();
+
+        Mockito.verify(apiKeyRepository).findByCriteria(Matchers.argThat(new ArgumentMatcher<ApiKeyCriteria>() {
+            @Override
+            public boolean matches(Object arg) {
+                ApiKeyCriteria criteria = (ApiKeyCriteria) arg;
+                return !criteria.isIncludeRevoked() &&
+                        criteria.getFrom() == 0 &&
+                        criteria.getTo() == 0 &&
+                        criteria.getPlans().size() == 1;
+            }
+        }));
+    }
+
+    @Test
     public void shouldNotRefreshKeylessPlan() throws TechnicalException {
         Mockito.when(plan.getSecurity()).thenReturn(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS.name());
         List<Plan> plans = Collections.singletonList(plan);
