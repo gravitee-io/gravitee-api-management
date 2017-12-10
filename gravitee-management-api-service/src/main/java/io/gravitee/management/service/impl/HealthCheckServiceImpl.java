@@ -18,20 +18,31 @@ package io.gravitee.management.service.impl;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.InstanceListItem;
+import io.gravitee.management.model.analytics.Analytics;
+import io.gravitee.management.model.analytics.HistogramAnalytics;
+import io.gravitee.management.model.analytics.Timestamp;
+import io.gravitee.management.model.analytics.query.DateHistogramQuery;
 import io.gravitee.management.model.analytics.query.LogQuery;
 import io.gravitee.management.model.healthcheck.*;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.HealthCheckService;
 import io.gravitee.management.service.InstanceService;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.analytics.query.AggregationType;
+import io.gravitee.repository.analytics.query.DateRangeBuilder;
+import io.gravitee.repository.analytics.query.IntervalBuilder;
+import io.gravitee.repository.analytics.query.response.histogram.Data;
 import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.query.Bucket;
+import io.gravitee.repository.healthcheck.query.DateHistogramQueryBuilder;
 import io.gravitee.repository.healthcheck.query.FieldBucket;
 import io.gravitee.repository.healthcheck.query.QueryBuilders;
 import io.gravitee.repository.healthcheck.query.availability.AvailabilityQuery;
 import io.gravitee.repository.healthcheck.query.availability.AvailabilityResponse;
 import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
 import io.gravitee.repository.healthcheck.query.log.LogsResponse;
+import io.gravitee.repository.healthcheck.query.response.histogram.DateHistogramResponse;
 import io.gravitee.repository.healthcheck.query.responsetime.AverageResponseTimeQuery;
 import io.gravitee.repository.healthcheck.query.responsetime.AverageResponseTimeResponse;
 import org.slf4j.Logger;
@@ -39,10 +50,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -66,6 +74,83 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
     @Autowired
     private InstanceService instanceService;
+
+    @Override
+    public Analytics query(final DateHistogramQuery query) {
+        try {
+            final DateHistogramQueryBuilder queryBuilder = QueryBuilders.dateHistogram()
+                    .query(query.getQuery())
+                    .timeRange(
+                            DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                            IntervalBuilder.interval(query.getInterval())
+                    )
+                    .root(query.getRootField(), query.getRootIdentifier());
+
+            if (query.getAggregations() != null) {
+                query.getAggregations().stream()
+                        .forEach(aggregation ->
+                                queryBuilder.aggregation(
+                                        AggregationType.valueOf(aggregation.type().name()), aggregation.field()));
+            }
+
+            return convert(healthCheckRepository.query(queryBuilder.build()));
+        } catch (AnalyticsException ae) {
+            logger.error("Unable to calculate analytics: ", ae);
+            throw new TechnicalManagementException("Unable to calculate analytics", ae);
+        }
+    }
+
+    private HistogramAnalytics convert(DateHistogramResponse histogramResponse) {
+        final HistogramAnalytics analytics = new HistogramAnalytics();
+        final List<Long> timestamps = histogramResponse.timestamps();
+        if (timestamps != null && timestamps.size() > 1) {
+            final long from = timestamps.get(0);
+            final long interval = timestamps.get(1) - from;
+            final long to = timestamps.get(timestamps.size() - 1);
+
+            analytics.setTimestamp(new Timestamp(from, to, interval));
+
+            List<io.gravitee.management.model.analytics.Bucket> buckets = new ArrayList<>(histogramResponse.values().size());
+            for (io.gravitee.repository.analytics.query.response.histogram.Bucket bucket : histogramResponse.values()) {
+                io.gravitee.management.model.analytics.Bucket analyticsBucket = convertBucket(histogramResponse.timestamps(), from, interval, bucket);
+                buckets.add(analyticsBucket);
+            }
+            analytics.setValues(buckets);
+
+        }
+        return analytics;
+    }
+
+    private io.gravitee.management.model.analytics.Bucket convertBucket(List<Long> timestamps, long from, long interval, io.gravitee.repository.analytics.query.response.histogram.Bucket bucket) {
+        io.gravitee.management.model.analytics.Bucket analyticsBucket = new io.gravitee.management.model.analytics.Bucket();
+        analyticsBucket.setName(bucket.name());
+        analyticsBucket.setField(bucket.field());
+
+        List<io.gravitee.management.model.analytics.Bucket> childBuckets = new ArrayList<>();
+
+        for (io.gravitee.repository.analytics.query.response.histogram.Bucket childBucket : bucket.buckets()) {
+            childBuckets.add(convertBucket(timestamps, from, interval, childBucket));
+        }
+
+        for (Map.Entry<String, List<Data>> dataBucket : bucket.data().entrySet()) {
+            io.gravitee.management.model.analytics.Bucket analyticsDataBucket = new io.gravitee.management.model.analytics.Bucket();
+            analyticsDataBucket.setName(dataBucket.getKey());
+
+            final Number [] values = new Number [timestamps.size()];
+            for (int i = 0; i <timestamps.size(); i++) {
+                values[i] = 0;
+            }
+            for (Data data : dataBucket.getValue()) {
+                values[(int) ((data.timestamp() - from) / interval)] = data.value();
+            }
+
+            analyticsDataBucket.setData(values);
+            childBuckets.add(analyticsDataBucket);
+        }
+        analyticsBucket.setBuckets(childBuckets);
+
+        return analyticsBucket;
+    }
 
     @Override
     public ApiMetrics getAvailability(String api, String field) {

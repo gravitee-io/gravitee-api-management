@@ -16,17 +16,24 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.analytics.Analytics;
+import io.gravitee.management.model.analytics.query.AggregationType;
+import io.gravitee.management.model.analytics.query.DateHistogramQuery;
 import io.gravitee.management.model.analytics.query.LogQuery;
 import io.gravitee.management.model.healthcheck.Log;
 import io.gravitee.management.model.healthcheck.SearchLogResponse;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.resource.param.Aggregation;
+import io.gravitee.management.rest.resource.param.AnalyticsAverageParam;
+import io.gravitee.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.management.rest.resource.param.healthcheck.HealthcheckFieldParam;
 import io.gravitee.management.rest.resource.param.healthcheck.HealthcheckTypeParam;
 import io.gravitee.management.rest.resource.param.healthcheck.LogsParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.HealthCheckService;
+import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -35,6 +42,12 @@ import io.swagger.annotations.ApiResponses;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,6 +77,55 @@ public class ApiHealthResource extends AbstractResource {
             default:
                 return Response.ok(healthCheckService.getAvailability(api, healthcheckFieldParam.getValue().name())).build();
         }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation("Health-check average statistics for API")
+    @Permissions({
+            @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)
+    })
+    @Path("/average")
+    public Response healthAverage(
+            @PathParam("api") String api,
+            @BeanParam AnalyticsAverageParam analyticsAverageParam) {
+        switch (analyticsAverageParam.getType()) {
+            case RESPONSE_TIME:
+                return Response.ok(executeDateHisto(api, analyticsAverageParam)).build();
+            default:
+                return Response.ok(executeDateHisto(api, analyticsAverageParam)).build();
+        }
+    }
+
+    private Analytics executeDateHisto(final String api, final AnalyticsAverageParam analyticsAverageParam) {
+        final DateHistogramQuery query = new DateHistogramQuery();
+        query.setFrom(analyticsAverageParam.getFrom());
+        query.setTo(analyticsAverageParam.getTo());
+        query.setInterval(analyticsAverageParam.getInterval());
+        query.setRootField("api");
+        query.setRootIdentifier(api);
+        query.setAggregations(singletonList(new io.gravitee.management.model.analytics.query.Aggregation() {
+            @Override
+            public AggregationType type() {
+                switch (analyticsAverageParam.getType()) {
+                    case AVAILABILITY:
+                        return AggregationType.FIELD;
+                    default:
+                        return AggregationType.AVG;
+                }
+            }
+
+            @Override
+            public String field() {
+                switch (analyticsAverageParam.getType()) {
+                    case AVAILABILITY:
+                        return "available";
+                    default:
+                        return "response-time";
+                }
+            }
+        }));
+        return healthCheckService.query(query);
     }
 
     @GET

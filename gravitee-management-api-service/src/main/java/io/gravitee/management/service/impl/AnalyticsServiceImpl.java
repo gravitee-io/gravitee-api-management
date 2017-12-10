@@ -212,9 +212,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             Bucket analyticsDataBucket = new Bucket();
             analyticsDataBucket.setName(dataBucket.getKey());
 
-            long [] values = new long [timestamps.size()];
+            Number [] values = new Number [timestamps.size()];
+            for (int i = 0; i <timestamps.size(); i++) {
+                values[i] = 0;
+            }
             for (Data data : dataBucket.getValue()) {
-                values[(int) ((data.timestamp() - from) / interval)] = data.count();
+                values[(int) ((data.timestamp() - from) / interval)] = data.value();
             }
 
             analyticsDataBucket.setData(values);

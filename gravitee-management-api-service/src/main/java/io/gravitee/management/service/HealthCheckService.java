@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.management.model.analytics.Analytics;
+import io.gravitee.management.model.analytics.query.DateHistogramQuery;
 import io.gravitee.management.model.analytics.query.LogQuery;
 import io.gravitee.management.model.healthcheck.ApiMetrics;
 import io.gravitee.management.model.healthcheck.Log;
@@ -33,4 +35,6 @@ public interface HealthCheckService {
     SearchLogResponse findByApi(String api, LogQuery logQuery);
 
     Log findLog(String id);
+
+    Analytics query(DateHistogramQuery query);
 }

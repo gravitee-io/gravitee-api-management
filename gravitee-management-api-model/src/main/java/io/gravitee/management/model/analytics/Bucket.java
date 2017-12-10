@@ -30,7 +30,7 @@ public class Bucket {
 
     private String name;
 
-    private long [] data;
+    private Number[] data;
 
     private Map<String, Map<String, String>> metadata;
 
@@ -38,7 +38,7 @@ public class Bucket {
         this.buckets = buckets;
     }
 
-    public long[] getData() {
+    public Number[] getData() {
         return data;
     }
 
@@ -50,7 +50,7 @@ public class Bucket {
         this.name = name;
     }
 
-    public void setData(long[] data) {
+    public void setData(Number[] data) {
         this.data = data;
     }
 
