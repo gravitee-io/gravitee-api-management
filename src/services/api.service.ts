@@ -334,6 +334,20 @@ class ApiService {
     return this.$http.get(this.apisURL + api + '/health/logs/' + log);
   }
 
+  apiHealthAverage(api, request) {
+    var url = this.apisURL + api + '/health/average?';
+
+    var keys = Object.keys(request);
+    _.forEach(keys, function (key) {
+      var val = request[key];
+      if (val !== undefined && val !== '') {
+        url += key + '=' + val + '&';
+      }
+    });
+
+    return this.$http.get(url, {timeout: 30000});
+  }
+
   /*
    * API ratings
    */

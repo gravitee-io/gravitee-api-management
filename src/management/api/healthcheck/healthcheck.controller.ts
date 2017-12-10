@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import ApiService, { LogsQuery } from "../../../services/api.service";
+import * as moment from "moment";
+import * as _ from "lodash";
 
 class ApiHealthCheckController {
   private api: any;
@@ -21,11 +23,14 @@ class ApiHealthCheckController {
   private endpoint: any;
   private logs: {total: string; logs: any[], metadata: any};
   private query: LogsQuery;
+  private chartData: any;
 
   constructor (
     private ApiService: ApiService,
     private $scope,
-    private $state: ng.ui.IStateService
+    private $state: ng.ui.IStateService,
+    private ChartService,
+    private $q
   ) {
     'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
@@ -41,6 +46,8 @@ class ApiHealthCheckController {
 
     this.updateChart();
   }
+
+
 
   updateChart() {
     this.ApiService.apiHealth(this.api.id, 'availability')
@@ -63,9 +70,94 @@ class ApiHealthCheckController {
     this.refresh();
   }
 
-  refresh() {
+  refresh(averageFrom?, averageTo?) {
     this.ApiService.apiHealthLogs(this.api.id, this.query).then((logs) => {
       this.logs = logs.data;
+    });
+
+    let from = averageFrom || moment().subtract(1, 'months');
+    let to = averageTo || moment();
+    let interval = Math.floor((to - from)/30);
+    let promises = [
+      this.ApiService.apiHealthAverage(this.api.id, {from: from, to: to,
+        interval: interval, type: 'RESPONSE_TIME'}),
+      this.ApiService.apiHealthAverage(this.api.id, {from: from, to: to,
+        interval: interval, type: 'AVAILABILITY'})
+    ];
+
+    this.$q.all(promises).then(responses => {
+      let i = 0, series = [];
+      _.forEach(responses, response => {
+        let values = response.data.values;
+        if (values && values.length > 0) {
+          _.forEach(values, value => {
+            _.forEach(value.buckets, bucket => {
+              if (bucket) {
+                let responseTimeLine = i == 0;
+                series.push({
+                  name: 'Average of ' + (responseTimeLine?'response time':'availability'), data: bucket.data, color: responseTimeLine?'#337AB7':'#5CB85C',
+                  type: responseTimeLine?'area':'column',
+                  labelSuffix: responseTimeLine?'ms':'%',
+                  decimalFormat: !responseTimeLine,
+                  yAxis: i,
+                  zones: responseTimeLine?[]:[{
+                    value: 80,
+                    color: '#D9534F'
+                  }, {
+                    value: 95,
+                    color: '#F0AD4E'
+                  }, {
+                    color: '#5CB85C'
+                  }]
+                });
+              }
+            });
+          });
+        }
+        i++;
+      });
+      this.chartData = {
+        plotOptions: {
+          series: {
+            pointStart: responses[0].data.timestamp.from,
+            pointInterval: responses[0].data.timestamp.interval
+          }
+        },
+        series: series,
+        xAxis: {
+          type: 'datetime',
+          dateTimeLabelFormats: {
+            month: '%e. %b',
+            year: '%b'
+          }
+        },
+        yAxis: [{
+          labels: {
+            format: '{value}ms'
+          },
+          title: {
+            text: 'Response time'
+          }
+        },{
+          title: {
+            text: 'Availability'
+          },
+          labels: {
+            format: '{value}%'
+          },
+          max: 100,
+          opposite: true
+        }],
+        chart: {
+          events: {
+            selection: (event) => {
+              if (!event.resetSelection) {
+                this.refresh(Math.floor(event.xAxis[0].min), Math.round(event.xAxis[0].max));
+              }
+            }
+          }
+        }
+      }
     });
   }
 

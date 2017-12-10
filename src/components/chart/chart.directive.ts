@@ -93,7 +93,7 @@ class ChartDirective {
 
             for (i = 0; i < Highcharts.charts.length; i++) {
               chart = Highcharts.charts[i];
-              if (chart) {
+              if (chart && chart.pointer) {
                 if (e.originalEvent) {
                   event = chart.pointer.normalize(e.originalEvent);
                 } else {
@@ -185,14 +185,16 @@ class ChartDirective {
                 formatter: function () {
                   //TODO: check this
                   //let s = '<b>' + Highcharts.dateFormat('%A, %b %d, %H:%M', new Date(this.x)) + '</b>';
-                  let s = '<b>' + Highcharts.dateFormat('%A, %b %d, %H:%M', this.x) + '</b>';
+                  let dateFormat = newOptions.dateFormat || '%A, %b %d, %H:%M';
+                  let s = '<b>' + Highcharts.dateFormat(dateFormat, this.x) + '</b>';
                   if (_.filter(this.points, (point: any) => {
                       return point.y !== 0;
                     }).length) {
                     _.forEach(this.points, function (point) {
                       if (point.y) {
                         let name = ' ' + (point.series.options.labelPrefix ? point.series.options.labelPrefix + ' ' + point.series.name : point.series.name);
-                        s += '<br /><span style="color:' + point.color + '">\u25CF</span>' + name + ': <b>' + point.y + '</b>';
+                        s += '<br /><span style="color:' + point.color + '">\u25CF</span>' + name + ': <b>' + (point.series.options.decimalFormat?Highcharts.numberFormat(point.y, 2):point.y) +
+                          (point.series.options.labelSuffix?point.series.options.labelSuffix:'') + '</b>';
                       }
                     });
                   }

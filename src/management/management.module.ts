@@ -340,6 +340,8 @@ import uiRouter from 'angular-ui-router';
 import {permission, uiPermission} from 'angular-permission';
 import ApiHeaderController from './api/header/api-header.controller';
 
+import ChartService from '../services/chart.service';
+
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
@@ -472,6 +474,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('RoleService', RoleService)
   .service('TicketService', TicketService)
   .service('AuditService', AuditService)
+  .service('ChartService', ChartService)
   .directive('filecontent', () => DocumentationDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())
