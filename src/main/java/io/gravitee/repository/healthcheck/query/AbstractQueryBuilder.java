@@ -15,6 +15,10 @@
  */
 package io.gravitee.repository.healthcheck.query;
 
+import io.gravitee.repository.analytics.query.DateRange;
+import io.gravitee.repository.analytics.query.Interval;
+import io.gravitee.repository.analytics.query.TimeRangeFilter;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -40,8 +44,21 @@ public abstract class AbstractQueryBuilder<QB extends AbstractQueryBuilder, Q ex
         return (QB) this;
     }
 
+    public QB timeRange(DateRange dateRange, Interval interval) {
+        this.query.timeRange(new TimeRangeFilter(dateRange, interval));
+        return (QB) this;
+    }
+
     public QB api(String api) {
         this.query.root(new RootFilter("api", api));
+
+        return (QB) this;
+    }
+
+    public QB root(String field, String id) {
+        if (field != null && id != null) {
+            this.query.root(new RootFilter(field, id));
+        }
 
         return (QB) this;
     }

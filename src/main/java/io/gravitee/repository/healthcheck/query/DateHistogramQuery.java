@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query.response.histogram;
+package io.gravitee.repository.healthcheck.query;
+
+import io.gravitee.repository.analytics.query.Aggregation;
+import io.gravitee.repository.healthcheck.query.response.histogram.DateHistogramResponse;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Data {
+public class DateHistogramQuery extends AbstractQuery<DateHistogramResponse> {
 
-    private final long timestamp;
+    private List<Aggregation> aggregations = new ArrayList<>();
 
-    private final Number value;
-
-    public Data(long timestamp, Number value) {
-        this.timestamp = timestamp;
-        this.value = value;
+    @Override
+    public Class<DateHistogramResponse> responseType() {
+        return DateHistogramResponse.class;
     }
 
-    public long timestamp() {
-        return timestamp;
-    }
-
-    public Number value() {
-        return value;
+    public List<Aggregation> aggregations() {
+        return aggregations;
     }
 }

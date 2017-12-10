@@ -36,4 +36,8 @@ public class QueryBuilders {
     public static LogsQueryBuilder logs() {
         return LogsQueryBuilder.query();
     }
+
+    public static DateHistogramQueryBuilder dateHistogram() {
+        return DateHistogramQueryBuilder.query();
+    }
 }

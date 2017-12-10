@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.healthcheck.query;
 
+import io.gravitee.repository.analytics.query.TimeRangeFilter;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -22,6 +24,8 @@ package io.gravitee.repository.healthcheck.query;
 public abstract class AbstractQuery<T extends Response> implements Query<T> {
 
     private RootFilter rootFilter;
+
+    private TimeRangeFilter timeRangeFilter;
 
     private QueryFilter queryFilter;
 
@@ -31,6 +35,14 @@ public abstract class AbstractQuery<T extends Response> implements Query<T> {
 
     void root(RootFilter rootFilter) {
         this.rootFilter = rootFilter;
+    }
+
+    public TimeRangeFilter timeRange() {
+        return timeRangeFilter;
+    }
+
+    void timeRange(TimeRangeFilter timeRangeFilter) {
+        this.timeRangeFilter = timeRangeFilter;
     }
 
     public QueryFilter query() {
