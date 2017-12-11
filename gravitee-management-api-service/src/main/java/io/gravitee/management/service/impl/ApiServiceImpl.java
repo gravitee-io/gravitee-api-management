@@ -733,7 +733,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 }
                 //transfer ownership if necessary
                 if (memberAsPrimaryOwner != null && !username.equals(memberAsPrimaryOwner)) {
-                    membershipService.transferApiOwnership(createdOrUpdatedApiEntity.getId(), memberAsPrimaryOwner);
+                    membershipService.transferApiOwnership(createdOrUpdatedApiEntity.getId(), memberAsPrimaryOwner, null);
                 }
             }
 

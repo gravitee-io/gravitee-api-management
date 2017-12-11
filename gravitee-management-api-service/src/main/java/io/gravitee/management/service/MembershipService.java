@@ -43,9 +43,9 @@ public interface MembershipService {
 
     void deleteMember(MembershipReferenceType referenceType, String referenceId, String username);
 
-    void transferApiOwnership(String apiId, String username);
+    void transferApiOwnership(String apiId, String username, RoleEntity newPrimaryOwnerRole);
 
-    void transferApplicationOwnership(String applicationId, String username);
+    void transferApplicationOwnership(String applicationId, String username, RoleEntity newPrimaryOwnerRole);
 
     Map<String, char[]> getMemberPermissions(ApiEntity api, String username);
 

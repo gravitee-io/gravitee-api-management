@@ -21,11 +21,13 @@ import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.model.RoleEntity;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.RoleNotFoundException;
 import io.gravitee.management.service.exceptions.SinglePrimaryOwnerException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
@@ -149,9 +151,17 @@ public class ApiMembersResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE)
     })
-    public Response transferOwnership(@PathParam("api") String api, @NotNull @QueryParam("user") String username) {
+    public Response transferOwnership(@PathParam("api") String api, @NotNull @QueryParam("user") String username, RoleEntity role) {
+        io.gravitee.management.model.RoleEntity newPORole = null;
+        if (role!=null && role.getName()!=null) {
+            try {
+                newPORole = roleService.findById(RoleScope.API, role.getName());
+            } catch (RoleNotFoundException re) {
+                //it doesn't matter
+            }
+        }
         apiService.findById(api);
-        membershipService.transferApiOwnership(api, username);
+        membershipService.transferApiOwnership(api, username, newPORole);
         return Response.ok().build();
     }
 

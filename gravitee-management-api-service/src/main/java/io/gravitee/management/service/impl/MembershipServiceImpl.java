@@ -261,17 +261,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public void transferApiOwnership(String apiId, String username) {
-        this.transferOwnership(API, RoleScope.API, apiId, username);
+    public void transferApiOwnership(String apiId, String username, RoleEntity newPrimaryOwnerRole) {
+        this.transferOwnership(API, RoleScope.API, apiId, username, newPrimaryOwnerRole);
     }
 
     @Override
-    public void transferApplicationOwnership(String applicationId, String username) {
-        this.transferOwnership(APPLICATION, RoleScope.APPLICATION, applicationId, username);
+    public void transferApplicationOwnership(String applicationId, String username, RoleEntity newPrimaryOwnerRole) {
+        this.transferOwnership(APPLICATION, RoleScope.APPLICATION, applicationId, username, newPrimaryOwnerRole);
     }
 
-    private void transferOwnership(MembershipReferenceType membershipReferenceType, RoleScope roleScope, String itemId, String username) {
-        RoleEntity defaultRole = roleService.findDefaultRoleByScopes(roleScope).get(0);
+    private void transferOwnership(MembershipReferenceType membershipReferenceType, RoleScope roleScope, String itemId, String username, RoleEntity newPrimaryOwnerRole) {
+        final RoleEntity newRole = (newPrimaryOwnerRole != null) ? newPrimaryOwnerRole : roleService.findDefaultRoleByScopes(roleScope).get(0);
 
         // Set the new primary owner
         this.addOrUpdateMember(membershipReferenceType, itemId, username, roleScope, PRIMARY_OWNER.name());
@@ -280,7 +280,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         this.getMembers(membershipReferenceType, itemId, roleScope, PRIMARY_OWNER.name())
                 .stream()
                 .filter(memberEntity -> ! memberEntity.getUsername().equals(username))
-                .forEach(m -> this.addOrUpdateMember(membershipReferenceType, itemId, m.getUsername(), roleScope, defaultRole.getName()));
+                .forEach(m -> this.addOrUpdateMember(membershipReferenceType, itemId, m.getUsername(), roleScope, newRole.getName()));
     }
 
     @Override
