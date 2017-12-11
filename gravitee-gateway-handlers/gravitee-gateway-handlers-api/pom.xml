@@ -84,12 +84,5 @@
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
         </dependency>
-
-        <!-- Commons Validator -->
-        <dependency>
-            <groupId>commons-validator</groupId>
-            <artifactId>commons-validator</artifactId>
-            <version>1.5.0</version>
-        </dependency>
     </dependencies>
 </project>
