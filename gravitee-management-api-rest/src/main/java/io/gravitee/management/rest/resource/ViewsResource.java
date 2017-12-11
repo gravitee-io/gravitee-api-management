@@ -79,16 +79,15 @@ public class ViewsResource extends AbstractResource  {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/default")
     public ViewEntity getDefault() {
-        return viewService.
-                findAll().
+        List<ViewEntity> views = this.list(false);
+        return views.
                 stream().
-                filter(v-> v.isDefaultView() && !v.isHidden()).
+                filter(ViewEntity::isDefaultView).
                 findFirst().
-                orElse(
-                        this.list(false).
-                                stream().
-                                findFirst().
-                                orElse(null));
+                orElse(views.
+                        stream().
+                        findFirst().
+                        orElse(null));
     }
 
     @POST
