@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.validator;
 
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import org.apache.commons.validator.routines.UrlValidator;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -26,8 +25,6 @@ import org.apache.commons.validator.routines.UrlValidator;
 public class ProxyValidator implements Validator {
 
     private static final String CONTEXT_PATH_PATTERN = "^\\\\/([a-zA-Z0-9_-]+\\\\/?+)++";
-
-    private static final UrlValidator urlValidator = new UrlValidator(new String []{"http","https"}, UrlValidator.ALLOW_LOCAL_URLS);
 
     @Override
     public void validate(Api definition) {
@@ -40,12 +37,6 @@ public class ProxyValidator implements Validator {
         if (proxyDefinition.getEndpoints() == null || proxyDefinition.getEndpoints().isEmpty()) {
             throw new ValidationException("An API must have a valid target endpoint(s)");
         }
-
-        /*
-        if (! urlValidator.isValid(proxyDefinition.getTarget().toString())) {
-            throw new ValidationException("An API must have a valid target");
-        }
-        */
 
         if (proxyDefinition.getContextPath() == null || proxyDefinition.getContextPath().matches(CONTEXT_PATH_PATTERN)) {
             throw new ValidationException("An API must have a valid context path");
