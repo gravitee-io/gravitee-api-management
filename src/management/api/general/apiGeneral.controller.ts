@@ -58,7 +58,7 @@ class ApiAdminController {
     this.$mdEditDialog = $mdEditDialog;
     this.$mdDialog = $mdDialog;
     this.initialApi = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
-    this.api = this.$scope.$parent.apiCtrl.api;
+    this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.tenants = resolvedTenants.data;
     this.$scope.selected = [];
 
@@ -201,8 +201,10 @@ class ApiAdminController {
 
   reset() {
     this.api = _.cloneDeep(this.initialApi);
-    this.formApi.$setPristine();
-    this.formApi.$setUntouched();
+    if (this.formApi) {
+      this.formApi.$setPristine();
+      this.formApi.$setUntouched();
+    }
   }
 
   delete(id) {
@@ -229,9 +231,10 @@ class ApiAdminController {
 
   onApiUpdate(updatedApi) {
     this.api = updatedApi;
+    this.initialApi = _.cloneDeep(updatedApi);
     this.initState();
     this.formApi.$setPristine();
-    this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
+    this.$rootScope.$broadcast('apiChangeSuccess', {api: _.cloneDeep(updatedApi)});
     this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
     this.SidenavService.setCurrentResource(this.api.name);
   }
