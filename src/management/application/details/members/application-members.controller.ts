@@ -197,7 +197,7 @@ class ApplicationMembersController {
     });
   }
 
-  private transferOwnership(newRole: String) {
+  private transferOwnership(newRole: string) {
     this.ApplicationService.transferOwnership(this.application.id, this.newPrimaryOwner.id, newRole).then(() => {
       this.NotificationService.show("API ownership changed !");
       this.$state.go('management.applications.list');
