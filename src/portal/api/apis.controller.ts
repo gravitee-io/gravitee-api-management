@@ -45,7 +45,7 @@ export class PortalApisController {
     } else {
       ViewService.getDefaultOrFirstOne().then( (response) => {
         that.selectedView = response.id;
-        that.view = response.data;
+        that.view = response;
       })
     }
 
