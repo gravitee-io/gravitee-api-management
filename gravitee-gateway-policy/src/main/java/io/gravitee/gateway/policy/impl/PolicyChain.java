@@ -78,6 +78,11 @@ public abstract class PolicyChain extends BufferedReadWriteStream implements io.
     }
 
     @Override
+    public void doBreak() {
+        resultHandler.handle(SUCCESS_POLICY_CHAIN);
+    }
+    
+    @Override
     public void failWith(PolicyResult policyResult) {
         resultHandler.handle(policyResult);
     }
