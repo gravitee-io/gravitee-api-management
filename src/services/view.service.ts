@@ -20,7 +20,7 @@ class ViewService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.viewsURL = `${Constants.baseURL}configuration/views/`;
+    this.viewsURL = `${Constants.baseURL}configuration/views`;
   }
 
   list(all?: boolean) {
@@ -63,7 +63,7 @@ class ViewService {
 
   delete(view) {
     if (view) {
-      return this.$http.delete(this.viewsURL + view.id);
+      return this.$http.delete(this.viewsURL + '/' + view.id);
     }
   }
 }
