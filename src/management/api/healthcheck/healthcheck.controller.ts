@@ -116,11 +116,12 @@ class ApiHealthCheckController {
         }
         i++;
       });
+      let timestamp = responses[0] && responses[0].data && responses[0].data.timestamp;
       this.chartData = {
         plotOptions: {
           series: {
-            pointStart: responses[0].data.timestamp.from,
-            pointInterval: responses[0].data.timestamp.interval
+            pointStart: timestamp && timestamp.from,
+            pointInterval: timestamp && timestamp.interval
           }
         },
         series: series,
