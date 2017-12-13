@@ -94,6 +94,12 @@ JAVA_OPTS="$JAVA_OPTS -XX:+DisableExplicitGC"
 # Ensure UTF-8 encoding by default (e.g. filenames)
 JAVA_OPTS="$JAVA_OPTS -Dfile.encoding=UTF-8"
 
+# Convert paths for Java on Windows
+if $cygwin; then
+    GRAVITEE_BOOT_CLASSPATH=$(cygpath -w $GRAVITEE_BOOT_CLASSPATH)
+    GRAVITEE_HOME=$(cygpath -w $GRAVITEE_HOME)
+fi
+
 # Display our environment
 echo "========================================================================="
 echo ""
