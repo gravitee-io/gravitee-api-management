@@ -27,7 +27,10 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
+import io.gravitee.management.model.PageType;
+import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.management.model.plan.PlanQuery;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
@@ -734,22 +737,49 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 }
             }
 
-            //
-
             //Pages
             final JsonNode pagesDefinition = jsonNode.path("pages");
             if (pagesDefinition != null && pagesDefinition.isArray()) {
                 for (final JsonNode pageNode : pagesDefinition) {
-                    pageService.createApiPage(createdOrUpdatedApiEntity.getId(), objectMapper.readValue(pageNode.toString(), NewPageEntity.class));
+                    PageQuery query = new PageQuery.Builder().
+                            api(createdOrUpdatedApiEntity.getId()).
+                            name(pageNode.get("name").asText()).
+                            type(PageType.valueOf(pageNode.get("type").asText())).
+                            build();
+                    List<PageEntity> pageEntities = pageService.search(query);
+                    if (pageEntities == null || pageEntities.isEmpty()) {
+                        pageService.createApiPage(createdOrUpdatedApiEntity.getId(), objectMapper.readValue(pageNode.toString(), NewPageEntity.class));
+                    } else if (pageEntities.size() == 1) {
+                        UpdatePageEntity updatePageEntity = objectMapper.readValue(pageNode.toString(), UpdatePageEntity.class);
+                        pageService.update(pageEntities.get(0).getId(), updatePageEntity);
+                    } else {
+                        LOGGER.error("Not able to identify the page to update: {}. Too much page with the same name", pageNode.get("name").asText());
+                        throw new TechnicalManagementException("Not able to identify the page to update: " + pageNode.get("name").asText() + ". Too much page with the same name");
+                    }
                 }
             }
+
             //Plans
             final JsonNode plansDefinition = jsonNode.path("plans");
             if (plansDefinition != null && plansDefinition.isArray()) {
                 for (JsonNode planNode : plansDefinition) {
-                    NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
-                    newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
-                    planService.create(newPlanEntity);
+                    PlanQuery query = new PlanQuery.Builder().
+                            api(createdOrUpdatedApiEntity.getId()).
+                            name(planNode.get("name").asText()).
+                            type(PlanType.valueOf(planNode.get("type").asText())).
+                            build();
+                    List<PlanEntity> planEntities = planService.search(query);
+                    if (planEntities == null || planEntities.isEmpty()) {
+                        NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
+                        newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
+                        planService.create(newPlanEntity);
+                    } else if (planEntities.size() == 1) {
+                        UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
+                        planService.update(updatePlanEntity);
+                    } else {
+                        LOGGER.error("Not able to identify the plan to update: {}. Too much plan with the same name", planNode.get("name").asText());
+                        throw new TechnicalManagementException("Not able to identify the plan to update: " + planNode.get("name").asText() + ". Too much plan with the same name");
+                    }
                 }
             }
             return createdOrUpdatedApiEntity;

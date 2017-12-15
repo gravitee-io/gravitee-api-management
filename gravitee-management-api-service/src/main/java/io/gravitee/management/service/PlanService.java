@@ -15,18 +15,17 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.NewPlanEntity;
 import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.UpdatePlanEntity;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Plan;
-import io.gravitee.repository.management.model.User;
+import io.gravitee.management.model.plan.PlanQuery;
 
+import java.util.List;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface PlanService {
@@ -34,6 +33,8 @@ public interface PlanService {
     PlanEntity findById(String plan);
 
     Set<PlanEntity> findByApi(String api);
+
+    List<PlanEntity> search(PlanQuery query);
 
     PlanEntity create(NewPlanEntity plan);
 

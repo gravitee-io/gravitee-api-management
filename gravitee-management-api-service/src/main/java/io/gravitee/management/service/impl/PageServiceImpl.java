@@ -29,6 +29,7 @@ import io.gravitee.management.fetcher.FetcherConfigurationFactory;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.service.*;
@@ -107,11 +108,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	@Override
 	public List<PageListItem> findApiPagesByApi(String apiId) {
 	    return findApiPagesByApiAndHomepage(apiId, null);
-    }
-
-	@Override
-	public List<PageListItem> findPortalPages() {
-	    return findPortalPagesByHomepage(null);
     }
 
 	@Override
@@ -194,6 +190,31 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			throw new TechnicalManagementException(
 					"An error occurs while trying to find a page using its ID " + pageId, ex);
 		}
+	}
+
+	@Override
+	public List<PageEntity> search(PageQuery query) {
+		List<PageListItem> pageListItem;
+	    if (query.getApi() != null) {
+			pageListItem = findApiPagesByApi(query.getApi());
+		} else {
+	    	pageListItem = emptyList();
+		}
+
+		return pageListItem.
+				stream().
+				filter(p -> {
+					boolean filtered = true;
+					if (query.getName() != null) {
+						filtered = p.getName().equals(query.getName());
+					}
+					if (filtered && query.getType() != null) {
+						filtered = p.getType().equals(query.getType());
+					}
+					return filtered;
+				}).
+				map(p -> findById(p.getId())).
+				collect(Collectors.toList());
 	}
 
 	private void transformUsingConfiguration(PageEntity pageEntity) {

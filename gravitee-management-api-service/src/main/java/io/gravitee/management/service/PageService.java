@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.documentation.PageQuery;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,13 +30,13 @@ public interface PageService {
 
 	List<PageListItem> findApiPagesByApi(String apiId);
 
-	List<PageListItem> findPortalPages();
-
 	List<PageListItem> findApiPagesByApiAndHomepage(String apiId, Boolean homepage);
 
 	List<PageListItem> findPortalPagesByHomepage(Boolean homepage);
 
 	PageEntity findById(String pageId);
+
+	List<PageEntity> search(PageQuery query);
 
 	PageEntity findById(String pageId, boolean transform);
 

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Path;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.plan.PlanQuery;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.SubscriptionService;
@@ -39,6 +40,8 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PLAN;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -101,6 +104,30 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to find a plan by api: %s", api), ex);
         }
+    }
+
+    @Override
+    public List<PlanEntity> search(final PlanQuery query) {
+        Set<PlanEntity> planEntities;
+        if (query.getApi() != null) {
+            planEntities = findByApi(query.getApi());
+        } else {
+            planEntities = emptySet();
+        }
+
+        return planEntities.
+                stream().
+                filter(p -> {
+                    boolean filtered = true;
+                    if (query.getName() != null) {
+                        filtered = p.getName().equals(query.getName());
+                    }
+                    if (filtered && query.getType() != null) {
+                        filtered = p.getType().equals(query.getType());
+                    }
+                    return filtered;
+                }).
+                collect(Collectors.toList());
     }
 
     @Override
