@@ -48,6 +48,7 @@ public class EndpointDiscoveryConsulVerticle extends AbstractVerticle implements
 
     private final static Logger LOGGER = LoggerFactory.getLogger(EndpointDiscoveryConsulVerticle.class);
 
+    private static final String HTTPS_SCHEME = "https";
     private static final int CONSUL_DEFAULT_PORT = 8500;
 
     private final Map<String, Watch<ServiceEntryList>> watches = new HashMap<>();
@@ -95,9 +96,15 @@ public class EndpointDiscoveryConsulVerticle extends AbstractVerticle implements
                     .setDc(providerConfiguration.getDc())
                     .setAclToken(providerConfiguration.getAcl());
 
+            if (HTTPS_SCHEME.equalsIgnoreCase(consulUri.getScheme())) {
+                // SSL is not configured but the endpoint scheme is HTTPS so let's enable the SSL on Vert.x HTTP client
+                // automatically
+                options.setSsl(true).setTrustAll(true);
+            }
+
             LOGGER.info("Consul.io configuration: endpoint[{}] dc[{}] acl[{}]", consulUri.toString(), options.getDc(), options.getAclToken());
 
-            ConsulClient consulClient = ConsulClient.create(vertx);
+            ConsulClient consulClient = ConsulClient.create(vertx, options);
             consulClient.catalogServiceNodes(providerConfiguration.getService(), event -> {
                 if (event.succeeded()) {
                     for (Service service : event.result().getList()) {
@@ -167,8 +174,8 @@ public class EndpointDiscoveryConsulVerticle extends AbstractVerticle implements
     }
 
     private Endpoint createEndpoint(Service service) {
-        String address =service.getAddress();
-        if (address == null || address.isEmpty()) {
+        String address = service.getAddress();
+        if (address == null || address.trim().isEmpty()) {
             address = service.getNodeAddress();
         }
 
