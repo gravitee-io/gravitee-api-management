@@ -46,8 +46,11 @@ const TasksComponent: ng.IComponentOptions = {
     };
 
     vm.go = function(task) {
-      const apiId = vm.tasks.metadata[task.data.plan].api;
-      $state.go("management.apis.detail.subscriptions", {apiId: apiId});
+      $state.go("management.apis.detail.subscriptions.subscription",
+        {
+          apiId: task.data.api,
+          subscriptionId: task.data.id
+        });
     }
   }
 };

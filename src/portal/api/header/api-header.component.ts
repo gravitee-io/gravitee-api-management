@@ -21,12 +21,16 @@ const ApiHeaderComponent: ng.IComponentOptions = {
     apiRatingSummary: '<'
   },
   template: require('./api-header.html'),
-  controller: function(Constants, ApiService: ApiService, $stateParams, $rootScope) {
+  controller: function(Constants, ApiService: ApiService, $state, $stateParams, $rootScope) {
     'ngInject';
     this.ratingEnabled = ApiService.isRatingEnabled();
 
     this.getEndpoint = function () {
       return Constants.portal.entrypoint + this.api.context_path;
+    };
+
+    this.completeHeader = function () {
+      return $state.is('portal.api.detail');
     };
 
     $rootScope.$on('onRatingSave', () => {

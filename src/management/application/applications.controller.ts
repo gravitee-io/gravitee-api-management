@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as angular from 'angular';
-import UserService from '../../services/user.service';
 import * as _ from "lodash";
+import UserService from "../../services/user.service";
 
 class ApplicationsController {
   private applications: any;
@@ -24,9 +23,6 @@ class ApplicationsController {
   private subMessage: string;
 
   constructor(
-    private $mdDialog: ng.material.IDialogService,
-    private $state: ng.ui.IStateService,
-    private $rootScope,
     private UserService: UserService,
     private $filter
   ) {
@@ -44,31 +40,6 @@ class ApplicationsController {
       }
     });
 	}
-
-	createInitApplication() {
-		if (!this.$rootScope.graviteeUser) {
-			this.$rootScope.$broadcast('authenticationRequired');
-		} else {
-			this.showAddApplicationModal(null);
-		}
-	}
-
-	showAddApplicationModal(ev) {
-    let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogApplicationController',
-      template: require('./dialog/application.dialog.html'),
-      parent: angular.element(document.body),
-			targetEvent: ev,
-      clickOutsideToClose: true
-    }).then(function (application) {
-      if (application) {
-        that.$state.go('management.applications.portal.general', {applicationId: application.data.id}, {reload: true});
-      }
-    }, function() {
-       // You cancelled the dialog
-    });
-  }
 
   loadMore = function (order, searchApplications, showNext) {
     const doNotLoad = showNext && (this.applications && this.applications.length) === (this.applicationsToDisplay && this.applicationsToDisplay.length);

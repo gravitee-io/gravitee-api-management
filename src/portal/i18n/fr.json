@@ -56,17 +56,44 @@
     "owner": "Propriétaire",
     "publishedAt": "Publié",
     "subscription": {
-      "title": "Sélectionner une application pour souscrire",
-      "subtitle": "Vous êtes sur le point de souscrire au plan {{planName}} {{planInformation}}",
-      "placeholder": "Sélectionner une application...",
-      "action": "Souscrire pour l'application {{applicationName}}",
-      "keyless": "Ce plan est sans clé. Vous pouvez déjà l'utiliser sans souscription.",
-      "success": "Commençons à utiliser l'API \"{{apiName}}\" avec l'application \"{{applicationName}}\"!",
-      "sample": "Vous pouvez accéder à l'API avec la clé d'API suivante",
-      "validationInProgress": "En attente de validation pour l'application \"{{applicationName}}\"!",
-      "sampleNotValidated": "Une fois validé, vous pourrez accéder à votre API avec la clé d'API donnée ci-dessous :",
-      "successful": "L'application a souscrit au plan {{planName}} avec succés",
-      "apiKeyCopySuccess": "La clé d'API a bien été copiée dans le presse-papier",
+      "step1": {
+        "title": "Sélectionner un plan",
+        "subtitle": "Le plan d'API correspond au contrat de service entre l'API et vous.",
+        "keyless": "Ce plan est sans clé et ne nécessite pas de souscription."
+      },
+      "step2": {
+        "title": "Sélectionner une application",
+        "subtitle": "L'application est le lien entre vous, en tant que consommateur, et la souscription à un plan d'API.",
+        "application": {
+          "placeholder": "Sélectionner une application..."
+        },
+        "clientIdRequired": "Un clientId est nécessaire pour pouvoir souscrire à ce plan. Veuillez configurer votre application.",
+        "action": "Souscrire"
+      },
+      "step3": {
+        "apikey": {
+          "key": "Vous pouvez accéder à l'API avec la clé d'API suivante:",
+          "curl": "Exemple d'appel avec curl:",
+          "clipboard": "La clé d'API a bien été copiée dans le presse-papier"
+        },
+        "oauth2": {
+          "bearer": "Vous devez récupèrer un access_token auprès du serveur d'autorisation avant de pouvoir consommer cette API.",
+          "curl": "Exemple d'appel avec curl:"
+        },
+        "jwt": {
+          "bearer": "Vous devez récupèrer un access_token auprès du serveur d'autorisation avant de pouvoir consommer cette API.",
+          "curl": "Exemple d'appel avec curl:"
+        },
+        "pending": {
+          "title": "Souscription en attente de validation",
+          "subtitle": "Votre souscription est en attente de validation, vous serez notifié une fois celle-ci traitée."
+        },
+        "accepted": {
+          "title": "Commençons à utiliser \"{{apiName}}\" avec \"{{applicationName}}\" !"
+        },
+        "successful": "La demande de souscription a été soumise."
+      },
+
       "planInformation": "avec un quota de {{quotaLimit}} requêtes par {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
     },
     "plan": {

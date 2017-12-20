@@ -17,15 +17,15 @@
 -->
   <md-dialog aria-label="Close plan">
     <md-dialog-content layout-padding>
-      <div ng-if="plan.security == 'api_key'">
-        <h4 ng-if="subscriptions == 0">No subscription is associated to this plan. You can delete it safely.</h4>
-        <h4 ng-if="subscriptions > 0">There are <code>{{subscriptions}}</code> active subscriptions associated to this plan.</h4>
+      <div ng-if="plan.security !== 'key_less'">
+        <h4 ng-if="subscriptions === 0">No subscription is associated to this plan. You can delete it safely.</h4>
+        <h4 ng-if="subscriptions > 0">There are <code>{{subscriptions}}</code> active subscription(s) associated to this plan.</h4>
         <p ng-if="subscriptions > 0">
-          By closing this plan, all relative subscriptions will also be closed and associated api-keys will be no longer
-          available.
+          By closing this plan, all relative subscriptions will also be closed
+          <span ng-if="plan.security === 'api_key'"> and associated api-keys will be no longer available.</span>
         </p>
       </div>
-      <div ng-if="plan.security == 'key_less'">
+      <div ng-if="plan.security === 'key_less'">
         <h4>Are you sure to close the plan {{plan.name}}?</h4>
       </div>
     </md-dialog-content>

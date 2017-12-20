@@ -70,7 +70,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
       if (this.widget.chart.link === 'api') {
         this.$state.go('management.apis.detail.analytics', {apiId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to});
       } else if (this.widget.chart.link === 'application') {
-        this.$state.go('management.applications.portal.analytics', {applicationId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to});
+        this.$state.go('management.applications.application.analytics', {applicationId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to});
       }
     }
   }

@@ -35,7 +35,7 @@
       </div>
     </div>
 
-    <div layout="row" style="margin-top: 18px;">
+    <div layout="row" style="margin-top: 18px;" ng-if="$ctrl.completeHeader()">
       <div layout="row" flex="50">
         <span class="api-description">{{::$ctrl.api.description}}</span>
       </div>
@@ -47,13 +47,23 @@
         <span ng-if="$ctrl.api.deployed_at">{{'api.publishedAt' | translate}}: {{::$ctrl.api.deployed_at | humanDateFilter}}</span>
       </div>
 
-      <div layout="column" layout-align="center center" flex="20">
-        <md-button class="md-raised" ui-sref="portal.api.pages({apiId: $ctrl.api.id})">{{'api.documentation.title' | translate}}</md-button>
-        <md-button class="md-raised md-primary" style="background-color: #006CAB"
-                   ui-sref="portal.api.detail({apiId: $ctrl.api.id, '#': 'plans'})">{{'api.plan.subscribe' | translate}}</md-button>
-      </div>
-
       <div flex></div>
     </div>
   </div>
 </section>
+
+<div class="api-nav">
+  <div class="container">
+    <ul>
+      <li ui-sref-active="active">
+        <a ui-sref="portal.api.detail({apiId: $ctrl.api.id})">Overview</a>
+      </li>
+      <li ui-sref-active="active">
+        <a ui-sref="portal.api.pages({apiId: $ctrl.api.id})">{{'api.documentation.title' | translate}}</a>
+      </li>
+      <li class="subscribe">
+        <button class="oui-button inverted progressive thin-button" ui-sref="portal.api.detail({apiId: $ctrl.api.id, '#': 'plans'})">{{'api.plan.subscribe' | translate}}</button>
+      </li>
+    </ul>
+  </div>
+</div>

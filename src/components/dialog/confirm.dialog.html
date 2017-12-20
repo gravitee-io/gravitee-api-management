@@ -18,7 +18,7 @@
 <md-dialog aria-label="confirm-dialog">
   <md-dialog-content layout-padding>
     <h4>{{title}}</h4>
-    <p>{{msg}}</p>
+    <p ng-bind-html="msg"></p>
   </md-dialog-content>
   <md-dialog-actions layout="row">
     <md-button class="md-primary" ng-click="ctrl.cancel()">Cancel</md-button>

@@ -13,17 +13,126 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiSubscribeController from './api-subscribe';
+import ApplicationService from "../../../services/applications.service";
+import ApiService from "../../../services/api.service";
+import NotificationService from "../../../services/notification.service";
+import * as _ from "lodash";
 
 const ApiSubscribeComponent: ng.IComponentOptions = {
   bindings: {
     api: '<',
-    plan: '<',
+    plans: '<',
     applications: '<',
     subscriptions: '<'
   },
   template: require('./api-subscribe.html'),
-  controller: ApiSubscribeController
+  controller: class {
+
+    private api: any;
+    private plans: any;
+
+    private selectedPlan: any;
+    private selectedApp: any;
+
+    private planInformation: any;
+    private apiKey: any;
+    private subscription: any;
+
+    constructor(
+      private $stateParams: ng.ui.IStateParamsService,
+      private NotificationService: NotificationService,
+      private ApplicationService: ApplicationService,
+      private ApiService: ApiService,
+      private Constants,
+      private $translate) {
+      'ngInject';
+    }
+
+    $onInit() {
+      this.selectedPlan = _.find(this.plans, (plan: any) => {
+        return plan.id === this.$stateParams.planId;
+      });
+    }
+
+    checkSubscriptions() {
+      if (this.selectedApp) {
+        this.ApplicationService.listSubscriptions(this.selectedApp.id, '?status=accepted,pending&plan=' + this.selectedPlan.id)
+          .then((subscriptions: any) => {
+            this.subscription = subscriptions.data.data[0];
+            if (this.subscription !== undefined) {
+              this.fetchApiKey(this.subscription.id);
+            }
+        });
+      }
+    }
+
+    fetchApiKey(subscriptionId) {
+      this.ApplicationService.listApiKeys(this.selectedApp.id, subscriptionId).then( (apiKeys) => {
+        let apiKey = _.find(apiKeys.data, function (apiKey: any) {
+          return !apiKey.revoked;
+        });
+        if (apiKey) {
+          this.apiKey = apiKey.key;
+        }
+      });
+    }
+
+    subscribe(application: any) {
+      this.ApplicationService.subscribe(application.id, this.selectedPlan.id).then( (subscription) => {
+        this.NotificationService.show('api.subscription.step3.successful', false, {planName: this.selectedPlan.name});
+
+        this.ApiService.getPlanSubscriptions(this.api.id, this.selectedPlan.id).then( () => {
+          this.subscription = subscription.data;
+          this.fetchApiKey(subscription.data.id);
+        });
+      });
+    }
+
+    isPlanSubscribable() {
+      return this.selectedPlan && 'key_less' !== this.selectedPlan.security;
+    }
+
+    canApplicationSubscribe() {
+      return this.isPlanSubscribable()
+        && this.selectedApp
+        && ! this.subscription
+        && (
+          (('oauth2' === this.selectedPlan.security || 'jwt' === this.selectedPlan.security) && this.selectedApp.clientId)
+          || (this.selectedPlan.security === 'api_key')
+        );
+    }
+
+    onApiKeyClipboardSuccess(e) {
+      this.NotificationService.show('api.subscription.step3.apikey.clipboard');
+      e.clearSelection();
+    }
+
+    onApplicationSearchChange() {
+      delete this.apiKey;
+      delete this.selectedApp;
+      delete this.subscription;
+      this.checkSubscriptions();
+    }
+
+    onApplicationSelect() {
+      this.checkSubscriptions();
+    }
+
+    onPlanSelect() {
+      delete this.selectedApp;
+      delete this.subscription;
+    }
+
+    getApiKeyCurlSample() {
+      return 'curl -X GET "' + this.Constants.portal.entrypoint + this.api.context_path +
+        '" -H "' + this.Constants.portal.apikeyHeader + ': ' + (this.apiKey ? this.apiKey : 'given_api_key') + '"';
+    }
+
+    getOAuth2CurlSample() {
+      return 'curl -X GET "' + this.Constants.portal.entrypoint + this.api.context_path +
+        '" -H "Authorization: Bearer xxxx-xxxx-xxxx-xxxx"';
+    }
+  }
 };
 
 export default ApiSubscribeComponent;

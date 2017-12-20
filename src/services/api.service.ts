@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from "lodash";
+import { PagedResult } from "../entities/pagedResult";
 
 export class LogsQuery {
   from: number;
@@ -210,6 +211,7 @@ class ApiService {
         {
           id: plan.id, name: plan.name, description: plan.description,
           validation: plan.validation, policies: plan.policies,
+          securityDefinition: plan.securityDefinition,
           characteristics: plan.characteristics, order: plan.order, paths: plan.paths,
           excluded_groups: plan.excludedGroups
         });
@@ -219,7 +221,7 @@ class ApiService {
           name: plan.name, description: plan.description, api: plan.api,
           validation: plan.validation, policies: plan.policies,
           characteristics: plan.characteristics, type: plan.type, paths: plan.paths,
-          security: plan.security, excluded_groups: plan.excludedGroups
+          security: plan.security, securityDefinition: plan.securityDefinition, excluded_groups: plan.excludedGroups
         });
     }
   }
@@ -236,28 +238,47 @@ class ApiService {
     return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_publish');
   }
 
-  updatePlanSubscription(apiId, subscription) {
-    return this.$http.put(this.apisURL + apiId + '/plans/subscriptions/' + subscription.id, subscription);
-  }
-
-  processPlanSubscription(apiId, planId, subscriptionId, processSubscription) {
-    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/subscriptions/' + subscriptionId + '/process', processSubscription);
-  }
-
-  getPlanSubscriptions(apiId, planId) {
-    return this.$http.get(this.apisURL + apiId + '/plans/' + planId + '/subscriptions/');
-  }
-
   /*
    * API subscriptions
    */
-  getSubscriptions(apiId) {
-    return this.$http.get(this.apisURL + apiId + '/subscriptions');
+  getSubscriptions(apiId: string, query?: string): ng.IHttpPromise<PagedResult> {
+    let req = this.apisURL + apiId + '/subscriptions';
+    if (query !== undefined) {
+      req += query;
+    }
+
+    return this.$http.get(req);
   }
 
+  getSubscribers(apiId: string): ng.IHttpPromise<any> {
+    return this.$http.get(this.apisURL + apiId + '/subscribers');
+  }
+
+  getSubscription(apiId, subscriptionId) {
+    return this.$http.get(this.apisURL + apiId + '/subscriptions/' + subscriptionId);
+  }
+
+  closeSubscription(apiId, subscriptionId) {
+    return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/status?status=CLOSED');
+  }
+
+  processSubscription(apiId, subscriptionId, processSubscription) {
+    return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/_process', processSubscription);
+  }
+
+  getPlanSubscriptions(apiId, planId) {
+    return this.$http.get(this.apisURL + apiId + '/subscriptions?plan='+planId);
+  }
+
+  subscribe(apiId: string, applicationId: string, planId: string): ng.IHttpPromise<any> {
+    return this.$http.post(this.apisURL + apiId + '/subscriptions?plan=' + planId + '&application=' + applicationId, '');
+  }
+
+  /*
   revokeSubscription(apiId, subscriptionId) {
     return this.$http.delete(this.apisURL + apiId + '/subscriptions/' + subscriptionId);
   }
+  */
 
   listApiKeys(apiId, subscriptionId) {
     return this.$http.get(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/keys');
@@ -273,10 +294,6 @@ class ApiService {
 
   updateApiKey(apiId, apiKey) {
     return this.$http.put(this.apisURL + apiId + '/keys/' + apiKey.key, apiKey);
-  }
-
-  closeSubscription(apiId, subscriptionId) {
-    return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/status?status=CLOSED');
   }
 
   listApiMetadata(apiId) {

@@ -1,0 +1,25 @@
+<div layout="column">
+  <div>
+    <span class="md-headline" style="padding: 24px 16px 16px;">Plan</span>
+  </div>
+
+  <div layout="row" flex>
+    <div class="api-creation-steppers" flex="{{$ctrl.vm.selectedStep !== 4 ? 65: 100}}">
+      <md-stepper-card-content class="md-no-padding">
+        <md-steppers md-dynamic-height md-stretch-steppers="always" md-disable-tabs-behavior="true"
+                     md-selected="$ctrl.vm.selectedStep" md-busy-text="'Processing...'"
+                     md-busy="$ctrl.vm.showBusyText">
+          <plan-wizard-general></plan-wizard-general>
+          <plan-wizard-security></plan-wizard-security>
+          <plan-wizard-policies></plan-wizard-policies>
+        </md-steppers>
+      </md-stepper-card-content>
+    </div>
+
+    <div class="api-creation-timeline-wrapper" layout-padding flex ng-show="$ctrl.vm.selectedStep !== 4">
+      <h4>Preview</h4>
+
+      <api-plan plan="$ctrl.plan" subscribable="false"></api-plan>
+    </div>
+  </div>
+</div>

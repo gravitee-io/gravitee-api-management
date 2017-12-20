@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import ApiService from "../../../services/api.service";
+import ApplicationService from "../../../services/applications.service";
 
-function DialogSubscriptionCreateController($scope, $mdDialog, plans, ApplicationService) {
+function DialogSubscriptionCreateController(
+  $mdDialog: angular.material.IDialogService, plans, api,
+  ApplicationService: ApplicationService, ApiService: ApiService) {
   'ngInject';
+  this.api = api;
   this.plans = plans;
   this.selectedApp = null;
   this.selectedPlan = null;
@@ -44,14 +49,11 @@ function DialogSubscriptionCreateController($scope, $mdDialog, plans, Applicatio
     this.plansWithSubscriptions = [];
     this.selectedPlan = null;
     if (this.selectedApp) {
-      _.map(this.plans, (plan: {id: number}) => {
-        ApplicationService.listSubscriptions(this.selectedApp.id, plan.id).then((response) => {
-          var subs = _.filter(response.data, (sub: {status: string}) => {
-            return sub.status === "pending" || sub.status === "accepted";
-          });
-          if (subs.length > 0) {
-            this.plansWithSubscriptions.push(plan.id);
-          }
+      ApiService.getSubscriptions(
+        this.api.id,
+        '?application=' + this.selectedApp.id + '&status=pending,accepted').then((response) => {
+        this.plansWithSubscriptions = _.map(response.data.data, function(subscription) {
+          return subscription.plan;
         });
       });
     }
@@ -62,7 +64,6 @@ function DialogSubscriptionCreateController($scope, $mdDialog, plans, Applicatio
         return response.data;
       });
   };
-
 }
 
 export default DialogSubscriptionCreateController;

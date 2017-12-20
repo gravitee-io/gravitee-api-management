@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ViewService from '../../services/view.service';
-import ApisController from './apis.controller';
-import TenantService from '../../services/tenant.service';
-import ResourceService from '../../services/resource.service';
-import TagService from '../../services/tag.service';
-import ApiService from '../../services/api.service';
-import MetadataService from '../../services/metadata.service';
-import GroupService from '../../services/group.service';
-import * as _ from 'lodash';
+import ViewService from "../../services/view.service";
+import ApisController from "./apis.controller";
+import TenantService from "../../services/tenant.service";
+import ResourceService from "../../services/resource.service";
+import TagService from "../../services/tag.service";
+import ApiService from "../../services/api.service";
+import MetadataService from "../../services/metadata.service";
+import GroupService from "../../services/group.service";
+import * as _ from "lodash";
 import AuditService from "../../services/audit.service";
 
 export default apisRouterConfig;
@@ -35,7 +35,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
     })
     .state('management.apis.detail', {
       abstract: true,
-      url: '/:apiId/settings',
+      url: '/:apiId',
       template: require('./apiAdmin.html'),
       controller: 'ApiAdminController',
       controllerAs: 'apiCtrl',
@@ -227,14 +227,20 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       }
     })
     .state('management.apis.detail.plans', {
-      url: '/plans?state',
-      template: require('./plans/apiPlans.html'),
-      controller: 'ApiPlansController',
-      controllerAs: 'apiPlansCtrl',
+      abstract: true,
+      url: '/plans',
+      template: '<div layout="column"><div ui-view></div></div>',
       resolve: {
-        resolvedPlans: function ($stateParams, ApiService) {
-          return ApiService.getApiPlans($stateParams.apiId);
-        }
+        api: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.get($stateParams.apiId).then(response => response.data)
+      }
+    })
+    .state('management.apis.detail.plans.list', {
+      url: '?state',
+      component: 'listPlans',
+      resolve: {
+        plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getApiPlans($stateParams.apiId).then(response => response.data)
       },
       data: {
         menu: {
@@ -251,25 +257,69 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       params: {
         state: {
           type: 'string',
-          dynamic: true,
+          dynamic: true
         }
       }
     })
-    .state('management.apis.detail.subscriptions', {
-      url: '/subscriptions',
-      template: require('./subscriptions/subscriptions.html'),
-      controller: 'SubscriptionsController',
-      controllerAs: 'subscriptionsCtrl',
+    .state('management.apis.detail.plans.new', {
+      url: '/new',
+      component: 'editPlan',
       resolve: {
-        resolvedSubscriptions: function ($stateParams, ApiService) {
-          return ApiService.getSubscriptions($stateParams.apiId);
-        }
+        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data)
+      }
+    })
+    .state('management.apis.detail.plans.plan', {
+      url: '/:planId/edit',
+      component: 'editPlan',
+      resolve: {
+        plan: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getApiPlan($stateParams.apiId, $stateParams.planId).then(response => response.data),
+        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data)
+      }
+    })
+    .state('management.apis.detail.subscriptions', {
+      abstract: true,
+      url: '/subscriptions',
+      template: '<div layout="column"><div ui-view></div></div>',
+      resolve: {
+        api: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.get($stateParams.apiId).then(response => response.data)
+      }
+    })
+    .state('management.apis.detail.subscriptions.list', {
+      url: '',
+      component: 'apiSubscriptions',
+      resolve: {
+        subscriptions: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getSubscriptions($stateParams.apiId).then(response => response.data),
+
+        subscribers: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getSubscribers($stateParams.apiId).then(response => response.data),
+
+        plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getApiPlans($stateParams.apiId).then(response => response.data)
       },
       data: {
         menu: {
           label: 'Subscriptions',
           icon: 'vpn_key'
         },
+        perms: {
+          only: ['api-subscription-r']
+        },
+        docs: {
+          page: 'management-api-subscriptions'
+        }
+      }
+    })
+    .state('management.apis.detail.subscriptions.subscription', {
+      url: '/:subscriptionId',
+      component: 'apiSubscription',
+      resolve: {
+        subscription: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getSubscription($stateParams.apiId, $stateParams.subscriptionId).then(response => response.data)
+      },
+      data: {
         perms: {
           only: ['api-subscription-r']
         },

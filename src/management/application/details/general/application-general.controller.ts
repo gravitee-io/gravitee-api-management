@@ -17,7 +17,6 @@ import * as _ from 'lodash';
 
 import ApplicationService from '../../../../services/applications.service';
 import NotificationService from '../../../../services/notification.service';
-import GroupService from '../../../../services/group.service';
 import SidenavService from '../../../../components/sidenav/sidenav.service';
 
 interface IApplicationScope extends ng.IScope {
@@ -27,7 +26,6 @@ interface IApplicationScope extends ng.IScope {
 class ApplicationGeneralController {
 
   private application: any;
-  private groups: any[];
   private initialApplication: any;
 
   constructor(
@@ -49,19 +47,21 @@ class ApplicationGeneralController {
   }
 
   update() {
-    this.ApplicationService.update(this.application).then(() => {
-      this.initialApplication = _.cloneDeep(this.application);
-      this.$scope.formApplication.$setPristine();
-      this.NotificationService.show('Application ' + this.application.name + ' has been updated');
-      this.SidenavService.setCurrentResource(this.application.name);
-    });
+    this.ApplicationService.update(this.application)
+      .then(() => {
+        this.initialApplication = _.cloneDeep(this.application);
+        this.$scope.formApplication.$setPristine();
+        this.NotificationService.show(this.application.name + ' has been updated');
+        this.SidenavService.setCurrentResource(this.application.name);
+      });
   }
 
   delete() {
-    this.ApplicationService.delete(this.application.id).then(() => {
-      this.NotificationService.show('Application ' + this.application.name + ' has been deleted');
-      this.$state.go('management.applications.list', {}, {reload: true});
-    });
+    this.ApplicationService.delete(this.application.id)
+      .then(() => {
+        this.NotificationService.show(this.application.name + ' has been deleted');
+        this.$state.go('management.applications.list', {}, {reload: true});
+      });
   }
 
   reset() {

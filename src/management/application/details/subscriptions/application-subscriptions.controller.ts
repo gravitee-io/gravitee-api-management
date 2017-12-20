@@ -19,16 +19,30 @@ import * as angular from 'angular';
 import ApplicationService from '../../../../services/applications.service';
 import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
+import { PagedResult } from "../../../../entities/pagedResult";
+
+export class SubscriptionQuery {
+  status?: string[] = ['ACCEPTED', 'PENDING'];
+  apis?: string[];
+  page?: number = 1;
+  size?: number = 20;
+}
 
 class ApplicationSubscriptionsController {
+
+  private subscriptions: PagedResult;
   private application: any;
-  private subscriptions: any;
-  private statusFilters: string[];
-  private selectedStatus: string[];
-//  private apiNameById: any;
-  private subscriptionsByApi: any;
-  private showRevokedKeys: boolean;
-  private data: any[];
+
+  private query: SubscriptionQuery = new SubscriptionQuery();
+
+  private status = {
+    'ACCEPTED': 'Accepted',
+    'CLOSED': 'Closed',
+    'PENDING': 'Pending',
+    'REJECTED': 'Rejected'
+  };
+
+  private subscriptionsFiltersForm: any;
 
   constructor(
     private ApplicationService: ApplicationService,
@@ -38,31 +52,50 @@ class ApplicationSubscriptionsController {
   ) {
     'ngInject';
 
-    this.showRevokedKeys = false;
-    this.data = [];
-    this.statusFilters = ['accepted', 'pending', 'rejected', 'closed'];
-    this.selectedStatus = ['accepted', 'pending'];
-//    this.apiNameById = {};
+    this.onPaginate = this.onPaginate.bind(this);
   }
 
-  $onInit() {
-    this.applyFilters();
+  onPaginate(page) {
+    this.query.page = page;
+    this.doSearch();
   }
 
-  changeFilter(statusFilter) {
-    if (_.includes(this.selectedStatus, statusFilter)) {
-      _.pull(this.selectedStatus, statusFilter);
-    } else {
-      this.selectedStatus.push(statusFilter);
+  clearFilters() {
+    this.subscriptionsFiltersForm.$setPristine();
+    this.query = new SubscriptionQuery();
+    this.doSearch();
+  }
+
+  search() {
+    this.query.page = 1;
+    this.query.size = 20;
+    this.doSearch();
+  }
+
+  buildQuery() {
+    let query = '?page=' + this.query.page + '&size=' + this.query.size + '&';
+    let parameters = {};
+
+    if (this.query.status !== undefined) {
+      parameters['status'] = this.query.status.join(',');
     }
-    this.applyFilters();
+
+    if (this.query.apis !== undefined) {
+      parameters['api'] = this.query.apis.join(',');
+    }
+
+    _.mapKeys(parameters, function( value, key ) {
+      query += key + '=' + value + '&';
+    });
+
+    return query;
   }
 
-  applyFilters() {
-    let that = this;
-    this.subscriptionsByApi = _.groupBy(_.filter(that.subscriptions, (subscription: any) => _.includes(that.selectedStatus, subscription.status)), function (sub) {
-//      that.apiNameById[sub.plan.apis[0].id] = sub.plan.apis[0].name;
-      return sub.plan.apis[0].id;
+  doSearch() {
+    let query = this.buildQuery();
+
+    this.ApplicationService.listSubscriptions(this.application.id, query).then((response) => {
+      this.subscriptions = response.data as PagedResult;
     });
   }
 

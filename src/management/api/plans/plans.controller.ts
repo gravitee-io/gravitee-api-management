@@ -18,6 +18,7 @@ import angular = require('angular');
 import UserService from '../../../services/user.service';
 
 class ApiPlansController {
+  private api: any;
   private plans: any;
   private groups: any;
   private dndEnabled: boolean;
@@ -26,34 +27,20 @@ class ApiPlansController {
   private securityTypes: {id: string; name: string}[];
   private countByStatus: any;
   private filteredPlans: any;
+
   constructor(
-    private resolvedPlans,
-    private resolvedGroups,
-    private resolvedApi,
     private $mdSidenav,
     private $mdDialog,
     private $scope,
     private ApiService,
-    private $state,
-    private $stateParams,
+    private $state: ng.ui.IStateService,
+    private $stateParams: ng.ui.IStateParamsService,
     private NotificationService,
     private dragularService,
     private UserService: UserService
   ) {
     'ngInject';
-    this.plans = resolvedPlans.data;
-    if (resolvedApi.data.visibility === "private") {
-      if (resolvedApi.data.groups) {
-        const apiGroupIds = resolvedApi.data.groups;
-        this.groups = _.filter(resolvedGroups, (group) => {
-          return apiGroupIds.indexOf(group["id"]) > -1;
-        });
-      } else {
-        this.groups = [];
-      }
-    } else {
-      this.groups = resolvedGroups;
-    }
+    /*
     this.dndEnabled = UserService.isUserHasPermissions(['api-plan-u']);
     this.statusFilters = ['staging', 'published', 'closed'];
     this.selectedStatus = ['published'];
@@ -70,15 +57,7 @@ class ApiPlansController {
 
     this.countByStatus = {};
     this.resetPlan();
-    if ($stateParams.state) {
-      if (_.includes(this.statusFilters, $stateParams.state)) {
-        this.changeFilter($stateParams.state);
-      } else {
-        this.applyFilters();
-      }
-    } else {
-      this.applyFilters();
-    }
+
 
     var that = this;
     $scope.configure = function (plan) {
@@ -124,9 +103,21 @@ class ApiPlansController {
     $scope.$on('planChangeSuccess', function(event, args) {
       that.changeFilter(args.state);
     });
+    */
   }
+/*
+  $onInit() {
+    if (this.api.visibility === "private") {
+      if (this.api.groups) {
+        const apiGroupIds = this.api.groups;
+        this.groups = _.filter(this.groups, (group) => {
+          return apiGroupIds.indexOf(group["id"]) > -1;
+        });
+      } else {
+        this.groups = [];
+      }
+    }
 
-  init() {
     let that = this;
 
     let d = document.querySelector('.plans');
@@ -149,7 +140,18 @@ class ApiPlansController {
         that.NotificationService.show('Plans have been reordered successfully');
       });
     });
+
+    if (this.$stateParams.state) {
+      if (_.includes(this.statusFilters, this.$stateParams.state)) {
+        this.changeFilter(this.$stateParams.state);
+      } else {
+        this.applyFilters();
+      }
+    } else {
+      this.applyFilters();
+    }
   }
+  */
 
   list() {
     this.ApiService.getApiPlans(this.$stateParams.apiId).then(response => {
@@ -216,10 +218,11 @@ class ApiPlansController {
   }
 
   addPlan() {
-    this.resetPlan();
-    this.$scope.plan.authorizedGroups = _.map(this.groups, "id");
-    this.$mdSidenav('plan-edit').toggle();
-    this.$mdSidenav('live-preview').toggle();
+    this.$state.go('management.apis.detail.plans.new');
+  }
+
+  editPlan(planId: string) {
+    this.$state.go('management.apis.detail.plans.plan', {planId: planId});
   }
 
   save() {

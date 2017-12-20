@@ -15,50 +15,74 @@
     limitations under the License.
 
 -->
-<div ng-if="subscriptionsCtrl.hasKeysDefined()">
+<md-content flex layout-padding class="properties">
   <span class="md-headline" style="padding: 24px 16px 16px;">Subscriptions</span>
 
-  <span class="btn-group pull-right">
-    <button class="btn btn-default" ng-class="{'active': subscriptionsCtrl.selectedStatus.indexOf(statusFilter) !== -1}"
-            ng-click="subscriptionsCtrl.changeFilter(statusFilter)" type="button"
-            ng-repeat="statusFilter in subscriptionsCtrl.statusFilters" style="text-transform: capitalize;">
-      {{statusFilter}}
-    </button>
-  </span>
+  <md-card flex>
+    <div class="widget-card logs-filters-container" flex>
+      <md-card-title>
+        <md-card-title-text>
+          <span class="md-title"><strong>Filters</strong></span>
+        </md-card-title-text>
+      </md-card-title>
+      <md-card-content>
+        <form ng-submit="$ctrl.doSearch()" name="$ctrl.subscriptionsFiltersForm">
+          <div layout-gt-sm="row">
+            <md-input-container class="md-block" flex-gt-sm flex="30">
+              <label>Plan</label>
+              <md-select ng-model="$ctrl.query.plans" placeholder="Plans" multiple>
+                <md-option ng-value="plan.id" ng-repeat="plan in $ctrl.plans track by plan.id">{{ plan.name }}</md-option>
+              </md-select>
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-sm flex="30">
+              <label>Application</label>
+              <md-select ng-model="$ctrl.query.applications" placeholder="Applications" multiple>
+                <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id">{{ subscriber.name }} () </md-option>
+              </md-select>
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-sm flex="20">
+              <label>Status</label>
+              <md-select ng-model="$ctrl.query.status" placeholder="Status" multiple>
+                <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.status">{{ value }}</md-option>
+              </md-select>
+            </md-input-container>
+            <div>
+              <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="$ctrl.subscriptionsFiltersForm.$pristine">
+                Clear
+              </md-button>
+              <md-button type="submit" class="md-raised md-primary">
+                Search
+              </md-button>
+            </div>
+          </div>
+        </form>
+      </md-card-content>
+    </div>
+  </md-card>
 
-  <div layout-padding ui-tree data-empty-placeholder-enabled="false"
-       ng-repeat="subscriptions in subscriptionsCtrl.subscriptionsByApplication">
-    <div ui-tree-nodes ng-model="data">
-      <h4><b>{{subscriptions[0].application.name}} </b>
-        <span style="font-size: small;" ng-if="subscriptions[0].application.type">( {{subscriptions[0].application.type}} )</span>
-        <span style="color:rgba(0, 0, 0, 0.54);font-size: small;">by {{subscriptions[0].application.owner.username}}</span>
-      </h4>
-      <table md-table>
-        <thead md-head>
-        <tr md-row>
-          <th md-column>Plan</th>
-          <th md-column>Subscription Date</th>
-          <th md-column>Process Date</th>
-          <th md-column>Start Date</th>
-          <th md-column>End Date</th>
-          <th md-column>Status</th>
-          <th md-column width="10%">
-            <md-checkbox md-no-ink aria-label="Show all API keys" ng-model="showRevokedKeys" class="md-primary">
-              Show revoked
-            </md-checkbox>
-          </th>
-        </tr>
-        </thead>
-        <tbody md-body ui-tree-node ng-repeat="subscription in subscriptions">
-        <tr md-row style="font-weight: bold"
-            ng-class="{'gravitee-no-link': 'accepted' !== subscription.status}"
-            ng-click="subscriptionsCtrl.toggleSubscription(this, subscription)">
-          <td md-cell style="line-height: 30px;">
-            <a style="text-decoration: none" ng-show="'accepted' === subscription.status">
-              <ng-md-icon style="top: 7px;" icon="{{collapsed? 'expand_less' : 'expand_more'}}"></ng-md-icon>
-            </a>
-            {{subscription.plan.name}}
+  <br />
+
+  <md-table-container ng-if="$ctrl.subscriptions.data.length > 0">
+    <table md-table>
+      <thead md-head>
+      <tr md-row>
+        <th md-column>Plan</th>
+        <th md-column>Application</th>
+        <th md-column>Created at</th>
+        <th md-column>Processed at</th>
+        <th md-column>Start at</th>
+        <th md-column>End at</th>
+        <th md-column>Status</th>
+      </tr>
+      </thead>
+      <tbody md-body>
+        <tr md-row
+            ui-sref="management.apis.detail.subscriptions.subscription({subscriptionId: subscription.id})"
+            ng-repeat="subscription in $ctrl.subscriptions.data track by subscription.id">
+          <td md-cell>
+            <span style="font-weight: bold">{{$ctrl.subscriptions.metadata[subscription.plan].name}}</span>
           </td>
+          <td md-cell>{{$ctrl.subscriptions.metadata[subscription.application].name}}</td>
           <td md-cell>{{subscription.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           <td md-cell>{{subscription.processed_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           <td md-cell>{{subscription.starting_at || '-' | date:'yyyy-MM-dd HH:mm:ss'}}</td>
@@ -67,67 +91,28 @@
             <md-tooltip ng-if="subscription.reason" md-direction="left">{{subscription.reason}}</md-tooltip>
             {{subscription.status}}
           </td>
-          <td md-cell>
-            <div ng-if="'pending' === subscription.status">
-              <span>
-                <md-tooltip md-direction="left">Accept subscription</md-tooltip>
-                <ng-md-icon icon="done" style="top: 0;fill: green"
-                            ng-click="subscriptionsCtrl.process(subscription, true)"></ng-md-icon>
-              </span>
-              <span>
-                <md-tooltip md-direction="left">Refuse subscription</md-tooltip>
-                <ng-md-icon icon="block" style="top: 0;fill: red"
-                            ng-click="subscriptionsCtrl.process(subscription, false)"></ng-md-icon>
-              </span>
-            </div>
-            <div ng-if="'accepted' === subscription.status">
-              <span permission permission-only="'api-subscription-u'">
-                <md-tooltip md-direction="left">Renew your API Key</md-tooltip>
-                <ng-md-icon icon="autorenew" style="top: 0;" ng-click="$event.stopPropagation();subscriptionsCtrl.generateAPIKey(subscriptionsCtrl.api.id, subscription)"></ng-md-icon>
-              </span>
-              <span permission permission-only="'api-subscription-u'">
-                <md-tooltip md-direction="left">Close subscription</md-tooltip>
-                <ng-md-icon icon="not_interested" style="top: 0;" ng-click="$event.stopPropagation();subscriptionsCtrl.closeSubscription(subscriptionsCtrl.api.id, subscription)"></ng-md-icon>
-              </span>
-            </div>
-          </td>
         </tr>
-        <tr md-row ng-if="collapsed" ng-repeat="apiKey in subscription.apiKeys | filter: showRevokedKeys" ng-mouseover="hovered = true" ng-mouseout="hovered = false">
-          <td md-cell colspan="4" style="line-height: 30px;">
-            <ng-md-icon icon="{{apiKey.revoked?'clear':'done'}}" ng-style="{'fill': apiKey.revoked ? '#BE2628':'#107F20'}"></ng-md-icon>
-            <code>{{apiKey.key}}</code>
-            <span style="position: absolute">
-            <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
-            <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"  ngclipboard data-clipboard-text="{{apiKey.key}}"
-                        ngclipboard-success="subscriptionsCtrl.onClipboardSuccess(e);" role="button" ></ng-md-icon>
-          </span>
-          </td>
-          <td md-cell>{{apiKey.revoked_at || apiKey.expire_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-          <td md-cell></td>
-          <td md-cell>
-            <span ng-if="!apiKey.revoked">
-              <md-tooltip md-direction="left">Revoke this API Key</md-tooltip>
-              <ng-md-icon permission permission-only="'api-subscription-u'" style="top: 0;" icon="not_interested"
-                          ng-click="subscriptionsCtrl.revoke(subscription, apiKey.key)"></ng-md-icon>
-            </span>
-            <span ng-if="!apiKey.revoked">
-              <md-tooltip md-direction="left">Set expiration for this API Key</md-tooltip>
-              <ng-md-icon permission permission-only="'api-subscription-u'" style="top: 0;" icon="schedule"
-                          ng-click="subscriptionsCtrl.showExpirationModal(apiKey)"></ng-md-icon>
-            </span>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-<gravitee-empty-state ng-if="!subscriptionsCtrl.hasKeysDefined()"
+      </tbody>
+    </table>
+  </md-table-container>
+
+  <md-table-pagination
+    ng-if="$ctrl.subscriptions.data.length > 0"
+    md-limit="$ctrl.query.size"
+    md-limit-options="[10, 25, 50, 75, 100]"
+    md-page="$ctrl.query.page"
+    md-total="{{$ctrl.subscriptions.page.total_elements}}"
+    md-on-paginate="$ctrl.onPaginate"
+    md-page-select>
+  </md-table-pagination>
+</md-content>
+
+<gravitee-empty-state ng-if="$ctrl.subscriptions.data.length === 0"
                       icon="vpn_key"
                       model="Subscription"
                       message="Your API Subscriptions will appear here"
                       create-mode="true"></gravitee-empty-state>
 
-<md-button permission permission-only="'api-subscription-c'" class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="subscriptionsCtrl.showAddSubscriptionModal()">
+<md-button permission permission-only="'api-subscription-c'" class="md-fab md-fab-bottom-right gravitee-add-button" aria-label="Add" ng-click="$ctrl.showAddSubscriptionModal()">
   <ng-md-icon icon="add"></ng-md-icon>
 </md-button>

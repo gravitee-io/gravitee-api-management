@@ -15,96 +15,206 @@
     limitations under the License.
 
 -->
-<div class="layout-padding">
-  <div layout="row" flex layout-align="center center" style="color: #424E5A;" ng-if="$ctrl.subscribable()">
-    <md-card layout-align="center center">
-      <md-card-header>
-        <md-card-title-text layout="column" layout-align="center center">
-          <span class="md-headline">{{::$ctrl.plan.name}}</span>
-          <span class="md-subhead">{{::$ctrl.plan.description}}</span>
-        </md-card-title-text>
-      </md-card-header>
-      <md-card-content layout="column">
-        <div ng-repeat="characteristic in $ctrl.plan.characteristics">
-          <h5>{{::characteristic}}</h5>
-          <md-divider></md-divider>
+<div layout="row" layout-padding layout-align="center center" flex style="background-color: rgb(245, 245, 246)">
+
+  <div layout="column" flex="60" layout-margin>
+    <section layout="row" layout-padding class="subscription-step" flex>
+        <div class="sw-main sw-theme-circles" layout="row" layout-align="center start" flex="15">
+          <ul class="nav nav-tabs step-anchor">
+            <li ng-class="{ 'active': !$ctrl.selectedPlan, 'done': $ctrl.selectedPlan}"><a href="#step-1">1<br></a></li>
+          </ul>
         </div>
-      </md-card-content>
-    </md-card>
-    <div>
-      <h2 style="text-align: center" translate="api.subscription.title"></h2>
-      <div layout="row">
-        <h5 translate="api.subscription.subtitle" translate-values="{planName: $ctrl.plan.name, planInformation: $ctrl.planInformation}"></h5>
+
+        <div layout="column" flex style="color: #424E5A;">
+          <h1 translate="api.subscription.step1.title"></h1>
+          <h5 translate="api.subscription.step1.subtitle"></h5>
+
+          <md-autocomplete
+            md-selected-item="$ctrl.selectedPlan"
+            md-search-text="filterPlan"
+            md-search-text-change="searchTextChange(searchText)"
+            md-selected-item-change="$ctrl.onPlanSelect()"
+            md-items="plan in $ctrl.plans | filter:filterApp"
+            md-item-text="plan.name"
+            md-min-length="0"
+            placeholder="Search plans ..."
+            md-autofocus="true"
+            md-menu-class="autocomplete-custom-template"
+            style="width: 450px;">
+            <md-item-template>
+              <md-list-item class="md-2-line contact-item">
+                <div class="md-list-item-text compact">
+                  <h3>{{plan.name}} <small>{{plan.security}}</small></h3>
+                  <p>{{plan.description}}</p>
+                </div>
+              </md-list-item>
+            </md-item-template>
+            <md-not-found>
+              <md-not-found translate="application.notFound" translate-values="{applicationName: filterApp}"></md-not-found>
+            </md-not-found>
+          </md-autocomplete>
+
+          <h5 ng-if="$ctrl.selectedPlan && !$ctrl.isPlanSubscribable()" translate="api.subscription.step1.keyless"></h5>
+        </div>
+    </section>
+
+    <section layout="row" layout-padding class="subscription-step" flex ng-if="$ctrl.selectedPlan && $ctrl.isPlanSubscribable()">
+      <div class="sw-main sw-theme-circles" layout="row" layout-align="center start" flex="15">
+        <ul class="nav nav-tabs step-anchor">
+          <li ng-class="{ 'active': !$ctrl.subscription, 'done': $ctrl.subscription}"><a href="#step-1">2<br></a></li>
+        </ul>
       </div>
 
-      <md-autocomplete
-        md-selected-item="$ctrl.selectedApp"
-        md-search-text="filterApp"
-        md-search-text-change="$ctrl.onApplicationSearchChange()"
-        md-selected-item-change="$ctrl.onApplicationSelect()"
-        md-items="application in $ctrl.applications | filter:filterApp"
-        md-item-text="application.name"
-        md-min-length="0"
-        placeholder="{{'api.subscription.placeholder' | translate}}"
-        md-autofocus="true"
-        ng-if="$ctrl.subscribable() && !$ctrl.selectedApp"
-        md-menu-class="autocomplete-custom-template">
-        <md-item-template>
+      <div layout="column" flex style="color: #424E5A;">
+        <h1 translate="api.subscription.step2.title"></h1>
+        <h5 translate="api.subscription.step2.subtitle"></h5>
+
+        <div layout="row">
+          <md-autocomplete
+            md-selected-item="$ctrl.selectedApp"
+            md-search-text="filterApp"
+            md-search-text-change="$ctrl.onApplicationSearchChange()"
+            md-selected-item-change="$ctrl.onApplicationSelect()"
+            md-items="application in $ctrl.applications | filter:filterApp"
+            md-item-text="application.name"
+            md-min-length="0"
+            placeholder="{{'api.subscription.step2.application.placeholder' | translate}}"
+            md-autofocus="true"
+            ng-if="$ctrl.isPlanSubscribable()"
+            md-menu-class="autocomplete-custom-template"
+            style="width: 450px;">
+            <md-item-template>
+              <md-list-item class="md-2-line contact-item">
+                <div class="md-list-item-text compact">
+                  <h3>{{application.name}} <small ng-if="application.type">{{application.security}}</small></h3>
+                  <p>{{application.owner.username}}</p>
+                </div>
+              </md-list-item>
+            </md-item-template>
+            <md-not-found translate="application.notFound" translate-values="{applicationName: filterApp}"></md-not-found>
+          </md-autocomplete>
+
+          <md-button class="md-raised" ng-click="$ctrl.subscribe($ctrl.selectedApp)"
+                     aria-label="subscribe-api-plan"
+                     ng-disabled="!$ctrl.canApplicationSubscribe()"
+                     translate="api.subscription.step2.action" translate-values="{applicationName: $ctrl.selectedApp.name}">
+          </md-button>
+        </div>
+
+        <h5
+          ng-if="!$ctrl.canApplicationSubscribe() && $ctrl.selectedApp && !$ctrl.subscription && ($ctrl.selectedPlan.security === 'oauth2' || $ctrl.selectedPlan.security === 'jwt')"
+          translate="api.subscription.step2.clientIdRequired"
+        ></h5>
+      </div>
+    </section>
+
+    <section layout="row" layout-padding class="subscription-step" flex ng-if="$ctrl.subscription && $ctrl.subscription.status === 'pending'">
+      <div class="sw-main sw-theme-circles" layout="row" layout-align="center start" flex="15">
+        <ul class="nav nav-tabs step-anchor">
+          <li class="danger"><a href="#step-1">3<br></a></li>
+        </ul>
+      </div>
+
+      <div layout="column" flex style="color: #424E5A;">
+        <h1 translate="api.subscription.step3.pending.title" translate-values="{apiName: $ctrl.api.name, applicationName: $ctrl.selectedApp.name}"></h1>
+        <h5 translate="api.subscription.step3.pending.subtitle"></h5>
+      </div>
+    </section>
+
+    <section layout="row" layout-padding class="subscription-step" flex ng-if="$ctrl.subscription && $ctrl.subscription.status === 'accepted' && $ctrl.selectedPlan.security === 'api_key'">
+      <div class="sw-main sw-theme-circles" layout="row" layout-align="center start" flex="15">
+        <ul class="nav nav-tabs step-anchor">
+          <li class="done"><a href="#step-1">3<br></a></li>
+        </ul>
+      </div>
+
+      <div layout="column" flex style="color: #424E5A;">
+        <h1 translate="api.subscription.step3.accepted.title" translate-values="{apiName: $ctrl.api.name, applicationName: $ctrl.selectedApp.name}"></h1>
+        <div layout="row">
+          <h5>{{'api.subscription.step3.apikey.key' | translate}}: <code>{{$ctrl.apiKey}}</code></h5>
+          <span>
+            <md-tooltip md-direction="right">{{'common.copyToClipboard' | translate}}</md-tooltip>
+            <ng-md-icon size="20" style="fill: #424E5A;" icon="content_copy"
+                        ngclipboard data-clipboard-text="{{$ctrl.apiKey}}"
+                        ngclipboard-success="$ctrl.onClipboardSuccess(e);" role="button"></ng-md-icon>
+          </span>
+        </div>
+
+        <div layout="column">
+          <h5 translate="api.subscription.step3.apikey.curl"></h5>
           <div layout="row">
-            <div class="gravitee-plan-application-image" flex="20"></div>
-            <div ng-class="{'gravitee-plan-application-disabled': $ctrl.isNotSelectable(application)}">
-              <h4>{{ application.name }} <u ng-if="application.type">({{ application.type }})</u></h4>
-              <h5>{{ application.owner.username }}</h5>
-            </div>
+            <blockquote flex="80">
+              <p id="example-curl-apikey">{{$ctrl.getApiKeyCurlSample()}}</p>
+            </blockquote>
+            <span>
+              <md-tooltip md-direction="right">{{'common.copyToClipboard' | translate}}</md-tooltip>
+              <ng-md-icon size="20" icon="content_copy" style="fill: #424E5A;"
+                          ngclipboard data-clipboard-target="#example-curl-apikey"
+                          role="button"></ng-md-icon>
+            </span>
           </div>
-        </md-item-template>
-        <md-not-found translate="application.notFound" translate-values="{applicationName: filterApp}"></md-not-found>
-      </md-autocomplete>
+        </div>
+      </div>
+    </section>
 
-      <md-button class="md-raised" ng-click="$ctrl.select($ctrl.selectedApp)"
-                 ng-if="$ctrl.subscribable() && !$ctrl.isNotSelectable($ctrl.selectedApp)"
-                 translate="api.subscription.action" translate-values="{applicationName: $ctrl.selectedApp.name}">
-      </md-button>
-    </div>
-  </div>
+    <section layout="row" layout-padding class="subscription-step" flex ng-if="$ctrl.subscription && $ctrl.subscription.status === 'accepted' && $ctrl.selectedPlan.security === 'oauth2'">
+      <div class="sw-main sw-theme-circles" layout="row" layout-align="center start" flex="15">
+        <ul class="nav nav-tabs step-anchor">
+          <li class="done"><a href="#step-1">3<br></a></li>
+        </ul>
+      </div>
 
-  <div ng-if="!$ctrl.applications.length">
-    <h5 translate="applications.empty"></h5>
-    <h5 translate="applications.start"></h5>
-  </div>
+      <div layout="column" flex style="fill: #424E5A;">
+        <h1 translate="api.subscription.step3.accepted.title" translate-values="{apiName: $ctrl.api.name, applicationName: $ctrl.selectedApp.name}"></h1>
+        <div layout="row">
+          <h5 translate="api.subscription.step3.oauth2.bearer"></h5>
+        </div>
 
-  <div layout="column" flex layout-align="center center" style="color: #424E5A;" ng-if="!$ctrl.subscribable()">
-    <ng-md-icon icon="lock_open" style="fill: #cdcccc;" size="120"></ng-md-icon>
-    <div>
-      <h2 translate="api.subscription.keyless"></h2>
-    </div>
-  </div>
-</div>
+        <div layout="column">
+          <h5 translate="api.subscription.step3.oauth2.curl"></h5>
+          <div layout="row">
+            <blockquote flex="80">
+              <p id="example-curl-oauth2">{{$ctrl.getOAuth2CurlSample()}}</p>
+            </blockquote>
+            <span>
+              <md-tooltip md-direction="right">{{'common.copyToClipboard' | translate}}</md-tooltip>
+              <ng-md-icon size="20" icon="content_copy" style="fill: #424E5A;"
+                          ngclipboard data-clipboard-target="#example-curl-oauth2"
+                          role="button"></ng-md-icon>
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-<div layout="column" flex layout-align="center center" style="color: #424E5A;" ng-if="$ctrl.apiKey">
-  <ng-md-icon icon="vpn_key" style="fill: #cdcccc;" size="120"></ng-md-icon>
-  <div>
-    <h2 style="text-align: center" translate="api.subscription.success" translate-values="{apiName: $ctrl.api.name, applicationName: $ctrl.selectedApp.name}"></h2>
-    <div layout="row">
-      <h5>{{'api.subscription.sample' | translate}} <code>{{$ctrl.apiKey}}</code></h5>
-      <span>
-          <md-tooltip md-direction="right">{{'common.copyToClipboard' | translate}}</md-tooltip>
-          <ng-md-icon icon="link" ngclipboard data-clipboard-text="{{$ctrl.apiKey}}"
-                      ngclipboard-success="$ctrl.onClipboardSuccess(e)" role="button"></ng-md-icon>
-      </span>
-    </div>
-    <pre>{{$ctrl.getSampleCall()}}</pre>
-  </div>
-</div>
+    <section layout="row" layout-padding class="subscription-step" flex ng-if="$ctrl.subscription && $ctrl.subscription.status === 'accepted' && $ctrl.selectedPlan.security === 'jwt'">
+      <div class="sw-main sw-theme-circles" layout="row" layout-align="center start" flex="15">
+        <ul class="nav nav-tabs step-anchor">
+          <li class="done"><a href="#step-1">3<br></a></li>
+        </ul>
+      </div>
 
-<div layout="column" flex layout-align="center center" style="color: #424E5A;" ng-if="'pending' === $ctrl.subscription.status">
-  <ng-md-icon icon="access_time" style="fill: #cdcccc;" size="120"></ng-md-icon>
-  <div>
-    <h2 style="text-align: center" translate="api.subscription.validationInProgress" translate-values="{applicationName: $ctrl.selectedApp.name}"></h2>
-    <div>
-      <h5 translate="api.subscription.sampleNotValidated"></h5>
+      <div layout="column" flex style="fill: #424E5A;">
+        <h1 translate="api.subscription.step3.accepted.title" translate-values="{apiName: $ctrl.api.name, applicationName: $ctrl.selectedApp.name}"></h1>
+        <div layout="row">
+          <h5 translate="api.subscription.step3.jwt.bearer"></h5>
+        </div>
 
-      <pre>{{$ctrl.getSampleCall()}}</pre>
-    </div>
+        <div layout="column">
+          <h5 translate="api.subscription.step3.jwt.curl"></h5>
+          <div layout="row">
+            <blockquote flex="80">
+              <p id="example-curl-jwt">{{$ctrl.getOAuth2CurlSample()}}</p>
+            </blockquote>
+            <span>
+              <md-tooltip md-direction="right">{{'common.copyToClipboard' | translate}}</md-tooltip>
+              <ng-md-icon size="20" icon="content_copy" style="fill: #424E5A;"
+                          ngclipboard data-clipboard-target="#example-curl-jwt"
+                          role="button"></ng-md-icon>
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </div>

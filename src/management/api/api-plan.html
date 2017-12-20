@@ -31,7 +31,7 @@
   <md-card-footer ng-if="$ctrl.authenticated">
     <md-divider></md-divider>
     <div layout="row" layout-align="end">
-      <md-button ng-if="$ctrl.plan.security === 'api_key' || $ctrl.plan.security === undefined" class="md-primary md-raised" aria-label="Execute"
+      <md-button ng-if="$ctrl.plan.security !== 'key_less' || $ctrl.plan.security === undefined" class="md-primary md-raised" aria-label="Execute"
                  ng-click="$ctrl.subscribe()" ng-disabled="!$ctrl.subscribable">
         {{$ctrl.plan.alreadySubscribed ? 'Subscribed' : ($ctrl.plan.validation === 'auto'?'Subscribe': 'Request for subscription')}}
       </md-button>

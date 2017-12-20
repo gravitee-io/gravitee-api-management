@@ -101,6 +101,7 @@ require('angular-ui-tree');
 require('angular-jwt');
 require('ng-showdown');
 require('showdown-prettify');
+
 require('angular-gridster');
 require('angular-scroll');
 require('diff/dist/diff.min.js');
@@ -138,7 +139,6 @@ import ApiResourcesController from '../management/api/resources/resources.contro
 import NewApiController from '../management/api/creation/newApi.controller';
 import DialogApiPermissionsHelpController from '../management/api/members/api-permissions-dialog.controller';
 import ApiPropertiesController from '../management/api/properties/properties.controller';
-import SubscriptionsController from '../management/api/subscriptions/subscriptions.controller';
 import ApiEventsController from '../management/api/events/apiEvents.controller';
 import ApiHistoryController from '../management/api/history/apiHistory.controller';
 import DialogAddPropertyController from '../management/api/properties/add-property.dialog.controller';
@@ -174,13 +174,26 @@ import ApiCreationStep2Component from '../management/api/creation/steps/api-crea
 import ApiCreationStep3Component from '../management/api/creation/steps/api-creation-step3.component';
 import ApiCreationStep4Component from '../management/api/creation/steps/api-creation-step4.component';
 import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
-import ApiPlanComponent from '../management/api/api-plan.component';
 
+// API Plan
+import ApiPlanComponent from '../management/api/api-plan.component';
+import ApiEditPlanController from '../management/api/plans/plan/edit-plan.controller';
+import ApiEditPlanComponent from '../management/api/plans/plan/edit-plan.component';
+import ApiListPlansComponent from '../management/api/plans/list-plans.component';
+import ApiListPlansController from '../management/api/plans/list-plans.controller';
+import ApiEditPlanWizardGeneralComponent from '../management/api/plans/plan/plan-wizard-general.component';
+import ApiEditPlanWizardSecurityComponent from '../management/api/plans/plan/plan-wizard-security.component';
+import ApiEditPlanWizardPoliciesComponent from '../management/api/plans/plan/plan-wizard-policies.component';
+
+// API Subscription
+import ApiSubscriptionsComponent from '../management/api/subscriptions/subscriptions.component';
+import ApiSubscriptionComponent from '../management/api/subscriptions/subscription.component';
 
 // Applications
 import ApplicationService from '../services/applications.service';
 import ApplicationsComponent from './application/applications.component';
 import ApplicationsController from './application/applications.controller';
+import CreateApplicationsComponent from './application/create-application.component';
 import ApplicationComponent from './application/details/application.component';
 import ApplicationHeaderComponent from './application/details/header/application-header.component';
 import ApplicationGeneralController from './application/details/general/application-general.controller';
@@ -189,12 +202,12 @@ import ApplicationMembersController from './application/details/members/applicat
 import ApplicationMembersComponent from './application/details/members/application-members.component';
 import ApplicationSubscriptionsController from './application/details/subscriptions/application-subscriptions.controller';
 import ApplicationSubscriptionsComponent from './application/details/subscriptions/application-subscriptions.component';
+import ApplicationSubscriptionComponent from './application/details/subscriptions/application-subscription.component';
 import ApplicationAnalyticsController from './application/details/analytics/application-analytics.controller';
 import ApplicationAnalyticsComponent from './application/details/analytics/application-analytics.component';
 import ApplicationLogsController from './application/details/logs/application-logs.controller';
 import ApplicationLogsComponent from './application/details/logs/application-logs.component';
 import ApplicationLogComponent from './application/details/logs/application-log.component';
-import DialogApplicationController from './application/dialog/applicationDialog.controller';
 import DialogAddMemberController from './application/details/members/addMemberDialog.controller';
 import DialogApplicationPermissionsHelpController from './application/details/members/application-permissions-dialog.controller';
 import DialogTransferApplicationController from './application/details/members/transferApplicationDialog.controller';
@@ -247,7 +260,6 @@ import DialogAddGroupMemberController from '../management/configuration/groups/d
 import RegistrationController from '../user/registration/registration.controller';
 import ConfirmController from '../user/registration/confirm/confirm.controller';
 import SubscriptionService from '../services/subscription.service';
-import ApiPlansController from '../management/api/plans/apiPlans.controller';
 import DialogSubscriptionRejectController from '../management/api/subscriptions/subscription.reject.dialog.controller';
 import DialogSubscriptionAcceptController from '../management/api/subscriptions/subscription.accept.dialog.controller';
 import DialogSubscriptionCreateController from '../management/api/subscriptions/subscription.create.dialog.controller';
@@ -407,7 +419,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DialogAssertionInformationController', DialogAssertionInformationController)
   .controller('DialogApiPermissionsHelpController', DialogApiPermissionsHelpController)
   .controller('ApiPropertiesController', ApiPropertiesController)
-  .controller('SubscriptionsController', SubscriptionsController)
   .controller('ApiEventsController', ApiEventsController)
   .controller('ApiHistoryController', ApiHistoryController)
   .controller('ApiResourcesController', ApiResourcesController)
@@ -436,7 +447,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DialogAddGroupMemberController', DialogAddGroupMemberController)
   .controller('RegistrationController', RegistrationController)
   .controller('ConfirmController', ConfirmController)
-  .controller('ApiPlansController', ApiPlansController)
   .controller('DialogSubscriptionRejectController', DialogSubscriptionRejectController)
   .controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController)
   .controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController)
@@ -525,7 +535,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('apiCreationStep3', ApiCreationStep3Component)
   .component('apiCreationStep4', ApiCreationStep4Component)
   .component('apiCreationStep5', ApiCreationStep5Component)
-  .component('apiPlan', ApiPlanComponent)
   .component('apiMetadata', ApiMetadataComponent)
   .component('gvDashboard', DashboardComponent)
   .component('gvDashboardFilter', DashboardFilterComponent)
@@ -533,16 +542,31 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvDashboardTimeframe', DashboardTimeframeComponent)
   .controller('DashboardTimeframeController', DashboardTimeframeController)
 
+  // Plan
+  .component('apiPlan', ApiPlanComponent)
+  .component('editPlan', ApiEditPlanComponent)
+  .controller('ApiEditPlanController', ApiEditPlanController)
+  .component('listPlans', ApiListPlansComponent)
+  .controller('ApiListPlansController', ApiListPlansController)
+  .component('planWizardGeneral', ApiEditPlanWizardGeneralComponent)
+  .component('planWizardSecurity', ApiEditPlanWizardSecurityComponent)
+  .component('planWizardPolicies', ApiEditPlanWizardPoliciesComponent)
+
+  // API subscriptions
+  .component('apiSubscriptions', ApiSubscriptionsComponent)
+  .component('apiSubscription', ApiSubscriptionComponent)
+
   .component('applications', ApplicationsComponent)
   .component('application', ApplicationComponent)
+  .component('createApplication', CreateApplicationsComponent)
   .component('applicationHeader', ApplicationHeaderComponent)
   .component('applicationGeneral', ApplicationGeneralComponent)
   .component('applicationSubscriptions', ApplicationSubscriptionsComponent)
+  .component('applicationSubscription', ApplicationSubscriptionComponent)
   .component('applicationMembers', ApplicationMembersComponent)
   .component('applicationAnalytics', ApplicationAnalyticsComponent)
   .component('applicationLogs', ApplicationLogsComponent)
   .component('applicationLog', ApplicationLogComponent)
-  .controller('DialogApplicationController', DialogApplicationController)
   .controller('DialogAddMemberController', DialogAddMemberController)
   .controller('DialogApplicationPermissionsHelpController', DialogApplicationPermissionsHelpController)
   .controller('ApplicationsController', ApplicationsController)
@@ -552,6 +576,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('ApplicationAnalyticsController', ApplicationAnalyticsController)
   .controller('ApplicationLogsController', ApplicationLogsController)
   .controller('DialogTransferApplicationController', DialogTransferApplicationController)
+
   .component('user', UserComponent)
 
   .component('tasks', TasksComponent)

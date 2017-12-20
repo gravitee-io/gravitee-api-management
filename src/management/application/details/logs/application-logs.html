@@ -51,7 +51,7 @@
       <td md-cell>{{$ctrl.logs.metadata[log.plan].name}}</td>
       <td md-cell>{{log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
       <td md-cell>
-        <ng-md-icon icon="remove_red_eye" size="16px" ui-sref="management.applications.portal.log({logId: log.id})"></ng-md-icon>
+        <ng-md-icon icon="remove_red_eye" size="16px" ui-sref="management.applications.application.log({logId: log.id})"></ng-md-icon>
       </td>
     </tr>
     <tr ng-if="$ctrl.logs.total === 0">

@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogApplicationController($scope, $mdDialog, ApplicationService, NotificationService) {
-  'ngInject';
+const ApiListPlansComponent: ng.IComponentOptions = {
+  bindings: {
+    plans: '<'
+  },
+  controller: 'ApiListPlansController',
+  template: require('./list-plans.html')
+};
 
-  $scope.hide = function () {
-     $mdDialog.cancel();
-  };
-
-  $scope.create = function (application) {
-    ApplicationService.create(application).then(function (result) {
-			NotificationService.show('Application created');
-      $mdDialog.hide(result);
-    }).catch(function (error) {
-			NotificationService.show('Error while creating the application');
-      $scope.error = error.data.message;
-    });
-  };
-}
-
-export default DialogApplicationController;
+export default ApiListPlansComponent;

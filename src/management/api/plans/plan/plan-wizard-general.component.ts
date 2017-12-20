@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogPublishPlanController($scope, $mdDialog, plan) {
-  'ngInject';
+import _ = require('lodash');
 
-  $scope.plan = plan;
+const ApiPlanWizardGeneralComponent: ng.IComponentOptions = {
+  require: {
+    parent: '^editPlan'
+  },
+  template: require('./plan-wizard-general.html'),
+  controller: function() {
+    'ngInject';
 
-  $scope.hide = function () {
-     $mdDialog.cancel();
-  };
+    this.gotoNextStep = function() {
+      this.parent.vm.stepData[0].data = this.plan;
+      this.parent.moveToNextStep(this.parent.vm.stepData[0]);
+    };
+  }
+};
 
-  $scope.publish = function () {
-    $mdDialog.hide($scope.plan);
-  };
-}
-
-export default DialogPublishPlanController;
+export default ApiPlanWizardGeneralComponent;

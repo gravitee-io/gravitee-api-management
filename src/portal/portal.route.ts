@@ -181,18 +181,23 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       }
     })
     .state('portal.api.subscribe', {
-      url: '/subscribe/:planId',
+      url: '/subscribe?planId',
       views: {
         'header': { component: 'apiPortalHeader' },
         'content': { component: 'apiSubscribe' }
       },
       resolve: {
+        plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+          ApiService.getPublishedApiPlans($stateParams['apiId']).then(response => response.data),
         applications: (ApplicationService: ApplicationService) =>
           ApplicationService.list().then(response => response.data),
+        /*
         plan: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
           ApiService.getApiPlan($stateParams['apiId'], $stateParams['planId']).then(response => response.data),
+
         subscriptions: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
           ApiService.getPlanSubscriptions($stateParams['apiId'], $stateParams['planId']).then(response => response.data)
+        */
       }
     })
     .state('portal.api.rating', {

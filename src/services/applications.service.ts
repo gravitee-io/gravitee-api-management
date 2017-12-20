@@ -15,6 +15,7 @@
  */
 
 import * as _ from 'lodash';
+import { PagedResult } from "../entities/pagedResult";
 
 export class LogsQuery {
   from: number;
@@ -67,7 +68,7 @@ class ApplicationService {
 
   list(): ng.IHttpPromise<any> {
     return this.$http.get(this.applicationsURL);
-  }ô
+  }
 
   listByGroup(group) {
     return this.$http.get(this.applicationsURL + "?group=" + group);
@@ -84,6 +85,7 @@ class ApplicationService {
         'name': application.name,
         'description': application.description,
         'type': application.type,
+        'clientId': application.clientId,
         'groups': application.groups
       }
     );
@@ -97,18 +99,20 @@ class ApplicationService {
     return this.$http.get(this.applicationsURL + "?query=" + query);
   }
 
-  // Plans
-
+  /*
+   * Subscriptions
+   */
   subscribe(applicationId, planId): ng.IHttpPromise<any> {
     return this.$http.post(this.subscriptionsURL(applicationId) + '?plan=' + planId, '');
   }
 
-  listSubscriptions(applicationId: string, planId?: string) {
-    var url = this.subscriptionsURL(applicationId);
-    if (planId) {
-      url = url + '?plan=' + planId;
+  listSubscriptions(applicationId: string, query?: string): ng.IHttpPromise<PagedResult> {
+    let req = this.subscriptionsURL(applicationId);
+    if (query !== undefined) {
+      req += query;
     }
-    return this.$http.get(url);
+
+    return this.$http.get(req);
   }
 
   getSubscription(applicationId, subscriptionId) {

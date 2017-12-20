@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogPublishPlanController($scope, $mdDialog, plan) {
-  'ngInject';
+const ApiEditPlanComponent: ng.IComponentOptions = {
+  bindings: {
+    api: '<',
+    plan: '<',
+    groups: '<'
+  },
+  controller: 'ApiEditPlanController',
+  template: require('./edit-plan.html')
+};
 
-  $scope.plan = plan;
-
-  $scope.hide = function () {
-     $mdDialog.cancel();
-  };
-
-  $scope.publish = function () {
-    $mdDialog.hide($scope.plan);
-  };
-}
-
-export default DialogPublishPlanController;
+export default ApiEditPlanComponent;

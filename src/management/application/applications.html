@@ -37,7 +37,7 @@
           </tr>
           </thead>
           <tbody md-body>
-          <tr md-row ui-sref="management.applications.portal.general({applicationId: application.id})"
+          <tr md-row ui-sref="management.applications.application.general({applicationId: application.id})"
               ng-repeat="application in $ctrl.applicationsToDisplay track by application.id">
             <td md-cell class="api-box-icon default"></td>
             <td md-cell>{{application.name}}</td>
@@ -58,7 +58,8 @@
                       create-mode="true"></gravitee-empty-state>
 
 <div permission permission-only="'portal-application-c'" ng-style="$ctrl.applications.length == 0 && {'text-align':'center'}">
-  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.applications.length > 0}" class="md-fab" aria-label="Add" ng-click="$ctrl.showAddApplicationModal($event)">
+  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.applications.length > 0}" class="md-fab"
+             aria-label="Create application" ui-sref="management.applications.new">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
 </div>

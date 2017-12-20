@@ -39,14 +39,9 @@ class ApplicationLogsController {
   }
 
   $onInit() {
-//    let updated = false;
-//    if (this.$state.params['from'] && this.$state.params['to']) {
       this.query.from = this.$state.params['from'];
       this.query.to = this.$state.params['to'];
       this.query.query = this.$state.params['q'];
-//    }
-
-//    this.refresh();
   };
 
   timeframeChange(timeframe) {

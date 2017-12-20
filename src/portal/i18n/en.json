@@ -56,17 +56,44 @@
     "owner": "Owner",
     "publishedAt": "Published",
     "subscription": {
-      "title": "Select an application to subscribe",
-      "subtitle": "You are subscribing to plan {{planName}} {{planInformation}}",
-      "placeholder": "Select an application...",
-      "action": "Subscribe for the application {{applicationName}}",
-      "keyless": "This plan is keyless. You can already use it without subscription.",
-      "success": "Let's start to use the API \"{{apiName}}\" with the application \"{{applicationName}}\"!",
-      "sample": "You can access the API with the following api-key",
-      "validationInProgress": "Waiting for validation for the application \"{{applicationName}}\"!",
-      "sampleNotValidated": "Once validated, you will be able to access your API with the given api-key as below:",
-      "successful": "Application has successfully subscribed to plan {{planName}}",
-      "apiKeyCopySuccess": "API Key has been copied to clipboard",
+      "step1": {
+        "title": "Select an API Plan",
+        "subtitle": "The API plan is corresponding to the service contract between you and the API.",
+        "keyless": "This plan is key-less and does not require subscription."
+      },
+      "step2": {
+        "title": "Select an application",
+        "subtitle": "Application is the link between you, the consumer, and the subscription to an API plan.",
+        "application": {
+          "placeholder": "Select an application..."
+        },
+        "clientIdRequired": "A clientId is required to subscribe to this plan. Please check your application's configuration.",
+        "action": "Subscribe"
+      },
+      "step3": {
+        "apikey": {
+          "key": "You can access the API using the following API Key:",
+          "curl": "Request sample using curl:",
+          "clipboard": "API Key has been copied to the clipboard."
+        },
+        "oauth2": {
+          "bearer": "You have to get an access_token from the authorization server before being able to consume this API.",
+          "curl": "Request sample using curl:"
+        },
+        "jwt": {
+          "bearer": "You have to get an access_token from the authorization server before being able to consume this API.",
+          "curl": "Request sample using curl:"
+        },
+        "pending": {
+          "title": "Subscription is waiting for validation",
+          "subtitle": "Your subscription is still in pending state, you will receive a notification once processed."
+        },
+        "accepted": {
+          "title": "Let's start to use \"{{apiName}}\" with \"{{applicationName}}\"!"
+        },
+        "successful": "Subscription request has been submitted."
+      },
+
       "planInformation": "with a quota of {{quotaLimit}} requests per {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
     },
     "plan": {

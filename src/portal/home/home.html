@@ -54,7 +54,7 @@
     <div layout="column" flex="100" flex-gt-xs="80" flex-gt-lg="70">
       <h2 class="section-title color-white" translate="home.apis.top"></h2>
       <md-content style="background-color: inherit" layout="column" layout-gt-sm="row" layout-align="center center" layout-wrap>
-        <md-card class="api-box gravitee-card gravitee-api-card" ng-repeat="api in homeCtrl.apis | limitTo: 4 track by api.id"
+        <md-card class="api-box gravitee-card gravitee-api-card" ng-repeat="api in homeCtrl.apis | limitTo: 3 track by api.id"
                  ng-click="homeCtrl.goToApi(api)" layout-wrap>
           <md-card-title>
             <md-card-title-text>

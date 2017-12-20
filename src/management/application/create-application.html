@@ -15,9 +15,15 @@
     limitations under the License.
 
 -->
-<div layout-padding>
-  <form name="formApplication" ng-submit="$ctrl.update()" novalidate>
-    <div permission permission-only="'application-definition-u'">
+<section>
+  <md-toolbar class="md-table-toolbar md-default" style="background-color:#fbfbfc;">
+    <div class="md-toolbar-tools">
+      <span>Create an application</span>
+    </div>
+  </md-toolbar>
+
+  <div layout-padding>
+    <form name="formApplication" ng-submit="$ctrl.create()" novalidate>
       <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
 
       <md-input-container class="md-block">
@@ -59,7 +65,8 @@
           <label>Client ID</label>
           <input ng-model="$ctrl.application.clientId" type="text" name="clientId" minlength="4" md-maxlength="50">
           <div class="hint" ng-if="formApplication.clientId.$valid || formApplication.clientId.$pristine">
-            The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API Plan (OAuth2, JWT).
+            The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API
+            Plan (OAuth2, JWT).
           </div>
           <div ng-messages="formApplication.clientId.$error">
             <div ng-message="minlength">The name has to be more than 4 characters long.</div>
@@ -68,45 +75,19 @@
         </md-input-container>
       </div>
 
-      <md-subheader class="md-primary" style="background-color: #fafafa">Access-Control</md-subheader>
-
-      <div layout="row" layout-align="start" flex>
-        <md-input-container class="md-block" flex="50">
-          <label>Groups</label>
-          <md-select aria-label="group"
-                     ng-model="$ctrl.application.groups"
-                     multiple>
-            <md-option ng-value="group.id" ng-repeat="group in $ctrl.groups">{{group.name}}</md-option>
-          </md-select>
-        </md-input-container>
-      </div>
-
       <br />
 
       <md-divider></md-divider>
-
+      
       <div class="md-actions gravitee-api-save-button" layout="row">
         <md-button class="md-raised" type="submit" ng-disabled="formApplication.$invalid || formApplication.$pristine">
-          Save
+          Create
         </md-button>
         <md-button class="md-raised md-primary" type="button" ng-click="$ctrl.reset()"
                    ng-disabled="formApplication.$invalid || formApplication.$pristine">
           Reset
         </md-button>
-        <md-button class="md-raised md-warn pull-right" type="button"
-                   ng-click="$ctrl.showDeleteApplicationConfirm($event)">
-          Delete
-        </md-button>
       </div>
-    </div>
-  </form>
-
-  <div permission permission-except="'application-definition-u'">
-    <md-subheader>Name</md-subheader>
-    <p class="inset">{{$ctrl.application.name}}</p>
-    <md-subheader>Type</md-subheader>
-    <p class="inset">{{$ctrl.application.type}}</p>
-    <md-subheader>Description</md-subheader>
-    <p class="inset">{{$ctrl.application.description}}</p>
+    </form>
   </div>
-</div>
+</section>

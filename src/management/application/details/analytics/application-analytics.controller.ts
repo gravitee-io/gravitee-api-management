@@ -130,9 +130,9 @@ class ApplicationAnalyticsController {
   }
 
   viewLogs() {
-    // Update the query parameter
+    // update the query parameter
     this.$state.transitionTo(
-      'management.applications.portal.logs',
+      'management.applications.application.logs',
       this.$state.params);
   }
 }

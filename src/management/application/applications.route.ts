@@ -44,9 +44,25 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       },
       resolve: {
         applications: (ApplicationService: ApplicationService) => ApplicationService.list().then(response => response.data)
-      },
+      }
     })
-    .state('management.applications.portal', {
+    .state('management.applications.new', {
+      url: '/new',
+      component: 'createApplication',
+      data: {
+        perms: {
+          only: ['portal-application-c']
+        },
+        devMode: true,
+        docs: {
+          page: 'management-create-application'
+        }
+      },
+      resolve: {
+        applications: (ApplicationService: ApplicationService) => ApplicationService.list().then(response => response.data)
+      }
+    })
+    .state('management.applications.application', {
       abstract: true,
       url: '/:applicationId',
       component: 'application',
@@ -68,7 +84,7 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
-    .state('management.applications.portal.general', {
+    .state('management.applications.application.general', {
       url: '/',
       component: 'applicationGeneral',
       data: {
@@ -96,8 +112,13 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
-    .state('management.applications.portal.subscriptions', {
+    .state('management.applications.application.subscriptions', {
+      abstract: true,
       url: '/subscriptions',
+      template: '<div layout="column"><div ui-view></div></div>'
+    })
+    .state('management.applications.application.subscriptions.list', {
+      url: '',
       component: 'applicationSubscriptions',
       resolve: {
         subscriptions: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
@@ -117,12 +138,28 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
-    .state('management.applications.portal.members', {
+    .state('management.applications.application.subscriptions.subscription', {
+      url: '/:subscriptionId',
+      component: 'applicationSubscription',
+      resolve: {
+        subscription: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
+          ApplicationService.getSubscription($stateParams.applicationId, $stateParams.subscriptionId).then(response => response.data)
+      },
+      data: {
+        perms: {
+          only: ['application-subscription-r']
+        },
+        docs: {
+          page: 'management-application-subscriptions'
+        }
+      }
+    })
+    .state('management.applications.application.members', {
       url: '/members',
       component: 'applicationMembers',
       resolve: {
         members: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
-          ApplicationService.getMembers($stateParams['applicationId']).then(response => response.data),
+          ApplicationService.getMembers($stateParams.applicationId).then(response => response.data),
         resolvedGroups: (GroupService: GroupService) => {
           return GroupService.list().then(response => {
             return response.data;
@@ -143,7 +180,7 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
-    .state('management.applications.portal.analytics', {
+    .state('management.applications.application.analytics', {
       url: '/analytics?from&to&q',
       component: 'applicationAnalytics',
       data: {
@@ -174,7 +211,7 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
-    .state('management.applications.portal.logs', {
+    .state('management.applications.application.logs', {
       url: '/logs?from&to&q',
       component: 'applicationLogs',
       data: {
@@ -205,12 +242,12 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
-    .state('management.applications.portal.log', {
+    .state('management.applications.application.log', {
       url: '/logs/:logId',
       component: 'applicationLog',
       resolve: {
         log: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
-          ApplicationService.getLog($stateParams['applicationId'], $stateParams['logId']).then(response => response.data)
+          ApplicationService.getLog($stateParams.applicationId, $stateParams.logId).then(response => response.data)
       },
       data: {
         devMode: true,

@@ -131,7 +131,7 @@ class ApplicationMembersController {
       }
     }).then(function (application) {
       if (application) {
-        that.$state.go('management.applications.portal.members', {applicationId: that.application.id}, {reload: true});
+        that.$state.go('management.applications.application.members', {applicationId: that.application.id}, {reload: true});
       }
     }, function() {
        // You cancelled the dialog
