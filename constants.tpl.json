@@ -18,6 +18,8 @@
   },
 
   "authentication": {
+    "forceLogin": false,
+
     /* Enable social authentication with Google. clientId is required to enable it */
     "google": {
       "clientId": "googleplus_clientid"

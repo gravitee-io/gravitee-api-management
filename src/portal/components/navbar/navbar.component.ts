@@ -23,6 +23,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     const vm = this;
     vm.$rootScope = $rootScope;
     vm.displayContextualDocumentationButton = false;
+    vm.visible = true;
 
     $scope.$on('graviteeUserRefresh', function () {
       UserService.current().then(function (user) {
@@ -45,6 +46,10 @@ export const NavbarComponent: ng.IComponentOptions = {
         !trans.to().name.startsWith('login') &&
         !trans.to().name.startsWith('registration') &&
         !trans.to().name.startsWith('user');
+
+      let forceLogin = (Constants.authentication && Constants.authentication.forceLogin) || false;
+      vm.visible = ! forceLogin || (forceLogin && !trans.to().name.startsWith('login') &&
+        !trans.to().name.startsWith('registration'));
     });
 
     vm.$onInit = function () {

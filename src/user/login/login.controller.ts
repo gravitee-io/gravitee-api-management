@@ -57,8 +57,10 @@ class LoginController {
     $event.preventDefault();
     const that = this;
     this.UserService.login(this.user).then(() => {
-      that.$rootScope.$broadcast('graviteeUserRefresh');
-      that.$state.go('portal.home');
+      this.UserService.current().then( () => {
+        that.$rootScope.$broadcast('graviteeUserRefresh');
+        that.$state.go('portal.home');
+      });
     }).catch(() => {
       this.user.username = '';
       this.user.password = '';

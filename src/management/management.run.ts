@@ -21,12 +21,21 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
                   $timeout, UserService: UserService, Constants, PermissionStrategies) {
   'ngInject';
 
+
+  $transitions.onStart({ to: (state) => state.name !== 'login' && state.name !== 'registration'}, function(trans) {
+    let forceLogin = (Constants.authentication && Constants.authentication.forceLogin) || false;
+
+    if (forceLogin &&  ! UserService.isAuthenticated()) {
+      return trans.router.stateService.target('login');
+    }
+  });
+
   $transitions.onFinish({}, function (trans) {
     let fromState = trans.from();
     let toState = trans.to();
 
-    var notEligibleForDevMode = Constants.devMode && toState.data && !toState.data.devMode;
-    var notEligibleForUserCreation = !Constants.userCreationEnabled && (fromState.name === 'registration' || fromState === 'confirm');
+    let notEligibleForDevMode = Constants.devMode && toState.data && !toState.data.devMode;
+    let notEligibleForUserCreation = !Constants.userCreationEnabled && (fromState.name === 'registration' || fromState === 'confirm');
 
     if (notEligibleForDevMode || notEligibleForUserCreation) {
       return trans.router.stateService.target('login');

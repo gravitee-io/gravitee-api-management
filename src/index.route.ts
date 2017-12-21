@@ -81,7 +81,7 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
     .state('login', {
       url: '/login',
       template: require('./user/login/login.html'),
-      controller: LoginController,
+      controller: 'LoginController',
       controllerAs: '$ctrl',
       data: {
         devMode: true
