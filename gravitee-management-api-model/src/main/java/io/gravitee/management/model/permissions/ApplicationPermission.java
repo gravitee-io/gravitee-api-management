@@ -23,7 +23,7 @@ package io.gravitee.management.model.permissions;
 public enum ApplicationPermission implements Permission {
     DEFINITION(  "DEFINITION",   1000),
     MEMBER(      "MEMBER",       1100),
-    ANALYTICS(    "ANALYTICS",     1200),
+    ANALYTICS(   "ANALYTICS",    1200),
     LOG(         "LOG",          1300),
     SUBSCRIPTION("SUBSCRIPTION", 1400);
 
