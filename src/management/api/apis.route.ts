@@ -116,15 +116,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       controllerAs: '$ctrl',
       resolve: {
         resolvedApis: function ($stateParams, ApiService) {
-          if ($stateParams.view && $stateParams.view !== 'all') {
-            return ApiService.list($stateParams.view);
-          }
           return ApiService.list();
-        },
-        resolvedViews: (ViewService: ViewService) => {
-          return ViewService.list().then(response => {
-            return response.data;
-          });
         }
       },
       data: {
@@ -138,13 +130,6 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
           page: 'management-apis'
         },
         devMode: true
-      },
-      params: {
-        view: {
-          type: 'string',
-          value: 'all',
-          squash: true
-        }
       }
     })
     .state('management.apis.detail.general', {

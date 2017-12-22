@@ -20,7 +20,6 @@ import UserService from '../../services/user.service';
 export class ApisController {
 
   private apis: any;
-  private views: any[];
   private graviteeUIVersion: string;
   private apisScrollAreaHeight: number;
   private isAPIsHome: boolean;
@@ -42,7 +41,6 @@ export class ApisController {
     private UserService: UserService,
     private graviteeUser,
     private $q: ng.IQService,
-    resolvedViews: any[]
   ) {
     'ngInject';
 
@@ -55,8 +53,6 @@ export class ApisController {
     this.isAPIsHome = this.$state.includes('apis');
 
     this.createMode = !Constants.devMode; // && Object.keys($rootScope.graviteeUser).length > 0;
-
-    this.views = resolvedViews;
 
     this.reloadSyncState();
 

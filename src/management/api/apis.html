@@ -25,13 +25,6 @@
           </div>
         </md-card-header-text>
       </md-card-header>
-      <md-tabs md-dynamic-height md-border-bottom>
-        <md-tab label="{{view.name}}" ng-repeat="view in $ctrl.views track by view.id"
-                ng-if="view.id === 'all' || view.totalApis > 0" ui-sref=".({ view: view.id })"
-                md-active="view.id == $resolve.$stateParams.view">
-          <h5 ng-if="view.description && !hideApis" class="gravitee-view-description">{{view.description}}</h5>
-        </md-tab>
-      </md-tabs>
       <md-card-content ng-if="!hideApis" style="padding: 0px; overflow-y: auto;">
         <div layout="row" layout-wrap class="inset">
           <md-table-container style="width: 100%">
