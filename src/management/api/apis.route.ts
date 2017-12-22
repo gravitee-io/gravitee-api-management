@@ -47,7 +47,7 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
           return ApiService.get($stateParams.apiId);
         },
         resolvedViews: (ViewService: ViewService) => {
-          return ViewService.list().then(response => {
+          return ViewService.list(true).then(response => {
             return response.data;
           });
         },
