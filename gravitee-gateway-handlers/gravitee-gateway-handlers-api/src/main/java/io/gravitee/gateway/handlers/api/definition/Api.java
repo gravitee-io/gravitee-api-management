@@ -98,9 +98,6 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
 
         Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
 
-        // Load security policies
-        registerSecurityPolicy(policies);
-
         // Load policies from the API
         getPaths().values()
                 .forEach(path -> policies.addAll(
@@ -111,31 +108,41 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
                                 .collect(Collectors.toSet())));
 
         // Load policies from Plans
-        getPlans().stream()
-                .forEach(plan -> {
-                    if (plan.getPaths() != null) {
-                        plan.getPaths().values()
-                                .forEach(path -> policies.addAll(
-                                        path.getRules()
-                                                .stream()
-                                                .map(Rule::getPolicy)
-                                                .distinct()
-                                                .collect(Collectors.toSet())));
-                    }});
+        getPlans().forEach(plan -> {
+            String security = plan.getSecurity();
+            Policy secPolicy = new Policy();
+            switch (security) {
+                case "KEY_LESS":
+                case "key_less":
+                    secPolicy.setName("key-less");
+                    break;
+                case "API_KEY":
+                case "api_key":
+                    secPolicy.setName("api-key");
+                    break;
+                case "OAUTH2":
+                    secPolicy.setName("oauth2");
+                    break;
+                case "JWT":
+                    secPolicy.setName("jwt");
+                    break;
+            }
+
+            if (secPolicy.getName() != null) {
+                policies.add(secPolicy);
+            }
+
+            if (plan.getPaths() != null) {
+                plan.getPaths().values()
+                        .forEach(path -> policies.addAll(
+                                path.getRules()
+                                        .stream()
+                                        .map(Rule::getPolicy)
+                                        .distinct()
+                                        .collect(Collectors.toSet())));
+            }});
 
         return policies;
-    }
-
-    private void registerSecurityPolicy(Set<io.gravitee.definition.model.Policy> policies) {
-        // api-key policy
-        Policy apiKey = new Policy();
-        apiKey.setName("api-key");
-        policies.add(apiKey);
-
-        // keyless policy
-        Policy keyless = new Policy();
-        keyless.setName("key-less");
-        policies.add(keyless);
     }
 
     @Override

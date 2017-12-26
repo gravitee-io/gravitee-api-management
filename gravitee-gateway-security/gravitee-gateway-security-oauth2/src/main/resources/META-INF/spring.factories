@@ -1,0 +1,2 @@
+io.gravitee.gateway.security.core.AuthenticationHandler=\
+  io.gravitee.gateway.security.oauth2.OAuth2AuthenticationHandler

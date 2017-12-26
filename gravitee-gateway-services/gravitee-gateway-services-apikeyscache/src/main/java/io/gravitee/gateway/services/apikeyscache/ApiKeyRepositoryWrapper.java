@@ -45,19 +45,9 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
 
     @Override
     public Optional<ApiKey> findById(String apiKey) throws TechnicalException {
-        logger.debug("Looking for api-key from cache [key: {}]", apiKey);
-
-        Optional<ApiKey> optApiKey =
-                Optional.ofNullable(cache.get(apiKey))
-                        .map(element -> (ApiKey) element.getObjectValue());
-
-        if (optApiKey.isPresent()) {
-            logger.debug("An api-key has been found in cache for [key: {}]", apiKey);
-        } else {
-            logger.debug("No api-key found from cache for [key: {}]", apiKey);
-        }
-
-        return optApiKey;
+        return Optional
+                .ofNullable(cache.get(apiKey))
+                .map(element -> (ApiKey) element.getObjectValue());
     }
 
     @Override

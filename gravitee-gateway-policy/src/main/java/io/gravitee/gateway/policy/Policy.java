@@ -23,15 +23,15 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
  */
 public interface Policy {
 
-    void onRequest(Object ... args) throws PolicyException;
+    default void onRequest(Object ... args) throws PolicyException {}
 
-    void onResponse(Object ... args) throws PolicyException;
+    default void onResponse(Object ... args) throws PolicyException {}
 
-    ReadWriteStream<?> onRequestContent(Object ... args) throws PolicyException;
+    default ReadWriteStream<?> onRequestContent(Object ... args) throws PolicyException { return null; }
 
-    ReadWriteStream<?> onResponseContent(Object ... args) throws PolicyException;
+    default ReadWriteStream<?> onResponseContent(Object ... args) throws PolicyException { return null; }
 
-    boolean isStreamable();
+    default boolean isStreamable() { return false; }
 
-    boolean isRunnable();
+    default boolean isRunnable() { return true; }
 }

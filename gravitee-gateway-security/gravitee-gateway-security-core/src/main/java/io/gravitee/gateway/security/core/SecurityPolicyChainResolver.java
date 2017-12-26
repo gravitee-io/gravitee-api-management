@@ -25,8 +25,9 @@ import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,22 +36,20 @@ import java.util.List;
 public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
 
     @Autowired
-    private SecurityManager securityManager;
+    private SecurityProviderManager securityManager;
 
     @Override
     public PolicyChain resolve(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
         if (streamType == StreamType.ON_REQUEST) {
-            final SecurityProvider securityProvider = securityManager.resolve(request);
+            final AuthenticationHandler securityProvider = securityManager.resolve(request);
 
             if (securityProvider != null) {
                 logger.debug("Security provider [{}] has been selected to secure incoming request {}",
                         securityProvider.name(), request.id());
 
-                SecurityPolicy securityPolicy = securityProvider.create(executionContext);
-                Policy policy = create(streamType, securityPolicy.policy(), securityPolicy.configuration());
+                List<AuthenticationPolicy> policies = securityProvider.handle(executionContext);
 
-                return RequestPolicyChain.create(
-                        Collections.singletonList(policy), executionContext);
+                return RequestPolicyChain.create(createAuthenticationChain(policies), executionContext);
             }
 
             // No authentication method selected, must send a 401
@@ -63,12 +62,34 @@ public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
         }
     }
 
+    private List<Policy> createAuthenticationChain(List<AuthenticationPolicy> securityPolicies) {
+        return securityPolicies.stream().map(new Function<AuthenticationPolicy, Policy>() {
+            @Override
+            public Policy apply(AuthenticationPolicy securityPolicy) {
+                if (securityPolicy instanceof HookAuthenticationPolicy) {
+                    try {
+                        return (Policy) ((HookAuthenticationPolicy) securityPolicy).clazz().newInstance();
+                    } catch (Exception ex) {
+                        logger.error("Unexpected error while loading authentication policy", ex);
+                    }
+                } else if (securityPolicy instanceof PluginAuthenticationPolicy) {
+                    return create(
+                            StreamType.ON_REQUEST,
+                            ((PluginAuthenticationPolicy) securityPolicy).name(),
+                            ((PluginAuthenticationPolicy) securityPolicy).configuration());
+                }
+
+                return null;
+            }
+        }).collect(Collectors.toList());
+    }
+
     @Override
     protected List<Policy> calculate(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
         throw new IllegalStateException("You must never go there!");
     }
 
-    public void setSecurityManager(SecurityManager securityManager) {
+    public void setSecurityManager(SecurityProviderManager securityManager) {
         this.securityManager = securityManager;
     }
 }
