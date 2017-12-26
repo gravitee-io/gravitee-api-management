@@ -41,6 +41,7 @@
         <module>gravitee-gateway-services-monitoring</module>
 	    <module>gravitee-gateway-services-node-healthcheck</module>
         <module>gravitee-gateway-services-endpoint-discovery-consul</module>
+        <module>gravitee-gateway-services-subscriptions-cache</module>
     </modules>
 
     <dependencyManagement>

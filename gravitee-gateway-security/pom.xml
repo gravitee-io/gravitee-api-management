@@ -36,5 +36,7 @@
         <module>gravitee-gateway-security-core</module>
         <module>gravitee-gateway-security-apikey</module>
         <module>gravitee-gateway-security-keyless</module>
+        <module>gravitee-gateway-security-oauth2</module>
+        <module>gravitee-gateway-security-jwt</module>
     </modules>
 </project>

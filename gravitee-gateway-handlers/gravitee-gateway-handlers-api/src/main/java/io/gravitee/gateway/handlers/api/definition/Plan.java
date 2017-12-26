@@ -33,6 +33,8 @@ public class Plan {
 
     private String security;
 
+    private String securityDefinition;
+
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
 
@@ -68,6 +70,14 @@ public class Plan {
 
     public void setSecurity(String security) {
         this.security = security;
+    }
+
+    public String getSecurityDefinition() {
+        return securityDefinition;
+    }
+
+    public void setSecurityDefinition(String securityDefinition) {
+        this.securityDefinition = securityDefinition;
     }
 
     public Set<String> getApis() {

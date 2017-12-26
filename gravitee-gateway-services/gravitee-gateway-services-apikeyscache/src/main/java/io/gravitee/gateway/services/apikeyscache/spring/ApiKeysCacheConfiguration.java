@@ -42,7 +42,7 @@ public class ApiKeysCacheConfiguration {
         Cache apiKeyCache = cacheManager.getCache(API_KEY_CACHE_NAME);
         if (apiKeyCache == null) {
             LOGGER.warn("EHCache cache for apikey not found. Fallback to default EHCache configuration");
-            CacheConfiguration cacheConfiguration = new CacheConfiguration(API_KEY_CACHE_NAME, 100);
+            CacheConfiguration cacheConfiguration = new CacheConfiguration(API_KEY_CACHE_NAME, 1000);
             cacheManager.addCache(new Cache(cacheConfiguration));
         }
 

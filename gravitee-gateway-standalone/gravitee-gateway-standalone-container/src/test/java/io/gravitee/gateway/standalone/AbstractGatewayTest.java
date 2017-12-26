@@ -49,6 +49,12 @@ public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderIn
 
         PolicyPlugin unsecuredPolicy = PolicyBuilder.build("key-less", KeylessPolicy.class);
         policyPluginManager.register(unsecuredPolicy);
+
+        PolicyPlugin oauth2Policy = PolicyBuilder.build("oauth2", KeylessPolicy.class);
+        policyPluginManager.register(oauth2Policy);
+
+        PolicyPlugin jwtPolicy = PolicyBuilder.build("jwt", KeylessPolicy.class);
+        policyPluginManager.register(jwtPolicy);
     }
 
     @Override

@@ -24,14 +24,14 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityProviderLoader extends SpringFactoriesLoader<SecurityProvider> {
+public class SecurityProviderLoader extends SpringFactoriesLoader<AuthenticationHandler> {
 
     @Override
-    protected Class<SecurityProvider> getObjectType() {
-        return SecurityProvider.class;
+    protected Class<AuthenticationHandler> getObjectType() {
+        return AuthenticationHandler.class;
     }
 
-    public List<SecurityProvider> getSecurityProviders() {
+    List<AuthenticationHandler> getSecurityProviders() {
         return new ArrayList<>(getFactoriesInstances());
     }
 }

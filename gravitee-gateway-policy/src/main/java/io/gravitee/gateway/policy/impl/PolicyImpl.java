@@ -16,7 +16,7 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.api.stream.ReadWriteStream;
-import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.AbstractPolicy;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.policy.api.annotations.OnRequest;
@@ -30,7 +30,7 @@ import java.lang.reflect.Method;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyImpl implements Policy {
+public class PolicyImpl extends AbstractPolicy {
 
     private final Object policyInst;
     private PolicyMetadata policyMetadata;
@@ -89,16 +89,6 @@ public class PolicyImpl implements Policy {
                 return invokedMethod.invoke(policyInst, parameters);
             } catch (Exception ex) {
                 throw new PolicyException(ex);
-            }
-        }
-
-        return null;
-    }
-
-    private Object getParameterAssignableTo(Class<?> paramType, Object ... args) {
-        for(Object arg: args) {
-            if (paramType.isAssignableFrom(arg.getClass())) {
-                return arg;
             }
         }
 

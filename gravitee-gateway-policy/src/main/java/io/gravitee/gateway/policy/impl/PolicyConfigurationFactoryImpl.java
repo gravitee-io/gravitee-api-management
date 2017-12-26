@@ -25,7 +25,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class PolicyConfigurationFactoryImpl implements PolicyConfigurationFactory {
 
@@ -37,7 +38,7 @@ public class PolicyConfigurationFactoryImpl implements PolicyConfigurationFactor
     @Override
     public <T extends PolicyConfiguration> T create(Class<T> policyConfigurationClass, String configuration) {
         if (configuration == null || configuration.isEmpty()) {
-            LOGGER.error("Unable to create a Policy configuration from a null or empty configuration data");
+            LOGGER.debug("Unable to create a Policy configuration from a null or empty configuration data");
             return null;
         }
 

@@ -1,2 +1,2 @@
-io.gravitee.gateway.security.core.SecurityProvider=\
-  io.gravitee.gateway.security.keyless.KeylessSecurityProvider
+io.gravitee.gateway.security.core.AuthenticationHandler=\
+  io.gravitee.gateway.security.keyless.KeylessAuthenticationHandler
