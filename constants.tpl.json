@@ -14,7 +14,9 @@
   "theme": {
     "name": "default",
     "logo": "themes/assets/GRAVITEE_LOGO1-01.png",
-    "loader": "assets/gravitee_logo_anim.gif"
+    "loader": "assets/gravitee_logo_anim.gif",
+    "css": "themes/assets/gravitee.css"
+
   },
 
   "authentication": {
