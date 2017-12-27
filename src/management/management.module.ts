@@ -85,6 +85,8 @@ require('../libraries/angular-swagger-ui/swagger-ui.min');
 -require('../libraries/angular-swagger-ui/modules/swagger-xml-formatter.min.js');
 -require('../libraries/angular-swagger-ui/modules/swagger1-to-swagger2-converter.min.js');
 
+require('../libraries/showdown-extension/DocHelper-extension.js');
+
 require('ngclipboard');
 require('angular-ui-validate');
 require('read-more/js/directives/readmore.js');
@@ -386,6 +388,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .config(function ($showdownProvider) {
     $showdownProvider.setOption('tables', true);
     $showdownProvider.loadExtension('prettify');
+    $showdownProvider.loadExtension('docHelper');
   })
   .run(runBlock)
   .controller('ApisController', ApisController)
