@@ -91,6 +91,7 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
         when(groupService.isUserAuthorizedToAccessApiData(any(), any(), any())).thenReturn(Boolean.TRUE);
+        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, false);
         doReturn(true).when(pageService).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
 
@@ -119,15 +120,13 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         pageMock.setName(PAGE_NAME);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, false);
         doReturn(false).when(pageService).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
-        final RoleEntity roleMock = mock(RoleEntity.class);
-        doReturn(roleMock).when(membershipService).getRole(MembershipReferenceType.API, API_NAME, USER_NAME, RoleScope.API);
         doReturn(true).when(roleService).hasPermission(any(), eq(ApiPermission.DOCUMENTATION), eq(new RolePermissionAction[]{RolePermissionAction.READ}));
         when(groupService.isUserAuthorizedToAccessApiData(any(), any(), any())).thenReturn(Boolean.FALSE);
+        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
 
         final Response response = target().request().get();
 
         assertEquals(UNAUTHORIZED_401, response.getStatus());
-        verify(membershipService, times(1)).getRole(MembershipReferenceType.API, API_NAME, USER_NAME, RoleScope.API);
         verify(apiService, atLeastOnce()).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, false);
         verify(pageService, times(1)).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);

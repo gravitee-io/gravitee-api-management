@@ -20,10 +20,7 @@ import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.permissions.RoleScope;
 import io.gravitee.management.model.permissions.SystemRole;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.MembershipService;
-import io.gravitee.management.service.RoleService;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
@@ -59,7 +56,7 @@ public abstract class AbstractResource {
     ApiService apiService;
 
     @Inject
-    ApplicationService applicationService;
+    PermissionService permissionService;
 
     protected String getAuthenticatedUsername() {
         return securityContext.getUserPrincipal().getName();
@@ -92,62 +89,6 @@ public abstract class AbstractResource {
     }
 
     protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
-        if (!isAuthenticated()) {
-            return false;
-        }
-        if (isAdmin()) {
-            return true;
-        }
-        Optional<String> optionalReferenceId = Optional.ofNullable(referenceId);
-        MembershipReferenceType membershipReferenceType;
-        MembershipReferenceType groupMembershipReferenceType = null;
-        io.gravitee.repository.management.model.RoleScope repoRoleScope;
-        switch (permission.getScope()) {
-            case MANAGEMENT:
-                membershipReferenceType = MembershipReferenceType.MANAGEMENT;
-                repoRoleScope = io.gravitee.repository.management.model.RoleScope.MANAGEMENT;
-                break;
-            case PORTAL:
-                membershipReferenceType = MembershipReferenceType.PORTAL;
-                repoRoleScope = io.gravitee.repository.management.model.RoleScope.PORTAL;
-                break;
-            case API:
-                membershipReferenceType = MembershipReferenceType.API;
-                groupMembershipReferenceType = MembershipReferenceType.GROUP;
-                repoRoleScope = io.gravitee.repository.management.model.RoleScope.API;
-                break;
-            case APPLICATION:
-                membershipReferenceType = MembershipReferenceType.APPLICATION;
-                groupMembershipReferenceType = MembershipReferenceType.GROUP;
-                repoRoleScope = io.gravitee.repository.management.model.RoleScope.APPLICATION;
-                break;
-            default:
-                membershipReferenceType = null;
-                repoRoleScope = null;
-        }
-        Set<RoleEntity> roles = Collections.emptySet();
-        RoleEntity firstDegreeRole = membershipService.getRole(membershipReferenceType, optionalReferenceId.orElse(MembershipDefaultReferenceId.DEFAULT.name()), getAuthenticatedUsername(), repoRoleScope);
-        if (firstDegreeRole != null) {
-            roles = Collections.singleton(firstDegreeRole);
-        } else if (groupMembershipReferenceType != null) {
-            Set<String> groups = null;
-            if (MembershipReferenceType.GROUP.equals(groupMembershipReferenceType)) {
-                try {
-                    groups = apiService.findById(referenceId).getGroups();
-                } catch (ApiNotFoundException ane) {
-                    groups = applicationService.findById(referenceId).getGroups();
-                }
-            }
-
-            if (groups != null && !groups.isEmpty()) {
-                roles = membershipService.getRoles(groupMembershipReferenceType, groups, getAuthenticatedUsername(), repoRoleScope);
-            }
-        }
-        for (RoleEntity roleEntity : roles) {
-            if (roleService.hasPermission(roleEntity.getPermissions(), permission.getPermission(), acls)) {
-                return true;
-            }
-        }
-        return false;
+        return isAuthenticated() && (isAdmin() || permissionService.hasPermission(permission, referenceId, acls));
     }
 }

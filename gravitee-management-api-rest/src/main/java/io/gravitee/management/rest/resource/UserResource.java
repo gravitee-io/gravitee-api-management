@@ -18,9 +18,12 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.idp.api.authentication.UserDetailRole;
 import io.gravitee.management.idp.api.authentication.UserDetails;
+import io.gravitee.management.model.TaskEntity;
 import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.rest.model.PagedResult;
 import io.gravitee.management.security.cookies.JWTCookieGenerator;
+import io.gravitee.management.service.TaskService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
@@ -40,6 +43,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +65,9 @@ public class UserResource extends AbstractResource {
 
     @Context
     private HttpServletResponse response;
+
+    @Autowired
+    private TaskService taskService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -137,5 +144,17 @@ public class UserResource extends AbstractResource {
     public Response logout() {
         response.addCookie(jwtCookieGenerator.generate(null));
         return Response.ok().build();
+    }
+
+    @GET
+    @Path("/tasks")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PagedResult getUserTasks() {
+        List<TaskEntity> tasks = taskService.findAll(getAuthenticatedUsernameOrNull());
+        Map<String, Map<String, Object>> metadata = taskService.getMetadata(tasks).getMetadata();
+        PagedResult<TaskEntity> pagedResult = new PagedResult(tasks, metadata);
+        PagedResult.Page page = pagedResult.new Page(1, tasks.size(), tasks.size(), 1, tasks.size());
+        pagedResult.setPage(page);
+        return pagedResult;
     }
 }
