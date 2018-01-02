@@ -317,6 +317,13 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+
+		<!-- Json Path Find-->
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<version>2.3.0</version>
+		</dependency>
 	</dependencies>
 
 	<pluginRepositories>
