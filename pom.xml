@@ -52,6 +52,7 @@
         <java-jwt.version>2.2.1</java-jwt.version>
         <guava.version>18.0</guava.version>
         <assertj-core.version>3.5.2</assertj-core.version>
+        <jsonpath.version>2.3.0</jsonpath.version>
     </properties>
 
     <modules>
