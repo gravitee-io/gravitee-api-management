@@ -35,6 +35,7 @@ import java.util.Map;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
+ * @author Guillaume GILLON (guillaume.gillon at outlook.com)
  */
 class VertxHttpServerRequest implements Request {
 
@@ -137,8 +138,22 @@ class VertxHttpServerRequest implements Request {
 
     @Override
     public String remoteAddress() {
-        SocketAddress address = httpServerRequest.remoteAddress();
-        return (address != null) ? address.host() : null;
+        String xForwardedFor = httpServerRequest.getHeader(HttpHeaders.X_FORWARDED_FOR);
+
+        String remoteAddress = null;
+
+        if(xForwardedFor != null && xForwardedFor.length() > 0) {
+            int commaIndex = xForwardedFor.indexOf(',');
+
+            remoteAddress = (commaIndex != -1)?
+                    xForwardedFor.substring(0,commaIndex).trim() : xForwardedFor.trim();
+
+        } else {
+            SocketAddress address = httpServerRequest.remoteAddress();
+            remoteAddress = (address != null) ? address.host() : null;
+        }
+
+        return remoteAddress;
     }
 
     @Override
