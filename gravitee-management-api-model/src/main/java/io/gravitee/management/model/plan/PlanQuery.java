@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.model.plan;
 
-import io.gravitee.management.model.PlanType;
+import io.gravitee.management.model.PlanSecurityType;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -25,12 +25,12 @@ public class PlanQuery {
 
     private String api;
     private String name;
-    private PlanType type;
+    private PlanSecurityType security;
 
     private PlanQuery(Builder builder) {
         api = builder.api;
         name = builder.name;
-        type = builder.type;
+        security = builder.security;
     }
 
     public String getApi() {
@@ -41,14 +41,14 @@ public class PlanQuery {
         return name;
     }
 
-    public PlanType getType() {
-        return type;
+    public PlanSecurityType getSecurity() {
+        return security;
     }
 
     public static class Builder {
         private String api;
         private String name;
-        private PlanType type;
+        private PlanSecurityType security;
 
         public PlanQuery build() {
             return new PlanQuery(this);
@@ -64,8 +64,8 @@ public class PlanQuery {
             return this;
         }
 
-        public Builder type(PlanType type) {
-            this.type = type;
+        public Builder security(PlanSecurityType security) {
+            this.security = security;
             return this;
         }
     }

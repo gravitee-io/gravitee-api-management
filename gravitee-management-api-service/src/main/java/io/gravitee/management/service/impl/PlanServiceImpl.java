@@ -122,8 +122,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                     if (query.getName() != null) {
                         filtered = p.getName().equals(query.getName());
                     }
-                    if (filtered && query.getType() != null) {
-                        filtered = p.getType().equals(query.getType());
+                    if (filtered && query.getSecurity() != null) {
+                        filtered = p.getSecurity().equals(query.getSecurity());
                     }
                     return filtered;
                 }).

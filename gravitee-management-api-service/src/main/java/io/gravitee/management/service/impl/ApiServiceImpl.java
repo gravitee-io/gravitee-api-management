@@ -766,7 +766,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     PlanQuery query = new PlanQuery.Builder().
                             api(createdOrUpdatedApiEntity.getId()).
                             name(planNode.get("name").asText()).
-                            type(PlanType.valueOf(planNode.get("type").asText())).
+                            security(PlanSecurityType.valueOf(planNode.get("security").asText())).
                             build();
                     List<PlanEntity> planEntities = planService.search(query);
                     if (planEntities == null || planEntities.isEmpty()) {
