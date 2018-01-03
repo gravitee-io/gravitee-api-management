@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,9 @@
  */
 package io.gravitee.management.rest.resource.auth;
 
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
+import com.jayway.jsonpath.ReadContext;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.management.idp.api.authentication.UserDetails;
@@ -39,19 +42,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.ReadContext;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.validation.Valid;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -135,14 +132,18 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         return Response.status(response.getStatusInfo()).build();
     }
 
-    private Response processUser(String userInfo)  throws IOException {
+    private Response processUser(String userInfo) throws IOException {
 
         ReadContext userInfoPath = JsonPath.parse(userInfo);
 
         String username = null;
         String emailMap = serverConfiguration.getUserMapping().getEmail();
         if (emailMap != null) {
-            username = userInfoPath.read(emailMap);
+            try {
+                username = userInfoPath.read(emailMap);
+            } catch (PathNotFoundException e) {
+                LOGGER.error("Using json-path: \"{}\", no fields are located in {}", emailMap, userInfo);
+            }
         }
 
         if (username == null) {
@@ -164,15 +165,27 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
             String idMap = serverConfiguration.getUserMapping().getId();
             if (idMap != null) {
-                newUser.setSourceId(userInfoPath.read(idMap));
+                try {
+                    newUser.setSourceId(userInfoPath.read(idMap));
+                } catch (PathNotFoundException e) {
+                    LOGGER.error("Using json-path: \"{}\", no fields are located in {}", idMap, userInfo);
+                }
             }
             String lastNameMap = serverConfiguration.getUserMapping().getLastname();
             if (lastNameMap != null) {
-                newUser.setLastname(userInfoPath.read(lastNameMap));
+                try {
+                    newUser.setLastname(userInfoPath.read(lastNameMap));
+                } catch (PathNotFoundException e) {
+                    LOGGER.error("Using json-path: \"{}\", no fields are located in {}", lastNameMap, userInfo);
+                }
             }
             String firstNameMap = serverConfiguration.getUserMapping().getFirstname();
             if (firstNameMap != null) {
-                newUser.setFirstname(userInfoPath.read(firstNameMap));
+                try {
+                    newUser.setFirstname(userInfoPath.read(firstNameMap));
+                } catch (PathNotFoundException e) {
+                    LOGGER.error("Using json-path: \"{}\", no fields are located in {}", firstNameMap, userInfo);
+                }
             }
             newUser.setEmail(username);
 
@@ -195,7 +208,11 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         user.setUsername(username);
         String pictureMap = serverConfiguration.getUserMapping().getPicture();
         if (pictureMap != null) {
-            user.setPicture(userInfoPath.read(pictureMap));
+            try {
+                user.setPicture(userInfoPath.read(pictureMap));
+            } catch (PathNotFoundException e) {
+                LOGGER.error("Using json-path: \"{}\", no fields are located in {}", pictureMap, userInfo);
+            }
         }
         userService.update(user);
 
@@ -203,11 +220,11 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     }
 
     private void addUserToApiAndAppGroupsWithDefaultRole(NewExternalUserEntity newUser, Collection<GroupEntity> groupsToAdd) {
-        List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(RoleScope.API,RoleScope.APPLICATION);
+        List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION);
 
         //add groups to user
-        for(GroupEntity groupEntity : groupsToAdd) {
-            for(RoleEntity roleEntity : roleEntities) {
+        for (GroupEntity groupEntity : groupsToAdd) {
+            for (RoleEntity roleEntity : roleEntities) {
                 membershipService.addOrUpdateMember(MembershipReferenceType.GROUP, groupEntity.getId(), newUser.getUsername(), mapScope(roleEntity.getScope()), roleEntity.getName());
             }
         }
@@ -216,21 +233,21 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private Set<GroupEntity> getGroupsToAddUser(String userName, List<ExpressionMapping> mappings, String userInfo) {
         Set<GroupEntity> groupsToAdd = new HashSet<>();
 
-        for (ExpressionMapping mapping: mappings) {
+        for (ExpressionMapping mapping : mappings) {
 
             TemplateEngine templateEngine = TemplateEngine.templateEngine();
-            templateEngine.getTemplateContext().setVariable("profile",userInfo);
+            templateEngine.getTemplateContext().setVariable("profile", userInfo);
 
             boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
 
             trace(userName, match, mapping);
 
             //get groups
-            if(match) {
-                for(String groupName : mapping.getGroupNames()) {
+            if (match) {
+                for (String groupName : mapping.getGroupNames()) {
                     List<GroupEntity> groupEntities = groupService.findByName(groupName);
 
-                    if(groupEntities.isEmpty()) {
+                    if (groupEntities.isEmpty()) {
                         LOGGER.error("Unable to create user, missing group in repository : {}", groupName);
                         throw new InternalServerErrorException();
                     } else if (groupEntities.size() > 1) {
@@ -246,8 +263,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     }
 
     private void trace(String userName, boolean match, ExpressionMapping mapping) {
-        if(LOGGER.isDebugEnabled()) {
-            if(match) {
+        if (LOGGER.isDebugEnabled()) {
+            if (match) {
                 LOGGER.debug("the expression {} match on {} user's info ", mapping.getCondition(), userName);
             } else {
                 LOGGER.debug("the expression {} didn't match {} on user's info ", mapping.getCondition(), userName);
@@ -256,7 +273,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     }
 
     private RoleScope mapScope(io.gravitee.management.model.permissions.RoleScope scope) {
-        if(io.gravitee.management.model.permissions.RoleScope.API == scope) {
+        if (io.gravitee.management.model.permissions.RoleScope.API == scope) {
             return RoleScope.API;
         } else {
             return RoleScope.APPLICATION;
