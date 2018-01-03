@@ -16,10 +16,10 @@
 package io.gravitee.management.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.management.model.PlanSecurityType;
 import io.gravitee.management.model.SubscriptionStatus;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,6 +28,8 @@ import java.util.List;
 public class Subscription {
 
     private String id;
+
+    private Api api;
 
     private Plan plan;
 
@@ -67,6 +69,9 @@ public class Subscription {
     @JsonProperty("closed_at")
     private Date closedAt;
 
+    @JsonProperty("client_id")
+    private String clientId;
+
     public String getId() {
         return id;
     }
@@ -97,6 +102,14 @@ public class Subscription {
 
     public void setApplication(Application application) {
         this.application = application;
+    }
+
+    public Api getApi() {
+        return api;
+    }
+
+    public void setApi(Api api) {
+        this.api = api;
     }
 
     public Date getProcessedAt() {
@@ -171,6 +184,14 @@ public class Subscription {
         this.closedAt = closedAt;
     }
 
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -189,7 +210,7 @@ public class Subscription {
     public static class Plan {
         private final String id;
         private final String name;
-        private List<Api> apis;
+        private PlanSecurityType security;
 
         public Plan(final String id, final String name) {
             this.id = id;
@@ -204,12 +225,12 @@ public class Subscription {
             return name;
         }
 
-        public List<Api> getApis() {
-            return apis;
+        public PlanSecurityType getSecurity() {
+            return security;
         }
 
-        public void setApis(List<Api> apis) {
-            this.apis = apis;
+        public void setSecurity(PlanSecurityType security) {
+            this.security = security;
         }
     }
 
@@ -217,7 +238,7 @@ public class Subscription {
         private final String id;
         private final String name;
         private final String type;
-        private Owner owner;
+        private final Owner owner;
 
         public Application(final String id, final String name, final String type, final Owner owner) {
             this.id = id;
@@ -248,12 +269,13 @@ public class Subscription {
         private final String id;
         private final String name;
         private final String version;
-        private Owner owner;
+        private final Owner owner;
 
-        public Api(final String id, final String name, final String version) {
+        public Api(final String id, final String name, final String version, final Owner owner) {
             this.id = id;
             this.name = name;
             this.version = version;
+            this.owner = owner;
         }
 
         public String getId() {
@@ -266,10 +288,6 @@ public class Subscription {
 
         public Owner getOwner() {
             return owner;
-        }
-
-        public void setOwner(Owner owner) {
-            this.owner = owner;
         }
 
         public String getVersion() {

@@ -18,14 +18,16 @@ package io.gravitee.management.service.impl;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.management.model.subscription.SubscriptionQuery;
 import io.gravitee.management.service.*;
-import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.management.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.management.service.exceptions.SubscriptionNotClosableException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_ARCHIVED;
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
-import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
-import static io.gravitee.repository.management.model.Metadata.AuditEvent.METADATA_DELETED;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonMap;
 
@@ -185,20 +186,26 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         try {
             LOGGER.debug("Create {} for user {}", newApplicationEntity, username);
 
+            // If clientId is set, check for uniqueness
+            String clientId = newApplicationEntity.getClientId();
+
+            if (clientId != null && ! clientId.trim().isEmpty()) {
+                LOGGER.debug("Check that client_id is unique among all applications");
+                Optional<Application> byClientId = applicationRepository.findByClientId(clientId);
+                if (byClientId.isPresent()) {
+                    LOGGER.error("An application already exists with the same client_id");
+                    throw new ClientIdAlreadyExistsException(clientId);
+                }
+            }
+
             if (newApplicationEntity.getGroups() != null && !newApplicationEntity.getGroups().isEmpty()) {
                 //throw a NotFoundException if the group doesn't exist
                 groupService.findByIds(newApplicationEntity.getGroups());
             }
-            String id = UUID.toString(UUID.random());
-
-            Optional<Application> checkApplication = applicationRepository.findById(id);
-            if (checkApplication.isPresent()) {
-                throw new ApplicationAlreadyExistsException(id);
-            }
 
             Application application = convert(newApplicationEntity);
 
-            application.setId(id);
+            application.setId( UUID.toString(UUID.random()));
             application.setStatus(ApplicationStatus.ACTIVE);
 
             // Add Default groups
@@ -254,6 +261,20 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 throw new ApplicationNotFoundException(applicationId);
             }
 
+            // If clientId is set, check for uniqueness
+            String clientId = updateApplicationEntity.getClientId();
+
+            if (clientId != null && ! clientId.trim().isEmpty()) {
+                LOGGER.debug("Check that client_id is unique among all applications");
+                Optional<Application> byClientId = applicationRepository.findByClientId(clientId);
+
+                if (byClientId.isPresent() &&
+                        ! byClientId.get().getId().equals(optApplicationToUpdate.get().getId())) {
+                    LOGGER.error("An application already exists with the same client_id");
+                    throw new ClientIdAlreadyExistsException(clientId);
+                }
+            }
+
             Application application = convert(updateApplicationEntity);
             application.setId(applicationId);
             application.setStatus(ApplicationStatus.ACTIVE);
@@ -261,6 +282,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setUpdatedAt(new Date());
 
             Application updatedApplication =  applicationRepository.update(application);
+
             // Audit
             auditService.createApplicationAuditLog(
                     updatedApplication.getId(),
@@ -269,6 +291,22 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     updatedApplication.getUpdatedAt(),
                     optApplicationToUpdate.get(),
                     updatedApplication);
+
+            // Set correct client_id for all subscriptions
+            SubscriptionQuery subQuery = new SubscriptionQuery();
+            subQuery.setApplication(applicationId);
+            subQuery.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
+            subscriptionService.search(subQuery).forEach(new Consumer<SubscriptionEntity>() {
+                @Override
+                public void accept(SubscriptionEntity subscriptionEntity) {
+                    UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                    updateSubscriptionEntity.setId(subscriptionEntity.getId());
+                    updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
+                    updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
+
+                    subscriptionService.update(updateSubscriptionEntity, application.getClientId());
+                }
+            });
             return convert(Collections.singleton(updatedApplication)).iterator().next();
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update application {}", applicationId, ex);
@@ -288,7 +326,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             Application application = optApplication.get();
             Application previousApplication = new Application(application);
-            Set<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(applicationId, null);
+            Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(applicationId, null);
 
             subscriptions.forEach(subscription -> {
                 Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
@@ -372,6 +410,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setGroups(application.getGroups());
         applicationEntity.setCreatedAt(application.getCreatedAt());
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
+        applicationEntity.setClientId(application.getClientId());
 
         if (primaryOwner != null) {
             final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
@@ -391,6 +430,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         application.setName(newApplicationEntity.getName().trim());
         application.setDescription(newApplicationEntity.getDescription().trim());
         application.setGroups(newApplicationEntity.getGroups());
+        application.setClientId(newApplicationEntity.getClientId());
 
         if (newApplicationEntity.getType() != null) {
             application.setType(newApplicationEntity.getType().trim());
@@ -405,6 +445,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         application.setName(updateApplicationEntity.getName().trim());
         application.setDescription(updateApplicationEntity.getDescription().trim());
         application.setGroups(updateApplicationEntity.getGroups());
+        application.setClientId(updateApplicationEntity.getClientId());
 
         if (updateApplicationEntity.getType() != null) {
             application.setType(updateApplicationEntity.getType().trim());

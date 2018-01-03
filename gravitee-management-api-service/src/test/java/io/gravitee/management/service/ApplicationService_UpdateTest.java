@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.management.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
@@ -44,6 +45,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,6 +60,7 @@ public class ApplicationService_UpdateTest {
     private static final String APPLICATION_ID = "id-app";
     private static final String APPLICATION_NAME = "myApplication";
     private static final String USER_NAME = "myUser";
+    private static final String CLIENT_ID = "myClientId";
 
     @InjectMocks
     private ApplicationServiceImpl applicationService = new ApplicationServiceImpl();
@@ -80,6 +83,8 @@ public class ApplicationService_UpdateTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private SubscriptionService subscriptionService;
 
     @Test
     public void shouldUpdate() throws TechnicalException {
@@ -123,6 +128,50 @@ public class ApplicationService_UpdateTest {
 
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getDescription()).thenReturn("My description");
+
+        applicationService.update(APPLICATION_ID, existingApplication);
+    }
+
+    @Test
+    public void shouldUpdateBecauseSameApplication() throws TechnicalException {
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(applicationRepository.findByClientId(CLIENT_ID)).thenReturn(Optional.of(application));
+        when(application.getId()).thenReturn(APPLICATION_ID);
+        when(application.getClientId()).thenReturn(CLIENT_ID);
+        when(existingApplication.getClientId()).thenReturn(CLIENT_ID);
+        when(application.getName()).thenReturn(APPLICATION_NAME);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getDescription()).thenReturn("My description");
+        when(applicationRepository.update(any())).thenReturn(application);
+        Membership po = new Membership(USER_NAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
+        po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
+        when(membershipRepository.findByReferencesAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
+                .thenReturn(Collections.singleton(po));
+
+        final ApplicationEntity applicationEntity = applicationService.update(APPLICATION_ID, existingApplication);
+
+        verify(applicationRepository).update(argThat(new ArgumentMatcher<Application>() {
+            public boolean matches(Object argument) {
+                final Application application = (Application) argument;
+                return APPLICATION_NAME.equals(application.getName()) &&
+                        application.getUpdatedAt() != null;
+            }
+        }));
+
+        assertNotNull(applicationEntity);
+        assertEquals(APPLICATION_NAME, applicationEntity.getName());
+    }
+
+    @Test (expected = ClientIdAlreadyExistsException.class)
+    public void shouldNotUpdateBecauseDifferentApplication() throws TechnicalException {
+        Application other = mock(Application.class);
+        when(other.getId()).thenReturn("other-app");
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(applicationRepository.findByClientId(CLIENT_ID)).thenReturn(Optional.of(other));
+        when(application.getId()).thenReturn(APPLICATION_ID);
+        when(existingApplication.getClientId()).thenReturn(CLIENT_ID);
 
         applicationService.update(APPLICATION_ID, existingApplication);
     }

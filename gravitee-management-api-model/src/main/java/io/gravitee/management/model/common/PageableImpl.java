@@ -13,20 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.TaskEntity;
-import io.gravitee.management.model.pagedresult.Metadata;
-
-import java.util.List;
+package io.gravitee.management.model.common;
 
 /**
- * @author Nicolas GERAUD(nicolas.geraud at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TaskService {
+public class PageableImpl implements Pageable {
 
-    List<TaskEntity> findAll(String username);
+    private final int pageNumber;
+    private final int pageSize;
 
-    Metadata getMetadata(List<TaskEntity> tasks);
+    public PageableImpl(final int pageNumber, final int pageSize) {
+        this.pageNumber = pageNumber;
+        this.pageSize = pageSize;
+    }
+
+    @Override
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
+    @Override
+    public int getPageSize() {
+        return pageSize;
+    }
 }

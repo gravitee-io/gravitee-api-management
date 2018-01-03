@@ -46,6 +46,8 @@ public class ApplicationEntity {
 
     private String role;
 
+    private String clientId;
+
     public String getId() {
         return id;
     }
@@ -124,6 +126,14 @@ public class ApplicationEntity {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 
     @Override

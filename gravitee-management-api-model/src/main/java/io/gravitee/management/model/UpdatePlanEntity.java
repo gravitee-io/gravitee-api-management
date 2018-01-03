@@ -16,6 +16,7 @@
 package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.gravitee.definition.model.Path;
 
 import javax.validation.constraints.NotNull;
@@ -50,6 +51,8 @@ public class UpdatePlanEntity {
 
     @JsonProperty("excluded_groups")
     private List<String> excludedGroups;
+
+    private String securityDefinition;
 
     public String getName() {
         return name;
@@ -113,6 +116,14 @@ public class UpdatePlanEntity {
 
     public void setExcludedGroups(List<String> excludedGroups) {
         this.excludedGroups = excludedGroups;
+    }
+
+    public String getSecurityDefinition() {
+        return securityDefinition;
+    }
+
+    public void setSecurityDefinition(String securityDefinition) {
+        this.securityDefinition = securityDefinition;
     }
 
     @Override

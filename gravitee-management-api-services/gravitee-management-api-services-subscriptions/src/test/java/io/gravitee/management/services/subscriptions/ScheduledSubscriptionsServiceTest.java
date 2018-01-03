@@ -18,6 +18,7 @@ package io.gravitee.management.services.subscriptions;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.model.SubscriptionStatus;
+import io.gravitee.management.model.subscription.SubscriptionQuery;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.SubscriptionService;
 import org.junit.Test;
@@ -65,38 +66,25 @@ public class ScheduledSubscriptionsServiceTest {
                 "end_date_in_the_future",
                 SubscriptionStatus.ACCEPTED,
                 new Date(Long.MAX_VALUE));
-        SubscriptionEntity closedSubscription = createSubscription(
-                "closed_subscription",
-                SubscriptionStatus.CLOSED,
-                new Date(0));
-        SubscriptionEntity pendingSubscription = createSubscription(
-                "pending_subscription",
-                SubscriptionStatus.PENDING,
-                new Date(0));
-        SubscriptionEntity rejectedSubscription = createSubscription(
-                "rejected_subscription",
-                SubscriptionStatus.REJECTED,
-                new Date(0));
         when(apiService.findAll()).thenReturn(Collections.singleton(apiEntity));
-        when(subscriptionService.findByApi(apiEntity.getId())).
+
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApi(apiEntity.getId());
+        query.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
+
+        when(subscriptionService.search(query)).
                 thenReturn(new HashSet<>(Arrays.asList(
                         endDateInThePast,
                         noEndDate,
-                        endDateInTheFuture,
-                        closedSubscription,
-                        pendingSubscription,
-                        rejectedSubscription)));
+                        endDateInTheFuture)));
 
         service.run();
 
         verify(apiService, times(1)).findAll();
-        verify(subscriptionService, times(1)).findByApi(apiEntity.getId());
+        verify(subscriptionService, times(1)).search(query);
         verify(subscriptionService, times(1)).close("end_date_in_the_past");
         verify(subscriptionService, never()).close("no_end_date");
         verify(subscriptionService, never()).close("end_date_in_the_future");
-        verify(subscriptionService, never()).close("closed_subscription");
-        verify(subscriptionService, never()).close("pending_subscription");
-        verify(subscriptionService, never()).close("rejected_subscription");
     }
 
     private SubscriptionEntity createSubscription(String id, SubscriptionStatus status, Date endingDate) {

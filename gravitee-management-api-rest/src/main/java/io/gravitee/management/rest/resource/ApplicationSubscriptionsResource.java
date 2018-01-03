@@ -15,17 +15,24 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.model.subscription.SubscriptionQuery;
+import io.gravitee.management.rest.model.Pageable;
+import io.gravitee.management.rest.model.PagedResult;
 import io.gravitee.management.rest.model.Subscription;
+import io.gravitee.management.rest.resource.param.ListStringParam;
+import io.gravitee.management.rest.resource.param.ListSubscriptionStatusParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.*;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -80,25 +87,24 @@ public class ApplicationSubscriptionsResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List subscriptions for the application",
-            notes = "User must have the READ permission to use this service")
+            notes = "User must have the READ_SUBSCRIPTION permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "List of subscriptions", response = Subscription.class, responseContainer = "Set"),
+            @ApiResponse(code = 200, message = "Paged result of application's subscriptions", response = PagedResult.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
-    public Set<Subscription> listApplicationSubscriptions(
-            @PathParam("application") String application,
-            @QueryParam("plan") String optionalPlanId) {
-        String planId = null;
-        if (optionalPlanId != null) {
-            planService.findById(optionalPlanId);
-            planId = optionalPlanId;
-        }
-        return subscriptionService.findByApplicationAndPlan(application, planId)
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+    public PagedResult<SubscriptionEntity> listApplicationSubscriptions(
+            @BeanParam SubscriptionParam subscriptionParam,
+            @Valid @BeanParam Pageable pageable) {
+        // Transform query parameters to a subscription query
+        SubscriptionQuery subscriptionQuery = subscriptionParam.toQuery();
+
+        Page<SubscriptionEntity> subscriptions = subscriptionService
+                .search(subscriptionQuery, pageable.toPageable());
+        PagedResult<SubscriptionEntity> result = new PagedResult<>(subscriptions, pageable.getSize());
+        result.setMetadata(subscriptionService.getMetadata(subscriptions.getContent()).getMetadata());
+        return result;
     }
 
     @GET
@@ -203,7 +209,9 @@ public class ApplicationSubscriptionsResource {
 
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
+        subscription.getPlan().setSecurity(plan.getSecurity());
 
+        /*
         ApplicationEntity application = applicationService.findById(subscriptionEntity.getApplication());
         subscription.setApplication(
                 new Subscription.Application(
@@ -216,14 +224,93 @@ public class ApplicationSubscriptionsResource {
                                 application.getPrimaryOwner().getLastname()
                         )
                 ));
+        */
 
-        subscription.getPlan().setApis(plan.getApis().stream().map(api -> {
-            io.gravitee.management.model.ApiEntity apiEntity = apiService.findById(api);
-            return new Subscription.Api(apiEntity.getId(), apiEntity.getName(), apiEntity.getVersion());
-        }).collect(Collectors.toList()));
+        ApiEntity api = apiService.findById(subscriptionEntity.getApi());
+        subscription.setApi(
+                new Subscription.Api(
+                        api.getId(),
+                        api.getName(),
+                        api.getVersion(),
+                        new Subscription.Owner(
+                                api.getPrimaryOwner().getUsername(),
+                                api.getPrimaryOwner().getFirstname(),
+                                api.getPrimaryOwner().getLastname()
+                        )
+                ));
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
 
         return subscription;
+    }
+
+    private static class SubscriptionParam {
+        @PathParam("application")
+        private String application;
+
+        @QueryParam("plan")
+        @ApiParam(value = "plan", required = true)
+        private ListStringParam plans;
+
+        @QueryParam("api")
+        @ApiParam(value = "api", required = true)
+        private ListStringParam apis;
+
+        @QueryParam("status")
+        @DefaultValue("accepted,pending")
+        @ApiModelProperty(dataType = "string", allowableValues = "accepted, pending, rejected, closed", value = "Subscription status")
+        private ListSubscriptionStatusParam status;
+
+        public ListStringParam getPlans() {
+            return plans;
+        }
+
+        public void setPlans(ListStringParam plans) {
+            this.plans = plans;
+        }
+
+        public String getApplication() {
+            return application;
+        }
+
+        public void setApplication(String application) {
+            this.application = application;
+        }
+
+        public ListStringParam getApis() {
+            return apis;
+        }
+
+        public void setApis(ListStringParam apis) {
+            this.apis = apis;
+        }
+
+        public ListSubscriptionStatusParam getStatus() {
+            return status;
+        }
+
+        public void setStatus(ListSubscriptionStatusParam status) {
+            this.status = status;
+        }
+
+        private SubscriptionQuery toQuery() {
+            SubscriptionQuery query = new SubscriptionQuery();
+
+            query.setApplication(this.application);
+
+            if (apis != null && apis.getValue() != null) {
+                query.setApis(apis.getValue());
+            }
+
+            if (plans != null && plans.getValue() != null) {
+                query.setPlans(plans.getValue());
+            }
+
+            if (status != null) {
+                query.setStatuses(status.getStatus());
+            }
+
+            return query;
+        }
     }
 }

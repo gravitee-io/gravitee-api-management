@@ -33,6 +33,8 @@ public class NewApplicationEntity {
 
     private String type;
 
+    private String clientId;
+
     private Set<String> groups;
 
     public String getDescription() {
@@ -67,12 +69,21 @@ public class NewApplicationEntity {
         this.groups = groups;
     }
 
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Application{");
         sb.append("description='").append(description).append('\'');
         sb.append(", name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
+        sb.append(", clientId='").append(clientId).append('\'');
         sb.append(", groups='").append(groups).append('\'');
         sb.append('}');
         return sb.toString();

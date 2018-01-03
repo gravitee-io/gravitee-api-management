@@ -372,6 +372,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiSubscriptionsResource.class);
     }
 
+    @Path("subscribers")
+    public ApiSubscribersResource geApiSubscribersResource() {
+        return resourceContext.getResource(ApiSubscribersResource.class);
+    }
+
     @Path("metadata")
     public ApiMetadataResource getApiMetadataResource() {
         return resourceContext.getResource(ApiMetadataResource.class);

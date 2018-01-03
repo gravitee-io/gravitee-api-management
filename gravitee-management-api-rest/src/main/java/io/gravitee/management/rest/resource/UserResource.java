@@ -152,9 +152,8 @@ public class UserResource extends AbstractResource {
     public PagedResult getUserTasks() {
         List<TaskEntity> tasks = taskService.findAll(getAuthenticatedUsernameOrNull());
         Map<String, Map<String, Object>> metadata = taskService.getMetadata(tasks).getMetadata();
-        PagedResult<TaskEntity> pagedResult = new PagedResult(tasks, metadata);
-        PagedResult.Page page = pagedResult.new Page(1, tasks.size(), tasks.size(), 1, tasks.size());
-        pagedResult.setPage(page);
+        PagedResult<TaskEntity> pagedResult = new PagedResult<>(tasks);
+        pagedResult.setMetadata(metadata);
         return pagedResult;
     }
 }

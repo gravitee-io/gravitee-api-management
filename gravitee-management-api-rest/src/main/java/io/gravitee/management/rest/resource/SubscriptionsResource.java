@@ -101,11 +101,6 @@ public class SubscriptionsResource {
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
 
-        subscription.getPlan().setApis(plan.getApis().stream().map(api -> {
-            io.gravitee.management.model.ApiEntity apiEntity = apiService.findById(api);
-            return new Subscription.Api(apiEntity.getId(), apiEntity.getName(), apiEntity.getVersion());
-        }).collect(Collectors.toList()));
-
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
 
         return subscription;

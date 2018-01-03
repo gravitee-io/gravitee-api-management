@@ -15,29 +15,34 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.model.subscription.SubscriptionQuery;
+import io.gravitee.management.rest.model.Pageable;
+import io.gravitee.management.rest.model.PagedResult;
 import io.gravitee.management.rest.model.Subscription;
-import io.gravitee.management.rest.resource.param.LifecycleActionParam;
+import io.gravitee.management.rest.resource.param.ListStringParam;
+import io.gravitee.management.rest.resource.param.ListSubscriptionStatusParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.management.service.ApiKeyService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.SubscriptionService;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
-import javax.naming.OperationNotSupportedException;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.URI;
-import java.util.Set;
+import java.util.Date;
 import java.util.stream.Collectors;
-
-import static io.gravitee.management.model.SubscriptionStatus.CLOSED;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -51,128 +56,73 @@ public class ApiSubscriptionsResource extends AbstractResource {
     private SubscriptionService subscriptionService;
 
     @Inject
+    private ApplicationService applicationService;
+
+    @Inject
     private PlanService planService;
 
-    @Inject
-    private ApiKeyService apiKeyService;
-
-    @Inject
-    private ApplicationService applicationService;
+    @Context
+    private ResourceContext resourceContext;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List subscriptions for the API",
-            notes = "User must have the MANAGE_PLANS permission to use this service")
+            notes = "User must have the READ_SUBSCRIPTION permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "List of subscriptions", response = Subscription.class, responseContainer = "Set"),
+            @ApiResponse(code = 200, message = "Paged result of API's subscriptions", response = PagedResult.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
-    public Set<Subscription> listApiSubscriptions(
-            @PathParam("api") String api) {
-        return subscriptionService.findByApi(api)
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+    public PagedResult<SubscriptionEntity> listApiSubscriptions(
+            @BeanParam SubscriptionParam subscriptionParam,
+            @Valid @BeanParam Pageable pageable) {
+        // Transform query parameters to a subscription query
+        SubscriptionQuery subscriptionQuery = subscriptionParam.toQuery();
+
+        Page<SubscriptionEntity> subscriptions = subscriptionService
+                .search(subscriptionQuery, pageable.toPageable());
+        PagedResult<SubscriptionEntity> result = new PagedResult<>(subscriptions, pageable.getSize());
+        result.setMetadata(subscriptionService.getMetadata(subscriptions.getContent()).getMetadata());
+        return result;
     }
 
     @POST
-    @Path("{subscription}/status")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Change the status of a subscription",
-            notes = "User must have the MANAGE_PLANS permission to use this service")
+    @ApiOperation(value = "Subscribe to a plan",
+            notes = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "API subscription successfully closed"),
-            @ApiResponse(code = 400, message = "Status changes not authorized"),
-            @ApiResponse(code = 404, message = "API subscription does not exist"),
+            @ApiResponse(code = 201, message = "Subscription successfully created", response = Subscription.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.CREATE)
     })
-    public Response changeStatus(
+    public Response createSubscription(
             @PathParam("api") String api,
-            @PathParam("subscription") String subscription,
-            @ApiParam(required = true, allowableValues = "CLOSED")
-            @QueryParam("status") SubscriptionStatus subscriptionStatus) {
-        subscriptionService.findById(subscription);
-        if (CLOSED.equals(subscriptionStatus)) {
-            subscriptionService.close(subscription);
-        } else {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            @ApiParam(name = "application", required = true)
+            @NotNull @QueryParam("application") String application,
+            @ApiParam(name = "plan", required = true)
+            @NotNull @QueryParam("plan") String plan) {
+        // Create subscription
+        SubscriptionEntity subscription = subscriptionService.create(plan, application);
+
+        if (subscription.getStatus() == SubscriptionStatus.PENDING) {
+            ProcessSubscriptionEntity process = new ProcessSubscriptionEntity();
+            process.setId(subscription.getId());
+            process.setAccepted(true);
+            process.setStartingAt(new Date());
+            subscription = subscriptionService.process(process, getAuthenticatedUsername());
         }
 
-        return Response.status(Response.Status.NO_CONTENT).build();
+        return Response
+                .created(URI.create("/apis/" + api + "/subscriptions/" + subscription.getId()))
+                .entity(convert(subscription))
+                .build();
     }
 
-    @GET
-    @Path("{subscription}/keys")
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List all API Keys for a subscription",
-            notes = "User must have the MANAGE_API_KEYS permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "List of API Keys for a subscription", response = ApiKeyEntity.class,
-                    responseContainer = "Set"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
-    })
-    public Set<ApiKeyEntity> listApiKeysForSubscription(
-            @PathParam("subscription") String subscription) {
-        return apiKeyService.findBySubscription(subscription);
-    }
-
-    @POST
     @Path("{subscription}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Renew an API key",
-            notes = "User must have the MANAGE_API_KEYS permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 201, message = "A new API Key", response = ApiKeyEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
-    })
-    public Response renewApiKey(
-            @PathParam("api") String api,
-            @PathParam("subscription") String subscription) {
-        ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscription);
-        return Response
-                .created(URI.create("/apis/" + api + "/subscriptions/" + subscription +
-                        "/keys" + apiKeyEntity.getKey()))
-                .entity(apiKeyEntity)
-                .build();
-    }
-
-    @DELETE
-    @Path("{subscription}/keys/{key}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Revoke an API key",
-            notes = "User must have the MANAGE_API_KEYS permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 204, message = "API key successfully revoked"),
-            @ApiResponse(code = 400, message = "API Key does not correspond to the subscription"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
-    })
-    public Response revokeApiKey(
-            @PathParam("api") String api,
-            @PathParam("subscription") String subscription,
-            @PathParam("key") String apiKey) {
-        ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(apiKey);
-        if (apiKeyEntity.getSubscription() != null && ! subscription.equals(apiKeyEntity.getSubscription())) {
-            return Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("'key' parameter does not correspond to the subscription")
-                    .build();
-        }
-
-        apiKeyService.revoke(apiKey, true);
-
-        return Response
-                .status(Response.Status.NO_CONTENT)
-                .build();
+    public ApiSubscriptionResource getApiSubscriptionResource() {
+        return resourceContext.getResource(ApiSubscriptionResource.class);
     }
 
     private Subscription convert(SubscriptionEntity subscriptionEntity) {
@@ -208,5 +158,75 @@ public class ApiSubscriptionsResource extends AbstractResource {
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
 
         return subscription;
+    }
+
+    private static class SubscriptionParam {
+        @PathParam("api")
+        private String api;
+
+        @QueryParam("plan")
+        @ApiParam(value = "plan", required = true)
+        private ListStringParam plans;
+
+        @QueryParam("application")
+        @ApiParam(value = "application", required = true)
+        private ListStringParam applications;
+
+        @QueryParam("status")
+        @DefaultValue("accepted,pending")
+        @ApiModelProperty(dataType = "string", allowableValues = "accepted, pending, rejected, closed", value = "Subscription status")
+        private ListSubscriptionStatusParam status;
+
+        public String getApi() {
+            return api;
+        }
+
+        public void setApi(String api) {
+            this.api = api;
+        }
+
+        public ListStringParam getPlans() {
+            return plans;
+        }
+
+        public void setPlans(ListStringParam plans) {
+            this.plans = plans;
+        }
+
+        public ListStringParam getApplications() {
+            return applications;
+        }
+
+        public void setApplications(ListStringParam applications) {
+            this.applications = applications;
+        }
+
+        public ListSubscriptionStatusParam getStatus() {
+            return status;
+        }
+
+        public void setStatus(ListSubscriptionStatusParam status) {
+            this.status = status;
+        }
+
+        private SubscriptionQuery toQuery() {
+            SubscriptionQuery query = new SubscriptionQuery();
+
+            query.setApi(this.api);
+
+            if (plans != null && plans.getValue() != null) {
+                query.setPlans(plans.getValue());
+            }
+
+            if (status != null) {
+                query.setStatuses(status.getStatus());
+            }
+
+            if (applications != null && applications.getValue() != null) {
+                query.setApplications(applications.getValue());
+            }
+
+            return query;
+        }
     }
 }

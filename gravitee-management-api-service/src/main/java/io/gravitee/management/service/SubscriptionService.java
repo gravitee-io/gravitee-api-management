@@ -15,11 +15,16 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.model.ProcessSubscriptionEntity;
 import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.model.UpdateSubscriptionEntity;
+import io.gravitee.management.model.common.Pageable;
+import io.gravitee.management.model.pagedresult.Metadata;
+import io.gravitee.management.model.subscription.SubscriptionQuery;
 
-import java.util.Set;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,19 +39,27 @@ public interface SubscriptionService {
      */
     SubscriptionEntity findById(String subscription);
 
-    Set<SubscriptionEntity> findByApplicationAndPlan(String application, String plan);
+    Collection<SubscriptionEntity> findByApplicationAndPlan(String application, String plan);
 
-    Set<SubscriptionEntity> findByApi(String api);
+    Collection<SubscriptionEntity> findByApi(String api);
 
-    Set<SubscriptionEntity> findByPlan(String plan);
+    Collection<SubscriptionEntity> findByPlan(String plan);
 
     SubscriptionEntity create(String plan, String application);
 
     SubscriptionEntity update(UpdateSubscriptionEntity subscription);
+
+    SubscriptionEntity update(UpdateSubscriptionEntity subscription, String clientId);
 
     SubscriptionEntity process(ProcessSubscriptionEntity processSubscription, String validator);
 
     SubscriptionEntity close(String subscription);
 
     void delete(String subscription);
+
+    Collection<SubscriptionEntity> search(SubscriptionQuery query);
+
+    Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable);
+
+    Metadata getMetadata(List<SubscriptionEntity> subscriptions);
 }

@@ -41,6 +41,8 @@ public class NewPlanEntity {
     @NotNull
     private PlanSecurityType security = PlanSecurityType.API_KEY;
 
+    private String securityDefinition;
+
     @NotNull
     private PlanType type = PlanType.API;
 
@@ -135,6 +137,14 @@ public class NewPlanEntity {
 
     public void setExcludedGroups(List<String> excludedGroups) {
         this.excludedGroups = excludedGroups;
+    }
+
+    public String getSecurityDefinition() {
+        return securityDefinition;
+    }
+
+    public void setSecurityDefinition(String securityDefinition) {
+        this.securityDefinition = securityDefinition;
     }
 
     @Override

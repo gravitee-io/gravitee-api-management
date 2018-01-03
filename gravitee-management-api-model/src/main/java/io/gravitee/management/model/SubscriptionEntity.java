@@ -27,6 +27,8 @@ public class SubscriptionEntity {
 
     private String id;
 
+    private String api;
+
     private String plan;
 
     private String application;
@@ -65,12 +67,23 @@ public class SubscriptionEntity {
     @JsonProperty("closed_at")
     private Date closedAt;
 
+    @JsonProperty("client_id")
+    private String clientId;
+
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getApi() {
+        return api;
+    }
+
+    public void setApi(String api) {
+        this.api = api;
     }
 
     public String getPlan() {
@@ -167,6 +180,14 @@ public class SubscriptionEntity {
 
     public void setClosedAt(Date closedAt) {
         this.closedAt = closedAt;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 
     @Override

@@ -17,8 +17,6 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.permissions.RolePermission;
-import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.PlanStatusParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
@@ -26,13 +24,13 @@ import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
-import io.gravitee.repository.management.model.Subscription;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -267,10 +265,5 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         return Response.ok(planService.publish(plan)).build();
-    }
-
-    @Path("/{plan}/subscriptions")
-    public ApiPlanSubscriptionsResource getApiSubscriptionsResource() {
-        return resourceContext.getResource(ApiPlanSubscriptionsResource.class);
     }
 }

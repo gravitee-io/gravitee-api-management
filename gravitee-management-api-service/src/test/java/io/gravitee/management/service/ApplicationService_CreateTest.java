@@ -18,6 +18,7 @@ package io.gravitee.management.service;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
+import io.gravitee.management.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -50,6 +51,7 @@ import static org.mockito.Mockito.when;
 public class ApplicationService_CreateTest {
 
     private static final String APPLICATION_NAME = "myApplication";
+    private static final String CLIENT_ID = "myClientId";
     private static final String USER_NAME = "myUser";
 
     @InjectMocks
@@ -92,10 +94,11 @@ public class ApplicationService_CreateTest {
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
     }
 
-    @Test(expected = ApplicationAlreadyExistsException.class)
-    public void shouldNotCreateForUserBecauseExists() throws TechnicalException {
-        when(applicationRepository.findById(anyString())).thenReturn(Optional.of(application));
+    @Test(expected = ClientIdAlreadyExistsException.class)
+    public void shouldNotCreateBecauseClientIdExists() throws TechnicalException {
+        when(applicationRepository.findByClientId(anyString())).thenReturn(Optional.of(application));
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getClientId()).thenReturn(CLIENT_ID);
         when(newApplication.getDescription()).thenReturn("My description");
 
         applicationService.create(newApplication, USER_NAME);
@@ -103,8 +106,9 @@ public class ApplicationService_CreateTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateForUserBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findById(anyString())).thenThrow(TechnicalException.class);
+        when(applicationRepository.findByClientId(anyString())).thenThrow(TechnicalException.class);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getClientId()).thenReturn(CLIENT_ID);
         when(newApplication.getDescription()).thenReturn("My description");
 
         applicationService.create(newApplication, USER_NAME);

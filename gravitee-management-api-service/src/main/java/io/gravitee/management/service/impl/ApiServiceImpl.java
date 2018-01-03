@@ -417,8 +417,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                             "] must be closed before being able to delete the API !");
                 }
 
+                Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(apiId);
+                subscriptions.forEach(sub -> subscriptionService.delete(sub.getId()));
+
                 for (PlanEntity plan : plans) {
-                    Set<SubscriptionEntity> subscriptions = subscriptionService.findByPlan(plan.getId());
                     subscriptions.forEach(sub -> subscriptionService.delete(sub.getId()));
                     planService.delete(plan.getId());
                 }

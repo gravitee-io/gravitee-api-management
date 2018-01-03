@@ -13,20 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.TaskEntity;
-import io.gravitee.management.model.pagedresult.Metadata;
-
-import java.util.List;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author Nicolas GERAUD(nicolas.geraud at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TaskService {
+public class ClientIdBasedPlanAlreadyPublishedException extends AbstractManagementException {
 
-    List<TaskEntity> findAll(String username);
+    private final String plan;
 
-    Metadata getMetadata(List<TaskEntity> tasks);
+    public ClientIdBasedPlanAlreadyPublishedException(String plan) {
+        this.plan = plan;
+    }
+
+    @Override
+    public String getMessage() {
+        return "There is already a client_id based plan. Only one such plan is permitted!";
+    }
+
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 }

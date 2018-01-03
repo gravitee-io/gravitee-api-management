@@ -28,7 +28,7 @@ import io.gravitee.management.service.SubscriptionService;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Plan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PLAN;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.*;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 
 /**
@@ -134,6 +133,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     public PlanEntity create(NewPlanEntity newPlan) {
         try {
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApi());
+
             Plan plan = new Plan();
 
             plan.setId(UUID.toString(UUID.random()));
@@ -144,6 +144,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setUpdatedAt(plan.getCreatedAt());
             plan.setType(Plan.PlanType.valueOf(newPlan.getType().name()));
             plan.setSecurity(Plan.PlanSecurityType.valueOf(newPlan.getSecurity().name()));
+            plan.setSecurityDefinition(newPlan.getSecurityDefinition());
             plan.setStatus(Plan.Status.valueOf(newPlan.getStatus().name()));
             plan.setExcludedGroups(newPlan.getExcludedGroups());
 
@@ -207,6 +208,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             newPlan.setName(updatePlan.getName());
             newPlan.setDescription(updatePlan.getDescription());
             newPlan.setUpdatedAt(new Date());
+            newPlan.setSecurityDefinition(updatePlan.getSecurityDefinition());
 
             String planPolicies = objectMapper.writeValueAsString(updatePlan.getPaths());
             newPlan.setDefinition(planPolicies);
@@ -381,6 +383,19 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 if (count > 0) {
                     throw new KeylessPlanAlreadyPublishedException(planId);
                 }
+            } else if (plan.getSecurity() == Plan.PlanSecurityType.OAUTH2 ||
+                    plan.getSecurity() == Plan.PlanSecurityType.JWT) {
+                // Look to other plans if there is already an OAuth2 or JWT plan
+                long count = plans
+                        .stream()
+                        .filter(plan1 -> plan1.getStatus() == Plan.Status.PUBLISHED)
+                        .filter(plan1 -> plan1.getSecurity() == Plan.PlanSecurityType.OAUTH2 ||
+                                plan1.getSecurity() == Plan.PlanSecurityType.JWT)
+                        .count();
+
+                if (count > 0) {
+                    throw new ClientIdBasedPlanAlreadyPublishedException(planId);
+                }
             }
 
             // Update plan status
@@ -504,6 +519,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             entity.setSecurity(PlanSecurityType.API_KEY);
         }
 
+        entity.setSecurityDefinition(plan.getSecurityDefinition());
         entity.setClosedAt(plan.getClosedAt());
         entity.setPublishedAt(plan.getPublishedAt());
         entity.setValidation(PlanValidationType.valueOf(plan.getValidation().name()));

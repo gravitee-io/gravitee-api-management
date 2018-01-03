@@ -19,6 +19,7 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.model.SubscriptionStatus;
+import io.gravitee.management.model.subscription.SubscriptionQuery;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.SubscriptionService;
 import org.slf4j.Logger;
@@ -29,11 +30,11 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -89,16 +90,17 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
         for(ApiEntity api : apis) {
             // TODO: this service must be optimized by providing a better way to search for subscription
             // Something like the Event Repository API
-            Set<SubscriptionEntity> subscriptions = subscriptionService.findByApi(api.getId());
-            subscriptions.stream()
-                    .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED)
+            SubscriptionQuery query = new SubscriptionQuery();
+            query.setApi(api.getId());
+            query.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
+            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
+            subscriptions
                     .forEach(subscription -> {
                         if (subscription.getEndingAt() != null && subscription.getEndingAt().before(now)) {
                             subscriptionService.close(subscription.getId());
                         }
                     });
         }
-
 
         logger.debug("Refresh subscriptions #{} ended at {}", counter.get(), Instant.now().toString());
     }

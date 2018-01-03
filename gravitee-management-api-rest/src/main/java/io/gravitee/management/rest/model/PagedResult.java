@@ -17,7 +17,7 @@ package io.gravitee.management.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -25,17 +25,30 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class PagedResult<T> {
-    private final List<T> data;
-    private final Map<String, Map<String, Object>> metadata;
-    private Page page;
 
-    public PagedResult(List<T> data, Map<String, Map<String, Object>> metadata) {
+    private final Collection<T> data;
+    private Map<String, Map<String, Object>> metadata;
+    private final Page page;
+
+    public PagedResult(Collection<T> data, int pageNumber, int perPage, int totalElements) {
         this.data = data;
-        this.metadata = metadata;
+        this.page = new Page(pageNumber, perPage, data.size(), totalElements);
     }
 
-    public List<T> getData() {
+    public PagedResult(Collection<T> data) {
+        this(data, 1, data.size(), data.size());
+    }
+
+    public PagedResult(io.gravitee.common.data.domain.Page<T> page, int perPage) {
+        this(page.getContent(), page.getPageNumber(), perPage, (int) page.getTotalElements());
+    }
+
+    public Collection<T> getData() {
         return data;
+    }
+
+    public void setMetadata(Map<String, Map<String, Object>> metadata) {
+        this.metadata = metadata;
     }
 
     public Map<String, Map<String, Object>> getMetadata() {
@@ -44,10 +57,6 @@ public class PagedResult<T> {
 
     public Page getPage() {
         return page;
-    }
-
-    public void setPage(Page page) {
-        this.page = page;
     }
 
     public class Page {
@@ -60,12 +69,12 @@ public class PagedResult<T> {
          * the requested number of elements per page
          */
         @JsonProperty("per_page")
-        private final  int perPage;
+        private final int perPage;
 
         /**
          * the size of the result
          */
-        private final  int size;
+        private final int size;
 
         /**
          * the maximum page number
@@ -79,11 +88,11 @@ public class PagedResult<T> {
         @JsonProperty("total_elements")
         private final int totalElements;
 
-        public Page(int current, int perPage, int size, int totalPages, int totalElements) {
+        public Page(int current, int perPage, int size, int totalElements) {
             this.current = current;
             this.perPage = perPage;
             this.size = size;
-            this.totalPages = totalPages;
+            this.totalPages = (int) Math.ceil((double)totalElements / (double)perPage);
             this.totalElements = totalElements;
         }
 

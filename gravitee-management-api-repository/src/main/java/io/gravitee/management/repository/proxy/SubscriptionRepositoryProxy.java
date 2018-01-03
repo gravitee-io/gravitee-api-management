@@ -15,13 +15,16 @@
  */
 package io.gravitee.management.repository.proxy;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,12 +33,14 @@ import java.util.Set;
 @Component
 public class SubscriptionRepositoryProxy extends AbstractProxy<SubscriptionRepository> implements SubscriptionRepository {
 
-    public Set<Subscription> findByPlan(String planId) throws TechnicalException {
-        return target.findByPlan(planId);
+    @Override
+    public Page<Subscription> search(SubscriptionCriteria criteria, Pageable pageable) throws TechnicalException {
+        return target.search(criteria, pageable);
     }
 
-    public Set<Subscription> findByApplication(String application) throws TechnicalException {
-        return target.findByApplication(application);
+    @Override
+    public List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException {
+        return target.search(criteria);
     }
 
     public Optional<Subscription> findById(String s) throws TechnicalException {

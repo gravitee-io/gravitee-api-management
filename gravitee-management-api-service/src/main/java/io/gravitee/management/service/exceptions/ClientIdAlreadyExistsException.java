@@ -13,20 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.TaskEntity;
-import io.gravitee.management.model.pagedresult.Metadata;
-
-import java.util.List;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author Nicolas GERAUD(nicolas.geraud at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TaskService {
+public class ClientIdAlreadyExistsException extends AbstractManagementException {
 
-    List<TaskEntity> findAll(String username);
+    private final String clientId;
 
-    Metadata getMetadata(List<TaskEntity> tasks);
+    public ClientIdAlreadyExistsException(String clientId) {
+        this.clientId = clientId;
+    }
+
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getMessage() {
+        return "An application already exists with client_id [" + clientId + "]";
+    }
 }

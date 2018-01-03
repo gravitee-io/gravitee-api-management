@@ -16,10 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.SubscriptionEntity;
-import io.gravitee.management.service.exceptions.KeylessPlanAlreadyPublishedException;
-import io.gravitee.management.service.exceptions.PlanAlreadyClosedException;
-import io.gravitee.management.service.exceptions.PlanAlreadyPublishedException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.PlanServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -116,6 +113,25 @@ public class PlanService_PublishTest {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
+        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
+
+        planService.publish(PLAN_ID);
+    }
+
+    @Test(expected = ClientIdBasedPlanAlreadyPublishedException.class)
+    public void shouldNotPublishBecauseExistingOAuth2Plan() throws TechnicalException {
+        Plan keylessPlan = mock(Plan.class);
+        when(keylessPlan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        when(keylessPlan.getSecurity()).thenReturn(Plan.PlanSecurityType.OAUTH2);
+
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.OAUTH2);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));

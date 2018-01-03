@@ -23,15 +23,15 @@ import io.gravitee.common.http.HttpStatusCode;
  */
 public class PlanNotSubscribableException extends AbstractManagementException {
 
-    private final String plan;
+    private final String message;
 
-    public PlanNotSubscribableException(String plan) {
-        this.plan = plan;
+    public PlanNotSubscribableException(String message) {
+        this.message = message;
     }
 
     @Override
     public String getMessage() {
-        return "Plan " + plan + " is not subscribable !";
+        return message;
     }
 
     @Override

@@ -39,6 +39,8 @@ public class PlanEntity {
 
     private PlanSecurityType security;
 
+    private String securityDefinition;
+
     private PlanType type;
 
     private PlanStatus status;
@@ -197,6 +199,14 @@ public class PlanEntity {
 
     public void setSecurity(PlanSecurityType security) {
         this.security = security;
+    }
+
+    public String getSecurityDefinition() {
+        return securityDefinition;
+    }
+
+    public void setSecurityDefinition(String securityDefinition) {
+        this.securityDefinition = securityDefinition;
     }
 
     public List<String> getExcludedGroups() {
