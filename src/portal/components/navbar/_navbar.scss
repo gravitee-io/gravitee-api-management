@@ -31,10 +31,12 @@ md-toolbar.topnavbar {
   margin-top: 2px;
   font-size: 12px;
   text-transform: none;
+  min-width: initial;
   img {
     vertical-align: middle;
-    width: 32px;
-    height: 32px;
+    border-radius: 20px;
+    height: 40px;
+    width: 40px;
   }
 }
 
@@ -49,8 +51,9 @@ md-toolbar.topnavbar {
     padding-bottom: 8px;
 
     img{
-      width: 54px;
-      height: 54px;
+      width: 60px;
+      height: 60px;
+      border-radius: 30px;
     }
 
     .gv-menu-content-links {
@@ -62,4 +65,22 @@ md-toolbar.topnavbar {
   .gv-menu-content-footer {
     background-color: #F5F5F5;
   }
+}
+
+.gv-menu-badge {
+  margin-left: 5px;
+}
+
+.gv-menu-badge-alert {
+  font-size: 5px;
+  padding: 3px 4px;
+  float: left;
+  position: absolute;
+  top: 2px;
+  right: 0;
+  z-index: 2;
+  width: 14px;
+  height: 14px;
+  background-clip: padding-box;
+  border-radius: 50%;
 }

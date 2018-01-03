@@ -27,14 +27,16 @@
   <span flex></span>
   <span>{{$ctrl.$state.current.name}}</span>
   <md-button class="gv-navbar-help-button" ng-click="$ctrl.openContextualDocumentation();" ng-if="$ctrl.displayContextualDocumentationButton">
-    <ng-md-icon icon="help" gv-theme-element="portal.navbar.help"></ng-md-icon>
+    <ng-md-icon icon="live_help" gv-theme-element="portal.navbar.help"></ng-md-icon>
   </md-button>
   <md-button ng-if="!$ctrl.graviteeUser.username" ui-sref-active="menu-active" ui-sref="login">{{'menu.login' | translate}}</md-button>
   <md-menu ng-if="$ctrl.graviteeUser.username" md-offset="0 54">
     <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" ng-mouseover="$mdMenu.open($event)" aria-label="Open user menu">
-      <img ng-src="{{$ctrl.graviteeUser.picture || $ctrl.getUserPicture()}}" alt="user-picture"/>
-      <span ng-if="$ctrl.graviteeUser.lastname">{{$ctrl.graviteeUser.firstname}} {{$ctrl.graviteeUser.lastname}}</span>
-      <span ng-if="!$ctrl.graviteeUser.lastname">{{$ctrl.graviteeUser.username}}</span>
+      <img ng-if="!$ctrl.hasAlert()" ng-src="{{$ctrl.graviteeUser.picture || $ctrl.getUserPicture()}}"
+           alt="user-picture" gv-theme-element="portal.navbar.user.img"/>
+      <img ng-if="$ctrl.hasAlert()" ng-src="{{$ctrl.graviteeUser.picture || $ctrl.getUserPicture()}}"
+           alt="user-picture" gv-theme-element="portal.navbar.user.img.alert"/>
+      <span ng-if="$ctrl.hasAlert()" flex class="gv-menu-badge-alert" gv-theme-element="portal.navbar.user.notification"></span>
     </md-button>
     <md-menu-content class="gv-menu-content" width="6">
       <div layout="row" class="gv-menu-content-main">
@@ -49,6 +51,7 @@
         <div layout="row" layout-align="end start" class="gv-menu-content-links">
           <div layout="column">
             <a ui-sref="user">{{'menu.profile' | translate}}</a>
+            <a ui-sref="management.tasks">{{'menu.tasks' | translate}}<span ng-if="$ctrl.getUserTaskCount() > 0" flex class="badge gv-menu-badge">{{$ctrl.getUserTaskCount()}}</span></a>
             <a ui-sref="management.applications.list">{{'menu.applications' | translate}}</a>
             <a ui-sref="management.apis.list" ng-if="$ctrl.isUserManagement()">{{'menu.management' | translate}}</a>
             <a ui-sref="management.apis.list" ng-if="!$ctrl.isUserManagement()">{{'menu.apis' | translate}}</a>

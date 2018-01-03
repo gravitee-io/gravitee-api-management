@@ -1,3 +1,5 @@
+$backgroundColor: rgb(45, 50, 62);
+
 @import '~angular-material/angular-material';
 @import '~angular-material-data-table/dist/md-data-table.min';
 @import '~bootstrap/dist/css/bootstrap.min.css';
@@ -37,8 +39,6 @@
 @import 'management/platform/dashboard/_dashboard.scss';
 @import 'components/documentation/page.scss';
 @import 'components/contextual/_contextual-doc.component.scss';
-
-$backgroundColor: rgb(45, 50, 62);
 
 html {
   font-family: 'Roboto Slab', serif;

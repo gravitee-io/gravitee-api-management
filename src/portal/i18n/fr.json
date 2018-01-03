@@ -43,6 +43,7 @@
     "management": "Administration",
     "applications": "Mes applications",
     "apis": "Mes APIs",
+    "tasks": "Mes Tâches",
     "logout": "Déconnexion",
     "support": "Support"
   },

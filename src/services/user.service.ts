@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { User } from '../entities/user';
+import {User} from '../entities/user';
 import RoleService from "./role.service";
 import ApplicationService from './applications.service';
 import ApiService from './api.service';

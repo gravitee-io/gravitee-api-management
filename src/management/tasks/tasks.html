@@ -1,0 +1,41 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div layout="row" layout-align="center start" ng-if="$ctrl.tasks.page.total_elements > 0">
+    <md-card flex="100" flex-gt-sm="90" flex-gt-md="70">
+        <md-card-title>
+            <md-card-title-text>
+                <span class="md-headline">My Tasks</span>
+            </md-card-title-text>
+        </md-card-title>
+        <md-card-content>
+            <md-list>
+                <md-list-item class="md-3-line noright" ng-repeat="task in $ctrl.tasks.data" ng-click="$ctrl.go(task)">
+                    <div class="md-list-item-text" layout="row" layout-align="space-between center">
+                        <ng-md-icon icon="vpn_key" size="36"></ng-md-icon>
+                        <h4>{{$ctrl.taskMessage(task)}}</h4>
+                        <p>{{task.created_at | humanDatetimeFilter}}</p>
+                    </div>
+                </md-list-item>
+            </md-list>
+        </md-card-content>
+    </md-card>
+</div>
+
+<gravitee-empty-state ng-if="$ctrl.tasks.page.total_elements == 0"
+                      icon="wb_sunny"
+                      message="Congratulations, you did all your tasks !"></gravitee-empty-state>

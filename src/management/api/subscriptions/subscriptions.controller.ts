@@ -25,6 +25,7 @@ class SubscriptionsController {
   constructor(
     private $mdDialog: angular.material.IDialogService,
     private $scope,
+    private $rootScope,
     private ApiService,
     private NotificationService,
     private resolvedApi,
@@ -146,6 +147,7 @@ class SubscriptionsController {
     this.ApiService.processPlanSubscription(this.api.id, subscription.plan.id, subscription.id, processSubscription).then(function () {
       that.refresh();
       that.NotificationService.show('The subscription has been ' + (processSubscription.accepted ? 'accepted' : 'rejected') + ' with success');
+      that.$rootScope.$broadcast("graviteeUserTaskRefresh");
     });
   }
 

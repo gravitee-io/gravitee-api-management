@@ -17,6 +17,7 @@ import InstancesService from '../services/instances.service';
 import AuditService from "../services/audit.service";
 import ApiService from "../services/api.service";
 import ApplicationService from "../services/applications.service";
+import {User} from "../entities/user";
 
 function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
   'ngInject';
@@ -151,6 +152,20 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
         resolvedEvents:
           (AuditService: AuditService) => AuditService.listEvents().then(response => response.data)
       }
+  })
+  .state('management.tasks', {
+  url: '/tasks',
+    component: 'tasks',
+    data: {
+      docs: {
+        page: 'management-tasks'
+      }
+    },
+    resolve: {
+      tasks: ( graviteeUser: User) => {
+        return graviteeUser.tasks;
+      }
+    }
   });
 }
 

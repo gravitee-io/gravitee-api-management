@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import UserService from "../../../services/user.service";
+import TaskService from "../../../services/task.service";
 import {IScope} from "angular";
+import {PagedResult} from "../../../entities/pagedResult";
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),
-  controller: function(UserService: UserService, $scope: IScope, Constants, $rootScope: IScope, $state: ng.ui.IStateService, $transitions) {
+  controller: function(UserService: UserService, TaskService: TaskService, $scope: IScope, Constants, $rootScope: IScope, $state: ng.ui.IStateService, $transitions) {
     'ngInject';
 
     const vm = this;
@@ -33,7 +35,17 @@ export const NavbarComponent: ng.IComponentOptions = {
           UserService.currentUserPicture().then( (picture) => {
             that.graviteeUser.picture = picture;
           });
+
+          $scope.$emit("graviteeUserTaskRefresh");
         }
+      });
+
+      $scope.$on("graviteeUserTaskRefresh", function () {
+        TaskService.getTasks().then((response)=> {
+          const result = new PagedResult();
+          result.populate(response.data);
+          TaskService.fillUserTasks(vm.graviteeUser, result);
+        });
       });
 
       vm.supportEnabled = Constants.support && Constants.support.enabled;
@@ -70,6 +82,17 @@ export const NavbarComponent: ng.IComponentOptions = {
 
     vm.openContextualDocumentation = function() {
       vm.$rootScope.$broadcast('openContextualDocumentation');
+    };
+
+    vm.hasAlert = function() {
+      return this.getUserTaskCount() > 0;
+    };
+
+    vm.getUserTaskCount = function() {
+      if (vm.graviteeUser.tasks) {
+        return vm.graviteeUser.tasks.page.total_elements;
+      }
+      return 0;
     };
   }
 };

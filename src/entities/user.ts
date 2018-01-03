@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import _ = require('lodash');
+import {PagedResult} from "./pagedResult";
 export class User {
   public username: string;
   public email: string;
@@ -22,9 +23,11 @@ export class User {
   public userPermissions: string[];
   public userApiPermissions: string[];
   public userApplicationPermissions: string[];
+  public tasks: PagedResult;
 
   constructor() {
     'ngInject';
+    this.tasks = new PagedResult();
   }
 
   allowedTo(permissions: string[]): boolean {
