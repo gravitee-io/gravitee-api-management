@@ -42,24 +42,23 @@ class LoginController {
   }
 
   authenticate(provider: string) {
-    const that = this;
-
     this.AuthenticationService.authenticate(provider)
-      .then(function() {
-        that.$rootScope.$broadcast('graviteeUserRefresh');
-        that.$state.go('portal.home');
+      .then( () => {
+        this.UserService.current().then( () => {
+          this.$rootScope.$broadcast('graviteeUserRefresh');
+          this.$state.go('portal.home');
+        });
       })
-      .catch(function() {
-      });
+      .catch( () => {});
   };
 
   login($event: Event) {
     $event.preventDefault();
-    const that = this;
+
     this.UserService.login(this.user).then(() => {
       this.UserService.current().then( () => {
-        that.$rootScope.$broadcast('graviteeUserRefresh');
-        that.$state.go('portal.home');
+        this.$rootScope.$broadcast('graviteeUserRefresh');
+        this.$state.go('portal.home');
       });
     }).catch(() => {
       this.user.username = '';
