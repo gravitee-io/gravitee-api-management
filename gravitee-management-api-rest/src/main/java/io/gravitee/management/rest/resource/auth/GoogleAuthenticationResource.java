@@ -16,12 +16,15 @@
 package io.gravitee.management.rest.resource.auth;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.NewExternalUserEntity;
 import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.swagger.annotations.Api;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,6 +39,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -95,6 +99,12 @@ public class GoogleAuthenticationResource extends AbstractAuthenticationResource
 
     private Response processUser(final Map<String, Object> userInfo) {
         String username = (String) userInfo.get("email");
+
+        //set user to Authentication Context
+        UserDetails userDetails = new UserDetails(username, "", Collections.emptyList());
+        userDetails.setEmail(username);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+
         try {
             userService.findByName(username, false);
         } catch (UserNotFoundException unfe) {
