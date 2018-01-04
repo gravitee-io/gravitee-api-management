@@ -216,6 +216,7 @@ public class ApisResource extends AbstractResource {
         apiItem.setUpdatedAt(api.getUpdatedAt());
         apiItem.setLabels(api.getLabels());
         apiItem.setViews(api.getViews());
+        apiItem.setPrimaryOwner(api.getPrimaryOwner());
 
         if (api.getVisibility() != null) {
             apiItem.setVisibility(io.gravitee.management.model.Visibility.valueOf(api.getVisibility().toString()));
@@ -229,23 +230,11 @@ public class ApisResource extends AbstractResource {
             apiItem.setContextPath(api.getProxy().getContextPath());
         }
 
-        // Add primary owner
-        Collection<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, api.getId(), RoleScope.API, SystemRole.PRIMARY_OWNER.name());
-        if (! members.isEmpty()) {
-            MemberEntity primaryOwner = members.iterator().next();
-            UserEntity user = userService.findByName(primaryOwner.getUsername(), false);
-
-            PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
-            owner.setUsername(user.getUsername());
-            owner.setEmail(user.getEmail());
-            owner.setFirstname(user.getFirstname());
-            owner.setLastname(user.getLastname());
-            apiItem.setPrimaryOwner(owner);
+        if (ratingService.isEnabled()) {
+            final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(api.getId());
+            apiItem.setRate(ratingSummary.getAverageRate());
+            apiItem.setNumberOfRatings(ratingSummary.getNumberOfRatings());
         }
-
-        final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(api.getId());
-        apiItem.setRate(ratingSummary.getAverageRate());
-        apiItem.setNumberOfRatings(ratingSummary.getNumberOfRatings());
 
         return apiItem;
     }

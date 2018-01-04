@@ -88,6 +88,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public RatingEntity createAnswer(final NewRatingAnswerEntity answerEntity) {
+        if (!enabled) {
+            throw new ApiRatingUnavailableException();
+        }
         try {
             final Rating rating = findById(answerEntity.getRatingId());
 
@@ -108,6 +111,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public Page<RatingEntity> findByApi(final String api, final Pageable pageable) {
+        if (!enabled) {
+            throw new ApiRatingUnavailableException();
+        }
         try {
             final Page<Rating> pageRating = ratingRepository.findByApiPageable(api, pageable);
             final List<RatingEntity> ratingEntities =
@@ -122,6 +128,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public RatingSummaryEntity findSummaryByApi(final String api) {
+        if (!enabled) {
+            throw new ApiRatingUnavailableException();
+        }
         try {
             final List<Rating> ratings = ratingRepository.findByApi(api);
             final RatingSummaryEntity ratingSummary = new RatingSummaryEntity();
@@ -141,6 +150,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public RatingEntity findByApiForConnectedUser(final String api) {
+        if (!enabled) {
+            throw new ApiRatingUnavailableException();
+        }
         try {
             final Optional<Rating> ratingOptional = ratingRepository.findByApiAndUser(api, getAuthenticatedUsername());
             if (ratingOptional.isPresent()) {
@@ -156,6 +168,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public RatingEntity update(final UpdateRatingEntity ratingEntity) {
+        if (!enabled) {
+            throw new ApiRatingUnavailableException();
+        }
         try {
             final Rating rating = findById(ratingEntity.getId());
             final Rating oldRating = new Rating(rating);
@@ -184,6 +199,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public void delete(final String id) {
+        if (!enabled) {
+            throw new ApiRatingUnavailableException();
+        }
         try {
             Rating rating = findById(id);
             ratingRepository.delete(id);
@@ -196,6 +214,9 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public void deleteAnswer(final String ratingId, final String answerId) {
+        if (!enabled) {
+            throw new ApiRatingUnavailableException();
+        }
         try {
             Rating rating = findById(ratingId);
             ratingAnswerRepository.delete(answerId);
@@ -204,6 +225,11 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             LOGGER.error("An error occurs while trying to delete rating answer {}", answerId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete rating answer " + answerId, ex);
         }
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
     }
 
     private Rating findById(String id) {

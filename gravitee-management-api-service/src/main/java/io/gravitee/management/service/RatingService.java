@@ -40,4 +40,6 @@ public interface RatingService {
     void delete(String id);
 
     void deleteAnswer(String ratingId, String answerId);
+
+    boolean isEnabled();
 }
