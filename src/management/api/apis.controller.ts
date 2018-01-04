@@ -53,8 +53,11 @@ export class ApisController {
     this.isAPIsHome = this.$state.includes('apis');
 
     this.createMode = !Constants.devMode; // && Object.keys($rootScope.graviteeUser).length > 0;
-
-    this.reloadSyncState();
+    let that = this;
+    $scope.$on("$viewContentLoaded", function() {
+      that.syncStatus = {};
+      that.reloadSyncState();
+    });
 
     this.selectedApis = [];
 
@@ -64,17 +67,12 @@ export class ApisController {
   }
 
   reloadSyncState() {
-    let promises = _.map(this.apis, (api: any) => {
-        return this.ApiService.isAPISynchronized(api.id)
-          .then((sync) => { return sync; });
+    _.forEach(this.apis, (api: any) => {
+      this.ApiService.isAPISynchronized(api.id)
+        .then((sync) => {
+          this.syncStatus[sync.data.api_id] = sync.data.is_synchronized;
+        });
     });
-
-    this.$q.all( _.filter( promises, ( p ) => { return p !== undefined; } ) )
-      .then((syncList) => {
-        this.syncStatus = _.fromPairs(_.map(syncList, (sync: any) => {
-          return [sync.data.api_id, sync.data.is_synchronized];
-        }));
-      });
   }
 
   update(api) {

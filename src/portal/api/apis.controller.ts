@@ -15,6 +15,7 @@
  */
 import {IScope} from 'angular';
 import * as _ from 'lodash';
+import ApiService from "../../services/api.service";
 import ViewService from "../../services/view.service";
 
 export class PortalApisController {
@@ -31,11 +32,12 @@ export class PortalApisController {
                private $state,
                private $stateParams,
                private Constants,
-               private ViewService) {
+               private ViewService: ViewService,
+               private ApiService: ApiService) {
     'ngInject';
     this.apis = resolvedApis.data;
     this.views = resolvedViews;
-    this.ratingEnabled = Constants.rating && Constants.rating.enabled;
+    this.ratingEnabled = this.ApiService.isRatingEnabled();
     let that = this;
     if($stateParams.view) {
       this.selectedView = $stateParams.view;

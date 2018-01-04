@@ -25,10 +25,12 @@ export class LogsQuery {
 
 class ApiService {
   private apisURL: string;
+  private Constants: any;
 
   constructor(private $http, Constants) {
     'ngInject';
     this.apisURL = `${Constants.baseURL}apis/`;
+    this.Constants = Constants;
   }
 
   get(name) {
@@ -351,6 +353,11 @@ class ApiService {
   /*
    * API ratings
    */
+
+  isRatingEnabled() {
+    return this.Constants.rating && this.Constants.rating.enabled;
+  }
+
   getApiRatings(api, pageNumber) {
     return this.$http.get(this.apisURL + api + '/ratings?pageSize=10&pageNumber=' + pageNumber);
   }

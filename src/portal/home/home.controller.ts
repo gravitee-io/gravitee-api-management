@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 import angular = require('angular');
+import ApiService from "../../services/api.service";
 
 export class HomeController {
   private apis: any[];
   private homepage: any;
   private ratingEnabled: boolean;
 
-  constructor (private resolvedApis, private $state, private resolvedHomepage, private Constants) {
+  constructor ( private resolvedApis,
+                private $state,
+                private resolvedHomepage,
+                private Constants,
+                private ApiService: ApiService) {
     'ngInject';
     this.apis = resolvedApis.data;
     this.homepage = resolvedHomepage;
     this.$state = $state;
-    this.ratingEnabled = Constants.rating && Constants.rating.enabled;
+    this.ratingEnabled = ApiService.isRatingEnabled();
   }
 
   querySearch(query) {

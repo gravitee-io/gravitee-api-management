@@ -16,6 +16,7 @@
 import ApiService from '../../../services/api.service';
 import NotificationService from '../../../services/notification.service';
 import _ = require('lodash');
+import UserService from "../../../services/user.service";
 
 class ApiPortalRatingController {
   private api: any;
@@ -31,10 +32,10 @@ class ApiPortalRatingController {
               private $mdDialog,
               private $state,
               private Constants,
-              private UserService) {
+              private UserService: UserService) {
     'ngInject';
 
-    if (!(Constants.rating && Constants.rating.enabled)) {
+    if (!this.ApiService.isRatingEnabled()) {
       $state.go('portal.home');
     }
   }

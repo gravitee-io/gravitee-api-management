@@ -23,7 +23,7 @@ const ApiHeaderComponent: ng.IComponentOptions = {
   template: require('./api-header.html'),
   controller: function(Constants, ApiService: ApiService, $stateParams, $rootScope) {
     'ngInject';
-    this.ratingEnabled = Constants.rating && Constants.rating.enabled;
+    this.ratingEnabled = ApiService.isRatingEnabled();
 
     this.getEndpoint = function () {
       return Constants.portal.entrypoint + this.api.context_path;
