@@ -15,34 +15,23 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 
-import java.util.Set;
+import java.util.List;
 
 /**
- * Plan Subscription repository API.
+ * Subscription repository API.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface SubscriptionRepository extends CrudRepository<Subscription, String> {
 
-    /**
-     * Returns the list of {@link Subscription} for a given {@link io.gravitee.repository.management.model.Plan}.
-     *
-     * @param planId Plan ID.
-     * @return List of subscriptions for the given Plan.
-     * @throws TechnicalException
-     */
-    Set<Subscription> findByPlan(String planId) throws TechnicalException;
+    Page<Subscription> search(SubscriptionCriteria criteria, Pageable pageable) throws TechnicalException;
 
-    /**
-     * Returns the list of {@link Subscription} for a given {@link io.gravitee.repository.management.model.Application}.
-     *
-     * @param application Application ID.
-     * @return List of subscriptions for the given application.
-     * @throws TechnicalException
-     */
-    Set<Subscription> findByApplication(String application) throws TechnicalException;
+    List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException;
 }

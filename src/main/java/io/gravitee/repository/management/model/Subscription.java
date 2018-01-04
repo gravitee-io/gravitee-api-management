@@ -25,10 +25,16 @@ public class Subscription {
     public enum AuditEvent implements Audit.AuditEvent {
         SUBSCRIPTION_CREATED, SUBSCRIPTION_UPDATED, SUBSCRIPTION_DELETED, SUBSCRIPTION_CLOSED
     }
+
     /**
      * Subscription ID.
      */
     private String id;
+
+    /**
+     * The subscribed {@link Api}.
+     */
+    private String api;
 
     /**
      * The subscribed {@link Plan}.
@@ -39,6 +45,11 @@ public class Subscription {
      * The application linked to the subscription
      */
     private String application;
+
+    /**
+     * The clientId linked to the subscription
+     */
+    private String clientId;
 
     /**
      * Vhen the subscription have been processed.
@@ -83,6 +94,7 @@ public class Subscription {
 
     public Subscription(Subscription cloned) {
         this.id = cloned.id;
+        this.api = cloned.api;
         this.plan = cloned.plan;
         this.application = cloned.application;
         this.processedAt = cloned.processedAt;
@@ -103,6 +115,14 @@ public class Subscription {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getApi() {
+        return api;
+    }
+
+    public void setApi(String api) {
+        this.api = api;
     }
 
     public String getPlan() {
@@ -199,6 +219,14 @@ public class Subscription {
 
     public void setClosedAt(Date closedAt) {
         this.closedAt = closedAt;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 
     @Override

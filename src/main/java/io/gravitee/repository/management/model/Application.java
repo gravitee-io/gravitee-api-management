@@ -16,7 +16,6 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -66,6 +65,11 @@ public class Application {
 
     private ApplicationStatus status;
 
+    /**
+     * The client_id.
+     */
+    private String clientId;
+
     public Application(){}
 
     public Application(Application cloned) {
@@ -77,6 +81,7 @@ public class Application {
         this.updatedAt = cloned.updatedAt;
         this.groups = cloned.groups;
         this.status = cloned.status;
+        this.clientId = cloned.clientId;
     }
 
     public Date getCreatedAt() {
@@ -143,6 +148,14 @@ public class Application {
         this.status = status;
     }
 
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -165,6 +178,7 @@ public class Application {
                 ", type='" + type + '\'' +
                 ", groups='" + groups + '\'' +
                 ", status='" + status + '\'' +
+                ", clientId='" + clientId + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

@@ -36,6 +36,8 @@ public class Plan {
 
     private PlanSecurityType security;
 
+    private String securityDefinition;
+
     /**
      * The way to validate subscriptions
      */
@@ -230,6 +232,14 @@ public class Plan {
         this.security = security;
     }
 
+    public String getSecurityDefinition() {
+        return securityDefinition;
+    }
+
+    public void setSecurityDefinition(String securityDefinition) {
+        this.securityDefinition = securityDefinition;
+    }
+
     public List<String> getExcludedGroups() {
         return excludedGroups;
     }
@@ -279,14 +289,24 @@ public class Plan {
 
     public enum PlanSecurityType {
         /**
-         * Plan which is using a key_less (ie. public) security authentication for incoming HTTP requests.
+         * Plan which is using a key_less (ie. public) security authentication type for incoming HTTP requests.
          */
         KEY_LESS,
 
         /**
-         * Plan which is using an api-key security authentication for incoming HTTP requests.
+         * Plan which is using an api-key security authentication type for incoming HTTP requests.
          */
-        API_KEY
+        API_KEY,
+
+        /**
+         * Plan which is using an OAuth2 security authentication type for incoming HTTP requests.
+         */
+        OAUTH2,
+
+        /**
+         * Plan which is using a JWT security authentication type for incoming HTTP requests.
+         */
+        JWT
     }
 
     public enum PlanValidationType {
