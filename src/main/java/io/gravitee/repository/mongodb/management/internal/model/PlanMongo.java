@@ -73,6 +73,8 @@ public class PlanMongo extends Auditable {
 
     private List<String> excludedGroups;
 
+    private String securityDefinition;
+
     public String getId() {
         return id;
     }
@@ -183,6 +185,14 @@ public class PlanMongo extends Auditable {
 
     public void setExcludedGroups(List<String> excludedGroups) {
         this.excludedGroups = excludedGroups;
+    }
+
+    public String getSecurityDefinition() {
+        return securityDefinition;
+    }
+
+    public void setSecurityDefinition(String securityDefinition) {
+        this.securityDefinition = securityDefinition;
     }
 
     @Override

@@ -15,8 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.plan;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
-import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface SubscriptionMongoRepository extends MongoRepository<SubscriptionMongo, String>, SubscriptionMongoRepositoryCustom {
+public interface SubscriptionMongoRepositoryCustom {
 
+    Page<SubscriptionMongo> search(SubscriptionCriteria criteria, Pageable pageable);
 }

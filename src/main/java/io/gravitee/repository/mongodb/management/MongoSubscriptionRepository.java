@@ -15,8 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import io.gravitee.repository.mongodb.management.internal.plan.SubscriptionMongoRepository;
@@ -24,9 +27,8 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -42,19 +44,18 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     private SubscriptionMongoRepository internalSubscriptionRepository;
 
     @Override
-    public Set<Subscription> findByPlan(String plan) throws TechnicalException {
-        return internalSubscriptionRepository.findByPlan(plan)
-                .stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+    public Page<Subscription> search(SubscriptionCriteria criteria, Pageable pageable) throws TechnicalException {
+        Page<SubscriptionMongo> subscriptionsMongo = internalSubscriptionRepository.search(criteria, pageable);
+
+        List<Subscription> content = mapper.collection2list(subscriptionsMongo.getContent(), SubscriptionMongo.class, Subscription.class);
+        return new Page<>(content, subscriptionsMongo.getPageNumber(), (int) subscriptionsMongo.getPageElements(), subscriptionsMongo.getTotalElements());
     }
 
     @Override
-    public Set<Subscription> findByApplication(String application) throws TechnicalException {
-        return internalSubscriptionRepository.findByApplication(application)
-                .stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+    public List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException {
+        Page<SubscriptionMongo> subscriptionsMongo = internalSubscriptionRepository.search(criteria, null);
+
+        return mapper.collection2list(subscriptionsMongo.getContent(), SubscriptionMongo.class, Subscription.class);
     }
 
     @Override

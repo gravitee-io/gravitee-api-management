@@ -22,6 +22,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -43,6 +44,9 @@ public interface ApplicationMongoRepository extends MongoRepository<ApplicationM
 
     @Query("{ name: { $regex: ?0, $options: 'i'}}")
     Set<ApplicationMongo> findByName(String name);
+
+    @Query("{ clientId: ?0 }")
+    Optional<ApplicationMongo> findByClientId(String clientId);
 
     @Query("{ status: {$in: ?0} }")
     List<ApplicationMongo> findAll(List<ApplicationStatus> statuses);

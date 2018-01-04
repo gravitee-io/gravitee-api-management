@@ -78,6 +78,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 		applicationMongo.setType(application.getType());
 		applicationMongo.setGroups(application.getGroups());
 		applicationMongo.setStatus(application.getStatus().toString());
+		applicationMongo.setClientId(application.getClientId());
 
 		ApplicationMongo applicationMongoUpdated = internalApplicationRepo.save(applicationMongo);
 		return mapApplication(applicationMongoUpdated);
@@ -106,6 +107,12 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	@Override
 	public Set<Application> findByName(String partialName) throws TechnicalException {
 		return mapApplications(internalApplicationRepo.findByName(partialName));
+	}
+
+	@Override
+	public Optional<Application> findByClientId(String clientId) throws TechnicalException {
+		Optional<ApplicationMongo> applicationMongo = internalApplicationRepo.findByClientId(clientId);
+		return Optional.ofNullable(mapApplication(applicationMongo.orElse(null)));
 	}
 
 	@Override

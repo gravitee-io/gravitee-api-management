@@ -35,6 +35,11 @@ public class SubscriptionMongo extends Auditable {
     private String id;
 
     /**
+     * The subscribed {@link io.gravitee.repository.management.model.Api}.
+     */
+    private String api;
+
+    /**
      * The subscribed {@link Plan}.
      */
     private String plan;
@@ -43,6 +48,11 @@ public class SubscriptionMongo extends Auditable {
      * The application linked to the subscription
      */
     private String application;
+
+    /**
+     * The clientId linked to the subscription
+     */
+    private String clientId;
 
     /**
      * PENDING, ACCEPTED, REJECTED
@@ -82,6 +92,14 @@ public class SubscriptionMongo extends Auditable {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getApi() {
+        return api;
+    }
+
+    public void setApi(String api) {
+        this.api = api;
     }
 
     public String getPlan() {
@@ -162,6 +180,14 @@ public class SubscriptionMongo extends Auditable {
 
     public void setClosedAt(Date closedAt) {
         this.closedAt = closedAt;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 
     @Override
