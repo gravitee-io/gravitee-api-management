@@ -86,7 +86,10 @@ public class LdapIdentityLookup implements IdentityLookup<String>, InitializingB
     @Override
     public Collection<User> search(String query) {
         AndFilter filter = new AndFilter();
-        filter.and(new EqualsFilter("objectclass", "person"));
+        filter.and(new EqualsFilter("objectclass",
+                                    environment.getProperty(
+                                        "user-search-objectclass",
+                                        "person")));
         filter.and(new WhitespaceWildcardsFilter("cn", query));
 
         LdapQuery ldapQuery = LdapQueryBuilder
@@ -105,7 +108,10 @@ public class LdapIdentityLookup implements IdentityLookup<String>, InitializingB
     @Override
     public User retrieve(String id) {
         AndFilter filter = new AndFilter();
-        filter.and(new EqualsFilter("objectclass", "person"));
+        filter.and(new EqualsFilter("objectclass",
+                                    environment.getProperty(
+                                        "user-search-objectclass",
+                                        "person")));
         filter.and(new EqualsFilter(identifierAttribute, id));
 
         LdapQuery ldapQuery = LdapQueryBuilder
