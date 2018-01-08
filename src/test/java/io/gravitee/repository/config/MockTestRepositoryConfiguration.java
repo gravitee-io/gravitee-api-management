@@ -1140,6 +1140,164 @@ public class MockTestRepositoryConfiguration {
     }
 
     @Bean
+    public PortalNotificationRepository notificationRepository() throws Exception {
+        final PortalNotificationRepository notificationRepository = mock(PortalNotificationRepository.class);
+
+        // create
+        final PortalNotification notificationCreated = new PortalNotification();
+        notificationCreated.setId("notif-create");
+        notificationCreated.setTitle("notif-title");
+        notificationCreated.setMessage("notif-message");
+        notificationCreated.setUser("notif-userId");
+        notificationCreated.setCreatedAt(new Date(1439022010883L));
+        when(notificationRepository.create(any(PortalNotification.class))).thenReturn(notificationCreated);
+
+        //delete
+        when(notificationRepository.findByUser(eq("notif-userId-toDelete"))).thenReturn(
+                singletonList(mock(PortalNotification.class)),
+                emptyList(),
+                singletonList(mock(PortalNotification.class)),
+                emptyList()
+        );
+
+        //findByUserId
+        final PortalNotification notificationFindByUsername = new PortalNotification();
+        notificationFindByUsername.setId("notif-findByUserId");
+        notificationFindByUsername.setTitle("notif-title-findByUserId");
+        notificationFindByUsername.setMessage("notif-message-findByUserId");
+        notificationFindByUsername.setUser("notif-userId-findByUserId");
+        notificationFindByUsername.setCreatedAt(new Date(1439022010883L));
+        when(notificationRepository.findByUser(eq("notif-userId-findByUserId"))).thenReturn(singletonList(notificationFindByUsername));
+        when(notificationRepository.findByUser(eq("unknown"))).thenReturn(emptyList());
+
+        return notificationRepository;
+    }
+
+    @Bean
+    public PortalNotificationConfigRepository portalNotificationConfigRepository() throws Exception {
+        final PortalNotificationConfigRepository portalNotificationConfigRepository = mock(PortalNotificationConfigRepository.class);
+
+        //create
+        final PortalNotificationConfig createdCfg = new PortalNotificationConfig();
+        createdCfg.setReferenceType(NotificationReferenceType.API);
+        createdCfg.setReferenceId("config-created");
+        createdCfg.setUser("userid");
+        createdCfg.setHooks(Arrays.asList("A", "B", "C"));
+        createdCfg.setUpdatedAt(new Date(1439022010883L));
+        createdCfg.setCreatedAt(new Date(1439022010883L));
+        when(portalNotificationConfigRepository.create(any())).thenReturn(createdCfg);
+
+        //update
+        final PortalNotificationConfig updatedCfg = new PortalNotificationConfig();
+        updatedCfg.setReferenceType(NotificationReferenceType.API);
+        updatedCfg.setReferenceId("config-to-update");
+        updatedCfg.setUser("userid");
+        updatedCfg.setHooks(Arrays.asList("D", "B", "C"));
+        updatedCfg.setUpdatedAt(new Date(1479022010883L));
+        updatedCfg.setCreatedAt(new Date(1469022010883L));
+        when(portalNotificationConfigRepository.update(any())).thenReturn(updatedCfg);
+
+        //delete
+        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete")).
+                thenReturn(of(mock(PortalNotificationConfig.class)), empty());
+
+        //findById
+        final PortalNotificationConfig foundCfg = new PortalNotificationConfig();
+        foundCfg.setReferenceType(NotificationReferenceType.API);
+        foundCfg.setReferenceId("config-to-find");
+        foundCfg.setUser("userid");
+        foundCfg.setHooks(Arrays.asList("A", "B"));
+        foundCfg.setUpdatedAt(new Date(1439022010883L));
+        foundCfg.setCreatedAt(new Date(1439022010883L));
+        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-find")).
+                thenReturn(of(foundCfg));
+
+        //notFoundById
+        when(portalNotificationConfigRepository.findById("userid-unknown", NotificationReferenceType.API, "config-to-find")).
+                thenReturn(empty());
+        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.APPLICATION, "config-to-find")).
+                thenReturn(empty());
+        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-not-find")).
+                thenReturn(empty());
+
+        //findByReferenceAndHook
+        PortalNotificationConfig n1 = mock(PortalNotificationConfig.class);
+        when(n1.getUser()).thenReturn("userA");
+        PortalNotificationConfig n2 = mock(PortalNotificationConfig.class);
+        when(n2.getUser()).thenReturn("userB");
+        when(portalNotificationConfigRepository.findByReferenceAndHook(
+                "B",
+                NotificationReferenceType.APPLICATION,
+                "search")).thenReturn(Arrays.asList(n1, n2));
+
+        return portalNotificationConfigRepository;
+    }
+
+
+    @Bean
+    public GenericNotificationConfigRepository genericNotificationConfigRepository() throws Exception {
+        final GenericNotificationConfigRepository genericNotificationConfigRepository = mock(GenericNotificationConfigRepository.class);
+
+        //create
+        final GenericNotificationConfig createdCfg = new GenericNotificationConfig();
+        createdCfg.setId("new-id");
+        createdCfg.setName("new config");
+        createdCfg.setReferenceType(NotificationReferenceType.API);
+        createdCfg.setReferenceId("config-created");
+        createdCfg.setNotifier("notifierId");
+        createdCfg.setConfig("my new configuration");
+        createdCfg.setHooks(Arrays.asList("A", "B", "C"));
+        createdCfg.setUpdatedAt(new Date(1439022010883L));
+        createdCfg.setCreatedAt(new Date(1439022010883L));
+        when(genericNotificationConfigRepository.create(any())).thenReturn(createdCfg);
+
+        //update
+        final GenericNotificationConfig updatedCfg = new GenericNotificationConfig();
+        updatedCfg.setId("notif-to-update");
+        updatedCfg.setName("notif-updated");
+        updatedCfg.setReferenceType(NotificationReferenceType.API);
+        updatedCfg.setReferenceId("config-to-update");
+        updatedCfg.setNotifier("notifierId");
+        updatedCfg.setConfig("updated configuration");
+        updatedCfg.setHooks(Arrays.asList("D", "B", "C"));
+        updatedCfg.setUpdatedAt(new Date(1479022010883L));
+        updatedCfg.setCreatedAt(new Date(1469022010883L));
+        when(genericNotificationConfigRepository.update(any())).thenReturn(updatedCfg);
+
+        //delete
+        when(genericNotificationConfigRepository.findById("notif-to-delete")).
+                thenReturn(of(mock(GenericNotificationConfig.class)), empty());
+
+        //findById
+        final GenericNotificationConfig foundCfg = new GenericNotificationConfig();
+        foundCfg.setId("notif-to-find");
+        foundCfg.setName("notif-to-find");
+        foundCfg.setReferenceType(NotificationReferenceType.API);
+        foundCfg.setReferenceId("config-to-find");
+        foundCfg.setNotifier("notifierId");
+        foundCfg.setConfig("my config");
+        foundCfg.setHooks(Arrays.asList("A", "B"));
+        foundCfg.setUpdatedAt(new Date(1439022010883L));
+        foundCfg.setCreatedAt(new Date(1439022010883L));
+        when(genericNotificationConfigRepository.findById("notif-to-find")).thenReturn(of(foundCfg));
+
+        //notFoundById
+        when(genericNotificationConfigRepository.findById("notifierId-unknown")).thenReturn(empty());
+
+        //findByReferenceAndHook
+        GenericNotificationConfig n1 = mock(GenericNotificationConfig.class);
+        when(n1.getNotifier()).thenReturn("notifierA");
+        GenericNotificationConfig n2 = mock(GenericNotificationConfig.class);
+        when(n2.getNotifier()).thenReturn("notifierB");
+        when(genericNotificationConfigRepository.findByReferenceAndHook(
+                "B",
+                NotificationReferenceType.APPLICATION,
+                "search")).thenReturn(Arrays.asList(n1, n2));
+
+        return genericNotificationConfigRepository;
+    }
+
+    @Bean
     public ParameterRepository parameterRepository() throws Exception {
         final ParameterRepository parameterRepository = mock(ParameterRepository.class);
 

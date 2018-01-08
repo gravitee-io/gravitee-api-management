@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.config;
 
-import io.gravitee.repository.RatingRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.model.*;
@@ -95,6 +94,12 @@ public abstract class AbstractRepositoryTest {
     protected RatingRepository ratingRepository;
     @Inject
     protected RatingAnswerRepository ratingAnswerRepository;
+    @Inject
+    protected PortalNotificationRepository portalNotificationRepository;
+    @Inject
+    protected PortalNotificationConfigRepository portalNotificationConfigRepository;
+    @Inject
+    protected GenericNotificationConfigRepository genericNotificationConfigRepository;
     @Inject
     protected ParameterRepository parameterRepository;
 
@@ -180,6 +185,15 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof RatingAnswer) {
             ratingAnswerRepository.create((RatingAnswer) object);
+        }
+        else if (object instanceof PortalNotification) {
+            portalNotificationRepository.create((PortalNotification) object);
+        }
+        else if (object instanceof PortalNotificationConfig) {
+            portalNotificationConfigRepository.create((PortalNotificationConfig) object);
+        }
+        else if (object instanceof GenericNotificationConfig) {
+            genericNotificationConfigRepository.create((GenericNotificationConfig) object);
         }
         else if (object instanceof Parameter) {
             parameterRepository.create((Parameter) object);
