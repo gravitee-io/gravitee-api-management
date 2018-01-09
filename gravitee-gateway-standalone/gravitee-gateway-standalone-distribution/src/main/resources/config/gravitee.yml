@@ -119,6 +119,9 @@ reporters:
 #      actions: 1000           # Number of requests action before flush
 #      flush_interval: 5       # Flush interval in seconds
 #      concurrent_requests: 5  # Concurrent requests
+#    settings:
+#      number_of_shards: 5
+#      number_of_replicas: 1
 
 # Gateway service configurations. Provided values are default values.
 # All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the
