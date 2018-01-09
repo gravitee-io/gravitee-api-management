@@ -123,7 +123,9 @@ public class EndpointDiscoveryConsulVerticle extends AbstractVerticle implements
                     List<ServiceEntry> entries = event.nextResult().getList();
                     // Handle new services or updated services
                     for (ServiceEntry service : event.nextResult().getList()) {
-                        handleRegisterService(api, service.getService());
+                        Service service1 = service.getService();
+                        service1.setNodeAddress(service.getNode().getAddress());
+                        handleRegisterService(api, service1);
                     }
 
                     // Handle de-registered services
