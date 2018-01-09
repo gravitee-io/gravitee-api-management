@@ -121,7 +121,7 @@ public class LdapIdentityLookup implements IdentityLookup<String>, InitializingB
         if (users != null && ! users.isEmpty()) {
             LdapUser user = (LdapUser) users.iterator().next();
             List<String> result = ldapTemplate.search(
-                    "", filter.encode(),
+                    baseDn, filter.encode(),
                     (ContextMapper<String>) o -> ((LdapCtx) o).getNameInNamespace());
             user.setDn(result.iterator().next());
 
