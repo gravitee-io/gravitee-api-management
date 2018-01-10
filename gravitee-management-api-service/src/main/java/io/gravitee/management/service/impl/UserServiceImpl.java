@@ -126,14 +126,20 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public UserEntity findByName(String username, boolean loadRoles) {
-        LOGGER.debug("Find user by name: {}", username);
+        try {
+            LOGGER.debug("Find user by name: {}", username);
 
-        Optional<UserEntity> optionalUser = this.findByNames(Collections.singletonList(username), loadRoles).stream().findFirst();
-        if (optionalUser.isPresent()) {
-            return optionalUser.get();
+            Optional<User> optionalUser = userRepository.findByUsername(username);
+
+            if (optionalUser.isPresent()) {
+                return convert(optionalUser.get(), loadRoles);
+            }
+            //should never happen
+            throw new UserNotFoundException(username);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find user using its username {}", username, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find user using its username " + username, ex);
         }
-        //should never happen
-        throw new UserNotFoundException(username);
     }
 
     @Override

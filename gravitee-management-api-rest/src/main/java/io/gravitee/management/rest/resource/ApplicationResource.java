@@ -17,10 +17,9 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
-import io.gravitee.management.model.UpdateApplicationEntity;
-import io.gravitee.management.rest.enhancer.ApplicationEnhancer;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApplicationService;
@@ -51,9 +50,6 @@ public class ApplicationResource extends AbstractResource {
     @Inject
     private ApplicationService applicationService;
 
-    @Inject
-    private ApplicationEnhancer applicationEnhancer;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get an application",
@@ -65,8 +61,7 @@ public class ApplicationResource extends AbstractResource {
             @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
     })
     public ApplicationEntity getApplication(@PathParam("application") String application) {
-        ApplicationEntity applicationEntity = applicationService.findById(application);
-        return applicationEnhancer.enhance(securityContext).apply(applicationEntity);
+        return applicationService.findById(application);
     }
     
     @PUT
@@ -83,9 +78,7 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationEntity updateApplication(
             @PathParam("application") String application,
             @Valid @NotNull final UpdateApplicationEntity updatedApplication) {
-        return applicationEnhancer.enhance(securityContext).apply(
-                applicationService.update(application, updatedApplication)
-        );
+        return applicationService.update(application, updatedApplication);
     }
 
     @DELETE

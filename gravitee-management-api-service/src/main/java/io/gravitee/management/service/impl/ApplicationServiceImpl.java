@@ -369,13 +369,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setDescription(application.getDescription());
         applicationEntity.setType(application.getType());
         applicationEntity.setStatus(application.getStatus().toString());
-        if (application.getGroups() != null && !application.getGroups().isEmpty()) {
-            applicationEntity.setGroups(
-                    groupService.findByIds(application.getGroups()).
-                            stream().map(GroupEntity::getId).
-                            collect(Collectors.toSet()));
-        }
-
+        applicationEntity.setGroups(application.getGroups());
         applicationEntity.setCreatedAt(application.getCreatedAt());
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
 

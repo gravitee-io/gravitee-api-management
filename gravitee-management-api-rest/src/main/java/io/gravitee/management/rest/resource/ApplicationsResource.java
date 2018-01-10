@@ -17,11 +17,9 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
-import io.gravitee.management.rest.enhancer.ApplicationEnhancer;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApplicationService;
@@ -54,9 +52,6 @@ public class ApplicationsResource extends AbstractResource {
     @Inject
     private ApplicationService applicationService;
 
-    @Inject
-    private ApplicationEnhancer applicationEnhancer;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation("List all the applications accessible to authenticated user")
@@ -87,8 +82,6 @@ public class ApplicationsResource extends AbstractResource {
             }
         }
 
-        applications.forEach(api -> api = applicationEnhancer.enhance(securityContext).apply(api));
-
         return applications.stream()
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
                 .collect(Collectors.toList());
@@ -116,7 +109,6 @@ public class ApplicationsResource extends AbstractResource {
             @Valid @NotNull final NewApplicationEntity application) {
         ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUsername());
         if (newApplication != null) {
-            newApplication = applicationEnhancer.enhance(securityContext).apply(newApplication);
             return Response
                     .created(URI.create("/applications/" + newApplication.getId()))
                     .entity(newApplication)

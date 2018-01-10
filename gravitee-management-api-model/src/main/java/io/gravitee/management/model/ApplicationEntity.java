@@ -45,9 +45,6 @@ public class ApplicationEntity {
     private PrimaryOwnerEntity primaryOwner;
 
     private String role;
-    
-    @JsonProperty("members_size")
-    private int membersSize;
 
     public String getId() {
         return id;
@@ -112,14 +109,6 @@ public class ApplicationEntity {
     public void setPrimaryOwner(PrimaryOwnerEntity primaryOwner) {
         this.primaryOwner = primaryOwner;
     }
-
-    public int getMembersSize() {
-		return membersSize;
-	}
-
-	public void setMembersSize(int membersSize) {
-		this.membersSize = membersSize;
-	}
 
     public Set<String> getGroups() {
         return groups;
