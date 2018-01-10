@@ -19,45 +19,29 @@
   <md-card-header>
     <md-card-header-text layout="row" layout-align="center">
       <div class="input-group apis-header-filter" flex="60" flex-xs="100">
-        <input class="form-control" type="text" ng-model="searchApplications" placeholder="Search applications ..." autofocus/>
+        <input class="form-control" type="text" ng-model="searchApplications" placeholder="Search applications ..."
+               ng-change="$ctrl.loadMore(query.order, searchApplications, false)" autofocus/>
       </div>
     </md-card-header-text>
   </md-card-header>
-  <md-card-content style="padding: 0px; overflow-y: auto; height: calc(100vh - 90px);">
-    <div layout="row" layout-wrap class="inset">
+  <md-card-content id="applications-container" style="overflow-y: auto; height: calc(100vh - 200px);">
+    <div layout="row" layout-wrap class="inset" infinite-scroll="$ctrl.loadMore(query.order, searchApplications, true)"
+         infinite-scroll-distance="1" infinite-scroll-container="'#applications-container'">
       <md-table-container style="width: 100%">
         <table md-table md-row-select="true" ng-model="$ctrl.selectedApplications" ng-init="query.order = 'name'">
           <thead md-head md-order="query.order">
           <tr md-row>
             <th md-column></th>
-            <th md-column md-order-by="name"><span>Name</span></th>
-            <th md-column md-order-by="type">Type</th>
-            <th md-column md-numeric md-order-by="apis_size">APIs</th>
-            <th md-column md-numeric md-order-by="members_size">Members</th>
+            <th md-column md-order-by="name" ng-click="$ctrl.loadMore(query.order, searchApplications, false)"><span>Name</span></th>
+            <th md-column md-order-by="type" ng-click="$ctrl.loadMore(query.order, searchApplications, false)">Type</th>
           </tr>
           </thead>
           <tbody md-body>
           <tr md-row ui-sref="management.applications.portal.general({applicationId: application.id})"
-              ng-repeat="application in $ctrl.applications | filter:searchApplications | orderBy:query.order track by application.id">
+              ng-repeat="application in $ctrl.applicationsToDisplay track by application.id">
             <td md-cell class="api-box-icon default"></td>
             <td md-cell>{{application.name}}</td>
             <td md-cell>{{application.type}}</td>
-            <td md-cell>
-              <span>
-                <span>{{application.apis_size}}</span>
-                <ng-md-icon icon="assignment_turned_in" size="20" style="fill: #cdcdcd;">
-                  <md-tooltip>{{application.apis_size}} API(s)</md-tooltip>
-                </ng-md-icon>
-              </span>
-            </td>
-            <td md-cell>
-              <span>
-                <span>{{application.members_size}}</span>
-                <ng-md-icon icon="people" size="20" style="fill: #cdcdcd;">
-                  <md-tooltip>{{application.members_size}} member(s)</md-tooltip>
-                </ng-md-icon>
-              </span>
-            </td>
           </tr>
           </tbody>
         </table>

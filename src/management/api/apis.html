@@ -16,24 +16,26 @@
 
 -->
 <section>
-  <div ng-show="$ctrl.apis.length > 0">
+  <div ng-show="$ctrl.apisProvider.length > 0">
     <md-card class="no-box-shadow">
       <md-card-header>
         <md-card-header-text layout="row" layout-align="center">
           <div class="input-group apis-header-filter" flex="60" flex-xs="100">
-            <input class="form-control" type="text" ng-model="searchAPIs" placeholder="Search APIs ..." autofocus/>
+            <input class="form-control" type="text" ng-model="searchAPIs" placeholder="Search APIs ..."
+                   ng-change="$ctrl.loadMore(query.order, searchAPIs, false)" autofocus/>
           </div>
         </md-card-header-text>
       </md-card-header>
-      <md-card-content ng-if="!hideApis" style="padding: 0px; overflow-y: auto;">
-        <div layout="row" layout-wrap class="inset">
+      <md-card-content id="apis-container" style="height: calc(100vh - 200px); overflow-y: auto" ng-if="!hideApis">
+        <div layout="row" layout-wrap class="inset" infinite-scroll="$ctrl.loadMore(query.order, searchAPIs, true)"
+             infinite-scroll-distance="1" infinite-scroll-container="'#apis-container'">
           <md-table-container style="width: 100%">
             <table md-table md-row-select="true" ng-model="$ctrl.selectedApis" ng-init="query.order = 'name'">
               <thead md-head md-order="query.order">
               <tr md-row>
                 <th md-column></th>
-                <th md-column md-order-by="name"><span>Name</span></th>
-                <th md-column md-order-by="version">Version</th>
+                <th md-column md-order-by="name" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)"><span>Name</span></th>
+                <th md-column md-order-by="version" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)">Version</th>
                 <th md-column>Context path</th>
                 <th md-column>State</th>
                 <th md-column>Synchronize state</th>
@@ -44,7 +46,7 @@
               <tbody md-body>
               <tr md-row ui-sref="management.apis.detail.general.main({apiId: api.id})"
                   ng-if="api.manageable"
-                  ng-repeat="api in $ctrl.apis | filter:searchAPIs | orderBy:query.order track by api.id">
+                  ng-repeat="api in $ctrl.apis track by api.id">
                 <td md-cell><img height="40" ng-src="{{::api.picture_url}}"/></td>
                 <td md-cell>{{api.name}}</td>
                 <td md-cell>{{api.version}}</td>
@@ -83,20 +85,20 @@
     </md-card>
   </div>
 
-  <gravitee-empty-state ng-if="$ctrl.apis.length == 0"
+  <gravitee-empty-state ng-if="$ctrl.apisProvider.length == 0"
                         icon="dashboard"
                         model="API"
                         message="Hmmm, there is no API for you here :("
                         sub-message="{{$ctrl.getSubMessage()}}"
                         create-mode="$ctrl.createMode"></gravitee-empty-state>
 
-  <div ng-if="$ctrl.apis.length == 0" style="text-align: center;">
+  <div ng-if="$ctrl.apisProvider.length == 0" style="text-align: center;">
     <md-button ng-if="!$ctrl.graviteeUser.username" class="md-raised" ui-sref="login" aria-label="login">Login</md-button>
   </div>
 
-  <div ng-style="{'text-align': $ctrl.apis.length == 0 ? 'center' : 'none' }">
+  <div ng-style="{'text-align': $ctrl.apisProvider.length == 0 ? 'center' : 'none' }">
     <md-button ng-if="!devMode" permission permission-only="'management-api-c'"
-               ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.apis.length > 0}" class="md-fab"
+               ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.apisProvider.length > 0}" class="md-fab"
                aria-label="create-api" ui-sref="management.apis.new">
       <ng-md-icon icon="add" style="fill: #fff;"></ng-md-icon>
     </md-button>

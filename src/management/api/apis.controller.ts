@@ -19,6 +19,7 @@ import UserService from '../../services/user.service';
 
 export class ApisController {
 
+  private apisProvider: any;
   private apis: any;
   private graviteeUIVersion: string;
   private apisScrollAreaHeight: number;
@@ -30,48 +31,32 @@ export class ApisController {
   private portalTitle: string;
   private selectedApis: any[];
 
-  constructor(
-    private ApiService,
-    private $mdDialog,
-    private $scope,
-    private $state: ng.ui.IStateService,
-    private Constants,
-    private Build,
-    private resolvedApis,
-    private UserService: UserService,
-    private graviteeUser,
-    private $q: ng.IQService,
-  ) {
+  constructor(private ApiService,
+              private $mdDialog,
+              private $scope,
+              private $state: ng.ui.IStateService,
+              private Constants,
+              private Build,
+              private resolvedApis,
+              private UserService: UserService,
+              private graviteeUser,
+              private $filter) {
     'ngInject';
 
     this.graviteeUser = graviteeUser;
     this.graviteeUIVersion = Build.version;
     this.portalTitle = Constants.portalTitle;
-    this.apis = resolvedApis.data;
+    this.apisProvider = resolvedApis.data;
 
     this.apisScrollAreaHeight = this.$state.current.name === 'apis.list' ? 195 : 90;
     this.isAPIsHome = this.$state.includes('apis');
 
     this.createMode = !Constants.devMode; // && Object.keys($rootScope.graviteeUser).length > 0;
-    let that = this;
-    $scope.$on("$viewContentLoaded", function() {
-      that.syncStatus = {};
-      that.reloadSyncState();
-    });
-
     this.selectedApis = [];
+    this.syncStatus = [];
 
-    $scope.$on('$stateChangeStart', function() {
+    $scope.$on('$stateChangeStart', function () {
       $scope.hideApis = true;
-    });
-  }
-
-  reloadSyncState() {
-    _.forEach(this.apis, (api: any) => {
-      this.ApiService.isAPISynchronized(api.id)
-        .then((sync) => {
-          this.syncStatus[sync.data.api_id] = sync.data.is_synchronized;
-        });
     });
   }
 
@@ -120,12 +105,36 @@ export class ApisController {
   }
 
   getSubMessage() {
-    if (! this.graviteeUser.username) {
+    if (!this.graviteeUser.username) {
       return 'Login to get access to more APIs';
     } else if (this.UserService.isUserHasPermissions(['management-api-c'])) {
       return 'Start creating an API';
     } else {
       return '';
+    }
+  }
+
+  loadMore = function (order, searchAPIs, showNext) {
+    const doNotLoad = showNext && (this.apisProvider && this.apisProvider.length) === (this.apis && this.apis.length);
+    if (!doNotLoad && this.apisProvider && this.apisProvider.length) {
+      let apisProvider = _.clone(this.apisProvider);
+      if (searchAPIs) {
+        apisProvider = this.$filter('filter')(apisProvider, searchAPIs);
+      }
+      apisProvider = _.sortBy(apisProvider, _.replace(order, '-', ''));
+      if (_.startsWith(order, '-')) {
+        apisProvider.reverse();
+      }
+      let apisLength = this.apis? this.apis.length:0;
+      this.apis = _.take(apisProvider, 20 + apisLength);
+      _.forEach(this.apis, (api: any) => {
+        if (_.isUndefined(this.syncStatus[api.id])) {
+          this.ApiService.isAPISynchronized(api.id)
+            .then((sync) => {
+              this.syncStatus[api.id] = sync.data.is_synchronized;
+            });
+        }
+      });
     }
   }
 }

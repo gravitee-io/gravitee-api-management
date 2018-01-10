@@ -15,9 +15,11 @@
  */
 import * as angular from 'angular';
 import UserService from '../../services/user.service';
+import * as _ from "lodash";
 
 class ApplicationsController {
   private applications: any;
+  private applicationsToDisplay: any;
   private selectedApplications: any;
   private subMessage: string;
 
@@ -25,7 +27,8 @@ class ApplicationsController {
     private $mdDialog: ng.material.IDialogService,
     private $state: ng.ui.IStateService,
     private $rootScope,
-    private UserService: UserService
+    private UserService: UserService,
+    private $filter
   ) {
 		'ngInject';
 		this.selectedApplications = [];
@@ -65,6 +68,22 @@ class ApplicationsController {
     }, function() {
        // You cancelled the dialog
     });
+  }
+
+  loadMore = function (order, searchApplications, showNext) {
+    const doNotLoad = showNext && (this.applications && this.applications.length) === (this.applicationsToDisplay && this.applicationsToDisplay.length);
+    if (!doNotLoad && this.applications && this.applications.length) {
+      let applications = _.clone(this.applications);
+      if (searchApplications) {
+        applications = this.$filter('filter')(applications, searchApplications);
+      }
+      applications = _.sortBy(applications, _.replace(order, '-', ''));
+      if (_.startsWith(order, '-')) {
+        applications.reverse();
+      }
+      let applicationsLength = this.applicationsToDisplay? this.applicationsToDisplay.length:0;
+      this.applicationsToDisplay = _.take(applications, 20 + applicationsLength);
+    }
   }
 }
 
