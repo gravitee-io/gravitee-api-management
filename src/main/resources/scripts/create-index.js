@@ -72,4 +72,20 @@ db.rating.reIndex();
 // "ratingAnswers" collection
 db.ratingAnswers.dropIndexes();
 db.ratingAnswers.createIndex( { "rating" : 1 } );
-db.ratingAnswers.reIndex();
+
+// "portalnotifications" collection
+db.portalnotifications.dropIndexes();
+db.portalnotifications.createIndex( { "user" : 1 } );
+db.portalnotifications.reIndex();
+
+// "portalnotificationconfigs" collection
+db.portalnotificationconfigs.dropIndexes();
+db.portalnotificationconfigs.createIndex( {"_id.user":1, "_id.referenceId":1, "_id.referenceType":1}, { unique: true } );
+db.portalnotificationconfigs.createIndex( {"_id.referenceId":1, "_id.referenceType":1, "hooks":1});
+db.portalnotificationconfigs.reIndex();
+
+// "genericnotificationconfigs" collection
+db.genericnotificationconfigs.dropIndexes();
+db.genericnotificationconfigs.createIndex( {"referenceId":1, "referenceType":1, "hooks":1});
+db.genericnotificationconfigs.createIndex( {"referenceId":1, "referenceType":1});
+db.genericnotificationconfigs.reIndex();
