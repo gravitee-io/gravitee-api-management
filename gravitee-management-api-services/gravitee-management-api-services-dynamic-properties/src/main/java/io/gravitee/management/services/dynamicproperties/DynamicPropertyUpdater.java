@@ -19,11 +19,11 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.management.services.dynamicproperties.provider.Provider;
+import io.vertx.core.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DynamicPropertyUpdater implements Runnable {
+public class DynamicPropertyUpdater implements Handler<Long> {
 
     private final Logger logger = LoggerFactory.getLogger(DynamicPropertyUpdater.class);
 
@@ -47,7 +47,7 @@ public class DynamicPropertyUpdater implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void handle(Long event) {
         logger.debug("Running dynamic-properties poller for {}", api);
 
         provider.get()

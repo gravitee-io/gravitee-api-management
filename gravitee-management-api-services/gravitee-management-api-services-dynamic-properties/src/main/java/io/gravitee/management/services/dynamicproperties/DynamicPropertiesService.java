@@ -22,6 +22,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
+import io.gravitee.definition.model.services.schedule.Trigger;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.event.ApiEvent;
@@ -30,24 +31,19 @@ import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
 
 /**
  * @author Alexandre FARIA (lusoalex on github.com)
  */
-public class DynamicPropertiesService extends AbstractService  implements EventListener<ApiEvent, ApiEntity> {
+public class DynamicPropertiesService extends AbstractService implements EventListener<ApiEvent, ApiEntity> {
 
     /**
      * Logger.
      */
     private final Logger logger = LoggerFactory.getLogger(DynamicPropertiesService.class);
-
-    @Value("${services.dynamicproperties.threads:2}")
-    private int threads;
 
     @Autowired
     private EventManager eventManager;
@@ -58,9 +54,7 @@ public class DynamicPropertiesService extends AbstractService  implements EventL
     @Autowired
     private Vertx vertx;
 
-    private ExecutorService executorService;
-
-    private final Map<ApiEntity, ScheduledFuture> scheduledTasks = new HashMap<>();
+    private final Map<ApiEntity, Long> timers = new HashMap<>();
 
     @Override
     protected String name() {
@@ -69,27 +63,14 @@ public class DynamicPropertiesService extends AbstractService  implements EventL
 
     @Override
     protected void doStart() throws Exception {
-            super.doStart();
+        super.doStart();
 
-            eventManager.subscribeForEvents(this, ApiEvent.class);
-
-            executorService = Executors.newScheduledThreadPool(threads, new ThreadFactory() {
-                private int counter = 0;
-                private String prefix = "dynamic-properties";
-
-                public Thread newThread(Runnable r) {
-                    return new Thread(r, prefix + '-' + counter++);
-                }
-            });
+        eventManager.subscribeForEvents(this, ApiEvent.class);
     }
 
     @Override
     protected void doStop() throws Exception {
         super.doStop();
-
-        if (executorService != null) {
-            executorService.shutdown();
-        }
     }
 
     @Override
@@ -124,11 +105,12 @@ public class DynamicPropertiesService extends AbstractService  implements EventL
                     updater.setApiService(apiService);
                     logger.info("Add a scheduled task to poll dynamic properties each {} {} ", dynamicPropertyService.getTrigger().getRate(),
                             dynamicPropertyService.getTrigger().getUnit());
-                    ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
-                            updater, 0, dynamicPropertyService.getTrigger().getRate(),
-                            dynamicPropertyService.getTrigger().getUnit());
 
-                    scheduledTasks.put(api, scheduledFuture);
+                    // Force the first refresh, and then run it periodically
+                    updater.handle(null);
+
+                    long periodicTimer = vertx.setPeriodic(getDelayMillis(dynamicPropertyService.getTrigger()), updater);
+                    timers.put(api, periodicTimer);
                 }
             } else {
                 logger.info("Dynamic properties service is disabled for: {} [{}]", api.getName(), api.getVersion());
@@ -136,15 +118,26 @@ public class DynamicPropertiesService extends AbstractService  implements EventL
         }
     }
 
+    private long getDelayMillis(Trigger trigger) {
+        switch (trigger.getUnit()) {
+            case MILLISECONDS:
+                return trigger.getRate();
+            case SECONDS:
+                return trigger.getRate() * 1000;
+            case MINUTES:
+                return trigger.getRate() * 1000 * 60;
+            case HOURS:
+                return trigger.getRate() * 1000 * 60 * 60;
+        }
+
+        return -1;
+    }
+
     private void stopDynamicProperties(ApiEntity api) {
-        ScheduledFuture scheduledFuture = scheduledTasks.remove(api);
-        if (scheduledFuture != null) {
-            if (! scheduledFuture.isCancelled()) {
-                logger.info("Stop Dynamic properties");
-                scheduledFuture.cancel(true);
-            } else {
-                logger.info("Dynamic properties service already shutdown");
-            }
+        Long timer = timers.remove(api);
+        if (timer != null) {
+            logger.info("Stop Dynamic properties service for API id[{}] name[{}]", api.getId(), api.getName());
+            vertx.cancelTimer(timer);
         }
     }
 }

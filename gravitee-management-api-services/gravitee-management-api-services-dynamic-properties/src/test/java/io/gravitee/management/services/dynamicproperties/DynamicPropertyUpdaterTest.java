@@ -61,7 +61,7 @@ public class DynamicPropertyUpdaterTest {
                             })
                 );
 
-        poller.run();
+        poller.handle(1L);
     }
 
     @Test
@@ -75,6 +75,6 @@ public class DynamicPropertyUpdaterTest {
                                 })
                 );
 
-        poller.run();
+        poller.handle(1L);
     }
 }
