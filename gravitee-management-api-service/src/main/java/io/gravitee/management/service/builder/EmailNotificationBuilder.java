@@ -80,6 +80,7 @@ public class EmailNotificationBuilder {
         CLOSE_SUBSCRIPTION("subscriptionClosed.html"),
         REJECT_SUBSCRIPTION("subscriptionRejected.html"),
         USER_REGISTRATION("userRegistration.html"),
+        USER_REGISTERED("userRegistered.html"),
         APPLICATION_MEMBER_SUBSCRIPTION("applicationMember.html"),
         API_MEMBER_SUBSCRIPTION("apiMember.html"),
         GROUP_MEMBER_SUBSCRIPTION("groupMember.html"),

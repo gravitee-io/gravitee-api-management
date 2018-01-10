@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -40,6 +41,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -87,6 +89,7 @@ public class ApplicationService_CreateTest {
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
         when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
+        when(userService.findById(any())).thenReturn(mock(UserEntity.class));
 
         final ApplicationEntity applicationEntity = applicationService.create(newApplication, USER_NAME);
 

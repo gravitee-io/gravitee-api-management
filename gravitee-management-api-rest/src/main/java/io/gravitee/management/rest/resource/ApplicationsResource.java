@@ -23,6 +23,8 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.notification.ApplicationHook;
+import io.gravitee.management.service.notification.Hook;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -116,6 +118,14 @@ public class ApplicationsResource extends AbstractResource {
         }
 
         return Response.serverError().build();
+    }
+
+    @GET
+    @Path("/hooks")
+    @ApiOperation("Get the list of available hooks")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Hook[] getHooks() {
+        return ApplicationHook.values();
     }
 
     @Path("{application}")

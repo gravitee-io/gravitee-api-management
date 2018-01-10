@@ -1,0 +1,3 @@
+title: A new User is registered
+message: |
+  "${user.username}" is now registered.

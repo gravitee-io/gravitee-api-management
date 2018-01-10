@@ -17,6 +17,7 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
 import io.gravitee.management.service.*;
@@ -24,6 +25,9 @@ import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.management.service.exceptions.SubscriptionNotClosableException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.notification.ApiHook;
+import io.gravitee.management.service.notification.ApplicationHook;
+import io.gravitee.management.service.notification.HookScope;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -73,6 +77,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private GenericNotificationConfigService genericNotificationConfigService;
 
     @Override
     public ApplicationEntity findById(String applicationId) {
@@ -239,8 +246,20 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             membership.setCreatedAt(application.getCreatedAt());
             membership.setUpdatedAt(application.getCreatedAt());
             membershipRepository.create(membership);
+            // create the default mail notification
+            UserEntity userEntity = userService.findById(userId);
+            if (userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
+                GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
+                notificationConfigEntity.setName("Default Mail Notifications");
+                notificationConfigEntity.setReferenceType(HookScope.APPLICATION.name());
+                notificationConfigEntity.setReferenceId(createdApplication.getId());
+                notificationConfigEntity.setHooks(Arrays.stream(ApplicationHook.values()).map(Enum::name).collect(Collectors.toList()));
+                notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
+                notificationConfigEntity.setConfig(userEntity.getEmail());
+                genericNotificationConfigService.create(notificationConfigEntity);
+            }
             //TODO add membership log
-            return convert(createdApplication, userService.findById(userId));
+            return convert(createdApplication, userEntity);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, userId, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for user " + userId, ex);

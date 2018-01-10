@@ -17,7 +17,6 @@ package io.gravitee.management.service.impl;
 
 import com.auth0.jwt.JWTSigner;
 import com.auth0.jwt.JWTVerifier;
-import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.utils.*;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
@@ -28,6 +27,8 @@ import io.gravitee.management.service.exceptions.DefaultRoleNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
+import io.gravitee.management.service.notification.NotificationParamsBuilder;
+import io.gravitee.management.service.notification.PortalHook;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
@@ -86,6 +87,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private NotifierService notifierService;
 
     @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
     private String defaultAvatar;
@@ -412,15 +416,19 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         String registrationUrl = portalUrl + "/#!/registration/confirm/" + token;
 
+        final Map<String, Object> params = new NotificationParamsBuilder()
+                .user(userEntity)
+                .token(token)
+                .registrationUrl(registrationUrl)
+                .build();
+
+        notifierService.trigger(PortalHook.USER_REGISTERED, params);
+
         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                 .to(userEntity.getEmail())
                 .subject("User registration - " + userEntity.getUsername())
                 .template(EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION)
-                .params(ImmutableMap.of(
-                        "username", userEntity.getUsername(),
-                        "token", token,
-                        "registrationUrl", registrationUrl,
-                        "user", userEntity))
+                .params(params)
                 .build()
         );
 

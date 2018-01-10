@@ -29,6 +29,7 @@ public enum RolePermission {
     MANAGEMENT_APPLICATION  (RoleScope.MANAGEMENT, ManagementPermission.APPLICATION),
     MANAGEMENT_PLATFORM     (RoleScope.MANAGEMENT, ManagementPermission.PLATFORM),
     MANAGEMENT_AUDIT        (RoleScope.MANAGEMENT, ManagementPermission.AUDIT),
+    MANAGEMENT_NOTIFICATION (RoleScope.MANAGEMENT, ManagementPermission.NOTIFICATION),
 
     PORTAL_METADATA         (RoleScope.PORTAL, PortalPermission.METADATA),
     PORTAL_DOCUMENTATION    (RoleScope.PORTAL, PortalPermission.DOCUMENTATION),
@@ -50,12 +51,14 @@ public enum RolePermission {
     API_AUDIT               (RoleScope.API, ApiPermission.AUDIT),
     API_RATING              (RoleScope.API, ApiPermission.RATING),
     API_RATING_ANSWER       (RoleScope.API, ApiPermission.RATING_ANSWER),
+    API_NOTIFICATION        (RoleScope.API, ApiPermission.NOTIFICATION),
 
     APPLICATION_DEFINITION  (RoleScope.APPLICATION, ApplicationPermission.DEFINITION),
     APPLICATION_MEMBER      (RoleScope.APPLICATION, ApplicationPermission.MEMBER),
     APPLICATION_ANALYTICS   (RoleScope.APPLICATION, ApplicationPermission.ANALYTICS),
     APPLICATION_LOG         (RoleScope.APPLICATION, ApplicationPermission.LOG),
-    APPLICATION_SUBSCRIPTION(RoleScope.APPLICATION, ApplicationPermission.SUBSCRIPTION);
+    APPLICATION_SUBSCRIPTION(RoleScope.APPLICATION, ApplicationPermission.SUBSCRIPTION),
+    APPLICATION_NOTIFICATION(RoleScope.APPLICATION, ApplicationPermission.NOTIFICATION);
 
 
     RoleScope scope;

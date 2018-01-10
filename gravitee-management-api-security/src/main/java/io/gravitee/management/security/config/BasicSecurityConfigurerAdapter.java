@@ -171,6 +171,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     .antMatchers(HttpMethod.POST, "/auth/**").permitAll()
 
                     // API requests
+                    .antMatchers(HttpMethod.GET, "/apis/hooks").authenticated()
                     .antMatchers(HttpMethod.GET, "/apis/**").permitAll()
                     .antMatchers(HttpMethod.POST, "/apis").authenticated()
                     .antMatchers(HttpMethod.POST, "/apis/**").authenticated()

@@ -25,6 +25,8 @@ import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
+import io.gravitee.management.service.notification.ApiHook;
+import io.gravitee.management.service.notification.Hook;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.View;
 import io.swagger.annotations.*;
@@ -39,6 +41,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -186,6 +189,14 @@ public class ApisResource extends AbstractResource {
         } catch (TechnicalException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("The api context path [" + verifyApiParam.getContextPath() + "] already exists.").build();
         }
+    }
+
+    @GET
+    @Path("/hooks")
+    @ApiOperation("Get the list of available hooks")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Hook[] getHooks() {
+        return ApiHook.values();
     }
 
     @Path("{api}")

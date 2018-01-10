@@ -26,10 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.EnableAsync;
 
-import javax.mail.MessagingException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -41,7 +38,6 @@ import java.util.Properties;
  * @author GraviteeSource Team
  */
 @Configuration
-@EnableAsync
 public class EmailConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailConfiguration.class);

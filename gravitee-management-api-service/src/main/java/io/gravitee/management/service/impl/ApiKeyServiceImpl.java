@@ -15,13 +15,13 @@
  */
 package io.gravitee.management.service.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.*;
-import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.management.service.exceptions.SubscriptionClosedException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.notification.ApiHook;
+import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
@@ -73,6 +73,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private NotifierService notifierService;
 
     @Override
     public ApiKeyEntity generate(String subscription) {
@@ -186,29 +189,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
                 apiKeyRepository.update(key);
 
-                if (notify) {
-                    final ApplicationEntity application = applicationService.findById(key.getApplication());
-                    final PlanEntity plan = planService.findById(key.getPlan());
-                    final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
-                    final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-
-                    if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
-                        emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                                .to(owner.getEmail())
-                                .subject("API key revoked for API " + api.getName())
-                                .template(EmailNotificationBuilder.EmailTemplate.REVOKE_API_KEY)
-                                .params(ImmutableMap.of(
-                                        "owner", owner,
-                                        "api", api,
-                                        "plan", plan,
-                                        "application", application,
-                                        "apiKey", key.getKey()))
-                                .build());
-                    }
-                }
-
-                // Audit
                 final PlanEntity plan = planService.findById(key.getPlan());
+                // Audit
                 auditService.createApiAuditLog(
                         plan.getApis().iterator().next(),
                         Collections.singletonMap(API_KEY, key.getKey()),
@@ -216,6 +198,21 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                         key.getUpdatedAt(),
                         previousApiKey,
                         key);
+
+                // notify
+                if (notify) {
+                    final ApplicationEntity application = applicationService.findById(key.getApplication());
+                    final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
+                    final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+                    final Map<String, Object> params = new NotificationParamsBuilder()
+                            .application(application)
+                            .plan(plan)
+                            .api(api)
+                            .owner(owner)
+                            .apikey(key)
+                            .build();
+                    notifierService.trigger(ApiHook.APIKEY_REVOKED, api.getId(), params);
+                }
             } else {
                 LOGGER.info("API Key {} already revoked. Skipping...", apiKey);
             }
@@ -309,30 +306,26 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             key.setExpireAt(expirationDate);
             apiKeyRepository.update(key);
 
+            //notify
             final ApplicationEntity application = applicationService.findById(key.getApplication());
             final PlanEntity plan = planService.findById(key.getPlan());
             final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
 
-            if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
-                final Map<String, Object> params = new HashMap<>();
-                params.put("owner", owner);
-                params.put("api", api);
-                params.put("application", application);
-                params.put("apiKey", key.getKey());
-                params.put("plan", plan);
-
-                if (key.getExpireAt() != null && new Date().before(key.getExpireAt())) {
-                    params.put("expirationDate", key.getExpireAt());
-                }
-
-                emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                        .to(owner.getEmail())
-                        .subject("API key expiration!")
-                        .template(EmailNotificationBuilder.EmailTemplate.EXPIRE_API_KEY)
-                        .params(params)
-                        .build());
+            NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder();
+            paramsBuilder
+                    .api(api)
+                    .application(application)
+                    .apikey(key)
+                    .plan(plan)
+                    .owner(owner);
+            if (key.getExpireAt() != null && new Date().before(key.getExpireAt())) {
+                paramsBuilder.expirationDate(key.getExpireAt());
             }
+
+            final Map<String, Object> params = paramsBuilder.build();
+
+            notifierService.trigger(ApiHook.APIKEY_EXPIRED, api.getId(), params);
 
             // Audit
             auditService.createApiAuditLog(

@@ -15,7 +15,6 @@
  */
 package io.gravitee.management.service.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
@@ -23,8 +22,10 @@ import io.gravitee.management.model.common.Pageable;
 import io.gravitee.management.model.pagedresult.Metadata;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
 import io.gravitee.management.service.*;
-import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.notification.ApiHook;
+import io.gravitee.management.service.notification.ApplicationHook;
+import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
@@ -82,6 +83,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private NotifierService notifierService;
 
     @Override
     public SubscriptionEntity findById(String subscription) {
@@ -233,7 +237,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
             final PrimaryOwnerEntity apiOwner = api.getPrimaryOwner();
-            final PrimaryOwnerEntity appOwner = applicationEntity.getPrimaryOwner();
+            //final PrimaryOwnerEntity appOwner = applicationEntity.getPrimaryOwner();
 
 
             String portalUrl = environment.getProperty("portalURL");
@@ -247,30 +251,24 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscriptionsUrl = portalUrl + "/#!/management/apis/" + api.getId() + "/subscriptions/" + subscription.getId();
             }
 
-            // Send a notification to the primary owner of the API
-            if (apiOwner != null && apiOwner.getEmail() != null && !apiOwner.getEmail().isEmpty()) {
-                emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                        .to(apiOwner.getEmail())
-                        .subject("New subscription for " + api.getName() + " with plan " + planEntity.getName())
-                        .template(EmailNotificationBuilder.EmailTemplate.NEW_SUBSCRIPTION)
-                        .params(ImmutableMap.of(
-                                "owner", apiOwner,
-                                "api", api,
-                                "plan", planEntity,
-                                "application", applicationEntity,
-                                "subscriptionsUrl", subscriptionsUrl))
-                        .build());
-            }
+            final Map<String, Object> params = new NotificationParamsBuilder()
+                    .api(api)
+                    .plan(planEntity)
+                    .application(applicationEntity)
+                    .owner(apiOwner)
+                    .subscriptionsUrl(subscriptionsUrl)
+                    .build();
 
             if (PlanValidationType.AUTO == planEntity.getValidation()) {
                 ProcessSubscriptionEntity process = new ProcessSubscriptionEntity();
                 process.setId(subscription.getId());
                 process.setAccepted(true);
                 process.setStartingAt(new Date());
-
                 // Do process
                 return process(process, SUBSCRIPTION_SYSTEM_VALIDATOR);
             } else {
+                notifierService.trigger(ApiHook.SUBSCRIPTION_NEW, apiId, params);
+                notifierService.trigger(ApplicationHook.SUBSCRIPTION_NEW, application, params);
                 return convert(subscription);
             }
         } catch (TechnicalException ex) {
@@ -395,34 +393,19 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             SubscriptionEntity subscriptionEntity = convert(subscription);
 
-            if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
-                if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
-                    emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                            .to(owner.getEmail())
-                            .subject("Your subscription to " + api.getName() + " with plan " + plan.getName() +
-                                    " has been approved")
-                            .template(EmailNotificationBuilder.EmailTemplate.APPROVE_SUBSCRIPTION)
-                            .params(ImmutableMap.of(
-                                    "owner", owner,
-                                    "api", api,
-                                    "plan", plan,
-                                    "subscription", subscription,
-                                    "application", application))
-                            .build());
-                } else {
-                    emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                            .to(owner.getEmail())
-                            .subject("Your subscription to " + api.getName() + " with plan " + plan.getName() +
-                                    " has been rejected")
-                            .template(EmailNotificationBuilder.EmailTemplate.REJECT_SUBSCRIPTION)
-                            .params(ImmutableMap.of(
-                                    "owner", owner,
-                                    "api", api,
-                                    "plan", plan,
-                                    "subscription", subscription,
-                                    "application", application))
-                            .build());
-                }
+            final Map<String, Object> params = new NotificationParamsBuilder()
+                    .owner(owner)
+                    .application(application)
+                    .api(api)
+                    .plan(plan)
+                    .subscription(subscriptionEntity)
+                    .build();
+            if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
+                notifierService.trigger(ApiHook.SUBSCRIPTION_ACCEPTED, apiId, params);
+                notifierService.trigger(ApplicationHook.SUBSCRIPTION_ACCEPTED, application.getId(), params);
+            } else {
+                notifierService.trigger(ApiHook.SUBSCRIPTION_REJECTED, apiId, params);
+                notifierService.trigger(ApplicationHook.SUBSCRIPTION_REJECTED, application.getId(), params);
             }
 
             if (plan.getSecurity() == PlanSecurityType.API_KEY &&
@@ -468,6 +451,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 String apiId = plan.getApis().iterator().next();
                 final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+                final Map<String, Object> params = new NotificationParamsBuilder()
+                        .owner(owner)
+                        .api(api)
+                        .plan(plan)
+                        .application(application)
+                        .build();
+
+                notifierService.trigger(ApiHook.SUBSCRIPTION_CLOSED, apiId, params);
+                notifierService.trigger(ApplicationHook.SUBSCRIPTION_CLOSED, application.getId(), params);
                 createAudit(
                         apiId,
                         subscription.getApplication(),
@@ -475,18 +467,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         subscription.getUpdatedAt(),
                         previousSubscription,
                         subscription);
-
-                emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                        .to(owner.getEmail())
-                        .subject("Your subscription to " + api.getName() + " with plan " + plan.getName() +
-                                " has been closed")
-                        .template(EmailNotificationBuilder.EmailTemplate.CLOSE_SUBSCRIPTION)
-                        .params(ImmutableMap.of(
-                                "owner", owner,
-                                "api", api,
-                                "plan", plan,
-                                "application", application))
-                        .build());
 
                 // API Keys are automatically revoked
                 Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());

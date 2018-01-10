@@ -1,0 +1,19 @@
+<html>
+	<body style="text-align: center;">
+		<header>
+			<#include "header.html" />
+		</header>
+		<div style="margin-top: 50px; color: #424e5a;">
+			<h3>Hi, a new User is registered !</h3>
+			<p>
+				The user
+				<#if user.firstname?? && user.lastname??>
+                  ${user.firstname} ${user.lastname}
+                <#else>
+                  ${user.username}
+                </#if>
+                is now registered.
+			</p>
+		</div>
+	</body>
+</html>

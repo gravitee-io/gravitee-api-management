@@ -88,6 +88,9 @@ public class ApiKeyServiceTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private NotifierService notifierService;
+
     @Test
     public void shouldGenerate() throws TechnicalException {
         // Generated API Key
@@ -129,10 +132,13 @@ public class ApiKeyServiceTest {
     @Test
     public void shouldRevoke() throws Exception {
         apiKey = new ApiKey();
+        apiKey.setKey("123-456-789");
         apiKey.setSubscription(SUBSCRIPTION_ID);
         apiKey.setCreatedAt(new Date());
         apiKey.setPlan(PLAN_ID);
         apiKey.setApplication(APPLICATION_ID);
+        final ApiModelEntity api = mock(ApiModelEntity.class);
+        when(api.getId()).thenReturn("123");
 
         // Prepare data
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
@@ -144,6 +150,7 @@ public class ApiKeyServiceTest {
         when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
         when(applicationService.findById(subscription.getApplication())).thenReturn(application);
         when(planService.findById(subscription.getPlan())).thenReturn(plan);
+        when(apiService.findByIdForTemplates(any())).thenReturn(api);
 
         // Run
         apiKeyService.revoke(API_KEY, true);
@@ -182,10 +189,13 @@ public class ApiKeyServiceTest {
         // Prepare data
         // apiKey object is not a mock since its state is updated by the call to apiKeyService.renew()
         apiKey = new ApiKey();
+        apiKey.setKey("123-456-789");
         apiKey.setSubscription(SUBSCRIPTION_ID);
         apiKey.setCreatedAt(new Date());
         apiKey.setPlan(PLAN_ID);
         apiKey.setApplication(APPLICATION_ID);
+        final ApiModelEntity api = mock(ApiModelEntity.class);
+        when(api.getId()).thenReturn("123");
 
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
@@ -201,6 +211,7 @@ public class ApiKeyServiceTest {
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
         when(applicationService.findById(subscription.getApplication())).thenReturn(application);
         when(planService.findById(subscription.getPlan())).thenReturn(plan);
+        when(apiService.findByIdForTemplates(any())).thenReturn(api);
 
         // Run
         final ApiKeyEntity apiKeyEntity = apiKeyService.renew(SUBSCRIPTION_ID);

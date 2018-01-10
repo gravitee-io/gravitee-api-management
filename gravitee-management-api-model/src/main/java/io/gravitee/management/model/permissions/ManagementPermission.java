@@ -20,16 +20,17 @@ package io.gravitee.management.model.permissions;
  * @author GraviteeSource Team
  */
 public enum ManagementPermission implements Permission {
-    INSTANCE(   "INSTANCE",    1000),
-    VIEW(       "VIEW",        1100),
-    GROUP(      "GROUP",       1200),
-    TAG(        "TAG",         1300),
-    TENANT(     "TENANT",      1400),
-    API(        "API",         1500),
-    ROLE(       "ROLE",        1600),
-    APPLICATION("APPLICATION", 1700),
-    PLATFORM(   "PLATFORM",    1800),
-    AUDIT(      "AUDIT",       1900);
+    INSTANCE(    "INSTANCE",     1000),
+    VIEW(        "VIEW",         1100),
+    GROUP(       "GROUP",        1200),
+    TAG(         "TAG",          1300),
+    TENANT(      "TENANT",       1400),
+    API(         "API",          1500),
+    ROLE(        "ROLE",         1600),
+    APPLICATION( "APPLICATION",  1700),
+    PLATFORM(    "PLATFORM",     1800),
+    AUDIT(       "AUDIT",        1900),
+    NOTIFICATION("NOTIFICATION", 2000);
 
     String name;
     int mask;

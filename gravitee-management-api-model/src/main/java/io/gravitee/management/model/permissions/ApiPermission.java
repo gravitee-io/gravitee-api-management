@@ -35,7 +35,8 @@ public enum ApiPermission implements Permission {
     RATING(             "RATING",               2100),
     RATING_ANSWER(      "RATING_ANSWER",        2200),
     AUDIT(              "AUDIT",                2300),
-    DISCOVERY(          "DISCOVERY",            2400);
+    DISCOVERY(          "DISCOVERY",            2400),
+    NOTIFICATION(       "NOTIFICATION",         2500);
 
     String name;
     int mask;

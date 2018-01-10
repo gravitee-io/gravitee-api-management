@@ -17,17 +17,21 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.notification.NotifierEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam.LifecycleAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.service.NotifierService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.swagger.annotations.*;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.glassfish.jersey.message.internal.MatchingEntityTag;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -36,6 +40,7 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -56,6 +61,9 @@ public class ApiResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
+
+    @Autowired
+    private NotifierService notifierService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -384,6 +392,16 @@ public class ApiResource extends AbstractResource {
                 .build();
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("notifiers")
+    @Permissions({
+            @Permission(value = RolePermission.API_NOTIFICATION, acls = RolePermissionAction.READ)
+    })
+    public List<NotifierEntity> getNotifiers(@PathParam("api") String api) {
+        return notifierService.list(NotificationReferenceType.API, api);
+    }
+
     @Path("keys")
     public ApiKeysResource getApiKeyResource() {
         return resourceContext.getResource(ApiKeysResource.class);
@@ -447,6 +465,11 @@ public class ApiResource extends AbstractResource {
     @Path("audit")
     public ApiAuditResource getApiAuditResource() {
         return resourceContext.getResource(ApiAuditResource.class);
+    }
+
+    @Path("notificationsettings")
+    public ApiNotificationSettingsResource getNotificationSettingsResource() {
+        return resourceContext.getResource(ApiNotificationSettingsResource.class);
     }
 
     private void setSynchronizationState(io.gravitee.management.rest.model.ApiEntity apiEntity) {

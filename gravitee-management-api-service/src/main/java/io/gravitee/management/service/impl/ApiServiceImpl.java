@@ -30,10 +30,13 @@ import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.documentation.PageQuery;
+import io.gravitee.management.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.plan.PlanQuery;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.notification.ApiHook;
+import io.gravitee.management.service.notification.HookScope;
 import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -109,6 +112,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private IdentityService identityService;
+
+    @Autowired
+    private GenericNotificationConfigService genericNotificationConfigService;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String userId) throws ApiAlreadyExistsException {
@@ -204,6 +210,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 membership.setCreatedAt(repoApi.getCreatedAt());
                 membership.setUpdatedAt(repoApi.getCreatedAt());
                 membershipRepository.create(membership);
+                // create the default mail notification
+                if (primaryOwner.getEmail() != null && !primaryOwner.getEmail().isEmpty()) {
+                    GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
+                    notificationConfigEntity.setName("Default Mail Notifications");
+                    notificationConfigEntity.setReferenceType(HookScope.API.name());
+                    notificationConfigEntity.setReferenceId(createdApi.getId());
+                    notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(Collectors.toList()));
+                    notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
+                    notificationConfigEntity.setConfig(primaryOwner.getEmail());
+                    genericNotificationConfigService.create(notificationConfigEntity);
+                }
+
                 //TODO add membership log
                 return convert(createdApi, primaryOwner, true);
             } else {

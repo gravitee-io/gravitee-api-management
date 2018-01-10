@@ -25,7 +25,8 @@ public enum ApplicationPermission implements Permission {
     MEMBER(      "MEMBER",       1100),
     ANALYTICS(   "ANALYTICS",    1200),
     LOG(         "LOG",          1300),
-    SUBSCRIPTION("SUBSCRIPTION", 1400);
+    SUBSCRIPTION("SUBSCRIPTION", 1400),
+    NOTIFICATION("NOTIFICATION", 1500);
 
     String name;
     int mask;

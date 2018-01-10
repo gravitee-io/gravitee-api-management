@@ -15,12 +15,12 @@
  */
 package io.gravitee.management.service.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.providers.User;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Audit;
@@ -75,6 +75,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private NotifierService notifierService;
 
     @Override
     public Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope) {
@@ -229,12 +232,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 membership.setUpdatedAt(updateDate);
                 returnedMembership = membershipRepository.create(membership);
                 createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
-            }
 
-            if (userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
-                EmailNotification emailNotification = buildEmailNotification(userEntity, reference.getType(), reference.getId());
-                if (emailNotification != null) {
-                    emailService.sendAsyncEmailNotification(emailNotification);
+                if (userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
+                    EmailNotification emailNotification = buildEmailNotification(userEntity, reference.getType(), reference.getId());
+                    if (emailNotification != null) {
+                        emailService.sendAsyncEmailNotification(emailNotification);
+                    }
                 }
             }
 
@@ -410,26 +413,27 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private EmailNotification buildEmailNotification(UserEntity user, MembershipReferenceType referenceType, String referenceId) {
         String subject = null;
         EmailNotificationBuilder.EmailTemplate template = null;
-        Map params = null;
+        Map<String, Object> params = null;
         GroupEntity groupEntity;
+        NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder();
         switch (referenceType) {
             case APPLICATION:
                 ApplicationEntity applicationEntity = applicationService.findById(referenceId);
                 subject = "Subscription to application " + applicationEntity.getName();
                 template = EmailNotificationBuilder.EmailTemplate.APPLICATION_MEMBER_SUBSCRIPTION;
-                params = ImmutableMap.of("application", applicationEntity, "username", user.getUsername(), "user", user);
+                params = paramsBuilder.application(applicationEntity).user(user).build();
                 break;
             case API:
                 ApiEntity apiEntity = apiService.findById(referenceId);
                 subject = "Subscription to API " + apiEntity.getName();
                 template = EmailNotificationBuilder.EmailTemplate.API_MEMBER_SUBSCRIPTION;
-                params = ImmutableMap.of("api", apiEntity, "username", user.getUsername(), "user", user);
+                params = paramsBuilder.api(apiEntity).user(user).build();
                 break;
             case GROUP:
                 groupEntity = groupService.findById(referenceId);
                 subject = "Subscription to group " + groupEntity.getName();
                 template = EmailNotificationBuilder.EmailTemplate.GROUP_MEMBER_SUBSCRIPTION;
-                params = ImmutableMap.of("group", groupEntity, "username", user.getUsername(), "user", user);
+                params = paramsBuilder.group(groupEntity).user(user).build();
                 break;
         }
 

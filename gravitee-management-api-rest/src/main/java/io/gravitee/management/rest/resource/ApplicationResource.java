@@ -18,11 +18,14 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.management.model.notification.NotifierEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.NotifierService;
+import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -35,6 +38,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -49,6 +53,9 @@ public class ApplicationResource extends AbstractResource {
 
     @Inject
     private ApplicationService applicationService;
+
+    @Inject
+    private NotifierService notifierService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -95,6 +102,16 @@ public class ApplicationResource extends AbstractResource {
         return Response.noContent().build();
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("notifiers")
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ)
+    })
+    public List<NotifierEntity> getNotifiers(@PathParam("application") String application) {
+        return notifierService.list(NotificationReferenceType.APPLICATION, application);
+    }
+
     @Path("members")
     public ApplicationMembersResource getApplicationMembersResource() {
         return resourceContext.getResource(ApplicationMembersResource.class);
@@ -113,5 +130,10 @@ public class ApplicationResource extends AbstractResource {
     @Path("logs")
     public ApplicationLogsResource getApplicationLogsResource() {
         return resourceContext.getResource(ApplicationLogsResource.class);
+    }
+
+    @Path("notificationsettings")
+    public ApplicationNotificationSettingsResource getNotificationSettingsResource() {
+        return resourceContext.getResource(ApplicationNotificationSettingsResource.class);
     }
 }

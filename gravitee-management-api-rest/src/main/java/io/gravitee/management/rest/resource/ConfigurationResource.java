@@ -15,11 +15,27 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.notification.NotifierEntity;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.service.NotifierService;
+import io.gravitee.management.service.notification.Hook;
+import io.gravitee.management.service.notification.PortalHook;
+import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
+import javax.inject.Inject;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -32,6 +48,27 @@ public class ConfigurationResource {
 
     @Context
     private ResourceContext resourceContext;
+
+    @Inject
+    private NotifierService notifierService;
+
+    @GET
+    @Path("/hooks")
+    @ApiOperation("Get the list of available hooks")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Hook[] getHooks() {
+        return PortalHook.values();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("notifiers")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_NOTIFICATION, acls = RolePermissionAction.READ)
+    })
+    public List<NotifierEntity> getNotifiers() {
+        return notifierService.list(NotificationReferenceType.PORTAL, PortalNotificationDefaultReferenceId.DEFAULT.name());
+    }
 
     @Path("views")
     public ViewsResource getViewResource() {
@@ -61,6 +98,11 @@ public class ConfigurationResource {
     @Path("rolescopes")
     public RoleScopesResource getRoleScopesResource() {
         return resourceContext.getResource(RoleScopesResource.class);
+    }
+
+    @Path("notificationsettings")
+    public PortalNotificationSettingsResource getNotificationSettingsResource() {
+        return resourceContext.getResource(PortalNotificationSettingsResource.class);
     }
 
     @Path("top-apis")

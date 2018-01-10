@@ -144,7 +144,7 @@ public class MembershipService_AddOrUpdateMemberTest {
         verify(membershipRepository, times(2)).findById(userEntity.getId(), MembershipReferenceType.GROUP, GROUP_ID);
         verify(membershipRepository, never()).create(any());
         verify(membershipRepository, times(1)).update(any());
-        verify(emailService, times(1)).sendAsyncEmailNotification(any());
+        verify(emailService, never()).sendAsyncEmailNotification(any());
     }
 
     @Test(expected = RoleNotFoundException.class)

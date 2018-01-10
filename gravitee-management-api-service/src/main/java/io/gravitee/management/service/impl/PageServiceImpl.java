@@ -57,9 +57,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PAGE;
-import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_CREATED;
-import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_DELETED;
-import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_UPDATED;
+import static io.gravitee.repository.management.model.Page.AuditEvent.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 

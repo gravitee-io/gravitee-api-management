@@ -19,6 +19,8 @@ import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.SubscriptionServiceImpl;
+import io.gravitee.management.service.notification.ApiHook;
+import io.gravitee.management.service.notification.ApplicationHook;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
@@ -83,11 +85,11 @@ public class SubscriptionServiceTest {
     @Mock
     private ApiKeyEntity apiKeyEntity;
     @Mock
-    private EmailService emailService;
-    @Mock
     private AuditService auditService;
     @Mock
     private ConfigurableEnvironment environment;
+    @Mock
+    private NotifierService notifierService;
 
     @Test
     public void shouldFindById() throws TechnicalException {
@@ -723,7 +725,8 @@ public class SubscriptionServiceTest {
         subscriptionService.close(SUBSCRIPTION_ID);
 
         verify(apiKeyService).revoke("api-key", false);
-        verify(emailService).sendAsyncEmailNotification(any(EmailNotification.class));
+        verify(notifierService).trigger(eq(ApiHook.SUBSCRIPTION_CLOSED), anyString(), anyMap());
+        verify(notifierService).trigger(eq(ApplicationHook.SUBSCRIPTION_CLOSED), anyString(), anyMap());
     }
 
     @Test
