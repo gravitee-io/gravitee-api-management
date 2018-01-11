@@ -71,8 +71,10 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
 
     @Override
     protected void doStop() throws Exception {
-        for (String s : endpointsByName.keySet()) {
-            stop(s);
+        Iterator<Endpoint> ite = endpointsByName.values().iterator();
+        while (ite.hasNext()) {
+            stop(ite.next());
+            ite.remove();
         }
     }
 
@@ -120,10 +122,14 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
         logger.info("Closing endpoint: name[{}]", endpointName);
 
         Endpoint endpoint = endpointsByName.remove(endpointName);
+        stop(endpoint);
+    }
+
+    private void stop(Endpoint endpoint) {
         if (endpoint != null) {
             try {
                 endpoints.remove(endpoint);
-                endpointsTarget.remove(endpointName);
+                endpointsTarget.remove(endpoint.name());
                 endpoint.connector().stop();
             } catch (Exception ex) {
                 logger.error("Unexpected error while closing endpoint connector", ex);
