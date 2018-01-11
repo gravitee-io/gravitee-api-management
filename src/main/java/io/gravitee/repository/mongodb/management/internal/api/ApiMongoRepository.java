@@ -39,6 +39,8 @@ public interface ApiMongoRepository extends MongoRepository<ApiMongo, String> {
     @Query("{ groups: {$in: ?0} }")
     Set<ApiMongo> findByGroups(List<String> groupIds);
 
+    @Query(value = "{}", fields="{'picture': 0}")
+    List<ApiMongo> findAll();
 }
 
 
