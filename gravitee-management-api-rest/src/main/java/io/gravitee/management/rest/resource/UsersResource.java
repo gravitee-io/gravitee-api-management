@@ -140,32 +140,36 @@ public class UsersResource extends AbstractResource {
         cc.setNoCache(false);
         cc.setMaxAge(86400);
 
-        String picture = user.getPicture();
-        String [] parts = picture.split("base64,");
-        String type = parts[0].split("data:")[1];
-        type = type.substring(0, type.length() - 1);
+        try {
+            String picture = user.getPicture();
+            String[] parts = picture.split("base64,");
+            String type = parts[0].split("data:")[1];
+            type = type.substring(0, type.length() - 1);
 
-        EntityTag etag = new EntityTag(Integer.toString(picture.hashCode()));
-        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
+            EntityTag etag = new EntityTag(Integer.toString(picture.hashCode()));
+            Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
 
-        if (builder != null) {
-            // Preconditions are not met, returning HTTP 304 'not-modified'
-            return builder
+            if (builder != null) {
+                // Preconditions are not met, returning HTTP 304 'not-modified'
+                return builder
+                        .cacheControl(cc)
+                        .build();
+            }
+
+            byte[] content = Base64.getDecoder().decode(parts[1]);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            baos.write(content, 0, content.length);
+
+            return Response
+                    .ok()
+                    .entity(baos)
                     .cacheControl(cc)
+                    .tag(etag)
+                    .type(type)
                     .build();
+        } catch (Exception e) {
+            throw new InternalServerErrorException("Unable to retrieve user picture: " + e.getMessage(), e);
         }
-
-        byte[] content = Base64.getDecoder().decode(parts[1]);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        baos.write(content, 0, content.length);
-
-        return Response
-                .ok()
-                .entity(baos)
-                .cacheControl(cc)
-                .tag(etag)
-                .type(type)
-                .build();
     }
 
     public static final Comparator<String> CASE_INSENSITIVE_ORDER
