@@ -62,7 +62,7 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 		}
 
 		io.gravitee.management.idp.api.authentication.UserDetails userDetails =
-				new io.gravitee.management.idp.api.authentication.UserDetails(username, "", mappedAuthorities);
+				new io.gravitee.management.idp.api.authentication.UserDetails(username.toUpperCase(), "", mappedAuthorities);
 
 		userDetails.setFirstname(ctx.getStringAttribute("sn"));
 		userDetails.setLastname(ctx.getStringAttribute("givenName"));
