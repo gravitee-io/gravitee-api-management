@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
+import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
@@ -94,7 +95,7 @@ public class UserServiceTest {
         when(user.getFirstname()).thenReturn(FIRST_NAME);
         when(user.getLastname()).thenReturn(LAST_NAME);
         when(user.getPassword()).thenReturn(PASSWORD);
-        when(userRepository.findByUsernames(Collections.singletonList(USER_NAME))).thenReturn(Collections.singleton(user));
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(of(user));
 
         final UserEntity userEntity = userService.findByName(USER_NAME, false);
 
@@ -115,7 +116,7 @@ public class UserServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByUsernameBecauseTechnicalException() throws TechnicalException {
-        when(userRepository.findByUsernames(Collections.singletonList(USER_NAME))).thenThrow(TechnicalException.class);
+        when(userRepository.findByUsername(USER_NAME)).thenThrow(TechnicalException.class);
 
         userService.findByName(USER_NAME, false);
     }
@@ -175,7 +176,7 @@ public class UserServiceTest {
     @Test(expected = UsernameAlreadyExistsException.class)
     public void shouldNotCreateBecauseExists() throws TechnicalException {
         when(newUser.getUsername()).thenReturn(USER_NAME);
-        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(new User()));
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(of(new User()));
 
         userService.create(newUser, false);
 
@@ -206,7 +207,7 @@ public class UserServiceTest {
     public void shouldCreateDefaultApplication() throws TechnicalException {
         userService.setDefaultApplicationForFirstConnection(true);
         when(user.getLastConnectionAt()).thenReturn(null);
-        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(of(user));
 
         userService.connect(USER_NAME);
 
@@ -217,7 +218,7 @@ public class UserServiceTest {
     public void shouldNotCreateDefaultApplicationBecauseDisabled() throws TechnicalException {
         userService.setDefaultApplicationForFirstConnection(false);
         when(user.getLastConnectionAt()).thenReturn(null);
-        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(of(user));
 
         userService.connect(USER_NAME);
 
@@ -227,7 +228,7 @@ public class UserServiceTest {
     @Test
     public void shouldNotCreateDefaultApplicationBecauseAlreadyConnected() throws TechnicalException {
         when(user.getLastConnectionAt()).thenReturn(new Date());
-        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(of(user));
 
         userService.connect(USER_NAME);
 
