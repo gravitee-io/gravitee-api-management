@@ -43,9 +43,9 @@ public class GatewayNode extends AbstractNode {
 
         components.add(PluginEventListener.class);
         components.add(PluginRegistry.class);
+        components.add(Reactor.class);
         components.add(ServiceManager.class);
         components.add(ReporterService.class);
-        components.add(Reactor.class);
         components.add(VertxEmbeddedContainer.class);
 
         return components;
