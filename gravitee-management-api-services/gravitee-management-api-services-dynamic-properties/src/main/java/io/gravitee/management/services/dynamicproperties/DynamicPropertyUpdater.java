@@ -53,8 +53,9 @@ public class DynamicPropertyUpdater implements Handler<Long> {
         provider.get()
                 .whenComplete((dynamicProperties, throwable) -> {
                     if (throwable != null) {
-                        logger.error("Unexpected error while getting dynamic properties from provider: {}",
-                                provider.name(), throwable);
+                        logger.error("[{}] Unexpected error while getting dynamic properties from provider: {}",
+                                api.getId(), provider.name(),
+                                throwable);
                     } else if (dynamicProperties != null) {
                         update(dynamicProperties);
                     }
