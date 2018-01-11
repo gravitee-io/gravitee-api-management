@@ -18,6 +18,10 @@ package io.gravitee.gateway.services.healthcheck.verticle;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.util.ChangeListener;
+import io.gravitee.common.util.ObservableSet;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.schedule.Trigger;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
@@ -32,10 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -54,7 +55,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     @Autowired
     private EndpointHealthcheckResolver endpointResolver;
 
-    private final Map<Api, List<Long>> apiTimers = new HashMap<>();
+    private final Map<Api, List<EndpointRuleTrigger>> apiTimers = new HashMap<>();
 
     @Override
     public void start(final Future<Void> startedResult) {
@@ -80,37 +81,29 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     }
 
     private void startHealthCheck(Api api) {
-        if (api.isEnabled()) {
+        if (healthcheckEnabled(api)) {
+            Set<Endpoint> endpoints = api.getProxy().getEndpoints();
+            LOGGER.info("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
+            apiTimers.put(api, new ArrayList<>());
+
+            if (endpoints instanceof ObservableSet) {
+                ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
+            }
+
             List<EndpointRule> healthcheckEndpoints = endpointResolver.resolve(api);
-            List<Long> timers = new ArrayList<>();
-
-            if (! healthcheckEndpoints.isEmpty()) {
-                LOGGER.info("Start health-check for API {} [{}]", api.getId(), api.getName());
-
-                healthcheckEndpoints.forEach(rule -> {
-                    LOGGER.info("Add a trigger to check health status for endpoint {} [{}] each {} {} ",
-                            rule.endpoint().getName(), rule.endpoint().getTarget(),
-                            rule.trigger().getRate(),
-                            rule.trigger().getUnit());
-
-                    HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
-                    runner.setStatusHandler(statusReporter);
-
-                    long periodic = vertx.setPeriodic(getDelayMillis(rule.trigger()), runner);
-                    timers.add(periodic);
-                });
-
-                apiTimers.put(api, timers);
+            if (!healthcheckEndpoints.isEmpty()) {
+                healthcheckEndpoints.forEach(rule -> addTrigger(api, rule));
             }
         }
     }
 
+    private boolean healthcheckEnabled(Api api) {
+        HealthCheckService rootHealthCheck = api.getServices().get(HealthCheckService.class);
+        return api.isEnabled() && (rootHealthCheck != null && rootHealthCheck.isEnabled());
+    }
+
     private void stopHealthCheck(Api api) {
-        List<Long> timers = apiTimers.remove(api);
-        if (timers != null) {
-            LOGGER.info("Stop health-check for API {} [{}]", api.getId(), api.getName());
-            timers.forEach(timerId -> vertx.cancelTimer(timerId));
-        }
+        removeTriggers(api);
     }
 
     private long getDelayMillis(Trigger trigger) {
@@ -126,5 +119,95 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
         }
 
         return -1;
+    }
+
+    private void addTrigger(Api api, EndpointRule rule) {
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+        runner.setStatusHandler(statusReporter);
+
+        long timerId = vertx.setPeriodic(getDelayMillis(rule.trigger()), runner);
+        apiTimers.get(api).add(new EndpointRuleTrigger(timerId, rule.endpoint()));
+
+        LOGGER.info("Add health-check trigger id[{}] for endpoint name[{}] target[{}] each rate[{}] unit[{}]",
+                timerId,
+                rule.endpoint().getName(), rule.endpoint().getTarget(),
+                rule.trigger().getRate(), rule.trigger().getUnit());
+    }
+
+    private void removeTriggers(Api api) {
+        List<EndpointRuleTrigger> triggers = apiTimers.remove(api);
+        if (triggers != null) {
+            LOGGER.info("Stop health-check for API id[{}] name[{}]", api.getId(), api.getName());
+            triggers.forEach(trigger -> vertx.cancelTimer(trigger.getTimerId()));
+        }
+    }
+
+    private void removeTrigger(Api api, Endpoint endpoint) {
+        List<EndpointRuleTrigger> endpointRuleTriggers = apiTimers.get(api);
+        if (endpointRuleTriggers != null) {
+            Optional<EndpointRuleTrigger> endpointRuleTrigger = endpointRuleTriggers
+                    .stream()
+                    .filter(trigger -> trigger.getEndpoint().equals(endpoint)).findFirst();
+
+            endpointRuleTrigger.ifPresent(trigger -> {
+                LOGGER.info("Remove health-check trigger id[{}] for endpoint name[{}] type[{}] target[{}]",
+                        trigger.getTimerId(),
+                        endpoint.getName(), endpoint.getType(), endpoint.getTarget());
+                vertx.cancelTimer(trigger.getTimerId());
+                endpointRuleTriggers.remove(trigger);
+            });
+        }
+    }
+
+    private class EndpointsListener implements ChangeListener<Endpoint> {
+
+        private final Api api;
+
+        EndpointsListener(Api api) {
+            this.api = api;
+        }
+
+        @Override
+        public boolean preAdd(Endpoint endpoint) {
+            return false;
+        }
+
+        @Override
+        public boolean postAdd(Endpoint endpoint) {
+            EndpointRule rule = endpointResolver.resolve(api, endpoint);
+            if (rule != null) {
+                addTrigger(api, rule);
+            }
+            return false;
+        }
+
+        @Override
+        public boolean preRemove(Endpoint endpoint) {
+            return false;
+        }
+
+        @Override
+        public boolean postRemove(Endpoint endpoint) {
+            removeTrigger(api, endpoint);
+            return false;
+        }
+    }
+
+    private class EndpointRuleTrigger {
+        private final long timerId;
+        private final Endpoint endpoint;
+
+        EndpointRuleTrigger(long timerId, Endpoint endpoint) {
+            this.timerId = timerId;
+            this.endpoint = endpoint;
+        }
+
+        long getTimerId() {
+            return timerId;
+        }
+
+        Endpoint getEndpoint() {
+            return endpoint;
+        }
     }
 }

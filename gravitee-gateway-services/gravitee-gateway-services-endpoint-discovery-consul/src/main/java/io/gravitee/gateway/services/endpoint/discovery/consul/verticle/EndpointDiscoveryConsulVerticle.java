@@ -83,7 +83,7 @@ public class EndpointDiscoveryConsulVerticle extends AbstractVerticle implements
         EndpointDiscoveryService discoveryService = api.getServices().get(EndpointDiscoveryService.class);
 
         if (api.isEnabled() && discoveryService != null && discoveryService.getProvider() == EndpointDiscoveryProvider.CONSUL) {
-            LOGGER.info("Add Consul.io support for API: id[{}] name[{}]", api.getId(), api.getName());
+            LOGGER.info("Add Consul.io support for API id[{}] name[{}]", api.getId(), api.getName());
 
             ConsulEndpointDiscoveryConfiguration providerConfiguration =
                     (ConsulEndpointDiscoveryConfiguration) discoveryService.getConfiguration();
@@ -103,17 +103,6 @@ public class EndpointDiscoveryConsulVerticle extends AbstractVerticle implements
             }
 
             LOGGER.info("Consul.io configuration: endpoint[{}] dc[{}] acl[{}]", consulUri.toString(), options.getDc(), options.getAclToken());
-
-            ConsulClient consulClient = ConsulClient.create(vertx, options);
-            consulClient.catalogServiceNodes(providerConfiguration.getService(), event -> {
-                if (event.succeeded()) {
-                    for (Service service : event.result().getList()) {
-                        handleRegisterService(api, service);
-                    }
-                } else {
-                    LOGGER.info("Unexpected error while getting services catalog", event.cause());
-                }
-            });
 
             Watch<ServiceEntryList> watch = Watch.service(providerConfiguration.getService(), vertx, options);
             watch.setHandler(event -> {
