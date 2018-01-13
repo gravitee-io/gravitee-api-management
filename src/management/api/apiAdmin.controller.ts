@@ -36,7 +36,9 @@ class ApiAdminController {
     this.$state = $state;
     this.$mdDialog = $mdDialog;
     this.$rootScope = $rootScope;
+
     this.api = resolvedApi.data;
+    this.api.etag = resolvedApi.headers('etag');
 
     SidenavService.setCurrentResource(this.api.name);
 
@@ -104,6 +106,7 @@ class ApiAdminController {
     var self = this;
     this.ApiService.update(api).then(updatedApi => {
       self.api = updatedApi.data;
+      self.api.etag = updatedApi.headers('etag');
       self.NotificationService.show('API \'' + self.api.name + '\' saved');
     });
   }

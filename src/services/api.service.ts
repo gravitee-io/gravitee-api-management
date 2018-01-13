@@ -75,7 +75,7 @@ class ApiService {
         'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
         'picture': api.picture, 'resources': api.resources, 'views': api.views, 'groups': api.groups,
         'labels': api.labels
-      }
+      }, {headers: {'If-Match': api.etag}}
     );
   }
 

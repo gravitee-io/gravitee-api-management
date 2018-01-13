@@ -82,6 +82,7 @@ class ApiEndpointController {
 
     this.ApiService.update(api).then((updatedApi) => {
       this.api = updatedApi.data;
+      this.api.etag = updatedApi.headers('etag');
       this.onApiUpdate();
       this.initialEndpoints = _.cloneDeep(api.proxy.endpoints);
     });

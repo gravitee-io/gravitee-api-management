@@ -128,6 +128,7 @@ class ApiPropertiesController {
     this.api.services['dynamic-property'] = this.dynamicPropertyService;
     this.ApiService.update(this.api).then((updatedApi) => {
       _this.api = updatedApi.data;
+      _this.api.etag = updatedApi.headers('etag');
       _this.$rootScope.$broadcast('apiChangeSuccess', {api: _this.api});
       _this.NotificationService.show('API \'' + (_this.$scope as any).$parent.apiCtrl.api.name + '\' saved');
     });

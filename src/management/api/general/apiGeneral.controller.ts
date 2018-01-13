@@ -249,6 +249,7 @@ class ApiAdminController {
     }
 
     this.ApiService.update(api).then(updatedApi => {
+      updatedApi.data.etag = updatedApi.headers('etag');
       this.onApiUpdate(updatedApi.data);
     });
   }

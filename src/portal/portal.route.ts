@@ -94,7 +94,7 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       resolve: {
         api: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
           ApiService.get($stateParams['apiId']).then(response => response.data),
-        apiRatingSummary: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService, Constants) => {
+        apiRatingSummary: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) => {
           return ApiService.isRatingEnabled()
             ? ApiService.getApiRatingSummaryByApi($stateParams['apiId']).then(response => response.data)
             : null;

@@ -163,6 +163,7 @@ class ApiHealthCheckConfigureController {
     }
     this.ApiService.update(this.api).then((updatedApi) => {
       this.api = updatedApi.data;
+      this.api.etag = updatedApi.headers('etag');
       this.$scope.formApiHealthCheckTrigger.$setPristine();
       this.$scope.formApiHealthCheckRequest.$setPristine();
       this.$scope.formApiHealthCheckResponse.$setPristine();

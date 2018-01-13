@@ -41,6 +41,7 @@ class ApiDiscoveryController {
 
     this.ApiService.update(this.api).then((updatedApi) => {
       this.api = updatedApi.data;
+      this.api.etag = updatedApi.headers('etag');
       this.$scope.formApiDiscoveryConfiguration.$setPristine();
       this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
 
