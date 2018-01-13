@@ -26,6 +26,7 @@ import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
+import io.gravitee.management.service.exceptions.PreconditionFailedException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -38,6 +39,7 @@ import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayOutputStream;
 import java.util.Objects;
 
+import static io.gravitee.common.http.HttpHeaders.IF_MATCH;
 import static java.lang.String.format;
 
 /**
@@ -66,17 +68,14 @@ public class ApiResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public ApiEntity get(@PathParam("api") String api) throws ApiNotFoundException {
+    public Response get(@PathParam("api") String api) {
         ApiEntity apiEntity = apiService.findById(api);
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
-
             setPicture(apiEntity);
-
             apiEntity.setContextPath(apiEntity.getProxy().getContextPath());
-
             filterSensitiveData(apiEntity);
-            return apiEntity;
+            return Response.ok(apiEntity).tag(Integer.toString(apiEntity.getUpdatedAt().hashCode())).build();
         }
         throw new ForbiddenAccessException();
     }
@@ -183,11 +182,16 @@ public class ApiResource extends AbstractResource {
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
             @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public ApiEntity update(
+    public Response update(
             @ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiToUpdate,
-            @PathParam("api") String api) {
-        final ApiEntity currentApi = this.get(api);
+            @PathParam("api") String api, @Context HttpHeaders headers) {
+        final Response responseApi = get(api);
+        final String ifMatch = headers.getHeaderString(IF_MATCH);
+        if (ifMatch != null && !ifMatch.replaceAll("\"", "").equals(responseApi.getEntityTag().getValue())) {
+            throw new PreconditionFailedException("The api version is outdated");
+        }
 
+        final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
         // Force context-path if user is not the primary_owner or an administrator
         if (!hasPermission(RolePermission.API_GATEWAY_DEFINITION, api, RolePermissionAction.UPDATE) &&
                 !Objects.equals(currentApi.getPrimaryOwner().getUsername(), getAuthenticatedUsername()) && !isAdmin()) {
@@ -196,7 +200,7 @@ public class ApiResource extends AbstractResource {
 
         final ApiEntity updatedApi = apiService.update(api, apiToUpdate);
         setPicture(updatedApi);
-        return updatedApi;
+        return Response.ok(updatedApi).tag(Integer.toString(updatedApi.getUpdatedAt().hashCode())).build();
     }
 
     @DELETE
@@ -297,7 +301,7 @@ public class ApiResource extends AbstractResource {
     public Response updateWithDefinition(
             @PathParam("api") String api,
             @ApiParam(name = "definition", required = true) String apiDefinition) {
-        final ApiEntity apiEntity = get(api);
+        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
         return Response.ok(apiService.createOrUpdateWithDefinition(apiEntity, apiDefinition, getAuthenticatedUsername())).build();
     }
 
@@ -315,7 +319,7 @@ public class ApiResource extends AbstractResource {
     })
     public Response exportDefinition(@PathParam("api") String api,
                                      @QueryParam("exclude") @DefaultValue("") String exclude) {
-        final ApiEntity apiEntity = get(api);
+        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
         filterSensitiveData(apiEntity);
         return Response
                 .ok(apiService.exportAsJson(api, apiEntity.getRole(), exclude.split(",")))
