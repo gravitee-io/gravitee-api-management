@@ -41,9 +41,9 @@
     "documentation": "Documentation",
     "profile": "My account",
     "management": "Administration",
-    "applications": "My applications",
-    "apis": "My APIs",
-    "tasks": "My Tasks",
+    "applications": "Applications",
+    "apis": "APIs",
+    "tasks": "Tasks",
     "logout": "Sign out",
     "support": "Support"
   },

@@ -38,24 +38,24 @@
            alt="user-picture" gv-theme-element="portal.navbar.user.img.alert"/>
       <span ng-if="$ctrl.hasAlert()" flex class="gv-menu-badge-alert" gv-theme-element="portal.navbar.user.notification"></span>
     </md-button>
-    <md-menu-content class="gv-menu-content" width="6">
-      <div layout="row" class="gv-menu-content-main">
-        <div style="margin-right:2px;" flex="18" layout="column" layout-align="start center">
-          <img ng-src="{{$ctrl.graviteeUser.picture || $ctrl.getUserPicture()}}" alt="user-picture" />
+    <md-menu-content class="gv-menu-content">
+      <div layout="column" class="gv-menu-content-main">
+        <div layout="row">
+          <div layout="column" layout-align="start center">
+            <img ng-src="{{$ctrl.graviteeUser.picture || $ctrl.getUserPicture()}}" alt="user-picture" />
+          </div>
+          <div layout="column" layout-align="start start">
+            <h5>{{$ctrl.graviteeUser.username}}</h5>
+            <small>{{$ctrl.graviteeUser.firstname}} {{$ctrl.graviteeUser.lastname}}</small>
+          </div>
         </div>
-        <div layout="column" flex="50" layout-align="start start">
-          <h5>{{$ctrl.graviteeUser.firstname}} {{$ctrl.graviteeUser.lastname}}</h5>
-          <h5 ng-if="!($ctrl.graviteeUser.firstname && $ctrl.graviteeUser.lastname)">{{$ctrl.graviteeUser.username}}</h5>
-          <small>{{$ctrl.graviteeUser.email}}</small>
-        </div>
-        <div layout="row" layout-align="end start" class="gv-menu-content-links">
-          <div layout="column">
+        <md-divider></md-divider>
+        <div layout="column" layout-align="end start" class="gv-menu-content-links">
             <a ui-sref="user">{{'menu.profile' | translate}}</a>
             <a ui-sref="management.tasks">{{'menu.tasks' | translate}}<span ng-if="$ctrl.getUserTaskCount() > 0" flex class="badge gv-menu-badge">{{$ctrl.getUserTaskCount()}}</span></a>
             <a ui-sref="management.applications.list">{{'menu.applications' | translate}}</a>
             <a ui-sref="management.apis.list" ng-if="$ctrl.isUserManagement()">{{'menu.management' | translate}}</a>
             <a ui-sref="management.apis.list" ng-if="!$ctrl.isUserManagement()">{{'menu.apis' | translate}}</a>
-          </div>
         </div>
       </div>
       <md-divider></md-divider>
