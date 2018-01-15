@@ -19,10 +19,19 @@ import {IScope} from "angular";
 import {PagedResult} from "../../../entities/pagedResult";
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),
-  controller: function(UserService: UserService, TaskService: TaskService, $scope: IScope, Constants, $rootScope: IScope, $state: ng.ui.IStateService, $transitions) {
+  controller: function(
+    UserService: UserService,
+    TaskService: TaskService,
+    $scope: IScope,
+    Constants,
+    $rootScope: IScope,
+    $state: ng.ui.IStateService,
+    $transitions,
+      $interval) {
     'ngInject';
 
     const vm = this;
+    vm.tasksScheduler= null;
     vm.$rootScope = $rootScope;
     vm.displayContextualDocumentationButton = false;
     vm.visible = true;
@@ -36,16 +45,18 @@ export const NavbarComponent: ng.IComponentOptions = {
             that.graviteeUser.picture = picture;
           });
 
-          $scope.$emit("graviteeUserTaskRefresh");
+          // schedule an automatic refresh of the user tasks
+          if (!that.tasksScheduler) {
+            that.refreshUserTasks();
+            that.tasksScheduler = $interval(() => {
+              that.refreshUserTasks();
+            }, TaskService.getTaskSchedulerInSeconds() * 1000);
+          }
         }
       });
 
       $scope.$on("graviteeUserTaskRefresh", function () {
-        TaskService.getTasks().then((response)=> {
-          const result = new PagedResult();
-          result.populate(response.data);
-          TaskService.fillUserTasks(vm.graviteeUser, result);
-        });
+        vm.refreshUserTasks();
       });
 
       vm.supportEnabled = Constants.support && Constants.support.enabled;
@@ -94,5 +105,13 @@ export const NavbarComponent: ng.IComponentOptions = {
       }
       return 0;
     };
+
+    vm.refreshUserTasks = function() {
+      TaskService.getTasks().then((response) => {
+        const result = new PagedResult();
+        result.populate(response.data);
+        TaskService.fillUserTasks(vm.graviteeUser, result);
+      });
+    }
   }
 };

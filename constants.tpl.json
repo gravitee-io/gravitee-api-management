@@ -56,5 +56,9 @@
       "enabled": false,
       "trackingId": ""
     }
+  },
+  // Scheduler configuration
+  "scheduler": {
+    "tasks": 10 // in seconds
   }
 }

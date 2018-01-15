@@ -19,10 +19,19 @@ import {PagedResult} from "../entities/pagedResult";
 
 class TaskService {
   private URL: string;
+  private Constants: any;
 
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
-    this.URL = Constants.baseURL+"user/tasks";
+    this.Constants = Constants;
+    this.URL = this.Constants.baseURL+"user/tasks";
+  }
+
+  getTaskSchedulerInSeconds() {
+    if (this.Constants.scheduler && this.Constants.scheduler.tasks) {
+      return this.Constants.scheduler.tasks;
+    }
+    return 10;
   }
 
   getTasks() {

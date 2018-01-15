@@ -25,5 +25,8 @@
   "analytics": {
     "enabled": false,
     "trackingId": ""
+  },
+  "scheduler": {
+    "tasks": 10
   }
 }
