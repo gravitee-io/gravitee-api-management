@@ -1,0 +1,29 @@
+.gv-notification-content {
+  border-radius: 4px;
+  width: 384px;
+  padding: 0;
+
+  .md-list-item-text {
+    margin: 8px 0 !important;
+    h3 {
+      font-weight: bold !important;
+    }
+    h4 {
+      white-space: normal !important;
+    }
+  }
+}
+
+.gv-notification-badge {
+  padding: 0;
+  float: left;
+  position: absolute;
+  top: 2px;
+  right: 0;
+  z-index: 2;
+  width: 20px;
+  height: 17px;
+  background-clip: padding-box;
+  border-radius: 25%;
+  font-size: 12px;
+}

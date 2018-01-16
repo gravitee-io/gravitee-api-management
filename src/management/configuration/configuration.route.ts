@@ -21,6 +21,8 @@ import PortalPagesService from '../../services/portalPages.service';
 import MetadataService from "../../services/metadata.service";
 import RoleService from "../../services/role.service";
 import GroupService from "../../services/group.service";
+import {HookScope} from "../../entities/hookScope";
+import NotificationSettingsService from "../../services/notificationSettings.service";
 import TopApiService from "../../services/top-api.service";
 
 export default configurationRouterConfig;
@@ -265,6 +267,40 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
+    .state('management.configuration.admin.notifications', {
+      url: '/notifications',
+      component: 'notificationSettingsComponent',
+      data: {
+        menu: {
+          label: 'Notifications',
+          icon: 'notifications',
+        },
+        docs: {
+          page: 'management-configuration-notifications'
+        },
+        perms: {
+          only: ['management-notification-r']
+        }
+      },
+      resolve: {
+        resolvedHookScope: () => HookScope.PORTAL,
+        resolvedHooks:
+          (NotificationSettingsService: NotificationSettingsService) =>
+            NotificationSettingsService.getHooks(HookScope.PORTAL).then( (response) =>
+              response.data
+            ),
+        resolvedNotifiers:
+          (NotificationSettingsService: NotificationSettingsService) =>
+            NotificationSettingsService.getNotifiers(HookScope.PORTAL, null).then( (response) =>
+              response.data
+            ),
+        resolvedNotificationSettings:
+          (NotificationSettingsService: NotificationSettingsService) =>
+            NotificationSettingsService.getNotificationSettings(HookScope.PORTAL, null).then( (response) =>
+              response.data
+            )
+      }
+     })
     .state('management.configuration.admin.top-apis', {
       url: '/top-apis',
       component: 'topApis',

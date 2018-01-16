@@ -1,0 +1,46 @@
+.aui-nav-heading {
+  color: #707070;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.66666666666667;
+  text-transform: uppercase;
+  border-top: 1px solid #ccc;
+  margin-top: 5px;
+  padding: 10px 10px 4px;
+}
+
+.aui-nav, .aui-nav>li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.aui-nav .aui-nav-selected>a {
+  font-weight: 700;
+  color: #172B4D;
+}
+
+.aui-nav>li>a {
+  color: #3572b0;
+  display: block;
+  line-height: 1.14285714285714;
+  padding: 7px 10px;
+  word-wrap: break-word;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.aui-nav>li>a:hover {
+  color: #0052CC;
+  background: rgba(9,30,66,.04);
+}
+
+.gv-sub-menu {
+  .md-headline {
+    padding: 24px 16px 16px;
+  }
+  .menu {
+    border-right: 1px solid #ccc;
+    padding: 20px;
+  }
+}

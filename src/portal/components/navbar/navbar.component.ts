@@ -15,26 +15,29 @@
  */
 import UserService from "../../../services/user.service";
 import TaskService from "../../../services/task.service";
-import {IScope} from "angular";
+import {IIntervalService, IScope} from "angular";
 import {PagedResult} from "../../../entities/pagedResult";
+import {UserNotification} from "../../../entities/userNotification";
+import UserNotificationService from "../../../services/userNotification.service";
 import AuthenticationService from '../../../services/authentication.service';
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),
   controller: function(
     UserService: UserService,
     TaskService: TaskService,
+    UserNotificationService: UserNotificationService,
     $scope: IScope,
     Constants,
     $rootScope: IScope,
     $state: ng.ui.IStateService,
     $transitions,
-    $interval,
+    $interval: IIntervalService,
     AuthenticationService: AuthenticationService
   ) {
     'ngInject';
 
     const vm = this;
-    vm.tasksScheduler= null;
+    vm.tasksScheduler = null;
     vm.$rootScope = $rootScope;
     vm.displayContextualDocumentationButton = false;
     vm.visible = true;

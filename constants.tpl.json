@@ -71,6 +71,7 @@
   },
   // Scheduler configuration
   "scheduler": {
-    "tasks": 10 // in seconds
+    "tasks": 10, // in seconds
+    "notifications": 10 // in seconds
   }
 }

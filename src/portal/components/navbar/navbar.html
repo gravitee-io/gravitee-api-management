@@ -26,24 +26,25 @@
   </div>
   <span flex></span>
   <span>{{$ctrl.$state.current.name}}</span>
-  <md-button class="gv-navbar-help-button" ng-click="$ctrl.openContextualDocumentation();" aria-label="Display contextual documentation"
+  <md-button class="gv-navbar-button" ng-click="$ctrl.openContextualDocumentation();" aria-label="Display contextual documentation"
              ng-if="$ctrl.displayContextualDocumentationButton">
     <ng-md-icon icon="live_help" gv-theme-element="portal.navbar.help"></ng-md-icon>
   </md-button>
+  <portal-notifications user="$ctrl.graviteeUser" ng-if="$ctrl.graviteeUser.username"></portal-notifications>
   <md-button ng-if="!$ctrl.graviteeUser.username && !$ctrl.isOnlyOAuth" ui-sref-active="menu-active" ui-sref="login">{{'menu.login' | translate}}</md-button>
   <md-button ng-if="!$ctrl.graviteeUser.username && $ctrl.isOnlyOAuth" ui-sref-active="menu-active" style="background-color: {{provider.color}}; color: #fff;" data-ng-repeat="provider in $ctrl.providers" ng-click="$ctrl.authenticate(provider.id)">
     <ng-md-icon icon="{{provider.icon}}" size="20" style="fill: white;margin-right: 5px"></ng-md-icon>{{'menu.login' | translate}}
   </md-button>
 
   <md-menu ng-if="$ctrl.graviteeUser.username" md-offset="0 54">
-    <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" ng-mouseover="$mdMenu.open($event)" aria-label="Open user menu">
+    <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" aria-label="Open user menu">
       <img ng-if="!$ctrl.hasAlert()" ng-src="{{$ctrl.getUserPicture()}}"
            alt="user-picture" gv-theme-element="portal.navbar.user.img"/>
       <img ng-if="$ctrl.hasAlert()" ng-src="{{$ctrl.getUserPicture()}}"
            alt="user-picture" gv-theme-element="portal.navbar.user.img.alert"/>
       <span ng-if="$ctrl.hasAlert()" flex class="gv-menu-badge-alert" gv-theme-element="portal.navbar.user.notification"></span>
     </md-button>
-    <md-menu-content class="gv-menu-content">
+    <md-menu-content class="gv-menu-content" ng-mouseleave="$mdMenu.close()">
       <div layout="column" class="gv-menu-content-main">
         <div layout="row">
           <div layout="column" layout-align="start center">

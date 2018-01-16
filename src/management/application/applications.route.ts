@@ -17,6 +17,8 @@ import ApplicationService from '../../services/applications.service';
 import GroupService from '../../services/group.service';
 import * as _ from 'lodash';
 import UserService from "../../services/user.service";
+import {HookScope} from "../../entities/hookScope";
+import NotificationSettingsService from "../../services/notificationSettings.service";
 
 export default applicationsConfig;
 
@@ -254,6 +256,40 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
         perms: {
           only: ['application-log-r']
         }
+      }
+    })
+    .state('management.applications.application.notifications', {
+      url: '/notifications',
+      component: 'notificationSettingsComponent',
+      data: {
+        menu: {
+          label: 'Notifications',
+          icon: 'notifications',
+        },
+        docs: {
+          page: 'management-application-notifications'
+        },
+        perms: {
+          only: ['application-notification-r']
+        }
+      },
+      resolve: {
+        resolvedHookScope: () => HookScope.APPLICATION,
+        resolvedHooks:
+          (NotificationSettingsService: NotificationSettingsService) =>
+            NotificationSettingsService.getHooks(HookScope.APPLICATION).then( (response) =>
+              response.data
+            ),
+        resolvedNotifiers:
+          (NotificationSettingsService: NotificationSettingsService, $stateParams: ng.ui.IStateParamsService) =>
+            NotificationSettingsService.getNotifiers(HookScope.APPLICATION, $stateParams.applicationId).then( (response) =>
+              response.data
+            ),
+        resolvedNotificationSettings:
+          (NotificationSettingsService: NotificationSettingsService, $stateParams: ng.ui.IStateParamsService) =>
+            NotificationSettingsService.getNotificationSettings(HookScope.APPLICATION, $stateParams.applicationId).then( (response) =>
+              response.data
+            )
       }
     });
 }

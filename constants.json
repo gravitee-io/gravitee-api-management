@@ -30,6 +30,7 @@
     "trackingId": ""
   },
   "scheduler": {
-    "tasks": 10
+    "tasks": 10,
+    "notifications": 10
   }
 }

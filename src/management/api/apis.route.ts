@@ -23,6 +23,8 @@ import MetadataService from "../../services/metadata.service";
 import GroupService from "../../services/group.service";
 import * as _ from "lodash";
 import AuditService from "../../services/audit.service";
+import NotificationSettingsService from "../../services/notificationSettings.service";
+import {HookScope} from "../../entities/hookScope";
 
 export default apisRouterConfig;
 
@@ -687,6 +689,40 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       resolve: {
         resolvedEvents:
           (AuditService: AuditService, $stateParams) => AuditService.listEvents($stateParams.apiId).then(response => response.data)
+      }
+    })
+    .state('management.apis.detail.notifications', {
+      url: '/notifications',
+      component: 'notificationSettingsComponent',
+      data: {
+        menu: {
+          label: 'Notifications',
+          icon: 'notifications',
+        },
+        docs: {
+          page: 'management-api-notifications'
+        },
+        perms: {
+          only: ['api-notification-r']
+        }
+      },
+      resolve: {
+        resolvedHookScope: () => HookScope.API,
+        resolvedHooks:
+          (NotificationSettingsService: NotificationSettingsService) =>
+            NotificationSettingsService.getHooks(HookScope.API).then( (response) =>
+              response.data
+            ),
+        resolvedNotifiers:
+          (NotificationSettingsService: NotificationSettingsService, $stateParams: ng.ui.IStateParamsService) =>
+            NotificationSettingsService.getNotifiers(HookScope.API, $stateParams.apiId).then( (response) =>
+              response.data
+            ),
+        resolvedNotificationSettings:
+          (NotificationSettingsService: NotificationSettingsService, $stateParams: ng.ui.IStateParamsService) =>
+            NotificationSettingsService.getNotificationSettings(HookScope.API, $stateParams.apiId).then( (response) =>
+              response.data
+            )
       }
     });
 }

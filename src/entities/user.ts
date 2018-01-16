@@ -25,10 +25,12 @@ export class User {
   public userApiPermissions: string[];
   public userApplicationPermissions: string[];
   public tasks: PagedResult;
+  public notifications: PagedResult;
 
   constructor() {
     'ngInject';
     this.tasks = new PagedResult();
+    this.notifications = new PagedResult();
   }
 
   allowedTo(permissions: string[]): boolean {

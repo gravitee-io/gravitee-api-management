@@ -16,6 +16,7 @@
 
 import {User} from "../entities/user";
 import {PagedResult} from "../entities/pagedResult";
+import {IHttpPromise} from "angular";
 
 class TaskService {
   private URL: string;
@@ -27,14 +28,14 @@ class TaskService {
     this.URL = this.Constants.baseURL+"user/tasks";
   }
 
-  getTaskSchedulerInSeconds() {
+  getTaskSchedulerInSeconds(): number {
     if (this.Constants.scheduler && this.Constants.scheduler.tasks) {
       return this.Constants.scheduler.tasks;
     }
     return 10;
   }
 
-  getTasks() {
+  getTasks(): IHttpPromise<any> {
     const config = { ignoreLoadingBar: true, silentCall: true } as ng.IRequestShortcutConfig;
     return this.$http.get(this.URL, config);
   }

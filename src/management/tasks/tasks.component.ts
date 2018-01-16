@@ -28,7 +28,6 @@ const TasksComponent: ng.IComponentOptions = {
     vm.$onInit = function() {
       //in case of refresh
       if (!this.tasks) {
-        console.log(UserService.currentUser.tasks)
         this.tasks = UserService.currentUser.tasks;
       }
     };

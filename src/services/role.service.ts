@@ -20,7 +20,7 @@ class RoleService {
 
   private permissionsByScope: any = {
     MANAGEMENT: {
-      permissions: ['INSTANCE', 'GROUP', 'TAG', 'TENANT', 'API', 'ROLE', 'APPLICATION', 'PLATFORM', 'AUDIT'],
+      permissions: ['INSTANCE', 'VIEW', 'GROUP', 'TAG', 'TENANT', 'API', 'ROLE', 'APPLICATION', 'PLATFORM', 'AUDIT', 'NOTIFICATION'],
       userRoleManagement: true
     },
     PORTAL: {
@@ -28,10 +28,10 @@ class RoleService {
       userRoleManagement: true
     },
     API: {
-      permissions: ['DEFINITION', 'GATEWAY_DEFINITION', 'PLAN', 'SUBSCRIPTION', 'MEMBER', 'METADATA', 'ANALYTICS', 'EVENT', 'HEALTH', 'LOG', 'DOCUMENTATION', 'AUDIT', 'RATING', 'RATING_ANSWER']
+      permissions: ['DEFINITION', 'GATEWAY_DEFINITION', 'PLAN', 'SUBSCRIPTION', 'MEMBER', 'METADATA', 'ANALYTICS', 'EVENT', 'HEALTH', 'LOG', 'DOCUMENTATION', 'AUDIT', 'RATING', 'RATING_ANSWER', "DISCOVERY", "NOTIFICATION"]
     },
     APPLICATION: {
-      permissions: ['DEFINITION', 'MEMBER', 'ANALYTICS', 'LOG', 'SUBSCRIPTION']
+      permissions: ['DEFINITION', 'MEMBER', 'ANALYTICS', 'LOG', 'SUBSCRIPTION', 'NOTIFICATION']
     }
   };
 

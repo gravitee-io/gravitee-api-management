@@ -319,6 +319,14 @@ import { submenuFilter } from '../components/sidenav/submenu.filter';
 import TasksComponent from '../management/tasks/tasks.component';
 import TaskService from "../services/task.service";
 
+// Portal notifications
+import PortalNotificationsComponent from './portalnotifications/portalnotifications.component';
+import UserNotificationService from "../services/userNotification.service";
+
+// Notification Settings
+import NotificationSettingsComponent from '../components/notificationsettings/notificationsettings.component';
+import NotificationSettingsService from "../services/notificationSettings.service";
+
 // Documentation
 import PageComponent from '../components/documentation/page.component';
 import PageSwaggerComponent from '../components/documentation/page-swagger.component';
@@ -364,6 +372,7 @@ import ApiHeaderController from './api/header/api-header.controller';
 import ChartService from '../services/chart.service';
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
+import DialogAddNotificationSettingsController from "../components/notificationsettings/addnotificationsettings.dialog.controller";
 
 import TopApisController from "./configuration/top-apis/top-apis.controller";
 import TopApiService from "../services/top-api.service";
@@ -588,6 +597,12 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   .component('tasks', TasksComponent)
   .service('TaskService', TaskService)
+
+  .component('portalNotifications', PortalNotificationsComponent)
+  .service('UserNotificationService', UserNotificationService)
+  .service('NotificationSettingsService', NotificationSettingsService)
+  .controller('DialogAddNotificationSettingsController', DialogAddNotificationSettingsController)
+  .component('notificationSettingsComponent', NotificationSettingsComponent)
 
   .component('gvPage', PageComponent)
   .component('gvPageMarkdown', PageMarkdownComponent)

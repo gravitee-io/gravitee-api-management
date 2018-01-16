@@ -6,6 +6,9 @@
       "help": {
         "fill": "#fff"
       },
+      "notifications": {
+        "fill": "#fff"
+      },
       "user": {
         "img": {
           "border": "2px solid #F5F5F5",
