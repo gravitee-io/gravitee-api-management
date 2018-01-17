@@ -39,7 +39,7 @@
         <td md-cell>{{result.value | number}}</td>
       </tr>
       <tr ng-if="$ctrl.results.length === 0">
-        <td md-cell colspan="2">No result</td>
+        <td md-cell colspan="{{2 + (($ctrl.widget.chart.selectable) ? 1 : 0)}}">No result</td>
       </tr>
     </tbody>
   </table>

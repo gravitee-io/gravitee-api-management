@@ -40,7 +40,9 @@ class DashboardFilterController {
     let field = this.fields[filter.field] || {filters: {}};
     field.filters[filter.key] = filter.name;
 
-    let label = filter.field + " = '" + filter.name + "'";
+    let label = (filter.fieldLabel ? filter.fieldLabel : filter.field) 
+      + " = '" + filter.name + "'";
+    
     let query = '(' + _.map(_.keys(field.filters), (key) => filter.field + ":" + key).join(' OR ') + ')';
 
     this.filters.push({
@@ -59,8 +61,9 @@ class DashboardFilterController {
   }
 
   deleteChips(event) {
-    let parts = event.key.split('_');
-    this.removeFilter(parts[0], parts[1]);
+    let index = event.key.lastIndexOf('_')
+
+    this.removeFilter(event.key.substring(0, index), event.key.substring(index+1));
   }
 
   removeFilter(field, key) {

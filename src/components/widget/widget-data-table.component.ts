@@ -60,6 +60,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
       that.$scope.$emit('filterItemChange', {
         widget: that.widget.$uid,
         field: that.widget.chart.request.field,
+        fieldLabel: that.widget.chart.request.fieldLabel,
         key: item.key,
         name: item.metadata.name,
         mode: (add) ? 'add' : 'remove'

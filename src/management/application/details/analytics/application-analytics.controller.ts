@@ -24,7 +24,8 @@ class ApplicationAnalyticsController {
 
   constructor(
     private ApplicationService: ApplicationService,
-    private $state: ng.ui.IStateService
+    private $state: ng.ui.IStateService,
+    private Constants: any
   ) {
     'ngInject';
 
@@ -111,6 +112,62 @@ class ApplicationAnalyticsController {
         }
       }
     }];
+
+    if (Constants.portalAnalytics && Constants.portalAnalytics.widgets) {
+      
+      for (let i = 0; i < Constants.portalAnalytics.widgets.length; i++) { 
+
+        switch (Constants.portalAnalytics.widgets[i]) {
+          case 'geo_country':
+          this.applicationDashboard.push({
+              col: i * 3,
+              row: 5,
+              sizeY: 1,
+              sizeX: 3,
+              title: 'Geolocation by country',
+              subhead: 'Hits repartition by country',
+              chart: {
+                type: 'table',
+                selectable: true,
+                columns: ['Country', 'Hits'],
+                paging: 5,
+                request: {
+                  type: 'group_by',
+                  field: 'geoip.country_iso_code',
+                  fieldLabel: 'country',
+                  ize: 20
+        
+                }
+              }
+            });
+            break;
+          case 'geo_city':
+            this.applicationDashboard.push({
+              col: i * 3,
+              row: 5,
+              sizeY: 1,
+              sizeX: 3,
+              title: 'Geolocation by city',
+              subhead: 'Hits repartition by city',
+              chart: {
+                type: 'table',
+                selectable: true,
+                columns: ['City', 'Hits'],
+                paging: 5,
+                request: {
+                  type: 'group_by',
+                  field: 'geoip.city_name',
+                  fieldLabel: 'city',
+                  size: 20
+        
+                }
+              }
+            });
+          break;
+        }
+      };
+    } 
+
   }
 
   $onInit() {

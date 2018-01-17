@@ -15,6 +15,7 @@
  */
 import _ = require('lodash');
 import moment = require("moment");
+import { forEach } from 'angular-ui-router';
 class ApiAnalyticsController {
 
   private api: any;
@@ -23,7 +24,8 @@ class ApiAnalyticsController {
     private ApiService,
     private resolvedApi,
     private $scope,
-    private $state: ng.ui.IStateService) {
+    private $state: ng.ui.IStateService,
+    private Constants: any) {
   'ngInject';
     this.ApiService = ApiService;
     this.$scope = $scope;
@@ -131,6 +133,62 @@ class ApiAnalyticsController {
       }
     }];
 
+    if (Constants.portalAnalytics && Constants.portalAnalytics.widgets) {
+      
+      for (let i = 0; i < Constants.portalAnalytics.widgets.length; i++) { 
+
+        switch (Constants.portalAnalytics.widgets[i]) {
+          case 'geo_country':
+            this.$scope.apiDashboard.push({
+              col: i * 3,
+              row: 5,
+              sizeY: 1,
+              sizeX: 3,
+              title: 'Geolocation by country',
+              subhead: 'Hits repartition by country',
+              chart: {
+                type: 'table',
+                selectable: true,
+                columns: ['Country', 'Hits'],
+                paging: 5,
+                request: {
+                  type: 'group_by',
+                  field: 'geoip.country_iso_code',
+                  fieldLabel: 'country',
+                  size: 20
+        
+                }
+              }
+            });
+            break;
+          case 'geo_city':
+            this.$scope.apiDashboard.push({
+              col: i * 3,
+              row: 5,
+              sizeY: 1,
+              sizeX: 3,
+              title: 'Geolocation by city',
+              subhead: 'Hits repartition by city',
+              chart: {
+                type: 'table',
+                selectable: true,
+                columns: ['City', 'Hits'],
+                paging: 5,
+                request: {
+                  type: 'group_by',
+                  field: 'geoip.city_name',
+                  fieldLabel: 'city',
+                  size: 20
+        
+                }
+              }
+            });
+          break;
+        }
+      };
+    } 
+
+    
     if (!this.api.proxy.multiTenant) {
       this.$scope.apiDashboard.push({
         col: 3,

@@ -55,6 +55,10 @@
   "rating": {
     "enabled": false
   },
+  // Add widget in analytis of portal
+  "portalAnalytics": {
+    "widgets": ["geo_country","geo_city"]
+  },
   // Analytics of portal navigation
   "analytics": {
     "google": {
