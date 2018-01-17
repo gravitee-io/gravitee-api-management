@@ -39,8 +39,15 @@
                     layout="row" layout-align="start start"
                     layout-wrap
                     class="api-gallery">
-          <input type="text" class="form-control apis-filter" placeholder="{{'apis.filter' | translate}}" ng-model="$ctrl.apiFilter" />
-          <md-card class="api-box gravitee-card gravitee-api-card"
+          <div flex="100" layout="row">
+            <input flex="90" type="text" class="form-control apis-filter" placeholder="{{'apis.filter' | translate}}" ng-model="$ctrl.apiFilter" />
+            <md-button flex="10" class="md-primary" ng-click="apisCtrl.toggleDisplayMode()">
+              <ng-md-icon ng-if="apisCtrl.tilesMode" icon="view_list" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+              <ng-md-icon ng-if="!apisCtrl.tilesMode" icon="view_module" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+            </md-button>
+          </div>
+
+          <md-card ng-if="apisCtrl.tilesMode" class="api-box gravitee-card gravitee-api-card"
                    ng-repeat="api in apisCtrl.apis | filter:$ctrl.apiFilter track by api.id"
                    ng-click="apisCtrl.goToApi(api)"
                    layout-wrap>
@@ -71,6 +78,25 @@
               </div>
             </md-card-content>
           </md-card>
+
+          <md-table-container ng-if="!apisCtrl.tilesMode" style="width: 100%">
+            <table md-table>
+              <tbody md-body>
+              <tr style="height: 80px;" md-row ng-click="apisCtrl.goToApi(api)"
+                  ng-repeat="api in apisCtrl.apis | orderBy:'name' | filter:$ctrl.apiFilter track by api.id">
+                <td md-cell><img height="40" ng-src="{{::api.picture_url}}"/></td>
+                <td md-cell>{{api.name}}</td>
+                <td md-cell>{{api.version}}</td>
+                <td md-cell>{{api.description}}</td>
+                <td class="api-table-rating" md-cell ng-if="apisCtrl.ratingEnabled" width="20%">
+                  <gv-star-rating flex ng-if="api.rate" value="api.rate" ng-click="apisCtrl.goToRating($event, api)"
+                                  message="'api.rating.rate' | translate:{numberOfRatings: api.numberOfRatings}"></gv-star-rating>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+
         </md-content>
           </div>
     </div>

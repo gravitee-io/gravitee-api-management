@@ -25,6 +25,8 @@ export class PortalApisController {
   private view: any;
   private ratingEnabled: boolean;
   private selectedView: string;
+  private tilesMode: boolean;
+  private tilesModeKey = 'gv-tiles-mode';
 
   constructor (private resolvedApis,
                private resolvedViews,
@@ -33,8 +35,20 @@ export class PortalApisController {
                private $stateParams,
                private Constants,
                private ViewService: ViewService,
-               private ApiService: ApiService) {
+               private ApiService: ApiService,
+               private $window) {
     'ngInject';
+
+    if ($window.sessionStorage.getItem(this.tilesModeKey) === null) {
+      if (Constants.portal && Constants.portal.apis) {
+        this.tilesMode = Constants.portal.apis.tilesMode;
+      } else {
+        this.tilesMode = true;
+      }
+    } else {
+      this.tilesMode = JSON.parse($window.sessionStorage.getItem(this.tilesModeKey));
+    }
+
     this.apis = resolvedApis.data;
     this.views = resolvedViews;
     this.ratingEnabled = this.ApiService.isRatingEnabled();
@@ -68,5 +82,10 @@ export class PortalApisController {
   goToRating(event, api) {
     event.stopPropagation();
     this.$state.go('portal.api.rating', {apiId: api.id});
+  }
+
+  toggleDisplayMode() {
+    this.tilesMode = !this.tilesMode;
+    this.$window.sessionStorage.setItem(this.tilesModeKey, this.tilesMode);
   }
 }

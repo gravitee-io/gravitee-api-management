@@ -7,7 +7,10 @@
 
   "portal": {
     "entrypoint": "https://api.company.com",
-    "apikeyHeader": "X-Gravitee-Api-Key"
+    "apikeyHeader": "X-Gravitee-Api-Key",
+    "apis": {
+      "tilesMode": true
+    }
   },
 
   // Portal theme customisation

@@ -445,6 +445,10 @@ table[md-data-table] > thead:not([md-table-progress]) > tr > th > div {
   height: 30px;
 }
 
+table.md-table {
+  overflow: auto;
+}
+
 v-pane-header {
   legend {
     border-bottom: none;
