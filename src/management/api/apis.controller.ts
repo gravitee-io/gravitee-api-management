@@ -46,7 +46,7 @@ export class ApisController {
     this.graviteeUser = graviteeUser;
     this.graviteeUIVersion = Build.version;
     this.portalTitle = Constants.portalTitle;
-    this.apisProvider = resolvedApis.data;
+    this.apisProvider = _.filter(resolvedApis.data, 'manageable');
 
     this.apisScrollAreaHeight = this.$state.current.name === 'apis.list' ? 195 : 90;
     this.isAPIsHome = this.$state.includes('apis');
