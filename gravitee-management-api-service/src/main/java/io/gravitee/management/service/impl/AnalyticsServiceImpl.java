@@ -250,9 +250,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         String fieldName = groupByResponse.getField();
 
-        if (fieldName != null &&
-                (fieldName.equals("api") || fieldName.equals("application") || fieldName.equals("plan") ||
-                fieldName.equals("tenant"))) {
+        if (fieldName != null && !fieldName.isEmpty()) {
 
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
@@ -263,6 +261,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                         case "application": metadata.put(key, getApplicationMetadata(key)); break;
                         case "plan": metadata.put(key, getPlanMetadata(key)); break;
                         case "tenant": metadata.put(key, getTenantMetadata(key)); break;
+                        case "geoip.country_iso_code": metadata.put(key, getCountryName(key)); break;
+                        default:
+                            metadata.put(key, getGenericMetadata(key)); break;
+
                     }
                 }
             }
@@ -335,5 +337,20 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return metadata;
     }
 
+    private Map<String, String> getCountryName(String country_iso) {
+        Map<String, String> metadata = new HashMap<>();
+
+        metadata.put("name", (new Locale("", country_iso)).getDisplayCountry(Locale.UK));
+
+        return metadata;
+    }
+
+    private Map<String, String> getGenericMetadata(String value) {
+        Map<String, String> metadata = new HashMap<>();
+
+        metadata.put("name", value);
+
+        return metadata;
+    }
 
 }
