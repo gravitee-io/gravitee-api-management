@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.gateway.services</groupId>
         <artifactId>gravitee-gateway-services</artifactId>
-        <version>1.12.5-SNAPSHOT</version>
+        <version>1.12.5</version>
     </parent>
 
     <artifactId>gravitee-gateway-services-localregistry</artifactId>
