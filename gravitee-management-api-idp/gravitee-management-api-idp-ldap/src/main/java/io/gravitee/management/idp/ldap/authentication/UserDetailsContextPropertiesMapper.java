@@ -40,12 +40,18 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsContextPropertiesMapper.class);
 
-	private static final boolean accountNonExpired = true;
-	private static final boolean accountNonLocked = true;
-	private static final boolean credentialsNonExpired = true;
-	private static final boolean enabled = true;
-	
 	private Environment environment;
+
+	private String identifierAttribute = "uid";
+
+	public void afterPropertiesSet() throws Exception {
+		String searchFilter = environment.getProperty("user-search-filter");
+
+		if (searchFilter != null) {
+			// Search filter can be uid={0} or mail={0}
+			identifierAttribute = searchFilter.split("=")[0];
+		}
+	}
 
 	@Override
 	public UserDetails mapUserFromContext(DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
@@ -62,7 +68,8 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 		}
 
 		io.gravitee.management.idp.api.authentication.UserDetails userDetails =
-				new io.gravitee.management.idp.api.authentication.UserDetails(username.toUpperCase(), "", mappedAuthorities);
+				new io.gravitee.management.idp.api.authentication.UserDetails(
+						ctx.getStringAttribute(identifierAttribute), "", mappedAuthorities);
 
 		userDetails.setFirstname(ctx.getStringAttribute("sn"));
 		userDetails.setLastname(ctx.getStringAttribute("givenName"));
