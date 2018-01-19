@@ -29,7 +29,7 @@ const ApiPagesComponent: ng.IComponentOptions = {
         this.pages[0].selected = true;
         $location.url(`/apis/${$stateParams.apiId}/pages/${this.pages[0].id}`);
       } else {
-        _.each(this.pages, function(p) { if (p.id === $stateParams.pageId) {p.selected = false; }});
+        _.each(this.pages, function(p) { if (p.id === $stateParams.pageId) {p.selected = true; }});
       }
     };
 

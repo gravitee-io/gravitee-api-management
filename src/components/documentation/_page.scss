@@ -127,3 +127,13 @@
     }
   }
 }
+
+.gv-page-draft-banner {
+  $color: #ce4844;
+  border: 1px solid #eee;
+  border-left: 5px $color;
+  border-radius: 3px;
+  color: $color;
+  padding: 2px 10px 10px 10px;
+  margin-top: 20px;
+}
