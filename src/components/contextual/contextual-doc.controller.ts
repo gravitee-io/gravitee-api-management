@@ -22,8 +22,8 @@ class ContextualDocController {
     'ngInject';
 
     // init contextual page visibility
-    if ($window.sessionStorage.getItem(this.contextualDocVisibilityKey) !== null) {
-      this.isOpen = JSON.parse($window.sessionStorage.getItem(this.contextualDocVisibilityKey));
+    if ($window.localStorage.getItem(this.contextualDocVisibilityKey) !== null) {
+      this.isOpen = JSON.parse($window.localStorage.getItem(this.contextualDocVisibilityKey));
     } else {
       this.setDocumentationVisibility();
     }
@@ -38,8 +38,9 @@ class ContextualDocController {
     });
 
     // watch for open documentation events
-    $rootScope.$on('openContextualDocumentation', function() {
+    $rootScope.$on('openContextualDocumentation', () => {
       that.openDocumentation();
+      this.changeDocumentationPage($state.current);
     });
   }
 
@@ -49,7 +50,7 @@ class ContextualDocController {
   }
 
   changeDocumentationPage(state) {
-    if (state.data && state.data.docs) {
+    if (this.isOpen && state.data && state.data.docs) {
       this.$http.get(`./docs/${state.data.docs.page}.md`).then((response: any) => {
         this.page.content = response.data;
       });
@@ -57,7 +58,7 @@ class ContextualDocController {
   }
 
   private setDocumentationVisibility() {
-    this.$window.sessionStorage.setItem(this.contextualDocVisibilityKey, this.isOpen);
+    this.$window.localStorage.setItem(this.contextualDocVisibilityKey, this.isOpen);
   }
 
 }

@@ -26,7 +26,8 @@
   </div>
   <span flex></span>
   <span>{{$ctrl.$state.current.name}}</span>
-  <md-button class="gv-navbar-help-button" ng-click="$ctrl.openContextualDocumentation();" ng-if="$ctrl.displayContextualDocumentationButton">
+  <md-button class="gv-navbar-help-button" ng-click="$ctrl.openContextualDocumentation();" aria-label="Display contextual documentation"
+             ng-if="$ctrl.displayContextualDocumentationButton">
     <ng-md-icon icon="live_help" gv-theme-element="portal.navbar.help"></ng-md-icon>
   </md-button>
   <md-button ng-if="!$ctrl.graviteeUser.username" ui-sref-active="menu-active" ui-sref="login">{{'menu.login' | translate}}</md-button>
