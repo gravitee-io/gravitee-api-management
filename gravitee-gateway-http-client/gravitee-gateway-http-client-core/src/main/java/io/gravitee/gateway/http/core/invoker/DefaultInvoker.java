@@ -37,9 +37,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.UnsupportedEncodingException;
+import java.net.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -170,15 +170,27 @@ public abstract class DefaultInvoker implements Invoker {
 
         // If not defined, use the one provided by the underlying load-balancer
         if (targetUri != null) {
-            // Select a matching endpoint according to the URL
-            // If none, select the first (non-backup) from the endpoint list.
-            executionContext.setAttribute(TARGET_URI_ATTRIBUTE, targetUri);
+            // URL encode
+            final String charset = Charset.defaultCharset().name();
+            try {
+                final String path = new URL(targetUri).getPath();
+                targetUri = targetUri.replace(path, URLEncoder.encode(path, charset));
+                targetUri = targetUri.replace("+", "%20");
+                final String immutableTargetUri = targetUri.replace("%2F", "/");
+                // Select a matching endpoint according to the URL
+                // If none, select the first (non-backup) from the endpoint list.
+                executionContext.setAttribute(TARGET_URI_ATTRIBUTE, immutableTargetUri);
 
-            return endpointManager.endpoints()
-                    .stream()
-                    .filter(endpointEntry -> targetUri.startsWith(endpointEntry.target()))
-                    .findFirst()
-                    .orElse(endpointManager.endpoints().iterator().next());
+                return endpointManager.endpoints()
+                        .stream()
+                        .filter(endpointEntry -> immutableTargetUri.startsWith(endpointEntry.target()))
+                        .findFirst()
+                        .orElse(endpointManager.endpoints().iterator().next());
+            } catch (final UnsupportedEncodingException e) {
+                throw new IllegalStateException(charset + " encoding not available.  Fatal (should be in the JDK).", e);
+            } catch (MalformedURLException e) {
+                throw new IllegalStateException("The target URL is malformed: " + targetUri, e);
+            }
         } else {
             Endpoint endpoint = nextEndpoint(serverRequest, executionContext);
 
