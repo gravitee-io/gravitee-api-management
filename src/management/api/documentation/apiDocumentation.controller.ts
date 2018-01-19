@@ -24,7 +24,8 @@ class DocumentationController {
     private DocumentationService,
     private $scope,
     private $state,
-    private dragularService) {
+    private dragularService,
+    private NotificationService) {
     'ngInject';
 
     this.DocumentationService = DocumentationService;
@@ -38,25 +39,26 @@ class DocumentationController {
   }
 
   $onInit() {
-    let that = this;
     this.list().then( () => {
       let d = document.querySelector('.pages');
-      that.dragularService([d], {
+      this.dragularService([d], {
         scope: this.$scope,
         containersModel: _.cloneDeep(this.pages),
         nameSpace: 'documentation'
       });
-      that.$scope.$on('dragulardrop', function(e, el, target, source, dragularList, index) {
-        let movedPage = that.pages[index];
+      this.$scope.$on('dragulardrop', (e, el, target, source, dragularList, index) => {
+        let movedPage = this.pages[index];
         for (let idx = 0; idx < dragularList.length; idx++) {
           if (movedPage.id === dragularList[idx].id) {
             movedPage.order = idx+1;
             break;
           }
         }
-        that.pages = dragularList;
-        that.DocumentationService.editPage(that.$state.params.apiId, movedPage.id, movedPage).then( () => {
-          that.$state.go("management.apis.detail.documentation.page", {apiId: that.$state.params.apiId, pageId: movedPage.id});
+        this.pages = dragularList;
+        this.DocumentationService.editPage(this.$state.params.apiId, movedPage.id, movedPage).then( () => {
+          this.NotificationService.show('Page \'' + movedPage.name + '\' has been moved with success');
+          this.$state.go("management.apis.detail.documentation.page", {apiId: this.$state.params.apiId, pageId: movedPage.id});
+          this.list();
         });
       });
     });
