@@ -104,71 +104,73 @@ public class SwaggerServiceImpl implements SwaggerService {
     }
 
     @Override
-    public void transform(PageEntity page) {
-        Swagger swagger;
+    public void transform(final PageEntity page) {
+        if (page.getContent() != null) {
+            Swagger swagger;
 
-        // Create temporary file for Swagger parser (only for descriptor version < 2.x)
-        File temp = null;
-        String fileName = "gio_swagger_" + System.currentTimeMillis();
-        BufferedWriter bw = null;
-        FileWriter out = null;
+            // Create temporary file for Swagger parser (only for descriptor version < 2.x)
+            File temp = null;
+            String fileName = "gio_swagger_" + System.currentTimeMillis();
+            BufferedWriter bw = null;
+            FileWriter out = null;
 
-        try {
-            temp = File.createTempFile(fileName, ".tmp");
-            out = new FileWriter(temp);
-            bw = new BufferedWriter(out);
-            bw.write(page.getContent());
-            bw.close();
+            try {
+                temp = File.createTempFile(fileName, ".tmp");
+                out = new FileWriter(temp);
+                bw = new BufferedWriter(out);
+                bw.write(page.getContent());
+                bw.close();
 
-            swagger = new SwaggerCompatConverter().read(temp.getAbsolutePath());
-            if (swagger == null) {
+                swagger = new SwaggerCompatConverter().read(temp.getAbsolutePath());
+                if (swagger == null) {
+                    swagger = new SwaggerParser().parse(page.getContent());
+                }
+            } catch (IOException ioe) {
+                // Fallback to the new parser
                 swagger = new SwaggerParser().parse(page.getContent());
-            }
-        } catch (IOException ioe) {
-            // Fallback to the new parser
-            swagger = new SwaggerParser().parse(page.getContent());
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {
+            } finally {
+                if (bw != null) {
+                    try {
+                        bw.close();
+                    } catch (IOException e) {
+                    }
+                }
+                if (out != null) {
+                    try {
+                        out.close();
+                    } catch (IOException e) {
+                    }
+                }
+                if (temp != null) {
+                    temp.delete();
                 }
             }
-            if (out != null) {
+
+            if (swagger == null) {
+                throw new SwaggerDescriptorException();
+            }
+
+            if (page.getConfiguration() != null &&
+                    page.getConfiguration().getTryItURL() != null) {
+                URI newURI = URI.create(page.getConfiguration().getTryItURL());
+
+                swagger.setSchemes(Collections.singletonList(Scheme.forValue(newURI.getScheme())));
+                swagger.setHost((newURI.getPort() != -1) ? newURI.getHost() + ':' + newURI.getPort() : newURI.getHost());
+                swagger.setBasePath((newURI.getRawPath().isEmpty()) ? "/" : newURI.getRawPath());
+            }
+
+            if (page.getContentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
                 try {
-                    out.close();
-                } catch (IOException e) {
+                    page.setContent(Json.pretty().writeValueAsString(swagger));
+                } catch (JsonProcessingException e) {
+                    logger.error("Unexpected error", e);
                 }
-            }
-            if (temp != null) {
-                temp.delete();
-            }
-        }
-
-        if (swagger == null) {
-            throw new SwaggerDescriptorException();
-        }
-
-        if (page.getConfiguration() != null &&
-                page.getConfiguration().getTryItURL() != null) {
-            URI newURI = URI.create(page.getConfiguration().getTryItURL());
-
-            swagger.setSchemes(Collections.singletonList(Scheme.forValue(newURI.getScheme())));
-            swagger.setHost((newURI.getPort() != -1) ? newURI.getHost() + ':' + newURI.getPort() : newURI.getHost());
-            swagger.setBasePath((newURI.getRawPath().isEmpty()) ? "/" : newURI.getRawPath());
-        }
-
-        if (page.getContentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
-            try {
-                page.setContent(Json.pretty().writeValueAsString(swagger));
-            } catch (JsonProcessingException e) {
-                logger.error("Unexpected error", e);
-            }
-        } else {
-            try {
-                page.setContent(Yaml.pretty().writeValueAsString(swagger));
-            } catch (JsonProcessingException e) {
-                logger.error("Unexpected error", e);
+            } else {
+                try {
+                    page.setContent(Yaml.pretty().writeValueAsString(swagger));
+                } catch (JsonProcessingException e) {
+                    logger.error("Unexpected error", e);
+                }
             }
         }
     }

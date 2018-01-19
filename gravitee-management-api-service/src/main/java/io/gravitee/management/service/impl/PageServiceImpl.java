@@ -217,26 +217,28 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				collect(Collectors.toList());
 	}
 
-	private void transformUsingConfiguration(PageEntity pageEntity) {
+	private void transformUsingConfiguration(final PageEntity pageEntity) {
 		if (io.gravitee.repository.management.model.PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
 			swaggerService.transform(pageEntity);
 		}
 	}
 
-	private void transformWithTemplate(PageEntity pageEntity, String api) {
-		try {
-			Template template = new Template(pageEntity.getId(), pageEntity.getContent(), freemarkerConfiguration);
+	private void transformWithTemplate(final PageEntity pageEntity, final String api) {
+		if (pageEntity.getContent() != null) {
+			try {
+				Template template = new Template(pageEntity.getId(), pageEntity.getContent(), freemarkerConfiguration);
 
-			ApiModelEntity apiEntity = apiService.findByIdForTemplates(api);
-			Map<String, Object> model = new HashMap<>();
-			model.put("api", apiEntity);
+				ApiModelEntity apiEntity = apiService.findByIdForTemplates(api);
+				Map<String, Object> model = new HashMap<>();
+				model.put("api", apiEntity);
 
-			final String content =
-					FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+				final String content =
+						FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
 
-			pageEntity.setContent(content);
-		} catch (IOException | TemplateException ex) {
-			logger.error("An error occurs while transforming page content for {}", pageEntity.getId(), ex);
+				pageEntity.setContent(content);
+			} catch (IOException | TemplateException ex) {
+				logger.error("An error occurs while transforming page content for {}", pageEntity.getId(), ex);
+			}
 		}
 	}
 
