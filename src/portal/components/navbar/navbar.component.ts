@@ -27,7 +27,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     $rootScope: IScope,
     $state: ng.ui.IStateService,
     $transitions,
-      $interval) {
+    $interval) {
     'ngInject';
 
     const vm = this;
@@ -57,6 +57,10 @@ export const NavbarComponent: ng.IComponentOptions = {
 
       $scope.$on("graviteeUserTaskRefresh", function () {
         vm.refreshUserTasks();
+      });
+
+      $scope.$on("graviteeUserCancelScheduledServices", function () {
+        vm.cancelRefreshUserTasks();
       });
 
       vm.supportEnabled = Constants.support && Constants.support.enabled;
@@ -112,6 +116,13 @@ export const NavbarComponent: ng.IComponentOptions = {
         result.populate(response.data);
         TaskService.fillUserTasks(vm.graviteeUser, result);
       });
+    };
+
+    vm.cancelRefreshUserTasks = function() {
+      if (vm.tasksScheduler) {
+        $interval.cancel(vm.tasksScheduler);
+        vm.tasksScheduler = undefined;
+      }
     }
   }
 };

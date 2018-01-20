@@ -35,7 +35,8 @@ class TaskService {
   }
 
   getTasks() {
-    return this.$http.get(this.URL);
+    const config = { ignoreLoadingBar: true, silentCall: true } as ng.IRequestShortcutConfig;
+    return this.$http.get(this.URL, config);
   }
 
   fillUserTasks(user: User, tasks: PagedResult) {

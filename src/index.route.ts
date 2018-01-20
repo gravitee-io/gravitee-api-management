@@ -108,7 +108,11 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
     .state('logout', {
       controller: (UserService: UserService, $state: ng.ui.IStateService, $rootScope: IScope) => {
         UserService.logout().then(
-          () => { $state.go('portal.home');$rootScope.$broadcast('graviteeUserRefresh'); }
+          () => {
+            $state.go('portal.home');
+            $rootScope.$broadcast('graviteeUserRefresh');
+            $rootScope.$broadcast('graviteeUserCancelScheduledServices');
+          }
         );
       }
     })
