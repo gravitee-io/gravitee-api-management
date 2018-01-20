@@ -30,6 +30,25 @@ public class UpdateUserEntity {
 	@NotNull
 	private String username;
 
+	private String firstname;
+
+	private String lastname;
+
+	public String getFirstname() {
+		return firstname;
+	}
+
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+
+	public String getLastname() {
+		return lastname;
+	}
+
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
 	/**
 	 * The user picture
 	 */
@@ -69,6 +88,9 @@ public class UpdateUserEntity {
 	public String toString() {
 		return "UpdateUserEntity{" +
 				"username='" + username + '\'' +
+				", picture='" + picture + '\'' +
+				", firstname='" + firstname + '\'' +
+				", lastname='" + lastname + '\'' +
 				'}';
 	}
 }

@@ -140,9 +140,11 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         when(userService.findByName("janedoe@example.com",false)).thenReturn(userEntity);
 
-        //mock DB update user picture
+        //mock DB update user picture , firstname ,lastname
         UpdateUserEntity user = new UpdateUserEntity();
         user.setUsername("janedoe@example.com");
+        user.setFirstname("Jane");
+        user.setLastname("Doe");
         user.setPicture("http://example.com/janedoe/me.jpg");
 
         when(userService.update(refEq(user))).thenReturn(userEntity);
@@ -272,8 +274,12 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
         updateUserEntity.setUsername("janedoe@example.com");
         updateUserEntity.setPicture("http://example.com/janedoe/me.jpg");
+        updateUserEntity.setFirstname("Jane");
+        updateUserEntity.setLastname("Doe");
 
         user.setPicture("http://example.com/janedoe/me.jpg");
+        //user.setFirstname("Jane");
+        //user.setLastname("Doe");
 
         when(userService.update(refEq(updateUserEntity))).thenReturn(user);
         return updateUserEntity;
@@ -291,6 +297,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         createdUser.setLastname("Doe");
         createdUser.setFirstname("Jane");
         createdUser.setEmail("janedoe@example.com");
+        createdUser.setPicture("http://example.com/janedoe/me.jpg");
         return createdUser;
     }
 
@@ -302,6 +309,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         newExternalUserEntity.setLastname("Doe");
         newExternalUserEntity.setFirstname("Jane");
         newExternalUserEntity.setEmail("janedoe@example.com");
+        newExternalUserEntity.setPicture("http://example.com/janedoe/me.jpg");
         return newExternalUserEntity;
     }
 

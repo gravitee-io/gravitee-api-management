@@ -368,6 +368,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             // Set variant fields
             user.setPicture(updateUserEntity.getPicture());
+            user.setFirstname(updateUserEntity.getFirstname());
+            user.setLastname(updateUserEntity.getLastname());
 
             User updatedUser = userRepository.update(user);
             auditService.createPortalAuditLog(

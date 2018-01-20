@@ -45,6 +45,11 @@ public class NewExternalUserEntity {
 	 * The user source
 	 */
 	private String source;
+
+    /**
+     * The user picture
+     */
+    private String picture;
 	
 	/**
 	 * The user source reference
@@ -81,6 +86,14 @@ public class NewExternalUserEntity {
 
     public void setLastname(String lastname) {
         this.lastname = lastname;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     public String getUsername() {
