@@ -37,6 +37,7 @@ public abstract class AbstractService extends TransactionalService {
     }
 
     protected boolean isAuthenticated() {
-        return SecurityContextHolder.getContext().getAuthentication() != null;
+        return SecurityContextHolder.getContext().getAuthentication() != null
+                && SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserDetails;
     }
 }
