@@ -2,8 +2,8 @@
   display: none;
   margin-top: 114px;
   width: 300px;
-  pointer-events: none;
-  right: 0px;
+  right: 0;
+  overflow: auto;
   &.open {
     display: block;
   }
@@ -12,6 +12,7 @@
     padding: 20px;
     position: fixed;
     height: calc(100vh - 150px);
+    overflow: auto;
   }
   h1 {
     font-weight: 400;
