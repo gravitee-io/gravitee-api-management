@@ -45,6 +45,13 @@
   }
 }
 
+.pricing-content{
+  min-height: 293px;
+  max-height: 293px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .pricing-wrapper {
   padding: 0 10px;
   position: relative;
@@ -146,12 +153,11 @@
 }
 
 .pricing-description {
-  display: block;
-  overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
   margin: 0 auto;
   max-width: 210px;
+  max-height: 230px;
 }
 
 .pricing-body {

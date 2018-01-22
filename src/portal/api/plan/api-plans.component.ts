@@ -13,12 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import _ = require('lodash');
+
 const ApiPlansComponent: ng.IComponentOptions = {
   bindings: {
     plans: '<',
     isAuthenticated: '<'
   },
-  template: require('./api-plans.html')
+  template: require('./api-plans.html'),
+  controller: function() {
+    'ngInject';
+    const vm = this;
+
+    vm.getCharacteristicsRange = function (plan) {
+      return _.range(_.min([6, plan.characteristics.length]));
+    };
+  }
 };
 
 export default ApiPlansComponent;

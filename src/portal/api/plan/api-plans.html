@@ -30,18 +30,19 @@
           <li class="is-visible gravitee-card">
             <h2>{{::plan.name}}</h2>
             <div class="pricing-validation">{{plan.validation === 'manual'? ('api.plan.manual' | translate): '&nbsp;'}}</div>
+            <div class="pricing-content">
             <header class="pricing-header">
               <div class="price">
                 <span class="md-headline pricing-description">
-                  <md-tooltip>{{::plan.description}}</md-tooltip>
                   {{::plan.description}}
                 </span>
               </div>
             </header>
             <div class="pricing-body">
               <ul class="pricing-features">
-                <li ng-repeat="i in [0, 1, 2, 3, 4, 5]">{{plan.characteristics[i]? plan.characteristics[i] : '&nbsp;'}}</li>
+                <li ng-repeat="i in $ctrl.getCharacteristicsRange(plan)">{{plan.characteristics[i]? plan.characteristics[i] : '&nbsp;'}}</li>
               </ul>
+            </div>
             </div>
             <footer class="pricing-footer" ng-if="$ctrl.isAuthenticated">
               <a class="select" ui-sref="portal.api.subscribe({planId: plan.id})">{{'api.plan.subscribe' | translate}}</a>
