@@ -17,10 +17,7 @@ package io.gravitee.repository.config;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
-import io.gravitee.repository.management.api.search.ApiKeyCriteria;
-import io.gravitee.repository.management.api.search.AuditCriteria;
-import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import org.mockito.ArgumentMatcher;
@@ -284,6 +281,7 @@ public class MockTestRepositoryConfiguration {
                 mock(Application.class),
                 mock(Application.class),
                 mock(Application.class),
+                mock(Application.class),
                 mock(Application.class));
         when(applicationRepository.findAll()).thenReturn(allApplications);
         doAnswer(invocation -> allApplications.remove(application)).when(applicationRepository).delete("deleted-app");
@@ -347,6 +345,13 @@ public class MockTestRepositoryConfiguration {
                 return o == null || (o instanceof Application && ((Application) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
+
+
+        final Application applicationWithClientId = mock(Application.class);
+        when(applicationWithClientId.getId()).thenReturn("app-with-client-id");
+        when(applicationWithClientId.getClientId()).thenReturn("my-client-id");
+        when(applicationRepository.findByClientId("my-client-id")).thenReturn(of(applicationWithClientId));
+        when(applicationRepository.findByClientId("unknown-client-id")).thenReturn(Optional.empty());
 
         return applicationRepository;
     }
@@ -883,10 +888,28 @@ public class MockTestRepositoryConfiguration {
         sub1.setPlan("plan1");
         sub1.setUpdatedAt(new Date(0));
 
-        when(subscriptionRepository.findByPlan("plan1")).thenReturn(newSet(sub1));
-        when(subscriptionRepository.findByPlan("unknown-plan")).thenReturn(Collections.emptySet());
-        when(subscriptionRepository.findByApplication("app1")).thenReturn(newSet(sub1));
-        when(subscriptionRepository.findByApplication("unknown-app")).thenReturn(Collections.emptySet());
+        when(subscriptionRepository.search(
+                new SubscriptionCriteria.Builder()
+                        .plans(Collections.singleton("plan1"))
+                        .build()))
+                .thenReturn(Collections.singletonList(sub1));
+        when(subscriptionRepository.search(
+                new SubscriptionCriteria.Builder()
+                        .plans(Collections.singleton("unknown-plan"))
+                        .build()))
+                .thenReturn(Collections.emptyList());
+
+        when(subscriptionRepository.search(
+                new SubscriptionCriteria.Builder()
+                        .applications(Collections.singleton("app1"))
+                        .build()))
+                .thenReturn(Collections.singletonList(sub1));
+        when(subscriptionRepository.search(
+                new SubscriptionCriteria.Builder()
+                        .applications(Collections.singleton("unknown-app"))
+                        .build()))
+                .thenReturn(Collections.emptyList());
+
         when(subscriptionRepository.findById("sub1")).thenReturn(of(sub1));
         when(subscriptionRepository.findById("unknown-sub")).thenReturn(empty());
         when(subscriptionRepository.findById("sub2")).thenReturn(empty());

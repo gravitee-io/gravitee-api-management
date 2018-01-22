@@ -17,12 +17,14 @@ package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -39,7 +41,10 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByPlan() throws TechnicalException {
-        Set<Subscription> subscriptions = this.subscriptionRepository.findByPlan("plan1");
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+                new SubscriptionCriteria.Builder()
+                        .plans(Collections.singleton("plan1"))
+                .build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -48,8 +53,11 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shoulNotFindByPlan() throws TechnicalException {
-        Set<Subscription> subscriptions = this.subscriptionRepository.findByPlan("unknown-plan");
+    public void shouldNotFindByPlan() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+                new SubscriptionCriteria.Builder()
+                        .plans(Collections.singleton("unknown-plan"))
+                        .build());
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -57,7 +65,10 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByApplication() throws TechnicalException {
-        Set<Subscription> subscriptions = this.subscriptionRepository.findByApplication("app1");
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+                new SubscriptionCriteria.Builder()
+                        .applications(Collections.singleton("app1"))
+                        .build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
@@ -67,7 +78,10 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shoulNotFindByApplication() throws TechnicalException {
-        Set<Subscription> subscriptions = this.subscriptionRepository.findByApplication("unknown-app");
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+                new SubscriptionCriteria.Builder()
+                        .applications(Collections.singleton("unknown-app"))
+                        .build());
 
         assertNotNull(subscriptions);
         assertTrue(subscriptions.isEmpty());
@@ -83,7 +97,7 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shoulNotFindById() throws TechnicalException {
+    public void shouldNotFindById() throws TechnicalException {
         Optional<Subscription> subscription = this.subscriptionRepository.findById("unknown-sub");
 
         assertNotNull(subscription);

@@ -63,5 +63,15 @@
     "status": "ACTIVE",
     "createdAt": "1439022010883",
     "updatedAt": "1439022010883"
+  },
+  {
+    "id": "app-with-client-id",
+    "name": "app-with-client-id",
+    "description": "Sample searched app",
+    "type": "Web",
+    "status": "ACTIVE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "clientId": "my-client-id"
   }
 ]

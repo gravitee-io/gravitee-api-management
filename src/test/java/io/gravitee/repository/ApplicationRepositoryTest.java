@@ -46,7 +46,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         Set<Application> applications = applicationRepository.findAll();
 
         assertNotNull(applications);
-        assertEquals("Fail to resolve application in findAll", 7, applications.size());
+        assertEquals("Fail to resolve application in findAll", 8, applications.size());
     }
 
     @Test
@@ -198,6 +198,22 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertEquals("grouped-app2", apps.iterator().next().getId());
     }
 
+    @Test
+    public void shouldFindByClientId() throws Exception {
+        Optional<Application> application = applicationRepository.findByClientId("my-client-id");
+
+        assertNotNull(application);
+        assertTrue(application.isPresent());
+        assertEquals("app-with-client-id", application.get().getId());
+    }
+
+    @Test
+    public void shouldNotFindByClientId() throws Exception {
+        Optional<Application> application = applicationRepository.findByClientId("unknown-client-id");
+
+        assertNotNull(application);
+        assertFalse(application.isPresent());
+    }
 
     @Test
     public void shouldFindByIds() throws Exception {
