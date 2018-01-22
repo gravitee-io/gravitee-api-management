@@ -20,7 +20,21 @@ export const SidenavComponent: ng.IComponentOptions = {
     menuItems: '<',
     allMenuItems: '<'
   },
-  controller: function() {
+  controller: function($window) {
+    'ngInject';
+    const reduceModeKey = 'gv-sidenav-reduce-mode';
+    this.$window = $window;
     this.reducedMode = false;
+
+    this.$onInit = function () {
+      if (this.$window.localStorage.getItem(reduceModeKey) !== null) {
+        this.reducedMode = JSON.parse(this.$window.localStorage.getItem(reduceModeKey));
+      }
+    };
+
+    this.toggleReducedMode = function() {
+      this.reducedMode = !this.reducedMode;
+      $window.localStorage.setItem(reduceModeKey, this.reducedMode);
+    }
   }
 };
