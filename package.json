@@ -22,6 +22,7 @@
     "angular-permission": "^5.3.2",
     "angular-sanitize": "^1.5.11",
     "angular-schema-form": "^0.8.13",
+    "angular-swagger-ui": "^0.5.4",
     "angular-timeline": "^1.7.0",
     "angular-translate": "^2.15.1",
     "angular-translate-loader-static-files": "^2.15.1",

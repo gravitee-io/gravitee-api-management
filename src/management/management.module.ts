@@ -78,12 +78,15 @@ require('../libraries/angular-schema-form/boostrap-decorator');
 require('../libraries/angular-schema-form/codemirror-decorator');
 require('../libraries/angular-ui-codemirror/ui-codemirror');
 
-require('../libraries/angular-swagger-ui/swagger-ui.min');
--require('../libraries/angular-swagger-ui/modules/swagger-markdown.min.js');
--require('../libraries/angular-swagger-ui/modules/swagger-auth.min.js');
--require('../libraries/angular-swagger-ui/modules/swagger-yaml-parser.min.js');
--require('../libraries/angular-swagger-ui/modules/swagger-xml-formatter.min.js');
--require('../libraries/angular-swagger-ui/modules/swagger1-to-swagger2-converter.min.js');
+require('angular-swagger-ui');
+require('angular-swagger-ui/dist/scripts/modules/swagger-markdown.min');
+require('angular-swagger-ui/dist/scripts/modules/swagger-auth.min');
+require('angular-swagger-ui/dist/scripts/modules/swagger-auth-ui-bootstrap-modal.min');
+require('angular-swagger-ui/dist/scripts/modules/swagger-external-references.min');
+require('angular-swagger-ui/dist/scripts/modules/swagger-yaml-parser.min');
+require('angular-swagger-ui/dist/scripts/modules/swagger-xml-formatter.min');
+require('angular-swagger-ui/dist/scripts/modules/swagger1-converter.min');
+require('angular-swagger-ui/dist/scripts/modules/openapi3-converter.min');
 
 require('../libraries/showdown-extension/DocHelper-extension.js');
 
