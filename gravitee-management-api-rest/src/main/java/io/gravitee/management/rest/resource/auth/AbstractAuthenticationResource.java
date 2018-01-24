@@ -19,18 +19,30 @@ import com.auth0.jwt.JWTSigner;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.management.idp.api.authentication.UserDetails;
+import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.common.JWTHelper;
+import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
 
@@ -46,6 +58,9 @@ abstract class AbstractAuthenticationResource {
 
     @Autowired
     protected UserService userService;
+
+    @Autowired
+    protected MembershipService membershipService;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -68,12 +83,38 @@ abstract class AbstractAuthenticationResource {
     protected Response connectUser(String username) {
         UserEntity user = userService.connect(username);
 
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        // Manage authorities, initialize it with dynamic permissions from the IDP
+        Set<GrantedAuthority> authorities = new HashSet<>(userDetails.getAuthorities());
+
+        // We must also load permissions from repository for configured management or portal role
+        RoleEntity role = membershipService.getRole(
+                MembershipReferenceType.MANAGEMENT,
+                MembershipDefaultReferenceId.DEFAULT.toString(),
+                userDetails.getUsername(),
+                RoleScope.MANAGEMENT);
+        if (role != null) {
+            authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
+        }
+
+        role = membershipService.getRole(
+                MembershipReferenceType.PORTAL,
+                MembershipDefaultReferenceId.DEFAULT.toString(),
+                userDetails.getUsername(),
+                RoleScope.PORTAL);
+        if (role != null) {
+            authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
+        }
+
         // JWT signer
         final Map<String, Object> claims = new HashMap<>();
 
         claims.put(JWTHelper.Claims.ISSUER, environment.getProperty("jwt.issuer", JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER));
         claims.put(JWTHelper.Claims.SUBJECT, user.getUsername());
-//        claims.put(JWTHelper.Claims.PERMISSIONS, Collections.singleton(new SimpleGrantedAuthority(Role.USER.toString())));
+        claims.put(JWTHelper.Claims.PERMISSIONS, authorities);
         claims.put(JWTHelper.Claims.EMAIL, user.getEmail());
         claims.put(JWTHelper.Claims.FIRSTNAME, user.getFirstname());
         claims.put(JWTHelper.Claims.LASTNAME, user.getLastname());

@@ -15,23 +15,19 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.permissions.RoleScope;
 import io.gravitee.management.model.permissions.SystemRole;
-import io.gravitee.management.service.*;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.MembershipService;
+import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.RoleService;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,7 +37,7 @@ import java.util.Set;
 public abstract class AbstractResource {
 
     public final static String MANAGEMENT_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
-    public final static String PORTAL_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
+    public final static String PORTAL_ADMIN = RoleScope.PORTAL.name() + ':' + SystemRole.ADMIN.name();
 
     @Context
     protected SecurityContext securityContext;
