@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import moment = require('moment');
 import _ = require('lodash');
 import angular = require('angular');
 
@@ -45,12 +44,12 @@ class ApiHealthCheckConfigureController {
       this.healthcheck = this.api.services && this.api.services['health-check'];
     }
 
-    this.healthcheck = this.healthcheck || {enabled: true, trigger: {}};
-    let inherit = (this.endpoint !== undefined) && (this.healthcheck.inherit || this.healthcheck.inherit === undefined);
+    this.healthcheck = this.healthcheck || {enabled: false, trigger: {}};
+    let inherit = (this.endpoint !== undefined) && this.healthcheck.inherit;
     let enabled = this.healthcheck.enabled;
 
     if (inherit) {
-      this.healthcheck = _.cloneDeep((this.api.services && this.api.services['health-check']) || {enabled: true, trigger: {}});
+      this.healthcheck = _.cloneDeep((this.api.services && this.api.services['health-check']) || {enabled: false, trigger: {}});
     }
 
     this.healthcheck.inherit = inherit;
