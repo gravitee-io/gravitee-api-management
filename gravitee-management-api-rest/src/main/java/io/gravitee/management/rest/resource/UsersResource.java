@@ -30,6 +30,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
 import java.io.ByteArrayOutputStream;
+import java.net.URI;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Comparator;
@@ -129,9 +130,14 @@ public class UsersResource extends AbstractResource {
     @Path("{username}/picture")
     public Response getUserPicture(@PathParam("username") String username, @Context Request request) {
         UserEntity user = userService.findByName(username, false);
+        String picture = user.getPicture();
 
-        if (user.getPicture() == null) {
+        if (picture == null) {
             throw new NotFoundException();
+        }
+
+        if (picture.matches("^(http|https)://.*$")) {
+            return Response.temporaryRedirect(URI.create(picture)).build();
         }
 
         CacheControl cc = new CacheControl();
@@ -141,7 +147,6 @@ public class UsersResource extends AbstractResource {
         cc.setMaxAge(86400);
 
         try {
-            String picture = user.getPicture();
             String[] parts = picture.split("base64,");
             String type = parts[0].split("data:")[1];
             type = type.substring(0, type.length() - 1);
@@ -168,7 +173,8 @@ public class UsersResource extends AbstractResource {
                     .type(type)
                     .build();
         } catch (Exception e) {
-            throw new InternalServerErrorException("Unable to retrieve user picture: " + e.getMessage(), e);
+            throw new InternalServerErrorException("Unable to retrieve picture for user [" +
+                    username + "]: " + e.getMessage());
         }
     }
 
