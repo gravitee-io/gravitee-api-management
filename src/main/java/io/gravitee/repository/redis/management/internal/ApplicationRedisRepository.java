@@ -38,6 +38,8 @@ public interface ApplicationRedisRepository {
 
     Set<RedisApplication> findByName(String partialName);
 
+    RedisApplication findByClientId(String clientId);
+
     RedisApplication saveOrUpdate(RedisApplication application);
 
     void delete(String application);

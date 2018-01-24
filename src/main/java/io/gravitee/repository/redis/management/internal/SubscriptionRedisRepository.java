@@ -15,9 +15,10 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.redis.management.model.RedisSubscription;
-
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -27,9 +28,7 @@ public interface SubscriptionRedisRepository {
 
     RedisSubscription find(String subscription);
 
-    Set<RedisSubscription> findByApplication(String application);
-
-    Set<RedisSubscription> findByPlan(String plan);
+    Page<RedisSubscription> search(SubscriptionCriteria criteria, Pageable pageable);
 
     RedisSubscription saveOrUpdate(RedisSubscription subscription);
 

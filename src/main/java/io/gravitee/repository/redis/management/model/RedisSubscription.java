@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.redis.management.model;
 
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 
 /**
@@ -29,6 +30,11 @@ public class RedisSubscription {
     private String id;
 
     /**
+     * The subscribed {@link Api}.
+     */
+    private String api;
+
+    /**
      * The subscribed {@link Plan}.
      */
     private String plan;
@@ -37,6 +43,11 @@ public class RedisSubscription {
      * The application linked to the subscription
      */
     private String application;
+
+    /**
+     * The clientId linked to the subscription
+     */
+    private String clientId;
 
     /**
      * Vhen the subscription have been processed.
@@ -85,6 +96,14 @@ public class RedisSubscription {
         this.id = id;
     }
 
+    public String getApi() {
+        return api;
+    }
+
+    public void setApi(String api) {
+        this.api = api;
+    }
+
     public String getPlan() {
         return plan;
     }
@@ -99,6 +118,14 @@ public class RedisSubscription {
 
     public void setApplication(String application) {
         this.application = application;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 
     public long getProcessedAt() {

@@ -86,6 +86,12 @@ public class RedisApplicationRepository implements ApplicationRepository {
     }
 
     @Override
+    public Optional<Application> findByClientId(String clientId) throws TechnicalException {
+        RedisApplication redisApplication = this.applicationRedisRepository.findByClientId(clientId);
+        return Optional.ofNullable(convert(redisApplication));
+    }
+
+    @Override
     public Optional<Application> findById(String applicationId) throws TechnicalException {
         RedisApplication redisApplication = this.applicationRedisRepository.find(applicationId);
         return Optional.ofNullable(convert(redisApplication));
@@ -136,6 +142,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
         application.setName(redisApplication.getName());
         application.setCreatedAt(new Date(redisApplication.getCreatedAt()));
         application.setUpdatedAt(new Date(redisApplication.getUpdatedAt()));
+        application.setClientId(redisApplication.getClientId());
         application.setDescription(redisApplication.getDescription());
         application.setType(redisApplication.getType());
         application.setGroups(redisApplication.getGroups());
@@ -149,6 +156,7 @@ public class RedisApplicationRepository implements ApplicationRepository {
 
         redisApplication.setId(application.getId());
         redisApplication.setName(application.getName());
+        redisApplication.setClientId(application.getClientId());
         redisApplication.setCreatedAt(application.getCreatedAt().getTime());
         redisApplication.setUpdatedAt(application.getUpdatedAt().getTime());
         redisApplication.setDescription(application.getDescription());

@@ -15,8 +15,11 @@
  */
 package io.gravitee.repository.redis.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.redis.management.internal.SubscriptionRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisSubscription;
@@ -24,8 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -39,19 +42,23 @@ public class RedisSubscriptionRepository implements SubscriptionRepository {
     private SubscriptionRedisRepository subscriptionRedisRepository;
 
     @Override
-    public Set<Subscription> findByPlan(String plan) throws TechnicalException {
-        return subscriptionRedisRepository.findByPlan(plan)
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+    public Page<Subscription> search(SubscriptionCriteria criteria, Pageable pageable) throws TechnicalException {
+        Page<RedisSubscription> pagedSubscriptions = subscriptionRedisRepository.search(criteria, pageable);
+
+        return new Page<>(
+                pagedSubscriptions.getContent().stream().map(this::convert).collect(Collectors.toList()),
+                pagedSubscriptions.getPageNumber(), (int) pagedSubscriptions.getTotalElements(),
+                pagedSubscriptions.getTotalElements());
     }
 
     @Override
-    public Set<Subscription> findByApplication(String application) throws TechnicalException {
-        return subscriptionRedisRepository.findByApplication(application)
+    public List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException {
+        Page<RedisSubscription> pagedSubscriptions = subscriptionRedisRepository.search(criteria, null);
+
+        return pagedSubscriptions.getContent()
                 .stream()
                 .map(this::convert)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -96,6 +103,8 @@ public class RedisSubscriptionRepository implements SubscriptionRepository {
         subscription.setId(redisSubscription.getId());
         subscription.setStatus(Subscription.Status.valueOf(redisSubscription.getStatus()));
         subscription.setApplication(redisSubscription.getApplication());
+        subscription.setApi(redisSubscription.getApi());
+        subscription.setClientId(redisSubscription.getClientId());
         subscription.setPlan(redisSubscription.getPlan());
         subscription.setProcessedBy(redisSubscription.getProcessedBy());
         subscription.setReason(redisSubscription.getReason());
@@ -128,6 +137,8 @@ public class RedisSubscriptionRepository implements SubscriptionRepository {
         redisSubscription.setReason(subscription.getReason());
         redisSubscription.setProcessedBy(subscription.getProcessedBy());
         redisSubscription.setApplication(subscription.getApplication());
+        redisSubscription.setApi(subscription.getApi());
+        redisSubscription.setClientId(subscription.getClientId());
         redisSubscription.setPlan(subscription.getPlan());
         redisSubscription.setSubscribedBy(subscription.getSubscribedBy());
 

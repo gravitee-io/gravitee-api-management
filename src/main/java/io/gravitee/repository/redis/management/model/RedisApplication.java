@@ -31,6 +31,7 @@ public class RedisApplication {
     private String type;
     private Set<String> groups;
     private String status;
+    private String clientId;
 
     private long createdAt;
     private long updatedAt;
@@ -97,6 +98,14 @@ public class RedisApplication {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 
     @Override
