@@ -23,7 +23,8 @@ function DialogAddMemberController(
   ApplicationService,
   UserService,
   NotificationService,
-  RoleService
+  RoleService,
+  Constants
 ) {
   'ngInject';
 
@@ -48,7 +49,10 @@ function DialogAddMemberController(
         var membersFound = response.data;
         var filterMembers = _.filter(membersFound, (member: any) => _.findIndex($scope.applicationMembers,
           (applicationMember: any) => applicationMember.username === member.id) === -1);
-        return filterMembers;
+        return _.map(filterMembers, function(member: any) {
+          member.picture = Constants.baseURL + 'users/' + member.id + '/picture';
+          return member;
+        });
 			});
 		}
 	};

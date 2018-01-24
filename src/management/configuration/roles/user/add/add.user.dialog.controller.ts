@@ -19,7 +19,8 @@ import NotificationService from '../../../../../services/notification.service';
 import RoleService from '../../../../../services/role.service';
 
 function DialogAddUserRoleController($mdDialog: angular.material.IDialogService, role, roleScope, $q: ng.IQService,
-                                     UserService: UserService, NotificationService: NotificationService, RoleService: RoleService) {
+                                     UserService: UserService, NotificationService: NotificationService, RoleService: RoleService,
+                                     Constants) {
   'ngInject';
 
   this.role = role;
@@ -47,7 +48,10 @@ function DialogAddUserRoleController($mdDialog: angular.material.IDialogService,
           return _.findIndex(that.roleUsers,
               function(roleUser:any) { return roleUser.username === user.id;}) === -1;
         });
-        return filterMembers;
+        return _.map(filterMembers, function(member: any) {
+          member.picture = Constants.baseURL + 'users/' + member.id + '/picture';
+          return member;
+        });
       });
 		}
 	};

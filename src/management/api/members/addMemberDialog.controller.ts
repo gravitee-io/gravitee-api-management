@@ -18,7 +18,7 @@ import RoleService from '../../../services/role.service';
 import ApiService from '../../../services/api.service';
 
 function DialogAddMemberApiController($scope, $mdDialog, api, apiMembers, ApiService: ApiService, UserService, NotificationService,
-      RoleService: RoleService) {
+      RoleService: RoleService, Constants) {
   'ngInject';
 
   RoleService.list('API').then(function (roles) {
@@ -44,7 +44,10 @@ function DialogAddMemberApiController($scope, $mdDialog, api, apiMembers, ApiSer
           return _.findIndex($scope.apiMembers,
                               function(apiMember:any) { return apiMember.username === member.id;}) === -1;
         });
-				return filterMembers;
+        return _.map(filterMembers, function(member: any) {
+          member.picture = Constants.baseURL + 'users/' + member.id + '/picture';
+          return member;
+        });
 			});
 		}
 	};
