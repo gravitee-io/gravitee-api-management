@@ -58,7 +58,7 @@ public class FailoverInvoker extends DefaultInvoker implements InitializingBean 
 
     @Override
     public Request invoke(ExecutionContext executionContext, Request serverRequest, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
-        final Request failoverServerRequest= new FailoverRequest(serverRequest);
+        final Request failoverServerRequest = new FailoverRequest(serverRequest);
 
         circuitBreaker.execute(new io.vertx.core.Handler<Future<ProxyConnection>>() {
             @Override
