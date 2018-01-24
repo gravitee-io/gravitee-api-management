@@ -62,7 +62,7 @@ class FailoverRequest implements Request {
     public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
         this.endHandler = endHandler;
 
-        request.endHandler(endHandler::handle);
+        request.endHandler(endHandler);
         return this;
     }
 

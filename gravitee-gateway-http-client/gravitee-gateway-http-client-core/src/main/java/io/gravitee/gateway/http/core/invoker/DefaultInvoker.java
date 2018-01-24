@@ -133,8 +133,16 @@ public abstract class DefaultInvoker implements Invoker {
 
                 // Plug underlying stream to connection stream
                 ProxyConnection finalProxyConnection = proxyConnection;
+
                 stream
-                        .bodyHandler(finalProxyConnection::write)
+                        .bodyHandler(buffer -> {
+                            finalProxyConnection.write(buffer);
+
+                            if (finalProxyConnection.writeQueueFull()) {
+                                serverRequest.pause();
+                                finalProxyConnection.drainHandler(aVoid -> serverRequest.resume());
+                            }
+                        })
                         .endHandler(aVoid -> finalProxyConnection.end());
             }
         }

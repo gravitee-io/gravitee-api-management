@@ -160,7 +160,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
                     requestPolicyChain.setStreamErrorHandler(result -> {
                         connection.cancel();
-                        // TODO: review this part of the code
                         sendPolicyFailure(result.getPolicyResult(), serverResponse);
                         handler.handle(serverResponse);
                     });
@@ -168,18 +167,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
                 // Plug server request stream to request policy chain stream
                 invokeRequest
-                        .bodyHandler(chunk -> {
-                            ProxyConnection connection = proxyConnection.get();
-                            if(connection.writeQueueFull()) {
-                                serverRequest.pause();
-                                connection.drainHandler(aVoid -> serverRequest.resume());
-                            }
-                            requestPolicyChainResult.getPolicyChain().write(chunk);
-
-                            invokeRequest.metrics().setRequestContentLength(
-                                    invokeRequest.metrics().getRequestContentLength() + chunk.length()
-                            );
-                        })
+                        .bodyHandler(chunk -> requestPolicyChainResult.getPolicyChain().write(chunk))
                         .endHandler(aVoid -> requestPolicyChainResult.getPolicyChain().end());
             }
         });
