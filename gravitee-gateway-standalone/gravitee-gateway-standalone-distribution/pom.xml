@@ -17,7 +17,7 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -26,11 +26,11 @@
         <version>1.13.0-SNAPSHOT</version>
     </parent>
 
-	<artifactId>gravitee-gateway-standalone-distribution</artifactId>
-	<packaging>pom</packaging>
-	<name>Gravitee.io APIM - Gateway - Standalone - Distribution</name>
-	  
- 	<properties>
+    <artifactId>gravitee-gateway-standalone-distribution</artifactId>
+    <packaging>pom</packaging>
+    <name>Gravitee.io APIM - Gateway - Standalone - Distribution</name>
+
+    <properties>
         <!-- Properties used for building RPM & DEB package-->
         <packaging.gravitee.gateway.home.dir>/usr/share/gravitee-gateway</packaging.gravitee.gateway.home.dir>
         <packaging.gravitee.gateway.bin.dir>${packaging.gravitee.gateway.home.dir}/bin</packaging.gravitee.gateway.bin.dir>
@@ -40,15 +40,15 @@
         <packaging.gravitee.gateway.log.dir>/var/log/gravitee-gateway</packaging.gravitee.gateway.log.dir>
         <packaging.gravitee.gateway.pid.dir>/var/run/gravitee-gateway</packaging.gravitee.gateway.pid.dir>
         <packaging.gravitee.gateway.services.dir>/etc/init.d</packaging.gravitee.gateway.services.dir>
-		<packaging.gravitee.gateway.user>gravitee</packaging.gravitee.gateway.user>
+        <packaging.gravitee.gateway.user>gravitee</packaging.gravitee.gateway.user>
         <packaging.gravitee.gateway.group>gravitee</packaging.gravitee.gateway.group>
-	</properties>
+    </properties>
 
-	<modules>
-		<module>zip</module>
-	</modules>
-	
-	    
+    <modules>
+        <module>zip</module>
+    </modules>
+
+
     <dependencies>
         <!-- Gravitee dependencies -->
         <dependency>
@@ -118,11 +118,19 @@
             <scope>runtime</scope>
             <type>zip</type>
         </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway.services</groupId>
+            <artifactId>gravitee-gateway-services-subscriptions-cache</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
     </dependencies>
-    
-	<build>
+
+    <build>
         <finalName>distribution</finalName>
-        
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -179,6 +187,12 @@
                                     <version>${project.version}</version>
                                     <type>zip</type>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>io.gravitee.gateway.services</groupId>
+                                    <artifactId>gravitee-gateway-services-subscriptions-cache</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>zip</type>
+                                </artifactItem>
                             </artifactItems>
                         </configuration>
                     </execution>
@@ -206,39 +220,39 @@
             </plugin>
         </plugins>
     </build>
-    
-    
-	<profiles>
-		<!-- We include automatically RPM module when it's available in common 
-			locations. If your rpmbuild is in another location (but in path), run maven 
-			with rpm profile: mvn deploy -Prpm -->
-		<profile>
-			<id>macos_brew</id>
-			<activation>
-				<file>
-					<!-- Folks having /usr/local/bin/rpmbuild available will be able to 
-						build the rpm module -->
-					<exists>/usr/local/bin/rpmbuild</exists>
-				</file>
-			</activation>
-			<modules>
-				<module>rpm</module>
-			</modules>
-		</profile>
 
-		<profile>
-			<id>rpm</id>
-			<activation>
-				<file>
-					<!-- Folks having /usr/bin/rpmbuild available will be able to build 
-						the rpm module -->
-					<exists>/usr/bin/rpmbuild</exists>
-				</file>
-			</activation>
-			<modules>
-				<module>rpm</module>
-			</modules>
-		</profile>
-	</profiles>
+
+    <profiles>
+        <!-- We include automatically RPM module when it's available in common
+            locations. If your rpmbuild is in another location (but in path), run maven
+            with rpm profile: mvn deploy -Prpm -->
+        <profile>
+            <id>macos_brew</id>
+            <activation>
+                <file>
+                    <!-- Folks having /usr/local/bin/rpmbuild available will be able to
+                        build the rpm module -->
+                    <exists>/usr/local/bin/rpmbuild</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>rpm</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>rpm</id>
+            <activation>
+                <file>
+                    <!-- Folks having /usr/bin/rpmbuild available will be able to build
+                        the rpm module -->
+                    <exists>/usr/bin/rpmbuild</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>rpm</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>
