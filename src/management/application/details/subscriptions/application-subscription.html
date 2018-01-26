@@ -30,14 +30,16 @@
           <td md-cell>{{$ctrl.subscription.created_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
         <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Plan</span></td>
-          <td md-cell><span style="font-weight: bold">{{$ctrl.subscription.plan.name}}</span> ({{$ctrl.subscription.plan.security}})</td>
+          <td md-cell><span style="font-weight: bold">API</span></td>
+          <td md-cell><span style="font-weight: bold">{{$ctrl.subscription.api.name}}</span></td>
 
           <td md-cell><span style="font-weight: bold">Processed at</span></td>
           <td md-cell>{{$ctrl.subscription.processed_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status">
-          <td md-cell colspan="2"></td>
+          <td md-cell><span style="font-weight: bold">Plan</span></td>
+          <td md-cell><span style="font-weight: bold">{{$ctrl.subscription.plan.name}}</span> ({{$ctrl.subscription.plan.security}})</td>
+
           <td md-cell><span style="font-weight: bold">Starting at</span></td>
           <td md-cell>{{$ctrl.subscription.starting_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>

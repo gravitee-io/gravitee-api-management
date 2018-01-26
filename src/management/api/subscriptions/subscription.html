@@ -78,10 +78,6 @@
           Reject
         </md-button>
       </div>
-      <md-button class="md-raised" ui-sref="management.apis.detail.subscriptions.list">
-        <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-        <span style="color: rgba(0, 0, 0, 0.54);">Back to subscriptions</span>
-      </md-button>
     </div>
 
     <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.subscription.status === 'accepted'">
@@ -89,6 +85,10 @@
         <ng-md-icon icon="not_interested" style="fill: white"></ng-md-icon>
         Close
       </md-button>
+
+    </div>
+
+    <div class="md-actions gravitee-api-save-button" layout="row">
       <md-button class="md-raised" ui-sref="management.apis.detail.subscriptions.list">
         <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
         <span style="color: rgba(0, 0, 0, 0.54);">Back to subscriptions</span>
