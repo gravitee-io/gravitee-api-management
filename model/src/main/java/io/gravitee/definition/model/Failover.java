@@ -17,12 +17,13 @@ package io.gravitee.definition.model;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Failover {
 
     public static int DEFAULT_MAX_ATTEMPTS = 1;
-    public static long DEFAULT_RETRY_TIMEOUT = 0;
+    public static long DEFAULT_RETRY_TIMEOUT = 10000L;
     public static FailoverCase [] DEFAULT_FAILOVER_CASES = {FailoverCase.TIMEOUT};
 
     private int maxAttempts = DEFAULT_MAX_ATTEMPTS;
