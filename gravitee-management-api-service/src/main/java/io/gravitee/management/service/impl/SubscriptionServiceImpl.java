@@ -243,7 +243,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 if (portalUrl.endsWith("/")) {
                     portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
                 }
-                subscriptionsUrl = portalUrl + "/#!/management/apis/" + api.getId() + "/settings/subscriptions";
+                subscriptionsUrl = portalUrl + "/#!/management/apis/" + api.getId() + "/subscriptions/" + subscription.getId();
             }
 
             // Send a notification to the primary owner of the API
@@ -392,6 +392,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     previousSubscription,
                     subscription);
 
+            SubscriptionEntity subscriptionEntity = convert(subscription);
+
             if (owner != null && owner.getEmail() != null && !owner.getEmail().isEmpty()) {
                 if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
                     emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
@@ -403,6 +405,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                                     "owner", owner,
                                     "api", api,
                                     "plan", plan,
+                                    "subscription", subscription,
                                     "application", application))
                             .build());
                 } else {
@@ -415,6 +418,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                                     "owner", owner,
                                     "api", api,
                                     "plan", plan,
+                                    "subscription", subscription,
                                     "application", application))
                             .build());
                 }
@@ -425,7 +429,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 apiKeyService.generate(subscription.getId());
             }
 
-            return convert(subscription);
+            return subscriptionEntity;
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to process subscription {} by {}",
                     processSubscription.getId(), validator, ex);

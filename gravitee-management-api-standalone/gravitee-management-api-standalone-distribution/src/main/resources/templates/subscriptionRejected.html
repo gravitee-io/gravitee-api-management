@@ -10,6 +10,10 @@
 					<h3>Hi ${owner.username},</h3>
 			</#if>
 			<p>Your subscription to the API <code>${api.name}</code> with plan <code>${plan.name}</code> has been rejected.</p>
+
+			<#if subscription.reason??>
+			<p>${subscription.reason}</p>
+			</#if>
 		</div>
 	</body>
 </html>
