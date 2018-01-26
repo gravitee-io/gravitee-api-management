@@ -120,6 +120,10 @@ class ApiAdminController {
       'Server','Set-Cookie','Set-Cookie2','TE','Trailer','Transfer-Encoding','Upgrade','User-Agent','Vary','Via',
       'Warning','WWW-Authenticate','X-Forwarded-For','X-Forwarded-Proto','X-Forwarded-Server','X-Forwarded-Host'
     ];
+
+    this.$scope.$on('apiChangeSuccess', (event, args) => {
+      this.api = args.api;
+    });
   }
 
   toggleVisibility() {
