@@ -234,7 +234,7 @@ public class ApiResource extends AbstractResource {
     public Response deployAPI(@PathParam("api") String api) {
         try {
             ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUsername(), EventType.PUBLISH_API);
-            return Response.status(Status.OK).entity(apiEntity).build();
+            return Response.status(Status.OK).tag(Integer.toString(apiEntity.getUpdatedAt().hashCode())).entity(apiEntity).build();
         } catch (Exception e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
         }
