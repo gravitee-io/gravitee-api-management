@@ -41,7 +41,7 @@ class NotificationService {
         if (response === 'ok') {
           vm.$state.go(vm.$state.current, {}, {reload: true});
         }
-      });
+      }).catch(() => {});
     });
   }
 
