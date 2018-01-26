@@ -39,7 +39,8 @@ export class ApisController {
               private Build,
               private resolvedApis,
               private UserService: UserService,
-              private graviteeUser) {
+              private graviteeUser,
+              private $filter) {
     'ngInject';
 
     this.graviteeUser = graviteeUser;
