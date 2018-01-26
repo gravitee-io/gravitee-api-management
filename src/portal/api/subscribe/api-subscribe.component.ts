@@ -79,12 +79,9 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
 
     subscribe(application: any) {
       this.ApplicationService.subscribe(application.id, this.selectedPlan.id).then( (subscription) => {
+        this.subscription = subscription.data;
         this.NotificationService.show('api.subscription.step3.successful', null, {planName: this.selectedPlan.name});
-
-        this.ApiService.getPlanSubscriptions(this.api.id, this.selectedPlan.id).then( () => {
-          this.subscription = subscription.data;
-          this.fetchApiKey(subscription.data.id);
-        });
+        this.fetchApiKey(this.subscription.id);
       });
     }
 
