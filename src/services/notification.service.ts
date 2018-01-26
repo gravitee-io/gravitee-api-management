@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 class NotificationService {
   constructor(private $mdToast: ng.material.IToastService,
               private $translate: any,
@@ -52,7 +51,7 @@ class NotificationService {
             error.data[0].message
             : (error.data.message || error.data)
           : error
-      ), error.status);
+      ), error.status || true);
   }
 }
 
