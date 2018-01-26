@@ -75,6 +75,10 @@ class ApiPropertiesController {
     } else {
       this.$scope.dynamicPropertyEnabled = false;
     }
+
+    this.$scope.$on('apiChangeSuccess', (event, args) => {
+      this.api = args.api;
+    });
   }
 
   hasPropertiesDefined() {
