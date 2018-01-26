@@ -25,6 +25,7 @@ class ApiPoliciesController {
   private httpMethodsFilter: string[];
   private pathsToCompare: any;
   private dndEnabled: boolean;
+  private pathsInitialized: any;
 
   constructor (
     private ApiService,
@@ -39,6 +40,7 @@ class ApiPoliciesController {
     private UserService
   ) {
     'ngInject';
+    this.pathsInitialized = [];
     this.dndEnabled = UserService.isUserHasPermissions(['api-definition-u']);
 
     this.apiPoliciesByPath = {};
@@ -133,24 +135,25 @@ class ApiPoliciesController {
   }
 
   initDragularDropZone(path) {
-    const dragularApiOptions = document.querySelector('.dropzone-' + this.StringService.hashCode(path));
-    if (dragularApiOptions) {
-      this.dragularService([dragularApiOptions], {
-        moves: function () {
-          return true;
-        },
-        copy: false,
-        scope: this.$scope,
-        containersModel: this.apiPoliciesByPath[path],
-        classes: {
-          unselectable: 'gravitee-policy-draggable-selected'
-        },
-        nameSpace: 'policies',
-        accepts: this.acceptDragDrop
-      });
-      return true;
+    if (!this.pathsInitialized[path]) {
+      const dragularApiOptions = document.querySelector('.dropzone-' + this.StringService.hashCode(path));
+      if (dragularApiOptions) {
+        this.dragularService([dragularApiOptions], {
+          moves: function () {
+            return true;
+          },
+          copy: false,
+          scope: this.$scope,
+          containersModel: this.apiPoliciesByPath[path],
+          classes: {
+            unselectable: 'gravitee-policy-draggable-selected'
+          },
+          nameSpace: 'policies',
+          accepts: this.acceptDragDrop
+        });
+        this.pathsInitialized[path] = true;
+      }
     }
-    return false;
   }
 
   listAllPoliciesWithSchema() {

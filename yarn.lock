@@ -245,7 +245,7 @@ angular-permission@^5.3.2:
   dependencies:
     angular ">=1.4.8"
 
-"angular-sanitize@>= 1.2", angular-sanitize@^1.3.2, angular-sanitize@^1.5.11:
+"angular-sanitize@>= 1.2", "angular-sanitize@>=1.5.0 <2", angular-sanitize@^1.3.2, angular-sanitize@^1.5.11:
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/angular-sanitize/-/angular-sanitize-1.6.4.tgz#60a37ea96fb0d4a322a3ccb64ee4a5cf3b154f0c"
 
@@ -261,6 +261,13 @@ angular-schema-form@^0.8.13:
 angular-scroll@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/angular-scroll/-/angular-scroll-1.0.2.tgz#2768ff35dbe1ce40e0c3fbedd4534888299c3e2d"
+
+angular-swagger-ui@^0.5.4:
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/angular-swagger-ui/-/angular-swagger-ui-0.5.4.tgz#54acd9d329bfc9602da58bc82dcc9c1fdf13e959"
+  dependencies:
+    angular ">=1.5.0 <2"
+    angular-sanitize ">=1.5.0 <2"
 
 angular-timeline@^1.7.0:
   version "1.7.0"
@@ -298,9 +305,13 @@ angular-utf8-base64@0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/angular-utf8-base64/-/angular-utf8-base64-0.0.5.tgz#95158d6809dbae1eb9fa03af45d67187b0788cf6"
 
-"angular@>= 1.2", angular@>=1.2.0, "angular@>=1.2.26 <=1.6", angular@>=1.3.0, angular@>=1.4.8, angular@^1.0.1, angular@^1.3.15, angular@^1.3.2, angular@^1.4.0, angular@^1.4.8, angular@^1.5.0:
+"angular@>= 1.2", "angular@>=1.2.26 <=1.6", angular@>=1.3.0, angular@>=1.4.8, "angular@>=1.5.0 <2", angular@^1.0.1, angular@^1.3.15, angular@^1.3.2, angular@^1.4.8, angular@^1.5.0:
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.4.tgz#03b7b15c01a0802d7e2cf593240e604054dc77fb"
+
+angular@^1.6.5:
+  version "1.6.8"
+  resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.8.tgz#5be378a58be91a5489e78b59c4518cd9fd273ffb"
 
 angulartics-google-analytics@^0.4.0:
   version "0.4.0"
@@ -2235,11 +2246,11 @@ download@^4.0.0, download@^4.1.2:
     vinyl-fs "^2.2.0"
     ware "^1.2.0"
 
-dragular@^4.3.0:
-  version "4.4.3"
-  resolved "https://registry.yarnpkg.com/dragular/-/dragular-4.4.3.tgz#563328531e1ca331dba0bed14c1036cde2578cd6"
+dragular@^4.4.6:
+  version "4.4.6"
+  resolved "https://registry.yarnpkg.com/dragular/-/dragular-4.4.6.tgz#e45d4f9baa596ba35bed3d3e3dd294546676b413"
   dependencies:
-    angular "^1.4.0"
+    angular "^1.6.5"
 
 duplexer2@0.0.2, duplexer2@~0.0.2:
   version "0.0.2"
@@ -6028,11 +6039,10 @@ ng-showdown@^1.1.0:
     angular-sanitize "^1.3.2"
     showdown "1.x"
 
-ngclipboard@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/ngclipboard/-/ngclipboard-1.1.1.tgz#5b2c59553db62c726ccb4d41f804cfdb06d6bba0"
+ngclipboard@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/ngclipboard/-/ngclipboard-1.1.2.tgz#459f01f3ee1e8ac401599aaea37b9775087d596d"
   dependencies:
-    angular ">=1.2.0"
     clipboard "~1.5.5"
 
 no-case@^2.2.0:
