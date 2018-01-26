@@ -21,7 +21,6 @@ import io.gravitee.management.idp.core.plugin.IdentityProviderManager;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.security.filter.AuthenticationSuccessFilter;
-import io.gravitee.management.security.filter.CORSFilter;
 import io.gravitee.management.security.filter.JWTAuthenticationFilter;
 import io.gravitee.management.security.listener.AuthenticationSuccessListener;
 import io.gravitee.management.service.MembershipService;
@@ -39,16 +38,18 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.servlet.Filter;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+import static java.util.Arrays.asList;
 
 
 /**
@@ -123,14 +124,26 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         return new AuthenticationSuccessListener();
     }
 
-    /*
-     * TODO : fix filter order between Jersey Filter (CORSResponseFilter) and
-     * Spring Security Filter TODO : remove this filter or CORSResponseFilter
-     * when the problem will be solved
-     */
     @Bean
-    public Filter corsFilter() {
-        return new CORSFilter();
+    public CorsConfigurationSource corsConfigurationSource() {
+        final CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.setAllowedOrigins(getPropertiesAsList("http.cors.allow-origin", ""));
+        config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "X-Requested-With"));
+        config.setAllowedMethods(getPropertiesAsList("http.cors.allow-methods", "OPTIONS, GET, POST, PUT, DELETE"));
+        config.setMaxAge(environment.getProperty("http.cors.max-age", Long.class, 1728000L));
+
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    private List<String> getPropertiesAsList(final String propertyKey, final String defaultValue) {
+        String property = environment.getProperty(propertyKey);
+        if (property == null) {
+            property = defaultValue;
+        }
+        return asList(property.replaceAll("\\s+","").split(","));
     }
 
     @Override
@@ -210,10 +223,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
             .and()
                 .csrf()
                     .disable()
-            .addFilterAfter(corsFilter(), AbstractPreAuthenticatedProcessingFilter.class)
-            .addFilterBefore(new JWTAuthenticationFilter(jwtCookieGenerator, jwtSecret), BasicAuthenticationFilter.class)
-            .addFilterAfter(new AuthenticationSuccessFilter(jwtCookieGenerator, jwtSecret, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER),
-                            environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER), membershipService),
-                    BasicAuthenticationFilter.class);
+                .cors()
+            .and()
+                .addFilterBefore(new JWTAuthenticationFilter(jwtCookieGenerator, jwtSecret), BasicAuthenticationFilter.class)
+                .addFilterAfter(new AuthenticationSuccessFilter(jwtCookieGenerator, jwtSecret, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER),
+                                environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER), membershipService),
+                        BasicAuthenticationFilter.class);
     }
 }

@@ -84,7 +84,6 @@ public class GraviteeApplication extends ResourceConfig {
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
-        register(CorsResponseFilter.class);
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);

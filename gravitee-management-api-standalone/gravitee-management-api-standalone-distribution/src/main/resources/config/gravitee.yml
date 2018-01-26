@@ -30,6 +30,18 @@
 #    enabled: true
 #    path: ${gravitee.home}/logs/gravitee_accesslog_yyyy_mm_dd.log
 
+http:
+  cors:
+    # Allows to configure the header Access-Control-Allow-Origin (default value: no origins allowed)
+    # '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
+    allow-origin: ${GRAVITEEIO_CORS_ALLOW_ORIGIN:''}
+    # Allows to define how long the result of the preflight request should be cached for (default value; 1728000 [20 days])
+    #max-age: 864000
+    # Which methods to allow (default value: OPTIONS, GET, POST, PUT, DELETE)
+    #allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
+    # Which headers to allow (default value: X-Requested-With)
+    #allow-headers: 'X-Requested-With'
+
 # Plugins repository
 #plugins:
 #  path:
@@ -278,5 +290,5 @@ user:
   #enabled: true
 
 # Allows to rate an API (default value: false)
-#rating :
+#rating:
   #enabled: true
