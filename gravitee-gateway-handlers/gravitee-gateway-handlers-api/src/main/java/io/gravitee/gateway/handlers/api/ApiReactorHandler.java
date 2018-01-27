@@ -29,9 +29,12 @@ import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.expression.TemplateContext;
+import io.gravitee.gateway.api.expression.TemplateVariableProvider;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
+import io.gravitee.gateway.handlers.api.context.ExecutionContextFactory;
 import io.gravitee.gateway.handlers.api.cors.CorsHandler;
 import io.gravitee.gateway.handlers.api.cors.CorsResponseHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -65,7 +68,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiReactorHandler extends AbstractReactorHandler implements InitializingBean {
+public class ApiReactorHandler extends AbstractReactorHandler implements TemplateVariableProvider,  InitializingBean {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -89,25 +92,26 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     private PolicyChainResolver apiPolicyResolver;
 
     @Autowired
-    private EndpointLifecycleManager endpointLifecycleManager;
+    private ExecutionContextFactory executionContextFactory;
 
     @Override
-    protected void doHandle(Request serverRequest, Response serverResponse, Handler<Response> handler,
-                            ExecutionContext executionContext) {
-        try {
-            // Enable logging at client level
-            if (api.getProxy().getLoggingMode().isClientMode()) {
-                serverRequest = new LoggableClientRequest(serverRequest);
-                serverResponse = new LoggableClientResponse(serverRequest, serverResponse);
-            }
+    protected void doHandle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
+        // Prepare request execution context
+        ExecutionContext executionContext = executionContextFactory.create(serverRequest);
+        executionContext.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, serverRequest.contextPath());
 
+        try {
             // Set execution context attributes and metrics specific to this handler
             serverRequest.metrics().setApi(api.getId());
 
             executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
             executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
-            executionContext.getTemplateEngine().getTemplateContext().setVariable("properties", api.properties());
-            executionContext.getTemplateEngine().getTemplateContext().setVariable("endpoints", endpointLifecycleManager.targetByEndpoint());
+
+            // Enable logging at client level
+            if (api.getProxy().getLoggingMode().isClientMode()) {
+                serverRequest = new LoggableClientRequest(serverRequest);
+                serverResponse = new LoggableClientResponse(serverRequest, serverResponse);
+            }
 
             Cors cors = api.getProxy().getCors();
             if (cors != null && cors.isEnabled()) {
@@ -260,6 +264,11 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         response.end();
     }
 
+    @Override
+    public void provide(TemplateContext templateContext) {
+        templateContext.setVariable("properties", api.properties());
+    }
+
     private class PolicyResultAsJson {
 
         @JsonProperty
@@ -322,7 +331,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         // Start resources before
         applicationContext.getBean(ResourceLifecycleManager.class).start();
         applicationContext.getBean(PolicyManager.class).start();
-        endpointLifecycleManager.start();
+        applicationContext.getBean(EndpointLifecycleManager.class).start();
 
         long endTime = System.currentTimeMillis(); // Get the end Time
         logger.info("API handler started in {} ms and now ready to accept requests on {}/*",
@@ -335,7 +344,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
         applicationContext.getBean(PolicyManager.class).stop();
         applicationContext.getBean(ResourceLifecycleManager.class).stop();
-        endpointLifecycleManager.stop();
+        applicationContext.getBean(EndpointLifecycleManager.class).stop();
 
         super.doStop();
         logger.info("API handler is now stopped", api);

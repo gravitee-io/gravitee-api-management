@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler.el;
-
-import io.gravitee.gateway.reactor.handler.ExecutionContextImpl;
+package io.gravitee.gateway.handlers.api.context;
 
 import java.util.Map;
 
@@ -25,9 +23,9 @@ import java.util.Map;
  */
 public class EvaluableExecutionContext {
 
-    private final ExecutionContextImpl executionContext;
+    private final RequestExecutionContext executionContext;
 
-    public EvaluableExecutionContext(ExecutionContextImpl executionContext) {
+    EvaluableExecutionContext(RequestExecutionContext executionContext) {
         this.executionContext = executionContext;
     }
 

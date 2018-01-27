@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.reactor.handler.transaction;
 
-import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
@@ -49,7 +48,7 @@ public class TransactionHandler implements Handler<Request> {
     public void handle(Request request) {
         String transactionId = request.headers().getFirst(transactionHeader);
         if (transactionId == null) {
-            transactionId = UUID.toString(UUID.random());
+            transactionId = request.id();
             request.headers().set(transactionHeader, transactionId);
         }
         response.headers().set(transactionHeader,transactionId);

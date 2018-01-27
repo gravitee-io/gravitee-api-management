@@ -101,7 +101,8 @@ public class FailoverInvoker extends DefaultInvoker implements InitializingBean 
                 new CircuitBreakerOptions()
                         .setMaxRetries(failover.getMaxAttempts()) // number of failure before opening the circuit
                         .setTimeout(failover.getRetryTimeout()) // consider a failure if the operation does not succeed in time
-                        .setResetTimeout(10000L)); // time spent in open state before attempting to re-try
+                        .setResetTimeout(10000L) // time spent in open state before attempting to re-try
+                        .setNotificationAddress(null));
     }
 
     private class FailoverConnection implements ProxyConnection {

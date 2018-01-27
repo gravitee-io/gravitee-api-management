@@ -1,2 +1,5 @@
 io.gravitee.gateway.reactor.handler.ReactorHandlerFactory=\
     io.gravitee.gateway.handlers.api.ApiContextHandlerFactory
+
+io.gravitee.gateway.api.expression.TemplateVariableProvider=\
+    io.gravitee.gateway.reactor.handler.ReactorHandler

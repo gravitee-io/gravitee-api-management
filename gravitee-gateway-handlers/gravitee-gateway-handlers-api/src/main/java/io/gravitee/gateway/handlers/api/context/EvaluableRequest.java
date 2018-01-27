@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler.el;
+package io.gravitee.gateway.handlers.api.context;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.util.MultiValueMap;
@@ -27,7 +27,7 @@ public class EvaluableRequest {
 
     private final Request request;
 
-    public EvaluableRequest(Request request) {
+    EvaluableRequest(Request request) {
         this.request = request;
     }
 

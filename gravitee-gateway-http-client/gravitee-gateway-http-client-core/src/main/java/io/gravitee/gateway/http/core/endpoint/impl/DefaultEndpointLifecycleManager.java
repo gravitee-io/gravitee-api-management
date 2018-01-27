@@ -23,6 +23,8 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.EndpointType;
 import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.endpoint.Endpoint;
+import io.gravitee.gateway.api.expression.TemplateContext;
+import io.gravitee.gateway.api.expression.TemplateVariableProvider;
 import io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager;
 import io.gravitee.gateway.http.core.endpoint.HttpEndpoint;
 import org.slf4j.Logger;
@@ -39,7 +41,8 @@ import java.util.function.Predicate;
  * @author GraviteeSource Team
  */
 public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<EndpointLifecycleManager> implements
-        EndpointLifecycleManager, ChangeListener<io.gravitee.definition.model.Endpoint>, ApplicationContextAware {
+        EndpointLifecycleManager, ChangeListener<io.gravitee.definition.model.Endpoint>, TemplateVariableProvider,
+        ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultEndpointLifecycleManager.class);
 
@@ -91,11 +94,6 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
     @Override
     public Collection<Endpoint> endpoints() {
         return endpoints;
-    }
-
-    @Override
-    public Map<String, String> targetByEndpoint() {
-        return Collections.unmodifiableMap(endpointsTarget);
     }
 
     public void start(io.gravitee.definition.model.Endpoint endpoint) {
@@ -159,5 +157,10 @@ public class DefaultEndpointLifecycleManager extends AbstractLifecycleComponent<
     public boolean postRemove(io.gravitee.definition.model.Endpoint endpoint) {
         stop(endpoint.getName());
         return false;
+    }
+
+    @Override
+    public void provide(TemplateContext templateContext) {
+        templateContext.setVariable("endpoints", Collections.unmodifiableMap(endpointsTarget));
     }
 }

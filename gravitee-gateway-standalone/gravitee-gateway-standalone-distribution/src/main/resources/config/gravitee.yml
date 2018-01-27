@@ -106,7 +106,7 @@ cache:
 reporters:
   # Reporting system configuration
   system:
-    buffersize: 4096 # Must be a power of 2
+    buffersize: 65536 # Must be a power of 2
 
   # Elasticsearch reporter
   elasticsearch:
