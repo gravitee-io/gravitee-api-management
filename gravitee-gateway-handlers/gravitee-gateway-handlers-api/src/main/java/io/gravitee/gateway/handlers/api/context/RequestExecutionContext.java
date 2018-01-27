@@ -13,31 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler;
+package io.gravitee.gateway.handlers.api.context;
 
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.expression.TemplateContext;
 import io.gravitee.gateway.api.expression.TemplateEngine;
+import io.gravitee.gateway.api.expression.TemplateVariableProvider;
 import io.gravitee.gateway.el.SpelTemplateEngine;
 import org.springframework.context.ApplicationContext;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ExecutionContextImpl implements ExecutionContext {
+public class RequestExecutionContext implements ExecutionContext {
 
     private final Map<String, Object> attributes = new AttributeMap();
 
+    private final Request request;
+
     private final ApplicationContext applicationContext;
 
-    private final SpelTemplateEngine spelTemplateEngine = new SpelTemplateEngine();
+    private Collection<TemplateVariableProvider> providers;
 
-    public ExecutionContextImpl(ApplicationContext applicationContext) {
+    private SpelTemplateEngine spelTemplateEngine;
+
+    RequestExecutionContext(Request request, ApplicationContext applicationContext) {
+        this.request = request;
         this.applicationContext = applicationContext;
     }
 
@@ -68,11 +73,27 @@ public class ExecutionContextImpl implements ExecutionContext {
 
     @Override
     public TemplateEngine getTemplateEngine() {
+        if (spelTemplateEngine == null) {
+            spelTemplateEngine = new SpelTemplateEngine();
+
+            TemplateContext templateContext = spelTemplateEngine.getTemplateContext();
+            templateContext.setVariable("request", new EvaluableRequest(request));
+            templateContext.setVariable("context", new EvaluableExecutionContext(this));
+
+            if (providers != null) {
+                providers.forEach(templateVariableProvider -> templateVariableProvider.provide(templateContext));
+            }
+        }
+
         return spelTemplateEngine;
     }
 
     public Map<String, Object> getAttributes() {
         return this.attributes;
+    }
+
+    void setProviders(Collection<TemplateVariableProvider> providers) {
+        this.providers = providers;
     }
 
     private class AttributeMap extends HashMap<String, Object> {

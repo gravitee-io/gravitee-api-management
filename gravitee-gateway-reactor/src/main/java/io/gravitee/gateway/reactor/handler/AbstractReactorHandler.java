@@ -16,13 +16,9 @@
 package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.expression.TemplateContext;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.reactor.handler.el.EvaluableExecutionContext;
-import io.gravitee.gateway.reactor.handler.el.EvaluableRequest;
 import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -76,17 +72,8 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
         // Wrap the actual request to contextualize it
         request = new ContextualizedHttpServerRequest(reactable().contextPath(), request);
 
-        // Prepare execution context
-        ExecutionContextImpl executionContext = new ExecutionContextImpl(applicationContext);
-        TemplateContext templateContext = executionContext.getTemplateEngine().getTemplateContext();
-        templateContext.setVariable("request", new EvaluableRequest(request));
-        templateContext.setVariable("context", new EvaluableExecutionContext(executionContext));
-
-        executionContext.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, request.contextPath());
-
-        doHandle(request, response, handler, executionContext);
+        doHandle(request, response, handler);
     }
 
-    protected abstract void doHandle(Request request, Response response, Handler<Response> handler,
-                                     ExecutionContext executionContext);
+    protected abstract void doHandle(Request request, Response response, Handler<Response> handler);
 }

@@ -102,7 +102,6 @@ class VertxHttpServerResponse implements Response {
     }
 
     private void writeHeaders() {
-        headers.entrySet().forEach(
-                headerEntry -> httpServerResponse.putHeader(headerEntry.getKey(), headerEntry.getValue()));
+        headers.forEach(httpServerResponse::putHeader);
     }
 }

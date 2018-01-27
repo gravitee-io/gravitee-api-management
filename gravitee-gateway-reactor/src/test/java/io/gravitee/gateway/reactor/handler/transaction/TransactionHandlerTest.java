@@ -57,6 +57,8 @@ public class TransactionHandlerTest {
     public void shouldHaveTransactionId() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
 
+        when(request.id()).thenReturn(UUID.toString(UUID.random()));
+
         new TransactionHandler(request1 -> {
             assertNotNull(request1.transactionId());
             assertEquals(request1.transactionId(), request1.headers().getFirst(TransactionHandler.DEFAULT_TRANSACTIONAL_ID_HEADER));
@@ -90,6 +92,8 @@ public class TransactionHandlerTest {
     @Test
     public void shouldHaveTransactionIdWithCustomHeader() throws InterruptedException {
         final CountDownLatch lock = new CountDownLatch(1);
+
+        when(request.id()).thenReturn(UUID.toString(UUID.random()));
 
         new TransactionHandler(CUSTOM_TRANSACTION_ID_HEADER, request1 -> {
             assertNotNull(request1.transactionId());

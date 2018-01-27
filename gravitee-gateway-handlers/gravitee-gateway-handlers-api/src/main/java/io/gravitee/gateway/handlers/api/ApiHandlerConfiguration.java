@@ -16,6 +16,8 @@
 package io.gravitee.gateway.handlers.api;
 
 import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.handlers.api.context.ExecutionContextFactory;
+import io.gravitee.gateway.handlers.api.context.TemplateVariableProviderFactory;
 import io.gravitee.gateway.handlers.api.http.client.spring.HttpClientConfiguration;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.gravitee.gateway.handlers.api.path.impl.ApiPathResolverImpl;
@@ -94,5 +96,15 @@ public class ApiHandlerConfiguration {
     @Bean
     public AuthenticationHandlerEnhancer securityProviderFilter() {
         return new PlanBasedAuthenticationHandlerEnhancer();
+    }
+
+    @Bean
+    public ExecutionContextFactory executionContextFactory() {
+        return new ExecutionContextFactory();
+    }
+
+    @Bean
+    public TemplateVariableProviderFactory templateVariableProviderFactory() {
+        return new TemplateVariableProviderFactory();
     }
 }

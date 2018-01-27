@@ -24,9 +24,6 @@ import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.vertx.core.http.HttpClientRequest;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -117,30 +114,22 @@ class VertxProxyConnection implements ProxyConnection {
     }
 
     private void writeHeaders() {
+        HttpHeaders headers = proxyRequest.headers();
+
         // Copy headers to upstream
-        copyRequestHeaders(proxyRequest.headers(), httpClientRequest);
+        headers.forEach(httpClientRequest::putHeader);
 
         // Check chunk flag on the request if there are some content to push and if transfer_encoding is set
         // with chunk value
-        if (hasContent(proxyRequest.headers())) {
-            String contentLengthHeader = proxyRequest.headers().getFirst(HttpHeaders.CONTENT_LENGTH);
-            if (contentLengthHeader == null) {
+        long contentLength = headers.contentLength();
+        if (contentLength > 0 || headers.contentType() != null) {
+            if (contentLength == -1) {
                 // No content-length... so let's go for chunked transfer-encoding
                 httpClientRequest.setChunked(true);
             }
         }
 
         headersWritten = true;
-    }
-
-    private boolean hasContent(HttpHeaders headers) {
-        return headers.contentLength() > 0 || headers.contentType() != null;
-    }
-
-    private void copyRequestHeaders(HttpHeaders headers, HttpClientRequest httpClientRequest) {
-        for (Map.Entry<String, List<String>> headerValues : headers.entrySet()) {
-            httpClientRequest.putHeader(headerValues.getKey(), headerValues.getValue());
-        }
     }
 
     @Override

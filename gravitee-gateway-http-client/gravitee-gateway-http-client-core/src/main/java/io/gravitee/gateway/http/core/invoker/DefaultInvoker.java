@@ -223,9 +223,9 @@ public abstract class DefaultInvoker implements Invoker {
     }
 
     private URI encodeQueryParameters(Request request, String endpointUri) throws MalformedURLException, URISyntaxException {
-        QueryStringEncoder encoder = new QueryStringEncoder(endpointUri);
-
         if (request.parameters() != null && !request.parameters().isEmpty()) {
+            QueryStringEncoder encoder = new QueryStringEncoder(endpointUri);
+
             for (Map.Entry<String, List<String>> queryParam : request.parameters().entrySet()) {
                 if (queryParam.getValue() != null) {
                     for (String value : queryParam.getValue()) {
@@ -233,9 +233,11 @@ public abstract class DefaultInvoker implements Invoker {
                     }
                 }
             }
+
+            return encoder.toUri();
         }
 
-        return encoder.toUri();
+        return URI.create(endpointUri);
     }
 
     private HttpMethod extractHttpMethod(ExecutionContext executionContext, Request request) {

@@ -23,8 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Optional;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -44,12 +42,18 @@ public class DefaultReactorHandlerResolver implements ReactorHandlerResolver {
             path.append('/');
         }
 
-        Optional<ReactorHandler> handlers = handlerRegistry.getReactorHandlers().stream().filter(
-                handler -> path.toString().startsWith(handler.contextPath())).findFirst();
+        String sPath = path.toString();
 
-        if (handlers.isPresent()) {
-            ReactorHandler handler = handlers.get();
-            LOGGER.debug("Returning the first handler matching path {} : {}", path, handler);
+        ReactorHandler handler = null;
+        for (ReactorHandler reactorHandler : handlerRegistry.getReactorHandlers()) {
+            if (sPath.startsWith(reactorHandler.contextPath())) {
+                handler = reactorHandler;
+                break;
+            }
+        }
+
+        if (handler != null) {
+            LOGGER.debug("Returning the first handler matching path {} : {}", sPath, handler);
             return handler;
         }
 

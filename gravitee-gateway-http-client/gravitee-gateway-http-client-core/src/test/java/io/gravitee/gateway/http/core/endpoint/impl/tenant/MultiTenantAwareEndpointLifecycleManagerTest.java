@@ -86,7 +86,6 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
         verify(applicationContext, never()).getBean(eq(Connector.class), any(Endpoint.class));
 
-        assertTrue(endpointLifecycleManager.targetByEndpoint().isEmpty());
         assertTrue(endpointLifecycleManager.endpoints().isEmpty());
     }
 
@@ -102,7 +101,6 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
         verify(applicationContext, never()).getBean(eq(Connector.class), any(Endpoint.class));
 
-        assertTrue(endpointLifecycleManager.targetByEndpoint().isEmpty());
         assertTrue(endpointLifecycleManager.endpoints().isEmpty());
     }
 
@@ -130,8 +128,6 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
 
         assertEquals(httpClientEndpoint, endpointLifecycleManager.get("endpoint"));
         assertNull(endpointLifecycleManager.get("unknown"));
-
-        assertFalse(endpointLifecycleManager.targetByEndpoint().isEmpty());
         assertFalse(endpointLifecycleManager.endpoints().isEmpty());
     }
 }
