@@ -387,6 +387,7 @@ class ApiPoliciesController {
     }).then(function (response) {
       if (response) {
         delete that.apiPoliciesByPath[path];
+        that.pathsInitialized[path] = false;
         that.savePaths();
       }
     });
