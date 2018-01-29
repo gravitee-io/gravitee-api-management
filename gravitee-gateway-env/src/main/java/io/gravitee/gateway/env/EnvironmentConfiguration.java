@@ -50,8 +50,12 @@ public class EnvironmentConfiguration {
     }
 
     @Bean
-    public static GatewayConfiguration gatewayConfiguration(@Qualifier("graviteeProperties") Properties graviteeProperties,
-                                                            Environment environment) {
+    public static EnvironmentBeanFactoryPostProcessor environmentBeanFactoryPostProcessor() {
+        return new EnvironmentBeanFactoryPostProcessor();
+    }
+
+    @Bean
+    public static GatewayConfiguration gatewayConfiguration() {
         return new GatewayConfiguration();
     }
 }
