@@ -52,7 +52,7 @@
           <md-input-container class="md-block" flex-gt-sm flex="20">
             <label>HTTP Status</label>
             <md-select ng-model="$ctrl.filters.status" placeholder="HTTP Status" multiple>
-              <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.httpStatus">{{ value }}</md-option>
+              <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.httpStatus">{{key}} - {{ value }}</md-option>
             </md-select>
           </md-input-container>
           <md-input-container class="md-block" flex-gt-sm flex="20">
