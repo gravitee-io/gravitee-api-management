@@ -45,6 +45,12 @@
             <version>${vertx.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>

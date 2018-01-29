@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.http.core.invoker;
 
+import com.google.common.net.UrlEscapers;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
@@ -51,14 +52,13 @@ public abstract class DefaultInvoker implements Invoker {
 
     // Pattern reuse for duplicate slash removal
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
+    private static final String URI_PATH_SEPARATOR = "/";
 
     private static final String HTTPS_SCHEME = "https";
     private static final int DEFAULT_HTTP_PORT = 80;
     private static final int DEFAULT_HTTPS_PORT = 443;
 
     private static final Set<String> HOP_HEADERS;
-
-    private final static String TARGET_URI_ATTRIBUTE = ExecutionContext.ATTR_PREFIX + "target.uri";
 
     static {
         Set<String> hopHeaders = new HashSet<>();
@@ -85,20 +85,19 @@ public abstract class DefaultInvoker implements Invoker {
 
     @Override
     public Request invoke(ExecutionContext executionContext, Request serverRequest, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
-        Endpoint endpoint = selectEndpoint(serverRequest, executionContext);
-        String targetUri = (String) executionContext.getAttribute(TARGET_URI_ATTRIBUTE);
+        TargetEndpoint targetEndpoint = selectEndpoint(serverRequest, executionContext);
 
-        if (targetUri == null || endpoint == null || ! endpoint.available()) {
+        if (!targetEndpoint.isReachable()) {
             DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
             connectionHandler.handle(statusOnlyConnection);
             statusOnlyConnection.sendResponse();
         } else {
             // Remove duplicate slash
-            targetUri = DUPLICATE_SLASH_REMOVER.matcher(targetUri).replaceAll("/");
+            String uri = DUPLICATE_SLASH_REMOVER.matcher(targetEndpoint.uri).replaceAll(URI_PATH_SEPARATOR);
 
             URI requestUri = null;
             try {
-                requestUri = encodeQueryParameters(serverRequest, targetUri);
+                requestUri = encodeQueryParameters(serverRequest, uri);
             } catch (Exception ex) {
                 serverRequest.metrics().setMessage(getStackTraceAsString(ex));
 
@@ -109,7 +108,7 @@ public abstract class DefaultInvoker implements Invoker {
             }
 
             if (requestUri != null) {
-                String uri = requestUri.toString();
+                uri = requestUri.toString();
 
                 // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the request
                 serverRequest.metrics().setEndpoint(uri);
@@ -119,10 +118,10 @@ public abstract class DefaultInvoker implements Invoker {
                 ProxyRequest proxyRequest = ProxyRequestBuilder.from(serverRequest)
                         .uri(requestUri)
                         .method(httpMethod)
-                        .headers(setProxyHeaders(serverRequest.headers(), requestUri, endpoint))
+                        .headers(setProxyHeaders(serverRequest.headers(), requestUri, targetEndpoint.endpoint))
                         .build();
 
-                ProxyConnection proxyConnection = endpoint.connector().request(proxyRequest);
+                ProxyConnection proxyConnection = targetEndpoint.endpoint.connector().request(proxyRequest);
 
                 // Enable logging at proxy level
                 if (api.getProxy().getLoggingMode().isProxyMode()) {
@@ -166,37 +165,55 @@ public abstract class DefaultInvoker implements Invoker {
                     requestUri.getHost() : requestUri.getHost() + ':' + port;
         headers.set(HttpHeaders.HOST, host);
 
-        // Override with default headers from endpoint
-        endpoint.headers().forEach(headers::put);
+        // Override with default headers defined for endpoint
+        if (!endpoint.headers().isEmpty()) {
+            endpoint.headers().forEach(headers::put);
+        }
 
         return headers;
     }
 
-    private Endpoint selectEndpoint(Request serverRequest, ExecutionContext executionContext) {
+    private TargetEndpoint selectEndpoint(Request serverRequest, ExecutionContext executionContext) {
         // Get target if overridden by a policy
         String targetUri = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
 
-        // If not defined, use the one provided by the underlying load-balancer
-        if (targetUri != null) {
-            // Select a matching endpoint according to the URL
-            // If none, select the first (non-backup) from the endpoint list.
-            executionContext.setAttribute(TARGET_URI_ATTRIBUTE, targetUri);
+        return (targetUri != null)
+                ? selectUserDefinedEndpoint(targetUri)
+                : selectLoadBalancedEndpoint(serverRequest, executionContext);
+    }
 
-            return endpointManager.endpoints()
-                    .stream()
-                    .filter(endpointEntry -> targetUri.startsWith(endpointEntry.target()))
-                    .findFirst()
-                    .orElse(endpointManager.endpoints().iterator().next());
-        } else {
-            Endpoint endpoint = nextEndpoint(serverRequest, executionContext);
+    /**
+     * Select an endpoint according to the underlying load_balancing system.
+     */
+    private TargetEndpoint selectLoadBalancedEndpoint(Request serverRequest, ExecutionContext executionContext) {
+        Endpoint endpoint = nextEndpoint(serverRequest, executionContext);
 
-            String endpointTarget = (endpoint != null) ? rewriteURI(serverRequest, endpoint.target()) : null;
+        return new TargetEndpoint(
+                endpoint,
+                (endpoint != null) ? rewriteURI(serverRequest, endpoint.target()) : null);
+    }
 
-            // Set the final target URI invoked
-            executionContext.setAttribute(TARGET_URI_ATTRIBUTE, endpointTarget);
+    /**
+     * Select an endpoint according to the URI passed in the execution request attribute.
+     */
+    private TargetEndpoint selectUserDefinedEndpoint(String target) {
+        // Path segments must be encoded to avoid bad URI syntax
+        String [] segments = target.split(URI_PATH_SEPARATOR);
+        StringBuilder builder = new StringBuilder();
 
-            return endpoint;
+        for(String pathSeg : segments) {
+            builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
         }
+
+        String encodedTarget = builder.substring(0, builder.length() - 1);
+
+        Endpoint endpoint = endpointManager.endpoints()
+                .stream()
+                .filter(endpointEntry -> encodedTarget.startsWith(endpointEntry.target()))
+                .findFirst()
+                .orElse(endpointManager.endpoints().iterator().next());
+
+        return new TargetEndpoint(endpoint, encodedTarget);
     }
 
     public abstract Endpoint nextEndpoint(Request serverRequest, ExecutionContext executionContext);
@@ -231,5 +248,19 @@ public abstract class DefaultInvoker implements Invoker {
         StringWriter stringWriter = new StringWriter();
         throwable.printStackTrace(new PrintWriter(stringWriter));
         return stringWriter.toString();
+    }
+
+    private final class TargetEndpoint {
+        private final String uri;
+        private final Endpoint endpoint;
+
+        TargetEndpoint(final Endpoint endpoint, final String uri) {
+            this.endpoint = endpoint;
+            this.uri = uri;
+        }
+
+        boolean isReachable() {
+            return this.uri != null && this.endpoint != null && this.endpoint.available();
+        }
     }
 }
