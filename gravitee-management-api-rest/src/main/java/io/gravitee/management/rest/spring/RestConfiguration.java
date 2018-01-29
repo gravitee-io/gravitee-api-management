@@ -30,8 +30,8 @@ import org.springframework.core.env.Environment;
 import java.util.Properties;
 
 /**
- *
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Configuration
 @ComponentScan({"io.gravitee.management.rest.enhancer"})
@@ -48,6 +48,11 @@ public class RestConfiguration {
         propertySourcesPlaceholderConfigurer.setIgnoreUnresolvablePlaceholders(true);
 
         return propertySourcesPlaceholderConfigurer;
+    }
+
+    @Bean
+    public static EnvironmentBeanFactoryPostProcessor environmentBeanFactoryPostProcessor() {
+        return new EnvironmentBeanFactoryPostProcessor();
     }
 
     @Bean

@@ -26,7 +26,8 @@ import org.springframework.core.env.PropertiesPropertySource;
 import java.util.Properties;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class PropertySourceBeanProcessor implements BeanFactoryPostProcessor, Ordered {
 
@@ -34,7 +35,7 @@ public class PropertySourceBeanProcessor implements BeanFactoryPostProcessor, Or
 
     private Properties properties;
 
-    public PropertySourceBeanProcessor(Properties properties, Environment environment) {
+    PropertySourceBeanProcessor(Properties properties, Environment environment) {
         this.properties = properties;
         this.environment = environment;
     }
@@ -46,7 +47,7 @@ public class PropertySourceBeanProcessor implements BeanFactoryPostProcessor, Or
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        ((ConfigurableEnvironment) environment).getPropertySources().addFirst(
+        ((ConfigurableEnvironment) environment).getPropertySources().addLast(
                 new PropertiesPropertySource("graviteeConfiguration", properties));
     }
 }
