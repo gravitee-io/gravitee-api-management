@@ -180,7 +180,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 apiId,
                 properties,
                 event,
-                getAuthenticatedUsername(),
+                getAuthenticatedUsernameOrSystem(),
                 createdAt==null ? new Date() : createdAt,
                 oldValue,
                 newValue);

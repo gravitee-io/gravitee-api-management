@@ -72,42 +72,47 @@ public class DynamicPropertyUpdater implements Handler<Long> {
         Map<String, Property> propertyMap = properties.stream().collect(Collectors.toMap(Property::getKey, property -> property));
 
         List<Property> updatedProperties = new ArrayList<>();
-        dynamicProperties.forEach(dynamicProperty -> {
+        boolean needToBeSaved = false;
+        for (DynamicProperty dynamicProperty : dynamicProperties) {
             Property property = propertyMap.get(dynamicProperty.getKey());
-            if (property == null) {
-                updatedProperties.add(dynamicProperty);
-            } else if (property.isDynamic()) {
+            if (property == null || property.isDynamic()) {
                 updatedProperties.add(dynamicProperty);
             }
-        });
-
-        // Add previous user-defined properties
-        updatedProperties.addAll(userDefinedProperties);
-
-        // Sort properties alphabetically to avoid redeploy if just the order has changed.
-        List<Property> sortedUpdatedProperties = updatedProperties.
-                stream().
-                sorted(Comparator.comparing(Property::getKey)).
-                collect(Collectors.toList());
-        // Create properties container
-        Properties apiProperties = new Properties();
-        try {
-            apiProperties.setProperties(sortedUpdatedProperties);
-        } catch (RuntimeException e) {
-            logger.error(e.getMessage(), e);
+            // save properties only if there's something new
+            if (property == null || (property.isDynamic() && !property.getValue().equals(dynamicProperty.getValue()))) {
+                needToBeSaved = true;
+            }
         }
-        latestApi.setProperties(apiProperties);
 
-        boolean isSync = apiService.isSynchronized(api.getId());
+        if(needToBeSaved) {
+            // Add previous user-defined properties
+            updatedProperties.addAll(userDefinedProperties);
 
-        // Update API
-        apiService.update(latestApi.getId(), convert(latestApi));
+            // Sort properties alphabetically to avoid redeploy if just the order has changed.
+            List<Property> sortedUpdatedProperties = updatedProperties.
+                    stream().
+                    sorted(Comparator.comparing(Property::getKey)).
+                    collect(Collectors.toList());
+            // Create properties container
+            Properties apiProperties = new Properties();
+            try {
+                apiProperties.setProperties(sortedUpdatedProperties);
+            } catch (RuntimeException e) {
+                logger.error(e.getMessage(), e);
+            }
+            latestApi.setProperties(apiProperties);
 
-        // Do not deploy if there are manual changes to push
-        if (isSync) {
-            // Publish API only in case of changes
-            if (!updatedProperties.containsAll(properties) || !properties.containsAll(updatedProperties)) {
-                apiService.deploy(latestApi.getId(), "dynamic-property-updater", EventType.PUBLISH_API);
+            boolean isSync = apiService.isSynchronized(api.getId());
+
+            // Update API
+            apiService.update(latestApi.getId(), convert(latestApi));
+
+            // Do not deploy if there are manual changes to push
+            if (isSync) {
+                // Publish API only in case of changes
+                if (!updatedProperties.containsAll(properties) || !properties.containsAll(updatedProperties)) {
+                    apiService.deploy(latestApi.getId(), "dynamic-property-updater", EventType.PUBLISH_API);
+                }
             }
         }
     }
