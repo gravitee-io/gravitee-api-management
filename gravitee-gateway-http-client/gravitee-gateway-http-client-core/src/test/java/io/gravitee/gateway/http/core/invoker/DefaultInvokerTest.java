@@ -86,7 +86,6 @@ public class DefaultInvokerTest {
     public void shouldInvokeEndpointWithEncodedTargetURI() {
         final String targetUri = "http://host:8080/test toto  tété/titi";
         final String expectedTargetUri = "http://host:8080/test%20toto%20%20t%C3%A9t%C3%A9/titi";
-
         when(executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT)).thenReturn(targetUri);
         when(endpoint.available()).thenReturn(true);
         when(endpoint.target()).thenReturn("/test");
