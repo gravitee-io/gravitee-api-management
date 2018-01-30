@@ -98,7 +98,6 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
       }).then( (subscription) => {
         subscription.accepted = true;
         this.process(subscription);
-        this.listApiKeys();
       });
     }
 
@@ -108,6 +107,9 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
           this.NotificationService.show('The subscription has been ' + (processSubscription.accepted ? 'accepted' : 'rejected'));
           this.subscription = response.data;
           this.$rootScope.$broadcast("graviteeUserTaskRefresh");
+          if (processSubscription.accepted) {
+            this.listApiKeys();
+          }
       });
     }
 
