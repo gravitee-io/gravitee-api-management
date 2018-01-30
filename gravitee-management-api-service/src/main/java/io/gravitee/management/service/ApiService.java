@@ -43,9 +43,9 @@ public interface ApiService {
 
     void delete(String apiId);
 
-    void start(String apiId, String username);
+    ApiEntity start(String apiId, String username);
 
-    void stop(String apiId, String username);
+    ApiEntity stop(String apiId, String username);
 
     /**
      * Check if the API is "out of sync" or not. In this case, user is able to deploy it.

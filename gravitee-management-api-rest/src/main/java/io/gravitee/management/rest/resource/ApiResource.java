@@ -23,13 +23,11 @@ import io.gravitee.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam.LifecycleAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.PreconditionFailedException;
 import io.swagger.annotations.*;
 
-import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -57,9 +55,6 @@ public class ApiResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-
-    @Inject
-    private ApiService apiService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -150,23 +145,26 @@ public class ApiResource extends AbstractResource {
     public Response doLifecycleAction(
             @ApiParam(required = true, allowableValues = "START, STOP")
             @QueryParam("action") LifecycleActionParam action,
-            @PathParam("api") String api) {
-        ApiEntity apiEntity = apiService.findById(api);
-
+            @PathParam("api") String api, @Context HttpHeaders headers) {
+        final Response responseApi = get(api);
+        checkIfMatchApi(headers.getHeaderString(IF_MATCH), responseApi.getEntityTag().getValue());
+        final ApiEntity apiEntity = (ApiEntity) responseApi.getEntity();
+        final ApiEntity updatedApi;
         switch (action.getAction()) {
             case START:
                 checkAPILifeCycle(apiEntity, action.getAction());
-                apiService.start(apiEntity.getId(), getAuthenticatedUsername());
+                updatedApi = apiService.start(apiEntity.getId(), getAuthenticatedUsername());
                 break;
             case STOP:
                 checkAPILifeCycle(apiEntity, action.getAction());
-                apiService.stop(apiEntity.getId(), getAuthenticatedUsername());
+                updatedApi = apiService.stop(apiEntity.getId(), getAuthenticatedUsername());
                 break;
             default:
+                updatedApi = null;
                 break;
         }
 
-        return Response.noContent().build();
+        return Response.noContent().tag(Integer.toString(updatedApi.getUpdatedAt().hashCode())).build();
     }
 
     @PUT
@@ -186,10 +184,7 @@ public class ApiResource extends AbstractResource {
             @ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiToUpdate,
             @PathParam("api") String api, @Context HttpHeaders headers) {
         final Response responseApi = get(api);
-        final String ifMatch = headers.getHeaderString(IF_MATCH);
-        if (ifMatch != null && !ifMatch.replaceAll("\"", "").equals(responseApi.getEntityTag().getValue())) {
-            throw new PreconditionFailedException("The api version is outdated");
-        }
+        checkIfMatchApi(headers.getHeaderString(IF_MATCH), responseApi.getEntityTag().getValue());
 
         final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
         // Force context-path if user is not the primary_owner or an administrator
@@ -201,6 +196,12 @@ public class ApiResource extends AbstractResource {
         final ApiEntity updatedApi = apiService.update(api, apiToUpdate);
         setPicture(updatedApi);
         return Response.ok(updatedApi).tag(Integer.toString(updatedApi.getUpdatedAt().hashCode())).build();
+    }
+
+    private void checkIfMatchApi(final String ifMatch, final String tagValue) {
+        if (ifMatch != null && !ifMatch.replaceAll("\"", "").equals(tagValue)) {
+            throw new PreconditionFailedException("The api version is outdated");
+        }
     }
 
     @DELETE

@@ -447,10 +447,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public void start(String apiId, String username) {
+    public ApiEntity start(String apiId, String username) {
         try {
             LOGGER.debug("Start API {}", apiId);
-            updateLifecycle(apiId, LifecycleState.STARTED, username);
+            return updateLifecycle(apiId, LifecycleState.STARTED, username);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to start API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to start API " + apiId, ex);
@@ -458,10 +458,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public void stop(String apiId, String username) {
+    public ApiEntity stop(String apiId, String username) {
         try {
             LOGGER.debug("Stop API {}", apiId);
-            updateLifecycle(apiId, LifecycleState.STOPPED, username);
+            return updateLifecycle(apiId, LifecycleState.STOPPED, username);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to stop API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);
@@ -922,14 +922,14 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
-    private void updateLifecycle(String apiId, LifecycleState lifecycleState, String username) throws TechnicalException {
+    private ApiEntity updateLifecycle(String apiId, LifecycleState lifecycleState, String username) throws TechnicalException {
         Optional<Api> optApi = apiRepository.findById(apiId);
         if (optApi.isPresent()) {
             Api api = optApi.get();
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
-            apiRepository.update(api);
+            final ApiEntity apiEntity = convert(apiRepository.update(api), true);
             // Audit
             auditService.createApiAuditLog(
                     apiId,
@@ -949,6 +949,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 default:
                     break;
             }
+            return apiEntity;
         } else {
             throw new ApiNotFoundException(apiId);
         }
