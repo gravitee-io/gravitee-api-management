@@ -385,3 +385,8 @@ a.ui.label:focus, a.ui.label:hover {
   border: 1px solid #9a9a9a;
   border-radius: 3px;
 }
+
+.subscription-content {
+  background-color: rgb(245, 245, 246);
+  min-height: calc(100vh - 327px);
+}
