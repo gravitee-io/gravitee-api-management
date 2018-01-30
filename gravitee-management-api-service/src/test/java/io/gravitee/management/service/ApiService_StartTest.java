@@ -90,7 +90,7 @@ public class ApiService_StartTest {
     public void shouldStart() throws Exception {
         objectMapper.addMixIn(Api.class, ApiMixin.class);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-
+        when(apiRepository.update(api)).thenReturn(api);
         final EventEntity event = mockEvent(EventType.PUBLISH_API);
         when(eventService.findByApi(API_ID)).thenReturn(Collections.singleton(event));
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
