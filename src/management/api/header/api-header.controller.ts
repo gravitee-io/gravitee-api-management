@@ -17,14 +17,15 @@ import NotificationService from '../../../services/notification.service';
 import ApiService from '../../../services/api.service';
 import angular = require('angular');
 
+import _ = require('lodash');
 class ApiHeaderController {
-
   public api: any;
   public apiEnabled: boolean;
 
   constructor(private ApiService: ApiService,
-    private NotificationService: NotificationService,
-    private $mdDialog: angular.material.IDialogService) {
+              private NotificationService: NotificationService,
+              private $mdDialog: angular.material.IDialogService,
+              private $rootScope) {
     'ngInject';
   }
 
@@ -48,16 +49,20 @@ class ApiHeaderController {
     }).then((response: boolean) => {
       if (response) {
         if (started) {
-          this.ApiService.stop(this.api.id).then(() => {
+          this.ApiService.stop(this.api).then((response) => {
             this.api.state = 'stopped';
+            this.api.etag = response.headers('etag');
             this.apiEnabled = false;
             this.NotificationService.show(`API ${this.api.name} has been stopped!`);
+            this.$rootScope.$broadcast('apiChangeSuccess', {api: _.cloneDeep(this.api)});
           });
         } else {
-          this.ApiService.start(this.api.id).then(() => {
+          this.ApiService.start(this.api).then((response) => {
             this.api.state = 'started';
+            this.api.etag = response.headers('etag');
             this.apiEnabled = true;
             this.NotificationService.show(`API ${this.api.name} has been started!`);
+            this.$rootScope.$broadcast('apiChangeSuccess', {api: _.cloneDeep(this.api)});
           });
         }
       }

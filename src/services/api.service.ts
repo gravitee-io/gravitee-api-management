@@ -46,12 +46,12 @@ class ApiService {
     return this.$http.get(this.apisURL + '?group=' + group);
   }
 
-  start(name) {
-    return this.$http.post(this.apisURL + name + '?action=START');
+  start(api) {
+    return this.$http.post(this.apisURL + api.id + '?action=START', {}, {headers: {'If-Match': api.etag}});
   }
 
-  stop(name) {
-    return this.$http.post(this.apisURL + name + '?action=STOP');
+  stop(api) {
+    return this.$http.post(this.apisURL + api.id + '?action=STOP', {}, {headers: {'If-Match': api.etag}});
   }
 
   reload(name) {
