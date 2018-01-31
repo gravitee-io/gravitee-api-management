@@ -44,6 +44,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -128,10 +129,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(getPropertiesAsList("http.cors.allow-origin", ""));
-        config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "X-Requested-With"));
+        config.setAllowedOrigins(getPropertiesAsList("http.cors.allow-origin", "*"));
+        config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match"));
         config.setAllowedMethods(getPropertiesAsList("http.cors.allow-methods", "OPTIONS, GET, POST, PUT, DELETE"));
         config.setMaxAge(environment.getProperty("http.cors.max-age", Long.class, 1728000L));
+        config.setExposedHeaders(Collections.singletonList("ETag"));
 
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
