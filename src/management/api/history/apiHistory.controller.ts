@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import * as angular from 'angular';
 
 class ApiHistoryController {
   private api: any;
@@ -42,7 +43,7 @@ class ApiHistoryController {
     private $timeout
   ) {
     'ngInject';
-    this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
+    this.api = JSON.parse(angular.toJson(_.cloneDeep(this.$scope.$parent.apiCtrl.api)));
     this.events = resolvedEvents.data;
     this.eventsSelected = [];
     this.eventsTimeline = [];
@@ -63,7 +64,7 @@ class ApiHistoryController {
     this.$scope.$on("apiChangeSuccess", function(event, args) {
       if (self.$state.current.name.endsWith('history')) {
         // reload API
-        self.api = _.cloneDeep(args.api);
+        self.api = JSON.parse(angular.toJson(_.cloneDeep(_.cloneDeep(args.api))));
         self.cleanAPI(self.api);
         // reload API events
         self.ApiService.getApiEvents(self.api.id, self.eventTypes).then(response => {
