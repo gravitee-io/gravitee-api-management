@@ -52,7 +52,7 @@ class ApiHistoryController {
     this.eventToCompareRequired = false;
     this.eventTypes = "PUBLISH_API";
 
-    this.cleanAPI();
+    this.cleanAPI(this.api);
     this.init();
     this.initTimeline(this.events);
   }
@@ -64,7 +64,7 @@ class ApiHistoryController {
       if (self.$state.current.name.endsWith('history')) {
         // reload API
         self.api = _.cloneDeep(args.api);
-        self.cleanAPI();
+        self.cleanAPI(self.api);
         // reload API events
         self.ApiService.getApiEvents(self.api.id, self.eventTypes).then(response => {
           self.events = response.data;
@@ -118,6 +118,8 @@ class ApiHistoryController {
           this.eventSelectedPayload = JSON.parse(eventSelected.event.payload);
           this.eventSelectedPayloadDefinition = this.reorganizeEvent(this.eventSelectedPayload);
         }
+
+        this.cleanAPI(this.eventSelectedPayloadDefinition);
       }
     }
   }
@@ -265,18 +267,20 @@ class ApiHistoryController {
     return reorganizedEvent;
   }
 
-  cleanAPI() {
-    delete this.api.deployed_at;
-    delete this.api.created_at;
-    delete this.api.updated_at;
-    delete this.api.visibility;
-    delete this.api.state;
-    delete this.api.permission;
-    delete this.api.owner;
-    delete this.api.picture_url;
-    delete this.api.views;
-    delete this.api.group;
-    delete this.api.tags;
+  cleanAPI(api) {
+    delete api.deployed_at;
+    delete api.created_at;
+    delete api.updated_at;
+    delete api.visibility;
+    delete api.state;
+    delete api.permission;
+    delete api.owner;
+    delete api.picture_url;
+    delete api.views;
+    delete api.groups;
+    delete api.tags;
+    delete api.etag;
+    delete api.context_path;
   }
 }
 
