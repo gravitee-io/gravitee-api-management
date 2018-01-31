@@ -36,6 +36,7 @@ public class RepositoryApiBuilder {
 
     public RepositoryApiBuilder updatedAt(Date updatedAt) {
         this.api.setUpdatedAt(updatedAt);
+        this.api.setDeployedAt(updatedAt);
         return this;
     }
 
