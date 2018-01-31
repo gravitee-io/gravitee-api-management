@@ -37,29 +37,62 @@ public class DefaultReactorHandlerRegistry extends SpringFactoriesLoader<Reactor
     private final ConcurrentMap<String, ReactorHandler> handlers = new ConcurrentHashMap<>();
     private final ConcurrentMap<Object, String> contextPaths = new ConcurrentHashMap<>();
 
+    @Override
     public void create(Reactable reactable) {
-        logger.info("Register a new handler for {} on path {}", reactable.item(), reactable.contextPath());
+        logger.info("Creating a new handler for {}", reactable.item());
 
+        ReactorHandler handler = prepare(reactable);
+        if (handler != null) {
+            register(handler);
+        }
+    }
+
+    private void register(ReactorHandler handler) {
+        logger.info("Registering a new handler for {} on path {}", handler.reactable(), handler.contextPath());
+        handlers.put(handler.contextPath(), handler);
+        contextPaths.put(handler.reactable(), handler.contextPath());
+    }
+
+    private ReactorHandler prepare(Reactable reactable) {
+        logger.info("Preparing a new handler for {}", reactable);
         ReactorHandler handler = create0(reactable);
         if (handler != null) {
             try {
                 handler.start();
-                handlers.putIfAbsent(handler.contextPath(), handler);
-                contextPaths.putIfAbsent(reactable, handler.contextPath());
             } catch (Exception ex) {
                 logger.error("Unable to register handler", ex);
+                return null;
             }
         }
+
+        return handler;
     }
 
     @Override
     public void update(Reactable reactable) {
+        logger.info("Updating handler for {}", reactable);
+
         String contextPath = contextPaths.get(reactable);
+
         if (contextPath != null) {
-            ReactorHandler handler = handlers.get(contextPath);
-            if (handler != null) {
-                remove(reactable);
-                create(reactable);
+            logger.info("Handler was previously map to {}", contextPath);
+
+            ReactorHandler newHandler = prepare(reactable);
+
+            // Do not update handler if the new is not correctly initialized
+            if (newHandler != null) {
+                ReactorHandler previousHandler = handlers.get(contextPath);
+
+                register(newHandler);
+
+                if (previousHandler != null) {
+                    try {
+                        logger.info("Stopping previous handler for path {}", contextPath);
+                        previousHandler.stop();
+                    } catch (Exception ex) {
+                        logger.error("Unable to stop handler", ex);
+                    }
+                }
             }
         } else {
             create(reactable);
