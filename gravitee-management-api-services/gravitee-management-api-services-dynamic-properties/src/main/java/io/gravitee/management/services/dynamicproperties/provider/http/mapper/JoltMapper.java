@@ -58,8 +58,12 @@ public class JoltMapper {
     public Collection<DynamicProperty> map(String source) {
         //Default value is equal to the input json value (in case empty jolt specs)
         String jsonProperties = source;
-
-        ArrayList transformed = (ArrayList) chainr.transform(JsonUtils.jsonToMap(source));
+        ArrayList transformed;
+        if (jsonProperties != null && jsonProperties.charAt(0) == '[') {
+            transformed = (ArrayList) chainr.transform(JsonUtils.jsonToList(source));
+        } else {
+            transformed = (ArrayList) chainr.transform(JsonUtils.jsonToMap(source));
+        }
         jsonProperties = JsonUtils.toJsonString(transformed);
 
         //Now ensure current json properties is well formatted.
