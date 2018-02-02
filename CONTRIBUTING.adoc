@@ -5,7 +5,7 @@ Here are few guidlines that should help you get started.
 
 == Using GitHub issues
 
-We use GitHub issues to track bugs and enhancements. You find a bug in the source code ? You want to propose new features or enhancements  You can help us by submitting an issue in our https://github.com/gravitee-io/gravitee-repository-jdbc[repository]. Before you submit your issue, search the https://github.com/gravitee-io/gravitee-repository-jdbc/issues[issues archive] or the https://waffle.io/gravitee-io/release[backlog]; maybe your question was already answered.
+We use GitHub issues to track bugs and enhancements. You find a bug in the source code ? You want to propose new features or enhancements  You can help us by submitting an issue in our https://github.com/gravitee-io/${project.artifactId}[repository]. Before you submit your issue, search the https://github.com/gravitee-io/${project.artifactId}/issues[issues archive] or the https://waffle.io/gravitee-io/release[backlog]; maybe your question was already answered.
 
 > Issues are only to report bugs, request enhancements, or request new features. For general questions and discussions, use the https://groups.google.com/forum/#!forum/graviteeio[Gravitee.io Forum].
 
@@ -49,7 +49,7 @@ mvn clean install
 git push origin issue/#<issue-id>-my-fix-branch
 ```
 
-* In GitHub, send a pull request to `<gravitee-io/gravitee-repository-jdbc>:master`.
+* In GitHub, send a pull request to `<gravitee-io/${project.artifactId}>:master`.
 
 * If we suggest changes then:
   ** Make the required updates.

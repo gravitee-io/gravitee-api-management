@@ -1,0 +1,9 @@
+## YAML Template.
+databaseChangeLog:
+    - changeSet:
+        id: 1.3.0
+        author: jim.talbut
+        changes:
+
+        - addDefaultValue: { tableName: Page, columnDataType: bit, columnName: HomePage, defaultValueBoolean: false }
+

@@ -1,0 +1,8 @@
+## YAML Template.
+databaseChangeLog:
+    - changeSet:
+        id: 1.8.0
+        author: jim.talbut
+        changes:
+
+        - dropNotNullConstraint: {tableName: View, columnName: Description, columnDataType: nvarchar(2048) }

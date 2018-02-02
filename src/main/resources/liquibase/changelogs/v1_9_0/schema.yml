@@ -1,0 +1,11 @@
+## YAML Template.
+databaseChangeLog:
+    - changeSet:
+        id: 1.9.0
+        author: jim.talbut
+        changes:
+
+            - modifyDataType:
+                tableName: Audit
+                columnName: Patch
+                newDataType: nclob

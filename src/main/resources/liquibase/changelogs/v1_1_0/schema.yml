@@ -1,0 +1,12 @@
+## YAML Template.
+databaseChangeLog:
+    - changeSet:
+        id: 1.1.0
+        author: jim.talbut
+        changes:
+
+        - addColumn:
+            tableName: Page
+            columns:
+                - column: {name: HomePage, type: bit, constraints: { nullable: false, default: 0 } }
+
