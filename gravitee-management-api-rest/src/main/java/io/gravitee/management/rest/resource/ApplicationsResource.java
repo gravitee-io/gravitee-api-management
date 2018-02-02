@@ -74,7 +74,7 @@ public class ApplicationsResource extends AbstractResource {
                     ? applicationService.findByGroup(group)
                     : applicationService.findAll();
         } else {
-            applications = applicationService.findByUser(getAuthenticatedUsername());
+            applications = applicationService.findByUser(getAuthenticatedUser());
             if (group != null && !group.isEmpty()) {
                 applications = applications.stream()
                         .filter(app -> app.getGroups() != null && app.getGroups().contains(group))
@@ -107,7 +107,7 @@ public class ApplicationsResource extends AbstractResource {
     public Response createApplication(
             @ApiParam(name = "application", required = true)
             @Valid @NotNull final NewApplicationEntity application) {
-        ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUsername());
+        ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUser());
         if (newApplication != null) {
             return Response
                     .created(URI.create("/applications/" + newApplication.getId()))

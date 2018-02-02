@@ -113,7 +113,7 @@ public class ApiResource extends AbstractResource {
             cc.setNoCache(false);
             cc.setMaxAge(86400);
 
-            ImageEntity image = apiService.getPicture(api);
+            InlinePictureEntity image = apiService.getPicture(api);
 
             EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
             Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
@@ -165,11 +165,11 @@ public class ApiResource extends AbstractResource {
         switch (action.getAction()) {
             case START:
                 checkAPILifeCycle(apiEntity, action.getAction());
-                updatedApi = apiService.start(apiEntity.getId(), getAuthenticatedUsername());
+                updatedApi = apiService.start(apiEntity.getId(), getAuthenticatedUser());
                 break;
             case STOP:
                 checkAPILifeCycle(apiEntity, action.getAction());
-                updatedApi = apiService.stop(apiEntity.getId(), getAuthenticatedUsername());
+                updatedApi = apiService.stop(apiEntity.getId(), getAuthenticatedUser());
                 break;
             default:
                 updatedApi = null;
@@ -210,7 +210,8 @@ public class ApiResource extends AbstractResource {
         final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
         // Force context-path if user is not the primary_owner or an administrator
         if (!hasPermission(RolePermission.API_GATEWAY_DEFINITION, api, RolePermissionAction.UPDATE) &&
-                !Objects.equals(currentApi.getPrimaryOwner().getUsername(), getAuthenticatedUsername()) && !isAdmin()) {
+                // TODO: David: compare ID to username => must be review!!!
+                !Objects.equals(currentApi.getPrimaryOwner().getId(), getAuthenticatedUser()) && !isAdmin()) {
             apiToUpdate.getProxy().setContextPath(currentApi.getProxy().getContextPath());
         }
 
@@ -275,7 +276,7 @@ public class ApiResource extends AbstractResource {
     })
     public Response deployAPI(@PathParam("api") String api) {
         try {
-            ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUsername(), EventType.PUBLISH_API);
+            ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUser(), EventType.PUBLISH_API);
             return Response
                     .ok(apiEntity)
                     .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
@@ -352,7 +353,7 @@ public class ApiResource extends AbstractResource {
             @PathParam("api") String api,
             @ApiParam(name = "definition", required = true) String apiDefinition) {
         final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
-        ApiEntity updatedApi = apiService.createOrUpdateWithDefinition(apiEntity, apiDefinition, getAuthenticatedUsername());
+        ApiEntity updatedApi = apiService.createOrUpdateWithDefinition(apiEntity, apiDefinition, getAuthenticatedUser());
         return Response
                 .ok(updatedApi)
                 .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))

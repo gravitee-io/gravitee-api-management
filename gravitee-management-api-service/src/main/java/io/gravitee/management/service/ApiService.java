@@ -31,21 +31,21 @@ public interface ApiService {
 
     Set<ApiEntity> findAll();
 
-    Set<ApiEntity> findByUser(String username);
+    Set<ApiEntity> findByUser(String userId);
 
     Set<ApiEntity> findByGroup(String groupId);
 
     Set<ApiEntity> findByVisibility(Visibility visibility);
 
-    ApiEntity create(NewApiEntity api, String username);
+    ApiEntity create(NewApiEntity api, String userId);
 
     ApiEntity update(String apiId, UpdateApiEntity api);
 
     void delete(String apiId);
 
-    ApiEntity start(String apiId, String username);
+    ApiEntity start(String apiId, String userId);
 
-    ApiEntity stop(String apiId, String username);
+    ApiEntity stop(String apiId, String userId);
 
     /**
      * Check if the API is "out of sync" or not. In this case, user is able to deploy it.
@@ -58,15 +58,15 @@ public interface ApiService {
      */
     boolean isSynchronized(String apiId);
     
-    ApiEntity deploy(String apiId, String username, EventType eventType);
+    ApiEntity deploy(String apiId, String userId, EventType eventType);
     
     ApiEntity rollback(String apiId, UpdateApiEntity api);
 
     String exportAsJson(String apiId, String role, String... filteredFields);
 
-    ApiEntity createOrUpdateWithDefinition(ApiEntity apiEntity, String apiDefinition, String username);
+    ApiEntity createOrUpdateWithDefinition(ApiEntity apiEntity, String apiDefinition, String userId);
 
-    ImageEntity getPicture(String apiId);
+    InlinePictureEntity getPicture(String apiId);
 
     void deleteViewFromAPIs(String viewId);
 

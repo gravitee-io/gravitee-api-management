@@ -18,15 +18,20 @@ package io.gravitee.management.model.providers;
 import java.util.Objects;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class User {
 
     private String id;
 
+    private String username;
+
     private String firstname;
 
     private String lastname;
+
+    private String displayName;
 
     private String email;
 
@@ -34,12 +39,20 @@ public class User {
 
     private String sourceId;
 
-    public String getEmail() {
-        return email;
+    public String getId() {
+        return id;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getFirstname() {
@@ -50,20 +63,28 @@ public class User {
         this.firstname = firstname;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getLastname() {
         return lastname;
     }
 
     public void setLastname(String lastname) {
         this.lastname = lastname;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getSource() {
@@ -86,8 +107,6 @@ public class User {
     public String toString() {
         final StringBuilder sb = new StringBuilder("User{");
         sb.append("id='").append(id).append('\'');
-        sb.append(", source='").append(source).append('\'');
-        sb.append(", external_reference='").append(sourceId).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -97,13 +116,12 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) &&
-                Objects.equals(source, user.source);
+        return Objects.equals(id, user.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, source);
+        return Objects.hash(id);
     }
 }
 

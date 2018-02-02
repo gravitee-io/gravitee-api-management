@@ -98,7 +98,7 @@ public class ApplicationService_FindByUserTest {
         po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
                 .thenReturn(Collections.singleton(po));
-        when(userService.findByName(USERNAME, false)).thenReturn(new UserEntity());
+        when(userService.findByUsername(USERNAME, false)).thenReturn(new UserEntity());
 
         Set<ApplicationEntity> apps = applicationService.findByUser(USERNAME);
 
@@ -127,7 +127,7 @@ public class ApplicationService_FindByUserTest {
         po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
                 .thenReturn(Collections.singleton(po));
-        when(userService.findByName(USERNAME, false)).thenReturn(new UserEntity());
+        when(userService.findByUsername(USERNAME, false)).thenReturn(new UserEntity());
 
         Set<ApplicationEntity> apps = applicationService.findByUser(USERNAME);
 
@@ -170,7 +170,7 @@ public class ApplicationService_FindByUserTest {
         when(membershipRepository.findByReferencesAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
                 .thenReturn(memberships);
 
-        when(userService.findByName(USERNAME, false)).thenReturn(new UserEntity());
+        when(userService.findByUsername(USERNAME, false)).thenReturn(new UserEntity());
 
         Set<ApplicationEntity> apps = applicationService.findByUser(USERNAME);
 

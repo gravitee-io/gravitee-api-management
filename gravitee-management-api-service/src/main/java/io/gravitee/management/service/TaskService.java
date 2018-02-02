@@ -26,7 +26,7 @@ import java.util.List;
  */
 public interface TaskService {
 
-    List<TaskEntity> findAll(String username);
+    List<TaskEntity> findAll(String userId);
 
     Metadata getMetadata(List<TaskEntity> tasks);
 }

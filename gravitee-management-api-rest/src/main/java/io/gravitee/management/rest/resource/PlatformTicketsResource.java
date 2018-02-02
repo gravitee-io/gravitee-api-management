@@ -43,7 +43,7 @@ public class PlatformTicketsResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid @NotNull final NewTicketEntity ticketEntity) {
-        ticketService.create(getAuthenticatedUsername(), ticketEntity);
+        ticketService.create(getAuthenticatedUser(), ticketEntity);
         return Response.created(URI.create("")).build();
     }
 }

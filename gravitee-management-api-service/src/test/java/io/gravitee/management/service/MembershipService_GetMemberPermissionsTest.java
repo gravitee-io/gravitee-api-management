@@ -18,7 +18,6 @@ package io.gravitee.management.service;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
-import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.impl.MembershipServiceImpl;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
@@ -107,7 +106,7 @@ public class MembershipService_GetMemberPermissionsTest {
         doReturn(Collections.singleton(group)).when(api).getGroups();
         doReturn(of(membership)).when(membershipRepository).findById(USERNAME, MembershipReferenceType.API, API_ID);
         UserEntity userEntity = mock(UserEntity.class);
-        doReturn(userEntity).when(userService).findByName(USERNAME, false);
+        doReturn(userEntity).when(userService).findById(USERNAME);
         RoleEntity roleEntity = mock(RoleEntity.class);
         Map<String, char[]> rolePerms = new HashMap<>();
         rolePerms.put(ApiPermission.DOCUMENTATION.getName(), new char[]{RolePermissionAction.UPDATE.getId(), RolePermissionAction.CREATE.getId()});
@@ -120,7 +119,7 @@ public class MembershipService_GetMemberPermissionsTest {
         assertPermissions(rolePerms, permissions);
         verify(membershipRepository, times(2)).findById(USERNAME, MembershipReferenceType.API, API_ID);
         verify(membershipRepository, never()).findById(eq(USERNAME), eq(MembershipReferenceType.GROUP), anyString());
-        verify(userService, times(1)).findByName(USERNAME, false);
+        verify(userService, times(1)).findById(USERNAME);
     }
 
     @Test
@@ -139,7 +138,7 @@ public class MembershipService_GetMemberPermissionsTest {
         doReturn(of(membership)).when(membershipRepository).findById(USERNAME, MembershipReferenceType.GROUP, GROUP_ID1);
 
         UserEntity userEntity = mock(UserEntity.class);
-        doReturn(userEntity).when(userService).findByName(USERNAME, false);
+        doReturn(userEntity).when(userService).findById(USERNAME);
 
         RoleEntity roleEntity = mock(RoleEntity.class);
         Map<String, char[]> rolePerms = new HashMap<>();
@@ -147,17 +146,13 @@ public class MembershipService_GetMemberPermissionsTest {
         doReturn(rolePerms).when(roleEntity).getPermissions();
         doReturn(roleEntity).when(roleService).findById(RoleScope.API, ROLENAME);
 
-
-
         Map<String, char[]> permissions = membershipService.getMemberPermissions(api, USERNAME);
-
-
 
         assertNotNull(permissions);
         assertPermissions(rolePerms, permissions);
         verify(membershipRepository, times(1)).findById(USERNAME, MembershipReferenceType.API, API_ID);
         verify(membershipRepository, times(2)).findById(eq(USERNAME), eq(MembershipReferenceType.GROUP), anyString());
-        verify(userService, times(1)).findByName(USERNAME, false);
+        verify(userService, times(1)).findById(USERNAME);
     }
 
     @Test
@@ -184,7 +179,7 @@ public class MembershipService_GetMemberPermissionsTest {
         doReturn(of(membership2)).when(membershipRepository).findById(USERNAME, MembershipReferenceType.GROUP, GROUP_ID2);
 
         UserEntity userEntity = mock(UserEntity.class);
-        doReturn(userEntity).when(userService).findByName(USERNAME, false);
+        doReturn(userEntity).when(userService).findById(USERNAME);
 
         RoleEntity roleEntity = mock(RoleEntity.class);
         Map<String, char[]> rolePerms = new HashMap<>();
@@ -199,11 +194,7 @@ public class MembershipService_GetMemberPermissionsTest {
         doReturn(rolePerms2).when(roleEntity2).getPermissions();
         doReturn(roleEntity2).when(roleService).findById(RoleScope.API, ROLENAME2);
 
-
-
         Map<String, char[]> permissions = membershipService.getMemberPermissions(api, USERNAME);
-
-
 
         assertNotNull(permissions);
         Map<String, char[]> expectedPermissions = new HashMap<>();
@@ -216,7 +207,7 @@ public class MembershipService_GetMemberPermissionsTest {
         assertPermissions(expectedPermissions, permissions);
         verify(membershipRepository, times(1)).findById(USERNAME, MembershipReferenceType.API, API_ID);
         verify(membershipRepository, times(4)).findById(eq(USERNAME), eq(MembershipReferenceType.GROUP), anyString());
-        verify(userService, times(2)).findByName(USERNAME, false);
+        verify(userService, times(2)).findById(USERNAME);
     }
 
     private void assertPermissions(Map<String, char[]> expected, Map<String, char[]> actual) {

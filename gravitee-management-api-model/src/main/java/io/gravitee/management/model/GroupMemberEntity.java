@@ -18,7 +18,6 @@ package io.gravitee.management.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,21 +29,20 @@ public class GroupMemberEntity {
     }
 
     public GroupMemberEntity(MemberEntity memberEntity) {
-        this.username = memberEntity.getUsername();
-        this.firstname = memberEntity.getFirstname();
-        this.lastname = memberEntity.getLastname();
-        this.email = memberEntity.getEmail();
+        this.id = memberEntity.getId();
+
+        if (memberEntity.getFirstname() == null || memberEntity.getLastname() == null) {
+            displayName = memberEntity.getUsername();
+        } else {
+            displayName = memberEntity.getFirstname() + ' ' + memberEntity.getLastname();
+        }
         this.createdAt = memberEntity.getCreatedAt();
         this.updatedAt = memberEntity.getUpdatedAt();
     }
 
-    private String username;
+    private String id;
 
-    private String firstname;
-
-    private String lastname;
-
-    private String email;
+    private String displayName;
 
     private Map<String, String> roles;
 
@@ -78,36 +76,19 @@ public class GroupMemberEntity {
         this.updatedAt = updatedAt;
     }
 
-    public String getUsername() {
-        return username;
+    public String getId() {
+        return id;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public String getFirstname() {
-        return firstname;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
 }

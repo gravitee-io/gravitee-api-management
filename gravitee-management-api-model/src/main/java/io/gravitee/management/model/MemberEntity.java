@@ -27,6 +27,8 @@ import java.util.Map;
  */
 public class MemberEntity {
 
+    private String id;
+
     private String username;
 
     private String firstname;
@@ -69,12 +71,12 @@ public class MemberEntity {
         this.updatedAt = updatedAt;
     }
 
-    public String getUsername() {
-        return username;
+    public String getId() {
+        return id;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getFirstname() {
@@ -109,6 +111,14 @@ public class MemberEntity {
         this.permissions = permissions;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -116,11 +126,11 @@ public class MemberEntity {
 
         MemberEntity that = (MemberEntity) o;
 
-        return username.equals(that.username);
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return username.hashCode();
+        return id.hashCode();
     }
 }

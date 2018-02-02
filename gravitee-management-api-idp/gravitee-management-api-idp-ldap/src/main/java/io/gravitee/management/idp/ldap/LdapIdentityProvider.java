@@ -22,7 +22,7 @@ import io.gravitee.management.idp.ldap.authentication.LdapAuthenticationProvider
 import io.gravitee.management.idp.ldap.lookup.LdapIdentityLookup;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class LdapIdentityProvider implements IdentityProvider {

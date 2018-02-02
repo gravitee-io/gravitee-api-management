@@ -16,6 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
@@ -29,7 +30,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
@@ -44,36 +44,6 @@ public class RoleUserResource extends AbstractResource  {
     @Autowired
     private MembershipService membershipService;
 
-
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Add or update a role to a user")
-    @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.UPDATE),
-    })
-    public Response addRole(
-            @ApiParam(name = "scope", required = true, allowableValues = "MANAGEMENT,PORTAL,API,APPLICATION")
-            @PathParam("scope")RoleScope roleScope,
-            @PathParam("role") String roleName,
-            @PathParam("username") String username) {
-
-        if (roleScope == null || roleName == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Role must be set").build();
-        }
-
-        membershipService.addOrUpdateMember(
-                RoleScope.MANAGEMENT.equals(roleScope) ?
-                        MembershipReferenceType.MANAGEMENT :
-                        MembershipReferenceType.PORTAL,
-                MembershipDefaultReferenceId.DEFAULT.name(),
-                username,
-                roleScope,
-                roleName);
-        return Response.created(URI.create("/users/" + username + "/roles")).build();
-    }
-
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
@@ -81,12 +51,12 @@ public class RoleUserResource extends AbstractResource  {
     })
     public void delete(@PathParam("scope")RoleScope scope,
                        @PathParam("role") String role,
-                       @PathParam("username") String username) {
+                       @PathParam("userId") String userId) {
         if (RoleScope.MANAGEMENT.equals(scope) || RoleScope.PORTAL.equals(scope)) {
             membershipService.deleteMember(
                     RoleScope.MANAGEMENT.equals(scope) ? MembershipReferenceType.MANAGEMENT : MembershipReferenceType.PORTAL,
                     MembershipDefaultReferenceId.DEFAULT.name(),
-                    username);
+                    userId);
         }
     }
 }

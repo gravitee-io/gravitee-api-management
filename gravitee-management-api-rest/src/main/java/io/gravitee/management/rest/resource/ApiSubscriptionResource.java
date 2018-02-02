@@ -103,7 +103,7 @@ public class ApiSubscriptionResource extends AbstractResource {
         // Force subscription ID
         processSubscriptionEntity.setId(subscription);
 
-        SubscriptionEntity subscriptionEntity = subscriptionService.process(processSubscriptionEntity, getAuthenticatedUsername());
+        SubscriptionEntity subscriptionEntity = subscriptionService.process(processSubscriptionEntity, getAuthenticatedUser());
         return Response.ok(convert(subscriptionEntity)).build();
     }
 
@@ -260,9 +260,8 @@ public class ApiSubscriptionResource extends AbstractResource {
                         application.getName(),
                         application.getType(),
                         new Subscription.Owner(
-                                application.getPrimaryOwner().getUsername(),
-                                application.getPrimaryOwner().getFirstname(),
-                                application.getPrimaryOwner().getLastname()
+                                application.getPrimaryOwner().getId(),
+                                application.getPrimaryOwner().getDisplayName()
                         )
                 ));
 

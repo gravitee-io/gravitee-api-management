@@ -18,6 +18,8 @@ package io.gravitee.management.service.impl;
 import com.auth0.jwt.JWTSigner;
 import com.auth0.jwt.JWTVerifier;
 import com.google.common.collect.ImmutableMap;
+import io.gravitee.common.utils.*;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
@@ -32,6 +34,7 @@ import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.management.model.User;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +45,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.DatatypeConverter;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -81,29 +87,32 @@ public class UserServiceImpl extends AbstractService implements UserService {
     @Autowired
     private AuditService auditService;
 
+    @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
+    private String defaultAvatar;
+
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
 
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
-    public UserEntity connect(String username) {
+    public UserEntity connect(String userId) {
         try {
-            LOGGER.debug("Connection of {}", username);
-            Optional<User> checkUser = userRepository.findByUsername(username);
+            LOGGER.debug("Connection of {}", userId);
+            Optional<User> checkUser = userRepository.findById(userId);
             if (!checkUser.isPresent()) {
-                throw new UserNotFoundException(username);
+                throw new UserNotFoundException(userId);
             }
 
             User user = checkUser.get();
             User previousUser = new User(user);
             // First connection: create default application for user
             if (defaultApplicationForFirstConnection && user.getLastConnectionAt() == null) {
-                LOGGER.debug("Create a default application for {}", username);
+                LOGGER.debug("Create a default application for {}", userId);
                 NewApplicationEntity defaultApp = new NewApplicationEntity();
                 defaultApp.setName("Default application");
                 defaultApp.setDescription("My default application");
-                applicationService.create(defaultApp, username);
+                applicationService.create(defaultApp, userId);
             }
 
             // Set date fields
@@ -112,20 +121,56 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             User updatedUser = userRepository.update(user);
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(USER, username),
+                    Collections.singletonMap(USER, userId),
                     User.AuditEvent.USER_CONNECTED,
                     user.getUpdatedAt(),
                     previousUser,
                     user);
             return convert(updatedUser, true);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to connect {}", username, ex);
-            throw new TechnicalManagementException("An error occurs while trying to connect " + username, ex);
+            LOGGER.error("An error occurs while trying to connect {}", userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to connect " + userId, ex);
         }
     }
 
     @Override
-    public UserEntity findByName(String username, boolean loadRoles) {
+    public UserEntity findById(String id) {
+        try {
+            LOGGER.debug("Find user by ID: {}", id);
+
+            Optional<User> optionalUser = userRepository.findById(id);
+
+            if (optionalUser.isPresent()) {
+                return convert(optionalUser.get(), false);
+            }
+            //should never happen
+            throw new UserNotFoundException(id);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find user using its ID {}", id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + id, ex);
+        }
+    }
+
+    @Override
+    public UserEntity findByIdWithRoles(String id) {
+        try {
+            LOGGER.debug("Find user by ID: {}", id);
+
+            Optional<User> optionalUser = userRepository.findById(id);
+
+            if (optionalUser.isPresent()) {
+                return convert(optionalUser.get(), true);
+            }
+            //should never happen
+            throw new UserNotFoundException(id);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find user using its ID {}", id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + id, ex);
+        }
+    }
+
+    @Override
+    public UserEntity findByUsername(String username, boolean loadRoles) {
         try {
             LOGGER.debug("Find user by name: {}", username);
 
@@ -143,26 +188,26 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     @Override
-    public Set<UserEntity> findByNames(List<String> usernames, boolean loadRoles) {
+    public Set<UserEntity> findByIds(List<String> ids) {
         try {
-            LOGGER.debug("Find user by names: {}", usernames);
+            LOGGER.debug("Find users by ID: {}", ids);
 
-            Set<User> users = userRepository.findByUsernames(usernames);
+            Set<User> users = userRepository.findByIds(ids);
 
             if (!users.isEmpty()) {
-                return users.stream().map(u -> this.convert(u, loadRoles)).collect(Collectors.toSet());
+                return users.stream().map(u -> this.convert(u, false)).collect(Collectors.toSet());
             }
 
-            Optional<String> usernamesAsString = usernames.stream().reduce((a, b) -> a + "/" + b);
-            if (usernamesAsString.isPresent()) {
-                throw new UserNotFoundException(usernamesAsString.get());
+            Optional<String> idsAsString = ids.stream().reduce((a, b) -> a + '/' + b);
+            if (idsAsString.isPresent()) {
+                throw new UserNotFoundException(idsAsString.get());
             } else {
                 throw new UserNotFoundException("?");
             }
         } catch (TechnicalException ex) {
-            Optional<String> usernamesAsString = usernames.stream().reduce((a, b) -> a + "/" + b);
-            LOGGER.error("An error occurs while trying to find users using their names {}", usernamesAsString, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find users using their names " + usernamesAsString, ex);
+            Optional<String> idsAsString = ids.stream().reduce((a, b) -> a + '/' + b);
+            LOGGER.error("An error occurs while trying to find users using their ID {}", idsAsString, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find users using their ID " + idsAsString, ex);
         }
     }
 
@@ -202,6 +247,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             User user = convert(newUserEntity);
+            user.setId(UUID.toString(UUID.random()));
 
             // Encrypt password if internal user
             if (user.getPassword() != null) {
@@ -224,6 +270,39 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
     }
 
+    @Override
+    public PictureEntity getPicture(String id) {
+        UserEntity user = findById(id);
+
+        if (user.getPicture() != null) {
+            String picture = user.getPicture();
+
+            if (picture.matches("^(http|https)://.*$")) {
+                return new UrlPictureEntity(picture);
+            } else {
+                try {
+                    InlinePictureEntity imageEntity = new InlinePictureEntity();
+                    String[] parts = picture.split(";", 2);
+                    imageEntity.setType(parts[0].split(":")[1]);
+                    String base64Content = picture.split(",", 2)[1];
+                    imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
+                } catch (Exception ex) {
+                    LOGGER.warn("Unable to get user picture for id[{}]", id);
+                }
+            }
+        }
+
+        // Return default inline user avatar
+        InlinePictureEntity imageEntity = new InlinePictureEntity();
+        imageEntity.setType("image/png");
+        try {
+            imageEntity.setContent(IOUtils.toByteArray(new FileInputStream(defaultAvatar)));
+        } catch (IOException ioe) {
+            LOGGER.error("Default icon for API does not exist", ioe);
+        }
+        return imageEntity;
+    }
+
     /**
      * Allows to pre-create a user.
      * @param newExternalUserEntity
@@ -233,13 +312,14 @@ public class UserServiceImpl extends AbstractService implements UserService {
     public UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole) {
         try {
             LOGGER.debug("Create an external user {}", newExternalUserEntity);
-            Optional<User> checkUser = userRepository.findByUsername(newExternalUserEntity.getUsername());
+            Optional<User> checkUser = userRepository.findById(newExternalUserEntity.getUsername());
             if (checkUser.isPresent()) {
                 throw new UsernameAlreadyExistsException(newExternalUserEntity.getUsername());
             }
 
             User user = convert(newExternalUserEntity);
-
+            user.setId(UUID.toString(UUID.random()));
+            
             // Set date fields
             user.setCreatedAt(new Date());
             user.setUpdatedAt(user.getCreatedAt());
@@ -273,19 +353,15 @@ public class UserServiceImpl extends AbstractService implements UserService {
             switch (defaultRoleByScope.getScope()) {
                 case MANAGEMENT:
                     membershipService.addOrUpdateMember(
-                            MembershipReferenceType.MANAGEMENT,
-                            MembershipDefaultReferenceId.DEFAULT.name(),
-                            user.getUsername(),
-                            RoleScope.MANAGEMENT,
-                            defaultRoleByScope.getName());
+                            new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
+                            new MembershipService.MembershipUser(user.getId(), null),
+                            new MembershipService.MembershipRole(RoleScope.MANAGEMENT, defaultRoleByScope.getName()));
                     break;
                 case PORTAL:
                     membershipService.addOrUpdateMember(
-                            MembershipReferenceType.PORTAL,
-                            MembershipDefaultReferenceId.DEFAULT.name(),
-                            user.getUsername(),
-                            RoleScope.PORTAL,
-                            defaultRoleByScope.getName());
+                            new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
+                            new MembershipService.MembershipUser(user.getId(), null),
+                            new MembershipService.MembershipRole(RoleScope.PORTAL, defaultRoleByScope.getName()));
                     break;
                 default:
                     break;
@@ -444,6 +520,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
         UserEntity userEntity = new UserEntity();
 
+        userEntity.setId(user.getId());
         userEntity.setSource(user.getSource());
         userEntity.setSourceId(user.getSourceId());
         userEntity.setUsername(user.getUsername());
@@ -456,12 +533,12 @@ public class UserServiceImpl extends AbstractService implements UserService {
         userEntity.setLastConnectionAt(user.getLastConnectionAt());
         userEntity.setPicture(user.getPicture());
 
-        if(loadRoles) {
+        if (loadRoles) {
             Set<UserRoleEntity> roles = new HashSet<>();
             RoleEntity roleEntity = membershipService.getRole(
                     MembershipReferenceType.PORTAL,
                     MembershipDefaultReferenceId.DEFAULT.name(),
-                    user.getUsername(),
+                    user.getId(),
                     RoleScope.PORTAL);
             if (roleEntity != null) {
                 roles.add(convert(roleEntity));
@@ -470,7 +547,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             roleEntity = membershipService.getRole(
                     MembershipReferenceType.MANAGEMENT,
                     MembershipDefaultReferenceId.DEFAULT.name(),
-                    user.getUsername(),
+                    user.getId(),
                     RoleScope.MANAGEMENT);
             if (roleEntity != null) {
                 roles.add(convert(roleEntity));

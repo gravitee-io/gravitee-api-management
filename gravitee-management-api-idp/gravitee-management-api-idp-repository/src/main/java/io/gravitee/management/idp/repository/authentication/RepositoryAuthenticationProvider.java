@@ -74,7 +74,7 @@ public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthent
 	@Override
 	protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
 		try {
-			UserEntity user = userService.findByName(username, true);
+			UserEntity user = userService.findByUsername(username, true);
 			if (RepositoryIdentityProvider.PROVIDER_TYPE.equals(user.getSource())) {
 				return mapUserEntityToUserDetails(user);
 			} else {

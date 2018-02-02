@@ -60,7 +60,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     private boolean enabled;
 
     @Override
-    public void create(final String username, final NewTicketEntity ticketEntity) {
+    public void create(final String userId, final NewTicketEntity ticketEntity) {
         if (!enabled) {
             throw new SupportUnavailableException();
         }
@@ -68,9 +68,9 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
 
         final Map<String, Object> parameters = new HashMap<>();
 
-        final UserEntity user = userService.findByName(username, false);
+        final UserEntity user = userService.findById(userId);
         if (user.getEmail() == null) {
-            throw new EmailRequiredException(username);
+            throw new EmailRequiredException(userId);
         }
         parameters.put("user", user);
 

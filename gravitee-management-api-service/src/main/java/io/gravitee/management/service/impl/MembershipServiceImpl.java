@@ -17,6 +17,7 @@ package io.gravitee.management.service.impl;
 
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.providers.User;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.*;
@@ -102,31 +103,31 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public MemberEntity getMember(MembershipReferenceType referenceType, String referenceId, String username, RoleScope roleScope) {
+    public MemberEntity getMember(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope) {
         try {
-            LOGGER.debug("Get membership for {} {} and user {}", referenceType, referenceId, username);
+            LOGGER.debug("Get membership for {} {} and user {}", referenceType, referenceId, userId);
 
-            Optional<Membership> optionalMembership = membershipRepository.findById(username, referenceType, referenceId);
+            Optional<Membership> optionalMembership = membershipRepository.findById(userId, referenceType, referenceId);
 
             return optionalMembership.
                     map(m -> convert(m, roleScope)).
                     orElse(null);
 
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get membership for {} {} and user", referenceType, referenceId, username, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get members for " + referenceType + " " + referenceId + " and user " + username, ex);
+            LOGGER.error("An error occurs while trying to get membership for {} {} and user", referenceType, referenceId, userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get members for " + referenceType + " " + referenceId + " and user " + userId, ex);
         }
     }
 
     @Override
-    public RoleEntity getRole(MembershipReferenceType referenceType, String referenceId, String username, RoleScope roleScope) {
+    public RoleEntity getRole(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope) {
         try {
             if (referenceId == null) {
                 throw new IllegalArgumentException("You must provide a referenceId !");
             }
-            LOGGER.debug("Get role for {} {} and user {}", referenceType, referenceId, username);
+            LOGGER.debug("Get role for {} {} and user {}", referenceType, referenceId, userId);
 
-            Optional<Membership> optionalMembership = membershipRepository.findById(username, referenceType, referenceId);
+            Optional<Membership> optionalMembership = membershipRepository.findById(userId, referenceType, referenceId);
 
             return optionalMembership.
                     filter(m -> m.getRoles().get(roleScope.getId()) != null).
@@ -134,8 +135,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     orElse(null);
 
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get membership for {} {} and user", referenceType, referenceId, username, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get members for " + referenceType + " " + referenceId + " and user " + username, ex);
+            LOGGER.error("An error occurs while trying to get membership for {} {} and user", referenceType, referenceId, userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get members for " + referenceType + " " + referenceId + " and user " + userId, ex);
         }
     }
 
@@ -163,87 +164,95 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public MemberEntity addOrUpdateMember(MembershipReferenceType referenceType, String referenceId, String username, RoleScope roleScope, String roleName) {
+    public MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role) {
         try {
-            LOGGER.debug("Add a new member for {} {}", referenceType, referenceId);
+            LOGGER.debug("Add a new member for {} {}", reference.getType(), reference.getId());
 
-            RoleEntity roleEntity = roleService.findById(roleScope, roleName);
-            if (API.equals(referenceType)
+            RoleEntity roleEntity = roleService.findById(role.getScope(), role.getName());
+            if (API.equals(reference.getType())
                     && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())) {
-                throw new NotAuthorizedMembershipException(roleName);
-            } else if (MembershipReferenceType.APPLICATION.equals(referenceType)
+                throw new NotAuthorizedMembershipException(role.getName());
+            } else if (MembershipReferenceType.APPLICATION.equals(reference.getType())
                     && !io.gravitee.management.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())) {
-                throw new NotAuthorizedMembershipException(roleName);
-            } else if (MembershipReferenceType.GROUP.equals(referenceType)
+                throw new NotAuthorizedMembershipException(role.getName());
+            } else if (MembershipReferenceType.GROUP.equals(reference.getType())
                     && !io.gravitee.management.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())
                     && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())) {
-                throw new NotAuthorizedMembershipException(roleName);
+                throw new NotAuthorizedMembershipException(role.getName());
             }
-            UserEntity user;
 
-            try {
-                user = userService.findByName(username, false);
-            } catch (UserNotFoundException unfe) {
+            UserEntity userEntity;
+
+            if (user.getId() != null) {
+                userEntity = userService.findById(user.getId());
+            } else {
+                // We have a user reference, meaning that the user is coming from an external system
                 // User does not exist so we are looking into defined providers
-                io.gravitee.management.model.providers.User providerUser = identityService.findOne(username);
-                if (providerUser != null) {
-                    // Information will be updated after the first connection of the user
-                    NewExternalUserEntity newUser = new NewExternalUserEntity();
-                    newUser.setUsername(username);
-                    newUser.setFirstname(providerUser.getFirstname());
-                    newUser.setLastname(providerUser.getLastname());
-                    newUser.setEmail(providerUser.getEmail());
-                    newUser.setSource(providerUser.getSource());
-                    newUser.setSourceId(providerUser.getSourceId());
+                Optional<io.gravitee.management.model.providers.User> providerUser = identityService.findByReference(user.getReference());
+                if (providerUser.isPresent()) {
+                    try {
+                        userEntity = userService.findByUsername(providerUser.get().getUsername(), false);
+                    } catch (UserNotFoundException unfe) {
+                        User identityUser = providerUser.get();
+                        // The user is not yet registered in repository
+                        // Information will be updated after the first connection of the user
+                        NewExternalUserEntity newUser = new NewExternalUserEntity();
+                        newUser.setUsername(identityUser.getUsername());
+                        newUser.setFirstname(identityUser.getFirstname());
+                        newUser.setLastname(identityUser.getLastname());
+                        newUser.setSource(identityUser.getSource());
+                        newUser.setEmail(identityUser.getEmail());
+                        newUser.setSourceId(identityUser.getSourceId());
 
-                    user = userService.create(newUser, true);
+                        userEntity = userService.create(newUser, true);
+                    }
                 } else {
-                    throw new UserNotFoundException(username);
+                    throw new UserNotFoundException(user.getReference());
                 }
             }
 
             Optional<Membership> optionalMembership =
-                    membershipRepository.findById(username, referenceType, referenceId);
+                    membershipRepository.findById(userEntity.getId(), reference.getType(), reference.getId());
             Date updateDate = new Date();
             Membership returnedMembership;
             if (optionalMembership.isPresent()) {
                 Membership updatedMembership = optionalMembership.get();
                 Membership previousMembership = new Membership(updatedMembership);
-                updatedMembership.getRoles().put(roleScope.getId(), roleName);
+                updatedMembership.getRoles().put(role.getScope().getId(), role.getName());
                 updatedMembership.setUpdatedAt(updateDate);
                 returnedMembership = membershipRepository.update(optionalMembership.get());
                 createAuditLog(MEMBERSHIP_UPDATED, updatedMembership.getUpdatedAt(), previousMembership, updatedMembership);
             } else {
-                Membership membership = new Membership(username, referenceId, referenceType);
-                membership.setRoles(Collections.singletonMap(roleScope.getId(), roleName));
+                Membership membership = new Membership(userEntity.getId(), reference.getId(), reference.getType());
+                membership.setRoles(Collections.singletonMap(role.getScope().getId(), role.getName()));
                 membership.setCreatedAt(updateDate);
                 membership.setUpdatedAt(updateDate);
                 returnedMembership = membershipRepository.create(membership);
                 createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
             }
 
-            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                EmailNotification emailNotification = buildEmailNotification(user, referenceType, referenceId);
+            if (userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
+                EmailNotification emailNotification = buildEmailNotification(userEntity, reference.getType(), reference.getId());
                 if (emailNotification != null) {
                     emailService.sendAsyncEmailNotification(emailNotification);
                 }
             }
 
-            return convert(returnedMembership, roleScope);
+            return convert(returnedMembership, role.getScope());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to add member for {} {}", referenceType, referenceId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to add member for " + referenceType + " " + referenceId, ex);
+            LOGGER.error("An error occurs while trying to add member for {} {}", reference.getType(), reference.getId(), ex);
+            throw new TechnicalManagementException("An error occurs while trying to add member for " + reference.getType() + " " + reference.getId(), ex);
         }
     }
 
     @Override
-    public void deleteMember(MembershipReferenceType referenceType, String referenceId, String username) {
+    public void deleteMember(MembershipReferenceType referenceType, String referenceId, String userId) {
         try {
-            LOGGER.debug("Delete member {} for {} {}", username, referenceType, referenceId);
+            LOGGER.debug("Delete member {} for {} {}", userId, referenceType, referenceId);
             if (!MembershipReferenceType.GROUP.equals(referenceType)) {
                 RoleScope roleScope = getScopeByMembershipReferenceType(referenceType);
 
-                RoleEntity roleEntity = this.getRole(referenceType, referenceId, username, roleScope);
+                RoleEntity roleEntity = this.getRole(referenceType, referenceId, userId, roleScope);
                 if (roleEntity != null && PRIMARY_OWNER.name().equals(roleEntity.getName())) {
                     throw new SinglePrimaryOwnerException(
                             referenceType.equals(API)
@@ -251,60 +260,66 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     );
                 }
             }
-            Membership membership = new Membership(username, referenceId, referenceType);
+            Membership membership = new Membership(userId, referenceId, referenceType);
             membershipRepository.delete(membership);
             createAuditLog(MEMBERSHIP_DELETED, new Date(), membership, null);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to delete member {} for {} {}", username, referenceType, referenceId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to delete member " + username + " for " + referenceType + " " + referenceId, ex);
+            LOGGER.error("An error occurs while trying to delete member {} for {} {}", userId, referenceType, referenceId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete member " + userId + " for " + referenceType + " " + referenceId, ex);
         }
     }
 
     @Override
-    public void transferApiOwnership(String apiId, String username, RoleEntity newPrimaryOwnerRole) {
-        this.transferOwnership(API, RoleScope.API, apiId, username, newPrimaryOwnerRole);
+    public void transferApiOwnership(String apiId, MembershipUser user, RoleEntity newPrimaryOwnerRole) {
+        this.transferOwnership(API, RoleScope.API, apiId, user, newPrimaryOwnerRole);
     }
 
     @Override
-    public void transferApplicationOwnership(String applicationId, String username, RoleEntity newPrimaryOwnerRole) {
-        this.transferOwnership(APPLICATION, RoleScope.APPLICATION, applicationId, username, newPrimaryOwnerRole);
+    public void transferApplicationOwnership(String applicationId, MembershipUser user, RoleEntity newPrimaryOwnerRole) {
+        this.transferOwnership(APPLICATION, RoleScope.APPLICATION, applicationId, user, newPrimaryOwnerRole);
     }
 
-    private void transferOwnership(MembershipReferenceType membershipReferenceType, RoleScope roleScope, String itemId, String username, RoleEntity newPrimaryOwnerRole) {
+    private void transferOwnership(MembershipReferenceType membershipReferenceType, RoleScope roleScope, String itemId, MembershipUser user, RoleEntity newPrimaryOwnerRole) {
         final RoleEntity newRole = (newPrimaryOwnerRole != null) ? newPrimaryOwnerRole : roleService.findDefaultRoleByScopes(roleScope).get(0);
 
         // Set the new primary owner
-        this.addOrUpdateMember(membershipReferenceType, itemId, username, roleScope, PRIMARY_OWNER.name());
+        MemberEntity newPrimaryOwner = this.addOrUpdateMember(
+                new MembershipReference(membershipReferenceType, itemId),
+                new MembershipUser(user.getId(), user.getReference()),
+                new MembershipRole(roleScope, PRIMARY_OWNER.name()));
 
         // Update the role for previous primary_owner
         this.getMembers(membershipReferenceType, itemId, roleScope, PRIMARY_OWNER.name())
                 .stream()
-                .filter(memberEntity -> ! memberEntity.getUsername().equals(username))
-                .forEach(m -> this.addOrUpdateMember(membershipReferenceType, itemId, m.getUsername(), roleScope, newRole.getName()));
+                .filter(memberEntity -> ! memberEntity.getId().equals(newPrimaryOwner.getId()))
+                .forEach(m -> this.addOrUpdateMember(
+                        new MembershipReference(membershipReferenceType, itemId),
+                        new MembershipUser(m.getId(), null),
+                        new MembershipRole(roleScope, newRole.getName())));
     }
 
     @Override
-    public Map<String, char[]> getMemberPermissions(ApiEntity api, String username) {
+    public Map<String, char[]> getMemberPermissions(ApiEntity api, String userId) {
         return getMemberPermissions(API,
                 api.getId(),
-                username,
+                userId,
                 api.getGroups(),
                 RoleScope.API);
     }
 
     @Override
-    public Map<String, char[]> getMemberPermissions(ApplicationEntity application, String username) {
+    public Map<String, char[]> getMemberPermissions(ApplicationEntity application, String userId) {
         return getMemberPermissions(MembershipReferenceType.APPLICATION,
                 application.getId(),
-                username,
+                userId,
                 application.getGroups(),
                 RoleScope.APPLICATION);
     }
 
     @Override
-    public boolean removeRole(MembershipReferenceType referenceType, String referenceId, String username, RoleScope roleScope) {
+    public boolean removeRole(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope) {
         try {
-            Optional<Membership> optionalMembership = membershipRepository.findById(username, referenceType, referenceId);
+            Optional<Membership> optionalMembership = membershipRepository.findById(userId, referenceType, referenceId);
             if (optionalMembership.isPresent()) {
                 Membership membership = optionalMembership.get();
                 Membership previousMembership = new Membership(membership);
@@ -320,19 +335,19 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
             return false;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get membership for {} {} and user", referenceType, referenceId, username, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get members for " + referenceType + " " + referenceId + " and user " + username, ex);
+            LOGGER.error("An error occurs while trying to get membership for {} {} and user", referenceType, referenceId, userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get members for " + referenceType + " " + referenceId + " and user " + userId, ex);
         }
     }
 
-    private Map<String, char[]> getMemberPermissions(MembershipReferenceType membershipReferenceType, String referenceId, String username, Set<String> groups, RoleScope roleScope) {
-        MemberEntity member = this.getMember(membershipReferenceType, referenceId, username, roleScope);
+    private Map<String, char[]> getMemberPermissions(MembershipReferenceType membershipReferenceType, String referenceId, String userId, Set<String> groups, RoleScope roleScope) {
+        MemberEntity member = this.getMember(membershipReferenceType, referenceId, userId, roleScope);
         if (member != null) {
             return member.getPermissions();
         } else if (groups != null) {
             Map<String, Set<Character>> mergedPermissions = new HashMap<>();
             for (String groupid : groups) {
-                member = this.getMember(MembershipReferenceType.GROUP, groupid, username, roleScope);
+                member = this.getMember(MembershipReferenceType.GROUP, groupid, userId, roleScope);
                 if (member != null) {
                     for (Map.Entry<String, char[]> perm : member.getPermissions().entrySet()) {
                         if (mergedPermissions.containsKey(perm.getKey())) {
@@ -367,7 +382,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private MemberEntity convert(Membership membership, RoleScope roleScope) {
         final MemberEntity member = new MemberEntity();
 
-        final UserEntity userEntity = userService.findByName(membership.getUserId(), false);
+        final UserEntity userEntity = userService.findById(membership.getUserId());
         final RoleEntity role = getRole(
                 membership.getReferenceType(),
                 membership.getReferenceId(),
@@ -378,14 +393,16 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         if (role == null) {
             return null;
         }
+
         member.setPermissions(role.getPermissions());
-        member.setUsername(userEntity.getUsername());
+        member.setId(membership.getUserId());
         member.setCreatedAt(membership.getCreatedAt());
         member.setUpdatedAt(membership.getUpdatedAt());
         member.setRole(role.getName());
         member.setFirstname(userEntity.getFirstname());
         member.setLastname(userEntity.getLastname());
         member.setEmail(userEntity.getEmail());
+        member.setUsername(userEntity.getUsername());
 
         return member;
     }

@@ -92,7 +92,7 @@ public class TicketServiceTest {
     public void shouldNotCreateIfUserEmailIsMissing() {
         setField(ticketService, "enabled", true);
 
-        when(userService.findByName(USERNAME, false)).thenReturn(user);
+        when(userService.findById(USERNAME)).thenReturn(user);
 
         ticketService.create(USERNAME, newTicketEntity);
     }
@@ -101,7 +101,7 @@ public class TicketServiceTest {
     public void shouldNotCreateIfDefaultEmailSupportIsMissing() {
         setField(ticketService, "enabled", true);
 
-        when(userService.findByName(USERNAME, false)).thenReturn(user);
+        when(userService.findById(USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(api);
@@ -118,7 +118,7 @@ public class TicketServiceTest {
         when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
         when(newTicketEntity.getContent()).thenReturn(EMAIL_CONTENT);
 
-        when(userService.findByName(USERNAME, false)).thenReturn(user);
+        when(userService.findById(USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(api);
 
@@ -139,7 +139,7 @@ public class TicketServiceTest {
         when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
         when(newTicketEntity.getContent()).thenReturn(EMAIL_CONTENT);
 
-        when(userService.findByName(USERNAME, false)).thenReturn(user);
+        when(userService.findById(USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(user.getFirstname()).thenReturn(USER_FIRSTNAME);
         when(user.getLastname()).thenReturn(USER_LASTNAME);

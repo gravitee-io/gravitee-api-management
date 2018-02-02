@@ -24,6 +24,7 @@ import io.gravitee.management.rest.provider.*;
 import io.gravitee.management.rest.resource.auth.GitHubAuthenticationResource;
 import io.gravitee.management.rest.resource.auth.GoogleAuthenticationResource;
 import io.gravitee.management.rest.resource.auth.OAuth2AuthenticationResource;
+import io.gravitee.management.rest.resource.search.SearchResource;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.swagger.jaxrs.config.BeanConfig;
@@ -64,12 +65,13 @@ public class GraviteeApplication extends ResourceConfig {
         register(FetchersResource.class);
         register(ResourcesResource.class);
         register(InstancesResource.class);
-        register(UserResource.class);
+        register(CurrentUserResource.class);
         register(PlatformResource.class);
         register(ConfigurationResource.class);
         register(GroupsResource.class);
         register(PortalResource.class);
         register(AuditResource.class);
+        register(SearchResource.class);
 
         // Dynamically register authentication endpoints
         register(new AuthenticationBinder(authenticationProviderManager));

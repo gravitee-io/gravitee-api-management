@@ -42,7 +42,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -111,7 +110,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             process.setId(subscription.getId());
             process.setAccepted(true);
             process.setStartingAt(new Date());
-            subscription = subscriptionService.process(process, getAuthenticatedUsername());
+            subscription = subscriptionService.process(process, getAuthenticatedUser());
         }
 
         return Response
@@ -149,9 +148,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
                         application.getName(),
                         application.getType(),
                         new Subscription.Owner(
-                                application.getPrimaryOwner().getUsername(),
-                                application.getPrimaryOwner().getFirstname(),
-                                application.getPrimaryOwner().getLastname()
+                                application.getPrimaryOwner().getId(),
+                                application.getPrimaryOwner().getDisplayName()
                         )
                 ));
 

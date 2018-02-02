@@ -18,20 +18,17 @@ package io.gravitee.management.idp.repository.lookup;
 import io.gravitee.management.idp.api.identity.User;
 import io.gravitee.management.idp.repository.RepositoryIdentityProvider;
 
-import java.util.Map;
-
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RepositoryUser implements User<String> {
+public class RepositoryUser implements User {
 
-    private final String username;
-    private String firstname, lastname, email;
-    private Map<String, Object> properties;
+    private final String id;
+    private String firstname, lastname, email, username;
 
-    RepositoryUser(String username) {
-        this.username = username;
+    RepositoryUser(String id) {
+        this.id = id;
     }
 
     @Override
@@ -39,8 +36,22 @@ public class RepositoryUser implements User<String> {
         return email;
     }
 
+    @Override
+    public String getDisplayName() {
+        return firstname + ' ' + lastname;
+    }
+
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     @Override
@@ -53,13 +64,8 @@ public class RepositoryUser implements User<String> {
     }
 
     @Override
-    public String getInternalId() {
-        return username;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
+    public String getId() {
+        return id;
     }
 
     @Override
@@ -69,15 +75,6 @@ public class RepositoryUser implements User<String> {
 
     public void setLastname(String lastname) {
         this.lastname = lastname;
-    }
-
-    @Override
-    public Map<String, Object> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, Object> properties) {
-        this.properties = properties;
     }
 
     @Override

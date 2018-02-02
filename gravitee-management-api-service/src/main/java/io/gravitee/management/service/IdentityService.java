@@ -15,9 +15,11 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.management.idp.api.identity.SearchableUser;
 import io.gravitee.management.model.providers.User;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -25,7 +27,7 @@ import java.util.Collection;
  */
 public interface IdentityService {
 
-    Collection<User> search(String query);
+    Collection<SearchableUser> search(String query);
 
-    User findOne(String id);
+    Optional<User> findByReference(String reference);
 }

@@ -18,8 +18,9 @@ package io.gravitee.management.security.listener;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.NewExternalUserEntity;
 import io.gravitee.management.model.RoleEntity;
-import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.permissions.RoleScope;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.RoleService;
 import io.gravitee.management.service.UserService;
@@ -56,7 +57,9 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
         final UserDetails details = (UserDetails) event.getAuthentication().getPrincipal();
 
         try {
-            userService.findByName(details.getUsername(), false);
+            UserEntity registeredUser = userService.findByUsername(details.getUsername(), false);
+            // Principal username is the technical identifier of the user
+            details.setUsername(registeredUser.getId());
         } catch (UserNotFoundException unfe) {
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setUsername(details.getUsername());
@@ -70,13 +73,16 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             if (event.getAuthentication().getAuthorities() == null || event.getAuthentication().getAuthorities().isEmpty()) {
                 addDefaultRole = true;
             }
-            userService.create(newUser, addDefaultRole);
+            UserEntity createdUser = userService.create(newUser, addDefaultRole);
+            // Principal username is the technical identifier of the user
+            details.setUsername(createdUser.getId());
 
             if (!addDefaultRole) {
-                addRole(RoleScope.MANAGEMENT, newUser.getUsername(), event.getAuthentication().getAuthorities());
-                addRole(RoleScope.PORTAL, newUser.getUsername(), event.getAuthentication().getAuthorities());
+                addRole(RoleScope.MANAGEMENT, createdUser.getId(), event.getAuthentication().getAuthorities());
+                addRole(RoleScope.PORTAL, createdUser.getId(), event.getAuthentication().getAuthorities());
             }
         }
+
 
         userService.connect(details.getUsername());
     }
@@ -116,10 +122,10 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
      * If no role found (not provided or no exist), the defaul role is set.
      * if no role set, throw an IllegalArgumentException
      * @param roleScope
-     * @param username
+     * @param userId
      * @param authorities
      */
-    private void addRole(RoleScope roleScope, String username, Collection<? extends GrantedAuthority> authorities) {
+    private void addRole(RoleScope roleScope, String userId, Collection<? extends GrantedAuthority> authorities) {
         String roleName;
         String managementRole = getRoleFromAuthorities(roleScope, authorities);
         if (managementRole != null && !SystemRole.ADMIN.name().equals(managementRole)) {
@@ -144,12 +150,11 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
         } else {
             roleName = managementRole;
         }
+
         membershipService.addOrUpdateMember(
-                convertToMembershipReferenceType(roleScope),
-                MembershipDefaultReferenceId.DEFAULT.name(),
-                username,
-                convertToRepositoryRoleScope(roleScope),
-                roleName);
+                new MembershipService.MembershipReference(convertToMembershipReferenceType(roleScope), MembershipDefaultReferenceId.DEFAULT.name()),
+                new MembershipService.MembershipUser(userId, null),
+                new MembershipService.MembershipRole(convertToRepositoryRoleScope(roleScope), roleName));
     }
 
     /**

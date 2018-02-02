@@ -27,7 +27,7 @@ public class AuditEntity {
     private String id;
     private String referenceId;
     private String referenceType;
-    private String username;
+    private String user;
     private Date createdAt;
     private String event;
     private Map<String,String> properties;
@@ -57,12 +57,12 @@ public class AuditEntity {
         this.referenceType = referenceType;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUser() {
+        return user;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUser(String user) {
+        this.user = user;
     }
 
     public Date getCreatedAt() {
@@ -116,7 +116,7 @@ public class AuditEntity {
                 ", referenceType='" + referenceType + '\'' +
                 ", event='" + event + '\'' +
                 ", properties='" + properties + '\'' +
-                ", username='" + username + '\'' +
+                ", user='" + user + '\'' +
                 ", createdAt='" + createdAt + '\'' +
                 ", patch='" + patch + '\'' +
                 '}';

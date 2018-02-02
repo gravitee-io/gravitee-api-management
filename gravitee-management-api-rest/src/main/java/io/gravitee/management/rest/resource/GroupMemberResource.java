@@ -18,7 +18,6 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.MemberRoleEntity;
-import io.gravitee.management.model.GroupMemberEntity;
 import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -33,12 +32,13 @@ import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.*;
+import java.util.List;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -59,99 +59,6 @@ public class GroupMemberResource extends AbstractResource {
     @Inject
     private MembershipService membershipService;
 
-    @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Add or update an Group member")
-    @ApiResponses({
-            @ApiResponse(code = 201, message = "Member has been added"),
-            @ApiResponse(code = 200, message = "Member has been updated"),
-            @ApiResponse(code = 400, message = "Membership parameter is not valid"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.UPDATE)
-    })
-    public Response addOrUpdateMember(
-            @PathParam("group") String group,
-
-            @PathParam("member") String member,
-
-            @ApiParam(name = "roles")
-            List<MemberRoleEntity> roles
-    ) {
-        //check that group exists
-        groupService.findById(group);
-
-        RoleEntity previousApiRole = membershipService.getRole(
-                MembershipReferenceType.GROUP,
-                group,
-                member,
-                RoleScope.API);
-
-        RoleEntity previousApplicationRole = membershipService.getRole(
-                MembershipReferenceType.GROUP,
-                group,
-                member,
-                RoleScope.APPLICATION);
-
-
-        // process add/update before delete
-        // to avoid to have a user without roles
-
-        if (roles != null && !roles.isEmpty()) {
-            MemberRoleEntity apiRole = roles.
-                    stream().
-                    filter(r -> r.getRoleScope().equals(io.gravitee.management.model.permissions.RoleScope.API)
-                            && !r.getRoleName().isEmpty()).
-                    findFirst().
-                    orElse(null);
-
-            MemberRoleEntity applicationRole = roles.
-                    stream().
-                    filter(r -> r.getRoleScope().equals(io.gravitee.management.model.permissions.RoleScope.APPLICATION)
-                            && !r.getRoleName().isEmpty()).
-                    findFirst().
-                    orElse(null);
-
-            //Add/Update
-            if (apiRole != null) {
-                membershipService.addOrUpdateMember(
-                        MembershipReferenceType.GROUP,
-                        group,
-                        member,
-                        RoleScope.API,
-                        apiRole.getRoleName());
-            }
-            if (applicationRole != null) {
-                membershipService.addOrUpdateMember(
-                        MembershipReferenceType.GROUP,
-                        group,
-                        member,
-                        RoleScope.APPLICATION,
-                        applicationRole.getRoleName());
-            }
-
-            //delete
-            if (apiRole == null && previousApiRole != null) {
-                membershipService.removeRole(
-                        MembershipReferenceType.GROUP,
-                        group,
-                        member,
-                        RoleScope.API);
-            }
-            if (applicationRole == null && previousApplicationRole != null) {
-                membershipService.removeRole(
-                        MembershipReferenceType.GROUP,
-                        group,
-                        member,
-                        RoleScope.APPLICATION);
-            }
-        }
-
-        return Response.ok().build();
-    }
-
     @DELETE
     @ApiOperation(value = "Remove a group member")
     @ApiResponses({
@@ -161,16 +68,16 @@ public class GroupMemberResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.DELETE)
     })
-    public Response deleteMember( @PathParam("group") String group, @PathParam("member") String member) {
+    public Response deleteMember( @PathParam("group") String group, @PathParam("member") String userId) {
         // check group exists
         groupService.findById(group);
         try {
-            userService.findByName(member, false);
+            userService.findById(userId);
         } catch (UserNotFoundException unfe) {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
-        membershipService.deleteMember(MembershipReferenceType.GROUP, group, member);
+        membershipService.deleteMember(MembershipReferenceType.GROUP, group, userId);
         return Response.ok().build();
     }
 }

@@ -18,10 +18,12 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.MembershipListItem;
 import io.gravitee.management.model.permissions.ApplicationPermission;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
-import io.gravitee.management.rest.model.RoleEntity;
+import io.gravitee.management.rest.model.ApplicationMembership;
+import io.gravitee.management.rest.model.TransferOwnership;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApplicationService;
@@ -35,6 +37,7 @@ import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.*;
@@ -79,7 +82,7 @@ public class ApplicationMembersResource  extends AbstractResource {
     public Response getPermissions(@PathParam("application") String application) {
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
-            final String username = getAuthenticatedUsername();
+            final String username = getAuthenticatedUser();
             final ApplicationEntity applicationEntity = applicationService.findById(application);
             if (isAdmin()) {
                 final char[] rights = new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
@@ -98,15 +101,17 @@ public class ApplicationMembersResource  extends AbstractResource {
     @ApiOperation(value = "List application members",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Application successfully deleted", response = MemberEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "Application successfully deleted", response = MembershipListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ)
     })
-    public List<MemberEntity> listApplicationMembers(@PathParam("application") String application) {
+    public List<MembershipListItem> listApplicationMembers(@PathParam("application") String application) {
         applicationService.findById(application);
-        return membershipService.getMembers(MembershipReferenceType.APPLICATION, application, RoleScope.APPLICATION, null).stream()
-                .sorted(Comparator.comparing(MemberEntity::getUsername))
+        return membershipService.getMembers(MembershipReferenceType.APPLICATION, application, RoleScope.APPLICATION, null)
+                .stream()
+                .map(MembershipListItem::new)
+                .sorted(Comparator.comparing(MembershipListItem::getId))
                 .collect(Collectors.toList());
     }
 
@@ -123,23 +128,20 @@ public class ApplicationMembersResource  extends AbstractResource {
     })
     public Response addOrUpdateApplicationMember(
             @PathParam("application") String application,
+            @Valid @NotNull ApplicationMembership applicationMembership) {
 
-            @ApiParam(name = "user", required = true)
-            @NotNull @QueryParam("user") String username,
-
-            @ApiParam(name = "rolename", required = true)
-            @NotNull @QueryParam("rolename") String roleName
-    ) {
-        if (PRIMARY_OWNER.name().equals(roleName)) {
+        if (PRIMARY_OWNER.name().equals(applicationMembership.getRole())) {
             throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
         }
-        applicationService.findById(application);
-        if (roleName == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
 
-        membershipService.addOrUpdateMember(MembershipReferenceType.APPLICATION, application, username, RoleScope.APPLICATION, roleName);
-        return Response.created(URI.create("/applications/" + application + "/members/" + username)).build();
+        applicationService.findById(application);
+
+        MemberEntity membership = membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, application),
+                new MembershipService.MembershipUser(applicationMembership.getId(), applicationMembership.getReference()),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, applicationMembership.getRole()));
+
+        return Response.created(URI.create("/applications/" + application + "/members/" + membership.getId())).build();
     }
 
     @DELETE
@@ -154,15 +156,15 @@ public class ApplicationMembersResource  extends AbstractResource {
     })
     public Response deleteApplicationMember(
             @PathParam("application") String application,
-            @ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String username) {
+            @ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String userId) {
         applicationService.findById(application);
         try {
-            userService.findByName(username, false);
+            userService.findById(userId);
         } catch (UserNotFoundException unfe) {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
-        membershipService.deleteMember(MembershipReferenceType.APPLICATION, application, username);
+        membershipService.deleteMember(MembershipReferenceType.APPLICATION, application, userId);
         return Response.ok().build();
     }
 
@@ -176,17 +178,20 @@ public class ApplicationMembersResource  extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE)
     })
-    public Response transferOwnership(@PathParam("application") String application, @NotNull @QueryParam("user") String username, RoleEntity role) {
+    public Response transferOwnership(
+            @PathParam("application") String application,
+            @Valid @NotNull TransferOwnership transferOwnership) {
         io.gravitee.management.model.RoleEntity newPORole = null;
-        if (role!=null && role.getName()!=null) {
-            try {
-                newPORole = roleService.findById(RoleScope.APPLICATION, role.getName());
-            } catch (RoleNotFoundException re) {
-                //it doesn't matter
-            }
+
+        try {
+            newPORole = roleService.findById(RoleScope.API, transferOwnership.getPoRole());
+        } catch (RoleNotFoundException re) {
+            //it doesn't matter
         }
+
         applicationService.findById(application);
-        membershipService.transferApplicationOwnership(application, username, newPORole);
+        membershipService.transferApplicationOwnership(application, new MembershipService.MembershipUser(
+                transferOwnership.getId(), transferOwnership.getReference()), newPORole);
         return Response.ok().build();
     }
 }

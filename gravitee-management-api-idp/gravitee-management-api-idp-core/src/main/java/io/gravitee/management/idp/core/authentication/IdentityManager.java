@@ -15,17 +15,19 @@
  */
 package io.gravitee.management.idp.core.authentication;
 
+import io.gravitee.management.idp.api.identity.SearchableUser;
 import io.gravitee.management.idp.api.identity.User;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface IdentityManager {
 
-    User retrieve(Object id);
+    Optional<User> lookup(String reference);
 
-    Collection<User> search(String query);
+    Collection<SearchableUser> search(String query);
 }

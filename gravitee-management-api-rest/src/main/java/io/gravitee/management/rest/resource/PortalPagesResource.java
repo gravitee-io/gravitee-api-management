@@ -116,7 +116,7 @@ public class PortalPagesResource extends AbstractResource {
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
         int order = pageService.findMaxPortalPageOrder() + 1;
         newPageEntity.setOrder(order);
-        newPageEntity.setLastContributor(getAuthenticatedUsername());
+        newPageEntity.setLastContributor(getAuthenticatedUser());
         PageEntity newPage = pageService.createPortalPage(newPageEntity);
         if (newPage != null) {
             return Response
@@ -145,7 +145,7 @@ public class PortalPagesResource extends AbstractResource {
             @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         pageService.findById(page);
 
-        updatePageEntity.setLastContributor(getAuthenticatedUsername());
+        updatePageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.update(page, updatePageEntity);
     }
 
@@ -168,6 +168,6 @@ public class PortalPagesResource extends AbstractResource {
 
     private boolean isDisplayable(boolean isPagePublished, List<String> excludedGroups) {
         return (isAuthenticated() && isAdmin()) ||
-                (isPagePublished && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUsernameOrNull()));
+                (isPagePublished && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull()));
     }
 }

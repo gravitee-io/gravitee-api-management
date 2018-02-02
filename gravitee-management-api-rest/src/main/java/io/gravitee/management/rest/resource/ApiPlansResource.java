@@ -90,7 +90,7 @@ public class ApiPlansResource extends AbstractResource {
             return planService.findByApi(api).stream()
                     .filter(plan -> status.getStatuses().contains(plan.getStatus())
                             && ( (isAuthenticated() && isAdmin()) || groupService.
-                            isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUsernameOrNull())))
+                            isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())))
                     .sorted(Comparator.comparingInt(PlanEntity::getOrder))
                     .collect(Collectors.toList());
         }
@@ -239,7 +239,7 @@ public class ApiPlansResource extends AbstractResource {
                     .build();
         }
 
-        return Response.ok(planService.close(plan, getAuthenticatedUsername())).build();
+        return Response.ok(planService.close(plan, getAuthenticatedUser())).build();
     }
 
     @POST

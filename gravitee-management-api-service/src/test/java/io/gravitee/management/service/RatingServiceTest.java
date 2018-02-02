@@ -107,8 +107,8 @@ public class RatingServiceTest {
         when(rating.getRate()).thenReturn(RATE);
         when(rating.getUser()).thenReturn(USER);
 
-        when(userService.findByName(USER, false)).thenReturn(user);
-        when(user.getUsername()).thenReturn(USER);
+        when(userService.findById(USER)).thenReturn(user);
+        when(user.getId()).thenReturn(USER);
     }
 
     @Test(expected = RatingAlreadyExistsException.class)
@@ -130,7 +130,7 @@ public class RatingServiceTest {
 
         final RatingEntity ratingEntity = ratingService.create(newRatingEntity);
 
-        assertEquals(USER, ratingEntity.getUsername());
+        assertEquals(USER, ratingEntity.getUser());
         assertEquals(API_ID, ratingEntity.getApi());
         assertEquals(TITLE, ratingEntity.getTitle());
         assertEquals(COMMENT, ratingEntity.getComment());
@@ -169,14 +169,14 @@ public class RatingServiceTest {
 
         verify(ratingAnswerRepository).create(any(RatingAnswer.class));
 
-        assertEquals(USER, ratingEntity.getUsername());
+        assertEquals(USER, ratingEntity.getUser());
         assertEquals(API_ID, ratingEntity.getApi());
         assertEquals(TITLE, ratingEntity.getTitle());
         assertEquals(COMMENT, ratingEntity.getComment());
         assertEquals(RATE, ratingEntity.getRate(), 0);
         assertEquals(ratingEntity.getCreatedAt(), ratingEntity.getUpdatedAt());
         assertEquals(ANSWER, ratingEntity.getAnswers().get(0).getComment());
-        assertEquals(USER, ratingEntity.getAnswers().get(0).getUsername());
+        assertEquals(USER, ratingEntity.getAnswers().get(0).getUser());
         assertNotNull(ratingEntity.getAnswers().get(0).getCreatedAt());
     }
 
@@ -197,7 +197,7 @@ public class RatingServiceTest {
         assertEquals(10, pageRatingEntity.getPageElements());
         assertEquals(100, pageRatingEntity.getTotalElements());
         final RatingEntity ratingEntity = pageRatingEntity.getContent().get(0);
-        assertEquals(USER, ratingEntity.getUsername());
+        assertEquals(USER, ratingEntity.getUser());
         assertEquals(API_ID, ratingEntity.getApi());
         assertEquals(TITLE, ratingEntity.getTitle());
         assertEquals(COMMENT, ratingEntity.getComment());
@@ -217,7 +217,7 @@ public class RatingServiceTest {
 
         final RatingEntity ratingEntity = ratingService.findByApiForConnectedUser(API_ID);
 
-        assertEquals(USER, ratingEntity.getUsername());
+        assertEquals(USER, ratingEntity.getUser());
         assertEquals(API_ID, ratingEntity.getApi());
         assertEquals(TITLE, ratingEntity.getTitle());
         assertEquals(COMMENT, ratingEntity.getComment());

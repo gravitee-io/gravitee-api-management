@@ -33,6 +33,11 @@ import java.util.Set;
 public class UserRepositoryProxy extends AbstractProxy<UserRepository> implements UserRepository {
 
     @Override
+    public Optional<User> findById(String id) throws TechnicalException {
+        return target.findById(id);
+    }
+
+    @Override
     public User create(User user) throws TechnicalException {
         return target.create(user);
     }
@@ -53,7 +58,7 @@ public class UserRepositoryProxy extends AbstractProxy<UserRepository> implement
     }
 
     @Override
-    public Set<User> findByUsernames(List<String> usernames) throws TechnicalException {
-        return target.findByUsernames(usernames);
+    public Set<User> findByIds(List<String> ids) throws TechnicalException {
+        return target.findByIds(ids);
     }
 }

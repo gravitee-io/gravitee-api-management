@@ -86,7 +86,7 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
     @Override
     public List<GroupEntity> findByName(String name) {
         try {
-            logger.debug("findByName : {}", name);
+            logger.debug("findByUsername : {}", name);
             if (name == null) {
                 return Collections.emptyList();
             }
@@ -94,7 +94,7 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
                     .filter(group -> group.getName().equals(name))
                     .map(this::map)
                     .collect(Collectors.toList());
-            logger.debug("findByName : {} - DONE", name);
+            logger.debug("findByUsername : {} - DONE", name);
             return groupEntities;
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find groups by name", ex);

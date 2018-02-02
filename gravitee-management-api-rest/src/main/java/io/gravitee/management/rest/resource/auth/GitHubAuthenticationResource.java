@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.NewExternalUserEntity;
 import io.gravitee.management.model.UpdateUserEntity;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.swagger.annotations.Api;
@@ -115,7 +116,8 @@ public class GitHubAuthenticationResource extends AbstractAuthenticationResource
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
 
         try {
-            userService.findByName(username, false);
+            UserEntity registeredUser = userService.findByUsername(username, false);
+            userDetails.setUsername(registeredUser.getId());
         } catch (UserNotFoundException unfe) {
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setUsername(username);
@@ -125,7 +127,8 @@ public class GitHubAuthenticationResource extends AbstractAuthenticationResource
             newUser.setLastname(partNames[0]);
             newUser.setFirstname(partNames[1]);
             newUser.setEmail(username);
-            userService.create(newUser, true);
+            UserEntity createdUser = userService.create(newUser, true);
+            userDetails.setUsername(createdUser.getId());
         }
 
         // User refresh
@@ -135,6 +138,6 @@ public class GitHubAuthenticationResource extends AbstractAuthenticationResource
 
         userService.update(user);
 
-        return connectUser(username);
+        return connectUser(userDetails.getUsername());
     }
 }

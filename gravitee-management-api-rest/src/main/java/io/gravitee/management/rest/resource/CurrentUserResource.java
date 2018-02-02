@@ -18,9 +18,7 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.idp.api.authentication.UserDetailRole;
 import io.gravitee.management.idp.api.authentication.UserDetails;
-import io.gravitee.management.model.TaskEntity;
-import io.gravitee.management.model.UpdateUserEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.rest.model.PagedResult;
 import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.service.TaskService;
@@ -33,14 +31,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
+import java.io.ByteArrayOutputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,9 +51,9 @@ import java.util.stream.Collectors;
  */
 @Path("/user")
 @Api(tags = {"User"})
-public class UserResource extends AbstractResource {
+public class CurrentUserResource extends AbstractResource {
 
-    private static Logger LOG = LoggerFactory.getLogger(UserResource.class);
+    private static Logger LOG = LoggerFactory.getLogger(CurrentUserResource.class);
 
     @Autowired
     private UserService userService;
@@ -73,34 +71,35 @@ public class UserResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get the authenticated user")
     public Response getCurrentUser() {
-        final Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            final UserDetails details = ((UserDetails) principal);
-            final String username = details.getUsername();
+        if (isAuthenticated()) {
+            final UserDetails details = getAuthenticatedUserDetails();
+            final String userId = details.getUsername();
             UserEntity userEntity;
             try {
-                userEntity = userService.findByName(username, true);
+                userEntity = userService.findByIdWithRoles(userId);
             } catch (final UserNotFoundException unfe) {
-                final String unfeMessage = "User '{}' no longer exists.";
+                final String unfeMessage = "User '{}' does not exist.";
                 if (LOG.isDebugEnabled()) {
-                    LOG.info(unfeMessage, username, unfe);
+                    LOG.info(unfeMessage, userId, unfe);
                 } else {
-                    LOG.info(unfeMessage, username);
+                    LOG.info(unfeMessage, userId);
                 }
                 return logout();
             }
 
             List<GrantedAuthority> authorities = new ArrayList<>(details.getAuthorities());
 
-            UserDetails userDetails = new UserDetails(details.getUsername(), details.getPassword(), authorities);
+            UserDetails userDetails = new UserDetails(userEntity.getId(), details.getPassword(), authorities);
+            userDetails.setId(userEntity.getId());
             userDetails.setFirstname(details.getFirstname());
             userDetails.setLastname(details.getLastname());
+            userDetails.setUsername(userEntity.getUsername());
             userDetails.setEmail(details.getEmail());
 
             //convert UserEntityRoles to UserDetailsRoles
             userDetails.setRoles(userEntity.getRoles().
                     stream().
-                    map( userEntityRole -> {
+                    map(userEntityRole -> {
                         UserDetailRole userDetailRole = new UserDetailRole();
                         userDetailRole.setScope(userEntityRole.getScope().name());
                         userDetailRole.setName(userEntityRole.getName());
@@ -109,15 +108,15 @@ public class UserResource extends AbstractResource {
                     }).collect(Collectors.toList()));
 
             return Response.ok(userDetails, MediaType.APPLICATION_JSON).build();
+        } else {
+            return Response.ok().build();
         }
-        return Response.ok().build();
     }
 
     @PUT
-    @Path("/{username}")
     @ApiOperation(value = "Update user")
-    public Response updateCurrentUser(@PathParam("username") final String username, @Valid @NotNull final UpdateUserEntity user) {
-        if (!username.equals(getAuthenticatedUsername())) {
+    public Response updateCurrentUser(@Valid @NotNull final UpdateUserEntity user) {
+        if (!user.getUsername().equals(getAuthenticatedUser())) {
             throw new ForbiddenAccessException();
         }
 
@@ -125,10 +124,38 @@ public class UserResource extends AbstractResource {
     }
 
     @GET
-    @Path("/{username}/picture")
-    @ApiOperation(value = "Get user's picture")
-    public Response getCurrentUserPicture(@PathParam("username") final String username) {
-        return Response.ok(userService.findByName(username, false).getPicture()).build();
+    @Path("avatar")
+    @ApiOperation(value = "Get user's avatar")
+    public Response getCurrentUserPicture(@Context Request request) {
+        String userId = userService.findById(getAuthenticatedUser()).getId();
+        PictureEntity picture = userService.getPicture(userId);
+
+        if (picture == null) {
+            throw new NotFoundException();
+        }
+
+        if (picture instanceof UrlPictureEntity) {
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity)picture).getUrl())).build();
+        }
+
+        InlinePictureEntity image = (InlinePictureEntity) picture;
+
+        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
+        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
+
+        if (builder != null) {
+            return builder.build();
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(image.getContent(), 0, image.getContent().length);
+
+        return Response
+                .ok()
+                .entity(baos)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 
     @POST
@@ -150,7 +177,7 @@ public class UserResource extends AbstractResource {
     @Path("/tasks")
     @Produces(MediaType.APPLICATION_JSON)
     public PagedResult getUserTasks() {
-        List<TaskEntity> tasks = taskService.findAll(getAuthenticatedUsernameOrNull());
+        List<TaskEntity> tasks = taskService.findAll(getAuthenticatedUserOrNull());
         Map<String, Map<String, Object>> metadata = taskService.getMetadata(tasks).getMetadata();
         PagedResult<TaskEntity> pagedResult = new PagedResult<>(tasks);
         pagedResult.setMetadata(metadata);

@@ -21,10 +21,7 @@ import com.jayway.jsonpath.ReadContext;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.management.idp.api.authentication.UserDetails;
-import io.gravitee.management.model.GroupEntity;
-import io.gravitee.management.model.NewExternalUserEntity;
-import io.gravitee.management.model.RoleEntity;
-import io.gravitee.management.model.UpdateUserEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.rest.resource.auth.oauth2.AuthorizationServerConfigurationParser;
 import io.gravitee.management.rest.resource.auth.oauth2.ExpressionMapping;
 import io.gravitee.management.rest.resource.auth.oauth2.ServerConfiguration;
@@ -156,7 +153,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
 
         try {
-            userService.findByName(username, false);
+            UserEntity registeredUser = userService.findByUsername(username, false);
+            userDetails.setUsername(registeredUser.getId());
         } catch (UserNotFoundException unfe) {
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setUsername(username);
@@ -180,11 +178,13 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 //can fail if a group in config does not exist in gravitee --> HTTP 500
                 Set<GroupEntity> groupsToAdd = getGroupsToAddUser(username, mappings, userInfo);
 
-                userService.create(newUser, true);
+                UserEntity createdUser = userService.create(newUser, true);
+                userDetails.setUsername(createdUser.getId());
 
-                addUserToApiAndAppGroupsWithDefaultRole(newUser, groupsToAdd);
+                addUserToApiAndAppGroupsWithDefaultRole(createdUser.getId(), groupsToAdd);
             } else {
-                userService.create(newUser, true);
+                UserEntity createdUser = userService.create(newUser, true);
+                userDetails.setUsername(createdUser.getId());
             }
         }
 
@@ -202,9 +202,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             user.setPicture(attrs.get(UserProfile.PICTURE));
         }
 
-        userService.update(user);
+        UserEntity updatedUser = userService.update(user);
 
-        return connectUser(username);
+        return connectUser(updatedUser.getId());
     }
 
     private HashMap<String, String> getUserProfileAttrs(String userInfo) {
@@ -242,18 +242,21 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         return map;
     }
 
-    private void addUserToApiAndAppGroupsWithDefaultRole(NewExternalUserEntity newUser, Collection<GroupEntity> groupsToAdd) {
+    private void addUserToApiAndAppGroupsWithDefaultRole(String userId, Collection<GroupEntity> groupsToAdd) {
         List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION);
 
         //add groups to user
         for (GroupEntity groupEntity : groupsToAdd) {
             for (RoleEntity roleEntity : roleEntities) {
-                membershipService.addOrUpdateMember(MembershipReferenceType.GROUP, groupEntity.getId(), newUser.getUsername(), mapScope(roleEntity.getScope()), roleEntity.getName());
+                membershipService.addOrUpdateMember(
+                        new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupEntity.getId()),
+                        new MembershipService.MembershipUser(userId, null),
+                        new MembershipService.MembershipRole(mapScope(roleEntity.getScope()), roleEntity.getName()));
             }
         }
     }
 
-    private Set<GroupEntity> getGroupsToAddUser(String userName, List<ExpressionMapping> mappings, String userInfo) {
+    private Set<GroupEntity> getGroupsToAddUser(String username, List<ExpressionMapping> mappings, String userInfo) {
         Set<GroupEntity> groupsToAdd = new HashSet<>();
 
         for (ExpressionMapping mapping : mappings) {
@@ -263,7 +266,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
             boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
 
-            trace(userName, match, mapping);
+            trace(username, match, mapping);
 
             //get groups
             if (match) {
@@ -285,12 +288,12 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         return groupsToAdd;
     }
 
-    private void trace(String userName, boolean match, ExpressionMapping mapping) {
+    private void trace(String username, boolean match, ExpressionMapping mapping) {
         if (LOGGER.isDebugEnabled()) {
             if (match) {
-                LOGGER.debug("the expression {} match on {} user's info ", mapping.getCondition(), userName);
+                LOGGER.debug("the expression {} match on {} user's info ", mapping.getCondition(), username);
             } else {
-                LOGGER.debug("the expression {} didn't match {} on user's info ", mapping.getCondition(), userName);
+                LOGGER.debug("the expression {} didn't match {} on user's info ", mapping.getCondition(), username);
             }
         }
     }

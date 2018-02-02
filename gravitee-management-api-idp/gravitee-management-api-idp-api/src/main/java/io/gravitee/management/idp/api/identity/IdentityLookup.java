@@ -18,12 +18,14 @@ package io.gravitee.management.idp.api.identity;
 import java.util.Collection;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface IdentityLookup<T> {
+public interface IdentityLookup {
 
-    User retrieve(T id);
+    boolean canHandle(IdentityReference identityReference);
+
+    User retrieve(IdentityReference identityReference);
 
     Collection<User> search(String query);
 }

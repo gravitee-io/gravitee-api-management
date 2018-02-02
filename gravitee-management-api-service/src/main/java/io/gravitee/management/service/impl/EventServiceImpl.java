@@ -135,7 +135,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
     @Override
     public Set<EventEntity> findByUser(String username) {
-        return findByProperty(Event.EventProperties.USERNAME.getValue(), username);
+        return findByProperty(Event.EventProperties.USER.getValue(), username);
     }
 
     @Override
@@ -188,14 +188,15 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         eventEntity.setUpdatedAt(event.getUpdatedAt());
 
         if (event.getProperties() != null) {
-            final String username = event.getProperties().get(Event.EventProperties.USERNAME.getValue());
-            if (username != null && !username.isEmpty()) {
+            final String userId = event.getProperties().get(Event.EventProperties.USER.getValue());
+            if (userId != null && !userId.isEmpty()) {
                 try {
-                    eventEntity.setUser(userService.findByName(username, false));
+                    eventEntity.setUser(userService.findById(userId));
                 } catch (UserNotFoundException unfe) {
                     UserEntity user = new UserEntity();
                     user.setSource("system");
-                    user.setUsername(username);
+                    user.setId(userId);
+                    user.setUsername("system");
                     eventEntity.setUser(user);
                 }
             }

@@ -15,9 +15,10 @@
  */
 package io.gravitee.management.idp.ldap.lookup;
 
-import com.sun.jndi.ldap.LdapCtx;
 import io.gravitee.management.idp.api.identity.IdentityLookup;
+import io.gravitee.management.idp.api.identity.IdentityReference;
 import io.gravitee.management.idp.api.identity.User;
+import io.gravitee.management.idp.ldap.LdapIdentityProvider;
 import io.gravitee.management.idp.ldap.lookup.spring.LdapIdentityLookupConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,32 +26,36 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
-import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.ContextMapper;
+import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.filter.AndFilter;
-import org.springframework.ldap.filter.EqualsFilter;
-import org.springframework.ldap.filter.WhitespaceWildcardsFilter;
+import org.springframework.ldap.core.support.AbstractContextMapper;
+import org.springframework.ldap.filter.*;
 import org.springframework.ldap.query.LdapQuery;
 import org.springframework.ldap.query.LdapQueryBuilder;
 import org.springframework.ldap.query.SearchScope;
 import org.springframework.ldap.support.LdapNameBuilder;
 
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 import java.util.Collection;
-import java.util.List;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Import(LdapIdentityLookupConfiguration.class)
-public class LdapIdentityLookup implements IdentityLookup<String>, InitializingBean {
+public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
     private final Logger LOGGER = LoggerFactory.getLogger(LdapIdentityLookup.class);
+
+    private final static String LDAP_DEFAULT_OBJECT_CLASS = "person";
+
+    private final static String LDAP_ATTRIBUTE_COMMONNAME = "cn";
+    private final static String LDAP_ATTRIBUTE_USERID = "uid";
+    private final static String LDAP_ATTRIBUTE_GIVENNAME = "givenName";
+    private final static String LDAP_ATTRIBUTE_SURNAME = "sn";
+    private final static String LDAP_ATTRIBUTE_MAIL = "mail";
+    private final static String LDAP_ATTRIBUTE_DISPLAYNAME = "displayName";
 
     @Autowired
     private LdapTemplate ldapTemplate;
@@ -85,74 +90,76 @@ public class LdapIdentityLookup implements IdentityLookup<String>, InitializingB
 
     @Override
     public Collection<User> search(String query) {
-        AndFilter filter = new AndFilter();
-        filter.and(new EqualsFilter("objectclass",
-                                    environment.getProperty(
-                                        "user-search-objectclass",
-                                        "person")));
-        filter.and(new WhitespaceWildcardsFilter("cn", query));
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+            Filter classFilter = new EqualsFilter("objectclass",
+                    environment.getProperty(
+                            "user-search-objectclass",
+                            LDAP_DEFAULT_OBJECT_CLASS));
 
-        LdapQuery ldapQuery = LdapQueryBuilder
-                .query()
-                .base(baseDn)
-                .countLimit(20)
-                .timeLimit(5000)
-                .searchScope(SearchScope.SUBTREE)
-                .attributes(identifierAttribute, "givenname", "sn", "mail")
-                .filter(filter);
+            Filter queryFilter = new OrFilter()
+                    .or(new WhitespaceWildcardsFilter(LDAP_ATTRIBUTE_COMMONNAME, query))
+                    .or(new EqualsFilter(LDAP_ATTRIBUTE_USERID, query));
+
+            LdapQuery ldapQuery = LdapQueryBuilder
+                    .query()
+                    .base(baseDn)
+                    .countLimit(20)
+                    .timeLimit(5000)
+                    .searchScope(SearchScope.SUBTREE)
+                    .attributes(
+                            LDAP_ATTRIBUTE_GIVENNAME,
+                            LDAP_ATTRIBUTE_SURNAME,
+                            LDAP_ATTRIBUTE_MAIL,
+                            LDAP_ATTRIBUTE_DISPLAYNAME)
+                    .filter(new AndFilter().and(classFilter).and(queryFilter));
 
 
-        return ldapTemplate.search(ldapQuery, new UserAttributesMapper());
+            return ldapTemplate.search(ldapQuery, USER_CONTEXT_MAPPER);
+        } finally {
+            Thread.currentThread().setContextClassLoader(classLoader);
+        }
     }
 
     @Override
-    public User retrieve(String id) {
-        AndFilter filter = new AndFilter();
-        filter.and(new EqualsFilter("objectclass",
-                                    environment.getProperty(
-                                        "user-search-objectclass",
-                                        "person")));
-        filter.and(new EqualsFilter(identifierAttribute, id));
+    public boolean canHandle(IdentityReference identityReference) {
+        return LdapIdentityProvider.PROVIDER_TYPE.equalsIgnoreCase(identityReference.getSource());
+    }
 
-        LdapQuery ldapQuery = LdapQueryBuilder
-                .query()
-                .base(baseDn)
-                .countLimit(1)
-                .timeLimit(5000)
-                .searchScope(SearchScope.SUBTREE)
-                .attributes(identifierAttribute, "givenname", "sn", "mail")
-                .filter(filter);
+    @Override
+    public User retrieve(IdentityReference identityReference) {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+            return ldapTemplate.lookup(
+                    identityReference.getReference(),
+                    new String [] {
+                            identifierAttribute, LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME,
+                            LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME
+                    },
+                    USER_CONTEXT_MAPPER);
+        } finally {
+            Thread.currentThread().setContextClassLoader(classLoader);
+        }
+    }
 
-        List<User> users = ldapTemplate.search(ldapQuery, new UserAttributesMapper());
-        if (users != null && ! users.isEmpty()) {
-            LdapUser user = (LdapUser) users.iterator().next();
-            List<String> result = ldapTemplate.search(
-                    baseDn, filter.encode(),
-                    (ContextMapper<String>) o -> ((LdapCtx) o).getNameInNamespace());
-            user.setDn(result.iterator().next());
+    private final ContextMapper<User> USER_CONTEXT_MAPPER = new AbstractContextMapper<User>() {
+
+        @Override
+        protected User doMapFromContext(DirContextOperations ctx) {
+            LdapUser user = new LdapUser(ctx.getDn().toString());
+            user.setFirstname(ctx.getStringAttribute(LDAP_ATTRIBUTE_GIVENNAME));
+            user.setLastname(ctx.getStringAttribute(LDAP_ATTRIBUTE_SURNAME));
+            user.setEmail(ctx.getStringAttribute(LDAP_ATTRIBUTE_MAIL));
+            user.setDisplayName(ctx.getStringAttribute(LDAP_ATTRIBUTE_DISPLAYNAME));
+            user.setUsername(ctx.getStringAttribute(LdapIdentityLookup.this.identifierAttribute));
+
+            if (user.getDisplayName() == null) {
+                user.setDisplayName(user.getFirstname() + ' ' + user.getLastname());
+            }
 
             return user;
-        } else {
-            return null;
         }
-    }
-
-    private class UserAttributesMapper implements AttributesMapper<User> {
-        public User mapFromAttributes(Attributes attrs) throws NamingException {
-            LdapUser user = new LdapUser(attributeValue(attrs, identifierAttribute));
-            user.setFirstname(attributeValue(attrs, "givenname"));
-            user.setLastname(attributeValue(attrs, "sn"));
-            user.setEmail(attributeValue(attrs, "mail"));
-            return user;
-        }
-    }
-
-    private String attributeValue(Attributes attrs, String attributeId) throws NamingException {
-        Attribute attr = attrs.get(attributeId);
-        if (attr != null) {
-            return (String) attr.get();
-        }
-
-        return null;
-    }
+    };
 }

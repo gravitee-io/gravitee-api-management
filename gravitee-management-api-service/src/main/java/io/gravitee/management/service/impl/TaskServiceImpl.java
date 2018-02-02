@@ -60,16 +60,13 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     @Autowired
     PlanService planService;
 
-    @Autowired
-    ObjectMapper objectMapper;
-
     @Override
-    public List<TaskEntity> findAll(String username) {
-        if (username == null) {
+    public List<TaskEntity> findAll(String userId) {
+        if (userId == null) {
             throw new UnauthorizedAccessException();
         }
 
-        List<SubscriptionEntity> subscriptions = apiService.findByUser(username).
+        List<SubscriptionEntity> subscriptions = apiService.findByUser(userId).
                 stream().
                 filter(api -> permissionService.hasPermission(API_SUBSCRIPTION, api.getId(), UPDATE)).
                 map(api -> subscriptionService.findByApi(api.getId())).

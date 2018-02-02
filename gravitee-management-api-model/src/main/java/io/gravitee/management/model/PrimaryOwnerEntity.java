@@ -16,47 +16,37 @@
 package io.gravitee.management.model;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class PrimaryOwnerEntity {
 
-    private String username;
+    private final String id;
 
-    private String firstname;
+    private final String email;
 
-    private String lastname;
+    private final String displayName;
 
-    private String email;
+    public PrimaryOwnerEntity(UserEntity user) {
+        this.id = user.getId();
+        this.email = user.getEmail();
+
+        if (user.getFirstname() == null || user.getLastname() == null) {
+            this.displayName = user.getUsername();
+        } else {
+            this.displayName = user.getFirstname() + ' ' + user.getLastname();
+        }
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
 
     public String getEmail() {
         return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getFirstname() {
-        return firstname;
-    }
-
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 }

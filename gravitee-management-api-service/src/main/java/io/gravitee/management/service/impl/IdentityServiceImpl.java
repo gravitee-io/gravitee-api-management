@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.impl;
 
+import io.gravitee.management.idp.api.identity.SearchableUser;
 import io.gravitee.management.idp.core.authentication.IdentityManager;
 import io.gravitee.management.model.providers.User;
 import io.gravitee.management.service.IdentityService;
@@ -22,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,24 +36,26 @@ public class IdentityServiceImpl implements IdentityService {
     private IdentityManager identityManager;
 
     @Override
-    public Collection<User> search(String query) {
-        return identityManager.search(query).stream().map(this::convert).collect(Collectors.toSet());
+    public Collection<SearchableUser> search(String query) {
+        return identityManager.search(query);
     }
 
     @Override
-    public User findOne(String id) {
-        io.gravitee.management.idp.api.identity.User user = identityManager.retrieve(id);
-        return (user != null) ? convert(user) : null;
+    public Optional<User> findByReference(String reference) {
+        Optional<io.gravitee.management.idp.api.identity.User> optUser = identityManager.lookup(reference);
+        return optUser.flatMap(user -> Optional.of(convert(user)));
     }
 
     private User convert(io.gravitee.management.idp.api.identity.User identity) {
         User user = new User();
+        user.setId(identity.getId());
+        user.setSourceId(identity.getReference());
+        user.setSource(identity.getSource());
         user.setEmail(identity.getEmail());
+        user.setUsername(identity.getUsername());
         user.setFirstname(identity.getFirstname());
         user.setLastname(identity.getLastname());
-        user.setId((String) identity.getUsername());
-        user.setSource(identity.getSource());
-        user.setSourceId((String) identity.getInternalId());
+        user.setDisplayName(identity.getDisplayName());
         return user;
     }
 }

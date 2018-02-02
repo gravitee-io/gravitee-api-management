@@ -154,7 +154,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                                     }
                                     break;
                                 case USER:
-                                    Optional<User> optUser = userRepository.findByUsername(property.getValue());
+                                    Optional<User> optUser = userRepository.findById(property.getValue());
                                     if (optUser.isPresent() && optUser.get().getFirstname() != null && optUser.get().getLastname() != null) {
                                         name = optUser.get().getFirstname() + " " + optUser.get().getLastname();
                                     }
@@ -200,13 +200,13 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     }
 
     @Override
-    public void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, String username, Date createdAt,
+    public void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, String userId, Date createdAt,
                                           Object oldValue, Object newValue) {
         create(Audit.AuditReferenceType.APPLICATION,
                 applicationId,
                 properties,
                 event,
-                username,
+                userId,
                 createdAt==null ? new Date() : createdAt,
                 oldValue,
                 newValue);
@@ -223,12 +223,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                newValue);
     }
     @Override
-    public void createPortalAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, String username, Date createdAt, Object oldValue, Object newValue) {
+    public void createPortalAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, String userId, Date createdAt, Object oldValue, Object newValue) {
         create(Audit.AuditReferenceType.PORTAL,
                 "DEFAULT",
                 properties,
                 event,
-                username,
+                userId,
                 createdAt==null ? new Date() : createdAt,
                 oldValue,
                 newValue);
@@ -236,12 +236,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     @Async
     protected void create(Audit.AuditReferenceType referenceType, String referenceId, Map<Audit.AuditProperties,String> properties,
-                          Audit.AuditEvent event, String username, Date createdAt,
+                          Audit.AuditEvent event, String userId, Date createdAt,
                           Object oldValue, Object newValue) {
 
         Audit audit = new Audit();
         audit.setId(UUID.toString(UUID.random()));
-        audit.setUsername(username);
+        audit.setUser(userId);
         audit.setCreatedAt(createdAt);
         if (properties != null) {
             Map<String, String> stringStringMap = new HashMap<>(properties.size());
@@ -275,7 +275,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         auditEntity.setReferenceId(audit.getReferenceId());
         auditEntity.setEvent(audit.getEvent());
         auditEntity.setProperties(audit.getProperties());
-        auditEntity.setUsername(audit.getUsername());
+        auditEntity.setUser(audit.getUser());
         auditEntity.setId(audit.getId());
         auditEntity.setPatch(audit.getPatch());
         auditEntity.setCreatedAt(audit.getCreatedAt());

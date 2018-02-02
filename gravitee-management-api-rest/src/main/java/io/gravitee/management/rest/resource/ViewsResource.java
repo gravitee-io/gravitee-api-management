@@ -32,7 +32,6 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,7 +59,7 @@ public class ViewsResource extends AbstractResource  {
         if (isAdmin()) {
             apis = apiService.findAll();
         } else if (isAuthenticated()) {
-            apis = apiService.findByUser(getAuthenticatedUsername());
+            apis = apiService.findByUser(getAuthenticatedUser());
         } else {
             apis = apiService.findByVisibility(Visibility.PUBLIC);
         }

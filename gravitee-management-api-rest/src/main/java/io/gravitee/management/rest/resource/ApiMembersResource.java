@@ -18,10 +18,13 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.MembershipListItem;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.model.ApiMembership;
 import io.gravitee.management.rest.model.RoleEntity;
+import io.gravitee.management.rest.model.TransferOwnership;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
@@ -35,6 +38,7 @@ import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.*;
@@ -78,14 +82,14 @@ public class ApiMembersResource extends AbstractResource {
         final ApiEntity apiEntity = apiService.findById(api);
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
-            final String username = getAuthenticatedUsername();
+            final String userId = getAuthenticatedUser();
             if (isAdmin()) {
                 final char[] rights = new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
                 for (ApiPermission perm: ApiPermission.values()) {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
-                permissions = membershipService.getMemberPermissions(apiEntity, username);
+                permissions = membershipService.getMemberPermissions(apiEntity, userId);
             }
         }
         return Response.ok(permissions).build();
@@ -96,15 +100,17 @@ public class ApiMembersResource extends AbstractResource {
     @ApiOperation(value = "List API members",
             notes = "User must have the MANAGE_MEMBERS permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "List of API's members", response = MemberEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "List of API's members", response = MembershipListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.READ)
     })
-    public List<MemberEntity> listApiMembers(@PathParam("api") String api) {
+    public List<MembershipListItem> listApiMembers(@PathParam("api") String api) {
         apiService.findById(api);
-        return membershipService.getMembers(MembershipReferenceType.API, api, RoleScope.API).stream()
-                .sorted(Comparator.comparing(MemberEntity::getUsername))
+        return membershipService.getMembers(MembershipReferenceType.API, api, RoleScope.API)
+                .stream()
+                .map(MembershipListItem::new)
+                .sorted(Comparator.comparing(MembershipListItem::getId))
                 .collect(Collectors.toList());
     }
 
@@ -121,24 +127,20 @@ public class ApiMembersResource extends AbstractResource {
     })
     public Response addOrUpdateApiMember(
             @PathParam("api") String api,
+            @Valid @NotNull ApiMembership apiMembership) {
 
-            @ApiParam(name = "user", required = true)
-            @NotNull @QueryParam("user") String username,
-
-            @ApiParam(name = "rolename", required = true)
-            @NotNull @QueryParam("rolename") String roleName
-    ) {
-        apiService.findById(api);
-        if (roleName == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Membership type must be set").build();
-        }
-
-        if (PRIMARY_OWNER.name().equals(roleName)) {
+        if (PRIMARY_OWNER.name().equals(apiMembership.getRole())) {
             throw new SinglePrimaryOwnerException(RoleScope.API);
         }
 
-        membershipService.addOrUpdateMember(MembershipReferenceType.API, api, username, RoleScope.API, roleName);
-        return Response.created(URI.create("/apis/" + api + "/members/" + username)).build();
+        apiService.findById(api);
+
+        MemberEntity membership = membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.API, api),
+                new MembershipService.MembershipUser(apiMembership.getId(), apiMembership.getReference()),
+                new MembershipService.MembershipRole(RoleScope.API, apiMembership.getRole()));
+
+        return Response.created(URI.create("/apis/" + api + "/members/" + membership.getId())).build();
     }
 
     @POST
@@ -151,17 +153,20 @@ public class ApiMembersResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE)
     })
-    public Response transferOwnership(@PathParam("api") String api, @NotNull @QueryParam("user") String username, RoleEntity role) {
+    public Response transferOwnership(
+            @PathParam("api") String api,
+            @Valid @NotNull TransferOwnership transferOwnership) {
         io.gravitee.management.model.RoleEntity newPORole = null;
-        if (role!=null && role.getName()!=null) {
-            try {
-                newPORole = roleService.findById(RoleScope.API, role.getName());
-            } catch (RoleNotFoundException re) {
-                //it doesn't matter
-            }
+
+        try {
+            newPORole = roleService.findById(RoleScope.API, transferOwnership.getPoRole());
+        } catch (RoleNotFoundException re) {
+            //it doesn't matter
         }
+
         apiService.findById(api);
-        membershipService.transferApiOwnership(api, username, newPORole);
+        membershipService.transferApiOwnership(api, new MembershipService.MembershipUser(
+                transferOwnership.getId(), transferOwnership.getReference()), newPORole);
         return Response.ok().build();
     }
 
@@ -177,15 +182,15 @@ public class ApiMembersResource extends AbstractResource {
     })
     public Response deleteApiMember(
             @PathParam("api") String api,
-            @ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String username) {
+            @ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String userId) {
         apiService.findById(api);
         try {
-            userService.findByName(username, false);
+            userService.findById(userId);
         } catch (UserNotFoundException unfe) {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }
 
-        membershipService.deleteMember(MembershipReferenceType.API, api, username);
+        membershipService.deleteMember(MembershipReferenceType.API, api, userId);
         return Response.ok().build();
     }
 }

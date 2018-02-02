@@ -15,17 +15,17 @@
  */
 package io.gravitee.management.idp.api.identity;
 
-import java.util.Map;
-
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface User<T> {
+public interface User {
 
-    T getInternalId();
+    default String getId() { return null; }
 
-    T getUsername();
+    default String getReference() { return null; }
+
+    String getUsername();
 
     String getFirstname();
 
@@ -33,7 +33,7 @@ public interface User<T> {
 
     String getEmail();
 
-    String getSource();
+    String getDisplayName();
 
-    Map<String, Object> getProperties();
+    String getSource();
 }

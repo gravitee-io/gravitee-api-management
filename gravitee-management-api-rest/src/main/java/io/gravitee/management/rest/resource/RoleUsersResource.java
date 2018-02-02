@@ -20,6 +20,8 @@ import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.model.GroupMembership;
+import io.gravitee.management.rest.model.RoleMembership;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.MembershipService;
@@ -33,6 +35,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.inject.Inject;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
@@ -42,6 +45,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -57,36 +61,88 @@ public class RoleUsersResource extends AbstractResource  {
     @Autowired
     private MembershipService membershipService;
 
-    @Inject
-    private UserService userService;
-
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.READ)
     })
-    public Set<UserEntity> getUsers(@PathParam("scope")RoleScope scope,
-                                     @PathParam("role") String role) {
+    public Set<MembershipListItem> listUsersPerRole(
+            @PathParam("scope")RoleScope scope,
+            @PathParam("role") String role) {
         if (RoleScope.MANAGEMENT.equals(scope) || RoleScope.PORTAL.equals(scope)) {
             Set<MemberEntity> members = membershipService.getMembers(
                     RoleScope.MANAGEMENT.equals(scope) ? MembershipReferenceType.MANAGEMENT : MembershipReferenceType.PORTAL,
                     MembershipDefaultReferenceId.DEFAULT.name(),
                     scope,
                     role);
-            if (members.isEmpty()) {
-                return Collections.emptySet();
-            }
 
-            List<String> usernames = members.stream().map(MemberEntity::getUsername).collect(Collectors.toList());
-            return userService.findByNames(usernames, false);
+            return members.stream().map(MembershipListItem::new).collect(Collectors.toSet());
         }
+
         return Collections.emptySet();
     }
 
-    @Path("/{username}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Add or update a role to a user")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.UPDATE),
+    })
+    public Response addRoleToUser(
+            @ApiParam(name = "scope", required = true, allowableValues = "MANAGEMENT,PORTAL,API,APPLICATION")
+            @PathParam("scope")RoleScope roleScope,
+            @PathParam("role") String roleName,
+            @Valid @NotNull final RoleMembership roleMembership) {
+
+        if (roleScope == null || roleName == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Role must be set").build();
+        }
+
+        MemberEntity membership = membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(
+                        RoleScope.MANAGEMENT.equals(roleScope) ? MembershipReferenceType.MANAGEMENT : MembershipReferenceType.PORTAL,
+                        MembershipDefaultReferenceId.DEFAULT.name()),
+                new MembershipService.MembershipUser(roleMembership.getId(), roleMembership.getReference()),
+                new MembershipService.MembershipRole(roleScope, roleName));
+
+        return Response.created(URI.create("/users/" + membership.getId() + "/roles/" + membership.getId())).build();
+    }
+
+    @Path("{userId}")
     public RoleUserResource getRoleUserResource() {
         return resourceContext.getResource(RoleUserResource.class);
     }
 
+    private final static class MembershipListItem {
+
+        private final String id;
+        private final String username;
+        private final String firstname;
+        private final String lastname;
+
+        public MembershipListItem(final MemberEntity member) {
+            this.id = member.getId();
+            this.username = member.getUsername();
+            this.firstname = member.getFirstname();
+            this.lastname = member.getLastname();
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public String getFirstname() {
+            return firstname;
+        }
+
+        public String getLastname() {
+            return lastname;
+        }
+    }
 }

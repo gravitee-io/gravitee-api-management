@@ -18,30 +18,41 @@ package io.gravitee.management.idp.memory.lookup;
 import io.gravitee.management.idp.api.identity.User;
 import io.gravitee.management.idp.memory.InMemoryIdentityProvider;
 
-import java.util.Map;
-
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class InMemoryUser implements User<String> {
+public class InMemoryUser implements User {
 
-    private final String username;
+    private final String reference;
     private String firstname, lastname, email;
-    private Map<String, Object> properties;
 
-    InMemoryUser(String username) {
-        this.username = username;
+    InMemoryUser(String reference) {
+        this.reference = reference;
     }
 
     @Override
-    public String getInternalId() {
-        return username;
+    public String getReference() {
+        return reference;
     }
 
     @Override
     public String getEmail() {
         return email;
+    }
+
+    @Override
+    public String getDisplayName() {
+        if (firstname == null && lastname == null) {
+            return reference;
+        }
+
+        return firstname + ' ' + lastname;
+    }
+
+    @Override
+    public String getUsername() {
+        return reference;
     }
 
     public void setEmail(String email) {
@@ -58,26 +69,12 @@ public class InMemoryUser implements User<String> {
     }
 
     @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
     public String getLastname() {
         return lastname;
     }
 
     public void setLastname(String lastname) {
         this.lastname = lastname;
-    }
-
-    @Override
-    public Map<String, Object> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, Object> properties) {
-        this.properties = properties;
     }
 
     @Override

@@ -28,6 +28,11 @@ import java.util.Set;
  */
 public class UserEntity {
 
+    /**
+     * User identifier
+     */
+    private String id;
+
 	/**
 	 * The user first name
 	 */
@@ -89,7 +94,15 @@ public class UserEntity {
      * The user last connection date
      */
     private Date lastConnectionAt;
-    
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getFirstname() {
   		return firstname;
   	}
@@ -202,7 +215,8 @@ public class UserEntity {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("UserEntity{");
-        sb.append("username='").append(firstname).append('\'');
+        sb.append(", id='").append(id).append('\'');
+        sb.append(", username='").append(firstname).append('\'');
         sb.append(", source='").append(source).append('\'');
         sb.append(", external_reference='").append(sourceId).append('\'');
         sb.append(", firstname='").append(firstname).append('\'');

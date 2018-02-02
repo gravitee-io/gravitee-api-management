@@ -132,6 +132,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         config.setAllowedOrigins(getPropertiesAsList("http.cors.allow-origin", "*"));
         config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match"));
         config.setAllowedMethods(getPropertiesAsList("http.cors.allow-methods", "OPTIONS, GET, POST, PUT, DELETE"));
+        config.setExposedHeaders(getPropertiesAsList("http.cors.exposed-headers", "ETag"));
         config.setMaxAge(environment.getProperty("http.cors.max-age", Long.class, 1728000L));
         config.setExposedHeaders(Collections.singletonList("ETag"));
 
@@ -164,7 +165,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
             .and()
                 .authorizeRequests()
                     .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
-                    .antMatchers(HttpMethod.GET, "/user/**").permitAll()
+                    .antMatchers(HttpMethod.POST, "/user/login").permitAll()
+                    .antMatchers(HttpMethod.GET, "/user/").permitAll()
+                    .antMatchers(HttpMethod.GET, "/user/**").authenticated()
                     .antMatchers(HttpMethod.POST, "/auth/**").permitAll()
 
                     // API requests
@@ -220,6 +223,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     .antMatchers(HttpMethod.POST, "/portal/**").authenticated()
                     .antMatchers(HttpMethod.PUT, "/portal/**").authenticated()
                     .antMatchers(HttpMethod.DELETE, "/portal/**").authenticated()
+
+                    // Search
+                    .antMatchers(HttpMethod.GET, "/search/users").authenticated()
 
                     .anyRequest().authenticated()
             .and()

@@ -16,7 +16,9 @@
 package io.gravitee.management.idp.memory.lookup;
 
 import io.gravitee.management.idp.api.identity.IdentityLookup;
+import io.gravitee.management.idp.api.identity.IdentityReference;
 import io.gravitee.management.idp.api.identity.User;
+import io.gravitee.management.idp.memory.InMemoryIdentityProvider;
 import io.gravitee.management.idp.memory.lookup.spring.InMemoryLookupConfiguration;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Import(InMemoryLookupConfiguration.class)
-public class InMemoryIdentityLookup implements IdentityLookup<String>, InitializingBean {
+public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean {
 
     @Autowired
     private InMemoryUserDetailsManager userDetailsService;
@@ -51,13 +53,18 @@ public class InMemoryIdentityLookup implements IdentityLookup<String>, Initializ
     private Set<String> users;
 
     @Override
-    public User retrieve(String id) {
+    public User retrieve(IdentityReference identityReference) {
         try {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(id);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(identityReference.getReference());
             return convert(userDetails);
         } catch (UsernameNotFoundException unnfe) {
             return null;
         }
+    }
+
+    @Override
+    public boolean canHandle(IdentityReference identityReference) {
+        return InMemoryIdentityProvider.PROVIDER_TYPE.equalsIgnoreCase(identityReference.getSource());
     }
 
     @Override

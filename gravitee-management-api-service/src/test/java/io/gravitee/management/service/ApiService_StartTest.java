@@ -129,7 +129,7 @@ public class ApiService_StartTest {
 
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.API_ID.getValue(), API_ID);
-        properties.put(Event.EventProperties.USERNAME.getValue(), USER_NAME);
+        properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
 
         Api api = new Api();
         api.setId(API_ID);

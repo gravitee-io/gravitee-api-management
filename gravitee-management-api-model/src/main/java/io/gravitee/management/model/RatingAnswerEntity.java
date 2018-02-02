@@ -24,7 +24,7 @@ import java.util.Date;
 public class RatingAnswerEntity {
 
     private String id;
-    private String username;
+    private String user;
     private String firstname;
     private String lastname;
     private String comment;
@@ -38,12 +38,12 @@ public class RatingAnswerEntity {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUser() {
+        return user;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUser(String user) {
+        this.user = user;
     }
 
     public String getFirstname() {
@@ -82,7 +82,7 @@ public class RatingAnswerEntity {
     public String toString() {
         return "RatingAnswerEntity{" +
                 "id='" + id + '\'' +
-                ", username='" + username + '\'' +
+                ", username='" + user + '\'' +
                 ", firstname='" + firstname + '\'' +
                 ", lastname='" + lastname + '\'' +
                 ", comment='" + comment + '\'' +

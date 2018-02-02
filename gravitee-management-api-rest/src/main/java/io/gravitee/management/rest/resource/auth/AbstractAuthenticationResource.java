@@ -80,8 +80,8 @@ abstract class AbstractAuthenticationResource {
         return MAPPER.readValue(response, new TypeReference<Map<String, Object>>() {});
     }
 
-    protected Response connectUser(String username) {
-        UserEntity user = userService.connect(username);
+    protected Response connectUser(String userId) {
+        UserEntity user = userService.connect(userId);
 
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -113,7 +113,7 @@ abstract class AbstractAuthenticationResource {
         final Map<String, Object> claims = new HashMap<>();
 
         claims.put(JWTHelper.Claims.ISSUER, environment.getProperty("jwt.issuer", JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER));
-        claims.put(JWTHelper.Claims.SUBJECT, user.getUsername());
+        claims.put(JWTHelper.Claims.SUBJECT, user.getId());
         claims.put(JWTHelper.Claims.PERMISSIONS, authorities);
         claims.put(JWTHelper.Claims.EMAIL, user.getEmail());
         claims.put(JWTHelper.Claims.FIRSTNAME, user.getFirstname());

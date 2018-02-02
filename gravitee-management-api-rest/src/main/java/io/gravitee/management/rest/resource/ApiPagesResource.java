@@ -132,7 +132,7 @@ public class ApiPagesResource extends AbstractResource {
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
         int order = pageService.findMaxApiPageOrderByApi(api) + 1;
         newPageEntity.setOrder(order);
-        newPageEntity.setLastContributor(getAuthenticatedUsername());
+        newPageEntity.setLastContributor(getAuthenticatedUser());
         PageEntity newPage = pageService.createApiPage(api, newPageEntity);
         if (newPage != null) {
             return Response
@@ -162,7 +162,7 @@ public class ApiPagesResource extends AbstractResource {
             @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         pageService.findById(page);
 
-        updatePageEntity.setLastContributor(getAuthenticatedUsername());
+        updatePageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.update(page, updatePageEntity);
     }
 
@@ -187,8 +187,8 @@ public class ApiPagesResource extends AbstractResource {
     private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {
         return (isAuthenticated() && isAdmin())
                 ||
-                ( pageService.isDisplayable(api, isPagePublished, getAuthenticatedUsernameOrNull()) &&
-                        groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUsernameOrNull()));
+                ( pageService.isDisplayable(api, isPagePublished, getAuthenticatedUserOrNull()) &&
+                        groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull()));
 
     }
 }

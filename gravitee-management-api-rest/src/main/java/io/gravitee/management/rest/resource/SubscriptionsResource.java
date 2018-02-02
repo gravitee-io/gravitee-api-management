@@ -92,9 +92,8 @@ public class SubscriptionsResource {
                         application.getName(),
                         application.getType(),
                         new Subscription.Owner(
-                                application.getPrimaryOwner().getUsername(),
-                                application.getPrimaryOwner().getFirstname(),
-                                application.getPrimaryOwner().getLastname()
+                                application.getPrimaryOwner().getId(),
+                                application.getPrimaryOwner().getDisplayName()
                         )
                 ));
 

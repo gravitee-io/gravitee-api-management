@@ -16,42 +16,60 @@
 package io.gravitee.management.idp.core.authentication.impl;
 
 import io.gravitee.management.idp.api.identity.IdentityLookup;
+import io.gravitee.management.idp.api.identity.IdentityReference;
+import io.gravitee.management.idp.api.identity.SearchableUser;
 import io.gravitee.management.idp.api.identity.User;
 import io.gravitee.management.idp.core.authentication.IdentityManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class CompositeIdentityManager implements IdentityManager {
 
+    private final Logger LOGGER = LoggerFactory.getLogger(CompositeIdentityManager.class);
+
+    @Autowired
+    private ReferenceSerializer referenceSerializer;
+
     private Collection<IdentityLookup> identityLookups = new ArrayList<>();
 
     @Override
-    public User retrieve(Object id) {
-        for (IdentityLookup identityLookup : identityLookups) {
-            User user = identityLookup.retrieve(id);
-            if (user != null) {
-                return user;
-            }
+    public Optional<User> lookup(String reference) {
+        LOGGER.debug("Looking for a user: reference[{)]", reference);
+        try {
+            IdentityReference identityReference = referenceSerializer.deserialize(reference);
+            LOGGER.debug("Lookup identity information from reference: source[{)] id[{}]",
+                    identityReference.getSource(), identityReference.getReference());
+
+            return identityLookups.stream()
+                    .filter(identityLookup -> identityLookup.canHandle(identityReference))
+                    .map(identityLookup -> identityLookup.retrieve(identityReference))
+                    .findFirst();
+        } catch (Exception ex) {
+            LOGGER.error("Unable to extract IDP: token[{)]", reference);
         }
 
-        return null;
+        return Optional.empty();
     }
 
     @Override
-    public Collection<User> search(String query) {
-        Set<User> users = new HashSet<>();
+    public Collection<SearchableUser> search(String query) {
+        Set<SearchableUser> users = new HashSet<>();
         for (IdentityLookup identityLookup : identityLookups) {
             Collection<User> lookupUsers = identityLookup.search(query);
             if (lookupUsers != null) {
-                users.addAll(lookupUsers.stream().collect(Collectors.toSet()));
+                users.addAll(lookupUsers
+                        .stream()
+                        .map((Function<User, SearchableUser>) DefaultSearchableUser::new)
+                        .collect(Collectors.toSet()));
             }
         }
 
@@ -61,6 +79,43 @@ public class CompositeIdentityManager implements IdentityManager {
     public void addIdentityLookup(IdentityLookup identityLookup) {
         if (identityLookup != null) {
             identityLookups.add(identityLookup);
+        }
+    }
+
+    private class DefaultSearchableUser implements SearchableUser {
+        private final User user;
+
+        DefaultSearchableUser(User user) {
+            this.user = user;
+        }
+
+        @Override
+        public String getReference() {
+            try {
+                return referenceSerializer.serialize(new IdentityReference(user.getSource(), user.getReference()));
+            } catch (Exception ex) {
+                return null;
+            }
+        }
+
+        @Override
+        public String getId() {
+            return user.getId();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return user.getDisplayName();
+        }
+
+        @Override
+        public String getFirstname() {
+            return user.getFirstname();
+        }
+
+        @Override
+        public String getLastname() {
+            return user.getLastname();
         }
     }
 }

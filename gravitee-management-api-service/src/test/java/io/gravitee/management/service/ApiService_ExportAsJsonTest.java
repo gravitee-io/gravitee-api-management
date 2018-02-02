@@ -15,7 +15,6 @@
  */
 package io.gravitee.management.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -117,8 +116,8 @@ public class ApiService_ExportAsJsonTest {
         when(membershipService.getMembers(eq(MembershipReferenceType.API), eq(API_ID), eq(RoleScope.API)))
                 .thenReturn(Collections.singleton(memberEntity));
         UserEntity userEntity = new UserEntity();
-        userEntity.setUsername(memberEntity.getUsername());
-        when(userService.findByName(memberEntity.getUsername(), false)).thenReturn(userEntity);
+        userEntity.setUsername(memberEntity.getId());
+        when(userService.findByUsername(memberEntity.getId(), false)).thenReturn(userEntity);
 
         api.setGroups(Collections.singleton("my-group"));
         GroupEntity groupEntity = new GroupEntity();

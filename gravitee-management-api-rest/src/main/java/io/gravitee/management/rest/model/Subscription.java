@@ -296,26 +296,20 @@ public class Subscription {
     }
 
     public static class Owner {
-        private final String username;
-        private String firstname;
-        private String lastname;
+        private final String id;
+        private final String displayName;
 
-        public Owner(final String username, final String firstName, final String lastname) {
-            this.username = username;
-            this.firstname = firstName;
-            this.lastname = lastname;
+        public Owner(final String id, final String displayName) {
+            this.id = id;
+            this.displayName = displayName;
         }
 
-        public String getUsername() {
-            return username;
+        public String getId() {
+            return id;
         }
 
-        public String getFirstname() {
-            return firstname;
-        }
-
-        public String getLastname() {
-            return lastname;
+        public String getDisplayName() {
+            return displayName;
         }
     }
 }

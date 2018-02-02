@@ -55,7 +55,7 @@ public class EventServiceTest {
     private static final Map<String, String> EVENT_PROPERTIES = new HashMap<String, String>() {
         {
             put(Event.EventProperties.API_ID.getValue(), API_ID);
-            put(Event.EventProperties.USERNAME.getValue(), EVENT_USERNAME);
+            put(Event.EventProperties.USER.getValue(), EVENT_USERNAME);
             put(Event.EventProperties.ORIGIN.getValue(), EVENT_ORIGIN);
         }
     };
@@ -98,7 +98,7 @@ public class EventServiceTest {
         assertNotNull(eventEntity);
         assertEquals(EventType.PUBLISH_API.toString(), eventEntity.getType().toString());
         assertEquals(EVENT_PAYLOAD, eventEntity.getPayload());
-        assertEquals(EVENT_USERNAME, eventEntity.getProperties().get(Event.EventProperties.USERNAME.getValue()));
+        assertEquals(EVENT_USERNAME, eventEntity.getProperties().get(Event.EventProperties.USER.getValue()));
     }
 
     @Test
@@ -157,7 +157,7 @@ public class EventServiceTest {
         when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
 
         when(eventRepository.search(
-                new EventCriteria.Builder().property(Event.EventProperties.USERNAME.getValue(), EVENT_USERNAME).build()
+                new EventCriteria.Builder().property(Event.EventProperties.USER.getValue(), EVENT_USERNAME).build()
         )).thenReturn(Collections.singletonList(event));
 
         Set<EventEntity> eventEntities = eventService.findByUser(EVENT_USERNAME);
@@ -165,7 +165,7 @@ public class EventServiceTest {
         assertNotNull(eventEntities);
         assertEquals(1, eventEntities.size());
         EventEntity eventEntity = eventEntities.stream().findFirst().get();
-        assertEquals(EVENT_USERNAME, eventEntity.getProperties().get(Event.EventProperties.USERNAME.getValue()));
+        assertEquals(EVENT_USERNAME, eventEntity.getProperties().get(Event.EventProperties.USER.getValue()));
     }
 
     @Test

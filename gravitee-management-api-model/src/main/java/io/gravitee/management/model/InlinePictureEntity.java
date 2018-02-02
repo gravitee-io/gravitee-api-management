@@ -16,10 +16,10 @@
 package io.gravitee.management.model;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ImageEntity {
+public class InlinePictureEntity implements PictureEntity {
 
     private byte [] content;
     private String type;

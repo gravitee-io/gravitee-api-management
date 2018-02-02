@@ -97,7 +97,7 @@ public class ApiService_CreateTest {
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
         when(newApi.getContextPath()).thenReturn("/context");
-        when(userService.findByName(USER_NAME, false)).thenReturn(new UserEntity());
+        when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
 
         when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
 
@@ -180,7 +180,7 @@ public class ApiService_CreateTest {
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 
         when(newApi.getContextPath()).thenReturn(contextPathToCreate);
-        when(userService.findByName(USER_NAME, false)).thenReturn(new UserEntity());
+        when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
         Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(
@@ -200,7 +200,7 @@ public class ApiService_CreateTest {
 
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
-        when(userService.findByName(USER_NAME, false)).thenReturn(new UserEntity());
+        when(userService.findByUsername(USER_NAME, false)).thenReturn(new UserEntity());
 
         apiService.create(newApi, USER_NAME);
     }
@@ -217,7 +217,7 @@ public class ApiService_CreateTest {
         when(newApi.getContextPath()).thenReturn("/context");
         UserEntity admin = new UserEntity();
         admin.setUsername(USER_NAME);
-        when(userService.findByName(admin.getUsername(), false)).thenReturn(admin);
+        when(userService.findById(admin.getUsername())).thenReturn(admin);
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 

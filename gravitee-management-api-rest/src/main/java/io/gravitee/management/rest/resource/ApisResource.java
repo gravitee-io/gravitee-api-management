@@ -18,7 +18,6 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.VerifyApiParam;
@@ -27,8 +26,6 @@ import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.management.model.View;
 import io.swagger.annotations.*;
 
@@ -42,7 +39,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -92,7 +88,7 @@ public class ApisResource extends AbstractResource {
                     ? apiService.findByGroup(group)
                     : apiService.findAll();
         } else if (isAuthenticated()) {
-            apis = apiService.findByUser(getAuthenticatedUsername());
+            apis = apiService.findByUser(getAuthenticatedUser());
         } else {
             apis = apiService.findByVisibility(Visibility.PUBLIC);
         }
@@ -126,7 +122,7 @@ public class ApisResource extends AbstractResource {
     public Response createApi(
             @ApiParam(name = "api", required = true)
             @Valid @NotNull final NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
-        ApiEntity newApi = apiService.create(newApiEntity, getAuthenticatedUsername());
+        ApiEntity newApi = apiService.create(newApiEntity, getAuthenticatedUser());
         if (newApi != null) {
             return Response
                     .created(URI.create("/apis/" + newApi.getId()))
@@ -153,7 +149,7 @@ public class ApisResource extends AbstractResource {
     public Response importDefinition(
             @ApiParam(name = "definition", required = true) @Valid @NotNull String apiDefinition) {
         return Response.ok(apiService.createOrUpdateWithDefinition(
-                null, apiDefinition, getAuthenticatedUsername())).build();
+                null, apiDefinition, getAuthenticatedUser())).build();
     }
 
     @POST

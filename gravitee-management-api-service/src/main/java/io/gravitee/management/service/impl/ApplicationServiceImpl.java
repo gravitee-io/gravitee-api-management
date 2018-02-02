@@ -27,7 +27,6 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,11 +89,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         SystemRole.PRIMARY_OWNER.name())
                         .stream()
                         .findFirst();
-                if (!primaryOwnerMembership.isPresent()) {
+                if (! primaryOwnerMembership.isPresent()) {
                     LOGGER.error("The Application {} doesn't have any primary owner.", applicationId);
                     throw new TechnicalException("The Application " + applicationId + " doesn't have any primary owner.");
                 }
-                return convert(application.get(), userService.findByName(primaryOwnerMembership.get().getUserId(), false));
+                return convert(application.get(), userService.findById(primaryOwnerMembership.get().getUserId()));
             }
 
             throw new ApplicationNotFoundException(applicationId);
@@ -182,9 +181,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public ApplicationEntity create(NewApplicationEntity newApplicationEntity, String username) {
+    public ApplicationEntity create(NewApplicationEntity newApplicationEntity, String userId) {
         try {
-            LOGGER.debug("Create {} for user {}", newApplicationEntity, username);
+            LOGGER.debug("Create {} for user {}", newApplicationEntity, userId);
 
             // If clientId is set, check for uniqueness
             String clientId = newApplicationEntity.getClientId();
@@ -229,22 +228,22 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     createdApplication.getId(),
                     Collections.emptyMap(),
                     APPLICATION_CREATED,
-                    isAuthenticated()?getAuthenticatedUsername():username,
+                    isAuthenticated()?getAuthenticatedUsername():userId,
                     createdApplication.getCreatedAt(),
                     null,
                     createdApplication);
 
             // Add the primary owner of the newly created API
-            Membership membership = new Membership(username, createdApplication.getId(), MembershipReferenceType.APPLICATION);
+            Membership membership = new Membership(userId, createdApplication.getId(), MembershipReferenceType.APPLICATION);
             membership.setRoles(singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
             membership.setCreatedAt(application.getCreatedAt());
             membership.setUpdatedAt(application.getCreatedAt());
             membershipRepository.create(membership);
             //TODO add membership log
-            return convert(createdApplication, userService.findByName(username, false));
+            return convert(createdApplication, userService.findById(userId));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, username, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for user " + username, ex);
+            LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for user " + userId, ex);
         }
     }
 
@@ -379,7 +378,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         int poMissing = applications.size() - memberships.size();
         if (poMissing > 0) {
-            Optional<String> optionalApplicationsAsString = applications.stream().map(Application::getId).reduce((a, b) -> a + " / " + b);
+            Set<String> appIds = applications.stream().map(Application::getId).collect(Collectors.toSet());
+            Set<String> appMembershipsIds = memberships.stream().map(Membership::getReferenceId).collect(Collectors.toSet());
+
+            appIds.removeAll(appMembershipsIds);
+            Optional<String> optionalApplicationsAsString = appIds.stream().reduce((a, b) -> a + " / " + b);
+
             String applicationsAsString = "?";
             if (optionalApplicationsAsString.isPresent())
                 applicationsAsString = optionalApplicationsAsString.get();
@@ -391,8 +395,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         memberships.forEach(membership -> applicationToUser.put(membership.getReferenceId(), membership.getUserId()));
 
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
-        userService.findByNames(memberships.stream().map(Membership::getUserId).collect(Collectors.toList()), false)
-                .forEach(userEntity -> userIdToUserEntity.put(userEntity.getUsername(), userEntity));
+        userService.findByIds(memberships.stream().map(Membership::getUserId).collect(Collectors.toList()))
+                .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
         return applications.stream()
                 .map(publicApplication -> convert(publicApplication, userIdToUserEntity.get(applicationToUser.get(publicApplication.getId()))))
@@ -413,12 +417,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setClientId(application.getClientId());
 
         if (primaryOwner != null) {
-            final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
-            primaryOwnerEntity.setUsername(primaryOwner.getUsername());
-            primaryOwnerEntity.setLastname(primaryOwner.getLastname());
-            primaryOwnerEntity.setFirstname(primaryOwner.getFirstname());
-            primaryOwnerEntity.setEmail(primaryOwner.getEmail());
-            applicationEntity.setPrimaryOwner(primaryOwnerEntity);
+            applicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(primaryOwner));
         }
 
         return applicationEntity;

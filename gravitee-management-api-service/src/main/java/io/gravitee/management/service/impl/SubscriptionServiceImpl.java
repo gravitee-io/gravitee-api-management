@@ -343,9 +343,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     @Override
-    public SubscriptionEntity process(ProcessSubscriptionEntity processSubscription, String validator) {
+    public SubscriptionEntity process(ProcessSubscriptionEntity processSubscription, String userId) {
         try {
-            logger.debug("Subscription {} processed by {}", processSubscription.getId(), validator);
+            logger.debug("Subscription {} processed by {}", processSubscription.getId(), userId);
 
             Optional<Subscription> optSubscription = subscriptionRepository.findById(processSubscription.getId());
             if (!optSubscription.isPresent()) {
@@ -364,7 +364,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 throw new PlanAlreadyClosedException(planEntity.getId());
             }
 
-            subscription.setProcessedBy(validator);
+            subscription.setProcessedBy(userId);
             subscription.setProcessedAt(new Date());
 
             if (processSubscription.isAccepted()) {
@@ -433,10 +433,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             return subscriptionEntity;
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to process subscription {} by {}",
-                    processSubscription.getId(), validator, ex);
+                    processSubscription.getId(), userId, ex);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to process subscription %s by %s",
-                    processSubscription.getId(), validator), ex);
+                    processSubscription.getId(), userId), ex);
         }
     }
 

@@ -21,13 +21,9 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.management.model.GroupEntity;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.NewExternalUserEntity;
-import io.gravitee.management.model.RoleEntity;
-import io.gravitee.management.model.UpdateUserEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.rest.resource.AbstractResourceTest;
+import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
@@ -50,27 +46,18 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static javax.ws.rs.client.Entity.json;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.refEq;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Christophe LANNOY (chrislannoy.java at gmail.com)
@@ -136,9 +123,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         //mock DB find user by name
         UserEntity userEntity = mockUserEntity();
+        userEntity.setId("janedoe@example.com");
         userEntity.setPicture("http://example.com/janedoe/me.jpg");
 
-        when(userService.findByName("janedoe@example.com",false)).thenReturn(userEntity);
+        when(userService.findByUsername("janedoe@example.com",false)).thenReturn(userEntity);
 
         //mock DB update user picture , firstname ,lastname
         UpdateUserEntity user = new UpdateUserEntity();
@@ -160,7 +148,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).findByName("janedoe@example.com",false);
+        verify(userService, times(1)).findByUsername("janedoe@example.com",false);
         verify(userService, times(0)).create(any());
         verify(userService, times(1)).update(refEq(user));
         verify(userService, times(1)).connect("janedoe@example.com");
@@ -222,7 +210,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
         //mock DB find user by name
-        when(userService.findByName("janedoe@example.com",false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
+        when(userService.findByUsername("janedoe@example.com",false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock create user
         NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
@@ -243,7 +231,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).findByName("janedoe@example.com",false);
+        verify(userService, times(1)).findByUsername("janedoe@example.com",false);
         verify(userService, times(1)).create(refEq(newExternalUserEntity),eq(true));
 
         verify(userService, times(1)).update(refEq(user));
@@ -291,6 +279,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     private UserEntity mockUserEntity() {
         UserEntity createdUser = new UserEntity();
+        createdUser.setId("janedoe@example.com");
         createdUser.setUsername("janedoe@example.com");
         createdUser.setSource(AuthenticationSource.OAUTH2.getName());
         createdUser.setSourceId("248289761001");
@@ -333,7 +322,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(0)).findByName(anyString(), anyBoolean());
+        verify(userService, times(0)).findByUsername(anyString(), anyBoolean());
         verify(userService, times(0)).create(any());
         verify(userService, times(0)).update(any());
         verify(userService, times(0)).connect(anyString());
@@ -367,7 +356,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(0)).findByName(anyString(), anyBoolean());
+        verify(userService, times(0)).findByUsername(anyString(), anyBoolean());
         verify(userService, times(0)).create(any());
         verify(userService, times(0)).update(any());
         verify(userService, times(0)).connect(anyString());
@@ -437,7 +426,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
         //mock DB find user by name
-        when(userService.findByName("janedoe@example.com",false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
+        when(userService.findByUsername("janedoe@example.com",false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock create user
         NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
@@ -456,14 +445,30 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         when(roleService.findDefaultRoleByScopes(RoleScope.API,RoleScope.APPLICATION)).thenReturn(Arrays.asList(roleApiUser,roleApplicationAdmin));
 
-        when(membershipService.addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_1", "janedoe@example.com", RoleScope.API, "USER")).thenReturn(mockMemberEntity());
-        when(membershipService.addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_1", "janedoe@example.com", RoleScope.APPLICATION, "ADMIN")).thenReturn(mockMemberEntity());
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
 
-        when(membershipService.addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_2", "janedoe@example.com", RoleScope.API, "USER")).thenReturn(mockMemberEntity());
-        when(membershipService.addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_2", "janedoe@example.com", RoleScope.APPLICATION, "ADMIN")).thenReturn(mockMemberEntity());
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
 
-        when(membershipService.addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_4", "janedoe@example.com", RoleScope.API, "USER")).thenReturn(mockMemberEntity());
-        when(membershipService.addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_4", "janedoe@example.com", RoleScope.APPLICATION, "ADMIN")).thenReturn(mockMemberEntity());
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))).thenReturn(mockMemberEntity());
+
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
+
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))).thenReturn(mockMemberEntity());
 
 
         //mock DB update user picture
@@ -480,24 +485,52 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).findByName("janedoe@example.com",false);
+        verify(userService, times(1)).findByUsername("janedoe@example.com",false);
         verify(userService, times(1)).create(refEq(newExternalUserEntity),eq(true));
 
         verify(userService, times(1)).update(refEq(updateUserEntity));
         verify(userService, times(1)).connect("janedoe@example.com");
 
         //verify group creations
-        verify(membershipService, times(1)).addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_1","janedoe@example.com",RoleScope.API, "USER");
-        verify(membershipService, times(1)).addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_1","janedoe@example.com",RoleScope.APPLICATION, "ADMIN");
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"));
 
-        verify(membershipService, times(1)).addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_2", "janedoe@example.com", RoleScope.API, "USER");
-        verify(membershipService, times(1)).addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_2", "janedoe@example.com", RoleScope.APPLICATION, "ADMIN");
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
 
-        verify(membershipService, times(0)).addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_3", "janedoe@example.com", RoleScope.API, "USER");
-        verify(membershipService, times(0)).addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_3", "janedoe@example.com", RoleScope.APPLICATION, "ADMIN");
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"));
 
-        verify(membershipService, times(1)).addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_4", "janedoe@example.com", RoleScope.API, "USER");
-        verify(membershipService, times(1)).addOrUpdateMember(MembershipReferenceType.GROUP, "group_id_4", "janedoe@example.com", RoleScope.APPLICATION, "ADMIN");
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+
+        verify(membershipService, times(0)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+
+        verify(membershipService, times(0)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -524,7 +557,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body_no_matching.json"), Charset.defaultCharset())));
 
         //mock DB find user by name
-        when(userService.findByName("janedoe@example.com",false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
+        when(userService.findByUsername("janedoe@example.com",false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock create user
         NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
@@ -545,14 +578,17 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).findByName("janedoe@example.com",false);
+        verify(userService, times(1)).findByUsername("janedoe@example.com",false);
         verify(userService, times(1)).create(refEq(newExternalUserEntity),eq(true));
 
         verify(userService, times(1)).update(refEq(updateUserEntity));
         verify(userService, times(1)).connect("janedoe@example.com");
 
         //verify group creations
-        verify(membershipService, times(0)).addOrUpdateMember(any(MembershipReferenceType.class), anyString(),anyString(),any(RoleScope.class), anyString());
+        verify(membershipService, times(0)).addOrUpdateMember(
+                any(MembershipService.MembershipReference.class),
+                any(MembershipService.MembershipUser.class),
+                any(MembershipService.MembershipRole.class));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -578,7 +614,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
         //mock DB find user by name
-        when(userService.findByName("janedoe@example.com",false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
+        when(userService.findByUsername("janedoe@example.com",false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock group search and association
         when(groupService.findByName("Example group")).thenReturn(Collections.emptyList());
@@ -586,6 +622,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         when(groupService.findByName("Others")).thenReturn(Collections.emptyList());
         when(groupService.findByName("Api consumer")).thenReturn(Collections.emptyList());
 
+        NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
+        UserEntity createdUser = mockUserEntity();
+        mockUserCreation(newExternalUserEntity, createdUser, true);
 
         // -- CALL
 
@@ -594,14 +633,17 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).findByName("janedoe@example.com",false);
+        verify(userService, times(1)).findByUsername("janedoe@example.com",false);
         verify(userService, times(0)).create(any(NewExternalUserEntity.class),anyBoolean());
 
         verify(userService, times(0)).update(any(UpdateUserEntity.class));
         verify(userService, times(0)).connect(anyString());
 
         //verify group creations
-        verify(membershipService, times(0)).addOrUpdateMember(any(MembershipReferenceType.class), anyString(),anyString(),any(RoleScope.class), anyString());
+        verify(membershipService, times(0)).addOrUpdateMember(
+                any(MembershipService.MembershipReference.class),
+                any(MembershipService.MembershipUser.class),
+                any(MembershipService.MembershipRole.class));
 
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
 
@@ -625,9 +667,11 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
         //mock DB find user by name
-        when(userService.findByName("janedoe@example.com",false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
+        when(userService.findByUsername("janedoe@example.com",false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
 
-
+        NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
+        UserEntity createdUser = mockUserEntity();
+        mockUserCreation(newExternalUserEntity, createdUser, true);
 
         // -- CALL
 
@@ -636,14 +680,17 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         Response response = target().request().post(json(payload));
 
         // -- VERIFY
-        verify(userService, times(1)).findByName("janedoe@example.com",false);
+        verify(userService, times(1)).findByUsername("janedoe@example.com",false);
         verify(userService, times(0)).create(any(NewExternalUserEntity.class),anyBoolean());
 
         verify(userService, times(0)).update(any(UpdateUserEntity.class));
         verify(userService, times(0)).connect(anyString());
 
         //verify group creations
-        verify(membershipService, times(0)).addOrUpdateMember(any(MembershipReferenceType.class), anyString(),anyString(),any(RoleScope.class), anyString());
+        verify(membershipService, times(0)).addOrUpdateMember(
+                any(MembershipService.MembershipReference.class),
+                any(MembershipService.MembershipUser.class),
+                any(MembershipService.MembershipRole.class));
 
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
 

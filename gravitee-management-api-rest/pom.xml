@@ -281,13 +281,6 @@
 			<version>${jackson.version}</version>
 		</dependency>
 
-		<!-- JWT -->
-		<dependency>
-			<groupId>com.nimbusds</groupId>
-			<artifactId>nimbus-jose-jwt</artifactId>
-			<version>4.37.1</version>
-		</dependency>
-
 		<!-- Unit testing -->
 		<dependency>
 			<groupId>org.mockito</groupId>

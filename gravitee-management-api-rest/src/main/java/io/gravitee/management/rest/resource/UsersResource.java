@@ -16,11 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.NewExternalUserEntity;
-import io.gravitee.management.model.RegisterUserEntity;
-import io.gravitee.management.model.UserEntity;
-import io.gravitee.management.model.providers.User;
-import io.gravitee.management.service.IdentityService;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.UserService;
 import io.swagger.annotations.Api;
 
@@ -31,10 +27,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.stream.Collectors;
 
 /**
  * Defines the REST resources to manage Users.
@@ -53,9 +45,6 @@ public class UsersResource extends AbstractResource {
 
     @Inject
     private UserService userService;
-
-    @Inject
-    private IdentityService identityService;
 
     /**
      * Register a new user.
@@ -93,31 +82,10 @@ public class UsersResource extends AbstractResource {
     }
 
     @GET
+    @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<User> listUsers(@QueryParam("query") String query) {
-        if (query != null && ! query.trim().isEmpty()) {
-            return identityService.search(query);
-        } else {
-            return userService.findAll(true)
-                    .stream()
-                    .map(userEntity -> {
-                        User user = new User();
-                        user.setEmail(userEntity.getEmail());
-                        user.setLastname(userEntity.getLastname());
-                        user.setFirstname(userEntity.getFirstname());
-                        user.setId(userEntity.getUsername());
-                        return user;
-                    })
-                    .sorted((o1, o2) -> CASE_INSENSITIVE_ORDER.compare(o1.getLastname(), o2.getLastname()))
-                    .collect(Collectors.toList());
-        }
-    }
-
-    @GET
-    @Path("{username}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public UserEntity getUser(@PathParam("username") String username) {
-        UserEntity user = userService.findByName(username, true);
+    public UserEntity getUser(@PathParam("id") String userId) {
+        UserEntity user = userService.findById(userId);
 
         // Delete password for security reason
         user.setPassword(null);
@@ -127,17 +95,16 @@ public class UsersResource extends AbstractResource {
     }
 
     @GET
-    @Path("{username}/picture")
-    public Response getUserPicture(@PathParam("username") String username, @Context Request request) {
-        UserEntity user = userService.findByName(username, false);
-        String picture = user.getPicture();
+    @Path("{id}/avatar")
+    public Response getUserAvatar(@PathParam("id") String id, @Context Request request) {
+        PictureEntity picture = userService.getPicture(id);
 
         if (picture == null) {
             throw new NotFoundException();
         }
 
-        if (picture.matches("^(http|https)://.*$")) {
-            return Response.temporaryRedirect(URI.create(picture)).build();
+        if (picture instanceof UrlPictureEntity) {
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity)picture).getUrl())).build();
         }
 
         CacheControl cc = new CacheControl();
@@ -146,72 +113,27 @@ public class UsersResource extends AbstractResource {
         cc.setNoCache(false);
         cc.setMaxAge(86400);
 
-        try {
-            String[] parts = picture.split("base64,");
-            String type = parts[0].split("data:")[1];
-            type = type.substring(0, type.length() - 1);
+        InlinePictureEntity image = (InlinePictureEntity) picture;
 
-            EntityTag etag = new EntityTag(Integer.toString(picture.hashCode()));
-            Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
+        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
+        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
 
-            if (builder != null) {
-                // Preconditions are not met, returning HTTP 304 'not-modified'
-                return builder
-                        .cacheControl(cc)
-                        .build();
-            }
-
-            byte[] content = Base64.getDecoder().decode(parts[1]);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            baos.write(content, 0, content.length);
-
-            return Response
-                    .ok()
-                    .entity(baos)
+        if (builder != null) {
+            // Preconditions are not met, returning HTTP 304 'not-modified'
+            return builder
                     .cacheControl(cc)
-                    .tag(etag)
-                    .type(type)
                     .build();
-        } catch (Exception e) {
-            throw new InternalServerErrorException("Unable to retrieve picture for user [" +
-                    username + "]: " + e.getMessage());
-        }
-    }
-
-    private static final Comparator<String> CASE_INSENSITIVE_ORDER = new CaseInsensitiveComparator();
-
-    private static class CaseInsensitiveComparator
-            implements Comparator<String>, java.io.Serializable {
-        // use serialVersionUID from JDK 1.2.2 for interoperability
-        private static final long serialVersionUID = 8575799808933029326L;
-
-        public int compare(String s1, String s2) {
-            if (s1 == null) return 1;
-            if (s2 == null) return -1;
-
-            int n1 = s1.length();
-            int n2 = s2.length();
-            int min = Math.min(n1, n2);
-            for (int i = 0; i < min; i++) {
-                char c1 = s1.charAt(i);
-                char c2 = s2.charAt(i);
-                if (c1 != c2) {
-                    c1 = Character.toUpperCase(c1);
-                    c2 = Character.toUpperCase(c2);
-                    if (c1 != c2) {
-                        c1 = Character.toLowerCase(c1);
-                        c2 = Character.toLowerCase(c2);
-                        if (c1 != c2) {
-                            // No overflow because of numeric promotion
-                            return c1 - c2;
-                        }
-                    }
-                }
-            }
-            return n1 - n2;
         }
 
-        /** Replaces the de-serialized object. */
-        private Object readResolve() { return CASE_INSENSITIVE_ORDER; }
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(image.getContent(), 0, image.getContent().length);
+
+        return Response
+                .ok()
+                .entity(baos)
+                .cacheControl(cc)
+                .tag(etag)
+                .type(image.getType())
+                .build();
     }
 }

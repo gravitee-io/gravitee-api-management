@@ -89,7 +89,7 @@ public class MembershipService_GetMembersTest {
         po.setName(SystemRole.PRIMARY_OWNER.name());
         when(membershipRepository.findByReferenceAndRole(MembershipReferenceType.API, API_ID, RoleScope.API, SystemRole.PRIMARY_OWNER.name()))
                 .thenReturn(Collections.singleton(membership));
-        when(userService.findByName(membership.getUserId(), false)).thenReturn(userEntity);
+        when(userService.findById(membership.getUserId())).thenReturn(userEntity);
         when(membershipRepository.findById(userEntity.getUsername(),MembershipReferenceType.API, API_ID)).thenReturn(of(membership));
         when(roleService.findById(RoleScope.API, SystemRole.PRIMARY_OWNER.name())).thenReturn(po);
 
@@ -98,7 +98,7 @@ public class MembershipService_GetMembersTest {
         Assert.assertNotNull(members);
         Assert.assertFalse("members must not be empty", members.isEmpty());
         verify(membershipRepository, times(1)).findByReferenceAndRole(MembershipReferenceType.API, API_ID, RoleScope.API, SystemRole.PRIMARY_OWNER.name());
-        verify(userService, times(1)).findByName(membership.getUserId(), false);
+        verify(userService, times(1)).findById(membership.getUserId());
     }
 
     @Test
@@ -119,7 +119,7 @@ public class MembershipService_GetMembersTest {
         po.setName(SystemRole.PRIMARY_OWNER.name());
         when(membershipRepository.findByReferenceAndRole(MembershipReferenceType.API, API_ID, RoleScope.API, null))
                 .thenReturn(Collections.singleton(membership));
-        when(userService.findByName(membership.getUserId(), false)).thenReturn(userEntity);
+        when(userService.findById(membership.getUserId())).thenReturn(userEntity);
         when(membershipRepository.findById(userEntity.getUsername(),MembershipReferenceType.API, API_ID)).thenReturn(of(membership));
         when(roleService.findById(RoleScope.API, SystemRole.PRIMARY_OWNER.name())).thenReturn(po);
 
@@ -128,7 +128,7 @@ public class MembershipService_GetMembersTest {
         Assert.assertNotNull(members);
         Assert.assertFalse("members must not be empty", members.isEmpty());
         verify(membershipRepository, times(1)).findByReferenceAndRole(MembershipReferenceType.API, API_ID, RoleScope.API, null);
-        verify(userService, times(1)).findByName(membership.getUserId(), false);
+        verify(userService, times(1)).findById(membership.getUserId());
     }
 
 }

@@ -16,13 +16,14 @@
 package io.gravitee.management.idp.core.spring;
 
 import io.gravitee.management.idp.core.authentication.impl.CompositeIdentityManager;
+import io.gravitee.management.idp.core.authentication.impl.ReferenceSerializer;
 import io.gravitee.management.idp.core.plugin.IdentityProviderManager;
 import io.gravitee.management.idp.core.plugin.impl.IdentityProviderManagerImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
@@ -35,4 +36,9 @@ public class IdentityProviderPluginConfiguration {
 
     @Bean
     public CompositeIdentityManager identityManager() { return new CompositeIdentityManager(); }
+
+    @Bean
+    public ReferenceSerializer referenceSerializer() {
+        return new ReferenceSerializer();
+    }
 }

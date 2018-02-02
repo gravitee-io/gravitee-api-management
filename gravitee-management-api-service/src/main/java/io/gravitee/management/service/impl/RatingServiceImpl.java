@@ -37,7 +37,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
 
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
@@ -251,8 +254,8 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     private RatingEntity convert(final Rating rating) {
         final RatingEntity ratingEntity = new RatingEntity();
 
-        final UserEntity user = userService.findByName(rating.getUser(), false);
-        ratingEntity.setUsername(user.getUsername());
+        final UserEntity user = userService.findById(rating.getUser());
+        ratingEntity.setUser(user.getId());
         ratingEntity.setFirstname(user.getFirstname());
         ratingEntity.setLastname(user.getLastname());
 
@@ -271,8 +274,8 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                         .map(ratingAnswer -> {
                             final RatingAnswerEntity ratingAnswerEntity = new RatingAnswerEntity();
                             ratingAnswerEntity.setId(ratingAnswer.getId());
-                            final UserEntity userAnswer = userService.findByName(ratingAnswer.getUser(), false);
-                            ratingAnswerEntity.setUsername(userAnswer.getUsername());
+                            final UserEntity userAnswer = userService.findById(ratingAnswer.getUser());
+                            ratingAnswerEntity.setUser(userAnswer.getId());
                             ratingAnswerEntity.setFirstname(userAnswer.getFirstname());
                             ratingAnswerEntity.setLastname(userAnswer.getLastname());
                             ratingAnswerEntity.setComment(ratingAnswer.getComment());

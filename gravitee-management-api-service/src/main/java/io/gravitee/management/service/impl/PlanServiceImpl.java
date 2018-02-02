@@ -253,7 +253,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public PlanEntity close(String planId, String user) {
+    public PlanEntity close(String planId, String userId) {
         try {
             logger.debug("Close plan {}", planId);
 
@@ -290,7 +290,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                             processSubscriptionEntity.setId(subscription.getId());
                             processSubscriptionEntity.setAccepted(false);
                             processSubscriptionEntity.setReason("Plan " + planName + " has been closed.");
-                            subscriptionService.process(processSubscriptionEntity, user);
+                            subscriptionService.process(processSubscriptionEntity, userId);
                         });
             }
 

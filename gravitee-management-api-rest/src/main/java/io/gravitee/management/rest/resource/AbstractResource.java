@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.permissions.RoleScope;
@@ -23,11 +24,11 @@ import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.RoleService;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
-import java.security.Principal;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -54,16 +55,16 @@ public abstract class AbstractResource {
     @Inject
     PermissionService permissionService;
 
-    protected String getAuthenticatedUsername() {
+    protected UserDetails getAuthenticatedUserDetails() {
+        return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    protected String getAuthenticatedUser() {
         return securityContext.getUserPrincipal().getName();
     }
 
-    protected String getAuthenticatedUsernameOrNull() {
-        return isAuthenticated()?getAuthenticatedUsername():null;
-    }
-
-    protected Principal getAuthenticatedUser() {
-        return securityContext.getUserPrincipal();
+    protected String getAuthenticatedUserOrNull() {
+        return isAuthenticated() ? getAuthenticatedUser() : null;
     }
 
     protected boolean isAuthenticated() {

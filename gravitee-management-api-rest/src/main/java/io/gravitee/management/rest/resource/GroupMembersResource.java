@@ -15,10 +15,14 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.GroupMemberEntity;
 import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.MemberRoleEntity;
+import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.model.GroupMembership;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.GroupService;
@@ -30,12 +34,12 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,22 +75,22 @@ public class GroupMembersResource extends AbstractResource {
                 getMembers(MembershipReferenceType.GROUP, group, RoleScope.APPLICATION).
                 stream().
                 filter(Objects::nonNull).
-                collect(Collectors.groupingBy(MemberEntity::getUsername));
+                collect(Collectors.groupingBy(MemberEntity::getId));
 
         Map<String, List<MemberEntity>> membersWithApiRole = membershipService.
                 getMembers(MembershipReferenceType.GROUP, group, RoleScope.API).
                 stream().
                 filter(Objects::nonNull).
-                collect(Collectors.groupingBy(MemberEntity::getUsername));
+                collect(Collectors.groupingBy(MemberEntity::getId));
 
-        Set<String> usernames = new HashSet<>();
-        usernames.addAll(membersWithApiRole.keySet());
-        usernames.addAll(membersWithApplicationRole.keySet());
+        Set<String> ids = new HashSet<>();
+        ids.addAll(membersWithApiRole.keySet());
+        ids.addAll(membersWithApplicationRole.keySet());
 
-        return usernames.stream().
-                map(username -> {
-                    MemberEntity memberWithApiRole = Objects.isNull(membersWithApiRole.get(username)) ? null : membersWithApiRole.get(username).get(0);
-                    MemberEntity memberWithApplicationRole = Objects.isNull(membersWithApplicationRole.get(username)) ? null : membersWithApplicationRole.get(username).get(0);
+        return ids.stream().
+                map(id -> {
+                    MemberEntity memberWithApiRole = Objects.isNull(membersWithApiRole.get(id)) ? null : membersWithApiRole.get(id).get(0);
+                    MemberEntity memberWithApplicationRole = Objects.isNull(membersWithApplicationRole.get(id)) ? null : membersWithApplicationRole.get(id).get(0);
                     GroupMemberEntity groupMemberEntity = new GroupMemberEntity(Objects.nonNull(memberWithApiRole) ? memberWithApiRole : memberWithApplicationRole);
                     groupMemberEntity.setRoles(new HashMap<>());
                     if (Objects.nonNull(memberWithApiRole)) {
@@ -97,8 +101,97 @@ public class GroupMembersResource extends AbstractResource {
                     }
                     return groupMemberEntity;
                 }).
-                sorted(Comparator.comparing(GroupMemberEntity::getUsername)).
+                sorted(Comparator.comparing(GroupMemberEntity::getId)).
                 collect(Collectors.toList());
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Add or update a group member")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Member has been added"),
+            @ApiResponse(code = 200, message = "Member has been updated"),
+            @ApiResponse(code = 400, message = "Membership is not valid"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.UPDATE)
+    })
+    public Response addOrUpdateMember(
+            @PathParam("group") String group,
+            @Valid @NotNull final GroupMembership membership
+    ) {
+        // Check that group exists
+        groupService.findById(group);
+
+        RoleEntity previousApiRole = null, previousApplicationRole = null;
+
+        if (membership.getId() != null) {
+            previousApiRole = membershipService.getRole(
+                    MembershipReferenceType.GROUP,
+                    group,
+                    membership.getId(),
+                    RoleScope.API);
+
+            previousApplicationRole = membershipService.getRole(
+                    MembershipReferenceType.GROUP,
+                    group,
+                    membership.getId(),
+                    RoleScope.APPLICATION);
+        }
+
+        // Process add / update before delete to avoid having a user without role
+        if (membership.getRoles() != null && !membership.getRoles().isEmpty()) {
+            MemberRoleEntity apiRole = membership.getRoles().
+                    stream().
+                    filter(r -> r.getRoleScope().equals(io.gravitee.management.model.permissions.RoleScope.API)
+                            && !r.getRoleName().isEmpty()).
+                    findFirst().
+                    orElse(null);
+
+            MemberRoleEntity applicationRole = membership.getRoles().
+                    stream().
+                    filter(r -> r.getRoleScope().equals(io.gravitee.management.model.permissions.RoleScope.APPLICATION)
+                            && !r.getRoleName().isEmpty()).
+                    findFirst().
+                    orElse(null);
+
+            MemberEntity updatedMembership = null;
+
+            // Add / Update
+            if (apiRole != null) {
+                updatedMembership = membershipService.addOrUpdateMember(
+                        new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
+                        new MembershipService.MembershipUser(membership.getId(), membership.getReference()),
+                        new MembershipService.MembershipRole(RoleScope.API, apiRole.getRoleName()));
+            }
+            if (applicationRole != null) {
+                updatedMembership = membershipService.addOrUpdateMember(
+                        new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
+                        new MembershipService.MembershipUser(membership.getId(), membership.getReference()),
+                        new MembershipService.MembershipRole(RoleScope.APPLICATION, applicationRole.getRoleName()));
+            }
+
+            // Delete
+            if (apiRole == null && previousApiRole != null) {
+                membershipService.removeRole(
+                        MembershipReferenceType.GROUP,
+                        group,
+                        updatedMembership.getId(),
+                        RoleScope.API);
+            }
+            if (applicationRole == null && previousApplicationRole != null) {
+                membershipService.removeRole(
+                        MembershipReferenceType.GROUP,
+                        group,
+                        updatedMembership.getId(),
+                        RoleScope.APPLICATION);
+            }
+        }
+
+        return Response.ok().build();
     }
 
     @Path("{member}")

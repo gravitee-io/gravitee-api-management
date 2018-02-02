@@ -211,21 +211,6 @@ public class ApplicationSubscriptionsResource {
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
         subscription.getPlan().setSecurity(plan.getSecurity());
 
-        /*
-        ApplicationEntity application = applicationService.findById(subscriptionEntity.getApplication());
-        subscription.setApplication(
-                new Subscription.Application(
-                        application.getId(),
-                        application.getName(),
-                        application.getType(),
-                        new Subscription.Owner(
-                                application.getPrimaryOwner().getUsername(),
-                                application.getPrimaryOwner().getFirstname(),
-                                application.getPrimaryOwner().getLastname()
-                        )
-                ));
-        */
-
         ApiEntity api = apiService.findById(subscriptionEntity.getApi());
         subscription.setApi(
                 new Subscription.Api(
@@ -233,9 +218,8 @@ public class ApplicationSubscriptionsResource {
                         api.getName(),
                         api.getVersion(),
                         new Subscription.Owner(
-                                api.getPrimaryOwner().getUsername(),
-                                api.getPrimaryOwner().getFirstname(),
-                                api.getPrimaryOwner().getLastname()
+                                api.getPrimaryOwner().getId(),
+                                api.getPrimaryOwner().getDisplayName()
                         )
                 ));
 

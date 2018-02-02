@@ -15,10 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.NewExternalUserEntity;
-import io.gravitee.management.model.RegisterUserEntity;
-import io.gravitee.management.model.UpdateUserEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.*;
 
 import java.util.List;
 import java.util.Set;
@@ -31,11 +28,15 @@ import java.util.Set;
  */
 public interface UserService {
 
-    UserEntity connect(String username);
+    UserEntity connect(String userId);
 
-    UserEntity findByName(String username, boolean loadRoles);
+    UserEntity findById(String id);
 
-    Set<UserEntity> findByNames(List<String> usernames, boolean loadRoles);
+    UserEntity findByIdWithRoles(String id);
+
+    UserEntity findByUsername(String username, boolean loadRoles);
+
+    Set<UserEntity> findByIds(List<String> ids);
 
     UserEntity create(RegisterUserEntity registerUserEntity);
 
@@ -46,4 +47,6 @@ public interface UserService {
     Set<UserEntity> findAll(boolean loadRoles);
 
     UserEntity register(NewExternalUserEntity newExternalUserEntity);
+
+    PictureEntity getPicture(String id);
 }

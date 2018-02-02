@@ -16,6 +16,7 @@
 package io.gravitee.management.idp.repository.lookup;
 
 import io.gravitee.management.idp.api.identity.IdentityLookup;
+import io.gravitee.management.idp.api.identity.IdentityReference;
 import io.gravitee.management.idp.api.identity.User;
 import io.gravitee.management.idp.repository.RepositoryIdentityProvider;
 import io.gravitee.management.idp.repository.lookup.spring.RepositoryIdentityLookupConfiguration;
@@ -34,11 +35,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Import(RepositoryIdentityLookupConfiguration.class)
-public class RepositoryIdentityLookup implements IdentityLookup<String> {
+public class RepositoryIdentityLookup implements IdentityLookup {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryIdentityLookup.class);
 
@@ -55,17 +56,23 @@ public class RepositoryIdentityLookup implements IdentityLookup<String> {
     private UserRepository userRepository;
 
     @Override
-    public io.gravitee.management.idp.api.identity.User retrieve(String id) {
+    public io.gravitee.management.idp.api.identity.User retrieve(IdentityReference identityReference) {
         try {
-            Optional<io.gravitee.repository.management.model.User> optUser = userRepository.findByUsername(id);
+            Optional<io.gravitee.repository.management.model.User> optUser =
+                    userRepository.findByUsername(identityReference.getReference());
 
             if (optUser.isPresent()) {
                 return convert(optUser.get());
             }
         } catch (TechnicalException te) {
-            LOGGER.error("Unexpected error while looking for a user with id " + id, te);
+            LOGGER.error("Unexpected error while looking for a user with id " + identityReference.getReference(), te);
         }
         return null;
+    }
+
+    @Override
+    public boolean canHandle(IdentityReference identityReference) {
+        return RepositoryIdentityProvider.PROVIDER_TYPE.equalsIgnoreCase(identityReference.getSource());
     }
 
     @Override
@@ -84,7 +91,8 @@ public class RepositoryIdentityLookup implements IdentityLookup<String> {
     }
 
     private User convert(io.gravitee.repository.management.model.User identity) {
-        RepositoryUser user = new RepositoryUser(identity.getUsername());
+        RepositoryUser user = new RepositoryUser(identity.getId());
+        user.setUsername(identity.getUsername());
         user.setEmail(identity.getEmail());
         user.setFirstname(identity.getFirstname());
         user.setLastname(identity.getLastname());

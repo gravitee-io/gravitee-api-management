@@ -25,6 +25,7 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.management.idp.api.identity.SearchableUser;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.PageType;
@@ -94,7 +95,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     @Autowired
     private ApiSynchronizationProcessor apiSynchronizationProcessor;
 
-    @Value("${configuration.default-icon:${gravitee.home}/config/default-icon.png}")
+    @Value("${configuration.default-icon:${gravitee.home}/assets/default_api_logo.png}")
     private String defaultIcon;
 
     @Autowired
@@ -106,8 +107,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     @Autowired
     private AuditService auditService;
 
+    @Autowired
+    private IdentityService identityService;
+
     @Override
-    public ApiEntity create(NewApiEntity newApiEntity, String username) throws ApiAlreadyExistsException {
+    public ApiEntity create(NewApiEntity newApiEntity, String userId) throws ApiAlreadyExistsException {
         UpdateApiEntity apiEntity = new UpdateApiEntity();
 
         apiEntity.setName(newApiEntity.getName());
@@ -143,12 +147,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         apiEntity.setPaths(paths);
 
-        return create0(apiEntity, username);
+        return create0(apiEntity, userId);
     }
 
-    private ApiEntity create0(UpdateApiEntity api, String username) throws ApiAlreadyExistsException {
+    private ApiEntity create0(UpdateApiEntity api, String userId) throws ApiAlreadyExistsException {
         try {
-            LOGGER.debug("Create {} for user {}", api, username);
+            LOGGER.debug("Create {} for user {}", api, userId);
 
             String id = UUID.toString(UUID.random());
             Optional<Api> checkApi = apiRepository.findById(id);
@@ -194,8 +198,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                         createdApi);
 
                 // Add the primary owner of the newly created API
-                UserEntity primaryOwner = userService.findByName(username, false);
-                Membership membership = new Membership(primaryOwner.getUsername(), createdApi.getId(), MembershipReferenceType.API);
+                UserEntity primaryOwner = userService.findById(userId);
+                Membership membership = new Membership(primaryOwner.getId(), createdApi.getId(), MembershipReferenceType.API);
                 membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
                 membership.setCreatedAt(repoApi.getCreatedAt());
                 membership.setUpdatedAt(repoApi.getCreatedAt());
@@ -207,8 +211,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 throw new TechnicalManagementException("Unable to create API " + id);
             }
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {} for user {}", api, username, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + username, ex);
+            LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + userId, ex);
         }
     }
 
@@ -260,7 +264,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     throw new TechnicalException("The API " + apiId + " doesn't have any primary owner.");
                 }
 
-                return convert(api.get(), userService.findByName(primaryOwnerMembership.get().getUserId(), false), true);
+                return convert(api.get(), userService.findById(primaryOwnerMembership.get().getUserId()), true);
             }
 
             throw new ApiNotFoundException(apiId);
@@ -293,18 +297,18 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findByUser(String username) {
+    public Set<ApiEntity> findByUser(String userId) {
         try {
-            LOGGER.debug("Find APIs by user {}", username);
+            LOGGER.debug("Find APIs by user {}", userId);
 
             Set<Api> publicApis = apiRepository.findByVisibility(Visibility.PUBLIC);
             Set<Api> userApis = apiRepository.findByIds(
-                    membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.API).stream()
+                    membershipRepository.findByUserAndReferenceType(userId, MembershipReferenceType.API).stream()
                             .map(Membership::getReferenceId)
                             .collect(Collectors.toList())
             );
 
-            List<String> groupIds = membershipRepository.findByUserAndReferenceType(username, MembershipReferenceType.GROUP).stream()
+            List<String> groupIds = membershipRepository.findByUserAndReferenceType(userId, MembershipReferenceType.GROUP).stream()
                     .filter(m -> m.getRoles().keySet().contains(RoleScope.API.getId()))
                     .map(Membership::getReferenceId).collect(Collectors.toList());
             Set<Api> groupApis = apiRepository.findByGroups(groupIds);
@@ -317,8 +321,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
             return apis;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find APIs for user {}", username, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + username, ex);
+            LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + userId, ex);
         }
     }
 
@@ -447,10 +451,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public ApiEntity start(String apiId, String username) {
+    public ApiEntity start(String apiId, String userId) {
         try {
             LOGGER.debug("Start API {}", apiId);
-            return updateLifecycle(apiId, LifecycleState.STARTED, username);
+            return updateLifecycle(apiId, LifecycleState.STARTED, userId);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to start API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to start API " + apiId, ex);
@@ -458,10 +462,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public ApiEntity stop(String apiId, String username) {
+    public ApiEntity stop(String apiId, String userId) {
         try {
             LOGGER.debug("Stop API {}", apiId);
-            return updateLifecycle(apiId, LifecycleState.STOPPED, username);
+            return updateLifecycle(apiId, LifecycleState.STOPPED, userId);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to stop API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);
@@ -491,7 +495,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
                 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, enabled);
 
-                final ApiEntity deployedApi = convert(payloadEntity, true);
+                final ApiEntity deployedApi = convert(payloadEntity);
                 // Remove policy description from sync check
                 removeDescriptionFromPolicies(api);
                 removeDescriptionFromPolicies(deployedApi);
@@ -528,11 +532,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public ApiEntity deploy(String apiId, String username, EventType eventType) {
+    public ApiEntity deploy(String apiId, String userId, EventType eventType) {
         try {
             LOGGER.debug("Deploy API : {}", apiId);
 
-            return deployCurrentAPI(apiId, username, eventType);
+            return deployCurrentAPI(apiId, userId, eventType);
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to deploy API: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
@@ -550,7 +554,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
-    private ApiEntity deployCurrentAPI(String apiId, String username, EventType eventType) throws Exception {
+    private ApiEntity deployCurrentAPI(String apiId, String userId, EventType eventType) throws Exception {
         Optional<Api> api = apiRepository.findById(apiId);
 
         if (api.isPresent()) {
@@ -562,7 +566,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
             Map<String, String> properties = new HashMap<>();
             properties.put(Event.EventProperties.API_ID.getValue(), apiValue.getId());
-            properties.put(Event.EventProperties.USERNAME.getValue(), username);
+            properties.put(Event.EventProperties.USER.getValue(), userId);
 
             // Clear useless field for history
             apiValue.setPicture(null);
@@ -576,7 +580,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
-    private ApiEntity deployLastPublishedAPI(String apiId, String username, EventType eventType) throws TechnicalException {
+    private ApiEntity deployLastPublishedAPI(String apiId, String userId, EventType eventType) throws TechnicalException {
         Optional<EventEntity> optEvent = eventService.findByApi(apiId).stream()
                 .filter(event -> EventType.PUBLISH_API.equals(event.getType()))
                 .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt())).findFirst();
@@ -590,7 +594,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 lastPublishedAPI.setDeployedAt(new Date());
                 Map<String, String> properties = new HashMap<>();
                 properties.put(Event.EventProperties.API_ID.getValue(), lastPublishedAPI.getId());
-                properties.put(Event.EventProperties.USERNAME.getValue(), username);
+                properties.put(Event.EventProperties.USER.getValue(), userId);
 
                 // Clear useless field for history
                 lastPublishedAPI.setPicture(null);
@@ -636,6 +640,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, apiId, RoleScope.API);
             if (members != null) {
                 members.forEach(m -> {
+                    m.setId(null);
                     m.setFirstname(null);
                     m.setLastname(null);
                     m.setEmail(null);
@@ -684,7 +689,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public ApiEntity createOrUpdateWithDefinition(final ApiEntity apiEntity, String apiDefinition, String username) {
+    public ApiEntity createOrUpdateWithDefinition(final ApiEntity apiEntity, String apiDefinition, String userId) {
         try {
             final UpdateApiEntity importedApi = objectMapper
                     // because definition could contains other values than the api itself (pages, members)
@@ -717,40 +722,54 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             }
 
             ApiEntity createdOrUpdatedApiEntity;
-            Set<MemberEntity> members = Collections.emptySet();
+            Set<MemberToImport> members;
             if (apiEntity == null || apiEntity.getId() == null) {
-                createdOrUpdatedApiEntity = create0(importedApi, username);
+                createdOrUpdatedApiEntity = create0(importedApi, userId);
+                members = Collections.emptySet();
             }
             else {
                 createdOrUpdatedApiEntity = update(apiEntity.getId(), importedApi);
-                members = membershipService.getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API);
+                members = membershipService.getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API)
+                        .stream()
+                        .map(member -> new MemberToImport(member.getUsername(), member.getRole())).collect(Collectors.toSet());
             }
 
+            // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
+
             // Members
             final JsonNode membersDefinition = jsonNode.path("members");
             if (membersDefinition != null && membersDefinition.isArray()) {
-                String memberAsPrimaryOwner = null;
+                MemberEntity memberAsPrimaryOwner = null;
+
                 for (final JsonNode memberNode : membersDefinition) {
-                    MemberEntity memberEntity = objectMapper.readValue(memberNode.toString(), MemberEntity.class);
-                    if (!members.contains(memberEntity)
-                            || members.stream().anyMatch(m ->
+                    MemberToImport memberEntity = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
+                    Collection<SearchableUser> idpUsers = identityService.search(memberEntity.getUsername());
+
+                    if (! idpUsers.isEmpty()) {
+                        SearchableUser user = idpUsers.iterator().next();
+
+                        if (!members.contains(memberEntity)
+                                || members.stream().anyMatch(m ->
                                 m.getUsername().equals(memberEntity.getUsername())
-                                && !m.getRole().equals(memberEntity.getRole()))) {
-                        membershipService.addOrUpdateMember(
-                                MembershipReferenceType.API,
-                                createdOrUpdatedApiEntity.getId(),
-                                memberEntity.getUsername(),
-                                RoleScope.API,
-                                memberEntity.getRole());
-                        if (SystemRole.PRIMARY_OWNER.name().equals(memberEntity.getRole())) {
-                            memberAsPrimaryOwner = memberEntity.getUsername();
+                                        && !m.getRole().equals(memberEntity.getRole()))) {
+                            MemberEntity membership = membershipService.addOrUpdateMember(
+                                    new MembershipService.MembershipReference(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId()),
+                                    new MembershipService.MembershipUser(user.getId(), user.getReference()),
+                                    new MembershipService.MembershipRole(RoleScope.API, memberEntity.getRole()));
+                            if (SystemRole.PRIMARY_OWNER.name().equals(memberEntity.getRole())) {
+                                // Get the identifier of the primary owner
+                                memberAsPrimaryOwner = membership;
+                            }
                         }
                     }
                 }
-                //transfer ownership if necessary
-                if (memberAsPrimaryOwner != null && !username.equals(memberAsPrimaryOwner)) {
-                    membershipService.transferApiOwnership(createdOrUpdatedApiEntity.getId(), memberAsPrimaryOwner, null);
+
+                // Transfer ownership if necessary
+                if (memberAsPrimaryOwner != null && !userId.equals(memberAsPrimaryOwner.getId())) {
+                    membershipService.transferApiOwnership(createdOrUpdatedApiEntity.getId(),
+                            new MembershipService.MembershipUser(memberAsPrimaryOwner.getId(), null),
+                            null);
                 }
             }
 
@@ -807,9 +826,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public ImageEntity getPicture(String apiId) {
+    public InlinePictureEntity getPicture(String apiId) {
         ApiEntity apiEntity = findById(apiId);
-        ImageEntity imageEntity = new ImageEntity();
+        InlinePictureEntity imageEntity = new InlinePictureEntity();
         if (apiEntity.getPicture() == null) {
             imageEntity.setType("image/png");
             try {
@@ -928,7 +947,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
-            final ApiEntity apiEntity = convert(apiRepository.update(api), true);
+            final ApiEntity apiEntity = convert(apiRepository.update(api));
             // Audit
             auditService.createApiAuditLog(
                     apiId,
@@ -968,7 +987,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         int poMissing = apis.size() - memberships.size();
         if (poMissing > 0) {
-            Optional<String> optionalApisAsString = apis.stream().map(Api::getId).reduce((a, b) -> a + " / " + b);
+            Set<String> apiIds = apis.stream().map(Api::getId).collect(Collectors.toSet());
+            Set<String> apiMembershipsIds = memberships.stream().map(Membership::getReferenceId).collect(Collectors.toSet());
+
+            apiIds.removeAll(apiMembershipsIds);
+            Optional<String> optionalApisAsString = apiIds.stream().reduce((a, b) -> a + " / " + b);
             String apisAsString = "?";
             if (optionalApisAsString.isPresent())
                 apisAsString = optionalApisAsString.get();
@@ -980,16 +1003,16 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         memberships.forEach(membership -> apiToUser.put(membership.getReferenceId(), membership.getUserId()));
 
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
-        userService.findByNames(memberships.stream().map(Membership::getUserId).collect(Collectors.toList()), false)
-                .forEach(userEntity -> userIdToUserEntity.put(userEntity.getUsername(), userEntity));
+        userService.findByIds(memberships.stream().map(Membership::getUserId).collect(Collectors.toList()))
+                .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
         return apis.stream()
                 .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId())), readDefinition))
                 .collect(Collectors.toSet());
     }
 
-    private ApiEntity convert(Api api, boolean readDefinition) {
-        return convert(api, null, readDefinition);
+    private ApiEntity convert(Api api) {
+        return convert(api, null, true);
     }
 
     private ApiEntity convert(Api api, UserEntity primaryOwner, boolean readDefinition) {
@@ -1032,12 +1055,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         if (primaryOwner != null) {
-        final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
-            primaryOwnerEntity.setUsername(primaryOwner.getUsername());
-            primaryOwnerEntity.setLastname(primaryOwner.getLastname());
-            primaryOwnerEntity.setFirstname(primaryOwner.getFirstname());
-            primaryOwnerEntity.setEmail(primaryOwner.getEmail());
-            apiEntity.setPrimaryOwner(primaryOwnerEntity);
+            apiEntity.setPrimaryOwner(new PrimaryOwnerEntity(primaryOwner));
         }
 
         return apiEntity;
@@ -1057,7 +1075,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         api.setViews(updateApiEntity.getViews());
 
         if (updateApiEntity.getLabels() != null) {
-            api.setLabels(new ArrayList<>(new LinkedHashSet<>(updateApiEntity.getLabels())));
+            api.setLabels(new ArrayList(new LinkedHashSet<>(updateApiEntity.getLabels())));
         }
 
         api.setGroups(updateApiEntity.getGroups());
@@ -1118,5 +1136,48 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 throw new IllegalArgumentException("Unknown EventType " + eventType.toString() + " to convert EventType into Lifecycle");
         }
         return lifecycleState;
+    }
+
+    private static class MemberToImport {
+        private String username;
+        private String role;
+
+        public MemberToImport() {}
+
+        public MemberToImport(String username, String role) {
+            this.username = username;
+            this.role = role;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            MemberToImport that = (MemberToImport) o;
+
+            return username.equals(that.username);
+        }
+
+        @Override
+        public int hashCode() {
+            return username.hashCode();
+        }
     }
 }
