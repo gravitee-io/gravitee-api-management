@@ -20,6 +20,7 @@ import {IScope} from 'angular';
 class LoginController {
   user: any = {};
   userCreationEnabled: boolean;
+  localLoginDisabled: boolean;
 
   private providers: {
     id: string;
@@ -36,6 +37,7 @@ class LoginController {
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.userCreationEnabled;
+    this.localLoginDisabled = (Constants.authentication && Constants.authentication.localLoginDisabled) || false;
     this.$state = $state;
     this.$rootScope = $rootScope;
     this.providers = AuthenticationService.getProviders();

@@ -4,6 +4,7 @@
   "managementTitle": "Gravitee.io Management",
   "devMode": false,
   "userCreationEnabled": true,
+  "localLoginEnabled": true,
 
   "portal": {
     "entrypoint": "https://api.company.com",
@@ -24,6 +25,7 @@
 
   "authentication": {
     "forceLogin": false,
+    "localLoginDisabled": false,
 
     /* Enable social authentication with Google. clientId is required to enable it */
     "google": {
@@ -43,6 +45,7 @@
       "color": "#0076b4",
       // Authorization endpoint to ask for an authorization_code
       "authorizationEndpoint": "https://oauth2_authorization_server/authorize",
+      "userLogoutEndpoint": "https://oauth2_authorization_server/logout",
       // Required scope
       "scope": ["profile", "openid"]
     }

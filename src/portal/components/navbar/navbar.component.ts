@@ -17,6 +17,7 @@ import UserService from "../../../services/user.service";
 import TaskService from "../../../services/task.service";
 import {IScope} from "angular";
 import {PagedResult} from "../../../entities/pagedResult";
+import AuthenticationService from '../../../services/authentication.service';
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),
   controller: function(
@@ -27,7 +28,9 @@ export const NavbarComponent: ng.IComponentOptions = {
     $rootScope: IScope,
     $state: ng.ui.IStateService,
     $transitions,
-    $interval) {
+    $interval,
+    AuthenticationService: AuthenticationService
+  ) {
     'ngInject';
 
     const vm = this;
@@ -35,6 +38,8 @@ export const NavbarComponent: ng.IComponentOptions = {
     vm.$rootScope = $rootScope;
     vm.displayContextualDocumentationButton = false;
     vm.visible = true;
+    vm.providers = AuthenticationService.getProviders();
+    vm.localLoginDisabled = (Constants.authentication && Constants.authentication.localLoginDisabled) || false;
 
     $scope.$on('graviteeUserRefresh', function () {
       UserService.current().then(function (user) {
@@ -126,5 +131,18 @@ export const NavbarComponent: ng.IComponentOptions = {
         vm.tasksScheduler = undefined;
       }
     }
+
+    vm.authenticate = function(provider: string) {
+      AuthenticationService.authenticate(provider)
+        .then( () => {
+          UserService.current().then( () => {
+            vm.$rootScope.$broadcast('graviteeUserRefresh');
+          });
+        })
+        .catch( () => {});
+    };
+
+    vm.isOnlyOAuth = vm.localLoginDisabled && vm.providers.length == 1;
+
   }
 };

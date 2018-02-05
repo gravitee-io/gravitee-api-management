@@ -106,12 +106,16 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
       }
     })
     .state('logout', {
-      controller: (UserService: UserService, $state: ng.ui.IStateService, $rootScope: IScope) => {
+      controller: (UserService: UserService, $state: ng.ui.IStateService, $rootScope: IScope, $window: ng.IWindowService, Constants: any) => {
         UserService.logout().then(
           () => {
             $state.go('portal.home');
             $rootScope.$broadcast('graviteeUserRefresh');
             $rootScope.$broadcast('graviteeUserCancelScheduledServices');
+            if ((Constants.authentication && Constants.authentication.oauth2.userLogoutEndpoint) || false) {
+              var redirectUri = encodeURIComponent(window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname));
+              $window.location.href= Constants.authentication.oauth2.userLogoutEndpoint + "?redirect_uri=" + redirectUri;
+            }
           }
         );
       }
