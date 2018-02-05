@@ -166,6 +166,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             List<Subscription> subscriptions = subscriptionRepository.search(
                     new SubscriptionCriteria.Builder()
                             .applications(Collections.singleton(application))
+                            .apis(planEntity.getApis())
                             .build());
 
             if (! subscriptions.isEmpty()) {
