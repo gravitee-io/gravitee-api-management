@@ -46,6 +46,7 @@ db.pages.reIndex();
 
 // "memberships" collection
 db.memberships.dropIndexes();
+db.memberships.createIndex( {"_id.userId":1, "_id.referenceId":1, "_id.referenceType":1}, { unique: true } );
 db.memberships.createIndex( {"_id.referenceId":1, "_id.referenceType":1} );
 db.memberships.createIndex( {"_id.referenceId":1, "_id.referenceType":1, "roles":1} );
 db.memberships.createIndex( {"_id.userId":1, "_id.referenceType":1} );
