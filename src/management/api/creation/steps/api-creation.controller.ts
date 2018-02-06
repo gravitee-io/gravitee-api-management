@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import ApiService from "../../../../services/api.service";
+import NotificationService from "../../../../services/notification.service";
 
 class ApiCreationController {
 
@@ -33,17 +35,6 @@ class ApiCreationController {
   };
   private contextPathInvalid: boolean;
   private plan: any;
-  /*
-   private plan: {
-   name: string;
-   characteristics: any[];
-   security: string;
-   validation: string
-   paths: {
-   [path: string]: any[];
-   }
-   };
-   */
 
   private pages: any;
   private securityTypes: { id: string; name: string }[];
@@ -63,7 +54,14 @@ class ApiCreationController {
   private rateLimit: any;
   private quota: any;
 
-  constructor(private $scope, private $timeout, private $mdDialog, private $stateParams, private $window, private ApiService, private NotificationService, private $state) {
+  constructor(private $scope,
+              private $timeout,
+              private $mdDialog,
+              private $stateParams,
+              private $window,
+              private ApiService: ApiService,
+              private NotificationService: NotificationService,
+              private $state: ng.ui.IStateService) {
     'ngInject';
 
     this.api = _.clone(this.$stateParams.api) !== null ? _.clone(this.$stateParams.api) : {};
@@ -225,7 +223,7 @@ class ApiCreationController {
       _this.vm.showBusyText = false;
       if (deployAndStart) {
         _this.ApiService.deploy(api.data.id).then(function() {
-          _this.ApiService.start(api.data.id).then(function() {
+          _this.ApiService.start(api.data).then(function() {
             _this.NotificationService.show('API created, deployed and started');
             _this.$state.go('management.apis.detail.general.main', {apiId: api.data.id});
           });
