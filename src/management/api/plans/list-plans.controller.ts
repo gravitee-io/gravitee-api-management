@@ -129,7 +129,7 @@ class ApiListPlansController {
   }
 
   close(plan, ev) {
-    this.ApiService.getPlanSubscriptions(this.$stateParams.apiId, plan.id).then( (response) => {
+    this.ApiService.getAllPlanSubscriptions(this.$stateParams.apiId, plan.id).then( (response) => {
       this.$mdDialog.show({
         controller: 'DialogClosePlanController',
         template: require('./closePlan.dialog.html'),
