@@ -122,9 +122,9 @@ reporters:
 #    settings:
 #      number_of_shards: 5
 #      number_of_replicas: 1
-    pipeline:
-      plugins:
-        ingest: geoip
+#   pipeline:
+#     plugins:
+#       ingest: geoip
 
 # Gateway service configurations. Provided values are default values.
 # All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the
