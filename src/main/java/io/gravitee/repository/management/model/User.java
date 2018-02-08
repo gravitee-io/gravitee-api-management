@@ -27,6 +27,12 @@ public class User {
 	public enum AuditEvent implements Audit.AuditEvent {
 		USER_CREATED, USER_UPDATED, USER_CONNECTED
 	}
+
+	/**
+	 * User identifier
+	 */
+	private String id;
+
 	/**
 	 * The user name
 	 */
@@ -85,6 +91,7 @@ public class User {
 	public User() {}
 
 	public User(User cloned) {
+		this.id = cloned.id;
 		this.username = cloned.username;
 		this.source = cloned.source;
 		this.sourceId = cloned.sourceId;
@@ -96,6 +103,14 @@ public class User {
 		this.updatedAt = cloned.updatedAt;
 		this.lastConnectionAt = cloned.lastConnectionAt;
 		this.picture = cloned.picture;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public String getFirstname() {
@@ -202,7 +217,8 @@ public class User {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("User{");
-		sb.append("username='").append(firstname).append('\'');
+		sb.append("id='").append(id).append('\'');
+		sb.append(", username='").append(username).append('\'');
 		sb.append(", source='").append(source).append('\'');
 		sb.append(", external_reference='").append(sourceId).append('\'');
 		sb.append(", firstname='").append(firstname).append('\'');

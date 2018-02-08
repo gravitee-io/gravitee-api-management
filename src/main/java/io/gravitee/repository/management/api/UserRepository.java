@@ -29,6 +29,8 @@ import java.util.Set;
  */
 public interface UserRepository {
 
+	Optional<User> findById(String id) throws TechnicalException;
+
 	/**
 	 * Create a {@link User}
 	 *
@@ -53,12 +55,12 @@ public interface UserRepository {
 	 */
 	Optional<User> findByUsername(String username) throws TechnicalException;
 	/**
-	 * Find a list of {@link User} by name
+	 * Find a list of {@link User} by IDs
 	 *
-	 * @param usernames Names of the searched users
+	 * @param ids Identifier of the searched users
 	 * @return list of users found
 	 */
-	Set<User> findByUsernames(List<String> usernames) throws TechnicalException;
+	Set<User> findByIds(List<String> ids) throws TechnicalException;
 
 	/**
 	 * Find all {@link User}s

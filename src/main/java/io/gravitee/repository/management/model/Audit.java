@@ -40,7 +40,7 @@ public class Audit {
     private String id;
     private String referenceId;
     private AuditReferenceType referenceType;
-    private String username;
+    private String user;
     private Date createdAt;
     private String event;
     private Map<String,String> properties;
@@ -102,12 +102,12 @@ public class Audit {
         this.createdAt = createdAt;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUser() {
+        return user;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUser(String user) {
+        this.user = user;
     }
 
     @Override
@@ -130,7 +130,7 @@ public class Audit {
                 ", referenceType='" + referenceType + '\'' +
                 ", event='" + event + '\'' +
                 ", properties='" + properties + '\'' +
-                ", username='" + username + '\'' +
+                ", user='" + user + '\'' +
                 ", createdAt='" + createdAt + '\'' +
                 ", patch='" + patch + '\'' +
                 '}';
