@@ -52,7 +52,7 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
         assertEquals("referenceType", Audit.AuditReferenceType.API, audit.getReferenceType());
         assertEquals("event", Plan.AuditEvent.PLAN_CREATED.name(), audit.getEvent());
         assertEquals("properties", Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123"), audit.getProperties());
-        assertEquals("username", "JohnDoe", audit.getUsername());
+        assertEquals("user", "JohnDoe", audit.getUser());
         assertEquals("createdAt", new Date(1439022010883L), audit.getCreatedAt());
         assertEquals("patch", "diff", audit.getPatch());
     }

@@ -93,7 +93,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void findUserByNamesTest() throws Exception {
-        Set<User> usernames = userRepository.findByUsernames(Arrays.asList("user0", "user4"));
+        Set<User> usernames = userRepository.findByIds(Arrays.asList("user0", "user4"));
         Assert.assertNotNull(usernames);
         Assert.assertFalse(usernames.isEmpty());
         Assert.assertEquals(2, usernames.size());
@@ -102,7 +102,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownUser() throws Exception {
         User unknownUser = new User();
-        unknownUser.setUsername("unknown");
+        unknownUser.setId("unknown");
         userRepository.update(unknownUser);
         fail("An unknown user should not be updated");
     }

@@ -53,7 +53,7 @@ public class MockTestRepositoryConfiguration {
         when(newAudit.getReferenceId()).thenReturn("1");
         when(newAudit.getEvent()).thenReturn(Plan.AuditEvent.PLAN_CREATED.name());
         when(newAudit.getProperties()).thenReturn(singletonMap(Audit.AuditProperties.PLAN.name(), "123"));
-        when(newAudit.getUsername()).thenReturn("JohnDoe");
+        when(newAudit.getUser()).thenReturn("JohnDoe");
         when(newAudit.getPatch()).thenReturn("diff");
         when(newAudit.getCreatedAt()).thenReturn(new Date(1439022010883L));
         when(auditRepository.findById("new")).thenReturn(of(newAudit));
@@ -502,14 +502,15 @@ public class MockTestRepositoryConfiguration {
         when(userRepository.create(any(User.class))).thenReturn(user);
         when(userRepository.findByUsername("createuser1")).thenReturn(of(user));
         when(userRepository.findByUsername("user0")).thenReturn(of(user));
-        when(userRepository.findByUsernames(asList("user0", "user4"))).thenReturn(new HashSet<>(asList(user, user4)));
+        when(userRepository.findByIds(asList("user0", "user4"))).thenReturn(new HashSet<>(asList(user, user4)));
         when(user.getUsername()).thenReturn("createuser1");
+        when(user.getId()).thenReturn("createuser1");
         when(user.getEmail()).thenReturn("createuser1@gravitee.io");
 
         when(userRepository.update(argThat(new ArgumentMatcher<User>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof User && ((User) o).getUsername().equals("unknown"));
+                return o == null || (o instanceof User && ((User) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
 
