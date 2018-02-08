@@ -49,7 +49,7 @@ public class MongoUserRepository implements UserRepository {
 	public Optional<User> findByUsername(String username) throws TechnicalException {
 		logger.debug("Find user by name user [{}]", username);
 
-		UserMongo user = internalUserRepo.findOne(username);
+		UserMongo user = internalUserRepo.findByUsername(username);
 		User res = mapper.map(user, User.class);
 
 		logger.debug("Find user by name user [{}] - Done", username);
@@ -57,13 +57,13 @@ public class MongoUserRepository implements UserRepository {
 	}
 
 	@Override
-	public Set<User> findByUsernames(List<String> usernames) throws TechnicalException {
-		logger.debug("Find user by names user [{}]", usernames);
+	public Set<User> findByIds(List<String> ids) throws TechnicalException {
+		logger.debug("Find user by identifiers user [{}]", ids);
 
-		Set<UserMongo> usersMongo = internalUserRepo.findByUsernames(usernames);
+		Set<UserMongo> usersMongo = internalUserRepo.findByIds(ids);
 		Set<User> users = mapper.collection2set(usersMongo, UserMongo.class, User.class);
 
-		logger.debug("Find user by names user [{}] - Done", usernames);
+		logger.debug("Find user by identifiers user [{}] - Done", ids);
 		return users;
 	}
 
@@ -76,6 +76,17 @@ public class MongoUserRepository implements UserRepository {
 
 		logger.debug("Find all users - Done");
 		return res;
+	}
+
+	@Override
+	public Optional<User> findById(String id) throws TechnicalException {
+		logger.debug("Find user by ID [{}]", id);
+
+		UserMongo user = internalUserRepo.findOne(id);
+		User res = mapper.map(user, User.class);
+
+		logger.debug("Find user by ID [{}] - Done", id);
+		return Optional.ofNullable(res);
 	}
 
 	@Override
@@ -94,11 +105,11 @@ public class MongoUserRepository implements UserRepository {
 
 	@Override
 	public User update(User user) throws TechnicalException {
-		if (user == null || user.getUsername() == null) {
-			throw new IllegalStateException("User to update must have a username");
+		if (user == null || user.getId() == null) {
+			throw new IllegalStateException("User to update must have an identifier");
 		}
 
-		final UserMongo userMongo = internalUserRepo.findOne(user.getUsername());
+		final UserMongo userMongo = internalUserRepo.findOne(user.getId());
 
 		if (userMongo == null) {
 			throw new IllegalStateException(String.format("No user found with username [%s]", user.getUsername()));
@@ -108,6 +119,8 @@ public class MongoUserRepository implements UserRepository {
 		userMongo.setUpdatedAt(user.getUpdatedAt());
 		userMongo.setPassword(user.getPassword());
 		userMongo.setPicture(user.getPicture());
+		userMongo.setUsername(user.getUsername());
+		userMongo.setEmail(user.getEmail());
 		userMongo.setLastConnectionAt(user.getLastConnectionAt());
 
 		UserMongo userUpdated = internalUserRepo.save(userMongo);

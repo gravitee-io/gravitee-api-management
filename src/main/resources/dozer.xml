@@ -3,20 +3,6 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://dozer.sourceforge.net
           http://dozer.sourceforge.net/schema/beanmapping.xsd">
-          
-  <mapping> 
-    <class-a>io.gravitee.repository.management.model.User</class-a>
-    <class-b>io.gravitee.repository.mongodb.management.internal.model.UserMongo</class-b>
-    <field>
-      <a>username</a>
-      <b>name</b>
-    </field>
-  </mapping>
-
-  <mapping>
-    <class-a>io.gravitee.repository.management.model.Api</class-a>
-    <class-b>io.gravitee.repository.mongodb.management.internal.model.ApiMongo</class-b>
-  </mapping>
 
   <mapping>
     <class-a>io.gravitee.repository.management.model.Membership</class-a>
@@ -33,11 +19,6 @@
       <a>referenceType</a>
       <b>id.referenceType</b>
     </field>
-  </mapping>
-  
-  <mapping> 
-    <class-a>io.gravitee.repository.management.model.Application</class-a>
-    <class-b>io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo</class-b>
   </mapping>
 
 </mappings> 

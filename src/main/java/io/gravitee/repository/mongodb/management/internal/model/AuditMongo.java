@@ -18,7 +18,6 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 
@@ -33,7 +32,7 @@ public class AuditMongo extends Auditable {
 	private String id;
 	private String referenceId;
 	private String referenceType;
-	private String username;
+	private String user;
 	private String event;
 	private Map<String,String> properties;
 	private String patch;
@@ -62,12 +61,12 @@ public class AuditMongo extends Auditable {
 		this.referenceType = referenceType;
 	}
 
-	public String getUsername() {
-		return username;
+	public String getUser() {
+		return user;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
+	public void setUser(String user) {
+		this.user = user;
 	}
 
 	public String getEvent() {

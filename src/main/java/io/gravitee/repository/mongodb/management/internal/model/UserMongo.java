@@ -17,16 +17,13 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 /**
  * Mongo object model for user
- * 
- * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -34,9 +31,9 @@ import java.util.Objects;
 public class UserMongo extends Auditable {
 
     @Id
-    @Field(value="name")
-    private String name;
+    private String id;
 
+    private String username;
     private String email;
     private String password;
     private String firstname;
@@ -46,12 +43,20 @@ public class UserMongo extends Auditable {
     private String sourceId;
     private Date lastConnectionAt;
 
-    public String getName() {
-        return name;
+    public String getId() {
+        return id;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
@@ -123,19 +128,20 @@ public class UserMongo extends Auditable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UserMongo user = (UserMongo) o;
-        return Objects.equals(name, user.name);
+        return Objects.equals(username, user.username);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(username);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("User{");
+        sb.append(" id='").append(id).append(",\'");
         sb.append(" email='").append(email).append(",\'");
-        sb.append(" username='").append(name).append("\'");
+        sb.append(" username='").append(username).append("\'");
         sb.append('}');
         return sb.toString();
     }
