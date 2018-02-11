@@ -16,9 +16,9 @@
 import _ = require('lodash');
 import {PagedResult} from "./pagedResult";
 export class User {
+  public id: string;
   public username: string;
   public email: string;
-  public picture: string;
   public roles: any[];
   public userPermissions: string[];
   public userApiPermissions: string[];

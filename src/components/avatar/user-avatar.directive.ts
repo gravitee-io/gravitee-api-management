@@ -23,18 +23,25 @@ class UserAvatarDirective {
       controller: UserAvatarController,
       link: function (scope, element, attrs, ctrl) {
         attrs.$observe('ngSrc', function () {
-          var deferred = ctrl.$q.defer();
-          var image = new Image();
-          image.onerror = function () {
-            deferred.resolve(false);
+          if (attrs.graviteeUserAvatar) {
+            var deferred = ctrl.$q.defer();
+            var image = new Image();
+            image.onerror = function () {
+              deferred.resolve(false);
+              // Default image
+              element.attr('src', 'assets/default_photo.png');
+            };
+            image.onload = function () {
+              deferred.resolve(true);
+            };
+            image.src = ctrl.Constants.baseURL + 'users/' + attrs.graviteeUserAvatar + '/avatar';
+            console.log('1' + image.src);
+            return deferred.promise;
+          } else {
             // Default image
             element.attr('src', 'assets/default_photo.png');
-          };
-          image.onload = function () {
-            deferred.resolve(true);
-          };
-          image.src = ctrl.Constants.baseURL + 'users/' + attrs.graviteeUserAvatar + '/picture';
-          return deferred.promise;
+            console.log('2' + element.attr('src'));
+          }
         });
       }
     };

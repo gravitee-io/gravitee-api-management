@@ -24,6 +24,12 @@ export class LogsQuery {
   size: number;
 }
 
+interface IMembership {
+  id?: string;
+  reference?: string;
+  role: string;
+}
+
 class ApiService {
   private apisURL: string;
   private Constants: any;
@@ -157,22 +163,21 @@ class ApiService {
   /*
    * Members
    */
-  getMembers(api) {
+  getMembers(api: string): ng.IHttpPromise<any> {
     return this.$http.get(this.apisURL + api + '/members');
   }
 
-  addOrUpdateMember(api, member) {
-    return this.$http.post(this.apisURL + api + '/members?user=' + member.username + '&type=' + member.type + '&rolename=' + member.role, '');
+  addOrUpdateMember(api: string, membership: IMembership): ng.IHttpPromise<any> {
+    return this.$http.post(`${this.apisURL}${api}/members`, membership);
+
   }
 
-  deleteMember(api, memberUsername) {
-    return this.$http.delete(this.apisURL + api + '/members?user=' + memberUsername);
+  deleteMember(api: string, userId: string): ng.IHttpPromise<any> {
+    return this.$http.delete(this.apisURL + api + '/members?user=' + userId);
   }
 
-  transferOwnership(api, memberUsername, newRole: string) {
-    return this.$http.post(this.apisURL + api + '/members/transfer_ownership?user=' + memberUsername, {
-      role: newRole
-    });
+  transferOwnership(api: string, ownership: IMembership): ng.IHttpPromise<any> {
+    return this.$http.post(this.apisURL + api + '/members/transfer_ownership', ownership);
   }
 
   /*
@@ -183,7 +188,7 @@ class ApiService {
   }
 
   listPlans(apiId, type) {
-    var url = this.$http.get(this.apisURL + apiId + '/plans');
+    let url = this.$http.get(this.apisURL + apiId + '/plans');
     if (type) {
       url += '?type=' + type;
     }

@@ -103,7 +103,7 @@ class RolesController {
     });
   }
 
-  deleteUser(role, username) {
+  deleteUser(role, member) {
     const that = this;
     this.$mdDialog.show({
       controller: 'DeleteUserRoleDialogController',
@@ -111,12 +111,12 @@ class RolesController {
       template: require('./user/delete/delete.user.role.dialog.html'),
       locals: {
         role: role,
-        username: username
+        username: member.username
       }
     }).then(function (deleteUserRole) {
       if (deleteUserRole) {
-        that.RoleService.deleteUser(role, username).then(function () {
-          that.NotificationService.show(`User ${username} no longer has the role ${role.name}`);
+        that.RoleService.deleteUser(role, member.id).then(function () {
+          that.NotificationService.show(`User ${member.username} no longer has the role ${role.name}`);
           that.loadUsers(role);
         });
       }

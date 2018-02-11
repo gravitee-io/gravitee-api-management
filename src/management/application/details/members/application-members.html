@@ -35,15 +35,13 @@
             <thead md-head md-order="order">
             <tr md-row>
               <th md-column order-by="username">Member</th>
-              <th md-column></th>
               <th md-column order-by="type">Role</th>
             </tr>
             </thead>
             <tbody md-body>
             <tr md-row ng-repeat="member in $ctrl.groupMembers[grp] | orderBy: order">
-              <td md-cell> {{member.firstname}} {{member.lastname}} [{{member.username}}] </td>
-              <td md-cell> {{member.email}} </td>
-              <td md-cell> {{member.roles["APPLICATION"]}} </td>
+              <td md-cell>{{$ctrl.getMembershipDisplay(member)}}</td>
+              <td md-cell>{{member.roles["APPLICATION"]}}</td>
             </tr>
             </tbody>
           </table>
@@ -51,34 +49,31 @@
       </md-content>
     </div>
     <div layout="column">
-      <h4>Members
-        <md-button class="md-icon-button" aria-label="Members Info" ng-click="$ctrl.showPermissionsInformation()">
-          <ng-md-icon icon="info" style="fill: #b1bdc5; top: 0;"></ng-md-icon>
-        </md-button>
-      </h4>
+      <h4>Members</h4>
       <span flex></span>
       <md-content style="background: none">
         <md-table-container ng-show="$ctrl.members.length">
           <table md-table>
             <thead md-head md-order="order">
             <tr md-row>
-              <th md-column order-by="username">Member</th>
-              <th md-column></th>
+              <th md-column order-by="lastname">Member</th>
               <th md-column order-by="type">Role</th>
               <th md-column></th>
             </tr>
             </thead>
             <tbody md-body>
             <tr md-row ng-repeat="member in $ctrl.members | orderBy: order">
-              <td>
-                <span ng-if="member.role == 'PRIMARY_OWNER'"><b>{{member.firstname}} {{member.lastname}} [{{member.username}}]</b></span>
-                <span ng-if="member.role != 'PRIMARY_OWNER'">{{member.firstname}} {{member.lastname}} [{{member.username}}]</span>
+              <td md-cell>
+                <md-list-item class="md-2-line contact-item">
+                  <img ng-src="{{$ctrl.getMembershipAvatar(member)}}" class="md-avatar" alt="User avatar" />
+                  <div class="md-list-item-text compact">
+                    <span ng-if="member.role == 'PRIMARY_OWNER'"><b>{{$ctrl.getMembershipDisplay(member)}}</b></span>
+                    <span ng-if="member.role != 'PRIMARY_OWNER'">{{$ctrl.getMembershipDisplay(member)}}</span>
+                  </div>
+                </md-list-item>
               </td>
               <td md-cell>
-                {{member.email}}
-              </td>
-              <td md-cell>
-                <md-select ng-model="member.role" ng-change="$ctrl.updateMember(member)" ng-disabled="member.role == 'PRIMARY_OWNER'">
+                <md-select ng-model="member.role" ng-change="$ctrl.updateMember(member)" ng-disabled="member.role == 'PRIMARY_OWNER'" aria-label="Update member role">
                   <md-option ng-value="role.name" ng-repeat="role in $ctrl.roles" ng-disabled="role.system">{{role.name}}</md-option>
                 </md-select>
               </td>
@@ -113,7 +108,7 @@
       <md-card>
         <md-card-content>
           <p>
-            Use <code>Transfer ownership</code> to give full access to this Application to the new chosen person.
+            Give full access to this application to an other user.
           </p>
           <div layout="row" layout-align="space-around center">
             <md-autocomplete
@@ -121,18 +116,22 @@
                     md-selected-item="selectedItem"
                     md-search-text="searchText"
                     md-search-text-change="searchTextChange(searchText)"
-                    md-selected-item-change="$ctrl.selectedItemChange(member)"
-                    md-items="member in $ctrl.searchUser(searchText)"
-                    md-item-text="member.id"
-                    placeholder="Transfer Application ownership to ?"
+                    md-selected-item-change="$ctrl.selectedUserChange(user)"
+                    md-items="user in $ctrl.searchUser(searchText)"
+                    md-item-text="user.displayName"
+                    placeholder="Select a user"
                     md-autofocus="false"
                     md-min-length="0"
                     md-menu-class="autocomplete-custom-template">
               <md-item-template>
-                <span>{{member.firstname}} {{member.lastname}} [{{member.id}}]</span>
+                <md-list-item class="md-2-line contact-item">
+                  <div class="md-list-item-text compact">
+                    <h3>{{user.displayName}}</h3>
+                  </div>
+                </md-list-item>
               </md-item-template>
               <md-not-found>
-                No users matching "{{searchText}}" were found.
+                No user matching "{{searchText}}" were found.
               </md-not-found>
             </md-autocomplete>
             <md-input-container flex="40">

@@ -15,66 +15,65 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="Add member">
-	<md-dialog-content layout-padding>
-		<h4>Add member</h4>
+<md-dialog aria-label="Add member" layout-padding flex="30">
+	<md-dialog-content class="searchMembers">
 		<form name="formMember" ng-submit="$event.preventDefault()">
 			<md-autocomplete
 					md-selected-item="selectedItem"
 					md-search-text="searchText"
-					md-search-text-change="searchTextChange(searchText)"
-					md-selected-item-change="selectedItemChange(item)"
-					md-items="item in searchUser(searchText)"
-					md-item-text="item.id"
+					md-selected-item-change="selectUser(user)"
+					md-items="user in searchUser(searchText)"
+					md-item-text="user.reference"
 					md-min-length="1"
           md-delay="500"
-					placeholder="Search users ..."
+					placeholder="Search user..."
 					md-autofocus="true"
-          md-menu-class="autocomplete-add-member"
-					style="width: 450px;">
+          md-menu-class="autocomplete-search-user"
+					flex>
 				<md-item-template>
           <md-list-item class="md-2-line contact-item">
-            <img ng-src="{{item.picture}}" gravitee-user-avatar="{{item.id}}" class="md-avatar" alt="{{item.id}}" />
+            <img ng-src="{{getUserAvatar(user.id)}}" class="md-avatar" alt="User avatar" />
             <div class="md-list-item-text compact">
-              <h3>{{item.firstname}} {{item.lastname}}</h3>
-              <p ng-if="item.email">{{item.email}}</p>
-              <p ng-if="!item.email">{{item.id}}</p>
+              <h3>{{user.displayName}}</h3>
             </div>
           </md-list-item>
 				</md-item-template>
 				<md-not-found>
-					No users matching "{{searchText}}" were found, or users already selected.
+					No user matching "{{searchText}}" were found, or users already selected.
 				</md-not-found>
 			</md-autocomplete>
-      <md-input-container style="width: 450px;">
-        <label>Select a role</label>
-        <md-select ng-model="role" required>
-          <md-option ng-repeat="role in roles" ng-value="role" ng-disabled="role.system">
-            {{role.name}}
-          </md-option>
-        </md-select>
-      </md-input-container>
-		</form>
-		<div ng-show="usersFound.length > 0">
-			<span ng-repeat="user in usersFound">
-				<md-checkbox
-						value="{{user.id}}"
-						aria-label="{{user.id}}"
-						ng-click="selectMember(user)"
-						ng-checked="isUserSelected(user)">
-					<span>
-						{{user.firstname}} {{user.lastname}} [{{user.id}}]
-					</span>
-				</md-checkbox>
-			</span>
-		</div>
+
+      <br />
+
+      <md-list class="fixedRows" ng-show="usersSelected.length > 0">
+        <md-subheader class="md-no-sticky">Selected users</md-subheader>
+        <md-list-item class="md-2-line contact-item" ng-repeat="(index, user) in usersSelected">
+          <img ng-src="{{getUserAvatar(user.id)}}" class="md-avatar" alt="{{user.displayName}}" />
+          <div class="md-list-item-text compact">
+            <h3>{{user.displayName}}</h3>
+          </div>
+        </md-list-item>
+      </md-list>
+
+      <div ng-show="usersSelected.length > 0">
+        <md-subheader class="md-no-sticky">Select role</md-subheader>
+        <md-input-container class="md-block">
+          <label>Role</label>
+          <md-select ng-model="role" required>
+            <md-option ng-repeat="role in roles" ng-value="role" ng-disabled="role.system">
+              {{role.name}}
+            </md-option>
+          </md-select>
+        </md-input-container>
+      </div>
+    </form>
 	</md-dialog-content>
 
 	<md-dialog-actions layout="row">
 		<md-button ng-click="hide()" class="md-primary">
 			Cancel
 		</md-button>
-		<md-button type="submit" class="md-raised md-primary" ng-click="addMembers()" ng-disabled="formMember.$invalid">
+		<md-button type="submit" class="md-raised md-primary" ng-click="addMembers()" ng-disabled="formMember.$invalid || usersSelected.length === 0">
 			Add
 		</md-button>
 	</md-dialog-actions>

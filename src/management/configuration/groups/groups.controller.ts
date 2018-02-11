@@ -15,6 +15,11 @@
  */
 import * as _ from 'lodash';
 import * as angular from 'angular';
+import GroupService from "../../../services/group.service";
+import ApplicationService from "../../../services/applications.service";
+import ApiService from "../../../services/api.service";
+import NotificationService from "../../../services/notification.service";
+import RoleService from "../../../services/role.service";
 
 class GroupsController {
   private groups: any[];
@@ -23,14 +28,14 @@ class GroupsController {
   private applicationRoles: any;
 
   constructor(
-    private GroupService,
-    private ApplicationService,
-    private ApiService,
-    private NotificationService,
+    private GroupService: GroupService,
+    private ApplicationService: ApplicationService,
+    private ApiService: ApiService,
+    private NotificationService: NotificationService,
     private $q,
     private $mdDialog,
     private $mdSidenav,
-    private RoleService
+    private RoleService: RoleService
   ) {
     'ngInject';
     this.groups = [];
@@ -150,6 +155,7 @@ class GroupsController {
       group: _this.selectedGroup
     }).then( (members) => {
       if (members) {
+        console.log(members);
         _this.selectedGroup.members = _.unionWith(members, _this.selectedGroup.members, _.isEqual);
       }
     }, () => {
@@ -178,7 +184,7 @@ class GroupsController {
     });
   }
 
-  removeMember(ev, username) {
+  removeMember(ev, member) {
     ev.stopPropagation();
     let _this = this;
     this.$mdDialog.show({
@@ -188,15 +194,15 @@ class GroupsController {
       clickOutsideToClose: true,
       locals: {
         msg: '',
-        title: 'Would you like to remove the user "' + username + '" ?',
+        title: 'Would you like to remove the user "' + member.displayName + '" ?',
         confirmButton: 'Remove'
       }
     }).then((response) => {
       if (response) {
-        _this.GroupService.deleteMember(_this.selectedGroup.group.id, username).then( () => {
-          _this.NotificationService.show('Member ' + username + ' has been removed from the group');
+        _this.GroupService.deleteMember(_this.selectedGroup.group.id, member.id).then( () => {
+          _this.NotificationService.show('Member ' + member.displayName + ' has been removed from the group');
           _.remove(_this.selectedGroup.members, (m: any) => {
-            return m.username === username;
+            return m.id === member.id;
           });
         });
       }
@@ -209,7 +215,7 @@ class GroupsController {
       let promise = this.GroupService.addOrUpdateMember(this.selectedGroup.group.id, member);
       if (promise) {
         promise.then(() => {
-          _this.NotificationService.show('Member ' + member.username + ' has been updated');
+          _this.NotificationService.show('Member ' + member.displayName + ' has been updated');
         });
       }
     }

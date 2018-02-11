@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import ApplicationService from "../../../../services/applications.service";
+import UserService from "../../../../services/user.service";
+import NotificationService from "../../../../services/notification.service";
+import RoleService from "../../../../services/role.service";
 
 function DialogAddMemberController(
   $scope,
   $mdDialog,
   application,
-  applicationMembers,
-  ApplicationService,
-  UserService,
-  NotificationService,
-  RoleService,
-  Constants
+  members,
+  ApplicationService: ApplicationService,
+  UserService: UserService,
+  NotificationService: NotificationService,
+  RoleService: RoleService
 ) {
   'ngInject';
 
@@ -33,9 +36,7 @@ function DialogAddMemberController(
   });
 
 	$scope.application = application;
-	$scope.applicationMembers = applicationMembers;
-	$scope.user = {};
-	$scope.usersFound = [];
+	$scope.members = members;
 	$scope.usersSelected = [];
 	$scope.searchText = "";
 
@@ -45,52 +46,36 @@ function DialogAddMemberController(
 
 	$scope.searchUser = function (query) {
 		if (query) {
-			return UserService.search(query).then(function(response) {
-        var membersFound = response.data;
-        var filterMembers = _.filter(membersFound, (member: any) => _.findIndex($scope.applicationMembers,
-          (applicationMember: any) => applicationMember.username === member.id) === -1);
-        return _.map(filterMembers, function(member: any) {
-          member.picture = Constants.baseURL + 'users/' + member.id + '/picture';
-          return member;
-        });
-			});
+      return UserService.search(query).then(function(response) {
+        return _.filter(response.data, (user: any) => { return _.findIndex($scope.members, {id: user.id}) === -1;});
+      });
 		}
 	};
 
-  $scope.selectedItemChange = function(item) {
-		if (item) {
-			if (!$scope.isUserSelected(item)) {
-				$scope.usersFound.push(item);
-				$scope.selectMember(item);
-			}
-			$scope.searchText = "";
-		}
+  $scope.getUserAvatar = function(id?: string) {
+    return (id) ? UserService.getUserAvatar(id) : 'assets/default_photo.png';
   };
 
-	$scope.selectMember = function(user) {
-		var idx = $scope.usersSelected.indexOf(user.id);
-    if (idx > -1) {
-      $scope.usersSelected.splice(idx, 1);
+  $scope.selectUser = function(user) {
+    if (user && user.reference) {
+      let selected = _.find($scope.usersSelected, {reference: user.reference});
+      if (!selected) {
+        $scope.usersSelected.push(user);
+      }
+      $scope.searchText = "";
     }
-    else {
-      $scope.usersSelected.push(user.id);
-    }
-	};
-
-	$scope.isUserSelected = function(user) {
-		return $scope.usersSelected.indexOf(user.id) > -1;
-	};
+  };
 
   $scope.addMembers = function () {
 		for (var i = 0; i < $scope.usersSelected.length; i++) {
-			var username = $scope.usersSelected[i];
-			var member = {
-				username : username,
-        type : 'USER',
+			let member = $scope.usersSelected[i];
+      let membership = {
+        id : member.id,
+        reference : member.reference,
         role : $scope.role.name
-			};
-			ApplicationService.addOrUpdateMember($scope.application.id, member).then(function() {
-				NotificationService.show('Member ' + username + ' has been added to the application');
+      };
+			ApplicationService.addOrUpdateMember($scope.application.id, membership).then(function() {
+				NotificationService.show('User ' + member.displayName + ' has been added as a member.');
 			}).catch(function (error) {
 			  $scope.error = error;
 			});

@@ -18,7 +18,7 @@ import angular = require('angular');
 import NotificationService from '../services/notification.service';
 
 function interceptorConfig(
-  $httpProvider: angular.IHttpProvider,
+  $httpProvider: angular.IHttpProvider
 ) {
   'ngInject';
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -39,11 +39,11 @@ function interceptorConfig(
           } else {
             if (!sessionExpired) {
               sessionExpired = true;
-              // session expired
-              notificationService.showError(error, 'Session expired, redirecting to home...');
-              $injector.get('$timeout')(function () {
-                $injector.get('$rootScope').$broadcast('graviteeLogout');
-              }, 2000);
+                // session expired
+                notificationService.showError(error, 'Session expired, redirecting to home...');
+                $injector.get('$timeout')(function () {
+                  $injector.get('$rootScope').$broadcast('graviteeLogout');
+                }, 2000);
             }
           }
         } else {

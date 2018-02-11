@@ -137,7 +137,6 @@ import ApiEndpointController from '../management/api/endpoint/endpointConfigurat
 import AddPoliciesPathController from '../management/api/policies/addPoliciesPath.controller';
 import ApiResourcesController from '../management/api/resources/resources.controller';
 import NewApiController from '../management/api/creation/newApi.controller';
-import DialogApiPermissionsHelpController from '../management/api/members/api-permissions-dialog.controller';
 import ApiPropertiesController from '../management/api/properties/properties.controller';
 import ApiEventsController from '../management/api/events/apiEvents.controller';
 import ApiHistoryController from '../management/api/history/apiHistory.controller';
@@ -209,7 +208,6 @@ import ApplicationLogsController from './application/details/logs/application-lo
 import ApplicationLogsComponent from './application/details/logs/application-logs.component';
 import ApplicationLogComponent from './application/details/logs/application-log.component';
 import DialogAddMemberController from './application/details/members/addMemberDialog.controller';
-import DialogApplicationPermissionsHelpController from './application/details/members/application-permissions-dialog.controller';
 import DialogTransferApplicationController from './application/details/members/transferApplicationDialog.controller';
 
 // Instances
@@ -417,7 +415,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('ApiHealthCheckController', ApiHealthCheckController)
   .controller('ApiEndpointController', ApiEndpointController)
   .controller('DialogAssertionInformationController', DialogAssertionInformationController)
-  .controller('DialogApiPermissionsHelpController', DialogApiPermissionsHelpController)
   .controller('ApiPropertiesController', ApiPropertiesController)
   .controller('ApiEventsController', ApiEventsController)
   .controller('ApiHistoryController', ApiHistoryController)
@@ -568,7 +565,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('applicationLogs', ApplicationLogsComponent)
   .component('applicationLog', ApplicationLogComponent)
   .controller('DialogAddMemberController', DialogAddMemberController)
-  .controller('DialogApplicationPermissionsHelpController', DialogApplicationPermissionsHelpController)
   .controller('ApplicationsController', ApplicationsController)
   .controller('ApplicationGeneralController', ApplicationGeneralController)
   .controller('ApplicationMembersController', ApplicationMembersController)

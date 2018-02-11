@@ -30,7 +30,7 @@
 
       <div flex="30" style="text-align: right">
         <p style="padding: 0; margin: 0;">
-          <span>{{$ctrl.application.owner.firstname? $ctrl.application.owner.firstname + ' ' + $ctrl.application.owner.lastname : $ctrl.application.owner.username}}<md-tooltip md-direction="left">Owner</md-tooltip></span>
+          <span>{{$ctrl.application.owner.displayName}}<md-tooltip md-direction="left">Owner</md-tooltip></span>
           <span><ng-md-icon icon="person"></ng-md-icon></span>
         </p>
         <p style="padding: 0; margin: 0;">

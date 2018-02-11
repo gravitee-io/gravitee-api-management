@@ -16,6 +16,7 @@
 import angular = require('angular');
 import _ = require('lodash');
 import ApiService from '../../../services/api.service';
+import UserService from "../../../services/user.service";
 
 class ApiMembersController {
   private api: any;
@@ -37,9 +38,10 @@ class ApiMembersController {
     private $mdDialog: ng.material.IDialogService,
     private NotificationService,
     private $scope,
-    private UserService,
+    private UserService: UserService,
     private GroupService,
-    private RoleService
+    private RoleService,
+    private Constants
   ) {
     'ngInject';
     this.api = resolvedApi.data;
@@ -58,7 +60,7 @@ class ApiMembersController {
       _.forEach(this.api.groups, (grp) => {
         GroupService.getMembers(grp).then((members) => {
           let filteredMembers = _.filter(members.data, (m: any) => {
-            return m.roles["API"]
+            return m.roles["API"];
           });
 
           if (filteredMembers.length > 0) {
@@ -82,22 +84,22 @@ class ApiMembersController {
 
   updateMember(member) {
     if (member.role) {
-      this.ApiService.addOrUpdateMember(this.api.id, member).then(() => {
-        this.NotificationService.show('Member ' + member.username + " has been updated with role " + member.role);
+      this.ApiService.addOrUpdateMember(this.api.id, _.pick(member, ['id', 'reference', 'role']) as any).then(() => {
+        this.NotificationService.show('Member ' + member.displayName + " has been updated with role " + member.role);
       });
     }
   }
 
   deleteMember(member) {
-    var index = this.members.indexOf(member);
-    this.ApiService.deleteMember(this.api.id, member.username).then(() => {
+    let index = this.members.indexOf(member);
+    this.ApiService.deleteMember(this.api.id, member.id).then(() => {
       this.members.splice(index, 1);
-      this.NotificationService.show("Member " + member.username + " has been removed");
+      this.NotificationService.show("Member " + member.displayName + " has been removed");
     });
   }
 
   isPrimaryOwner() {
-    return this.UserService.currentUser.username === this.api.owner.username;
+    return this.UserService.currentUser.id === this.api.owner.id;
   }
 
   showAddMemberModal(ev) {
@@ -109,7 +111,7 @@ class ApiMembersController {
       clickOutsideToClose: true,
       locals: {
         api: this.api,
-        apiMembers: this.members
+        members: this.members
       }
     }).then((api) => {
       if (api) {
@@ -119,16 +121,6 @@ class ApiMembersController {
       }
     }, function() {
       // You cancelled the dialog
-    });
-  }
-
-  showPermissionsInformation() {
-    this.$mdDialog.show({
-      controller: 'DialogApiPermissionsHelpController',
-      controllerAs: 'ctrl',
-      template: require('./permissions.dialog.html'),
-      parent: angular.element(document.body),
-      clickOutsideToClose:true
     });
   }
 
@@ -151,6 +143,20 @@ class ApiMembersController {
     });
   }
 
+  getMembershipDisplay(member): string {
+    if (! member.displayName) {
+      return member.username;
+    }
+
+    return (member.username)
+      ? member.displayName + ' (' + member.username + ')'
+      : member.displayName;
+  }
+
+  getMembershipAvatar(member): string {
+    return (member.id) ? this.UserService.getUserAvatar(member.id) : 'assets/default_photo.png';
+  }
+
   searchUser(query) {
     if (query) {
       return this.UserService.search(query).then((response) => {
@@ -164,15 +170,13 @@ class ApiMembersController {
         return filterUsers;
       });
     } else {
-      var filterMembers = _.filter(this.members, function(member: any) { return member.role !== 'PRIMARY_OWNER'; });
-      var members = _.flatMap(filterMembers, function(member: any) { return { 'id' : member.username, 'label' : member.firstname? member.firstname + ' ' + member.lastname : member.username}; });
-      return members;
+      return _.filter(this.members, (member: any) => { return member.role !== 'PRIMARY_OWNER'; });
     }
   }
 
-  selectedItemChange(item) {
-    if (item) {
-      this.newPrimaryOwner = item;
+  selectedUserChange(user) {
+    if (user) {
+      this.newPrimaryOwner = user;
     } else {
       if (this.newPrimaryOwner !== null) {
         this.newPrimaryOwner = null;
@@ -201,9 +205,15 @@ class ApiMembersController {
   }
 
   private transferOwnership(newRole: string) {
-      this.ApiService.transferOwnership(this.api.id, this.newPrimaryOwner.id, newRole).then(() => {
-        this.NotificationService.show("API ownership changed !");
-        this.$state.go('management.apis.list');
+    let ownership = {
+      id: this.newPrimaryOwner.id,
+      reference: this.newPrimaryOwner.reference,
+      role: newRole
+    };
+
+    this.ApiService.transferOwnership(this.api.id, ownership).then(() => {
+      this.NotificationService.show("API ownership changed !");
+      this.$state.go('management.apis.list');
     });
   }
 

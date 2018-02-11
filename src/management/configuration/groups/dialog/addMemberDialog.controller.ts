@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import UserService from "../../../../services/user.service";
 
-function DialogAddGroupMemberController($scope, $mdDialog, group, GroupService, UserService, NotificationService, $q) {
+function DialogAddGroupMemberController($scope, $mdDialog, group, UserService: UserService) {
   'ngInject';
 
   $scope.groupItem = group;
-  $scope.user = {};
-  $scope.usersFound = [];
   $scope.usersSelected = [];
   $scope.searchText = "";
 
@@ -30,50 +29,36 @@ function DialogAddGroupMemberController($scope, $mdDialog, group, GroupService, 
 
   $scope.searchUser = function (query) {
     if (query) {
-      return UserService.search(query).then((response) => {
-        const membersFound = response.data;
-        return _.filter(membersFound, (member: any) => {
-          return _.findIndex($scope.groupItem.members, (m: any) => {
-              return m.username === member.id;
-            }) === -1;
-        });
-      });
+      return UserService.search(query).then(function(response) { return response.data });
     }
   };
 
-  $scope.selectedItemChange = function(item) {
-    if (item) {
-      if (!$scope.isUserSelected(item)) {
-        $scope.usersFound.push(item);
-        $scope.selectMember(item);
+  $scope.getUserAvatar = function(id?: string) {
+    return (id) ? UserService.getUserAvatar(id) : 'assets/default_photo.png';
+  };
+
+  $scope.selectUser = function(user) {
+    if (user && user.reference) {
+      let selected = _.find($scope.usersSelected, {reference: user.reference});
+      if (!selected) {
+        $scope.usersSelected.push(user);
       }
-      $scope.searchText = "";
+      $scope.searchText = '';
     }
-  };
-
-  $scope.selectMember = function(user) {
-    const idx = $scope.usersSelected.indexOf(user.id);
-    if (idx > -1) {
-      $scope.usersSelected.splice(idx, 1);
-    }
-    else {
-      $scope.usersSelected.push(user.id);
-    }
-  };
-
-  $scope.isUserSelected = function(user) {
-    const idx = $scope.usersSelected.indexOf(user.id);
-    return idx > -1;
   };
 
   $scope.addMembers = function () {
     let members = [];
     for (let i = 0; i < $scope.usersSelected.length; i++) {
-      let member = {
-        username: $scope.usersSelected[i],
-        roles: {API: "", APPLICATION: ""}
+      let member = $scope.usersSelected[i];
+      let membership = {
+        id: member.id,
+        reference: member.reference,
+        displayName: (!member.firstname || !member.lastname) ? member.username : (member.firstname + ' ' + member.lastname),
+        roles: {API: '', APPLICATION: ''}
       };
-      members.push(member);
+
+      members.push(membership);
     }
     $mdDialog.hide(members);
   };

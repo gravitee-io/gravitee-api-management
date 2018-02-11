@@ -41,9 +41,11 @@ export const NavbarComponent: ng.IComponentOptions = {
         vm.graviteeUser = user;
         if (user && user.username) {
           let that = vm;
+          /*
           UserService.currentUserPicture().then( (picture) => {
             that.graviteeUser.picture = picture;
           });
+          */
 
           // schedule an automatic refresh of the user tasks
           if (!that.tasksScheduler) {
@@ -92,7 +94,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     };
 
     vm.getUserPicture = function() {
-      return 'assets/default_user_picture.png';
+      return UserService.currentUserPicture();
     };
 
     vm.openContextualDocumentation = function() {

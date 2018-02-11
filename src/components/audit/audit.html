@@ -85,7 +85,7 @@
             <tbody md-body>
             <tr ng-if="$ctrl.auditLogs.length > 0" md-row ng-repeat="log in $ctrl.auditLogs">
                 <td md-cell nowrap>{{log.createdAt | date : 'dd/MM/yyyy HH:mm:ss.sss'}}</td>
-                <td md-cell nowrap>{{log.username}}</td>
+                <td md-cell nowrap>{{log.user}}</td>
                 <td md-cell nowrap ng-if="!$ctrl.api">{{log.referenceType}}</td>
                 <td md-cell nowrap ng-if="!$ctrl.api">{{$ctrl.getNameByReference({type: log.referenceType, id: log.referenceId})}}</td>
                 <td md-cell nowrap>{{log.event}}</td>

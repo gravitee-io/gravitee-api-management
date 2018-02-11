@@ -69,8 +69,7 @@
                 <td md-cell>
                   <ng-md-icon icon="person" size="20" style="fill: #cdcdcd;">
                     <md-tooltip>
-                      <span ng-if="api.owner.firstname == null && api.owner.lastname == null">{{::api.owner.username}}</span>
-                      {{::api.owner.firstname}} {{::api.owner.lastname}}
+                      <span>{{::api.owner.displayName}}</span>
                       <span ng-if="api.owner.email">({{::api.owner.email}})</span>
                     </md-tooltip>
                   </ng-md-icon>

@@ -80,7 +80,11 @@ class GroupService {
           name: member.roles[roleScope]
         });
       });
-      return this.$http.put([this.groupsURL, group, 'members', member.username].join("/"), groupRole);
+      return this.$http.post([this.groupsURL, group, 'members'].join("/"), {
+        'id': member.id,
+        'reference': member.reference,
+        'roles': groupRole
+      });
     }
   }
 

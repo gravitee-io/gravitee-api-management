@@ -101,8 +101,8 @@ class RoleService {
     return this.$http.delete(this.roleURL + role.scope + '/roles/' + role.name + '/users/' + username);
   }
 
-  addRole(username, roleScope, roleName) {
-    return this.$http.post(`${this.roleURL}${roleScope}/roles/${roleName}/users/${username}`, {});
+  addRole(roleScope, roleName, user) {
+    return this.$http.post(`${this.roleURL}${roleScope}/roles/${roleName}/users`, user);
   }
 }
 

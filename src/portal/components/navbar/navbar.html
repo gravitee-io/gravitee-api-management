@@ -33,9 +33,9 @@
   <md-button ng-if="!$ctrl.graviteeUser.username" ui-sref-active="menu-active" ui-sref="login">{{'menu.login' | translate}}</md-button>
   <md-menu ng-if="$ctrl.graviteeUser.username" md-offset="0 54">
     <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" ng-mouseover="$mdMenu.open($event)" aria-label="Open user menu">
-      <img ng-if="!$ctrl.hasAlert()" ng-src="{{$ctrl.graviteeUser.picture || $ctrl.getUserPicture()}}"
+      <img ng-if="!$ctrl.hasAlert()" ng-src="{{$ctrl.getUserPicture()}}"
            alt="user-picture" gv-theme-element="portal.navbar.user.img"/>
-      <img ng-if="$ctrl.hasAlert()" ng-src="{{$ctrl.graviteeUser.picture || $ctrl.getUserPicture()}}"
+      <img ng-if="$ctrl.hasAlert()" ng-src="{{$ctrl.getUserPicture()}}"
            alt="user-picture" gv-theme-element="portal.navbar.user.img.alert"/>
       <span ng-if="$ctrl.hasAlert()" flex class="gv-menu-badge-alert" gv-theme-element="portal.navbar.user.notification"></span>
     </md-button>
@@ -43,7 +43,7 @@
       <div layout="column" class="gv-menu-content-main">
         <div layout="row">
           <div layout="column" layout-align="start center">
-            <img ng-src="{{$ctrl.graviteeUser.picture || $ctrl.getUserPicture()}}" alt="user-picture" />
+            <img ng-src="{{$ctrl.getUserPicture()}}" alt="user-picture" />
           </div>
           <div layout="column" layout-align="start start">
             <h5>{{$ctrl.graviteeUser.username}}</h5>

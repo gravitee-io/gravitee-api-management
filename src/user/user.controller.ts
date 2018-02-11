@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import UserService from '../services/user.service';
 import NotificationService from '../services/notification.service';
 import { User } from "../entities/user";
 import {IScope} from 'angular';
+import UserService from "../services/user.service";
 
 interface IUserScope extends ng.IScope {
   formUser: any;
@@ -39,11 +39,7 @@ class UserController {
     if (! this.user || (this.user && this.user.username === undefined)) {
       this.$state.go('login', {}, {reload: true, inherit: false});
     } else {
-      let that = this;
-      this.UserService.currentUserPicture().then((picture) => {
-        that.user.picture = picture;
-        that.originalPicture = picture;
-      })
+      this.originalPicture = this.getUserPicture();
     }
   }
 
@@ -52,15 +48,19 @@ class UserController {
     this.UserService.save(this.user).then((response) => {
       that.$rootScope.$broadcast('graviteeUserRefresh');
       that.$scope.formUser.$setPristine();
-      that.originalPicture = response.data["picture"];
-      that.user.picture = response.data["picture"];
+      //that.originalPicture = response.data["picture"];
+      //that.user.picture = response.data["picture"];
       that.NotificationService.show("User has been updated successfully");
     });
   }
 
   cancel() {
     this.$scope.formUser.$setPristine();
-    this.user.picture = this.originalPicture;
+    //this.user.picture = this.originalPicture;
+  }
+
+  getUserPicture() {
+    return this.UserService.currentUserPicture();
   }
 }
 

@@ -19,15 +19,13 @@ import NotificationService from '../../../../../services/notification.service';
 import RoleService from '../../../../../services/role.service';
 
 function DialogAddUserRoleController($mdDialog: angular.material.IDialogService, role, roleScope, $q: ng.IQService,
-                                     UserService: UserService, NotificationService: NotificationService, RoleService: RoleService,
-                                     Constants) {
+                                     UserService: UserService, NotificationService: NotificationService, RoleService: RoleService) {
   'ngInject';
 
   this.role = role;
   this.roleScope = roleScope;
   this.roleUsers = [];
 
-  this.usersFound = [];
   this.usersSelected = [];
   this.searchText = "";
 
@@ -40,56 +38,42 @@ function DialogAddUserRoleController($mdDialog: angular.material.IDialogService,
      $mdDialog.cancel();
   };
 
-	this.searchUser = function (query) {
-		if (query) {
-			return UserService.search(query).then(response => {
-        let usersFound = response.data;
-        let filterMembers = _.filter(_.values(usersFound), function(user:any) {
-          return _.findIndex(that.roleUsers,
-              function(roleUser:any) { return roleUser.username === user.id;}) === -1;
-        });
-        return _.map(filterMembers, function(member: any) {
-          member.picture = Constants.baseURL + 'users/' + member.id + '/picture';
-          return member;
-        });
+  this.searchUser = function (query) {
+    if (query) {
+      return UserService.search(query).then(function(response) {
+        return response.data;
       });
-		}
-	};
-
-  this.selectedItemChange = function(item) {
-		if (item) {
-			if (!this.isUserSelected(item)) {
-				this.usersFound.push(item);
-				this.selectUser(item);
-			}
-			this.searchText = "";
-		}
+    }
   };
 
-	this.selectUser = function(user) {
-		let idx = this.usersSelected.indexOf(user.id);
-    if (idx > -1) {
-      this.usersSelected.splice(idx, 1);
-    }
-    else {
-      this.usersSelected.push(user.id);
-    }
-	};
+  this.getUserAvatar = function(id?: string) {
+    return (id) ? UserService.getUserAvatar(id) : 'assets/default_photo.png';
+  };
 
-	this.isUserSelected = function(user) {
-		let idx = this.usersSelected.indexOf(user.id);
-    return idx > -1;
-	};
+  this.selectUser = function(user) {
+    if (user && user.reference) {
+      let selected = _.find(this.usersSelected, {reference: user.reference});
+      if (!selected) {
+        this.usersSelected.push(user);
+      }
+      this.searchText = "";
+    }
+  };
 
   this.addUsers = function () {
     let promises: Array<any> = [];
 		for (let i = 0; i < this.usersSelected.length; i++) {
-      let username = this.usersSelected[i];
-      promises.push(RoleService.addRole(username, this.roleScope, this.role));
+      let member = this.usersSelected[i];
+      let membership = {
+        id: member.id,
+        reference: member.reference,
+      };
+
+      promises.push(RoleService.addRole(this.roleScope, this.role, membership));
 		}
 
 		$q.all(promises).then((response) => {
-      NotificationService.show('Users ' + this.usersSelected + ' has been added successfully to the role');
+      NotificationService.show('Users ' + _.map(this.usersSelected, 'displayName').join(',') + ' has been added successfully to the role');
 		  $mdDialog.hide(response);
     });
   };

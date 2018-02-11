@@ -21,7 +21,6 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
                   $timeout, UserService: UserService, Constants, PermissionStrategies) {
   'ngInject';
 
-
   $transitions.onStart({ to: (state) => state.name !== 'login' && state.name !== 'registration'}, function(trans) {
     let forceLogin = (Constants.authentication && Constants.authentication.forceLogin) || false;
 
@@ -45,7 +44,8 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
   });
 
   $rootScope.$on('graviteeLogout', function () {
-    $mdSidenav('left').close();
+    //TODO: to delete ? What is this sidenav ?
+    //$mdSidenav('left').close();
     $window.location.href = $window.location.pathname;
   });
 

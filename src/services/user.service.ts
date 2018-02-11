@@ -23,6 +23,7 @@ class UserService {
   private baseURL: string;
   private usersURL: string;
   private userURL: string;
+  private searchUsersURL: string;
   private routerInitialized: boolean = false;
   private isLogout: boolean = false;
 
@@ -36,6 +37,7 @@ class UserService {
               private ApiService: ApiService, private $location) {
     'ngInject';
     this.baseURL = Constants.baseURL;
+    this.searchUsersURL = `${Constants.baseURL}search/users/`;
     this.usersURL = `${Constants.baseURL}users/`;
     this.userURL = `${Constants.baseURL}user/`;
   }
@@ -45,6 +47,7 @@ class UserService {
   }
 
   get(code: string): ng.IPromise<User> {
+    console.log(code);
     return this.$http.get(this.usersURL + code).then(response => Object.assign(new User(), response.data));
   }
 
@@ -57,7 +60,7 @@ class UserService {
   }
 
 	search(query) {
-		return this.$http.get(`${this.usersURL}?query=${query}`);
+		return this.$http.get(`${this.searchUsersURL}?q=${query}`);
 	}
 
   isUserHasPermissions(permissions) {
@@ -66,6 +69,7 @@ class UserService {
 
   current() {
     let that = this;
+
     if (! this.currentUser || !this.currentUser.username) {
       const promises = [this.$http.get(this.userURL)];
 
@@ -172,26 +176,16 @@ class UserService {
       .then(function() {that.currentUser = new User(); that.isLogout = true;});
   }
 
-  currentUserPicture(): ng.IPromise<string> {
-    if (! this.currentUser || !this.currentUser.picture) {
-      let that = this;
-      return this.current().then((user) => {
-        return that.$http.get(`${that.userURL + user.username}/picture`).then( (response) => {
-          this.currentUser.picture = response.data.toString();
-          return this.$q.resolve<string>(this.currentUser.picture);
-        });
-      });
-    } else {
-      return this.$q.resolve<string>(this.currentUser.picture);
-    }
+  currentUserPicture(): string {
+    return `${this.userURL}avatar`;
+  }
+
+  getUserAvatar(id: string): string {
+    return `${this.usersURL}` + id + '/avatar';
   }
 
   save(user) {
     return this.$http.put(`${this.userURL + user.username}/`, {username: user.username, picture: user.picture});
-  }
-
-  listPlanSubscription() {
-    return this.$http.get(`${this.userURL}subscriptions`);
   }
 }
 

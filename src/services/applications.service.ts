@@ -31,6 +31,12 @@ interface IMember {
   role: string;
 }
 
+interface IMembership {
+  id?: string;
+  reference?: string;
+  role: string;
+}
+
 class ApplicationService {
   private applicationsURL: string;
 
@@ -51,19 +57,16 @@ class ApplicationService {
 		return this.$http.get(this.applicationsURL + applicationId + '/members');
 	}
 
-	addOrUpdateMember(applicationId: string, member: IMember): ng.IHttpPromise<any> {
-    const url = `${this.applicationsURL}${applicationId}/members?user=${member.username}&type=${member.type}&rolename=${member.role}`;
-    return this.$http.post(url, '');
+	addOrUpdateMember(applicationId: string, membership: IMembership): ng.IHttpPromise<any> {
+    return this.$http.post(`${this.applicationsURL}${applicationId}/members`, membership);
 	}
 
-	deleteMember(applicationId, memberUsername): ng.IHttpPromise<any> {
-		return this.$http.delete(this.applicationsURL + applicationId + '/members?user=' + memberUsername);
+	deleteMember(applicationId:string, userId: string): ng.IHttpPromise<any> {
+		return this.$http.delete(this.applicationsURL + applicationId + '/members?user=' + userId);
 	}
 
-  transferOwnership(applicationId, memberUsername, newRole: string): ng.IHttpPromise<any> {
-    return this.$http.post(this.applicationsURL + applicationId + '/members/transfer_ownership?user=' + memberUsername, {
-      role: newRole
-    });
+  transferOwnership(applicationId: string, ownership: IMembership): ng.IHttpPromise<any> {
+    return this.$http.post(this.applicationsURL + applicationId + '/members/transfer_ownership', ownership);
   }
 
   list(): ng.IHttpPromise<any> {

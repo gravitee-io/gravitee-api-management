@@ -57,6 +57,7 @@ class ApplicationMembersController {
       });
     });
   }
+
   $onInit() {
     this.groupById = _.keyBy(this.resolvedGroups, "id");
     this.displayGroups = {};
@@ -83,17 +84,17 @@ class ApplicationMembersController {
 
   updateMember(member) {
     if (member.role) {
-      this.ApplicationService.addOrUpdateMember(this.application.id, member).then(() => {
-        this.NotificationService.show(`Member ${member.username} has been updated with role ${member.role}`);
+      this.ApplicationService.addOrUpdateMember(this.application.id, _.pick(member, ['id', 'reference', 'role']) as any).then(() => {
+        this.NotificationService.show(`Member ${member.displayName} has been updated with role ${member.role}`);
       });
     }
   }
 
   deleteMember(member) {
     let index = this.members.indexOf(member);
-    this.ApplicationService.deleteMember(this.application.id, member.username).then(() => {
+    this.ApplicationService.deleteMember(this.application.id, member.id).then(() => {
       this.members.splice(index, 1);
-      this.NotificationService.show(`${member.username} has been removed`);
+      this.NotificationService.show(`${member.displayName} has been removed`);
     });
   }
 
@@ -127,7 +128,7 @@ class ApplicationMembersController {
       clickOutsideToClose: true,
       locals: {
         application: that.application,
-        applicationMembers: that.members
+        members: that.members
       }
     }).then(function (application) {
       if (application) {
@@ -138,38 +139,38 @@ class ApplicationMembersController {
     });
   }
 
-  showPermissionsInformation() {
-    this.$mdDialog.show({
-      controller: 'DialogApplicationPermissionsHelpController',
-      controllerAs: 'ctrl',
-      template: require('./permissions.dialog.html'),
-      parent: angular.element(document.body),
-      clickOutsideToClose:true
-    });
-  }
-
   searchUser(query) {
     if (query) {
       return this.UserService.search(query).then((response) => {
-        const usersFound = response.data;
-        let filterUsers = _.filter(usersFound, (user:any) => {
+        return _.filter(response.data, (user:any) => {
           return _.findIndex(this.members,
-            function(applicationMember: any) {
-              return applicationMember.username === user.id && applicationMember.role === 'PRIMARY_OWNER';
-            }) === -1;
+              function(member: any) {
+                return member.username === user.id && member.role === 'PRIMARY_OWNER';
+              }) === -1;
         });
-        return filterUsers;
       });
     } else {
-      let filterMembers = _.filter(this.members, function(member: any) { return member.role !== 'PRIMARY_OWNER'; });
-      let members = _.flatMap(filterMembers, function(member: any) { return { 'id' : member.username, 'label' : member.firstname? member.firstname + ' ' + member.lastname : member.username}; });
-      return members;
+      return _.filter(this.members, (member: any) => { return member.role !== 'PRIMARY_OWNER'; });
     }
   }
 
-  selectedItemChange(item) {
-    if (item) {
-      this.newPrimaryOwner = item;
+  getMembershipDisplay(member): string {
+    if (! member.displayName) {
+      return member.username;
+    }
+
+    return (member.username)
+      ? member.displayName + ' (' + member.username + ')'
+      : member.displayName;
+  }
+
+  getMembershipAvatar(member): string {
+    return (member.id) ? this.UserService.getUserAvatar(member.id) : 'assets/default_photo.png';
+  }
+
+  selectedUserChange(user) {
+    if (user) {
+      this.newPrimaryOwner = user;
     } else {
       if (this.newPrimaryOwner !== null) {
         this.newPrimaryOwner = null;
@@ -198,7 +199,13 @@ class ApplicationMembersController {
   }
 
   private transferOwnership(newRole: string) {
-    this.ApplicationService.transferOwnership(this.application.id, this.newPrimaryOwner.id, newRole).then(() => {
+    let ownership = {
+      id: this.newPrimaryOwner.id,
+      reference: this.newPrimaryOwner.reference,
+      role: newRole
+    };
+
+    this.ApplicationService.transferOwnership(this.application.id, ownership).then(() => {
       this.NotificationService.show("API ownership changed !");
       this.$state.go('management.applications.list');
     });
@@ -209,7 +216,7 @@ class ApplicationMembersController {
   }
 
   isPrimaryOwner() {
-    return this.UserService.currentUser.username === this.application.owner.username;
+    return this.UserService.currentUser.id === this.application.owner.id;
   }
 }
 
