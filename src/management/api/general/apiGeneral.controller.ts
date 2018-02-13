@@ -287,8 +287,15 @@ class ApiAdminController {
     });
   }
 
-  getTenant(tenantId) {
-    return _.find(this.tenants, { 'id': tenantId });
+  getTenants(tenants) {
+    if (tenants !== undefined) {
+      return _(tenants)
+        .map((tenant) => _.find(this.tenants, {'id': tenant}))
+        .map((tenant: any) => tenant.name)
+        .join(', ');
+    }
+
+    return '';
   }
 
   getGroup(groupId) {

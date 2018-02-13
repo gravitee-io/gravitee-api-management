@@ -41,8 +41,8 @@
 
     <div layout="column">
       <md-input-container class="flex">
-        <label>Tenant</label>
-        <md-select ng-model="endpointCtrl.endpoint.tenant" ng-disabled="!endpointCtrl.api.proxy.multiTenant" ng-required="endpointCtrl.api.proxy.multiTenant">
+        <label>Tenants</label>
+        <md-select ng-model="endpointCtrl.endpoint.tenants" multiple>
           <md-option ng-repeat="tenant in endpointCtrl.tenants" ng-value="tenant.id">
             {{tenant.name}}<span ng-if="tenant.description" class="gravitee-general-description"> - {{tenant.description}}</span>
           </md-option>
