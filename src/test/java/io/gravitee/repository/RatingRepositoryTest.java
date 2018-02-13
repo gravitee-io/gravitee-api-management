@@ -93,9 +93,9 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldFindByApiPageable() throws Exception {
         Page<Rating> ratingPage = ratingRepository.findByApiPageable("api",
-                new PageableBuilder().pageNumber(1).pageSize(2).build());
+                new PageableBuilder().pageNumber(0).pageSize(2).build());
 
-        assertEquals(1, ratingPage.getPageNumber());
+        assertEquals(0, ratingPage.getPageNumber());
         assertEquals(2, ratingPage.getPageElements());
         assertEquals(3, ratingPage.getTotalElements());
 
@@ -104,9 +104,9 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertEquals("rating4-id", ratingPage.getContent().get(1).getId());
 
         ratingPage = ratingRepository.findByApiPageable("api",
-                new PageableBuilder().pageNumber(2).pageSize(2).build());
+                new PageableBuilder().pageNumber(1).pageSize(2).build());
 
-        assertEquals(2, ratingPage.getPageNumber());
+        assertEquals(1, ratingPage.getPageNumber());
         assertEquals(1, ratingPage.getPageElements());
         assertEquals(3, ratingPage.getTotalElements());
 

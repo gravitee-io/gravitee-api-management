@@ -20,12 +20,13 @@ import io.gravitee.repository.management.model.User;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.fail;
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.*;
 
 public class UserRepositoryTest extends AbstractRepositoryTest {
 
@@ -53,13 +54,13 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("Unable to find saved user", optional.isPresent());
         User userFound = optional.get();
 
-        Assert.assertEquals("Invalid saved user name.", user.getUsername(), userFound.getUsername());
-        Assert.assertEquals("Invalid saved user mail.", user.getEmail(), userFound.getEmail());
+        assertEquals("Invalid saved user name.", user.getUsername(), userFound.getUsername());
+        assertEquals("Invalid saved user mail.", user.getEmail(), userFound.getEmail());
     }
 
     @Test
     public void shouldUpdate() throws Exception {
-        Optional<User> optional = userRepository.findByUsername("user0");
+        Optional<User> optional = userRepository.findById("user0");
         Assert.assertTrue("userRepository to update not found", optional.isPresent());
 
         final User user = optional.get();
@@ -69,13 +70,13 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         userRepository.update(user);
         int nbUsersAfterUpdate = userRepository.findAll().size();
 
-        Assert.assertEquals(nbUsersBeforeUpdate, nbUsersAfterUpdate);
+        assertEquals(nbUsersBeforeUpdate, nbUsersAfterUpdate);
 
-        Optional<User> optionalUpdated = userRepository.findByUsername("user0");
+        Optional<User> optionalUpdated = userRepository.findById("user0");
         Assert.assertTrue("User to update not found", optionalUpdated.isPresent());
 
         final User userUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved user password.", "New pwd", userUpdated.getPassword());
+        assertEquals("Invalid saved user password.", "New pwd", userUpdated.getPassword());
     }
 
     @Test
@@ -83,21 +84,13 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         Set<User> users = userRepository.findAll();
 
         Assert.assertNotNull(users);
-        Assert.assertEquals("Invalid user numbers in find all", 6, users.size());
+        assertEquals("Invalid user numbers in find all", 6, users.size());
     }
 
     @Test
     public void findUserByNameTest() throws Exception {
-        Optional<User> user = userRepository.findByUsername("user0");
+        Optional<User> user = userRepository.findByUsername("user0 name");
         Assert.assertTrue(user.isPresent());
-    }
-
-    @Test
-    public void findUserByNamesTest() throws Exception {
-        Set<User> usernames = userRepository.findByIds(Arrays.asList("user0", "user4"));
-        Assert.assertNotNull(usernames);
-        Assert.assertFalse(usernames.isEmpty());
-        Assert.assertEquals(2, usernames.size());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -112,5 +105,22 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         userRepository.update(null);
         fail("A null user should not be updated");
+    }
+
+    @Test
+    public void shouldFindById() throws Exception {
+        final Optional<User> optionalUser = userRepository.findById("user1");
+
+        assertTrue(optionalUser.isPresent());
+        assertEquals("User not found by its id", "user1 name", optionalUser.get().getUsername());
+    }
+
+    @Test
+    public void shouldFindByIds() throws Exception {
+        final Set<User> users = userRepository.findByIds(asList("user1", "user5"));
+
+        assertNotNull(users);
+        assertEquals(2, users.size());
+        assertTrue(users.stream().map(User::getUsername).collect(toList()).containsAll(asList("user1 name", "user5 name")));
     }
 }

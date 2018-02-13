@@ -45,8 +45,8 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         view.setId("new-view");
         view.setName("View name");
         view.setDescription("Description for the new view");
-        view.setCreatedAt(new Date(123456789));
-        view.setUpdatedAt(new Date(987654321));
+        view.setCreatedAt(new Date(1486771200000L));
+        view.setUpdatedAt(new Date(1486771200000L));
         view.setHidden(true);
         view.setOrder(1);
         view.setDefaultView(true);
@@ -82,8 +82,8 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         view.setOrder(10);
         view.setDefaultView(true);
         view.setHidden(true);
-        view.setCreatedAt(new Date(123456789));
-        view.setUpdatedAt(new Date(987654321));
+        view.setCreatedAt(new Date(1486771200000L));
+        view.setUpdatedAt(new Date(1486771200000L));
 
 
         int nbViewsBeforeUpdate = viewRepository.findAll().size();

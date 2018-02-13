@@ -66,8 +66,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("configuration try it URL", "http://company.com", page.getConfiguration().getTryItURL());
         assertTrue("homepage", page.isHomepage());
         assertEquals("excludedGroups", Arrays.asList("grp1", "grp2"), page.getExcludedGroups());
-        assertEquals("created at", new Date(1439022010883L), page.getCreatedAt());
-        assertEquals("updated at", new Date(1119022010883L), page.getUpdatedAt());
+        assertEquals("created at", new Date(1486771200000L), page.getCreatedAt());
+        assertEquals("updated at", new Date(1486771200000L), page.getUpdatedAt());
     }
 
     @Test

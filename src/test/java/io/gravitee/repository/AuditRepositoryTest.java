@@ -23,13 +23,12 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Plan;
-import io.gravitee.repository.management.model.View;
-import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
@@ -53,7 +52,7 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
         assertEquals("event", Plan.AuditEvent.PLAN_CREATED.name(), audit.getEvent());
         assertEquals("properties", Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123"), audit.getProperties());
         assertEquals("user", "JohnDoe", audit.getUser());
-        assertEquals("createdAt", new Date(1439022010883L), audit.getCreatedAt());
+        assertEquals("createdAt", new Date(1486771200000L), audit.getCreatedAt());
         assertEquals("patch", "diff", audit.getPatch());
     }
 
@@ -62,14 +61,14 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().
                 references(Audit.AuditReferenceType.API, singletonList("2")).
                 build();
-        Pageable page = new PageableBuilder().pageNumber(1).pageSize(1).build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(1).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
         assertEquals("total elements", 2, auditPage.getTotalElements());
         assertEquals("page elements", 1, auditPage.getPageElements());
-        assertEquals("page number", 1, auditPage.getPageNumber());
+        assertEquals("page number", 0, auditPage.getPageNumber());
         assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().get(0).getId());
     }
 
@@ -78,14 +77,14 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().
                 events(singletonList(Plan.AuditEvent.PLAN_UPDATED.name())).
                 build();
-        Pageable page = new PageableBuilder().pageNumber(1).pageSize(10).build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
         assertEquals("total elements", 1, auditPage.getTotalElements());
         assertEquals("page elements", 1, auditPage.getPageElements());
-        assertEquals("page number", 1, auditPage.getPageNumber());
+        assertEquals("page number", 0, auditPage.getPageNumber());
         assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().get(0).getId());
     }
 
@@ -93,14 +92,14 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
     public void shouldSearchAll() throws TechnicalException {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().
                 build();
-        Pageable page = new PageableBuilder().pageNumber(1).pageSize(10).build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
         assertEquals("total elements", 3, auditPage.getTotalElements());
         assertEquals("page elements", 3, auditPage.getPageElements());
-        assertEquals("page number", 1, auditPage.getPageNumber());
+        assertEquals("page number", 0, auditPage.getPageNumber());
     }
 
     @Test
@@ -108,14 +107,14 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().
                 from(1900000000000L).to(2999999999999L).
                 build();
-        Pageable page = new PageableBuilder().pageNumber(1).pageSize(10).build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
         assertEquals("total elements", 1, auditPage.getTotalElements());
         assertEquals("page elements", 1, auditPage.getPageElements());
-        assertEquals("page number", 1, auditPage.getPageNumber());
+        assertEquals("page number", 0, auditPage.getPageNumber());
         assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().get(0).getId());
     }
 
@@ -124,14 +123,14 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().
                 from(1000000000000L).
                 build();
-        Pageable page = new PageableBuilder().pageNumber(1).pageSize(10).build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
         assertEquals("total elements", 3, auditPage.getTotalElements());
         assertEquals("page elements", 3, auditPage.getPageElements());
-        assertEquals("page number", 1, auditPage.getPageNumber());
+        assertEquals("page number", 0, auditPage.getPageNumber());
     }
 
     @Test
@@ -139,13 +138,13 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().
                 to(1000000000000L).
                 build();
-        Pageable page = new PageableBuilder().pageNumber(1).pageSize(10).build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
         assertEquals("total elements", 1, auditPage.getTotalElements());
         assertEquals("page elements", 1, auditPage.getPageElements());
-        assertEquals("page number", 1, auditPage.getPageNumber());
+        assertEquals("page number", 0, auditPage.getPageNumber());
     }
 }

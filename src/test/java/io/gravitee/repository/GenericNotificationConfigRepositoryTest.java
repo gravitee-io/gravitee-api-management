@@ -88,7 +88,7 @@ public class GenericNotificationConfigRepositoryTest extends AbstractRepositoryT
         assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId());
         assertEquals(cfg.getNotifier(), notificationUpdated.getNotifier());
         assertEquals(cfg.getConfig(), notificationUpdated.getConfig());
-        assertEquals(cfg.getHooks(), notificationUpdated.getHooks());
+        assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks()));
         assertEquals(cfg.getCreatedAt(), notificationUpdated.getCreatedAt());
         assertEquals(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt());
     }

@@ -25,9 +25,9 @@
 		"subscription": "sub1",
 		"application": "app1",
 		"plan": "plan1",
-		"expireAt": 9223372036854775807,
-		"createdAt": 0,
-		"updatedAt": 100,
+		"expireAt": 29919401755,
+		"createdAt": 1486771200000,
+		"updatedAt": 1486771200000,
 		"revoked": false
 	},
 	{
@@ -35,9 +35,9 @@
 		"subscription": "sub1",
 		"application": "app1",
 		"plan": "plan1",
-		"expireAt": 9223372036854775807,
-		"createdAt": 0,
-		"updatedAt": 200,
+		"expireAt": 29919401755,
+		"createdAt": 1486771200000,
+		"updatedAt": 1486771400000,
 		"revoked": true
 	},
 	{
@@ -45,9 +45,9 @@
 		"subscription": "sub2",
 		"application": "app2",
 		"plan": "plan1",
-		"expireAt": 9223372036854775807,
-		"createdAt": 0,
-		"updatedAt": 300,
+		"expireAt": 29919401755,
+		"createdAt": 1486771200000,
+		"updatedAt": 1486771600000,
 		"revoked": false
 	}
 ]

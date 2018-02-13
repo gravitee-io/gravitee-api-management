@@ -55,7 +55,7 @@ public class MockTestRepositoryConfiguration {
         when(newAudit.getProperties()).thenReturn(singletonMap(Audit.AuditProperties.PLAN.name(), "123"));
         when(newAudit.getUser()).thenReturn("JohnDoe");
         when(newAudit.getPatch()).thenReturn("diff");
-        when(newAudit.getCreatedAt()).thenReturn(new Date(1439022010883L));
+        when(newAudit.getCreatedAt()).thenReturn(new Date(1486771200000L));
         when(auditRepository.findById("new")).thenReturn(of(newAudit));
 
         final Audit searchable2 = mock(Audit.class);
@@ -72,7 +72,7 @@ public class MockTestRepositoryConfiguration {
                             }
                         }
                 ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 1, 1, 2));
+                thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 0, 1, 2));
         //shouldSearchWithEvent
         when(auditRepository.search(
                 argThat(new ArgumentMatcher<AuditCriteria>() {
@@ -85,7 +85,7 @@ public class MockTestRepositoryConfiguration {
                             }
                         }
                 ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 1, 1, 1));
+                thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 0, 1, 1));
         //shouldSearchAll
         when(auditRepository.search(
                 argThat(new ArgumentMatcher<AuditCriteria>() {
@@ -101,7 +101,7 @@ public class MockTestRepositoryConfiguration {
                 ), any())).
                 thenReturn(new io.gravitee.common.data.domain.Page<>(
                         asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)),
-                        1,
+                        0,
                         3,
                         3));
         //shouldSearchFromTo
@@ -117,7 +117,7 @@ public class MockTestRepositoryConfiguration {
                             }
                         }
                 ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 1, 1, 1));
+                thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 0, 1, 1));
         //shouldSearchFrom
         when(auditRepository.search(
                 argThat(new ArgumentMatcher<AuditCriteria>() {
@@ -131,7 +131,7 @@ public class MockTestRepositoryConfiguration {
                             }
                         }
                 ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)), 1, 3, 3));
+                thenReturn(new io.gravitee.common.data.domain.Page<>(asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)), 0, 3, 3));
         //shouldSearchTo
         when(auditRepository.search(
                 argThat(new ArgumentMatcher<AuditCriteria>() {
@@ -145,7 +145,7 @@ public class MockTestRepositoryConfiguration {
                             }
                         }
                 ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(Collections.singletonList(mock(Audit.class)), 1, 1, 1));
+                thenReturn(new io.gravitee.common.data.domain.Page<>(Collections.singletonList(mock(Audit.class)), 0, 1, 1));
 
         return auditRepository;
     }
@@ -185,7 +185,7 @@ public class MockTestRepositoryConfiguration {
         when(apiKeyRepository.findByCriteria(argThat(new ArgumentMatcher<ApiKeyCriteria>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).getTo() == 150);
+                return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).getTo() == 1486771400000L);
             }
         }))).thenReturn(Collections.singletonList(mockCriteria1));
         when(apiKeyRepository.findByCriteria(argThat(new ArgumentMatcher<ApiKeyCriteria>() {
@@ -500,9 +500,9 @@ public class MockTestRepositoryConfiguration {
         when(userRepository.findAll()).thenReturn(newSet(user, mock(User.class), mock(User.class),
                 mock(User.class), mock(User.class), mock(User.class)));
         when(userRepository.create(any(User.class))).thenReturn(user);
+        when(userRepository.findById("user0")).thenReturn(of(user));
         when(userRepository.findByUsername("createuser1")).thenReturn(of(user));
-        when(userRepository.findByUsername("user0")).thenReturn(of(user));
-        when(userRepository.findByIds(asList("user0", "user4"))).thenReturn(new HashSet<>(asList(user, user4)));
+        when(userRepository.findByUsername("user0 name")).thenReturn(of(user));
         when(user.getUsername()).thenReturn("createuser1");
         when(user.getId()).thenReturn("createuser1");
         when(user.getEmail()).thenReturn("createuser1@gravitee.io");
@@ -514,6 +514,15 @@ public class MockTestRepositoryConfiguration {
             }
         }))).thenThrow(new IllegalStateException());
 
+        final User user1 = mock(User.class);
+        when(user1.getUsername()).thenReturn("user1 name");
+
+        final User user5 = mock(User.class);
+        when(user5.getUsername()).thenReturn("user5 name");
+
+        when(userRepository.findById("user1")).thenReturn(of(user1));
+        when(userRepository.findByIds(asList("user1", "user5"))).thenReturn(new HashSet<>(asList(user1, user5)));
+
         return userRepository;
     }
 
@@ -524,8 +533,8 @@ public class MockTestRepositoryConfiguration {
         final View newView = mock(View.class);
         when(newView.getName()).thenReturn("View name");
         when(newView.getDescription()).thenReturn("Description for the new view");
-        when(newView.getCreatedAt()).thenReturn(new Date(123456789));
-        when(newView.getUpdatedAt()).thenReturn(new Date(987654321));
+        when(newView.getCreatedAt()).thenReturn(new Date(1486771200000L));
+        when(newView.getUpdatedAt()).thenReturn(new Date(1486771200000L));
         when(newView.isHidden()).thenReturn(true);
         when(newView.getOrder()).thenReturn(1);
         when(newView.isDefaultView()).thenReturn(true);
@@ -543,8 +552,8 @@ public class MockTestRepositoryConfiguration {
         final View viewProductsUpdated = mock(View.class);
         when(viewProductsUpdated.getName()).thenReturn("New product");
         when(viewProductsUpdated.getDescription()).thenReturn("New description");
-        when(viewProductsUpdated.getCreatedAt()).thenReturn(new Date(123456789));
-        when(viewProductsUpdated.getUpdatedAt()).thenReturn(new Date(987654321));
+        when(viewProductsUpdated.getCreatedAt()).thenReturn(new Date(1486771200000L));
+        when(viewProductsUpdated.getUpdatedAt()).thenReturn(new Date(1486771200000L));
         when(viewProductsUpdated.isHidden()).thenReturn(true);
         when(viewProductsUpdated.getOrder()).thenReturn(10);
         when(viewProductsUpdated.isDefaultView()).thenReturn(true);
@@ -807,8 +816,8 @@ public class MockTestRepositoryConfiguration {
         when(findApiPage.getConfiguration()).thenReturn(pageConfiguration);
         when(findApiPage.isHomepage()).thenReturn(true);
         when(findApiPage.getExcludedGroups()).thenReturn(asList("grp1", "grp2"));
-        when(findApiPage.getCreatedAt()).thenReturn(new Date(1439022010883L));
-        when(findApiPage.getUpdatedAt()).thenReturn(new Date(1119022010883L));
+        when(findApiPage.getCreatedAt()).thenReturn(new Date(1486771200000L));
+        when(findApiPage.getUpdatedAt()).thenReturn(new Date(1486771200000L));
 
         // shouldFindApiPageByApiId
         when(pageRepository.findApiPageByApiId("my-api")).thenReturn(newSet(findApiPage));
@@ -885,9 +894,18 @@ public class MockTestRepositoryConfiguration {
 
         final Subscription sub1 = new Subscription();
         sub1.setId("sub1");
-        sub1.setApplication("app1");
         sub1.setPlan("plan1");
-        sub1.setUpdatedAt(new Date(0));
+        sub1.setApplication("app1");
+        sub1.setApi("api1");
+        sub1.setReason("reason");
+        sub1.setStatus(Subscription.Status.PENDING);
+        sub1.setProcessedBy("user1");
+        sub1.setSubscribedBy("user2");
+        sub1.setStartingAt(new Date(1439022010883L));
+        sub1.setEndingAt(new Date(1449022010883L));
+        sub1.setCreatedAt(new Date(1459022010883L));
+        sub1.setUpdatedAt(new Date(1469022010883L));
+        sub1.setProcessedAt(new Date(1479022010883L));
 
         when(subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
@@ -1078,8 +1096,8 @@ public class MockTestRepositoryConfiguration {
         when(ratingRepository.findById("rating-id")).thenReturn(of(rating));
         when(ratingRepository.findById("new-rating")).thenReturn(empty(), of(newRating));
         when(ratingRepository.findByApiPageable(eq("api"), any(Pageable.class))).thenReturn(
-                new io.gravitee.common.data.domain.Page<>(asList(rating, rating4), 1, 2, 3),
-                new io.gravitee.common.data.domain.Page<>(asList(rating2), 2, 1, 3));
+                new io.gravitee.common.data.domain.Page<>(asList(rating, rating4), 0, 2, 3),
+                new io.gravitee.common.data.domain.Page<>(asList(rating2), 1, 1, 3));
 
         final Rating updatedRating = mockRating("rating-id", "api-new", "user10", "title10", "comment10", "3");
         when(ratingRepository.update(any(Rating.class))).thenReturn(updatedRating);

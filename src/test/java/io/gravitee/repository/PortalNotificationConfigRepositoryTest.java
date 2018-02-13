@@ -83,7 +83,7 @@ public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTe
         assertEquals(cfg.getReferenceType(), notificationUpdated.getReferenceType());
         assertEquals(cfg.getReferenceId(), notificationUpdated.getReferenceId());
         assertEquals(cfg.getUser(), notificationUpdated.getUser());
-        assertEquals(cfg.getHooks(), notificationUpdated.getHooks());
+        assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks()));
         assertEquals(cfg.getCreatedAt(), notificationUpdated.getCreatedAt());
         assertEquals(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt());
     }
