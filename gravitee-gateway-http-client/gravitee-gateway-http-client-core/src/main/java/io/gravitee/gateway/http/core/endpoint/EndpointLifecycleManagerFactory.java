@@ -16,7 +16,7 @@
 package io.gravitee.gateway.http.core.endpoint;
 
 import io.gravitee.common.spring.factory.AbstractAutowiringFactoryBean;
-import io.gravitee.definition.model.Api;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.http.core.endpoint.impl.DefaultEndpointLifecycleManager;
 import io.gravitee.gateway.http.core.endpoint.impl.tenant.MultiTenantAwareEndpointLifecycleManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +28,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class EndpointLifecycleManagerFactory extends AbstractAutowiringFactoryBean<EndpointLifecycleManager> {
 
     @Autowired
-    private Api api;
+    private GatewayConfiguration gatewayConfiguration;
 
     @Override
     protected EndpointLifecycleManager doCreateInstance() throws Exception {
-        if (api.getProxy().isMultiTenant()) {
-            return new MultiTenantAwareEndpointLifecycleManager();
+        if (gatewayConfiguration.tenant().isPresent()) {
+            return new MultiTenantAwareEndpointLifecycleManager(gatewayConfiguration.tenant().get());
         }
 
         return new DefaultEndpointLifecycleManager();
