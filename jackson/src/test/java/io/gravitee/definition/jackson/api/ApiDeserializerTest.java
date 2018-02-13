@@ -369,18 +369,19 @@ public class ApiDeserializerTest extends AbstractTest {
     }
 
     @Test
-    public void definition_multiTenant() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
-
-        Assert.assertFalse(api.getProxy().isMultiTenant());
-    }
-
-    @Test
     public void definition_multiTenant_enable() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-multitenant.json", Api.class);
 
-        Assert.assertTrue(api.getProxy().isMultiTenant());
-        Assert.assertEquals("europe", api.getProxy().getEndpoints().iterator().next().getTenant());
+        Assert.assertEquals("europe", api.getProxy().getEndpoints().iterator().next().getTenants().get(0));
+    }
+
+    @Test
+    public void definition_multiTenants_enable() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-multitenants.json", Api.class);
+        
+        List<String> tenants = api.getProxy().getEndpoints().iterator().next().getTenants();
+        Assert.assertEquals("europe", tenants.get(0));
+        Assert.assertEquals("asie", tenants.get(1));
     }
 
     @Test(expected = JsonMappingException.class)

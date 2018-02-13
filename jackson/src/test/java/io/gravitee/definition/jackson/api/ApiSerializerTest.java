@@ -233,4 +233,12 @@ public class ApiSerializerTest extends AbstractTest {
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assert.assertNotNull(generatedJsonDefinition);
     }
+
+    @Test
+    public void definition_multiTenants_enable() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-multitenants.json", Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
 }

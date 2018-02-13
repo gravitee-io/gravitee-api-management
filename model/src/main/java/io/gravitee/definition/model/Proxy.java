@@ -25,8 +25,6 @@ public class Proxy {
 
     public final static LoggingMode DEFAULT_LOGGING_MODE = LoggingMode.NONE;
 
-    public final static boolean DEFAULT_MULTI_TENANT = false;
-
     private String contextPath;
 
     private Set<Endpoint> endpoints;
@@ -40,8 +38,6 @@ public class Proxy {
     private boolean stripContextPath = false;
 
     private LoggingMode loggingMode = DEFAULT_LOGGING_MODE;
-
-    private boolean multiTenant = DEFAULT_MULTI_TENANT;
 
     public String getContextPath() {
         return contextPath;
@@ -93,14 +89,6 @@ public class Proxy {
 
     public void setLoggingMode(LoggingMode loggingMode) {
         this.loggingMode = loggingMode;
-    }
-
-    public boolean isMultiTenant() {
-        return multiTenant;
-    }
-
-    public void setMultiTenant(boolean multiTenant) {
-        this.multiTenant = multiTenant;
     }
 
     public Cors getCors() {

@@ -23,6 +23,9 @@ import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.Endpoint;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -51,10 +54,21 @@ public abstract class EndpointDeserializer<T extends Endpoint> extends StdScalar
             endpoint.setBackup(false);
         }
 
-        final JsonNode tenantNode = node.get("tenant");
-        if (tenantNode != null) {
-            String tenant = tenantNode.asText();
-            endpoint.setTenant(tenant);
+        // Keep it for backward-compatibility
+        final JsonNode singleTenantNode = node.get("tenant");
+        if (singleTenantNode != null) {
+            String tenant = singleTenantNode.asText();
+            endpoint.setTenants(Collections.singletonList(tenant));
+        }
+
+        final JsonNode tenantsNode = node.get("tenants");
+        if (tenantsNode != null && tenantsNode.isArray()) {
+            List<String> tenants = new ArrayList<>(tenantsNode.size());
+            tenantsNode.elements().forEachRemaining(tenantNode -> {
+                tenants.add(tenantNode.asText());
+            });
+
+            endpoint.setTenants(tenants);
         }
     }
 }

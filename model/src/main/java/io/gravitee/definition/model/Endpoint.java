@@ -15,6 +15,8 @@
  */
 package io.gravitee.definition.model;
 
+import java.util.List;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -33,7 +35,7 @@ public abstract class Endpoint {
 
     private Status status = Status.UP;
 
-    private String tenant;
+    private List<String> tenants;
 
     private final EndpointType type;
 
@@ -83,12 +85,12 @@ public abstract class Endpoint {
         this.status = status;
     }
 
-    public String getTenant() {
-        return tenant;
+    public List<String> getTenants() {
+        return tenants;
     }
 
-    public void setTenant(String tenant) {
-        this.tenant = tenant;
+    public void setTenants(List<String> tenants) {
+        this.tenants = tenants;
     }
 
     public EndpointType getType() {

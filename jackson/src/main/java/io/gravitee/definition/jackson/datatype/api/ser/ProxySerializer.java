@@ -42,7 +42,6 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
         if (proxy.getLoggingMode() != null) {
             jgen.writeStringField("loggingMode", proxy.getLoggingMode().name());
         }
-        jgen.writeBooleanField("multiTenant", proxy.isMultiTenant());
 
         final Set<Endpoint> endpoints = proxy.getEndpoints();
 

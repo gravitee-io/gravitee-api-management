@@ -22,6 +22,7 @@ import io.gravitee.definition.model.HttpClientOptions;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,8 +54,17 @@ public class HttpEndpointSerializer extends EndpointSerializer<HttpEndpoint>  {
             jgen.writeObjectField("ssl", endpoint.getHttpClientSslOptions());
         }
 
-        if (endpoint.getTenant() != null) {
-            jgen.writeStringField("tenant", endpoint.getTenant());
+        if (endpoint.getTenants() != null) {
+            jgen.writeArrayFieldStart("tenants");
+            endpoint.getTenants().forEach(tenant -> {
+                try {
+                    jgen.writeString(tenant);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+
+            jgen.writeEndArray();
         }
 
         if (endpoint.getHostHeader() != null && !endpoint.getHostHeader().trim().isEmpty()) {
