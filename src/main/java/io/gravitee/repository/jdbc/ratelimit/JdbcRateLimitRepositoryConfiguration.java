@@ -13,26 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.jdbc;
+package io.gravitee.repository.jdbc.ratelimit;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.context.annotation.Bean;
+import io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration;
 import org.springframework.context.annotation.ComponentScan;
-
-import javax.sql.DataSource;
+import org.springframework.context.annotation.Configuration;
 
 /**
  *
  * @author njt
  */
-@ComponentScan("io.gravitee.repository.jdbc")
-public class JdbcTestRepositoryConfiguration {
-
-    @Bean
-    public DataSource graviteeDataSource() {
-        final HikariConfig dsConfig = new HikariConfig();
-        dsConfig.setJdbcUrl("jdbc:h2:mem:gravitee;DATABASE_TO_UPPER=FALSE;MODE=MySQL");
-        return new HikariDataSource(dsConfig);
-    }
+@Configuration
+@ComponentScan(basePackages = {"io.gravitee.repository.jdbc.ratelimit"})
+public class JdbcRateLimitRepositoryConfiguration extends AbstractJdbcRepositoryConfiguration {
 }

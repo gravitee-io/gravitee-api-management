@@ -1,0 +1,760 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.14.0
+        author: GraviteeSource Team
+        changes:
+        - createTable:
+            tableName: users
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: username, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: source, type: nvarchar(128), constraints: { nullable: true } }
+                - column: {name: source_id, type: nvarchar(128), constraints: { nullable: true } }
+                - column: {name: password, type: nvarchar(128), constraints: { nullable: true } }
+                - column: {name: email, type: nvarchar(128), constraints: { nullable: true } }
+                - column: {name: firstname, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: lastname, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: false } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: last_connection_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: picture, type: nclob, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_users
+            columnNames: id
+            tableName: users
+
+        - createTable:
+            tableName: user_roles
+            columns:
+                - column: {name: username, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: role, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_user_roles
+            columnNames: username, role
+            tableName: user_roles
+
+        - createTable:
+            tableName: apis
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: description, type: nvarchar(2048), constraints: { nullable: true } }
+                - column: {name: version, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: definition, type: nclob, constraints: { nullable: false } }
+                - column: {name: deployed_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: visibility, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: lifecycle_state, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: picture, type: nclob, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_apis
+            columnNames: id
+            tableName: apis
+
+        - createIndex:
+            indexName: idx_apis_visibility
+            columns:
+            - column:
+                name: visibility
+                type: nvarchar(64)
+            tableName: apis
+
+        - createTable:
+            tableName: api_views
+            columns:
+                - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: view, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_api_views
+            columnNames: api_id, view
+            tableName: api_views
+
+        - createTable:
+            tableName: api_tags
+            columns:
+                - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: tag, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_api_tags
+            columnNames: api_id, tag
+            tableName: api_tags
+
+        - createTable:
+            tableName: keys
+            columns:
+                - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: subscription, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: application, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: plan, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: revoked, type: boolean, constraints: { nullable: false } }
+                - column: {name: revoked_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: expire_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_keys
+            columnNames: key
+            tableName: keys
+
+        - createIndex:
+            indexName: idx_keys_plan
+            columns:
+            - column:
+                name: plan
+                type: nvarchar(64)
+            tableName: keys
+
+        - createIndex:
+            indexName: idx_keys_application
+            columns:
+            - column:
+                name: application
+                type: nvarchar(64)
+            tableName: keys
+
+        - createIndex:
+            indexName: idx_keys_updatedat
+            columns:
+            - column:
+                name: updated_at
+                type: datetime
+            tableName: keys
+
+        - createIndex:
+            indexName: idx_keys_revoked
+            columns:
+            - column:
+                name: revoked
+                type: boolean
+            tableName: keys
+
+        - createIndex:
+            indexName: idx_keys_plan_revoked_updatedat
+            columns:
+            - column:
+                name: plan
+                type: nvarchar(64)
+            - column:
+                name: revoked
+                type: boolean
+            - column:
+                name: updated_at
+                type: datetime
+            tableName: keys
+
+        - createTable:
+            tableName: events
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: payload, type: nclob, constraints: { nullable: false } }
+                - column: {name: parent_id, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: false } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_events
+            columnNames: id
+            tableName: events
+
+        - createIndex:
+            indexName: idx_events_type
+            columns:
+            - column:
+                name: type
+                type: nvarchar(64)
+            tableName: events
+
+        - createIndex:
+            indexName: idx_events_updatedat
+            columns:
+            - column:
+                name: updated_at
+                type: nvarchar(64)
+            tableName: events
+
+        - createTable:
+            tableName: event_properties
+            columns:
+                - column: {name: event_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: property_key, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: property_value, type: nvarchar(256), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_event_properties
+            columnNames: event_id, property_key
+            tableName: event_properties
+
+        - createIndex:
+            indexName: idx_eventproperties_propertykey
+            columns:
+            - column:
+                name: property_key
+                type: nvarchar(64)
+            tableName: event_properties
+
+        - createTable:
+            tableName: views
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: default_view, type: boolean, constraints: { nullable: true } }
+                - column: {name: hidden, type: boolean, constraints: { nullable: true } }
+                - column: {name: order, type: int, constraints: { nullable: true } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_views
+            columnNames: id
+            tableName: views
+
+        - createTable:
+            tableName: tags
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_tags
+            columnNames: id
+            tableName: tags
+
+        - createTable:
+            tableName: tenants
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_tenants
+            columnNames: id
+            tableName: tenants
+
+        - createTable:
+            tableName: applications
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: type, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: status, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: client_id, type: nvarchar(64), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_applications
+            columnNames: id
+            tableName: applications
+
+        - createIndex:
+            indexName: idx_applications_name
+            columns:
+            - column:
+                name: name
+                type: nvarchar(64)
+            tableName: applications
+
+        - createIndex:
+            indexName: idx_applications_status
+            columns:
+            - column:
+                name: status
+                type: nvarchar(64)
+            tableName: applications
+
+        - createTable:
+            tableName: groups
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_groups
+            columnNames: id
+            tableName: groups
+
+        - createTable:
+            tableName: group_administrators
+            columns:
+                - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: administrator, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_group_administrators
+            columnNames: group_id, administrator
+            tableName: group_administrators
+
+        - createTable:
+            tableName: memberships
+            columns:
+                - column: {name: user_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_memberships
+            columnNames: user_id, reference_type, reference_id
+            tableName: memberships
+
+        - createIndex:
+            indexName: idx_memberships_referenceid_referencetype
+            columns:
+            - column:
+                name: reference_id
+                type: nvarchar(64)
+            - column:
+                name: reference_type
+                type: nvarchar(64)
+            tableName: memberships
+
+        - createIndex:
+            indexName: idx_memberships_userid_referencetype
+            columns:
+            - column:
+                name: user_id
+                type: nvarchar(64)
+            - column:
+                name: reference_type
+                type: nvarchar(64)
+            tableName: memberships
+
+        - createTable:
+            tableName: pages
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: content, type: nclob, constraints: { nullable: true } }
+                - column: {name: last_contributor, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: order, type: int, constraints: { nullable: false } }
+                - column: {name: api, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: published, type: boolean, constraints: { nullable: false } }
+                - column: {name: source_type, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: source_configuration, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: configuration_try_it_url, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: configuration_try_it, type: boolean, constraints: { nullable: true } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: homepage, type: boolean, constraints: { nullable: false, default: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_pages
+            columnNames: id
+            tableName: pages
+
+        - createIndex:
+            indexName: idx_pages_api
+            columns:
+            - column:
+                name: api
+                type: nvarchar(64)
+            tableName: pages
+
+        - createTable:
+            tableName: plans
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: type, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: description, type: nclob, constraints: { nullable: true } }
+                - column: {name: validation, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: definition, type: nclob, constraints: { nullable: true } }
+                - column: {name: order, type: int, constraints: { nullable: true } }
+                - column: {name: status, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: security, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: published_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: closed_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_plans
+            columnNames: id
+            tableName: plans
+
+        - createTable:
+            tableName: plan_apis
+            columns:
+                - column: {name: plan_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: api, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_plan_apis
+            columnNames: plan_id, api
+            tableName: plan_apis
+
+        - createIndex:
+            indexName: idx_planapis_api
+            columns:
+            - column:
+                name: api
+                type: nvarchar(64)
+            tableName: plan_apis
+
+        - createTable:
+            tableName: plan_characteristics
+            columns:
+                - column: {name: plan_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: characteristic, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_plan_characteristics
+            columnNames: plan_id, characteristic
+            tableName: plan_characteristics
+
+        - createTable:
+            tableName: subscriptions
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: plan, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: application, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: starting_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: ending_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: processed_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: processed_by, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: subscribed_by, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: reason, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: status, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: api, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: client_id, type: nvarchar(64), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_subscriptions
+            columnNames: id
+            tableName: subscriptions
+
+        - createIndex:
+            indexName: idx_subscriptions_plan
+            columns:
+            - column:
+                name: plan
+                type: nvarchar(64)
+            tableName: subscriptions
+
+        - createIndex:
+            indexName: idx_subscriptions_application
+            columns:
+            - column:
+                name: application
+                type: nvarchar(64)
+            tableName: subscriptions
+
+        - createTable:
+            tableName: ratelimit
+            columns:
+                - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: counter, type: bigint, constraints: { nullable: false } }
+                - column: {name: last_request, type: bigint, constraints: { nullable: false } }
+                - column: {name: reset_time, type: bigint, constraints: { nullable: false } }
+                - column: {name: created_at, type: bigint, constraints: { nullable: false } }
+                - column: {name: updated_at, type: bigint, constraints: { nullable: false } }
+                - column: {name: async, type: boolean, constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_ratelimit
+            columnNames: key
+            tableName: ratelimit
+
+        - createTable:
+            tableName: metadata
+            columns:
+                - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(1024), constraints: { nullable: false } }
+                - column: {name: format, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: value, type: nvarchar(1024), constraints: { nullable: true } }
+
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_metadata
+            columnNames: key, reference_type, reference_id
+            tableName: metadata
+
+        - createTable:
+            tableName: api_labels
+            columns:
+                - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: label, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_api_labels
+            columnNames: api_id, label
+            tableName: api_labels
+
+        - createTable:
+            tableName: roles
+            columns:
+                - column: {name: scope, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(128), constraints: { nullable: false } }
+                - column: {name: description, type: nvarchar(1024), constraints: { nullable: true } }
+                - column: {name: default_role, type: boolean, constraints: { nullable: false, default: false } }
+                - column: {name: system, type: boolean, constraints: { nullable: false, default: false } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_roles
+            columnNames: scope, name
+            tableName: roles
+
+        - createTable:
+            tableName: role_permissions
+            columns:
+                - column: {name: role_scope, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: role_name, type: nvarchar(128), constraints: { nullable: false } }
+                - column: {name: permission, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_role_permissions
+            columnNames: role_scope, role_name, permission
+            tableName: role_permissions
+
+        - createTable:
+            tableName: group_event_rules
+            columns:
+                - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: group_event, type: nvarchar(64), constraints: { nullable: false } }
+
+        - createTable:
+            tableName: api_groups
+            columns:
+                - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
+
+        - createTable:
+            tableName: application_groups
+            columns:
+                - column: {name: application_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
+
+        - createTable:
+            tableName: membership_roles
+            columns:
+                - column: {name: user_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: role_scope, type: int, constraints: { nullable: false } }
+                - column: {name: role_name, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_membership_roles
+            columnNames: user_id, reference_type, reference_id, role_scope
+            tableName: membership_roles
+
+        - createTable:
+            tableName: audits
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: event, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: patch, type: nclob, constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_audits
+            columnNames: id
+            tableName: audits
+
+        - createIndex:
+            indexName: idx_audits_referencetype_referenceid
+            columns:
+            - column:
+                name: reference_type
+                type: nvarchar(64)
+            - column:
+                name: reference_id
+                type: nvarchar(64)
+            tableName: audits
+
+        - createIndex:
+            indexName: idx_audits_createdat
+            columns:
+            - column:
+                name: created_at
+                type: datetime
+            tableName: audits
+
+        - createTable:
+            tableName: audit_properties
+            columns:
+                - column: {name: audit_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: value, type: nvarchar(200), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_audit_properties
+            columnNames: audit_id, key, value
+            tableName: audit_properties
+
+        - createTable:
+            tableName: ratings
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: api, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: rate, type: tinyint, constraints: { nullable: false } }
+                - column: {name: title, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: comment, type: nvarchar(1024), constraints: { nullable: true } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_ratings
+            columnNames: id
+            tableName: ratings
+
+        - createIndex:
+            indexName: idx_ratings_api
+            columns:
+            - column:
+                name: api
+                type: nvarchar(64)
+            tableName: ratings
+
+        - createTable:
+            tableName: rating_answers
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: rating, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: comment, type: nvarchar(1024), constraints: { nullable: false } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_rating_answers
+            columnNames: id
+            tableName: rating_answers
+
+        - createIndex:
+            indexName: idx_ratinganswers_rating
+            columns:
+            - column:
+                name: rating
+                type: nvarchar(64)
+            tableName: rating_answers
+
+        - createTable:
+            tableName: page_excluded_groups
+            columns:
+                - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: excluded_group, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_page_excluded_groups
+            columnNames: page_id, excluded_group
+            tableName: page_excluded_groups
+
+        - createTable:
+            tableName: plan_excluded_groups
+            columns:
+                - column: {name: plan_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: excluded_group, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_plan_excluded_groups
+            columnNames: plan_id, excluded_group
+            tableName: plan_excluded_groups
+
+        - createTable:
+            tableName: parameters
+            columns:
+                - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: value, type: nvarchar(1024), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_parameters
+            columnNames: key
+            tableName: parameters
+
+        - createTable:
+            tableName: portal_notifications
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: title, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: message, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_portal_notifications
+            columnNames: id
+            tableName: portal_notifications
+
+        - createTable:
+            tableName: portal_notification_configs
+            columns:
+                - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_portal_notification_configs
+            columnNames: user, reference_type, reference_id
+            tableName: portal_notification_configs
+
+        - createTable:
+            tableName: portal_notification_config_hooks
+            columns:
+                - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: hook, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_portal_notification_config_hooks
+            columnNames: user, reference_type, reference_id, hook
+            tableName: portal_notification_config_hooks
+
+        - createTable:
+            tableName: generic_notification_configs
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false  } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: notifier, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: config, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_generic_notification_configs
+            columnNames: id
+            tableName: generic_notification_configs
+
+        - createTable:
+            tableName: generic_notification_config_hooks
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: hook, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_generic_notification_config_hooks
+            columnNames: id, hook
+            tableName: generic_notification_config_hooks

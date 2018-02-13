@@ -13,26 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.jdbc;
+package io.gravitee.repository.jdbc.management;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.context.annotation.Bean;
+import io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
-import javax.sql.DataSource;
-
-/**
- *
- * @author njt
- */
-@ComponentScan("io.gravitee.repository.jdbc")
-public class JdbcTestRepositoryConfiguration {
-
-    @Bean
-    public DataSource graviteeDataSource() {
-        final HikariConfig dsConfig = new HikariConfig();
-        dsConfig.setJdbcUrl("jdbc:h2:mem:gravitee;DATABASE_TO_UPPER=FALSE;MODE=MySQL");
-        return new HikariDataSource(dsConfig);
-    }
+@Configuration
+@ComponentScan(basePackages = {"io.gravitee.repository.jdbc.management"})
+public class JdbcManagementRepositoryConfiguration extends AbstractJdbcRepositoryConfiguration {
 }
