@@ -16,11 +16,9 @@
 package io.gravitee.gateway.http.core.endpoint.impl.tenant;
 
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.http.core.endpoint.impl.DefaultEndpointLifecycleManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.function.Predicate;
 
@@ -32,18 +30,15 @@ public class MultiTenantAwareEndpointLifecycleManager extends DefaultEndpointLif
 
     private final Logger logger = LoggerFactory.getLogger(MultiTenantAwareEndpointLifecycleManager.class);
 
-    @Autowired
-    private GatewayConfiguration gatewayConfiguration;
+    private final String tenant;
+
+    public MultiTenantAwareEndpointLifecycleManager(String tenant) {
+        this.tenant = tenant;
+    }
 
     @Override
     protected void doStart() throws Exception {
-        // Check if tenant is supported by the gateway
-        if (! gatewayConfiguration.tenant().isPresent()) {
-            logger.error("API is configured with multi-tenant support but the gateway is not linked to any tenant");
-            throw new IllegalStateException("API is configured with multi-tenant support but the gateway is not linked to any tenant");
-        }
-
-        logger.info("Prepare API endpoints for tenant: {}", gatewayConfiguration.tenant().get());
+        logger.info("Prepare API endpoints for tenant: {}", tenant);
 
         super.doStart();
     }
@@ -51,7 +46,8 @@ public class MultiTenantAwareEndpointLifecycleManager extends DefaultEndpointLif
     @Override
     protected Predicate<Endpoint> filter() {
         return super.filter()
-                .and(endpoint -> endpoint.getTenant() != null &&
-                        endpoint.getTenant().equalsIgnoreCase(gatewayConfiguration.tenant().get()));
+                .and(
+                        endpoint -> (endpoint.getTenants() == null || endpoint.getTenants().isEmpty())
+                                || (endpoint.getTenants() != null && endpoint.getTenants().contains(tenant)));
     }
 }

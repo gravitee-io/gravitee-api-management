@@ -57,7 +57,7 @@ public class EndpointHealthcheckResolver {
         if (api.getProxy().isMultiTenant() && gatewayConfiguration.tenant().isPresent()) {
             String tenant = gatewayConfiguration.tenant().get();
             httpEndpoints = httpEndpoints
-                    .filter(endpoint -> endpoint.getTenant() != null && endpoint.getTenant().equalsIgnoreCase(tenant));
+                    .filter(endpoint -> endpoint.getTenants() != null && endpoint.getTenants().contains(tenant));
         }
 
         // Remove backup endpoints

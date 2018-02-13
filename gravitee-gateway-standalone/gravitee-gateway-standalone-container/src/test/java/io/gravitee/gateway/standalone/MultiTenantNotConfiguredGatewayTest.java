@@ -30,6 +30,9 @@ import java.net.URI;
 import static org.junit.Assert.assertEquals;
 
 /**
+ * In case of a gateway non-configured for a tenant, all endpoints are selected and are not filtered according to their
+ * tenants.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -53,6 +56,6 @@ public class MultiTenantNotConfiguredGatewayTest extends AbstractGatewayTest {
         Response response = Request.Get(target).execute();
 
         HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_NOT_FOUND, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
     }
 }

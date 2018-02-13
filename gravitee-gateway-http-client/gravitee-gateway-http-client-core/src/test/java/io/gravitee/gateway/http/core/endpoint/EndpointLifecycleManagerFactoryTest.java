@@ -17,6 +17,7 @@ package io.gravitee.gateway.http.core.endpoint;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.http.core.endpoint.impl.DefaultEndpointLifecycleManager;
 import io.gravitee.gateway.http.core.endpoint.impl.tenant.MultiTenantAwareEndpointLifecycleManager;
 import org.junit.Assert;
@@ -25,6 +26,8 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 
@@ -43,6 +46,9 @@ public class EndpointLifecycleManagerFactoryTest {
     @Mock
     private Proxy proxy;
 
+    @Mock
+    private GatewayConfiguration gatewayConfiguration;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -51,14 +57,14 @@ public class EndpointLifecycleManagerFactoryTest {
 
     @Test
     public void shouldCreateMultiTenantEndpointManager() throws Exception {
-        when(proxy.isMultiTenant()).thenReturn(true);
+        when(gatewayConfiguration.tenant()).thenReturn(Optional.of("asia"));
         EndpointLifecycleManager endpointLifecycleManager = endpointLifecycleManagerFactory.doCreateInstance();
         Assert.assertEquals(MultiTenantAwareEndpointLifecycleManager.class, endpointLifecycleManager.getClass());
     }
 
     @Test
     public void shouldCreateDefaultEndpointManager() throws Exception {
-        when(proxy.isMultiTenant()).thenReturn(false);
+        when(gatewayConfiguration.tenant()).thenReturn(Optional.empty());
         EndpointLifecycleManager endpointLifecycleManager = endpointLifecycleManagerFactory.doCreateInstance();
         Assert.assertEquals(DefaultEndpointLifecycleManager.class, endpointLifecycleManager.getClass());
     }

@@ -44,7 +44,8 @@ import static org.mockito.Mockito.*;
 public class MultiTenantAwareEndpointLifecycleManagerTest {
 
     @InjectMocks
-    private MultiTenantAwareEndpointLifecycleManager endpointLifecycleManager;
+    private MultiTenantAwareEndpointLifecycleManager endpointLifecycleManager =
+            new MultiTenantAwareEndpointLifecycleManager("europe");
 
     @Mock
     private Api api;
@@ -55,31 +56,18 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
     @Mock
     private ApplicationContext applicationContext;
 
-    @Mock
-    private GatewayConfiguration gatewayConfiguration;
-
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        when(proxy.isMultiTenant()).thenReturn(true);
         when(api.getProxy()).thenReturn(proxy);
-    }
-
-    @Test (expected = IllegalStateException.class)
-    public void shouldNotStartApi_noTenantConfigured() throws Exception {
-        when(gatewayConfiguration.tenant()).thenReturn(Optional.empty());
-
-        endpointLifecycleManager.start();
     }
 
     @Test
     public void shouldNotStartEndpoint_notInTenant() throws Exception {
         io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.endpoint.HttpEndpoint.class);
 
-        when(gatewayConfiguration.tenant()).thenReturn(Optional.of("asia"));
-
-        when(endpoint.getTenant()).thenReturn("europe");
+        when(endpoint.getTenants()).thenReturn(Collections.singletonList("asia"));
         when(proxy.getEndpoints()).thenReturn(Collections.singleton(endpoint));
 
         endpointLifecycleManager.start();
@@ -96,7 +84,6 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
         when(endpoint.isBackup()).thenReturn(true);
         when(proxy.getEndpoints()).thenReturn(Collections.singleton(endpoint));
 
-        when(gatewayConfiguration.tenant()).thenReturn(Optional.of("europe"));
         endpointLifecycleManager.start();
 
         verify(applicationContext, never()).getBean(eq(Connector.class), any(Endpoint.class));
@@ -108,10 +95,32 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
     public void shouldStartEndpoint_inTenant() throws Exception {
         io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.endpoint.HttpEndpoint.class);
 
-        when(gatewayConfiguration.tenant()).thenReturn(Optional.of("europe"));
+        when(endpoint.getName()).thenReturn("endpoint");
+        when(endpoint.getTenants()).thenReturn(Collections.singletonList("europe"));
+        when(endpoint.isBackup()).thenReturn(false);
+        when(endpoint.getType()).thenReturn(EndpointType.HTTP);
+        when(proxy.getEndpoints()).thenReturn(Collections.singleton(endpoint));
+        when(applicationContext.getBean(Connector.class, endpoint)).thenReturn(mock(Connector.class));
+
+        endpointLifecycleManager.start();
+
+        HttpEndpoint httpClientEndpoint = (HttpEndpoint) endpointLifecycleManager.get("endpoint");
+
+        assertNotNull(httpClientEndpoint);
+
+        verify(applicationContext, times(1)).getBean(eq(Connector.class), any(Endpoint.class));
+        verify(httpClientEndpoint.connector(), times(1)).start();
+
+        assertEquals(httpClientEndpoint, endpointLifecycleManager.get("endpoint"));
+        assertNull(endpointLifecycleManager.get("unknown"));
+        assertFalse(endpointLifecycleManager.endpoints().isEmpty());
+    }
+
+    @Test
+    public void shouldStartEndpoint_noTenant() throws Exception {
+        io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.endpoint.HttpEndpoint.class);
 
         when(endpoint.getName()).thenReturn("endpoint");
-        when(endpoint.getTenant()).thenReturn("europe");
         when(endpoint.isBackup()).thenReturn(false);
         when(endpoint.getType()).thenReturn(EndpointType.HTTP);
         when(proxy.getEndpoints()).thenReturn(Collections.singleton(endpoint));

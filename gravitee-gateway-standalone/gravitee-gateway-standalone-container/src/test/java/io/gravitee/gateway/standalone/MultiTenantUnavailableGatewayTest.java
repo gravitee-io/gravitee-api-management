@@ -31,6 +31,12 @@ import java.net.URI;
 import static org.junit.Assert.assertEquals;
 
 /**
+ * Check the following rules:
+ * - The gateway is configured with a tenant
+ * - Endpoints without tenant are selected by the load-balancer
+ * - Endpoints with the same tenant as the gateway are selected by the load-balancer
+ * - Other endpoints are filtered
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -54,6 +60,6 @@ public class MultiTenantUnavailableGatewayTest extends AbstractGatewayTest {
         Response response = Request.Get(target).execute();
 
         HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
     }
 }
