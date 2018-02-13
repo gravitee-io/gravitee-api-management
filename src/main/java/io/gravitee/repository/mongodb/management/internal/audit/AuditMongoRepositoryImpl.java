@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.Date;
@@ -42,8 +41,7 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
 
     @Override
     public Page<AuditMongo> search(AuditCriteria filter, Pageable pageable) {
-        Query query = new Query();
-
+        final Query query = new Query();
         if (filter.getReferences() != null && !filter.getReferences().isEmpty()) {
             filter.getReferences().forEach(
                     (referenceType, referenceIds) -> query.addCriteria(
@@ -70,9 +68,7 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
             query.addCriteria(where("event").in(filter.getEvents()));
         }
 
-        query.with(new PageRequest(
-                pageable.pageNumber() - 1 < 0 ? 0 : pageable.pageNumber() - 1,
-                pageable.pageSize(),
+        query.with(new PageRequest(pageable.pageNumber(), pageable.pageSize(),
                 new Sort(Sort.Direction.DESC, "createdAt")));
 
         List<AuditMongo> audits = mongoTemplate.find(query, AuditMongo.class);

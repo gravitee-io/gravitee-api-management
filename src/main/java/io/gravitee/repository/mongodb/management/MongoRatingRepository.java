@@ -75,9 +75,9 @@ public class MongoRatingRepository implements RatingRepository {
     public Page<Rating> findByApiPageable(final String api, final Pageable pageable) throws TechnicalException {
         LOGGER.debug("Find rating by api [{}] with pagination", api);
         final org.springframework.data.domain.Page<RatingMongo> ratingPageMongo =
-                internalRatingRepository.findByApi(api, new PageRequest(pageable.pageNumber() - 1, pageable.pageSize(), Sort.Direction.DESC, "createdAt"));
+                internalRatingRepository.findByApi(api, new PageRequest(pageable.pageNumber(), pageable.pageSize(), Sort.Direction.DESC, "createdAt"));
         final List<Rating> ratings = ratingPageMongo.getContent().stream().map(this::map).collect(toList());
-        final Page<Rating> ratingPage = new Page<>(ratings, ratingPageMongo.getNumber() + 1, ratingPageMongo.getNumberOfElements(), ratingPageMongo.getTotalElements());
+        final Page<Rating> ratingPage = new Page<>(ratings, ratingPageMongo.getNumber(), ratingPageMongo.getNumberOfElements(), ratingPageMongo.getTotalElements());
         LOGGER.debug("Find rating by api [{}] with pagination - DONE", api);
         return ratingPage;
     }
