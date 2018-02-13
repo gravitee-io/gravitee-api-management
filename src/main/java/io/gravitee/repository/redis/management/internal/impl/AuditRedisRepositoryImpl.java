@@ -108,7 +108,7 @@ public class AuditRedisRepositoryImpl extends AbstractRedisRepository implements
                     tempDestination,
                     filter.getFrom(),
                     filter.getTo() == 0 ? Long.MAX_VALUE : filter.getTo(),
-                    pageable.pageNumber() - 1, pageable.pageSize());
+                    pageable.pageNumber(), pageable.pageSize());
         } else {
             keys = redisTemplate.opsForZSet().reverseRangeByScore(
                     tempDestination,

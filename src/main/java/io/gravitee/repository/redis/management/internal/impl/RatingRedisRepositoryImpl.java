@@ -96,7 +96,7 @@ public class RatingRedisRepositoryImpl extends AbstractRedisRepository implement
         final Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":api:" + api);
         final List<Object> pageObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
 
-        final int limit = pageRequest.getPageNumber() * pageRequest.getPageSize();
+        final int limit = (pageRequest.getPageNumber() + 1) * pageRequest.getPageSize();
         final List<Rating> ratings = pageObjects.
                 stream().
                 map(rating -> convert(rating, Rating.class)).

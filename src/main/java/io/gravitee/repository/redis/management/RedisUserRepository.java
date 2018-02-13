@@ -57,7 +57,7 @@ public class RedisUserRepository implements UserRepository {
             throw new IllegalStateException("User to update must have a username");
         }
 
-        final RedisUser redisUser = userRedisRepository.find(user.getUsername());
+        final RedisUser redisUser = userRedisRepository.find(user.getId());
 
         if (redisUser == null) {
             throw new IllegalStateException(String.format("No user found with username [%s]", user.getUsername()));
