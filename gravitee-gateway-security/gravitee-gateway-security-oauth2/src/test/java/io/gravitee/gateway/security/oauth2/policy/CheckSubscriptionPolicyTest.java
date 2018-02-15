@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.security.oauth2.policy;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -53,11 +54,38 @@ public class CheckSubscriptionPolicyTest {
         PolicyChain policyChain = mock(PolicyChain.class);
 
         ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
+
         SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
         when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
 
         when(subscriptionRepository.search(any(SubscriptionCriteria.class)))
                 .thenThrow(TechnicalException.class);
+
+        policy.onRequest(request, response, policyChain, executionContext);
+
+        verify(policyChain, times(1)).failWith(argThat(statusCode(HttpStatusCode.UNAUTHORIZED_401)));
+    }
+
+    @Test
+    public void shouldReturnUnauthorized_noClient() throws PolicyException, TechnicalException {
+        CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
+
+        Request request = mock(Request.class);
+        Response response = mock(Response.class);
+        when(response.headers()).thenReturn(mock(HttpHeaders.class));
+        PolicyChain policyChain = mock(PolicyChain.class);
+
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+
+        SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
+        when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
+
+        Subscription subscription = mock(Subscription.class);
+        when(subscription.getClientId()).thenReturn("my-bad-client-id");
+
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class)))
+                .thenReturn(Collections.singletonList(subscription));
 
         policy.onRequest(request, response, policyChain, executionContext);
 
