@@ -17,7 +17,6 @@ package io.gravitee.gateway.services.apikeyscache;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.definition.Plan;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
@@ -50,6 +49,20 @@ public class ApiKeyRefresher implements Runnable {
 
     private long lastRefreshAt = -1;
 
+    private long minTime;
+
+    private long maxTime;
+
+    private long avgTime;
+
+    private long totalTime;
+
+    private long count;
+
+    private long errorsCount;
+
+    private Throwable lastException;
+
     ApiKeyRefresher(final Api api) {
         this.api = api;
     }
@@ -66,6 +79,7 @@ public class ApiKeyRefresher implements Runnable {
     @Override
     public void run() {
         if (! plans.isEmpty()) {
+            long start = System.currentTimeMillis();
             long nextLastRefreshAt = System.currentTimeMillis();
             logger.debug("Refresh api-keys for API [name: {}] [id: {}]", api.getName(), api.getId());
 
@@ -89,9 +103,32 @@ public class ApiKeyRefresher implements Runnable {
                         .forEach(this::saveOrUpdate);
 
                 lastRefreshAt = nextLastRefreshAt;
-            } catch (TechnicalException te) {
-                logger.error("Unexpected error while refreshing api-keys", te);
+            } catch (Exception ex) {
+                errorsCount++;
+                logger.error("Unexpected error while refreshing api-keys", ex);
+                lastException = ex;
             }
+
+            count++;
+
+            long end = System.currentTimeMillis();
+
+            long diff = end - start;
+            totalTime += diff;
+
+            if (count == 1) {
+                minTime = diff;
+            } else {
+                if (diff > maxTime) {
+                    maxTime = diff;
+                }
+
+                if (diff < minTime) {
+                    minTime = diff;
+                }
+            }
+
+            avgTime = totalTime / count;
         }
     }
 
@@ -103,6 +140,42 @@ public class ApiKeyRefresher implements Runnable {
             logger.debug("Cache an api-key [key: {}] [plan: {}] [app: {}]", apiKey.getKey(), apiKey.getPlan(), apiKey.getApplication());
             cache.put(new Element(apiKey.getKey(), apiKey));
         }
+    }
+
+    public Api getApi() {
+        return api;
+    }
+
+    public long getLastRefreshAt() {
+        return lastRefreshAt;
+    }
+
+    public long getCount() {
+        return count;
+    }
+
+    public long getMinTime() {
+        return minTime;
+    }
+
+    public long getMaxTime() {
+        return maxTime;
+    }
+
+    public long getAvgTime() {
+        return avgTime;
+    }
+
+    public long getTotalTime() {
+        return totalTime;
+    }
+
+    public long getErrorsCount() {
+        return errorsCount;
+    }
+
+    public Throwable getLastException() {
+        return lastException;
     }
 
     public void setApiKeyRepository(ApiKeyRepository apiKeyRepository) {
