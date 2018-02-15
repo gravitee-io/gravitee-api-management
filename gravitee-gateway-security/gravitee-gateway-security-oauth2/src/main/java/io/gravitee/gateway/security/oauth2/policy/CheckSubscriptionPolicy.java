@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.security.oauth2.policy;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -39,6 +40,7 @@ import java.util.List;
 public class CheckSubscriptionPolicy extends AbstractPolicy {
 
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
+    static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
     private final static String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
     private final static String OAUTH2_ERROR_SERVER_ERROR = "server_error";
@@ -48,8 +50,14 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
         SubscriptionRepository subscriptionRepository = executionContext.getComponent(SubscriptionRepository.class);
 
         // Get plan and client_id from execution context
-        String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
         String clientId = (String) executionContext.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
+        if (clientId == null || clientId.trim().isEmpty()) {
+            sendError(response, policyChain, "invalid_client", "No client_id was supplied");
+            return;
+        }
+
+        String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
+
         try {
             List<Subscription> subscriptions = subscriptionRepository.search(
                     new SubscriptionCriteria.Builder()
@@ -84,5 +92,22 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
     private void sendUnauthorized(PolicyChain policyChain, String description) {
         policyChain.failWith(PolicyResult.failure(
                 HttpStatusCode.UNAUTHORIZED_401, description));
+    }
+
+    /**
+     * As per https://tools.ietf.org/html/rfc6750#page-7:
+     *
+     *      HTTP/1.1 401 Unauthorized
+     *      WWW-Authenticate: Bearer realm="example",
+     *      error="invalid_token",
+     *      error_description="The access token expired"
+     */
+    private void sendError(Response response, PolicyChain policyChain, String error, String description) {
+        String headerValue = BEARER_AUTHORIZATION_TYPE +
+                " realm=\"gravitee.io\"," +
+                " error=\"" + error + "\"," +
+                " error_description=\"" + description + "\"";
+        response.headers().add(HttpHeaders.WWW_AUTHENTICATE, headerValue);
+        policyChain.failWith(PolicyResult.failure(HttpStatusCode.UNAUTHORIZED_401, null));
     }
 }
