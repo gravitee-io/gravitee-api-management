@@ -17,7 +17,6 @@ package io.gravitee.gateway.services.subscriptionscache.task;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.definition.Plan;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
@@ -51,6 +50,20 @@ public class SubscriptionRefresher implements Runnable {
 
     private long lastRefreshAt = -1;
 
+    private long minTime;
+
+    private long maxTime;
+
+    private long avgTime;
+
+    private long totalTime;
+
+    private long count;
+
+    private long errorsCount;
+
+    private Throwable lastException;
+
     public SubscriptionRefresher(final Api api) {
         this.api = api;
     }
@@ -69,6 +82,7 @@ public class SubscriptionRefresher implements Runnable {
     @Override
     public void run() {
         if (! plans.isEmpty()) {
+            long start = System.currentTimeMillis();
             long nextLastRefreshAt = System.currentTimeMillis();
             LOGGER.debug("Refresh subscriptions for API id[{}] name[{}]", api.getId(), api.getName());
 
@@ -90,9 +104,32 @@ public class SubscriptionRefresher implements Runnable {
                         .forEach(this::saveOrUpdate);
 
                 lastRefreshAt = nextLastRefreshAt;
-            } catch (TechnicalException te) {
-                LOGGER.error("Unexpected error while refreshing subscriptions", te);
+            } catch (Exception ex) {
+                errorsCount++;
+                LOGGER.error("Unexpected error while refreshing subscriptions", ex);
+                lastException = ex;
             }
+
+            count++;
+
+            long end = System.currentTimeMillis();
+
+            long diff = end - start;
+            totalTime += diff;
+
+            if (count == 1) {
+                minTime = diff;
+            } else {
+                if (diff > maxTime) {
+                    maxTime = diff;
+                }
+
+                if (diff < minTime) {
+                    minTime = diff;
+                }
+            }
+
+            avgTime = totalTime / count;
         }
     }
 
@@ -113,6 +150,42 @@ public class SubscriptionRefresher implements Runnable {
             cache.put(new Element(subscription.getId(), key));
             cache.put(new Element(key, subscription));
         }
+    }
+
+    public Api getApi() {
+        return api;
+    }
+
+    public long getLastRefreshAt() {
+        return lastRefreshAt;
+    }
+
+    public long getCount() {
+        return count;
+    }
+
+    public long getMinTime() {
+        return minTime;
+    }
+
+    public long getMaxTime() {
+        return maxTime;
+    }
+
+    public long getAvgTime() {
+        return avgTime;
+    }
+
+    public long getTotalTime() {
+        return totalTime;
+    }
+
+    public long getErrorsCount() {
+        return errorsCount;
+    }
+
+    public Throwable getLastException() {
+        return lastException;
     }
 
     public void setSubscriptionRepository(SubscriptionRepository subscriptionRepository) {

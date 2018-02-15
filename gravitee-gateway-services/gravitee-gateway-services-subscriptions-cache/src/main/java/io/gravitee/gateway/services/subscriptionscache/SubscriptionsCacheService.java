@@ -18,14 +18,18 @@ package io.gravitee.gateway.services.subscriptionscache;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.gateway.services.subscriptionscache.handler.ApiSubscriptionsHandler;
+import io.gravitee.gateway.services.subscriptionscache.handler.SubscriptionsServiceHandler;
 import io.gravitee.gateway.services.subscriptionscache.repository.SubscriptionRepositoryWrapper;
 import io.gravitee.gateway.services.subscriptionscache.task.SubscriptionRefresher;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.vertx.ext.web.Router;
 import net.sf.ehcache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +62,8 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
     @Value("${services.subscriptions.threads:3}")
     private int threads;
 
+    private final static String PATH = "/subscriptions";
+
     @Autowired
     private EventManager eventManager;
 
@@ -69,6 +75,11 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
     private ExecutorService executorService;
 
     private final Map<Api, ScheduledFuture> scheduledTasks = new HashMap<>();
+
+    @Autowired
+    private Router router;
+
+    private ApiSubscriptionsHandler apiSubscriptionsHandler;
 
     @Override
     protected void doStart() throws Exception {
@@ -101,6 +112,19 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
                             return new Thread(r, prefix + '-' + counter++);
                         }
                     });
+
+            LOGGER.info("Associate a new HTTP handler on {}", PATH);
+
+            // Create handlers
+            // Set subscriptions handler
+            SubscriptionsServiceHandler subscriptionsServiceHandler = new SubscriptionsServiceHandler((ScheduledThreadPoolExecutor) executorService);
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(subscriptionsServiceHandler);
+            router.get(PATH).produces(MediaType.APPLICATION_JSON).handler(subscriptionsServiceHandler);
+
+            // Set API subscriptions handler
+            apiSubscriptionsHandler = new ApiSubscriptionsHandler();
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(apiSubscriptionsHandler);
+            router.get(PATH + "/:apiId").produces(MediaType.APPLICATION_JSON).handler(apiSubscriptionsHandler);
         }
     }
 
@@ -156,6 +180,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
             ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
                     refresher, 0, delay, unit);
 
+            apiSubscriptionsHandler.addRefresher(refresher);
             scheduledTasks.put(api, scheduledFuture);
         }
     }
@@ -163,6 +188,8 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
     private void stopRefresher(Api api) {
         ScheduledFuture scheduledFuture = scheduledTasks.remove(api);
         if (scheduledFuture != null) {
+            apiSubscriptionsHandler.removeRefresher(api.getId());
+
             if (! scheduledFuture.isCancelled()) {
                 LOGGER.info("Stop subscriptions refresher");
                 scheduledFuture.cancel(true);

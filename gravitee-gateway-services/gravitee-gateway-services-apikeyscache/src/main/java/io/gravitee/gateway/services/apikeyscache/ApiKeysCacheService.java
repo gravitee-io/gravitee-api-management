@@ -18,11 +18,15 @@ package io.gravitee.gateway.services.apikeyscache;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.gateway.services.apikeyscache.handler.ApiKeyHandler;
+import io.gravitee.gateway.services.apikeyscache.handler.ApiKeysServiceHandler;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.vertx.ext.web.Router;
 import net.sf.ehcache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +59,8 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     @Value("${services.apikeyscache.threads:3}")
     private int threads;
 
+    private final static String PATH = "/apikeys";
+
     @Autowired
     private EventManager eventManager;
 
@@ -66,6 +72,11 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     private ExecutorService executorService;
 
     private final Map<Api, ScheduledFuture> scheduledTasks = new HashMap<>();
+
+    @Autowired
+    private Router router;
+
+    private ApiKeyHandler apiKeyHandler;
 
     @Override
     protected void doStart() throws Exception {
@@ -98,6 +109,19 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                             return new Thread(r, prefix + '-' + counter++);
                         }
                     });
+
+            LOGGER.info("Associate a new HTTP handler on {}", PATH);
+
+            // Create handlers
+            // Set API-keys handler
+            ApiKeysServiceHandler apiKeysHandler = new ApiKeysServiceHandler((ScheduledThreadPoolExecutor) executorService);
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(apiKeysHandler);
+            router.get(PATH).produces(MediaType.APPLICATION_JSON).handler(apiKeysHandler);
+
+            // Set API handler
+            apiKeyHandler = new ApiKeyHandler();
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(apiKeyHandler);
+            router.get(PATH + "/:apiId").produces(MediaType.APPLICATION_JSON).handler(apiKeyHandler);
         }
     }
 
@@ -153,6 +177,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
                     refresher, 0, delay, unit);
 
+            apiKeyHandler.addRefresher(refresher);
             scheduledTasks.put(api, scheduledFuture);
         }
     }
@@ -160,6 +185,8 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     private void stopRefresher(Api api) {
         ScheduledFuture scheduledFuture = scheduledTasks.remove(api);
         if (scheduledFuture != null) {
+            apiKeyHandler.removeRefresher(api.getId());
+
             if (! scheduledFuture.isCancelled()) {
                 LOGGER.info("Stop api-keys refresher");
                 scheduledFuture.cancel(true);
