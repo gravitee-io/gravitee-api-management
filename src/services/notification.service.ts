@@ -32,7 +32,7 @@ class NotificationService {
       vm.$mdToast.show(
         vm.$mdToast.simple()
           .action(preconditionFailed?'Refresh':'')
-          .textContent(preconditionFailed?'The API version is outdated and must be refreshed (current modifications will be lose)':msg)
+          .textContent(preconditionFailed?'The API version is outdated and must be refreshed (current modifications will be lost)':msg)
           .position('bottom right')
           .hideDelay(preconditionFailed?10000:3000)
           .theme(errorStatus ? 'toast-error' : 'toast-success')
