@@ -25,8 +25,9 @@ import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
-import io.gravitee.management.service.exceptions.PreconditionFailedException;
 import io.swagger.annotations.*;
+import org.glassfish.jersey.message.internal.HttpHeaderReader;
+import org.glassfish.jersey.message.internal.MatchingEntityTag;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -36,8 +37,8 @@ import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayOutputStream;
 import java.util.Objects;
+import java.util.Set;
 
-import static io.gravitee.common.http.HttpHeaders.IF_MATCH;
 import static java.lang.String.format;
 
 /**
@@ -63,14 +64,20 @@ public class ApiResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response get(@PathParam("api") String api) {
+    public Response get(
+            @PathParam("api") String api) {
         ApiEntity apiEntity = apiService.findById(api);
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
             setPicture(apiEntity);
             apiEntity.setContextPath(apiEntity.getProxy().getContextPath());
             filterSensitiveData(apiEntity);
-            return Response.ok(apiEntity).tag(Integer.toString(apiEntity.getUpdatedAt().hashCode())).build();
+
+            return Response
+                    .ok(apiEntity)
+                    .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
+                    .lastModified(apiEntity.getUpdatedAt())
+                    .build();
         }
         throw new ForbiddenAccessException();
     }
@@ -122,8 +129,7 @@ public class ApiResource extends AbstractResource {
             baos.write(image.getContent(), 0, image.getContent().length);
 
             return Response
-                    .ok()
-                    .entity(baos)
+                    .ok(baos)
                     .cacheControl(cc)
                     .tag(etag)
                     .type(image.getType())
@@ -143,11 +149,17 @@ public class ApiResource extends AbstractResource {
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
     public Response doLifecycleAction(
+            @Context HttpHeaders headers,
             @ApiParam(required = true, allowableValues = "START, STOP")
             @QueryParam("action") LifecycleActionParam action,
-            @PathParam("api") String api, @Context HttpHeaders headers) {
+            @PathParam("api") String api) {
         final Response responseApi = get(api);
-        checkIfMatchApi(headers.getHeaderString(IF_MATCH), responseApi.getEntityTag().getValue());
+        Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
+
+        if (builder != null) {
+            return builder.build();
+        }
+
         final ApiEntity apiEntity = (ApiEntity) responseApi.getEntity();
         final ApiEntity updatedApi;
         switch (action.getAction()) {
@@ -164,7 +176,11 @@ public class ApiResource extends AbstractResource {
                 break;
         }
 
-        return Response.noContent().tag(Integer.toString(updatedApi.getUpdatedAt().hashCode())).build();
+        return Response
+                .noContent()
+                .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+                .lastModified(updatedApi.getUpdatedAt())
+                .build();
     }
 
     @PUT
@@ -181,10 +197,15 @@ public class ApiResource extends AbstractResource {
             @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
     public Response update(
+            @Context HttpHeaders headers,
             @ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiToUpdate,
-            @PathParam("api") String api, @Context HttpHeaders headers) {
+            @PathParam("api") String api) {
         final Response responseApi = get(api);
-        checkIfMatchApi(headers.getHeaderString(IF_MATCH), responseApi.getEntityTag().getValue());
+        Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
+
+        if (builder != null) {
+            return builder.build();
+        }
 
         final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
         // Force context-path if user is not the primary_owner or an administrator
@@ -195,12 +216,32 @@ public class ApiResource extends AbstractResource {
 
         final ApiEntity updatedApi = apiService.update(api, apiToUpdate);
         setPicture(updatedApi);
-        return Response.ok(updatedApi).tag(Integer.toString(updatedApi.getUpdatedAt().hashCode())).build();
+
+        return Response
+                .ok(updatedApi)
+                .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+                .lastModified(updatedApi.getUpdatedAt())
+                .build();
     }
 
-    private void checkIfMatchApi(final String ifMatch, final String tagValue) {
-        if (ifMatch != null && !ifMatch.replaceAll("\"", "").equals(tagValue)) {
-            throw new PreconditionFailedException("The api version is outdated");
+    private Response.ResponseBuilder evaluateIfMatch(final HttpHeaders headers, final String etagValue) {
+        String ifMatch = headers.getHeaderString(HttpHeaders.IF_MATCH);
+        if (ifMatch == null || ifMatch.isEmpty()) {
+            return null;
+        }
+
+        // Handle case for -gzip appended automatically (and sadly) by Apache
+        ifMatch = ifMatch.replaceAll("-gzip", "");
+
+        try {
+            Set<MatchingEntityTag> matchingTags = HttpHeaderReader.readMatchingEntityTag(ifMatch);
+            MatchingEntityTag ifMatchHeader = matchingTags.iterator().next();
+            EntityTag eTag = new EntityTag(etagValue, ifMatchHeader.isWeak());
+
+            return matchingTags != MatchingEntityTag.ANY_MATCH
+                    && !matchingTags.contains(eTag) ? Response.status(Status.PRECONDITION_FAILED) : null;
+        } catch (java.text.ParseException e) {
+            return null;
         }
     }
 
@@ -235,7 +276,11 @@ public class ApiResource extends AbstractResource {
     public Response deployAPI(@PathParam("api") String api) {
         try {
             ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUsername(), EventType.PUBLISH_API);
-            return Response.status(Status.OK).tag(Integer.toString(apiEntity.getUpdatedAt().hashCode())).entity(apiEntity).build();
+            return Response
+                    .ok(apiEntity)
+                    .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
+                    .lastModified(apiEntity.getUpdatedAt())
+                    .build();
         } catch (Exception e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
         }
@@ -281,7 +326,11 @@ public class ApiResource extends AbstractResource {
             @ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiEntity) {
         try {
             ApiEntity rollbackedApi = apiService.rollback(api, apiEntity);
-            return Response.status(Status.OK).entity(rollbackedApi).build();
+            return Response
+                    .ok(rollbackedApi)
+                    .tag(Long.toString(rollbackedApi.getUpdatedAt().getTime()))
+                    .lastModified(rollbackedApi.getUpdatedAt())
+                    .build();
         } catch (Exception e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
@@ -303,7 +352,12 @@ public class ApiResource extends AbstractResource {
             @PathParam("api") String api,
             @ApiParam(name = "definition", required = true) String apiDefinition) {
         final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
-        return Response.ok(apiService.createOrUpdateWithDefinition(apiEntity, apiDefinition, getAuthenticatedUsername())).build();
+        ApiEntity updatedApi = apiService.createOrUpdateWithDefinition(apiEntity, apiDefinition, getAuthenticatedUsername());
+        return Response
+                .ok(updatedApi)
+                .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+                .lastModified(updatedApi.getUpdatedAt())
+                .build();
     }
 
     @GET
@@ -318,8 +372,9 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)
     })
-    public Response exportDefinition(@PathParam("api") String api,
-                                     @QueryParam("exclude") @DefaultValue("") String exclude) {
+    public Response exportDefinition(
+            @PathParam("api") String api,
+            @QueryParam("exclude") @DefaultValue("") String exclude) {
         final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
         filterSensitiveData(apiEntity);
         return Response

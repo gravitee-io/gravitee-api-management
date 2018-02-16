@@ -543,12 +543,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public ApiEntity rollback(String apiId, UpdateApiEntity api) {
         LOGGER.debug("Rollback API : {}", apiId);
         try {
-            update(apiId, api);
+            return update(apiId, api);
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to rollback API: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to rollback API: " + apiId, ex);
         }
-        return null;
     }
 
     private ApiEntity deployCurrentAPI(String apiId, String username, EventType eventType) throws Exception {
