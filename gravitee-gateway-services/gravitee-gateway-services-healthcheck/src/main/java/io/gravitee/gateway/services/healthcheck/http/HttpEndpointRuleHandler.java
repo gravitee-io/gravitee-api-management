@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.regex.Pattern;
@@ -75,13 +76,23 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
         endpointStatus = new EndpointStatusDecorator(rule.endpoint());
     }
 
-    private String create(String target, String requestPath) {
-        if (requestPath == null || requestPath.trim().isEmpty()) {
-            return target;
+    private URI create(String target, io.gravitee.definition.model.services.healthcheck.Request request) {
+        URI targetURI = URI.create(target);
+
+        if (request.isFromRoot()) {
+            try {
+                targetURI = new URI(targetURI.getScheme(), targetURI.getAuthority(), null, null , null);
+            } catch (URISyntaxException ex) {
+                logger.error("Unexpected error while creating healthcheck request from target[{}]", target, ex);
+            }
         }
 
-        String uri = target + '/' + requestPath;
-        return DUPLICATE_SLASH_REMOVER.matcher(uri).replaceAll("/");
+        if (request.getPath() == null || request.getPath().trim().isEmpty()) {
+            return targetURI;
+        }
+
+        String uri = targetURI.toString() + '/' + request.getPath();
+        return URI.create(DUPLICATE_SLASH_REMOVER.matcher(uri).replaceAll("/"));
     }
 
     private EndpointStatus.StepBuilder validateAssertions(final io.gravitee.definition.model.services.healthcheck.Step step, final EvaluableHttpResponse response) {
@@ -124,8 +135,7 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
         // Run request for each step
         for (io.gravitee.definition.model.services.healthcheck.Step step : rule.steps()) {
             try {
-                String requestUri = create(endpoint.getTarget(), step.getRequest().getPath());
-                URI hcRequestUri = URI.create(requestUri);
+                URI hcRequestUri = create(endpoint.getTarget(), step.getRequest());
 
                 // Prepare HTTP client
                 HttpClientOptions httpClientOptions = new HttpClientOptions()
