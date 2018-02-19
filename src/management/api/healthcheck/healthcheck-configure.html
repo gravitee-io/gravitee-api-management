@@ -103,6 +103,21 @@
                 <input ng-model="healthCheckCtrl.healthcheck.steps[0].request.path" type="text" required>
                 <div class="hint">Additional path added to the endpoint target.</div>
               </md-input-container>
+
+              <div flex="2" hide-xs hide-sm>
+                <!-- Spacer //-->
+              </div>
+
+              <md-checkbox
+                ng-model="healthCheckCtrl.healthcheck.steps[0].request.fromRoot"
+                aria-label="Run request from root path"
+                class="md-align-top-left"
+                flex>
+                From root path ('/')<br/>
+                <span class="ipsum">
+                  When "from root" is enabled, the path is appended to the root path ('/') of the endpoint without any additional path configured at the endpoint level.
+                </span>
+              </md-checkbox>
             </div>
           </div>
 

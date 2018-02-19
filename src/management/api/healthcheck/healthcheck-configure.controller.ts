@@ -126,7 +126,8 @@ class ApiHealthCheckConfigureController {
 
     request += (this.healthcheck.steps && this.healthcheck.steps[0].request.method) || "{method}";
     request += " " + ((this.endpoint) ? this.endpoint.target : "{endpoint}");
-    request += (this.healthcheck.steps && this.healthcheck.steps[0].request.path) ||  "/{path}";
+    request += (this.healthcheck.steps && this.healthcheck.steps[0].request.path) || "/{path}";
+    request += (this.healthcheck.steps && this.healthcheck.steps[0].request.fromRoot) ? ' (without endpoint path)' : '';
 
     return request;
   }
