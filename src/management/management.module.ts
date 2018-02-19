@@ -78,16 +78,7 @@ require('../libraries/angular-schema-form/boostrap-decorator');
 require('../libraries/angular-schema-form/codemirror-decorator');
 require('../libraries/angular-ui-codemirror/ui-codemirror');
 
-require('angular-swagger-ui');
-require('angular-swagger-ui/dist/scripts/modules/swagger-markdown.min');
-require('angular-swagger-ui/dist/scripts/modules/swagger-auth.min');
-require('angular-swagger-ui/dist/scripts/modules/swagger-auth-ui-bootstrap-modal.min');
-require('angular-swagger-ui/dist/scripts/modules/swagger-external-references.min');
-require('angular-swagger-ui/dist/scripts/modules/swagger-yaml-parser.min');
-require('angular-swagger-ui/dist/scripts/modules/swagger-xml-formatter.min');
-require('angular-swagger-ui/dist/scripts/modules/swagger1-converter.min');
-require('angular-swagger-ui/dist/scripts/modules/openapi3-converter.min');
-
+require('swagger-ui-dist');
 require('../libraries/showdown-extension/DocHelper-extension.js');
 
 require('ngclipboard');
@@ -247,7 +238,6 @@ import ImageDirective from '../components/image/image.directive';
 import EventsService from '../services/events.service';
 import AnalyticsService from '../services/analytics.service';
 import DashboardController from '../management/platform/dashboard/dashboard.controller';
-import PageSwaggerHttpClientService from '../services/pageSwaggerHttpClient.service';
 import ViewsController from '../management/configuration/views/views.controller';
 import ViewService from '../services/view.service';
 import DeleteViewDialogController from '../management/configuration/views/delete.view.dialog.controller';
@@ -380,7 +370,7 @@ import TopApisComponent from '../management/configuration/top-apis/top-apis.comp
 import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
 
-angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
+angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
   'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
@@ -500,7 +490,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('FetcherService', FetcherService)
   .service('EventsService', EventsService)
   .service('AnalyticsService', AnalyticsService)
-  .service('PageSwaggerHttpClientService', PageSwaggerHttpClientService)
   .service('ViewService', ViewService)
   .service('GroupService', GroupService)
   .service('SubscriptionService', SubscriptionService)

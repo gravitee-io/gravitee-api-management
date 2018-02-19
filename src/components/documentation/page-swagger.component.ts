@@ -16,6 +16,19 @@
 
 import * as _ from 'lodash';
 import UserService from '../../services/user.service';
+import { SwaggerUIBundle } from 'swagger-ui-dist';
+
+const DisableTryItOutPlugin = function () {
+  return {
+    statePlugins: {
+      spec: {
+        wrapSelectors: {
+          allowTryItOutFor: () => () => false
+        }
+      }
+    }
+  };
+};
 
 const PageSwaggerComponent: ng.IComponentOptions = {
   template: require('./page-swagger.html'),
@@ -33,11 +46,27 @@ const PageSwaggerComponent: ng.IComponentOptions = {
       } else {
         this.url = Constants.baseURL + 'portal/pages/' + this.pageId + '/content';
       }
+
+      this.tryItEnabled = function () {
+        return !_.isNil(this.page.configuration) && this.page.configuration.tryIt && UserService.isAuthenticated();
+      };
+
+      const plugins = [];
+      if (!this.tryItEnabled()) {
+        plugins.push(DisableTryItOutPlugin);
+      }
+
+      SwaggerUIBundle({
+        url: this.url,
+        dom_id: '#swagger-container',
+        presets: [
+          SwaggerUIBundle.presets.apis,
+        ],
+        layout: 'BaseLayout',
+        plugins: plugins
+      });
     };
 
-    this.tryItEnabled = function() {
-      return !_.isNil(this.page.configuration) && this.page.configuration.tryIt && UserService.isAuthenticated();
-    };
   }
 };
 

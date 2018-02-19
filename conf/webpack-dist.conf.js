@@ -27,7 +27,7 @@ const autoprefixer = require('autoprefixer');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 let packages = Object.keys(pkg.dependencies);
-packages.splice(packages.indexOf('angular-swagger-ui'), 1);
+packages.splice(packages.indexOf('swagger-ui-dist'), 1);
 
 module.exports = {
   module: {

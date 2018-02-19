@@ -17,7 +17,7 @@
 import UserService from '../services/user.service';
 import _ = require('lodash');
 
-function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerModules, PageSwaggerHttpClientService,
+function runBlock($rootScope, $window, $http, $mdSidenav, $transitions,
                   $timeout, UserService: UserService, Constants, PermissionStrategies) {
   'ngInject';
 
@@ -54,9 +54,6 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, swaggerM
   }, function (hasPendingRequests) {
     $rootScope.isLoading = hasPendingRequests;
   });
-
-  //swagger-ui
-  swaggerModules.add(swaggerModules.BEFORE_EXPLORER_LOAD, PageSwaggerHttpClientService);
 
   $rootScope.displayLoader = true;
 
