@@ -188,6 +188,52 @@ public class HttpEndpointRuleHandlerTest {
         async.awaitSuccess();
     }
 
+    @Test
+    public void shouldValidateFromRoot(TestContext context) throws InterruptedException {
+        // Prepare HTTP endpoint
+        stubFor(get(urlEqualTo("/"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody("{\"status\": \"green\"}")));
+
+        // Prepare
+        EndpointRule rule = mock(EndpointRule.class);
+        Endpoint endpoint = createEndpoint();
+        endpoint.setTarget(endpoint.getTarget() + "/additional-but-unused-path-for-hc");
+        when(rule.endpoint()).thenReturn(endpoint);
+
+        io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
+        Request request = new Request();
+        request.setPath("/");
+        request.setFromRoot(true);
+        request.setMethod(HttpMethod.GET);
+
+        step.setRequest(request);
+        Response response = new Response();
+        response.setAssertions(Collections.singletonList(Response.DEFAULT_ASSERTION));
+        step.setResponse(response);
+        when(rule.steps()).thenReturn(Collections.singletonList(step));
+
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+
+        Async async = context.async();
+
+        // Verify
+        runner.setStatusHandler(new Handler<EndpointStatus>() {
+            @Override
+            public void handle(EndpointStatus status) {
+                Assert.assertTrue(status.isSuccess());
+                async.complete();
+            }
+        });
+
+        // Run
+        runner.handle(null);
+
+        // Wait until completion
+        async.awaitSuccess();
+    }
+
     private Endpoint createEndpoint() {
         return new HttpEndpoint("default", "http://localhost:" + wireMockRule.port());
     }
