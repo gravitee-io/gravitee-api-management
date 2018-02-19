@@ -145,16 +145,29 @@ public class EndpointDiscoveryConsulVerticle extends AbstractVerticle implements
     }
 
     private void handleRegisterService(Api api, Service service) {
-        LOGGER.info("Add a new endpoint from Consul.io: id[{}] name[{}]",
-                service.getId(), service.getName());
-        Endpoint endpoint = createEndpoint(service);
-
+        Endpoint createdEndpoint = createEndpoint(service);
         Set<Endpoint> managedEndpoints = api.getProxy().getEndpoints();
-        if (managedEndpoints.contains(endpoint)) {
-            managedEndpoints.remove(endpoint);
-        }
 
-        managedEndpoints.add(endpoint);
+        // Get previous endpoint reference
+        Endpoint preEndpoint = managedEndpoints.stream().filter(createdEndpoint::equals).findAny().orElse(null);
+
+        // Endpoint does not exist (according to its name)
+        if (preEndpoint == null) {
+            LOGGER.info("Register a new endpoint from Consul.io: id[{}] name[{}]",
+                    service.getId(), service.getName());
+
+            managedEndpoints.add(createdEndpoint);
+        } else if (preEndpoint instanceof DiscoveredEndpoint) {
+            // Update it only if target has been changed
+            DiscoveredEndpoint dynamicEndpoint = (DiscoveredEndpoint) preEndpoint;
+            if (! createdEndpoint.getTarget().equals(dynamicEndpoint.getTarget())) {
+                LOGGER.info("Update an existing endpoint from Consul.io: id[{}] name[{}] target[{}]",
+                        service.getId(), service.getName(), createdEndpoint.getTarget());
+
+                managedEndpoints.remove(preEndpoint);
+                managedEndpoints.add(createdEndpoint);
+            }
+        }
     }
 
     private void stopWatch(Api api) {
