@@ -34,6 +34,8 @@ public class Request {
 
     private String body;
 
+    private boolean fromRoot;
+
     public String getBody() {
         return body;
     }
@@ -64,5 +66,13 @@ public class Request {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public boolean isFromRoot() {
+        return fromRoot;
+    }
+
+    public void setFromRoot(boolean fromRoot) {
+        this.fromRoot = fromRoot;
     }
 }

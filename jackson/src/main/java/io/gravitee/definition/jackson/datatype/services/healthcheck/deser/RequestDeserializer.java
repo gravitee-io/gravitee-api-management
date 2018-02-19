@@ -82,6 +82,8 @@ public class RequestDeserializer extends StdScalarDeserializer<Request> {
             request.setHeaders(headers);
         }
 
+        request.setFromRoot(node.path("fromRoot").asBoolean(false));
+
         return request;
     }
 }

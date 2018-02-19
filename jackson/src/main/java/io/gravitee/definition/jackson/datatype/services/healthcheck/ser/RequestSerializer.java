@@ -56,6 +56,8 @@ public class RequestSerializer extends StdScalarSerializer<Request> {
         if (request.getBody() != null && ! request.getBody().isEmpty()) {
             jgen.writeStringField("body", request.getBody());
         }
+
+        jgen.writeBooleanField("fromRoot", request.isFromRoot());
         jgen.writeEndObject();
     }
 }
