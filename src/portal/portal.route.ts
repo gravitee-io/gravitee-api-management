@@ -46,11 +46,8 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       controller: 'HomeController',
       controllerAs: 'homeCtrl',
       resolve: {
-        resolvedApis: function ($stateParams, ApiService) {
-          if ($stateParams.view && $stateParams.view !== 'all') {
-            return ApiService.list($stateParams.view);
-          }
-          return ApiService.list();
+        resolvedApis: function (ApiService) {
+          return ApiService.listTopAPIs();
         },
         resolvedHomepage: (PortalPagesService: PortalPagesService) => PortalPagesService.getHomepage().then(response => response.data)
       }

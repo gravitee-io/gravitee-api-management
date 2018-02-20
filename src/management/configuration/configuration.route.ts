@@ -21,6 +21,7 @@ import PortalPagesService from '../../services/portalPages.service';
 import MetadataService from "../../services/metadata.service";
 import RoleService from "../../services/role.service";
 import GroupService from "../../services/group.service";
+import TopApiService from "../../services/top-api.service";
 
 export default configurationRouterConfig;
 
@@ -261,6 +262,25 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['management-role-u']
+        }
+      }
+    })
+    .state('management.configuration.admin.top-apis', {
+      url: '/top-apis',
+      component: 'topApis',
+      resolve: {
+        topApis: (TopApiService: TopApiService) => TopApiService.list().then(response => response.data)
+      },
+      data: {
+        menu: {
+          label: 'Top APIs',
+          icon: 'format_list_numbered'
+        },
+        docs: {
+          page: 'management-configuration-top_apis'
+        },
+        perms: {
+          only: ['portal-top_apis-r']
         }
       }
     });

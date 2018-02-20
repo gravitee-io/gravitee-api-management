@@ -23,19 +23,20 @@
 </md-toolbar>
 
 <md-table-container>
-  <table md-table ng-init="order = 'name'">
-    <thead md-head md-order="order">
+  <table md-table>
+    <thead md-head>
     <tr md-row>
-      <th md-column md-order-by="name">Name</th>
-      <th md-column md-order-by="description">Description</th>
-      <th md-column md-order-by="defaultView">Default</th>
-      <th md-column md-order-by="hidden">Visibility</th>
-      <th md-column md-order-by="hidden">APIs</th>
-      <th permission permission-only="'portal-view-d'"></th>
+      <th md-column>Name</th>
+      <th md-column>Description</th>
+      <th md-column>Default</th>
+      <th md-column>Visibility</th>
+      <th md-column>APIs</th>
+      <th></th>
+      <th></th>
     </tr>
     </thead>
     <tbody md-body>
-    <tr md-row ng-repeat="view in $ctrl.views">
+    <tr md-row ng-repeat="view in $ctrl.views | orderBy:view.order">
       <td permission permission-only="'portal-view-u'"
           md-cell ng-click="$ctrl.editName($event, view)" ng-class="{'gravitee-placeholder': !view.name}">
         {{view.name || 'Add a name'}}
@@ -53,10 +54,14 @@
       <td permission permission-only="'portal-view-u'" md-cell ng-click="">
         {{view.totalApis}}
       </td>
-      <td md-cell permission permission-only="'portal-view-d'" layout="row">
-        <ng-md-icon icon="arrow_upwards" ng-click="$ctrl.upward($index)"></ng-md-icon>
-        <ng-md-icon icon="arrow_downward" ng-click="$ctrl.downward($index)"></ng-md-icon>
-        <ng-md-icon icon="delete" ng-click="$ctrl.deleteView(view)" ng-if="view.id !== 'all'"></ng-md-icon>
+      <td md-cell layout="row" layout-align="center center">
+        <div permission permission-only="'portal-view-u'">
+          <ng-md-icon ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward($index)"></ng-md-icon>
+          <ng-md-icon ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward($index)"></ng-md-icon>
+        </div>
+      </td>
+      <td md-cell>
+        <ng-md-icon permission permission-only="'portal-view-d'" icon="delete" ng-click="$ctrl.deleteView(view)" ng-if="view.id !== 'all'"></ng-md-icon>
       </td>
       <!-- --------------------------------------------------------------------------------------------------------- -->
       <td permission permission-except="'portal-view-u'">{{view.name}}</td>
@@ -79,7 +84,8 @@
       <td md-cell></td><!-- default     -->
       <td md-cell></td><!-- visibility  -->
       <td md-cell></td><!-- apis        -->
-      <td md-cell></td><!-- actions     -->
+      <td md-cell></td><!-- update      -->
+      <td md-cell></td><!-- delete      -->
     </tr>
     </tbody>
   </table>

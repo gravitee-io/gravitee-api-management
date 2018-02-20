@@ -365,6 +365,12 @@ import ChartService from '../services/chart.service';
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
 
+import TopApisController from "./configuration/top-apis/top-apis.controller";
+import TopApiService from "../services/top-api.service";
+import TopApisComponent from '../management/configuration/top-apis/top-apis.component';
+import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
+import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
+
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown', 'swaggerUi',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
@@ -471,6 +477,9 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('SupportTicketController', SupportTicketController)
   .controller('AuditController', AuditController)
   .controller('ApiAuditController', ApiAuditController)
+  .controller('TopApisController', TopApisController)
+  .controller('AddTopApiDialogController', AddTopApiDialogController)
+  .controller('DeleteTopApiDialogController', DeleteTopApiDialogController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)
@@ -496,6 +505,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('TicketService', TicketService)
   .service('AuditService', AuditService)
   .service('ChartService', ChartService)
+  .service('TopApiService', TopApiService)
   .directive('filecontent', () => DocumentationDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())
@@ -516,6 +526,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('portalPages', PortalPagesComponent)
   .component('metadata', MetadataComponent)
   .component('roles', RolesComponent)
+  .component('topApis', TopApisComponent)
   .directive('gvMetadataValidator', () => MetadataValidatorDirective)
 
   .component('instances', InstancesComponent)

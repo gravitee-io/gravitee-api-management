@@ -1,0 +1,64 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-toolbar class="md-table-toolbar md-default">
+  <div class="md-toolbar-tools">
+    <span>Top APIs</span>
+    <div flex></div>
+  </div>
+</md-toolbar>
+<md-table-container>
+  <table md-table>
+    <thead md-head>
+    <tr md-row>
+      <th></th>
+      <th md-column>Name</th>
+      <th md-column>Version</th>
+      <th md-column>Description</th>
+      <th></th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody md-body>
+    <tr md-row ng-repeat="topApi in $ctrl.topApis | orderBy:'order'">
+      <td md-cell class="text-center"><img height="40" ng-src="{{::topApi.picture_url}}"/></td>
+      <td md-cell>{{::topApi.name}}</td>
+      <td md-cell>{{::topApi.version}}</td>
+      <td md-cell>{{::topApi.description}}</td>
+      <td md-cell layout="row" layout-align="center center">
+        <div permission permission-only="'portal-top_apis-u'">
+          <ng-md-icon ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(topApi.order)"></ng-md-icon>
+          <ng-md-icon ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(topApi.order)"></ng-md-icon>
+        </div>
+      </td>
+      <td md-cell>
+        <ng-md-icon permission permission-only="'portal-top_apis-d'" icon="delete" ng-click="$ctrl.delete(topApi)"></ng-md-icon>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</md-table-container>
+
+<md-fab-speed-dial permission permission-only="'portal-top_apis-c'"
+                   md-open="false" class="md-scale md-fab-bottom-right">
+  <md-fab-trigger>
+    <md-button aria-label="Add top API" class="md-fab md-success" ng-click="$ctrl.showAddTopAPIModal()">
+      <md-tooltip md-direction="top" md-visible="false">Add a </md-tooltip>
+      <ng-md-icon icon="add"></ng-md-icon>
+    </md-button>
+  </md-fab-trigger>
+</md-fab-speed-dial>
