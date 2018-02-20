@@ -62,4 +62,9 @@ public class ConfigurationResource {
     public RoleScopesResource getRoleScopesResource() {
         return resourceContext.getResource(RoleScopesResource.class);
     }
+
+    @Path("top-apis")
+    public TopApisResource getTopApisResource() {
+        return resourceContext.getResource(TopApisResource.class);
+    }
 }

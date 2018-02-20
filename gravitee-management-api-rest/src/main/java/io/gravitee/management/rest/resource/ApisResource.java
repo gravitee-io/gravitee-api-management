@@ -54,22 +54,15 @@ public class ApisResource extends AbstractResource {
 
     @Context
     private UriInfo uriInfo;
-
     @Context
     private ResourceContext resourceContext;
 
     @Inject
     private ApiService apiService;
-
-    @Inject
-    private UserService userService;
-
     @Inject
     private SwaggerService swaggerService;
-
     @Inject
-    private MembershipService membershipService;
-
+    private TopApiService topApiService;
     @Inject
     private RatingService ratingService;
 
@@ -81,7 +74,15 @@ public class ApisResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<ApiListItem> listApis(@QueryParam("view") final String view, @QueryParam("group") final String group) {
+    public List<ApiListItem> listApis(@QueryParam("view") final String view, @QueryParam("group") final String group,
+                                      @QueryParam("top") final boolean top) {
+        if (top) {
+            return topApiService.findAll().stream()
+                    .map(topApiEntity -> apiService.findById(topApiEntity.getApi()))
+                    .map(this::convert)
+                    .collect(Collectors.toList());
+        }
+
         Set<ApiEntity> apis;
         if (isAdmin()) {
             apis = group != null
@@ -200,8 +201,8 @@ public class ApisResource extends AbstractResource {
         apiItem.setVersion(api.getVersion());
         apiItem.setDescription(api.getDescription());
 
-        final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-        final UriBuilder uriBuilder = ub.path(api.getId()).path("picture");
+        final UriBuilder ub = uriInfo.getBaseUriBuilder();
+        final UriBuilder uriBuilder = ub.path("apis").path(api.getId()).path("picture");
         if (api.getPicture() != null) {
             // force browser to get if updated
             uriBuilder.queryParam("hash", api.getPicture().hashCode());
@@ -237,7 +238,7 @@ public class ApisResource extends AbstractResource {
 
     private ApiListItem setManageable(ApiListItem api) {
         api.setManageable(isAuthenticated() &&
-                        (isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), RolePermissionAction.READ))
+                (isAdmin() || hasPermission(RolePermission.API_GATEWAY_DEFINITION, api.getId(), RolePermissionAction.READ))
         );
         return api;
     }

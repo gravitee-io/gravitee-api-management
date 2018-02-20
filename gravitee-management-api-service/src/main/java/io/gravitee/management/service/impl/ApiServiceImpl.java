@@ -929,6 +929,17 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         return apiModelEntity;
     }
 
+    @Override
+    public boolean exists(final String apiId) {
+        try {
+            return apiRepository.findById(apiId).isPresent();
+        } catch (final TechnicalException te) {
+            final String msg = "An error occurs while checking if the API exists: " + apiId;
+            LOGGER.error(msg, te);
+            throw new TechnicalManagementException(msg, te);
+        }
+    }
+
     private void removeTag(String apiId, String tagId) throws TechnicalManagementException {
         try {
             ApiEntity apiEntity = this.findById(apiId);

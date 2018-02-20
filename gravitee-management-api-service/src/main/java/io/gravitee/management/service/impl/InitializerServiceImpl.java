@@ -16,12 +16,14 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.permissions.*;
+import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.model.permissions.ApplicationPermission;
+import io.gravitee.management.model.permissions.ManagementPermission;
+import io.gravitee.management.model.permissions.PortalPermission;
 import io.gravitee.management.service.InitializerService;
 import io.gravitee.management.service.MetadataService;
 import io.gravitee.management.service.RoleService;
 import io.gravitee.management.service.ViewService;
-import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.model.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

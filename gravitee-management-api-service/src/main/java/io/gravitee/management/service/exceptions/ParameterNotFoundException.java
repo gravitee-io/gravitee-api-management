@@ -13,35 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.permissions;
+package io.gravitee.management.service.exceptions;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum PortalPermission implements Permission {
-    METADATA(     "METADATA",      1000),
-    DOCUMENTATION("DOCUMENTATION", 1100),
-    APPLICATION(  "APPLICATION",   1200),
-    VIEW(         "VIEW",          1300),
-    TOP_APIS(     "TOP_APIS",      1400);
+public class ParameterNotFoundException extends AbstractNotFoundException {
 
-    String name;
-    int mask;
+    private final String parameterKey;
 
-    PortalPermission(String name, int mask) {
-        this.name = name;
-        this.mask = mask;
+    public ParameterNotFoundException(String parameterKey) {
+        this.parameterKey = parameterKey;
     }
 
     @Override
-    public String getName() {
-        return name;
+    public String getMessage() {
+        return "Parameter [" + parameterKey + "] can not be found.";
     }
-
-    @Override
-    public int getMask() {
-        return mask;
-    }
-
 }

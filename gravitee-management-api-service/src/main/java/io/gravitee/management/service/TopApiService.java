@@ -13,35 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.permissions;
+package io.gravitee.management.service;
+
+import io.gravitee.management.model.NewTopApiEntity;
+import io.gravitee.management.model.TopApiEntity;
+import io.gravitee.management.model.UpdateTopApiEntity;
+
+import java.util.List;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum PortalPermission implements Permission {
-    METADATA(     "METADATA",      1000),
-    DOCUMENTATION("DOCUMENTATION", 1100),
-    APPLICATION(  "APPLICATION",   1200),
-    VIEW(         "VIEW",          1300),
-    TOP_APIS(     "TOP_APIS",      1400);
+public interface TopApiService {
 
-    String name;
-    int mask;
+    List<TopApiEntity> findAll();
 
-    PortalPermission(String name, int mask) {
-        this.name = name;
-        this.mask = mask;
-    }
+    List<TopApiEntity> create(NewTopApiEntity topApis);
 
-    @Override
-    public String getName() {
-        return name;
-    }
+    List<TopApiEntity> update(List<UpdateTopApiEntity> topApis);
 
-    @Override
-    public int getMask() {
-        return mask;
-    }
-
+    void delete(String topAPI);
 }

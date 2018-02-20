@@ -169,5 +169,10 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public PermissionService permissionService() {
             return mock(PermissionService.class);
         }
+
+        @Bean
+        public TopApiService topApiService() {
+            return mock(TopApiService.class);
+        }
     }
 }
