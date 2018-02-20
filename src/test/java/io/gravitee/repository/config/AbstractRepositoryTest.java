@@ -95,6 +95,8 @@ public abstract class AbstractRepositoryTest {
     protected RatingRepository ratingRepository;
     @Inject
     protected RatingAnswerRepository ratingAnswerRepository;
+    @Inject
+    protected ParameterRepository parameterRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -178,6 +180,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof RatingAnswer) {
             ratingAnswerRepository.create((RatingAnswer) object);
+        }
+        else if (object instanceof Parameter) {
+            parameterRepository.create((Parameter) object);
         }
     }
 

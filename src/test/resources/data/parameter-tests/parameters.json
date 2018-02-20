@@ -1,0 +1,14 @@
+[
+   {
+      "key": "portal.top-apis",
+      "value": "api1;api2;api2"
+   },
+   {
+      "key": "management.oAuth.clientId",
+      "value": "MyClientId"
+   },
+   {
+      "key": "management.oAuth.clientSecret",
+      "value": "MyClientSecret"
+   }
+]

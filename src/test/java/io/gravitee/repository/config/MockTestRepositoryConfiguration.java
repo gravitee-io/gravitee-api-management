@@ -1138,4 +1138,34 @@ public class MockTestRepositoryConfiguration {
 
         return ratingAnswerRepository;
     }
+
+    @Bean
+    public ParameterRepository parameterRepository() throws Exception {
+        final ParameterRepository parameterRepository = mock(ParameterRepository.class);
+
+        final Parameter parameter = mock(Parameter.class);
+        when(parameter.getValue()).thenReturn("Parameter value");
+
+        final Parameter parameter2 = mock(Parameter.class);
+        when(parameter2.getKey()).thenReturn("portal.top-apis");
+        when(parameter2.getValue()).thenReturn("api1;api2;api2");
+
+        final Parameter parameter2Updated = mock(Parameter.class);
+        when(parameter2Updated.getValue()).thenReturn("New value");
+
+        when(parameterRepository.create(any(Parameter.class))).thenReturn(parameter);
+
+        when(parameterRepository.findById("new-parameter")).thenReturn(empty(), of(parameter));
+        when(parameterRepository.findById("management.oAuth.clientId")).thenReturn(of(parameter2), empty());
+        when(parameterRepository.findById("portal.top-apis")).thenReturn(of(parameter2), of(parameter2Updated));
+
+        when(parameterRepository.update(argThat(new ArgumentMatcher<Parameter>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Parameter && ((Parameter) o).getKey().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
+
+        return parameterRepository;
+    }
 }
