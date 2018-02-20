@@ -161,9 +161,9 @@ public abstract class DefaultInvoker implements Invoker {
 
         // Get HOST header
         final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
-                    (HTTPS_SCHEME.equals(requestUri.getScheme()) ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT);
+                (HTTPS_SCHEME.equals(requestUri.getScheme()) ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT);
         final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
-                    requestUri.getHost() : requestUri.getHost() + ':' + port;
+                requestUri.getHost() : requestUri.getHost() + ':' + port;
         headers.set(HttpHeaders.HOST, host);
 
         // Override with default headers defined for endpoint
@@ -179,7 +179,7 @@ public abstract class DefaultInvoker implements Invoker {
         String targetUri = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
 
         return (targetUri != null)
-                ? selectUserDefinedEndpoint(serverRequest, targetUri)
+                ? selectUserDefinedEndpoint(serverRequest, targetUri, executionContext)
                 : selectLoadBalancedEndpoint(serverRequest, executionContext);
     }
 
@@ -191,13 +191,13 @@ public abstract class DefaultInvoker implements Invoker {
 
         return new TargetEndpoint(
                 endpoint,
-                (endpoint != null) ? rewriteURI(serverRequest, endpoint.target()) : null);
+                (endpoint != null) ? endpoint.target() + serverRequest.pathInfo() : null);
     }
 
     /**
      * Select an endpoint according to the URI passed in the execution request attribute.
      */
-    private TargetEndpoint selectUserDefinedEndpoint(Request serverRequest, String target) {
+    private TargetEndpoint selectUserDefinedEndpoint(Request serverRequest, String target, ExecutionContext executionContext) {
         QueryStringDecoder decoder = new QueryStringDecoder(target);
         Map<String, List<String>> queryParameters = decoder.parameters();
 
@@ -216,20 +216,25 @@ public abstract class DefaultInvoker implements Invoker {
 
         String encodedTarget = builder.substring(0, builder.length() - 1);
 
-        Endpoint endpoint = endpointManager.endpoints()
-                .stream()
-                .filter(endpointEntry -> encodedTarget.startsWith(endpointEntry.target()))
-                .findFirst()
-                .orElse(endpointManager.endpoints().iterator().next());
+        // Do we have a single path or a plain URI ?
+        if (encodedTarget.startsWith("/")) {
+            Endpoint endpoint = nextEndpoint(serverRequest, executionContext);
 
-        return new TargetEndpoint(endpoint, encodedTarget);
+            return new TargetEndpoint(
+                    endpoint,
+                    (endpoint != null) ? endpoint.target() + encodedTarget : null);
+        } else {
+            Endpoint endpoint = endpointManager.endpoints()
+                    .stream()
+                    .filter(endpointEntry -> encodedTarget.startsWith(endpointEntry.target()))
+                    .findFirst()
+                    .orElse(endpointManager.endpoints().iterator().next());
+
+            return new TargetEndpoint(endpoint, encodedTarget);
+        }
     }
 
     public abstract Endpoint nextEndpoint(Request serverRequest, ExecutionContext executionContext);
-
-    private String rewriteURI(Request request, String endpointUri) {
-        return endpointUri + request.pathInfo();
-    }
 
     private URI encodeQueryParameters(Request request, String endpointUri) throws MalformedURLException, URISyntaxException {
         if (request.parameters() != null && !request.parameters().isEmpty()) {
