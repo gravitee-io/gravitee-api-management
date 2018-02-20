@@ -34,7 +34,7 @@ public class Audit {
     }
 
     public enum AuditProperties {
-        PLAN, PAGE, API_KEY, METADATA, GROUP, USER, ROLE, API, APPLICATION, TAG, TENANT, VIEW
+        PLAN, PAGE, API_KEY, METADATA, GROUP, USER, ROLE, API, APPLICATION, TAG, TENANT, VIEW, PARAMETER
     }
 
     private String id;
