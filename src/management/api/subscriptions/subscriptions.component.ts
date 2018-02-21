@@ -125,7 +125,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
           }
         }).then( (data) => {
           if (data && data.applicationId && data.planId) {
-            this.ApiService.subscribe(data.applicationId, data.applicationId, data.planId).then( (response) => {
+            this.ApiService.subscribe(this.api.id, data.applicationId, data.planId).then( (response) => {
               let subscription = response.data;
               this.NotificationService.show('A new subscription has been created.');
               this.$state.go('management.apis.detail.subscriptions.subscription', {subscriptionId: subscription.id}, {reload: true});
