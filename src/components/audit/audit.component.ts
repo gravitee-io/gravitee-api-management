@@ -72,7 +72,10 @@ const AuditComponent: ng.IComponentOptions = {
         case "APPLICATION":
           return vm.applicationsById[ref.id].name;
         default:
-          return "";
+          if (vm.metadata[ref.type+':'+ref.id+':name']) {
+            return vm.metadata[ref.type + ':' + ref.id + ':name'];
+          }
+          return ref.id;
       }
     };
 
