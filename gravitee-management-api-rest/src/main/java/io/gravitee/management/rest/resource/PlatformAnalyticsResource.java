@@ -16,11 +16,10 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.analytics.Analytics;
-import io.gravitee.management.model.analytics.query.AggregationType;
-import io.gravitee.management.model.analytics.query.CountQuery;
-import io.gravitee.management.model.analytics.query.DateHistogramQuery;
-import io.gravitee.management.model.analytics.query.GroupByQuery;
+import io.gravitee.management.model.analytics.query.*;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.Aggregation;
@@ -29,6 +28,9 @@ import io.gravitee.management.rest.resource.param.Range;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.AnalyticsService;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.ApplicationService;
+import io.gravitee.management.service.PermissionService;
 import io.swagger.annotations.Api;
 
 import javax.inject.Inject;
@@ -41,21 +43,34 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static io.gravitee.management.model.permissions.RolePermission.API_ANALYTICS;
+import static io.gravitee.management.model.permissions.RolePermission.APPLICATION_ANALYTICS;
+import static io.gravitee.management.model.permissions.RolePermission.MANAGEMENT_PLATFORM;
+import static io.gravitee.management.model.permissions.RolePermissionAction.READ;
+
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Gateway"})
-public class PlatformAnalyticsResource {
+public class PlatformAnalyticsResource extends AbstractResource  {
 
     @Inject
     private AnalyticsService analyticsService;
 
+    @Inject
+    ApiService apiService;
+
+    @Inject
+    PermissionService permissionService;
+
+    @Inject
+    ApplicationService applicationService;
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_PLATFORM, acls = RolePermissionAction.READ)
+            @Permission(value = MANAGEMENT_PLATFORM, acls = READ)
     })
     public Response platformAnalytics(@BeanParam AnalyticsParam analyticsParam) {
 
@@ -63,31 +78,54 @@ public class PlatformAnalyticsResource {
 
         Analytics analytics = null;
 
-        switch(analyticsParam.getTypeParam().getValue()) {
+        // add filter by Apis or Applications
+        String extraFilter = null;
+        if (!isAdmin()) {
+            if ("api".equals(analyticsParam.getField())) {
+                extraFilter = getExtraFilter(
+                        analyticsParam.getField(),
+                        apiService.findByUser(getAuthenticatedUser())
+                                .stream()
+                                .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
+                                .map(ApiEntity::getId)
+                                .collect(Collectors.toList()));
+            } else if ("application".equals(analyticsParam.getField())) {
+                extraFilter = getExtraFilter(
+                        analyticsParam.getField(),
+                        applicationService.findByUser(getAuthenticatedUser())
+                                .stream()
+                                .filter(app -> permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ))
+                                .map(ApplicationEntity::getId)
+                                .collect(Collectors.toList()));
+            }
+        }
+
+        switch (analyticsParam.getTypeParam().getValue()) {
             case DATE_HISTO:
-                analytics = executeDateHisto(analyticsParam);
+                analytics = executeDateHisto(analyticsParam, extraFilter);
                 break;
             case GROUP_BY:
-                analytics = executeGroupBy(analyticsParam);
+                analytics = executeGroupBy(analyticsParam, extraFilter);
                 break;
             case COUNT:
-                analytics = executeCount(analyticsParam);
+                analytics = executeCount(analyticsParam, extraFilter);
                 break;
         }
 
         return Response.ok(analytics).build();
     }
 
-    private Analytics executeCount(AnalyticsParam analyticsParam) {
+    private Analytics executeCount(AnalyticsParam analyticsParam, String extraFilter) {
         CountQuery query = new CountQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
         query.setInterval(analyticsParam.getInterval());
         query.setQuery(analyticsParam.getQuery());
+        addExtraFilter(query, extraFilter);
         return analyticsService.execute(query);
     }
 
-    private Analytics executeDateHisto(AnalyticsParam analyticsParam) {
+    private Analytics executeDateHisto(AnalyticsParam analyticsParam, String extraFilter) {
         DateHistogramQuery query = new DateHistogramQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
@@ -111,10 +149,11 @@ public class PlatformAnalyticsResource {
 
             query.setAggregations(aggregationList);
         }
+        addExtraFilter(query, extraFilter);
         return analyticsService.execute(query);
     }
 
-    private Analytics executeGroupBy(AnalyticsParam analyticsParam) {
+    private Analytics executeGroupBy(AnalyticsParam analyticsParam, String extraFilter) {
         GroupByQuery query = new GroupByQuery();
         query.setFrom(analyticsParam.getFrom());
         query.setTo(analyticsParam.getTo());
@@ -137,6 +176,22 @@ public class PlatformAnalyticsResource {
 
             query.setGroups(rangeMap);
         }
+        addExtraFilter(query, extraFilter);
         return analyticsService.execute(query);
+    }
+
+    private void addExtraFilter(AbstractQuery query, String extraFilter) {
+        if (query.getQuery() == null || query.getQuery().isEmpty()) {
+            query.setQuery(extraFilter);
+        } else {
+            query.setQuery(query.getQuery() + " AND " + extraFilter);
+        }
+    }
+
+    private String getExtraFilter(String fieldName, List<String> ids) {
+        if (ids != null && !ids.isEmpty()) {
+            return fieldName + ":(" + ids.stream().collect(Collectors.joining(" OR ")) + ")";
+        }
+        return null;
     }
 }
