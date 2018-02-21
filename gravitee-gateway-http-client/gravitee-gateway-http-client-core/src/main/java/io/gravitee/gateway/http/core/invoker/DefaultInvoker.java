@@ -33,6 +33,7 @@ import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.http.core.direct.DirectProxyConnection;
 import io.gravitee.gateway.http.core.invoker.logging.LoggableProxyConnection;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -178,7 +179,7 @@ public abstract class DefaultInvoker implements Invoker {
         String targetUri = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
 
         return (targetUri != null)
-                ? selectUserDefinedEndpoint(targetUri)
+                ? selectUserDefinedEndpoint(serverRequest, targetUri)
                 : selectLoadBalancedEndpoint(serverRequest, executionContext);
     }
 
@@ -196,9 +197,17 @@ public abstract class DefaultInvoker implements Invoker {
     /**
      * Select an endpoint according to the URI passed in the execution request attribute.
      */
-    private TargetEndpoint selectUserDefinedEndpoint(String target) {
+    private TargetEndpoint selectUserDefinedEndpoint(Request serverRequest, String target) {
+        QueryStringDecoder decoder = new QueryStringDecoder(target);
+        Map<String, List<String>> queryParameters = decoder.parameters();
+
+        // Merge query parameters from user target into incoming request query parameters
+        for(Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
+            serverRequest.parameters().put(param.getKey(), param.getValue());
+        }
+
         // Path segments must be encoded to avoid bad URI syntax
-        String [] segments = target.split(URI_PATH_SEPARATOR);
+        String [] segments = decoder.path().split(URI_PATH_SEPARATOR);
         StringBuilder builder = new StringBuilder();
 
         for(String pathSeg : segments) {
