@@ -4,11 +4,7 @@
 			<#include "header.html" />
 		</header>
 		<div style="margin-top: 50px; color: #424e5a;">
-			<#if user.firstname?? && user.lastname??>
-				<p><b>Ticket created by ${user.firstname} ${user.lastname}</b></p>
-			<#else>
-				<p><b>Ticket created by ${user.username}</b></p>
-			</#if>
+			<p><b>Ticket created by ${user.displayName}</b></p>
 			<#if api??>
 				<p><b>API: ${api.name} (${api.version})</b></p>
 			</#if>

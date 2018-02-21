@@ -4,11 +4,7 @@
 			<#include "header.html" />
 		</header>
 		<div style="margin-top: 50px; color: #424e5a;">
-			<#if user.firstname?? && user.lastname??>
-				<h3>Hi ${user.firstname} ${user.lastname},</h3>
-				<#else>
-					<h3>Hi ${user.username},</h3>
-			</#if>
+			<h3>Hi ${user.displayName},</h3>
 			<p>You have been successfully registered.</p>
 			<p><a href="${registrationUrl}">Click here</a> to confirm your registration.</p>
 		</div>

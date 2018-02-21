@@ -4,11 +4,7 @@
 			<#include "header.html" />
 		</header>
 		<div style="margin-top: 50px; color: #424e5a;">
-			<#if owner.firstname?? && owner.lastname??>
-				<h3>Hi ${owner.firstname} ${owner.lastname},</h3>
-			<#else>
-				<h3>Hi ${owner.username},</h3>
-			</#if>
+			<h3>Hi ${owner.displayName},</h3>
 			<p>
 				Your API Key <b><code>${apiKey}</code></b> used by subscription to plan <b>${plan.name}</b> for API
 				<b>${api.name}</b> and application <b>${application.name}</b> has been revoked and can not be used

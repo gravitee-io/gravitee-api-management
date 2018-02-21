@@ -155,8 +155,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                                     break;
                                 case USER:
                                     Optional<User> optUser = userRepository.findById(property.getValue());
-                                    if (optUser.isPresent() && optUser.get().getFirstname() != null && optUser.get().getLastname() != null) {
-                                        name = optUser.get().getFirstname() + " " + optUser.get().getLastname();
+                                    if (optUser.isPresent()) {
+                                        if (optUser.get().getFirstname() != null && optUser.get().getLastname() != null) {
+                                            name = optUser.get().getFirstname() + " " + optUser.get().getLastname();
+                                        } else {
+                                            name = optUser.get().getUsername();
+                                        }
                                     }
                                 default:
                                     break;

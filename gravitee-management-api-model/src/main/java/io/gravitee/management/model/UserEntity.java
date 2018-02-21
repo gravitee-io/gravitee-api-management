@@ -199,6 +199,14 @@ public class UserEntity {
         this.lastConnectionAt = lastConnectionAt;
     }
 
+    public String getDisplayName() {
+        if (firstname == null || lastname == null) {
+            return username;
+        } else {
+            return firstname + ' ' + lastname;
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
