@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
@@ -26,6 +27,7 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@JsonIgnoreProperties(value = "displayName", allowGetters = true)
 public class UserEntity {
 
     /**
