@@ -54,7 +54,7 @@ public class EndpointHealthcheckResolver {
                 .map(endpoint -> (HttpEndpoint) endpoint);
 
         // Filtering endpoints according to tenancy configuration
-        if (api.getProxy().isMultiTenant() && gatewayConfiguration.tenant().isPresent()) {
+        if (gatewayConfiguration.tenant().isPresent()) {
             String tenant = gatewayConfiguration.tenant().get();
             httpEndpoints = httpEndpoints
                     .filter(endpoint -> endpoint.getTenants() != null && endpoint.getTenants().contains(tenant));
