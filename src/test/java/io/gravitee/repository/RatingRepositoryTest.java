@@ -59,7 +59,6 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertEquals("title", rating.getTitle());
         assertEquals("My comment", rating.getComment());
         assertEquals(cal.getTime(), rating.getCreatedAt());
-        assertEquals(cal.getTime(), rating.getUpdatedAt());
         assertEquals(1, rating.getRate());
 
         final List<RatingAnswer> ratingAnswers = ratingAnswerRepository.findByRating(rating.getId());
@@ -80,7 +79,6 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertEquals("title", rating.getTitle());
         assertEquals("My comment", rating.getComment());
         assertEquals(cal.getTime(), rating.getCreatedAt());
-        assertEquals(cal.getTime(), rating.getUpdatedAt());
         assertEquals(1, rating.getRate());
 
         final List<RatingAnswer> ratingAnswers = ratingAnswerRepository.findByRating(rating.getId());
@@ -100,8 +98,8 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertEquals(3, ratingPage.getTotalElements());
 
         assertEquals(2, ratingPage.getContent().size());
-        assertEquals("rating-id", ratingPage.getContent().get(0).getId());
-        assertEquals("rating4-id", ratingPage.getContent().get(1).getId());
+        assertEquals("rating4-id", ratingPage.getContent().get(0).getId());
+        assertEquals("rating-id", ratingPage.getContent().get(1).getId());
 
         ratingPage = ratingRepository.findByApiPageable("api",
                 new PageableBuilder().pageNumber(1).pageSize(2).build());

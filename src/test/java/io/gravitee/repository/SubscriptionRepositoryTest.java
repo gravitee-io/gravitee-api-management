@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
 
 /**
@@ -40,7 +41,7 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     public void shouldFindByPlan() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
-                        .plans(Collections.singleton("plan1"))
+                        .plans(singleton("plan1"))
                 .build());
 
         assertNotNull(subscriptions);
@@ -66,7 +67,7 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotFindByPlan() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
-                        .plans(Collections.singleton("unknown-plan"))
+                        .plans(singleton("unknown-plan"))
                         .build());
 
         assertNotNull(subscriptions);
@@ -77,20 +78,23 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     public void shouldFindByApplication() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
-                        .applications(Collections.singleton("app1"))
+                        .applications(singleton("app1"))
                         .build());
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
-        assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+        assertEquals("Subscriptions size", 3, subscriptions.size());
+        final Iterator<Subscription> iterator = subscriptions.iterator();
+        assertEquals("Subscription id", "sub3", iterator.next().getId());
+        assertEquals("Subscription id", "sub4", iterator.next().getId());
+        assertEquals("Subscription id", "sub1", iterator.next().getId());
     }
 
     @Test
     public void shoulNotFindByApplication() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
-                        .applications(Collections.singleton("unknown-app"))
+                        .applications(singleton("unknown-app"))
                         .build());
 
         assertNotNull(subscriptions);

@@ -100,6 +100,9 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
         assertEquals("total elements", 3, auditPage.getTotalElements());
         assertEquals("page elements", 3, auditPage.getPageElements());
         assertEquals("page number", 0, auditPage.getPageNumber());
+        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().get(0).getId());
+        assertEquals("find audit with id 'new'", "new", auditPage.getContent().get(1).getId());
+        assertEquals("find audit with id 'searchable1'", "searchable1", auditPage.getContent().get(2).getId());
     }
 
     @Test

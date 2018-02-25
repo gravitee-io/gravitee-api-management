@@ -152,11 +152,9 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         assertNotNull("found api key", apiKeys);
         assertFalse("found api key", apiKeys.isEmpty());
         assertEquals("found 3 apikeys", 3, apiKeys.size());
-        assertTrue(Arrays.asList("findByCriteria1","findByCriteria2","findByCriteria1Revoked").contains(apiKeys.get(0).getKey()));
-        assertTrue(Arrays.asList("findByCriteria1","findByCriteria2","findByCriteria1Revoked").contains(apiKeys.get(1).getKey()));
-        assertTrue(Arrays.asList("findByCriteria1","findByCriteria2","findByCriteria1Revoked").contains(apiKeys.get(2).getKey()));
-        assertNotEquals(apiKeys.get(0).getKey(), apiKeys.get(1).getKey());
-        assertNotEquals(apiKeys.get(0).getKey(), apiKeys.get(2).getKey());
-        assertNotEquals(apiKeys.get(2).getKey(), apiKeys.get(1).getKey());
+
+        assertEquals("findByCriteria2", apiKeys.get(0).getKey());
+        assertEquals("findByCriteria1Revoked", apiKeys.get(1).getKey());
+        assertEquals("findByCriteria1", apiKeys.get(2).getKey());
     }
 }

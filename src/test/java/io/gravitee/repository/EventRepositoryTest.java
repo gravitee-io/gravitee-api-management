@@ -23,10 +23,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -189,8 +186,10 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
                         .build());
 
         assertTrue(3L == events.size());
-        Event event = events.iterator().next();
-        assertTrue("event4".equals(event.getId()));
+        final Iterator<Event> iterator = events.iterator();
+        assertTrue("event4".equals(iterator.next().getId()));
+        assertTrue("event2".equals(iterator.next().getId()));
+        assertTrue("event1".equals(iterator.next().getId()));
     }
 
     @Test

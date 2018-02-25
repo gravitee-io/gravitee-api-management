@@ -58,6 +58,9 @@ public class MockTestRepositoryConfiguration {
         when(newAudit.getCreatedAt()).thenReturn(new Date(1486771200000L));
         when(auditRepository.findById("new")).thenReturn(of(newAudit));
 
+        final Audit searchable1 = mock(Audit.class);
+        when(searchable1.getId()).thenReturn("searchable1");
+
         final Audit searchable2 = mock(Audit.class);
         when(searchable2.getId()).thenReturn("searchable2");
         //shouldSearchWithPagination
@@ -100,7 +103,7 @@ public class MockTestRepositoryConfiguration {
                         }
                 ), any())).
                 thenReturn(new io.gravitee.common.data.domain.Page<>(
-                        asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)),
+                        asList(searchable2, newAudit, searchable1),
                         0,
                         3,
                         3));
@@ -193,7 +196,7 @@ public class MockTestRepositoryConfiguration {
             public boolean matches(Object o) {
                 return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).isIncludeRevoked());
             }
-        }))).thenReturn(asList(mockCriteria1Revoked,mockCriteria1,mockCriteria2));
+        }))).thenReturn(asList(mockCriteria2,mockCriteria1Revoked,mockCriteria1));
 
         return apiKeyRepository;
     }
@@ -214,7 +217,7 @@ public class MockTestRepositoryConfiguration {
         when(apiUpdated.getViews()).thenReturn(Sets.newSet("view1", "view2"));
         when(apiUpdated.getDefinition()).thenReturn("New definition");
         when(apiUpdated.getDeployedAt()).thenReturn(parse("11/02/2016"));
-        when(apiUpdated.getGroups()).thenReturn(Collections.singleton("New group"));
+        when(apiUpdated.getGroups()).thenReturn(singleton("New group"));
         when(apiUpdated.getLifecycleState()).thenReturn(LifecycleState.STARTED);
         when(apiUpdated.getPicture()).thenReturn("New picture");
         when(apiUpdated.getCreatedAt()).thenReturn(parse("11/02/2016"));
@@ -238,7 +241,7 @@ public class MockTestRepositoryConfiguration {
         when(apiRepository.findById("sample-new")).thenReturn(of(newApi));
 
         final Api groupedApi = mock(Api.class);
-        when(groupedApi.getGroups()).thenReturn(Collections.singleton("api-group"));
+        when(groupedApi.getGroups()).thenReturn(singleton("api-group"));
         when(apiRepository.findById("grouped-api")).thenReturn(of(groupedApi));
 
         final Api apiToFindById = mock(Api.class);
@@ -310,12 +313,12 @@ public class MockTestRepositoryConfiguration {
 
         final Application groupedApplication1 = mock(Application.class);
         when(groupedApplication1.getId()).thenReturn("grouped-app1");
-        when(groupedApplication1.getGroups()).thenReturn(Collections.singleton("application-group"));
+        when(groupedApplication1.getGroups()).thenReturn(singleton("application-group"));
         when(applicationRepository.findById("grouped-app1")).thenReturn(of(groupedApplication1));
 
         final Application groupedApplication2 = mock(Application.class);
         when(groupedApplication2.getId()).thenReturn("grouped-app2");
-        when(groupedApplication2.getGroups()).thenReturn(Collections.singleton("application-group"));
+        when(groupedApplication2.getGroups()).thenReturn(singleton("application-group"));
         when(applicationRepository.findById("grouped-app2")).thenReturn(of(groupedApplication2));
 
         final Set<Application> allArchivedApplications = newSet(groupedApplication2);
@@ -327,7 +330,7 @@ public class MockTestRepositoryConfiguration {
         when(searchedApp1.getName()).thenReturn("searched-app1");
         when(searchedApp2.getId()).thenReturn("searched-app2");
         when(searchedApp2.getName()).thenReturn("searched-app2");
-        when(applicationRepository.findByName("searched-app1")).thenReturn(Collections.singleton(searchedApp1));
+        when(applicationRepository.findByName("searched-app1")).thenReturn(singleton(searchedApp1));
         when(applicationRepository.findByName("arched")).thenReturn(newSet(searchedApp1, searchedApp2));
         when(applicationRepository.findByName("aRcHEd")).thenReturn(newSet(searchedApp1, searchedApp2));
 
@@ -684,7 +687,7 @@ public class MockTestRepositoryConfiguration {
         when(plan.getDescription()).thenReturn("Description for the new plan");
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getApis()).thenReturn(Collections.singleton("my-api"));
+        when(plan.getApis()).thenReturn(singleton("my-api"));
         when(plan.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(plan.getUpdatedAt()).thenReturn(parse("12/02/2016"));
         when(plan.getPublishedAt()).thenReturn(parse("13/02/2016"));
@@ -760,13 +763,13 @@ public class MockTestRepositoryConfiguration {
         when(repo.findById("userToDelete", MembershipReferenceType.APPLICATION, "app1"))
                 .thenReturn(empty());
         when(repo.findByReferenceAndRole(eq(MembershipReferenceType.API), eq("api1"), eq(RoleScope.API), any()))
-                .thenReturn(Collections.singleton(m1));
+                .thenReturn(singleton(m1));
         when(repo.findByReferenceAndRole(eq(MembershipReferenceType.API), eq("api1"), eq(null), any()))
-                .thenReturn(Collections.singleton(m1));
+                .thenReturn(singleton(m1));
         when(repo.findByUserAndReferenceType("user1", MembershipReferenceType.API))
-                .thenReturn(Collections.singleton(m1));
+                .thenReturn(singleton(m1));
         when(repo.findByUserAndReferenceTypeAndRole("user1", MembershipReferenceType.API, RoleScope.API, "OWNER"))
-                .thenReturn(Collections.singleton(m1));
+                .thenReturn(singleton(m1));
         when(repo.findByReferencesAndRole(MembershipReferenceType.API, asList("api2", "api3"), null, null))
                 .thenReturn(new HashSet<>(asList(m2, m3)));
         when(repo.findByReferencesAndRole(MembershipReferenceType.API, asList("api2", "api3"), RoleScope.API, "OWNER"))
@@ -867,7 +870,7 @@ public class MockTestRepositoryConfiguration {
         //Find api pages
         final Page homepage = mock(Page.class);
         when(homepage.getId()).thenReturn("home");
-        when(pageRepository.findApiPageByApiIdAndHomepage("my-api-2", true)).thenReturn(Collections.singleton(homepage));
+        when(pageRepository.findApiPageByApiIdAndHomepage("my-api-2", true)).thenReturn(singleton(homepage));
         when(pageRepository.findApiPageByApiIdAndHomepage("my-api-2", false)).thenReturn(newSet(mock(Page.class), mock(Page.class)));
 
         //Find portal pages
@@ -907,25 +910,31 @@ public class MockTestRepositoryConfiguration {
         sub1.setUpdatedAt(new Date(1469022010883L));
         sub1.setProcessedAt(new Date(1479022010883L));
 
+        final Subscription sub3 = new Subscription();
+        sub3.setId("sub3");
+
+        final Subscription sub4 = new Subscription();
+        sub4.setId("sub4");
+
         when(subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
-                        .plans(Collections.singleton("plan1"))
+                        .plans(singleton("plan1"))
                         .build()))
                 .thenReturn(Collections.singletonList(sub1));
         when(subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
-                        .plans(Collections.singleton("unknown-plan"))
+                        .plans(singleton("unknown-plan"))
                         .build()))
                 .thenReturn(Collections.emptyList());
 
         when(subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
-                        .applications(Collections.singleton("app1"))
+                        .applications(singleton("app1"))
                         .build()))
-                .thenReturn(Collections.singletonList(sub1));
+                .thenReturn(asList(sub3, sub4, sub1));
         when(subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
-                        .applications(Collections.singleton("unknown-app"))
+                        .applications(singleton("unknown-app"))
                         .build()))
                 .thenReturn(Collections.emptyList());
 
@@ -1096,7 +1105,7 @@ public class MockTestRepositoryConfiguration {
         when(ratingRepository.findById("rating-id")).thenReturn(of(rating));
         when(ratingRepository.findById("new-rating")).thenReturn(empty(), of(newRating));
         when(ratingRepository.findByApiPageable(eq("api"), any(Pageable.class))).thenReturn(
-                new io.gravitee.common.data.domain.Page<>(asList(rating, rating4), 0, 2, 3),
+                new io.gravitee.common.data.domain.Page<>(asList(rating4, rating), 0, 2, 3),
                 new io.gravitee.common.data.domain.Page<>(asList(rating2), 1, 1, 3));
 
         final Rating updatedRating = mockRating("rating-id", "api-new", "user10", "title10", "comment10", "3");

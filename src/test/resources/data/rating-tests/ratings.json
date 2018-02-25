@@ -6,8 +6,7 @@
       "title":"title",
       "comment":"My comment",
       "rate":1,
-      "createdAt": 1486771200000,
-      "updatedAt": 1486771200000
+      "createdAt": 1486771200000
    },
    {
       "id":"rating2-id",
@@ -36,7 +35,6 @@
       "title":"title4",
       "comment":"My comment4",
       "rate":2,
-      "createdAt": 1449032010883,
-      "updatedAt": 1449032010883
+      "createdAt": 1586771200000
    }
 ]
