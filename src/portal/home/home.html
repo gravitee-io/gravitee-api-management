@@ -50,7 +50,7 @@
       <gv-page page="homeCtrl.homepage"></gv-page>
     </div>
   </section>
-  <section id="top-apis" class="tall" layout="row" layout-align="center start" gv-theme-element="portal.home.topapis" flex>
+  <section id="top-apis" ng-if="homeCtrl.apis.length" class="tall" layout="row" layout-align="center start" gv-theme-element="portal.home.topapis" flex>
     <div layout="column" flex="100" flex-gt-xs="80" flex-gt-lg="70">
       <h2 class="section-title color-white" translate="home.apis.top"></h2>
       <md-content style="background-color: inherit" layout="column" layout-gt-sm="row" layout-align="center center" layout-wrap>

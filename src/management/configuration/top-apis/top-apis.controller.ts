@@ -19,8 +19,7 @@ import TopApiService from '../../../services/top-api.service';
 class TopApisController {
   private topApis: any[];
 
-  constructor(private TopApiService: TopApiService,
-              private $mdDialog: angular.material.IDialogService) {
+  constructor(private TopApiService: TopApiService, private $mdDialog: angular.material.IDialogService, private NotificationService) {
     'ngInject';
   }
 
@@ -78,6 +77,7 @@ class TopApisController {
     this.TopApiService.update(this.topApis)
       .then((response) => {
         this.topApis = response.data;
+        this.NotificationService.show("Top APIs saved with success");
       }).catch(() => {
       this.refreshTopApis();
     });
