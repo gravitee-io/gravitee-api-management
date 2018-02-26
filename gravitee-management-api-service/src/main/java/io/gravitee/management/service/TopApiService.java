@@ -33,5 +33,5 @@ public interface TopApiService {
 
     List<TopApiEntity> update(List<UpdateTopApiEntity> topApis);
 
-    void delete(String topAPI);
+    void delete(String apiId);
 }

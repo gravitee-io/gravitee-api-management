@@ -97,9 +97,9 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
     }
 
     @Override
-    public void delete(final String topAPI) {
+    public void delete(final String apiId) {
         final List<TopApiEntity> topApis = findAll();
-        topApis.removeIf(topApiEntity -> topAPI.equals(topApiEntity.getApi()));
+        topApis.removeIf(topApiEntity -> apiId.equals(topApiEntity.getApi()));
         parameterService.updateMultipleValue(PORTAL_TOP_APIS.getKey(),
                 topApis.stream().sorted(comparing(TopApiEntity::getOrder)).map(TopApiEntity::getApi).collect(toList()));
     }

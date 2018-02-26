@@ -78,6 +78,9 @@ public class ApiService_DeleteTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private TopApiService topApiService;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();

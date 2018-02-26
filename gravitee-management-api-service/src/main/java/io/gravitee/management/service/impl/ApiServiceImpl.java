@@ -61,6 +61,7 @@ import static io.gravitee.repository.management.model.Api.AuditEvent.*;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -70,48 +71,36 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
     @Autowired
     private ApiRepository apiRepository;
-
     @Autowired
     private MembershipRepository membershipRepository;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @Autowired
     private EventService eventService;
-
     @Autowired
     private UserService userService;
-
     @Autowired
     private PageService pageService;
-
     @Autowired
     private MembershipService membershipService;
-
     @Autowired
     private GroupService groupService;
-
     @Autowired
     private PlanService planService;
-
     @Autowired
     private ApiSynchronizationProcessor apiSynchronizationProcessor;
-
     @Value("${configuration.default-icon:${gravitee.home}/assets/default_api_logo.png}")
     private String defaultIcon;
-
     @Autowired
     private ApiMetadataService apiMetadataService;
-
     @Autowired
     private SubscriptionService subscriptionService;
-
     @Autowired
     private AuditService auditService;
-
     @Autowired
     private IdentityService identityService;
+    @Autowired
+    private TopApiService topApiService;
 
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
@@ -453,6 +442,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
                 // Delete API
                 apiRepository.delete(apiId);
+                // Delete top API
+                topApiService.delete(apiId);
                 // Audit
                 auditService.createApiAuditLog(
                         apiId,
