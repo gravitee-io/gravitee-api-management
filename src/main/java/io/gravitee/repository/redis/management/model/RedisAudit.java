@@ -26,7 +26,7 @@ public class RedisAudit {
     private String id;
     private String referenceId;
     private String referenceType;
-    private String username;
+    private String user;
     private long createdAt;
     private String event;
     private Map<String,String> properties;
@@ -56,12 +56,12 @@ public class RedisAudit {
         this.referenceType = referenceType;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUser() {
+        return user;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUser(String user) {
+        this.user = user;
     }
 
     public long getCreatedAt() {

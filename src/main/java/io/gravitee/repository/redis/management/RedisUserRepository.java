@@ -40,6 +40,12 @@ public class RedisUserRepository implements UserRepository {
     private UserRedisRepository userRedisRepository;
 
     @Override
+    public Optional<User> findById(String userId) throws TechnicalException {
+        RedisUser redisUser = this.userRedisRepository.find(userId);
+        return Optional.ofNullable(convert(redisUser));
+    }
+
+    @Override
     public User create(User user) throws TechnicalException {
         RedisUser redisUser = userRedisRepository.saveOrUpdate(convert(user));
         return convert(redisUser);
@@ -63,13 +69,13 @@ public class RedisUserRepository implements UserRepository {
 
     @Override
     public Optional<User> findByUsername(String username) throws TechnicalException {
-        RedisUser redisUser = userRedisRepository.find(username);
+        RedisUser redisUser = userRedisRepository.findByUsername(username);
         return Optional.ofNullable(convert(redisUser));
     }
 
     @Override
-    public Set<User> findByUsernames(List<String> usernames) throws TechnicalException {
-        return userRedisRepository.find(usernames).stream()
+    public Set<User> findByIds(List<String> ids) throws TechnicalException {
+        return userRedisRepository.find(ids).stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }
@@ -89,6 +95,7 @@ public class RedisUserRepository implements UserRepository {
         }
 
         User user = new User();
+        user.setId(redisUser.getId());
         user.setUsername(redisUser.getUsername());
         user.setEmail(redisUser.getEmail());
         user.setFirstname(redisUser.getFirstname());
@@ -109,6 +116,7 @@ public class RedisUserRepository implements UserRepository {
 
     private RedisUser convert(User user) {
         RedisUser redisUser = new RedisUser();
+        redisUser.setId(user.getId());
         redisUser.setUsername(user.getUsername());
         redisUser.setEmail(user.getEmail());
         redisUser.setFirstname(user.getFirstname());

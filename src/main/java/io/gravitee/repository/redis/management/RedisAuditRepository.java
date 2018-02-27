@@ -74,7 +74,7 @@ public class RedisAuditRepository implements AuditRepository {
         audit.setEvent(redisAudit.getEvent());
         audit.setPatch(redisAudit.getPatch());
         audit.setReferenceId(redisAudit.getReferenceId());
-        audit.setUsername(redisAudit.getUsername());
+        audit.setUser(redisAudit.getUser());
         audit.setReferenceType(Audit.AuditReferenceType.valueOf(redisAudit.getReferenceType()));
         audit.setCreatedAt(new Date(redisAudit.getCreatedAt()));
 
@@ -89,7 +89,7 @@ public class RedisAuditRepository implements AuditRepository {
         redisAudit.setEvent(audit.getEvent());
         redisAudit.setPatch(audit.getPatch());
         redisAudit.setReferenceId(audit.getReferenceId());
-        redisAudit.setUsername(audit.getUsername());
+        redisAudit.setUser(audit.getUser());
         redisAudit.setReferenceType(audit.getReferenceType().name());
         redisAudit.setCreatedAt(audit.getCreatedAt().getTime());
 

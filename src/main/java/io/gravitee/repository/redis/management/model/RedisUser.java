@@ -15,9 +15,7 @@
  */
 package io.gravitee.repository.redis.management.model;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -25,6 +23,7 @@ import java.util.Set;
  */
 public class RedisUser {
 
+    private String id;
     private String username;
     private String password;
     private String email;
@@ -37,6 +36,13 @@ public class RedisUser {
     private String sourceId;
     private long lastConnectionAt;
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public long getCreatedAt() {
         return createdAt;
@@ -130,12 +136,14 @@ public class RedisUser {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         RedisUser redisUser = (RedisUser) o;
-        return Objects.equals(username, redisUser.username);
+
+        return id.equals(redisUser.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(username);
+        return id.hashCode();
     }
 }

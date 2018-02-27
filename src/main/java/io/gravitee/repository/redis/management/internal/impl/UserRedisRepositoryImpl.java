@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 public class UserRedisRepositoryImpl extends AbstractRedisRepository implements UserRedisRepository {
 
     private final static String REDIS_KEY = "user";
+    private final static String REDIS_KEY_USERNAME = "username";
 
     @Override
     public RedisUser find(String userId) {
@@ -42,8 +43,18 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
     }
 
     @Override
-    public Set<RedisUser> find(List<String> users) {
-        return redisTemplate.opsForHash().multiGet(REDIS_KEY, Collections.unmodifiableCollection(users)).stream()
+    public RedisUser findByUsername(String username) {
+        Object user = redisTemplate.opsForHash().get(REDIS_KEY_USERNAME, username);
+        if (user == null) {
+            return null;
+        }
+
+        return convert(user, RedisUser.class);
+    }
+
+    @Override
+    public Set<RedisUser> find(List<String> ids) {
+        return redisTemplate.opsForHash().multiGet(REDIS_KEY, Collections.unmodifiableCollection(ids)).stream()
                 .filter(Objects::nonNull)
                 .map(o -> this.convert(o, RedisUser.class))
                 .collect(Collectors.toSet());
@@ -61,12 +72,16 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
 
     @Override
     public RedisUser saveOrUpdate(RedisUser user) {
-        redisTemplate.opsForHash().put(REDIS_KEY, user.getUsername(), user);
+        redisTemplate.opsForHash().put(REDIS_KEY, user.getId(), user);
+        redisTemplate.opsForHash().put(REDIS_KEY_USERNAME, user.getUsername(), user);
         return user;
     }
 
     @Override
-    public void delete(String user) {
-        redisTemplate.opsForHash().delete(REDIS_KEY, user);
+    public void delete(String userId) {
+        RedisUser user = find(userId);
+
+        redisTemplate.opsForHash().delete(REDIS_KEY, user.getId());
+        redisTemplate.opsForHash().delete(REDIS_KEY_USERNAME, user.getUsername());
     }
 }
