@@ -501,3 +501,31 @@ md-card.no-box-shadow {
   top: 0 !important;
   position: fixed !important;
 }
+
+@font-face {
+  font-family: 'gravitee';
+  src: url('./assets/font/gravitee.eot');
+  src: url('./assets/font/gravitee.eot#iefix') format('embedded-opentype'),
+       url('./assets/font/gravitee.woff') format('woff'),
+       url('./assets/font/gravitee.ttf') format('truetype'),
+       url('./assets/font/gravitee.svg#gravitee') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"]:before, [class*=" icon-"]:before {
+  font-family: "gravitee";
+  font-style: normal;
+  font-weight: normal;
+ 
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .1em;
+  text-align: center;
+ 
+  font-variant: normal;
+  text-transform: none;
+ 
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

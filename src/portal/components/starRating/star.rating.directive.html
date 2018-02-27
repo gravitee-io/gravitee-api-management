@@ -24,7 +24,9 @@
         ng-mouseleave="setValue(initialValue)">
   </span>
 
-  <i ng-if="!isBigSize" class="star-rating star-rating-{{stylePos}}"></i>
+  <div ng-if="!isBigSize" class="icon-5stars-empty stars-outer">
+    <div class="icon-5stars stars-inner" ng-style="lightStarsStyle"></div>
+  </div>
 
   <b class="star-rating-title">
     <span ng-if="summary" ng-md-icon icon="expand_more" size="15"></span>

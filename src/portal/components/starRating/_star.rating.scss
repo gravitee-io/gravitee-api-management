@@ -19,7 +19,7 @@
 
   .star-rating-title {
     position: absolute;
-    top: 1px;
+    top: 2px;
     left: 100px;
   }
 }
@@ -77,3 +77,35 @@ span:focus, p:focus {
 .star-rating-readonly, .star-rating-readonly [role=button] {
   cursor: initial;
 }
+
+.icon-5stars:before { 
+  content: '\e801 \e801 \e801 \e801 \e801';
+  font-size: 1.4em;
+}
+
+.icon-5stars-empty:before { 
+  content: '\e800 \e800 \e800 \e800 \e800';
+  font-size: 1.4em;
+}
+
+/*.api-gallery .icon-5stars:before {
+  font-size: 1em;
+}*/
+
+.stars-outer {
+  display: inline-block;
+  position: relative;
+  color: lightgrey;
+}
+   
+.stars-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 0%;
+  color: #fdc62e;
+}
+
+

@@ -198,9 +198,13 @@ a.ui.label:focus, a.ui.label:hover {
 
 .api-table-rating {
   padding-top: 12px !important;
-
+  line-height: normal;
   .star-rating-title {
-    top: 4px !important;
+    top: 2px !important;
+  }
+
+  .stars-outer {
+    font-size: 12px;
   }
 }
 

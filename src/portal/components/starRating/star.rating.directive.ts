@@ -61,7 +61,10 @@ const StarRatingDirective: ng.IDirective = ({
         scope.initialValue = 0;
       }
       renderValue();
-      scope.stylePos = Math.round((newValue * 10) / 5) * 5;
+      const starPercentage = ((newValue / 5) * 100);
+      const starPercentageRounded = Math.round(starPercentage / 10) * 10.0;
+
+      scope.lightStarsStyle = {'width': starPercentageRounded  + '%'};
     });
   },
   template: require('./star.rating.directive.html'),
