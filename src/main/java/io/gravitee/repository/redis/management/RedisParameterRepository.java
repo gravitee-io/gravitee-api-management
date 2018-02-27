@@ -18,6 +18,9 @@ package io.gravitee.repository.redis.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.redis.management.internal.ParameterRedisRepository;
+import io.gravitee.repository.redis.management.model.RedisParameter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -28,23 +31,60 @@ import java.util.Optional;
  */
 @Component
 public class RedisParameterRepository implements ParameterRepository {
+
+    @Autowired
+    private ParameterRedisRepository parameterRedisRepository;
+
     @Override
-    public Optional<Parameter> findById(String s) throws TechnicalException {
-        return Optional.empty();
+    public Optional<Parameter> findById(final String parameterKey) throws TechnicalException {
+        final RedisParameter redisParameter = parameterRedisRepository.findById(parameterKey);
+        return Optional.ofNullable(convert(redisParameter));
     }
 
     @Override
-    public Parameter create(Parameter item) throws TechnicalException {
-        return null;
+    public Parameter create(final Parameter parameter) throws TechnicalException {
+        final RedisParameter redisParameter = parameterRedisRepository.saveOrUpdate(convert(parameter));
+        return convert(redisParameter);
     }
 
     @Override
-    public Parameter update(Parameter item) throws TechnicalException {
-        return null;
+    public Parameter update(final Parameter parameter) throws TechnicalException {
+        if (parameter == null || parameter.getKey() == null) {
+            throw new IllegalStateException("Parameter to update must have a key");
+        }
+
+        final RedisParameter redisParameter = parameterRedisRepository.findById(parameter.getKey());
+
+        if (redisParameter == null) {
+            throw new IllegalStateException(String.format("No parameter found with key [%s]", parameter.getKey()));
+        }
+
+        final RedisParameter redisParameterUpdated = parameterRedisRepository.saveOrUpdate(convert(parameter));
+        return convert(redisParameterUpdated);
     }
 
     @Override
-    public void delete(String s) throws TechnicalException {
+    public void delete(final String parameterId) throws TechnicalException {
+        parameterRedisRepository.delete(parameterId);
+    }
 
+    private Parameter convert(final RedisParameter redisParameter) {
+        if (redisParameter == null) {
+            return null;
+        }
+        final Parameter parameter = new Parameter();
+        parameter.setKey(redisParameter.getKey());
+        parameter.setValue(redisParameter.getValue());
+        return parameter;
+    }
+
+    private RedisParameter convert(final Parameter parameter) {
+        if (parameter == null) {
+            return null;
+        }
+        final RedisParameter redisParameter = new RedisParameter();
+        redisParameter.setKey(parameter.getKey());
+        redisParameter.setValue(parameter.getValue());
+        return redisParameter;
     }
 }
