@@ -39,6 +39,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         String username = "createuser1";
 
         User user = new User();
+        user.setId("user-id");
         user.setUsername(username);
         user.setCreatedAt(new Date());
         user.setUpdatedAt(user.getCreatedAt());
