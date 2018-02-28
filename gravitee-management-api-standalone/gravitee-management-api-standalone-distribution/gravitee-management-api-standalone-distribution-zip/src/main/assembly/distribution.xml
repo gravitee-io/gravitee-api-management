@@ -96,6 +96,15 @@
 			</includes>
 			<fileMode>755</fileMode>
 		</fileSet>
+
+		<fileSet>
+			<directory>../target/distribution/assets</directory>
+			<outputDirectory>/assets</outputDirectory>
+			<includes>
+				<include>**/*</include>
+			</includes>
+			<fileMode>644</fileMode>
+		</fileSet>
 	</fileSets>
 
 </assembly>
