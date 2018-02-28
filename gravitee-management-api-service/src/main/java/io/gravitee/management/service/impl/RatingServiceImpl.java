@@ -256,8 +256,12 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
         final UserEntity user = userService.findById(rating.getUser());
         ratingEntity.setUser(user.getId());
-        ratingEntity.setFirstname(user.getFirstname());
-        ratingEntity.setLastname(user.getLastname());
+
+        if (user.getFirstname() != null && user.getLastname() != null) {
+            ratingEntity.setUserDisplayName(user.getFirstname() + ' ' + user.getLastname());
+        } else {
+            ratingEntity.setUserDisplayName(user.getUsername());
+        }
 
         ratingEntity.setId(rating.getId());
         ratingEntity.setApi(rating.getApi());
@@ -276,8 +280,12 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                             ratingAnswerEntity.setId(ratingAnswer.getId());
                             final UserEntity userAnswer = userService.findById(ratingAnswer.getUser());
                             ratingAnswerEntity.setUser(userAnswer.getId());
-                            ratingAnswerEntity.setFirstname(userAnswer.getFirstname());
-                            ratingAnswerEntity.setLastname(userAnswer.getLastname());
+
+                            if (userAnswer.getFirstname() != null && userAnswer.getLastname() != null) {
+                                ratingAnswerEntity.setUserDisplayName(userAnswer.getFirstname() + ' ' + userAnswer.getLastname());
+                            } else {
+                                ratingAnswerEntity.setUserDisplayName(userAnswer.getUsername());
+                            }
                             ratingAnswerEntity.setComment(ratingAnswer.getComment());
                             ratingAnswerEntity.setCreatedAt(ratingAnswer.getCreatedAt());
                             return ratingAnswerEntity;

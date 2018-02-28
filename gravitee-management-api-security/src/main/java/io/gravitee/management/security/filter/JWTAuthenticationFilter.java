@@ -107,7 +107,7 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
                     res.sendError(HttpStatusCode.UNAUTHORIZED_401);
                 }
             } else {
-                LOGGER.info("Authorization schema not found");
+                LOGGER.debug("Authorization schema not found");
             }
         }
 

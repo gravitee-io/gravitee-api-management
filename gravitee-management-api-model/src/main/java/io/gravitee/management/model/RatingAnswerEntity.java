@@ -25,8 +25,7 @@ public class RatingAnswerEntity {
 
     private String id;
     private String user;
-    private String firstname;
-    private String lastname;
+    private String userDisplayName;
     private String comment;
     private Date createdAt;
 
@@ -46,20 +45,12 @@ public class RatingAnswerEntity {
         this.user = user;
     }
 
-    public String getFirstname() {
-        return firstname;
+    public String getUserDisplayName() {
+        return userDisplayName;
     }
 
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
+    public void setUserDisplayName(String userDisplayName) {
+        this.userDisplayName = userDisplayName;
     }
 
     public String getComment() {
@@ -82,9 +73,8 @@ public class RatingAnswerEntity {
     public String toString() {
         return "RatingAnswerEntity{" +
                 "id='" + id + '\'' +
-                ", username='" + user + '\'' +
-                ", firstname='" + firstname + '\'' +
-                ", lastname='" + lastname + '\'' +
+                ", user='" + user + '\'' +
+                ", userDisplayName='" + userDisplayName + '\'' +
                 ", comment='" + comment + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
