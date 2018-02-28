@@ -50,7 +50,7 @@
       <hr>
       <ng-md-icon permission permission-only="'api-rating-d'" icon="cancel" class="rating-delete" ng-click="$ctrl.delete(rating.id)"></ng-md-icon>
       <gv-star-rating value="rating.rate" message="rating.title"></gv-star-rating>
-      {{'api.rating.by' | translate}} <b>{{rating.firstname}} {{rating.lastname}} [{{rating.username}}]</b> {{rating.createdAt | humanDateFilter}}
+      {{'api.rating.by' | translate}} <b>{{rating.userDisplayName}}</b> {{rating.createdAt | humanDateFilter}}
       <div class="rating-comment">{{rating.comment}}</div>
 
       <div permission permission-only="'api-rating_answer-r'">
@@ -63,7 +63,7 @@
           <div ng-repeat="answer in rating.answers">
             <hr>
             <ng-md-icon permission permission-only="'api-rating_answer-d'" icon="cancel" class="rating-delete" ng-click="$ctrl.delete(rating.id, answer.id)"></ng-md-icon>
-            {{'api.rating.by' | translate}} <b>{{answer.firstname}} {{answer.lastname}} [{{answer.username}}]</b> {{answer.createdAt | humanDateFilter}}
+            {{'api.rating.by' | translate}} <b>{{answer.userDisplayName}}</b> {{answer.createdAt | humanDateFilter}}
             <div class="rating-comment">{{answer.comment}}</div>
           </div>
 
