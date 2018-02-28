@@ -63,7 +63,13 @@ const PageSwaggerComponent: ng.IComponentOptions = {
           SwaggerUIBundle.presets.apis,
         ],
         layout: 'BaseLayout',
-        plugins: plugins
+        plugins: plugins,
+        requestInterceptor: (req) => {
+          if (req.loadSpec) {
+            req.credentials = 'include';
+          }
+          return req;
+        }
       });
     };
 
