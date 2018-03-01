@@ -81,8 +81,8 @@ public abstract class StreamablePolicyChain extends PolicyChain {
 
         ReadWriteStream<Buffer> tailPolicyStreamer = previousPolicyStreamer;
         if (streamablePolicyHandlerChain != null && tailPolicyStreamer != null) {
-            tailPolicyStreamer.bodyHandler(bodyPart -> bodyHandler.handle(bodyPart));
-            tailPolicyStreamer.endHandler(result -> endHandler.handle(result));
+            tailPolicyStreamer.bodyHandler(bodyPart -> {if (bodyHandler != null) bodyHandler.handle(bodyPart);});
+            tailPolicyStreamer.endHandler(result -> {if (endHandler != null) endHandler.handle(result);});
         }
     }
 
