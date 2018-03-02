@@ -163,11 +163,8 @@
 
 
   table {
-    min-width: 100%;
     border: initial;
     background: initial;
-    width: initial;
-    display: initial;
     padding: initial;
   }
 
@@ -179,13 +176,21 @@
 
   @import '~swagger-ui-dist/swagger-ui';
 
-  .parameters,
-  .responses-inner {
-    width: 100%;
+  .description {
+    line-height: 1.4em;
+  }
 
-    .parameters-col_description,
-    .response-col_description   {
-      width: 60%;
+  a.tablinks {
+    margin-right: 1em;
+  }
+
+  .swagger-ui table tbody tr td {
+    &:first-of-type {
+      width: 20%;
+    }
+
+    &:last-of-type {
+      width: 80%;
     }
   }
 }
