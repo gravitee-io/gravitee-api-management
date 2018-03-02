@@ -41,5 +41,8 @@
   ol,li {
     list-style: inherit;
   }
+  ::-webkit-scrollbar {
+    display: none;
+  }
 }
 
