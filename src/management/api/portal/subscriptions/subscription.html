@@ -37,14 +37,14 @@
         </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status">
           <td md-cell><span style="font-weight: bold">Application</span></td>
-          <td md-cell><span style="font-weight: bold">{{$ctrl.subscription.application.name}}</span> ({{$ctrl.subscription.application.owner.username}})</td>
+          <td md-cell><span style="font-weight: bold">{{$ctrl.subscription.application.name}}</span> ({{$ctrl.subscription.application.owner.displayName}})</td>
 
           <td md-cell><span style="font-weight: bold">Starting at</span></td>
           <td md-cell>{{$ctrl.subscription.starting_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' === $ctrl.subscription.status">
           <td md-cell><span style="font-weight: bold">Application</span></td>
-          <td md-cell colspan="3"><span style="font-weight: bold">{{$ctrl.subscription.application.name}}</span> ({{$ctrl.subscription.application.owner.username}})</td>
+          <td md-cell colspan="3"><span style="font-weight: bold">{{$ctrl.subscription.application.name}}</span> ({{$ctrl.subscription.application.owner.displayName}})</td>
         </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status">
           <td md-cell><span style="font-weight: bold">Status</span></td>
@@ -62,6 +62,10 @@
           <td md-cell colspan="2"></td>
           <td md-cell><span style="font-weight: bold">Closed at</span></td>
           <td md-cell>{{$ctrl.subscription.closed_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
+        </tr>
+        <tr md-row style="height: 30px;">
+          <td md-cell><span style="font-weight: bold">Subscribed by</span></td>
+          <td md-cell colspan="3">{{$ctrl.subscription.subscribed_by.displayName}}</td>
         </tr>
         </tbody>
       </table>
