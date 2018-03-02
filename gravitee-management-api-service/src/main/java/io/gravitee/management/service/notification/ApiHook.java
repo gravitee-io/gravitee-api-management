@@ -21,8 +21,8 @@ package io.gravitee.management.service.notification;
  */
 public enum ApiHook implements Hook {
 
-    APIKEY_EXPIRED("ApiKey Expired", "Triggered when an api-key is expired.", "API_KEY"),
-    APIKEY_REVOKED("ApiKey Revoked", "Triggered when an api-key is revoked.", "API_KEY"),
+    APIKEY_EXPIRED("API key Expired", "Triggered when an API key is expired.", "API KEY"),
+    APIKEY_REVOKED("API key Revoked", "Triggered when an API key is revoked.", "API KEY"),
     SUBSCRIPTION_NEW("New Subscription", "Triggered when a Subscription is created.", "SUBSCRIPTION"),
     SUBSCRIPTION_ACCEPTED("Subscription Accepted", "Triggered when a Subscription is accepted.", "SUBSCRIPTION"),
     SUBSCRIPTION_CLOSED("Subscription Closed", "Triggered when a Subscription is closed.", "SUBSCRIPTION"),
