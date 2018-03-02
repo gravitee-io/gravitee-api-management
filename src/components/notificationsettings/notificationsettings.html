@@ -15,38 +15,34 @@
     limitations under the License.
 
 -->
-<md-content class="gv-sub-menu" flex layout-padding>
+<md-content flex layout-padding>
   <div layout="row" flex>
-    <div class="menu" flex="15">
-      <div class="aui-nav-heading">
-        <strong>Settings</strong>
-      </div>
+    <div flex="15">
       <ul class="aui-nav">
-        <li class="iterable-item" ui-sref-active="aui-nav-selected"
+        <li class="iterable-item" ng-class="{'aui-nav-selected':notificationSetting.id === $ctrl.selectedNotificationSetting.id}"
             ng-repeat="notificationSetting in $ctrl.notificationSettings"
             ng-click="$ctrl.selectNotificationSetting(notificationSetting)">
-          <a class="execute">{{notificationSetting.name}}</a>
+          <a class="execute" >{{notificationSetting.name}}</a>
         </li>
       </ul>
     </div>
 
     <md-content flex layout-padding ui-view>
       <div layout="column">
-        <h2>{{$ctrl.selectedNotificationSetting.name}}</h2>
-          <div ng-if="$ctrl.selectedNotificationSetting.config_type==='generic'">
-            <h4>Configure the notifier you want to use:</h4>
-            <div layout="row" layout-wrap>
-              <md-input-container flex="60">
-                <label>Notifier</label>
-                <input readonly ng-model="$ctrl.selectedNotificationSetting.notifier">
-              </md-input-container>
-              <md-input-container flex="60">
-                <label ng-if="$ctrl.selectedNotifier.type === 'EMAIL'">Email list (use space, ',' or ';' to separate emails)</label>
-                <label ng-if="$ctrl.selectedNotifier.type === 'WEBHOOK'">URL (Gravitee will POST datas to this url)</label>
-                <input ng-model="$ctrl.selectedNotificationSetting.config">
-              </md-input-container>
-            </div>
+        <div ng-if="$ctrl.selectedNotificationSetting.config_type==='generic'">
+          <h4>Configure the notifier you want to use:</h4>
+          <div layout="row" layout-wrap>
+            <md-input-container flex="60">
+              <label>Notifier</label>
+              <input readonly ng-model="$ctrl.selectedNotificationSetting.notifier">
+            </md-input-container>
+            <md-input-container flex="60">
+              <label ng-if="$ctrl.selectedNotifier.type === 'EMAIL'">Email list (use space, ',' or ';' to separate emails)</label>
+              <label ng-if="$ctrl.selectedNotifier.type === 'WEBHOOK'">URL (Gravitee will POST datas to this url)</label>
+              <input ng-model="$ctrl.selectedNotificationSetting.config">
+            </md-input-container>
           </div>
+        </div>
         <h4>Which events would you like to subscribe for ?</h4>
         <div layout="column" layout-wrap>
           <div flex ng-repeat="category in $ctrl.hooksCategories">

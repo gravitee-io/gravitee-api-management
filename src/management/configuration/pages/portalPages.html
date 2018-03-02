@@ -18,7 +18,7 @@
 <div layout="row">
   <md-list ng-if="listPagesDisplayed" layout="column" class="inset pages" flex="20">
     <md-item ng-repeat="page in $ctrl.pages">
-      <md-item-content layout="row" layout-align="start center" ui-sref="management.configuration.admin.pages.page({pageId: page.id})">
+      <md-item-content layout="row" layout-align="start center" ui-sref="management.settings.pages.page({pageId: page.id})">
         <md-button class="gravitee-api-page-menu-item"
                    ng-class="{'selected' : page.id === $ctrl.$state.params.pageId }">
           <div class="inset">
@@ -36,7 +36,7 @@
   <div flex ui-view></div>
 </div>
 
-<gravitee-empty-state ng-if="$ctrl.pages.length == 0 && $ctrl.$state.current.name != 'management.configuration.admin.pages.new'"
+<gravitee-empty-state ng-if="$ctrl.pages.length == 0 && $ctrl.$state.current.name != 'management.settings.pages.new'"
                       icon="insert_drive_file"
                       model="Page"
                       message="Documentation will appear here"
@@ -44,7 +44,7 @@
                       create-mode="true"></gravitee-empty-state>
 
 <md-fab-speed-dial permission permission-only="'portal-documentation-c'"
-                   ng-if="$ctrl.$state.current.name != 'management.configuration.admin.pages.new' && listPagesDisplayed" gravitee-roles-allowed="ADMIN" md-direction="{{$ctrl.pages.length > 0 ? 'left' : 'down'}}" md-open="false"
+                   ng-if="$ctrl.$state.current.name != 'management.settings.pages.new' && listPagesDisplayed" gravitee-roles-allowed="ADMIN" md-direction="{{$ctrl.pages.length > 0 ? 'left' : 'down'}}" md-open="false"
                    ng-class="{'md-fab-bottom-right gravitee-add-button' : $ctrl.pages.length > 0}" class="md-scale">
   <md-fab-trigger>
     <md-button aria-label="menu" class="md-fab md-success">

@@ -47,7 +47,7 @@ class RoleSaveController {
           }))
         };
       } else {
-        $state.go('management.configuration.admin.roles');
+        $state.go('management.settings.roles');
       }
     }
   }

@@ -32,14 +32,14 @@ class PortalPagesController {
     $scope.listPagesDisplayed = true;
 
     $scope.$on('onGraviteePageDeleted', () => {
-      this.$state.go('management.configuration.admin.pages', {}, {reload: true});
+      this.$state.go('management.settings.pages', {}, {reload: true});
     });
   }
 
   $onInit() {
     let that = this;
     if (this.pages.length && !this.$state.params.pageId) {
-      this.$state.go("management.configuration.admin.pages.page", {pageId: this.pages[0].id});
+      this.$state.go("management.settings.pages.page", {pageId: this.pages[0].id});
     }
     this.list().then( () => {
       let d = document.querySelector('.pages');
@@ -58,7 +58,7 @@ class PortalPagesController {
         }
         that.pages = dragularList;
         that.PortalPagesService.editPage(movedPage.id, movedPage).then( () => {
-          that.$state.go("management.configuration.admin.pages.page", {apiId: that.$state.params.apiId, pageId: movedPage.id});
+          that.$state.go("management.settings.pages.page", {apiId: that.$state.params.apiId, pageId: movedPage.id});
         });
       });
     });
@@ -71,9 +71,9 @@ class PortalPagesController {
     }).then( response => {
       if (response.pages && response.pages.length > 0) {
         if (this.$state.params.pageId !== undefined) {
-          this.$state.go("management.configuration.admin.pages.page", {pageId: this.$state.params.pageId});
+          this.$state.go("management.settings.pages.page", {pageId: this.$state.params.pageId});
         } else {
-          this.$state.go("management.configuration.admin.pages.page", {pageId: response.pages[0].id});
+          this.$state.go("management.settings.pages.page", {pageId: response.pages[0].id});
         }
       }
       return response;
@@ -81,7 +81,7 @@ class PortalPagesController {
   }
 
   showNewPageDialog(pageType: string) {
-    this.$state.go('management.configuration.admin.pages.new', {type: pageType});
+    this.$state.go('management.settings.pages.new', {type: pageType});
   }
 }
 

@@ -69,9 +69,9 @@ class NewPageController {
     this.$scope.fetcherJsonSchemaForm = ["*"];
     FetcherService.list().then(response => {
       this.fetchers = response.data;
-      if ( $state.current.name === 'management.configuration.admin.pages.new' ) {
+      if ( $state.current.name === 'management.settings.pages.new' ) {
         if (['SWAGGER', 'RAML', 'MARKDOWN'].indexOf($state.params.type) === -1) {
-          $state.go('management.configuration.admin.pages');
+          $state.go('management.settings.pages');
         }
         this.createMode = true;
         this.page = { type: this.$state.params.type };
@@ -125,7 +125,7 @@ class NewPageController {
       this.PortalPagesService.createPage(this.page)
         .then((page) => {
           this.onPageUpdate();
-          this.$state.go('management.configuration.admin.pages.page', {pageId: page.data.id}, {reload: true});
+          this.$state.go('management.settings.pages.page', {pageId: page.data.id}, {reload: true});
         })
         .catch((error) => {
           this.$scope.error = error;

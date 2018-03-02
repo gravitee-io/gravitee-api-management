@@ -344,6 +344,9 @@ import AuditComponent from '../components/audit/audit.component';
 // Endpoint discovery
 import ApiDiscoveryController from '../management/api/discovery/discovery.controller';
 
+// Configuration
+import SettingsComponent from '../management/configuration/settings.component';
+
 // Others
 import StringService from '../services/string.service';
 import AuthenticationService from '../services/authentication.service';
@@ -623,6 +626,9 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   // Endpoint discovery
   .controller('ApiDiscoveryController', ApiDiscoveryController)
+
+  // Configuration
+  .component('settings', SettingsComponent)
 
   .filter('humanDateFilter', function () {
     return function(input) {

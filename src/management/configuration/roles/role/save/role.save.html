@@ -73,7 +73,7 @@
   </md-table-container>
 
   <md-card-actions layout="row" layout-align="end end">
-    <md-button class="md-raised" ng-class="{'md-warn': $ctrl.formRole.$dirty}" type="button" ui-sref="management.configuration.admin.roles({roleScope: $ctrl.role.scope})">
+    <md-button class="md-raised" ng-class="{'md-warn': $ctrl.formRole.$dirty}" type="button" ui-sref="management.settings.roles({roleScope: $ctrl.role.scope})">
       Back
     </md-button>
     <md-button type="submit" ng-disabled="$ctrl.formRole.$invalid || $ctrl.formRole.$pristine">Save</md-button>

@@ -45,11 +45,11 @@ class RolesController {
   }
 
   editRole(role) {
-    this.$state.go('management.configuration.admin.role.edit', {roleScope: this.$state.params.roleScope, role: role.name});
+    this.$state.go('management.settings.role.edit', {roleScope: this.$state.params.roleScope, role: role.name});
   }
 
   newRole() {
-    this.$state.go('management.configuration.admin.role.new', {roleScope: this.$state.params.roleScope});
+    this.$state.go('management.settings.role.new', {roleScope: this.$state.params.roleScope});
   }
 
   deleteRole(role) {

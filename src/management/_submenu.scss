@@ -36,11 +36,12 @@
 }
 
 .gv-sub-menu {
+  padding: 16px 0 0;
   .md-headline {
-    padding: 24px 16px 16px;
+    padding: 0 16px;
   }
   .menu {
     border-right: 1px solid #ccc;
-    padding: 20px;
+    padding: 20px 16px 0 0;
   }
 }

@@ -55,12 +55,10 @@
   </table>
 </md-table-container>
 
-<md-fab-speed-dial permission permission-only="'portal-metadata-c'"
-                   md-open="false" class="md-scale md-fab-bottom-right">
-  <md-fab-trigger>
-    <md-button aria-label="Add metadata" class="md-fab md-success" ng-click="$ctrl.newMetadata()">
-      <md-tooltip md-direction="top" md-visible="false">Add a new metadata</md-tooltip>
-      <ng-md-icon icon="add"></ng-md-icon>
-    </md-button>
-  </md-fab-trigger>
-</md-fab-speed-dial>
+<md-button permission permission-only="'portal-metadata-c'"
+           aria-label="Add metadata"
+           class="md-fab md-fab-bottom-right gravitee-add-button"
+           ng-click="$ctrl.newMetadata()">
+  <md-tooltip md-direction="top" md-visible="false">Add a new metadata</md-tooltip>
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

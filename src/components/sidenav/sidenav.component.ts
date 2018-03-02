@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {IScope, IWindowService} from "angular";
+
 export const SidenavComponent: ng.IComponentOptions = {
   template: require('./sidenav.html'),
   bindings: {
@@ -20,7 +22,9 @@ export const SidenavComponent: ng.IComponentOptions = {
     menuItems: '<',
     allMenuItems: '<'
   },
-  controller: function($window) {
+  controller: function(
+    $window: IWindowService,
+    $scope: IScope) {
     'ngInject';
     const reduceModeKey = 'gv-sidenav-reduce-mode';
     this.$window = $window;
@@ -35,6 +39,12 @@ export const SidenavComponent: ng.IComponentOptions = {
     this.toggleReducedMode = function() {
       this.reducedMode = !this.reducedMode;
       $window.localStorage.setItem(reduceModeKey, this.reducedMode);
-    }
+    };
+
+    $scope.$on('reduceSideNav', () => {
+      if (!this.reducedMode) {
+        this.toggleReducedMode();
+      }
+    });
   }
 };
