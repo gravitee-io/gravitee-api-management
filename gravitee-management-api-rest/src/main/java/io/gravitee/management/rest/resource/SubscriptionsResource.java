@@ -91,7 +91,7 @@ public class SubscriptionsResource {
                         application.getId(),
                         application.getName(),
                         application.getType(),
-                        new Subscription.Owner(
+                        new Subscription.User(
                                 application.getPrimaryOwner().getId(),
                                 application.getPrimaryOwner().getDisplayName()
                         )

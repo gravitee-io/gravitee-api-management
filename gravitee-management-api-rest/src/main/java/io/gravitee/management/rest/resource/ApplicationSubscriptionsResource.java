@@ -63,6 +63,9 @@ public class ApplicationSubscriptionsResource {
     @Inject
     private ApplicationService applicationService;
 
+    @Inject
+    private UserService userService;
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Subscribe to a plan",
@@ -205,7 +208,10 @@ public class ApplicationSubscriptionsResource {
         subscription.setProcessedBy(subscriptionEntity.getProcessedBy());
         subscription.setReason(subscriptionEntity.getReason());
         subscription.setStatus(subscriptionEntity.getStatus());
-        subscription.setSubscribedBy(subscriptionEntity.getSubscribedBy());
+        subscription.setSubscribedBy(
+                new Subscription.User(subscriptionEntity.getSubscribedBy(),
+                userService.findById(subscriptionEntity.getSubscribedBy()).getDisplayName()
+                ));
 
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
@@ -217,7 +223,7 @@ public class ApplicationSubscriptionsResource {
                         api.getId(),
                         api.getName(),
                         api.getVersion(),
-                        new Subscription.Owner(
+                        new Subscription.User(
                                 api.getPrimaryOwner().getId(),
                                 api.getPrimaryOwner().getDisplayName()
                         )

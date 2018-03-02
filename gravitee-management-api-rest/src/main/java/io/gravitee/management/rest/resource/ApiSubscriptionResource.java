@@ -22,10 +22,7 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.model.Subscription;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.management.service.ApiKeyService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.PlanService;
-import io.gravitee.management.service.SubscriptionService;
+import io.gravitee.management.service.*;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -58,6 +55,9 @@ public class ApiSubscriptionResource extends AbstractResource {
 
     @Inject
     private ApplicationService applicationService;
+
+    @Inject
+    private UserService userService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -246,7 +246,10 @@ public class ApiSubscriptionResource extends AbstractResource {
         subscription.setProcessedBy(subscriptionEntity.getProcessedBy());
         subscription.setReason(subscriptionEntity.getReason());
         subscription.setStatus(subscriptionEntity.getStatus());
-        subscription.setSubscribedBy(subscriptionEntity.getSubscribedBy());
+        subscription.setSubscribedBy(
+                new Subscription.User(
+                        subscriptionEntity.getSubscribedBy(),
+                        userService.findById(subscriptionEntity.getSubscribedBy()).getDisplayName()));
         subscription.setClientId(subscriptionEntity.getClientId());
 
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
@@ -259,7 +262,7 @@ public class ApiSubscriptionResource extends AbstractResource {
                         application.getId(),
                         application.getName(),
                         application.getType(),
-                        new Subscription.Owner(
+                        new Subscription.User(
                                 application.getPrimaryOwner().getId(),
                                 application.getPrimaryOwner().getDisplayName()
                         )

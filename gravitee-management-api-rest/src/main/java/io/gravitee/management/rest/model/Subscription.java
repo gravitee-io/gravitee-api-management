@@ -44,7 +44,7 @@ public class Subscription {
     private String processedBy;
 
     @JsonProperty("subscribed_by")
-    private String subscribedBy;
+    private User subscribedBy;
 
     private String reason;
 
@@ -128,11 +128,11 @@ public class Subscription {
         this.processedBy = processedBy;
     }
 
-    public String getSubscribedBy() {
+    public User getSubscribedBy() {
         return subscribedBy;
     }
 
-    public void setSubscribedBy(String subscribedBy) {
+    public void setSubscribedBy(User subscribedBy) {
         this.subscribedBy = subscribedBy;
     }
 
@@ -238,9 +238,9 @@ public class Subscription {
         private final String id;
         private final String name;
         private final String type;
-        private final Owner owner;
+        private final User owner;
 
-        public Application(final String id, final String name, final String type, final Owner owner) {
+        public Application(final String id, final String name, final String type, final User owner) {
             this.id = id;
             this.name = name;
             this.type = type;
@@ -259,7 +259,7 @@ public class Subscription {
             return name;
         }
 
-        public Owner getOwner() {
+        public User getOwner() {
             return owner;
         }
 
@@ -269,9 +269,9 @@ public class Subscription {
         private final String id;
         private final String name;
         private final String version;
-        private final Owner owner;
+        private final User owner;
 
-        public Api(final String id, final String name, final String version, final Owner owner) {
+        public Api(final String id, final String name, final String version, final User owner) {
             this.id = id;
             this.name = name;
             this.version = version;
@@ -286,7 +286,7 @@ public class Subscription {
             return name;
         }
 
-        public Owner getOwner() {
+        public User getOwner() {
             return owner;
         }
 
@@ -295,11 +295,11 @@ public class Subscription {
         }
     }
 
-    public static class Owner {
+    public static class User {
         private final String id;
         private final String displayName;
 
-        public Owner(final String id, final String displayName) {
+        public User(final String id, final String displayName) {
             this.id = id;
             this.displayName = displayName;
         }

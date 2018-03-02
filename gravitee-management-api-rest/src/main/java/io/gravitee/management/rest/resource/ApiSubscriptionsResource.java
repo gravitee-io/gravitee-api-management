@@ -31,6 +31,7 @@ import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.SubscriptionService;
+import io.gravitee.management.service.UserService;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -62,6 +63,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
+
+    @Inject
+    private UserService userService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -136,7 +140,10 @@ public class ApiSubscriptionsResource extends AbstractResource {
         subscription.setProcessedBy(subscriptionEntity.getProcessedBy());
         subscription.setReason(subscriptionEntity.getReason());
         subscription.setStatus(subscriptionEntity.getStatus());
-        subscription.setSubscribedBy(subscriptionEntity.getSubscribedBy());
+        subscription.setSubscribedBy(
+                new Subscription.User(subscriptionEntity.getSubscribedBy(),
+                        userService.findById(subscriptionEntity.getSubscribedBy()).getDisplayName()
+                ));
 
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
@@ -147,7 +154,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
                         application.getId(),
                         application.getName(),
                         application.getType(),
-                        new Subscription.Owner(
+                        new Subscription.User(
                                 application.getPrimaryOwner().getId(),
                                 application.getPrimaryOwner().getDisplayName()
                         )
