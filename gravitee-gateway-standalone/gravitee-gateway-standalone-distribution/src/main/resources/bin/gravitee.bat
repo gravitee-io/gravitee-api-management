@@ -68,7 +68,7 @@ echo "========================================================================="
 echo ""
 
 rem Execute the JVM in the foreground
-%JAVA% %JAVA_OPTS% -javaagent:%GRAVITEE_HOME%/boot/jetty-alpn-agent-2.0.6.jar -cp %GRAVITEE_BOOT_CLASSPATH% -Dgravitee.home=%GRAVITEE_HOME% io.gravitee.gateway.standalone.boostrap.Bootstrap "%*"
+%JAVA% %JAVA_OPTS% -javaagent:%GRAVITEE_HOME%/boot/jetty-alpn-agent-2.0.7.jar -cp %GRAVITEE_BOOT_CLASSPATH% -Dgravitee.home=%GRAVITEE_HOME% io.gravitee.gateway.standalone.boostrap.Bootstrap "%*"
 
 set GRAVITEE_STATUS=%?
 goto endbatch
