@@ -16,11 +16,14 @@
 package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.User;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -66,9 +69,13 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         final User user = optional.get();
         user.setPassword("New pwd");
 
-        int nbUsersBeforeUpdate = userRepository.findAll().size();
+        long nbUsersBeforeUpdate = userRepository.search(
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
+        ).getTotalElements();
         userRepository.update(user);
-        int nbUsersAfterUpdate = userRepository.findAll().size();
+        long nbUsersAfterUpdate = userRepository.search(
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
+        ).getTotalElements();
 
         assertEquals(nbUsersBeforeUpdate, nbUsersAfterUpdate);
 
@@ -80,11 +87,13 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void findAllTest() throws Exception {
-        Set<User> users = userRepository.findAll();
+    public void shouldSearchAll() throws Exception {
+        List<User> users = userRepository.search(
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
+        ).getContent();
 
         Assert.assertNotNull(users);
-        assertEquals("Invalid user numbers in find all", 6, users.size());
+        assertEquals("Invalid user numbers in find all", 7, users.size());
     }
 
     @Test
@@ -122,5 +131,12 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(users);
         assertEquals(2, users.size());
         assertTrue(users.stream().map(User::getUsername).collect(toList()).containsAll(asList("user1 name", "user5 name")));
+    }
+
+    @Test
+    public void shouldDelete() throws Exception {
+        assertTrue("user2delete exists", userRepository.findById("user2delete").isPresent());
+        userRepository.delete("user2delete");
+        assertFalse("user2delete not exists", userRepository.findById("user2delete").isPresent());
     }
 }

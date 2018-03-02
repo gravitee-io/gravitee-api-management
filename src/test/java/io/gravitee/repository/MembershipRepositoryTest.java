@@ -110,6 +110,14 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindByRole() throws TechnicalException {
+        Set<Membership> memberships = membershipRepository.findByRole(RoleScope.APPLICATION, "USER");
+        assertNotNull("result must not be null", memberships);
+        assertTrue(!memberships.isEmpty());
+        assertEquals("size", 2, memberships.size());
+    }
+
+    @Test
     public void shouldDelete() throws TechnicalException {
         Membership membership = new Membership("userToDelete", "app1", MembershipReferenceType.APPLICATION);
 
@@ -136,6 +144,20 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
                 "user_findByIds",
                 MembershipReferenceType.API,
                 new HashSet<>(Arrays.asList("api1_findByIds", "api2_findByIds", "unknown")));
+
+        assertNotNull(memberships);
+        assertFalse(memberships.isEmpty());
+        assertEquals(2, memberships.size());
+        assertTrue(memberships.
+                stream().
+                map(Membership::getReferenceId).
+                collect(Collectors.toList()).
+                containsAll(Arrays.asList("api1_findByIds", "api2_findByIds")));
+    }
+
+    @Test
+    public void shouldFindByUser() throws TechnicalException {
+        Set<Membership> memberships = membershipRepository.findByUser("user_findByIds");
 
         assertNotNull(memberships);
         assertFalse(memberships.isEmpty());

@@ -40,5 +40,12 @@
       "email":"user5@gravitee.io",
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
+   },
+   {
+      "id": "user2delete",
+      "username":"user2delete name",
+      "email":"user2delete@gravitee.io",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
    }
 ]

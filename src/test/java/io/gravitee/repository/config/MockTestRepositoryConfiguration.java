@@ -500,8 +500,12 @@ public class MockTestRepositoryConfiguration {
         final User user = mock(User.class);
         when(user.getPassword()).thenReturn("New pwd");
         final User user4 = mock(User.class);
-        when(userRepository.findAll()).thenReturn(newSet(user, mock(User.class), mock(User.class),
-                mock(User.class), mock(User.class), mock(User.class)));
+
+        io.gravitee.common.data.domain.Page<User> searchResult = new io.gravitee.common.data.domain.Page<>(
+                asList(user, mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class)),
+                0, 0, 7);
+
+        when(userRepository.search(any())).thenReturn(searchResult);
         when(userRepository.create(any(User.class))).thenReturn(user);
         when(userRepository.findById("user0")).thenReturn(of(user));
         when(userRepository.findByUsername("createuser1")).thenReturn(of(user));
@@ -526,6 +530,7 @@ public class MockTestRepositoryConfiguration {
         when(userRepository.findById("user1")).thenReturn(of(user1));
         when(userRepository.findByIds(asList("user1", "user5"))).thenReturn(new HashSet<>(asList(user1, user5)));
 
+        when(userRepository.findById("user2delete")).thenReturn(of(new User()), empty());
         return userRepository;
     }
 
@@ -667,6 +672,8 @@ public class MockTestRepositoryConfiguration {
 
         when(groupRepository.findByIds(new HashSet<>(asList("group-application-1", "group-api-to-delete", "unknown")))).
                 thenReturn(new HashSet<>(asList(group_application_1, group_api_to_delete)));
+        when(groupRepository.findByIds(emptySet())).
+                thenReturn(emptySet());
 
         when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
             @Override
@@ -785,6 +792,8 @@ public class MockTestRepositoryConfiguration {
                 MembershipReferenceType.API,
                 new HashSet<>(asList("api1_findByIds", "api2_findByIds", "unknown")))).
                 thenReturn(new HashSet<>(asList(api1_findByIds, api2_findByIds)));
+        when(repo.findByUser("user_findByIds")).
+                thenReturn(new HashSet<>(asList(api1_findByIds, api2_findByIds)));
 
         when(repo.update(argThat(new ArgumentMatcher<Membership>() {
             @Override
@@ -792,6 +801,8 @@ public class MockTestRepositoryConfiguration {
                 return o == null || (o instanceof Membership && ((Membership) o).getReferenceId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
+
+        when(repo.findByRole(RoleScope.APPLICATION, "USER")).thenReturn(new HashSet<>(asList(mock(Membership.class), mock(Membership.class))));
 
         return repo;
     }

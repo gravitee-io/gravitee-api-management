@@ -118,6 +118,14 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
                 containsAll(Arrays.asList("group-application-1", "group-api-to-delete")));
     }
 
+    @Test
+    public void shouldNotFindByEmptyIds() throws TechnicalException {
+        Set<Group> groups = groupRepository.findByIds(Collections.emptySet());
+
+        assertNotNull(groups);
+        assertTrue(groups.isEmpty());
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownGroup() throws Exception {
         Group unknownGroup = new Group();
