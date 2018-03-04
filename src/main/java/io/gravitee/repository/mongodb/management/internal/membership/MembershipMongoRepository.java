@@ -46,9 +46,15 @@ public interface MembershipMongoRepository extends MongoRepository<MembershipMon
     @Query("{ 'id.referenceType' : ?0, 'id.referenceId' : { $in : ?1 }, 'roles' : ?2 }")
     Set<MembershipMongo> findByReferencesAndMembershipType(String referenceType, List<String>  referenceId, String membershipType);
 
+    @Query("{ 'roles' : ?0 }")
+    Set<MembershipMongo> findByMembershipType(String membershipType);
+
     @Query("{ 'id.userId' : ?0, 'id.referenceType' : ?1 }")
     Set<MembershipMongo> findByUserAndReferenceType(String userId, String referenceType);
 
     @Query("{ 'id.userId' : ?0, 'id.referenceType' : ?1, 'roles' : ?2 }")
     Set<MembershipMongo> findByUserAndReferenceTypeAndMembershipType(String userId, String referenceType, String membershipType);
+
+    @Query("{ 'id.userId' : ?0 }")
+    Set<MembershipMongo> findByUser(String userId);
 }

@@ -147,6 +147,18 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
+    public Set<Membership> findByRole(RoleScope roleScope, String roleName) throws TechnicalException {
+        logger.debug("Find membership by role [{}, {}]", roleScope, roleName);
+        String membershipType = convertRoleToType(roleScope, roleName);
+        Set<Membership> memberships = internalMembershipRepo.findByMembershipType(membershipType).
+                stream().
+                map(this::map).
+                collect(Collectors.toSet());
+        logger.debug("Find membership by role [{}, {}]", roleScope, roleName, memberships);
+        return memberships;
+    }
+
+    @Override
     public Set<Membership> findByUserAndReferenceTypeAndRole(String userId, MembershipReferenceType referenceType, RoleScope roleScope, String roleName) throws TechnicalException {
         String membershipType = convertRoleToType(roleScope, roleName);
         logger.debug("Find membership by user and referenceType and membershipType [{}, {}, {}]", userId, referenceType, membershipType);
@@ -155,6 +167,18 @@ public class MongoMembershipRepository implements MembershipRepository {
                 map(this::map).
                 collect(Collectors.toSet());
         logger.debug("Find membership by user and referenceType and membershipType [{}, {}, {}] = {}", userId, referenceType, membershipType, memberships);
+        return memberships;
+    }
+
+
+    @Override
+    public Set<Membership> findByUser(String userId) throws TechnicalException {
+        logger.debug("Find membership by user [{}]", userId);
+        Set<Membership> memberships = internalMembershipRepo.findByUser(userId).
+                stream().
+                map(this::map).
+                collect(Collectors.toSet());
+        logger.debug("Find membership by user [{}] = {}", userId, memberships);
         return memberships;
     }
 

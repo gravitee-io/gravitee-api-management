@@ -15,8 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
@@ -68,14 +70,14 @@ public class MongoUserRepository implements UserRepository {
 	}
 
 	@Override
-	public Set<User> findAll() throws TechnicalException {
-		logger.debug("Find all users");
+	public Page<User> search(Pageable pageable) throws TechnicalException {
+		logger.debug("search users");
 
-		List<UserMongo> users = internalUserRepo.findAll();
-		Set<User> res = mapper.collection2set(users, UserMongo.class, User.class);
+		Page<UserMongo> users = internalUserRepo.search(pageable);
+		List<User> content = mapper.collection2list(users.getContent(), UserMongo.class, User.class);
 
-		logger.debug("Find all users - Done");
-		return res;
+		logger.debug("search users - Done");
+		return new Page<>(content, users.getPageNumber(), (int) users.getPageElements(), users.getTotalElements());
 	}
 
 	@Override
@@ -127,4 +129,9 @@ public class MongoUserRepository implements UserRepository {
 		return mapper.map(userUpdated, User.class);
 	}
 
+	@Override
+	public void delete(String id) throws TechnicalException {
+		logger.debug("Delete user [{}]", id);
+		internalUserRepo.delete(id);
+	}
 }

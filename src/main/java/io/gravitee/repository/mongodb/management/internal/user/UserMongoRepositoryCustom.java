@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.user;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -24,17 +26,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface UserMongoRepository extends MongoRepository<UserMongo, String>, UserMongoRepositoryCustom {
+public interface UserMongoRepositoryCustom {
 
-	@Query(value = "{ _id: {$in: ?0} }", fields = "{'picture': 0}")
-	Set<UserMongo> findByIds(List<String> ids);
-
-	UserMongo findByUsername(String username);
+	Page<UserMongo> search(Pageable pageable);
 }
 
 
