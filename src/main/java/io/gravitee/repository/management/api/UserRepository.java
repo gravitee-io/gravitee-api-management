@@ -15,7 +15,9 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.User;
 
 import java.util.List;
@@ -27,25 +29,7 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface UserRepository {
-
-	Optional<User> findById(String id) throws TechnicalException;
-
-	/**
-	 * Create a {@link User}
-	 *
-	 * @param user user to create
-	 * @return User created
-	 */
-	User create(User user) throws TechnicalException;
-
-	/**
-	 * Update a {@link User}
-	 *
-	 * @param user user to update
-	 * @return User updated
-	 */
-	User update(User user) throws TechnicalException;
+public interface UserRepository extends CrudRepository<User, String> {
 
 	/**
 	 * Find a {@link User} by name
@@ -63,9 +47,9 @@ public interface UserRepository {
 	Set<User> findByIds(List<String> ids) throws TechnicalException;
 
 	/**
-	 * Find all {@link User}s
+	 * search {@link User}s
 	 *
 	 * @return Users found
 	 */
-	Set<User> findAll() throws TechnicalException;
+	Page<User> search(Pageable pageable) throws TechnicalException;
 }

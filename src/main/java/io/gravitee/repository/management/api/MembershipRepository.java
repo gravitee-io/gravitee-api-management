@@ -92,6 +92,15 @@ public interface MembershipRepository {
     Set<Membership> findByUserAndReferenceType(String userId, MembershipReferenceType referenceType) throws TechnicalException;
 
     /**
+     * find all memberships for a role
+     * @param roleScope the role
+     * @param roleName the role
+     * @return the list of memberships, or an empty set
+     * @throws TechnicalException if something goes wrong, should never happen.
+     */
+    Set<Membership> findByRole(RoleScope roleScope, String roleName) throws TechnicalException;
+
+    /**
      * find all memberships for a user, a referenceType and a membership type
      * => find all apis of a user where he is a primary owner
      * @param userId the user
@@ -102,4 +111,12 @@ public interface MembershipRepository {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByUserAndReferenceTypeAndRole(String userId, MembershipReferenceType referenceType, RoleScope roleScope, String roleName) throws TechnicalException;
+
+    /**
+     * find all memberships for a user
+     * @param userId the user
+     * @return the list of memberships, or an empty set
+     * @throws TechnicalException if something goes wrong, should never happen.
+     */
+    Set<Membership> findByUser(String userId) throws TechnicalException;
 }
