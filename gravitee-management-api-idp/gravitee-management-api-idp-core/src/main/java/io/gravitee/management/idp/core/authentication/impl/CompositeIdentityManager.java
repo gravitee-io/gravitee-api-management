@@ -43,10 +43,10 @@ public class CompositeIdentityManager implements IdentityManager {
 
     @Override
     public Optional<User> lookup(String reference) {
-        LOGGER.debug("Looking for a user: reference[{)]", reference);
+        LOGGER.debug("Looking for a user: reference[{}]", reference);
         try {
             IdentityReference identityReference = referenceSerializer.deserialize(reference);
-            LOGGER.debug("Lookup identity information from reference: source[{)] id[{}]",
+            LOGGER.debug("Lookup identity information from reference: source[{}] id[{}]",
                     identityReference.getSource(), identityReference.getReference());
 
             return identityLookups.stream()
@@ -54,7 +54,7 @@ public class CompositeIdentityManager implements IdentityManager {
                     .map(identityLookup -> identityLookup.retrieve(identityReference))
                     .findFirst();
         } catch (Exception ex) {
-            LOGGER.error("Unable to extract IDP: token[{)]", reference);
+            LOGGER.error("Unable to extract IDP: token[{}]", reference);
         }
 
         return Optional.empty();
