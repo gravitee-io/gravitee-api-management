@@ -13,42 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.permissions;
+package io.gravitee.management.model;
+
+import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-public enum ManagementPermission implements Permission {
-    INSTANCE(    "INSTANCE",     1000),
-    VIEW(        "VIEW",         1100),
-    GROUP(       "GROUP",        1200),
-    TAG(         "TAG",          1300),
-    TENANT(      "TENANT",       1400),
-    API(         "API",          1500),
-    ROLE(        "ROLE",         1600),
-    APPLICATION( "APPLICATION",  1700),
-    PLATFORM(    "PLATFORM",     1800),
-    AUDIT(       "AUDIT",        1900),
-    NOTIFICATION("NOTIFICATION", 2000),
-    USER        ("USER",         2100);
+public class UserGroupEntity {
 
-    String name;
-    int mask;
+    private String id;
+    private String name;
+    private Map<String, String> roles;
 
-    ManagementPermission(String name, int mask) {
-        this.name = name;
-        this.mask = mask;
+    public String getId() {
+        return id;
     }
 
-    @Override
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }
 
-    @Override
-    public int getMask() {
-        return mask;
+    public void setName(String name) {
+        this.name = name;
     }
 
+    public Map<String, String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Map<String, String> roles) {
+        this.roles = roles;
+    }
 }

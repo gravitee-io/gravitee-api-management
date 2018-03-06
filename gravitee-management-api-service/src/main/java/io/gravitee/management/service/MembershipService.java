@@ -19,6 +19,7 @@ import io.gravitee.management.model.*;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,11 +29,11 @@ import java.util.Set;
  */
 public interface MembershipService {
 
-    MemberEntity getMember(MembershipReferenceType referenceType, String referenceId, String username, RoleScope roleScope);
+    MemberEntity getMember(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope);
 
-    RoleEntity getRole(MembershipReferenceType referenceType, String referenceId, String username, RoleScope roleScope);
+    RoleEntity getRole(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope);
 
-    Set<RoleEntity> getRoles(MembershipReferenceType referenceType, Set<String> referenceIds, String username, RoleScope roleScope);
+    Set<RoleEntity> getRoles(MembershipReferenceType referenceType, Set<String> referenceIds, String userId, RoleScope roleScope);
 
     Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope);
 
@@ -51,6 +52,10 @@ public interface MembershipService {
     Map<String, char[]> getMemberPermissions(ApplicationEntity application, String userId);
 
     boolean removeRole(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope);
+
+    void removeRoleUsage(RoleScope roleScope, String roleName, String newName);
+
+    void removeUser(String userId);
 
     class MembershipReference {
         private final MembershipReferenceType type;

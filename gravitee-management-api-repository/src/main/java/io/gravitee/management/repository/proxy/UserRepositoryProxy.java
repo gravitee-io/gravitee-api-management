@@ -15,8 +15,10 @@
  */
 package io.gravitee.management.repository.proxy;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.User;
 import org.springframework.stereotype.Component;
 
@@ -48,8 +50,8 @@ public class UserRepositoryProxy extends AbstractProxy<UserRepository> implement
     }
 
     @Override
-    public Set<User> findAll() throws TechnicalException {
-        return target.findAll();
+    public Page<User> search(Pageable pageable) throws TechnicalException {
+        return target.search(pageable);
     }
 
     @Override
@@ -60,5 +62,10 @@ public class UserRepositoryProxy extends AbstractProxy<UserRepository> implement
     @Override
     public Set<User> findByIds(List<String> ids) throws TechnicalException {
         return target.findByIds(ids);
+    }
+
+    @Override
+    public void delete(String id) throws TechnicalException {
+        target.delete(id);
     }
 }

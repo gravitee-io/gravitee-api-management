@@ -76,6 +76,7 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
             logger.debug("Find all groups - DONE");
             return all.stream()
                     .map(this::map)
+                    .sorted(Comparator.comparing(GroupEntity::getName))
                     .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find all groups", ex);
@@ -93,6 +94,7 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
             List<GroupEntity> groupEntities = groupRepository.findAll().stream()
                     .filter(group -> group.getName().equals(name))
                     .map(this::map)
+                    .sorted(Comparator.comparing(GroupEntity::getName))
                     .collect(Collectors.toList());
             logger.debug("findByUsername : {} - DONE", name);
             return groupEntities;
@@ -188,6 +190,7 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
             return groups.
                     stream().
                     map(this::map).
+                    sorted(Comparator.comparing(GroupEntity::getName)).
                     collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find groups", ex);
@@ -207,6 +210,7 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
                             collect(Collectors.toList()).
                             contains(event)).
                     map(this::map).
+                    sorted(Comparator.comparing(GroupEntity::getName)).
                     collect(Collectors.toSet());
             logger.debug("findByEvent : {} - DONE", set);
             return set;
@@ -346,6 +350,21 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
             return false;
         }
         return true;
+    }
+
+    @Override
+    public Set<GroupEntity> findByUser(String user) {
+        try {
+            return findByIds(
+                    membershipRepository.findByUserAndReferenceType(user, MembershipReferenceType.GROUP)
+                            .stream()
+                            .map(Membership::getReferenceId)
+                            .collect(Collectors.toSet())
+            );
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to find all user groups", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all user groups", ex);
+        }
     }
 
     private Group map(GroupEntity entity) {

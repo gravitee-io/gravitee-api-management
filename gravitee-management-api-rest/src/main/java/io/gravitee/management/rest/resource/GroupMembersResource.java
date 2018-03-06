@@ -121,73 +121,75 @@ public class GroupMembersResource extends AbstractResource {
     })
     public Response addOrUpdateMember(
             @PathParam("group") String group,
-            @Valid @NotNull final GroupMembership membership
+            @Valid @NotNull final List<GroupMembership> memberships
     ) {
         // Check that group exists
         groupService.findById(group);
 
-        RoleEntity previousApiRole = null, previousApplicationRole = null;
+        for (GroupMembership membership : memberships) {
+            RoleEntity previousApiRole = null, previousApplicationRole = null;
 
-        if (membership.getId() != null) {
-            previousApiRole = membershipService.getRole(
-                    MembershipReferenceType.GROUP,
-                    group,
-                    membership.getId(),
-                    RoleScope.API);
-
-            previousApplicationRole = membershipService.getRole(
-                    MembershipReferenceType.GROUP,
-                    group,
-                    membership.getId(),
-                    RoleScope.APPLICATION);
-        }
-
-        // Process add / update before delete to avoid having a user without role
-        if (membership.getRoles() != null && !membership.getRoles().isEmpty()) {
-            MemberRoleEntity apiRole = membership.getRoles().
-                    stream().
-                    filter(r -> r.getRoleScope().equals(io.gravitee.management.model.permissions.RoleScope.API)
-                            && !r.getRoleName().isEmpty()).
-                    findFirst().
-                    orElse(null);
-
-            MemberRoleEntity applicationRole = membership.getRoles().
-                    stream().
-                    filter(r -> r.getRoleScope().equals(io.gravitee.management.model.permissions.RoleScope.APPLICATION)
-                            && !r.getRoleName().isEmpty()).
-                    findFirst().
-                    orElse(null);
-
-            MemberEntity updatedMembership = null;
-
-            // Add / Update
-            if (apiRole != null) {
-                updatedMembership = membershipService.addOrUpdateMember(
-                        new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
-                        new MembershipService.MembershipUser(membership.getId(), membership.getReference()),
-                        new MembershipService.MembershipRole(RoleScope.API, apiRole.getRoleName()));
-            }
-            if (applicationRole != null) {
-                updatedMembership = membershipService.addOrUpdateMember(
-                        new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
-                        new MembershipService.MembershipUser(membership.getId(), membership.getReference()),
-                        new MembershipService.MembershipRole(RoleScope.APPLICATION, applicationRole.getRoleName()));
-            }
-
-            // Delete
-            if (apiRole == null && previousApiRole != null) {
-                membershipService.removeRole(
+            if (membership.getId() != null) {
+                previousApiRole = membershipService.getRole(
                         MembershipReferenceType.GROUP,
                         group,
-                        updatedMembership.getId(),
+                        membership.getId(),
                         RoleScope.API);
-            }
-            if (applicationRole == null && previousApplicationRole != null) {
-                membershipService.removeRole(
+
+                previousApplicationRole = membershipService.getRole(
                         MembershipReferenceType.GROUP,
                         group,
-                        updatedMembership.getId(),
+                        membership.getId(),
                         RoleScope.APPLICATION);
+            }
+
+            // Process add / update before delete to avoid having a user without role
+            if (membership.getRoles() != null && !membership.getRoles().isEmpty()) {
+                MemberRoleEntity apiRole = membership.getRoles().
+                        stream().
+                        filter(r -> r.getRoleScope().equals(io.gravitee.management.model.permissions.RoleScope.API)
+                                && !r.getRoleName().isEmpty()).
+                        findFirst().
+                        orElse(null);
+
+                MemberRoleEntity applicationRole = membership.getRoles().
+                        stream().
+                        filter(r -> r.getRoleScope().equals(io.gravitee.management.model.permissions.RoleScope.APPLICATION)
+                                && !r.getRoleName().isEmpty()).
+                        findFirst().
+                        orElse(null);
+
+                MemberEntity updatedMembership = null;
+
+                // Add / Update
+                if (apiRole != null) {
+                    updatedMembership = membershipService.addOrUpdateMember(
+                            new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
+                            new MembershipService.MembershipUser(membership.getId(), membership.getReference()),
+                            new MembershipService.MembershipRole(RoleScope.API, apiRole.getRoleName()));
+                }
+                if (applicationRole != null) {
+                    updatedMembership = membershipService.addOrUpdateMember(
+                            new MembershipService.MembershipReference(MembershipReferenceType.GROUP, group),
+                            new MembershipService.MembershipUser(membership.getId(), membership.getReference()),
+                            new MembershipService.MembershipRole(RoleScope.APPLICATION, applicationRole.getRoleName()));
+                }
+
+                // Delete
+                if (apiRole == null && previousApiRole != null) {
+                    membershipService.removeRole(
+                            MembershipReferenceType.GROUP,
+                            group,
+                            updatedMembership.getId(),
+                            RoleScope.API);
+                }
+                if (applicationRole == null && previousApplicationRole != null) {
+                    membershipService.removeRole(
+                            MembershipReferenceType.GROUP,
+                            group,
+                            updatedMembership.getId(),
+                            RoleScope.APPLICATION);
+                }
             }
         }
 

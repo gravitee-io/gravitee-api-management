@@ -61,9 +61,11 @@ public class GroupService_FindByEventTest {
 
         Group grp1 = new Group();
         grp1.setId("grp1");
+        grp1.setName("grp1");
         grp1.setEventRules(Collections.singletonList(new GroupEventRule(GroupEvent.API_CREATE)));
         Group grp2 = new Group();
         grp2.setId("grp2");
+        grp2.setName("grp2");
         grp2.setEventRules(Collections.singletonList(new GroupEventRule(GroupEvent.API_CREATE)));
         HashSet<Group> findAll = new HashSet<>();
         findAll.add(grp1);

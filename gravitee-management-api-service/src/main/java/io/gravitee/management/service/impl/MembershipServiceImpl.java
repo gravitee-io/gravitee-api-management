@@ -23,10 +23,7 @@ import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -340,6 +337,32 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get membership for {} {} and user", referenceType, referenceId, userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to get members for " + referenceType + " " + referenceId + " and user " + userId, ex);
+        }
+    }
+
+    @Override
+    public void removeRoleUsage(RoleScope roleScope, String roleName, String newRole) {
+        try {
+            Set<Membership> memberships = membershipRepository.findByRole(roleScope, roleName);
+            for (Membership membership : memberships) {
+                membership.getRoles().put(roleScope.getId(), newRole);
+                membershipRepository.update(membership);
+            }
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to remove role {} {}", roleScope, roleName, ex);
+            throw new TechnicalManagementException("An error occurs while trying to remove role " + roleScope + " " + roleName, ex);
+        }
+    }
+
+    @Override
+    public void removeUser(String userId) {
+        try {
+            for(Membership membership : membershipRepository.findByUser(userId)) {
+                membershipRepository.delete(membership);
+            }
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to remove user {}", userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to remove user " + userId, ex);
         }
     }
 

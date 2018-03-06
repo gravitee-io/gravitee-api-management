@@ -30,6 +30,7 @@ public enum RolePermission {
     MANAGEMENT_PLATFORM     (RoleScope.MANAGEMENT, ManagementPermission.PLATFORM),
     MANAGEMENT_AUDIT        (RoleScope.MANAGEMENT, ManagementPermission.AUDIT),
     MANAGEMENT_NOTIFICATION (RoleScope.MANAGEMENT, ManagementPermission.NOTIFICATION),
+    MANAGEMENT_USERS        (RoleScope.MANAGEMENT, ManagementPermission.USER),
 
     PORTAL_METADATA         (RoleScope.PORTAL, PortalPermission.METADATA),
     PORTAL_DOCUMENTATION    (RoleScope.PORTAL, PortalPermission.DOCUMENTATION),

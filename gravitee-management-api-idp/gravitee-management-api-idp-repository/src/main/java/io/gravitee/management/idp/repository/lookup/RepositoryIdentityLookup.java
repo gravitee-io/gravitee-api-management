@@ -78,7 +78,7 @@ public class RepositoryIdentityLookup implements IdentityLookup {
     @Override
     public Collection<User> search(String query) {
         try {
-            return userRepository.findAll().stream().filter(user -> MANAGED_USER_TYPES.contains(user.getSource())).filter(
+            return userRepository.search(null).getContent().stream().filter(user -> MANAGED_USER_TYPES.contains(user.getSource())).filter(
                     user -> (user.getUsername() != null && StringUtils.containsIgnoreCase(user.getUsername(), query)) ||
                             (user.getFirstname() != null && StringUtils.containsIgnoreCase(user.getFirstname(), query)) ||
                             (user.getLastname() != null && StringUtils.containsIgnoreCase(user.getLastname(), query)) ||

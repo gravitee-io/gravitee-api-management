@@ -17,20 +17,19 @@ package io.gravitee.management.service.impl;
 
 import com.auth0.jwt.JWTSigner;
 import com.auth0.jwt.JWTVerifier;
-import io.gravitee.common.utils.*;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.common.Pageable;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.common.JWTHelper.Claims;
-import io.gravitee.management.service.exceptions.DefaultRoleNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.exceptions.UserNotFoundException;
-import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.management.service.notification.PortalHook;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
@@ -90,6 +89,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Autowired
     private NotifierService notifierService;
+
+    @Autowired
+    private ApiService apiService;
 
     @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
     private String defaultAvatar;
@@ -471,16 +473,57 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     @Override
-    public Set<UserEntity> findAll(boolean loadRoles) {
+    public Page<UserEntity> search(Pageable pageable) {
         try {
-            LOGGER.debug("Find all users");
+            LOGGER.debug("search users");
 
-            Set<User> users = userRepository.findAll();
+            Page<User> users = userRepository.search(new PageableBuilder()
+                    .pageNumber(pageable.getPageNumber() - 1)
+                    .pageSize(pageable.getPageSize())
+                    .build());
 
-            return users.stream().map(u -> convert(u, loadRoles)).collect(Collectors.toSet());
+            List<UserEntity> entities = users.getContent()
+                    .stream()
+                    .map(u -> convert(u, false))
+                    .collect(Collectors.toList());
+
+            return new Page<>(entities,
+                    users.getPageNumber() + 1,
+                    (int) users.getPageElements(),
+                    users.getTotalElements());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all users", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all users", ex);
+            LOGGER.error("An error occurs while trying to search users", ex);
+            throw new TechnicalManagementException("An error occurs while trying to search users", ex);
+        }
+    }
+
+    @Override
+    public void delete(String id) {
+        try {
+            // If the users is PO of apps or apis, throw an exception
+            long apiCount = apiService.findByUser(id)
+                    .stream()
+                    .filter(entity -> entity.getPrimaryOwner().getId().equals(id))
+                    .count();
+            long applicationCount = applicationService.findByUser(id)
+                    .stream()
+                    .filter(entity -> entity.getPrimaryOwner().getId().equals(id))
+                    .count();
+            if (apiCount > 0 || applicationCount > 0) {
+                throw new StillPrimaryOwnerException(apiCount, applicationCount);
+            }
+
+            Optional<User> optionalUser = userRepository.findById(id);
+            if (!optionalUser.isPresent()) {
+                throw new UserNotFoundException(id);
+            }
+
+            membershipService.removeUser(id);
+            userRepository.delete(id);
+
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete user", ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete user", ex);
         }
     }
 

@@ -15,7 +15,9 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.common.Pageable;
 
 import java.util.List;
 import java.util.Set;
@@ -44,9 +46,11 @@ public interface UserService {
 
     UserEntity update(UpdateUserEntity updateUserEntity);
 
-    Set<UserEntity> findAll(boolean loadRoles);
+    Page<UserEntity> search(Pageable pageable);
 
     UserEntity register(NewExternalUserEntity newExternalUserEntity);
 
     PictureEntity getPicture(String id);
+
+    void delete(String id);
 }

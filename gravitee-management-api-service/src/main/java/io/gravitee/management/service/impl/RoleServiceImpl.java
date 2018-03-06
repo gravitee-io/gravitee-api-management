@@ -20,11 +20,9 @@ import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.UpdateRoleEntity;
 import io.gravitee.management.model.permissions.*;
 import io.gravitee.management.service.AuditService;
+import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.RoleService;
-import io.gravitee.management.service.exceptions.RoleAlreadyExistsException;
-import io.gravitee.management.service.exceptions.RoleNotFoundException;
-import io.gravitee.management.service.exceptions.RoleReservedNameException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
@@ -58,6 +56,9 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private MembershipService membershipService;
 
     @Autowired
     private AuditService auditService;
@@ -170,7 +171,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     @Override
     public RoleEntity update(final UpdateRoleEntity roleEntity) {
         if (isReserved(roleEntity.getName())) {
-            throw new RoleReservedNameException(SystemRole.ADMIN.name());
+            throw new RoleReservedNameException(roleEntity.getName());
         }
         RoleScope scope = convert(roleEntity.getScope());
         try {
@@ -209,7 +210,18 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 throw new RoleNotFoundException(scope, name);
             }
             Role role = optRole.get();
+            if (role.isDefaultRole() || role.isSystem()) {
+                throw new RoleDeletionForbiddenException(scope, name);
+            }
+
+            List<RoleEntity> defaultRoleByScopes = findDefaultRoleByScopes(scope);
+            if (defaultRoleByScopes.isEmpty()) {
+                throw new DefaultRoleNotFoundException();
+            }
+            membershipService.removeRoleUsage(scope, name, defaultRoleByScopes.get(0).getName());
+
             roleRepository.delete(scope, name);
+
             auditService.createPortalAuditLog(
                     Collections.singletonMap(ROLE, role.getScope()+":"+role.getName()),
                     ROLE_DELETED,

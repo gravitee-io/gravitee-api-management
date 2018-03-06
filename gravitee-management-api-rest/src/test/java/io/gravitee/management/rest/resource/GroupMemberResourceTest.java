@@ -79,7 +79,7 @@ public class GroupMemberResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Arrays.asList(apiRole, appRole));
 
-        final Response response = target().request().post(Entity.json(groupMembership));
+        final Response response = target().request().post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(RoleScope.API);
@@ -109,7 +109,7 @@ public class GroupMemberResourceTest extends AbstractResourceTest {
         GroupMembership groupMembership = new GroupMembership();
         groupMembership.setId(USERNAME);
 
-        final Response response = target().request().post(Entity.json(groupMembership));
+        final Response response = target().request().post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(RoleScope.API);
@@ -129,7 +129,7 @@ public class GroupMemberResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(apiRole));
 
-        final Response response = target().request().post(Entity.json(groupMembership));
+        final Response response = target().request().post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(RoleScope.API);
@@ -153,7 +153,7 @@ public class GroupMemberResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(appRole));
 
-        final Response response = target().request().post(Entity.json(groupMembership));
+        final Response response = target().request().post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(RoleScope.API);
@@ -179,7 +179,7 @@ public class GroupMemberResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Arrays.asList(apiRole, appRole));
 
-        final Response response = target().request().post(Entity.json(groupMembership));
+        final Response response = target().request().post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(RoleScope.API);

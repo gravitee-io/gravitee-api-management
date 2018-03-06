@@ -144,5 +144,12 @@ public class RoleUsersResource extends AbstractResource  {
         public String getLastname() {
             return lastname;
         }
+
+        public String getDisplayName() {
+            if (this.firstname != null) {
+                return this.firstname + " " + this.lastname;
+            }
+            return this.username;
+        }
     }
 }

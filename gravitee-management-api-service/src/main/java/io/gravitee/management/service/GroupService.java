@@ -41,6 +41,8 @@ public interface GroupService {
 
     Set<GroupEntity> findByEvent(GroupEvent event);
 
+    Set<GroupEntity> findByUser(String user);
+
     void delete(String groupId);
 
     boolean isUserAuthorizedToAccessApiData(ApiEntity api, List<String> excludedGroups, String username);

@@ -15,8 +15,15 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.*;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.management.model.NewExternalUserEntity;
+import io.gravitee.management.model.RegisterUserEntity;
+import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.rest.model.Pageable;
+import io.gravitee.management.rest.model.PagedResult;
+import io.gravitee.management.rest.security.Permission;
+import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.UserService;
 import io.swagger.annotations.Api;
 
@@ -24,9 +31,11 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.*;
-import java.io.ByteArrayOutputStream;
-import java.net.URI;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+
+import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
+import static io.gravitee.management.model.permissions.RolePermissionAction.READ;
 
 /**
  * Defines the REST resources to manage Users.
@@ -46,13 +55,23 @@ public class UsersResource extends AbstractResource {
     @Inject
     private UserService userService;
 
+    @GET
+    @Produces(APPLICATION_JSON)
+    @Permissions(
+            @Permission(value = RolePermission.MANAGEMENT_USERS, acls = READ)
+    )
+    public PagedResult<UserEntity> findAll(@Valid @BeanParam Pageable pageable) {
+        Page<UserEntity> users = userService.search(pageable.toPageable());
+        return new PagedResult<>(users, pageable.getSize());
+    }
+
     /**
      * Register a new user.
      * Generate a token and send it in an email to allow a user to create an account.
      */
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
     @Path("/register")
     public Response registerUser(@Valid NewExternalUserEntity newExternalUserEntity) {
         UserEntity newUser = userService.register(newExternalUserEntity);
@@ -67,8 +86,8 @@ public class UsersResource extends AbstractResource {
     }
     
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
     public Response createUser(@Valid RegisterUserEntity registerUserEntity) {
         UserEntity newUser = userService.create(registerUserEntity);
         if (newUser != null) {
@@ -81,59 +100,8 @@ public class UsersResource extends AbstractResource {
         return Response.serverError().build();
     }
 
-    @GET
     @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public UserEntity getUser(@PathParam("id") String userId) {
-        UserEntity user = userService.findById(userId);
-
-        // Delete password for security reason
-        user.setPassword(null);
-        user.setPicture(null);
-
-        return user;
-    }
-
-    @GET
-    @Path("{id}/avatar")
-    public Response getUserAvatar(@PathParam("id") String id, @Context Request request) {
-        PictureEntity picture = userService.getPicture(id);
-
-        if (picture == null) {
-            throw new NotFoundException();
-        }
-
-        if (picture instanceof UrlPictureEntity) {
-            return Response.temporaryRedirect(URI.create(((UrlPictureEntity)picture).getUrl())).build();
-        }
-
-        CacheControl cc = new CacheControl();
-        cc.setNoTransform(true);
-        cc.setMustRevalidate(false);
-        cc.setNoCache(false);
-        cc.setMaxAge(86400);
-
-        InlinePictureEntity image = (InlinePictureEntity) picture;
-
-        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
-        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
-
-        if (builder != null) {
-            // Preconditions are not met, returning HTTP 304 'not-modified'
-            return builder
-                    .cacheControl(cc)
-                    .build();
-        }
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        baos.write(image.getContent(), 0, image.getContent().length);
-
-        return Response
-                .ok()
-                .entity(baos)
-                .cacheControl(cc)
-                .tag(etag)
-                .type(image.getType())
-                .build();
+    public UserResource getUserResource() {
+        return resourceContext.getResource(UserResource.class);
     }
 }
