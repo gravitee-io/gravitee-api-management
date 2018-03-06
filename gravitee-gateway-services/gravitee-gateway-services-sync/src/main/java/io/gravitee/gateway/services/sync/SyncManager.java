@@ -109,7 +109,7 @@ public class SyncManager {
 
                             // Update definition with required information for deployment phase
                             definition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
-                            definition.setDeployedAt(api.getDeployedAt());
+                            definition.setDeployedAt(eventPayload.getDeployedAt());
                             definitions.put(definition.getId(), definition);
                         } catch (IOException ioe) {
                             logger.error("Error while determining deployed APIs store into events payload", ioe);
