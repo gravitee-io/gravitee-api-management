@@ -28,11 +28,12 @@ import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EnvironmentBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
-    private final static String PROPERTY_PREFIX = "gravitee.";
+    private final static String[] PROPERTY_PREFIXES = new String[] {"gravitee.", "gravitee_", "GRAVITEE." , "GRAVITEE_"};
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -45,8 +46,11 @@ public class EnvironmentBeanFactoryPostProcessor implements BeanFactoryPostProce
                     .keySet()
                     .forEach(key -> {
                         String prefixKey = key;
-                        if (key.startsWith(PROPERTY_PREFIX)) {
-                            prefixKey = key.substring(PROPERTY_PREFIX.length());
+                        for (String propertyPrefix : PROPERTY_PREFIXES) {
+                            if (key.startsWith(propertyPrefix)) {
+                                prefixKey = key.substring(propertyPrefix.length());
+                                break;
+                            }
                         }
                         prefixlessSystemEnvironment.put(prefixKey, systemEnvironment.get(key));
                     });
@@ -85,9 +89,10 @@ public class EnvironmentBeanFactoryPostProcessor implements BeanFactoryPostProce
             if (name == null) {
                 return null;
             }
-
-            if (name.startsWith(PROPERTY_PREFIX)) {
-                return name.substring(PROPERTY_PREFIX.length());
+            for (String propertyPrefix : PROPERTY_PREFIXES) {
+                if (name.startsWith(propertyPrefix)) {
+                    return name.substring(propertyPrefix.length());
+                }
             }
 
             return name;
