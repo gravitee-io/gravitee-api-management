@@ -23,30 +23,26 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import io.gravitee.management.idp.api.identity.IdentityReference;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.lang.reflect.Field;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ReferenceSerializer {
+public class ReferenceSerializer implements ApplicationContextAware {
 
-    private static SecretKey secretKey;
+    @Value("${user.reference.secret:s3cR3t4grAv1t33.1Ous3D4R3f3r3nc3}")
+    private String secret;
 
-    static {
-        try {
-            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-            keyGen.init(256);
-            secretKey = keyGen.generateKey();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-    }
+    private SecretKey secretKey;
 
     //this code allows to break limit if client jdk/jre has no unlimited policy files for JCE.
     //it should be run once. So this static section is always execute during the class loading process.
@@ -58,6 +54,11 @@ public class ReferenceSerializer {
             field.set(null, java.lang.Boolean.FALSE);
         } catch (Exception ex) {
         }
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        secretKey = new SecretKeySpec(secret.getBytes(), "AES");
     }
 
     public String serialize(IdentityReference reference) throws Exception {

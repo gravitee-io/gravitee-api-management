@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.idp.api.identity;
 
+import java.util.Objects;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -35,5 +37,27 @@ public class IdentityReference {
 
     public String getReference() {
         return reference;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof IdentityReference)) return false;
+        IdentityReference that = (IdentityReference) o;
+        return Objects.equals(source, that.source) &&
+                Objects.equals(reference, that.reference);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(source, reference);
+    }
+
+    @Override
+    public String toString() {
+        return "IdentityReference{" +
+                "source='" + source + '\'' +
+                ", reference='" + reference + '\'' +
+                '}';
     }
 }
