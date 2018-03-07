@@ -218,15 +218,15 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         String firstNameMap = userMapping.getFirstname();
         String pictureMap = userMapping.getPicture();
 
-        Hashtable<String, String> hashtable = new Hashtable<>();
+        HashMap<String, String> hashMap = new HashMap<>();
 
-        hashtable.put(UserProfile.EMAIL, emailMap);
-        hashtable.put(UserProfile.ID, idMap);
-        hashtable.put(UserProfile.LASTNAME, lastNameMap);
-        hashtable.put(UserProfile.FIRSTNAME, firstNameMap);
-        hashtable.put(UserProfile.PICTURE, pictureMap);
+        hashMap.put(UserProfile.EMAIL, emailMap);
+        hashMap.put(UserProfile.ID, idMap);
+        hashMap.put(UserProfile.LASTNAME, lastNameMap);
+        hashMap.put(UserProfile.FIRSTNAME, firstNameMap);
+        hashMap.put(UserProfile.PICTURE, pictureMap);
 
-        for (Map.Entry<String, String> entry : hashtable.entrySet()) {
+        for (Map.Entry<String, String> entry : hashMap.entrySet()) {
             String field = entry.getKey();
             String mapping = entry.getValue();
 
