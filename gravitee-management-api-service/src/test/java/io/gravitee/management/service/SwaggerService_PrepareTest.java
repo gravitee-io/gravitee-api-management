@@ -29,12 +29,14 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.io.IOException;
 import java.net.URL;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SwaggerServiceTest {
+public class SwaggerService_PrepareTest {
 
     private SwaggerService swaggerService;
 
@@ -44,32 +46,34 @@ public class SwaggerServiceTest {
     }
 
     @Test
-    public void shouldPrepareAPIFromSwagger_json() throws IOException {
+    public void shouldPrepareAPIFromSwaggerV2_json() throws IOException {
         URL url =  Resources.getResource("io/gravitee/management/service/swagger-petstore.json");
         String descriptor = Resources.toString(url, Charsets.UTF_8);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
         swaggerDescriptor.setPayload(descriptor);
+
         NewApiEntity api = swaggerService.prepare(swaggerDescriptor);
 
-        Assert.assertEquals("1.0.0", api.getVersion());
-        Assert.assertEquals("Swagger Petstore (Simple)", api.getName());
-        Assert.assertEquals("http://petstore.swagger.io/api", api.getEndpoint());
-        Assert.assertEquals(2, api.getPaths().size());
-        Assert.assertEquals("/pets/:id", api.getPaths().get(1));
+        assertEquals("1.0.0", api.getVersion());
+        assertEquals("Swagger Petstore (Simple)", api.getName());
+        assertEquals("http://petstore.swagger.io/api", api.getEndpoint());
+        assertEquals(2, api.getPaths().size());
+        assertEquals("/pets/:id", api.getPaths().get(1));
     }
 
     @Test
-    public void shouldPrepareAPIFromSwagger_yaml() throws IOException {
+    public void shouldPrepareAPIFromSwaggerV2_yaml() throws IOException {
         URL url =  Resources.getResource("io/gravitee/management/service/swagger-petstore.yaml");
         String descriptor = Resources.toString(url, Charsets.UTF_8);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
         swaggerDescriptor.setPayload(descriptor);
+
         NewApiEntity api = swaggerService.prepare(swaggerDescriptor);
 
-        Assert.assertEquals("1.0.0", api.getVersion());
-        Assert.assertEquals("Swagger Petstore (Simple)", api.getName());
-        Assert.assertEquals("http://petstore.swagger.io/api", api.getEndpoint());
-        Assert.assertEquals(2, api.getPaths().size());
-        Assert.assertEquals("/pets/:id", api.getPaths().get(1));
+        assertEquals("1.0.0", api.getVersion());
+        assertEquals("Swagger Petstore (Simple)", api.getName());
+        assertEquals("http://petstore.swagger.io/api", api.getEndpoint());
+        assertEquals(2, api.getPaths().size());
+        assertEquals("/pets/:id", api.getPaths().get(1));
     }
 }

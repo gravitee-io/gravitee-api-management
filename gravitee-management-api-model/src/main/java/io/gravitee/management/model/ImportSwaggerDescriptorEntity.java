@@ -56,7 +56,8 @@ public class ImportSwaggerDescriptorEntity {
 
     public enum Version {
         VERSION_1_0,
-        VERSION_2_0
+        VERSION_2_0,
+        VERSION_3_0
     }
 
     public enum Type {

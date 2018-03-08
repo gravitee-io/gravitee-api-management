@@ -242,4 +242,31 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <!-- allow snapshot only for openApi until the final release -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>1.4.1</version>
+                    <configuration>
+                        <rules>
+                            <requireReleaseDeps>
+                                <message>No Snapshots Allowed!</message>
+                                <excludes>
+                                    <exclude>io.swagger.core.v3:*</exclude>
+                                    <exclude>io.swagger.parser.v3:*</exclude>
+                                </excludes>
+                            </requireReleaseDeps>
+                            <requireReleaseVersion>
+                                <message>No Snapshots Allowed!</message>
+                            </requireReleaseVersion>
+                        </rules>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>
