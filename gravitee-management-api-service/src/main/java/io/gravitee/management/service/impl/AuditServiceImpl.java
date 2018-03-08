@@ -101,7 +101,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
         Page<Audit> auditPage = auditRepository.search(
                 criteria.build(),
-                new PageableBuilder().pageNumber(query.getPage()).pageSize(query.getSize()).build());
+                new PageableBuilder().pageNumber(query.getPage() - 1).pageSize(query.getSize()).build());
 
         List<AuditEntity> content = auditPage.getContent().stream().map(this::convert).collect(Collectors.toList());
 

@@ -25,6 +25,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
 import org.junit.Before;
@@ -183,13 +184,16 @@ public class RatingServiceTest {
     @Test
     public void shouldFindByApi() throws TechnicalException {
         final Pageable pageable = mock(Pageable.class);
+        when(pageable.pageNumber()).thenReturn(1);
+        when(pageable.pageSize()).thenReturn(1);
         final Page<Rating> pageRating = mock(Page.class);
         when(pageRating.getPageNumber()).thenReturn(1);
         when(pageRating.getPageElements()).thenReturn(10L);
         when(pageRating.getTotalElements()).thenReturn(100L);
         when(pageRating.getContent()).thenReturn(singletonList(rating));
 
-        when(ratingRepository.findByApiPageable(API_ID, pageable)).thenReturn(pageRating);
+        when(ratingRepository.findByApiPageable(eq(API_ID), eq(new PageableBuilder()
+                .pageNumber(0).pageSize(1).build()))).thenReturn(pageRating);
 
         final Page<RatingEntity> pageRatingEntity = ratingService.findByApi(API_ID, pageable);
 

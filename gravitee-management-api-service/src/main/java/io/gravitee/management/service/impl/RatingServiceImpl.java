@@ -29,6 +29,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
 import org.slf4j.Logger;
@@ -118,7 +119,8 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            final Page<Rating> pageRating = ratingRepository.findByApiPageable(api, pageable);
+            final Page<Rating> pageRating = ratingRepository.findByApiPageable(api,
+                    new PageableBuilder().pageNumber(pageable.pageNumber() - 1).pageSize(pageable.pageSize()).build());
             final List<RatingEntity> ratingEntities =
                     pageRating.getContent().stream().map(this::convert).collect(toList());
             return new Page<>(ratingEntities, pageRating.getPageNumber(),
