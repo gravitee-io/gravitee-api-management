@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import * as jsyaml from 'js-yaml';
 import * as _ from 'lodash';
 import UserService from '../../services/user.service';
 import { SwaggerUIBundle } from 'swagger-ui-dist';
@@ -56,14 +56,21 @@ const PageSwaggerComponent: ng.IComponentOptions = {
         plugins.push(DisableTryItOutPlugin);
       }
 
+      let contentAsJson = {};
+      try {
+        contentAsJson = JSON.parse(this.page.content);
+      } catch (e) {
+        contentAsJson = jsyaml.safeLoad(this.page.content);
+      }
       SwaggerUIBundle({
-        url: this.url,
+        spec: contentAsJson,
         dom_id: '#swagger-container',
         presets: [
           SwaggerUIBundle.presets.apis,
         ],
         layout: 'BaseLayout',
         plugins: plugins,
+        docExpansion: 'none',
         requestInterceptor: (req) => {
           if (req.loadSpec) {
             req.credentials = 'include';
