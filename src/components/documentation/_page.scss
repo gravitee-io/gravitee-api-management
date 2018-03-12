@@ -161,6 +161,11 @@
     min-width: 80px;
   }
 
+  code {
+    background: initial;
+    color: green;
+    top: initial;
+  }
 
   table {
     border: initial;
@@ -176,6 +181,10 @@
 
   @import '~swagger-ui-dist/swagger-ui';
 
+  a.tablelinks {
+    color: #3b4151;
+  }
+
   .description {
     line-height: 1.4em;
   }
@@ -184,13 +193,15 @@
     margin-right: 1em;
   }
 
-  .swagger-ui table tbody tr td {
-    &:first-of-type {
-      width: 20%;
-    }
+  div.response-content-type.controls-accept-header small {
+    font-size: 0.8em;
+  }
+  
+  td.col.parameters-col_description {
+    font-size: 0.8em;
+  }
 
-    &:last-of-type {
-      width: 80%;
-    }
+  th.header-col {
+    min-width: 120px;
   }
 }
