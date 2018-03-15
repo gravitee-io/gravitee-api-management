@@ -432,7 +432,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 subscriptions.forEach(sub -> subscriptionService.delete(sub.getId()));
 
                 for (PlanEntity plan : plans) {
-                    subscriptions.forEach(sub -> subscriptionService.delete(sub.getId()));
                     planService.delete(plan.getId());
                 }
 
