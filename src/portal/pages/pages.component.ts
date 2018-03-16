@@ -25,7 +25,7 @@ const PagesComponent: ng.IComponentOptions = {
 
     this.$onInit = function() {
       if (this.pages.length && !$stateParams.pageId) {
-        $state.go('portal.pages.page', {pageId: this.pages[0].id});
+        this.selectPage(this.pages[0]);
       } else {
         _.each(this.pages, function(p) { p.selected = (p.id === $stateParams.pageId); });
       }
