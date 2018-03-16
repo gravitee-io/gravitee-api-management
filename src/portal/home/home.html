@@ -15,12 +15,11 @@
     limitations under the License.
 
 -->
-
 <div id="main-content" class="theme" gv-theme-element="portal.home.content">
   <section id="header" class="md-whiteframe-5dp" gv-theme-element="portal.home.header">
     <div layout="column" layout-align="center center">
       <img class="logo" ng-src="{{homeCtrl.getLogo()}}" alt="logo"/>
-      <h1><span translate="home.title"></span> <span translate="home.subtitle" style="font-weight: 100;"></span></h1>
+      <h1><span>{{indexCtrl.companyName}}</span> <span translate="home.subtitle" style="font-weight: 100;"></span></h1>
     </div>
     <div layout="row" layout-align="center center" style="margin-top: 10px;">
       <md-autocomplete flex="90" flex-sm="70" flex-gt-xs="50"

@@ -30,6 +30,7 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       template: require('./index.html'),
       controller: function (Build, $rootScope, Constants, resolvedDocumentation) {
         this.graviteeVersion = Build.version;
+        this.companyName = Constants.company ? Constants.company.name : '';
         $rootScope.portalTitle = Constants.portalTitle;
         this.pages = resolvedDocumentation;
 
@@ -115,9 +116,9 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
     .state('portal.api.detail', {
       url: '/detail',
       views: {
-        'header': { component: 'apiPortalHeader' },
-        'content': { component: 'apiHomepage' },
-        'subContent': { component: 'apiPlans' }
+        'header': {component: 'apiPortalHeader'},
+        'content': {component: 'apiHomepage'},
+        'subContent': {component: 'apiPlans'}
       },
       resolve: {
         plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
@@ -131,8 +132,8 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
     .state('portal.api.pages', {
       url: '/pages',
       views: {
-        'header': { component: 'apiPortalHeader' },
-        'content': { component: 'apiPages' }
+        'header': {component: 'apiPortalHeader'},
+        'content': {component: 'apiPages'}
       },
       resolve: {
         pages: ($stateParams: ng.ui.IStateParamsService, DocumentationService: DocumentationService) =>
@@ -180,8 +181,8 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
     .state('portal.api.subscribe', {
       url: '/subscribe?planId',
       views: {
-        'header': { component: 'apiPortalHeader' },
-        'content': { component: 'apiSubscribe' }
+        'header': {component: 'apiPortalHeader'},
+        'content': {component: 'apiSubscribe'}
       },
       resolve: {
         plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
@@ -200,8 +201,8 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
     .state('portal.api.rating', {
       url: '/ratings?:pageNumber',
       views: {
-        'header': { component: 'apiPortalHeader' },
-        'content': { component: 'apiRatings' }
+        'header': {component: 'apiPortalHeader'},
+        'content': {component: 'apiRatings'}
       },
       params: {
         pageNumber: {

@@ -23,7 +23,6 @@
     }
   },
   "home": {
-    "title": "Gravitee.io",
     "subtitle": "Portail développeur",
     "version": "Version: {{version}}",
     "pages": {

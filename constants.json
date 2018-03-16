@@ -1,5 +1,8 @@
 {
   "baseURL": "/management/",
+  "company": {
+    "name": "Gravitee.io"
+  },
   "portalTitle": "Gravitee.io Portal",
   "managementTitle": "Gravitee.io Management",
   "devMode": false,
