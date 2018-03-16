@@ -1,0 +1,186 @@
+{
+  "common": {
+    "copyToClipboard": "复制",
+    "NANOSECONDS": "纳秒",
+    "MICROSECONDS": "微秒",
+    "MILLISECONDS": "毫秒",
+    "SECONDS": "秒",
+    "MINUTES": "分",
+    "HOURS": "时",
+    "DAYS": "天",
+    "close": "关闭",
+    "create": "创建",
+    "cancel": "取消",
+    "ok": "OK",
+    "submit": "提交",
+    "answer": "回答",
+    "ratings.none": "没有评级",
+    "paging": {
+      "first": "首页",
+      "previous": "上一页",
+      "next": "下一页",
+      "last": "尾页"
+    }
+  },
+  "home": {
+    "title": "Gravitee.io",
+    "subtitle": "开发者门户",
+    "version": "版本: {{version}}",
+    "pages": {
+      "title": "文档"
+    },
+    "apis": {
+      "search": "搜索API...",
+      "top": "Top APIs",
+      "all": "查看所有API"
+    }
+  },
+  "menu": {
+    "login": "登录",
+    "gallery": "API 库",
+    "documentation": "文档",
+    "profile": "我的账户",
+    "management": "管理中心",
+    "applications": "我的应用",
+    "apis": "我的API",
+    "tasks": "任务",
+    "logout": "登出",
+    "support": "支持"
+  },
+  "apis": {
+    "all": "所有API",
+    "filter": "过滤API..."
+  },
+  "api": {
+    "version": "版本",
+    "endpoint": "端点",
+    "owner": "拥有者",
+    "publishedAt": "发布于",
+    "subscription": {
+    
+     "step1": {
+        "title": "选择一个api计划",
+        "subtitle": "API计划与您和API之间的服务契约相对应。",
+        "keyless": "这个订阅计划是免密钥的，您可以在不订阅的情况下使用它。."
+      },
+      "step2": {
+        "title": "选择一个应用程序",
+        "subtitle": "应用程序是您、使用者和API计划的订阅之间的链接。",
+        "application": {
+          "placeholder": "选择应用..."
+        },
+        "clientIdRequired": "一个clientId需要订阅这个计划。请检查应用程序的配置。",
+        "action": "订阅"
+      },
+      "step3": {
+        "apikey": {
+          "key": "您可以使用以下api密钥访问API:",
+          "curl": "使用curl请求实例:",
+          "clipboard": "api密钥已复制到剪贴板。"
+        },
+        "oauth2": {
+          "bearer": "你需要从授权服务获取一个access_token才可以使用此API。",
+          "curl": "使用curl请求实例:"
+        },
+        "jwt": {
+          "bearer": "你需要从授权服务获取一个access_token才可以使用此API。",
+          "curl": "使用curl请求实例:"
+        },
+        "pending": {
+          "title": "订阅正在等待验证。",
+          "subtitle": "您的订阅仍处于挂起状态，您将收到一次处理通知。"
+        },
+        "accepted": {
+          "title": "让我们在应用\"{{applicationName}}\"中开始使用这个API \"{{apiName}}\"吧!"
+        },
+        "successful": "已提交订阅请求。"
+      },
+
+      "planInformation": "每{{quotaPeriodTime}}{{quotaPeriodTimeUnit}}配额{{quotaLimit}}个请求"
+    },
+    "plan": {
+      "title": "订阅计划",
+      "subscribe": "订阅",
+      "manual": "订阅须经验证",
+      "empty": {
+        "title": "该API尚无订阅计划",
+        "message": "创建计划后，您可以订阅此API"
+      }
+    },
+    "documentation": {
+      "title": "文档",
+      "empty": {
+        "title": "该API没有文档",
+        "message": "稍后再来，API将很快完成"
+      }
+    },
+    "metadata": {
+      "title": "元数据",
+      "name": "名称",
+      "value": "值"
+    },
+    "rating": {
+      "title": "你评论的标题或摘要",
+      "comment": "评论",
+      "by": "By",
+      "rate": "{{numberOfRatings}} rating(s)",
+      "empty": {
+        "title": "此API没有评级",
+        "message": "首先要评价它",
+        "rights.message": "您没有对这个API进行定价的必要权限"
+      },
+      "messages": {
+        "1": "讨厌",
+        "2": "不喜欢",
+        "3": "有点喜欢",
+        "4": "喜欢",
+        "5": "太棒了"
+      },
+      "successCreation": "您的评级已成功提交",
+      "successUpdate": "您的评级已成功更新",
+      "successDeletion": "此评级已成功删除",
+      "deletion": "您确定要删除此评级吗?",
+      "list": {
+        "label": "{{numberOfAnswers}} 答案",
+        "title": "收视率"
+      },
+      "answer": {
+        "successCreation": "你的答案已经成功提交了",
+        "successDeletion": "此响应已成功删除",
+        "deletion": "您确定要删除此答案吗?",
+        "new": {
+          "label": "回复"
+        }
+      },
+      "summary": {
+        "title": "最高5分,平均{{averageRate}}",
+        "link": "参照 {{numberOfRatings}} 评级"
+      }
+    }
+  },
+  "applications": {
+    "empty": "您还没有任何应用!",
+    "start": "创建您的第一个应用开始吧。"
+  },
+  "application": {
+    "notFound": "匹配 \"{{applicationName}}\" 的应用未找到。"
+  },
+  "support": {
+    "ticket": {
+      "title": "支持票据创作",
+      "subject": "标题",
+      "content": "内容",
+      "api": "选择一个API",
+      "application": "选择一个应用",
+      "copyToSender": "接收这个邮件的抄送",
+      "successCreation": "支持票已成功创建",
+      "notAuthenticated": {
+        "title": "创建支持票",
+        "message": "为了买票，请登录。"
+      },
+      "userWithoutEmail": {
+        "message": "您不能提交票据，因为您的帐户上没有配置电子邮件"
+      }
+    }
+  }
+}
