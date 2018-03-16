@@ -212,8 +212,8 @@ public class ApisResource extends AbstractResource {
         apiItem.setVersion(api.getVersion());
         apiItem.setDescription(api.getDescription());
 
-        final UriBuilder ub = uriInfo.getBaseUriBuilder();
-        final UriBuilder uriBuilder = ub.path("apis").path(api.getId()).path("picture");
+        final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
+        final UriBuilder uriBuilder = ub.path(api.getId()).path("picture");
         if (api.getPicture() != null) {
             // force browser to get if updated
             uriBuilder.queryParam("hash", api.getPicture().hashCode());
