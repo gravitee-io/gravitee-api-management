@@ -737,7 +737,7 @@ databaseChangeLog:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false  } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: notifier, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: config, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: config, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: created_at, type: datetime, constraints: { nullable: true } }
