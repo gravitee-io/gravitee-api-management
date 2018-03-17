@@ -14,9 +14,9 @@ databaseChangeLog:
                 - column: {name: email, type: nvarchar(128), constraints: { nullable: true } }
                 - column: {name: firstname, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: lastname, type: nvarchar(64), constraints: { nullable: true } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: false } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: last_connection_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: last_connection_at, type: timestamp(6), constraints: { nullable: true } }
                 - column: {name: picture, type: nclob, constraints: { nullable: true } }
 
         - addPrimaryKey:
@@ -43,9 +43,9 @@ databaseChangeLog:
                 - column: {name: description, type: nvarchar(2048), constraints: { nullable: true } }
                 - column: {name: version, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: definition, type: nclob, constraints: { nullable: false } }
-                - column: {name: deployed_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: deployed_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
                 - column: {name: visibility, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: lifecycle_state, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: picture, type: nclob, constraints: { nullable: true } }
@@ -93,10 +93,10 @@ databaseChangeLog:
                 - column: {name: application, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: plan, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: revoked, type: boolean, constraints: { nullable: false } }
-                - column: {name: revoked_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: expire_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: revoked_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: expire_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_keys
@@ -124,7 +124,7 @@ databaseChangeLog:
             columns:
             - column:
                 name: updated_at
-                type: datetime
+                type: timestamp(6)
             tableName: keys
 
         - createIndex:
@@ -146,7 +146,7 @@ databaseChangeLog:
                 type: boolean
             - column:
                 name: updated_at
-                type: datetime
+                type: timestamp(6)
             tableName: keys
 
         - createTable:
@@ -156,8 +156,8 @@ databaseChangeLog:
                 - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: payload, type: nclob, constraints: { nullable: false } }
                 - column: {name: parent_id, type: nvarchar(64), constraints: { nullable: true } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: false } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: false } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_events
@@ -177,7 +177,7 @@ databaseChangeLog:
             columns:
             - column:
                 name: updated_at
-                type: nvarchar(64)
+                type: timestamp(6)
             tableName: events
 
         - createTable:
@@ -209,8 +209,8 @@ databaseChangeLog:
                 - column: {name: default_view, type: boolean, constraints: { nullable: true } }
                 - column: {name: hidden, type: boolean, constraints: { nullable: true } }
                 - column: {name: order, type: int, constraints: { nullable: true } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_views
@@ -248,8 +248,8 @@ databaseChangeLog:
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
                 - column: {name: type, type: nvarchar(64), constraints: { nullable: true } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
                 - column: {name: status, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: client_id, type: nvarchar(64), constraints: { nullable: true } }
 
@@ -279,8 +279,8 @@ databaseChangeLog:
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_groups
@@ -304,8 +304,8 @@ databaseChangeLog:
                 - column: {name: user_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_memberships
@@ -349,8 +349,8 @@ databaseChangeLog:
                 - column: {name: source_configuration, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: configuration_try_it_url, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: configuration_try_it, type: boolean, constraints: { nullable: true } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
                 - column: {name: homepage, type: boolean, constraints: { nullable: false, default: false } }
 
         - addPrimaryKey:
@@ -378,10 +378,10 @@ databaseChangeLog:
                 - column: {name: order, type: int, constraints: { nullable: true } }
                 - column: {name: status, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: security, type: nvarchar(64), constraints: { nullable: true } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: published_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: closed_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: published_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: closed_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_plans
@@ -424,11 +424,11 @@ databaseChangeLog:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: plan, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: application, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: starting_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: ending_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: processed_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: starting_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: ending_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: processed_at, type: timestamp(6), constraints: { nullable: true } }
                 - column: {name: processed_by, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: subscribed_by, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: reason, type: nvarchar(64), constraints: { nullable: true } }
@@ -483,8 +483,8 @@ databaseChangeLog:
                 - column: {name: format, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: value, type: nvarchar(1024), constraints: { nullable: true } }
 
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_metadata
@@ -510,8 +510,8 @@ databaseChangeLog:
                 - column: {name: description, type: nvarchar(1024), constraints: { nullable: true } }
                 - column: {name: default_role, type: boolean, constraints: { nullable: false, default: false } }
                 - column: {name: system, type: boolean, constraints: { nullable: false, default: false } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_roles
@@ -569,7 +569,7 @@ databaseChangeLog:
                 - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
                 - column: {name: event, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: patch, type: nclob, constraints: { nullable: false } }
 
@@ -594,7 +594,7 @@ databaseChangeLog:
             columns:
             - column:
                 name: created_at
-                type: datetime
+                type: timestamp(6)
             tableName: audits
 
         - createTable:
@@ -618,8 +618,8 @@ databaseChangeLog:
                 - column: {name: rate, type: tinyint, constraints: { nullable: false } }
                 - column: {name: title, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: comment, type: nvarchar(1024), constraints: { nullable: true } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_ratings
@@ -641,8 +641,8 @@ databaseChangeLog:
                 - column: {name: rating, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: comment, type: nvarchar(1024), constraints: { nullable: false } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_rating_answers
@@ -697,7 +697,7 @@ databaseChangeLog:
                 - column: {name: title, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: message, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_portal_notifications
@@ -710,8 +710,8 @@ databaseChangeLog:
                 - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_portal_notification_configs
@@ -740,8 +740,8 @@ databaseChangeLog:
                 - column: {name: config, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: created_at, type: datetime, constraints: { nullable: true } }
-                - column: {name: updated_at, type: datetime, constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
             constraintName: pk_generic_notification_configs

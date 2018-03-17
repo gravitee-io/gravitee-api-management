@@ -58,6 +58,10 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
     private static char escapeReservedWordsChar = '\"';
 
+    public static void setEscapeReservedWordsChar(char escapeReservedWordsChar) {
+        AbstractJdbcRepositoryConfiguration.escapeReservedWordsChar = escapeReservedWordsChar;
+    }
+
     public static String escapeReservedWord(final String word) {
         return escapeReservedWordsChar + word + escapeReservedWordsChar;
     }

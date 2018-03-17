@@ -27,12 +27,14 @@ import javax.sql.DataSource;
  * @author njt
  */
 @ComponentScan("io.gravitee.repository.jdbc")
-public class JdbcTestRepositoryConfiguration {
+public abstract class AbstractJdbcTestRepositoryConfiguration {
+
+    abstract String getJdbcUrl();
 
     @Bean
     public DataSource graviteeDataSource() {
         final HikariConfig dsConfig = new HikariConfig();
-        dsConfig.setJdbcUrl("jdbc:h2:mem:gravitee;DATABASE_TO_UPPER=FALSE;MODE=MySQL");
+        dsConfig.setJdbcUrl(getJdbcUrl());
         return new HikariDataSource(dsConfig);
     }
 }
