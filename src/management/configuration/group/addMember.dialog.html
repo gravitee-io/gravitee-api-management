@@ -17,12 +17,33 @@
 -->
 <md-dialog aria-label="Add member" layout-padding flex="30">
   <md-dialog-content class="searchMembers">
+    <h4>Add members to {{ctrl.group.name}}</h4>
+    <div layout="row" layout-align="space-between center">
+      <span>Choose an API role</span>
+      <md-select ng-model="ctrl.defaultApiRole"
+                 aria-label="API Role"
+                 class="md-no-underline">
+        <md-option ng-value="role.name" ng-repeat="role in ctrl.apiRoles">{{role.name}}</md-option>
+      </md-select>
+    </div>
+    <div layout="row" layout-align="space-between center">
+      <span>Choose an Application role</span>
+      <md-select ng-model="ctrl.defaultApplicationRole"
+                 aria-label="Application Role"
+                 class="md-no-underline">
+        <md-option ng-value="role.name" ng-repeat="role in ctrl.applicationRoles">{{role.name}}</md-option>
+      </md-select>
+    </div>
+    <div ng-if="!ctrl.defaultApiRole && !ctrl.defaultApplicationRole"
+         style="margin: 0 0 8px 0; text-align: right;">
+      <em style="color: red;">Select at least one role</em>
+    </div>
     <form name="formMember" ng-submit="$event.preventDefault()">
       <md-autocomplete
         md-selected-item="selectedItem"
-        md-search-text="searchText"
-        md-selected-item-change="selectUser(user)"
-        md-items="user in searchUser(searchText)"
+        md-search-text="ctrl.searchText"
+        md-selected-item-change="ctrl.selectUser(user)"
+        md-items="user in ctrl.searchUser(ctrl.searchText)"
         md-item-text="user.reference"
         md-min-length="1"
         md-delay="500"
@@ -32,23 +53,23 @@
         flex>
         <md-item-template>
           <md-list-item class="md-2-line contact-item">
-            <img ng-src="{{getUserAvatar(user.id)}}" class="md-avatar" alt="User avatar" />
+            <img ng-src="{{ctrl.getUserAvatar(user.id)}}" class="md-avatar" alt="User avatar" />
             <div class="md-list-item-text compact">
               <h3>{{user.displayName}}</h3>
             </div>
           </md-list-item>
         </md-item-template>
         <md-not-found>
-          No user matching "{{searchText}}" were found, or users already selected.
+          No user matching "{{ctrl.searchText}}" were found, or users already selected.
         </md-not-found>
       </md-autocomplete>
 
       <br />
 
-      <md-list class="fixedRows" ng-show="usersSelected.length > 0">
+      <md-list class="fixedRows" ng-show="ctrl.usersSelected.length > 0">
         <md-subheader class="md-no-sticky">Selected users</md-subheader>
-        <md-list-item class="md-2-line contact-item" ng-repeat="(index, user) in usersSelected">
-          <img ng-src="{{getUserAvatar(user.id)}}" class="md-avatar" alt="{{user.displayName}}" />
+        <md-list-item class="md-2-line contact-item" ng-repeat="(index, user) in ctrl.usersSelected">
+          <img ng-src="{{ctrl.getUserAvatar(user.id)}}" class="md-avatar" alt="{{user.displayName}}" />
           <div class="md-list-item-text compact">
             <h3>{{user.displayName}}</h3>
           </div>
@@ -58,10 +79,10 @@
   </md-dialog-content>
 
   <md-dialog-actions layout="row">
-    <md-button ng-click="hide()" class="md-primary">
+    <md-button ng-click="ctrl.hide()" class="md-primary">
       Cancel
     </md-button>
-    <md-button type="submit" class="md-raised md-primary" ng-click="addMembers()" ng-disabled="formMember.$invalid || usersSelected.length === 0">
+    <md-button type="submit" class="md-raised md-primary" ng-click="ctrl.addMembers()" ng-disabled="formMember.$invalid || ctrl.invalid()">
       Add
     </md-button>
   </md-dialog-actions>

@@ -1,0 +1,63 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-toolbar class="md-table-toolbar md-default">
+    <div class="md-toolbar-tools">
+        <span>Users</span>
+        <div flex></div>
+    </div>
+</md-toolbar>
+<md-table-container>
+    <table md-table>
+        <thead md-head >
+        <tr md-row>
+            <th md-column>Username</th>
+            <th md-column>Full name</th>
+            <th md-column>Email</th>
+            <th md-column>Source</th>
+            <th md-column>Last connection</th>
+            <th md-column></th>
+        </tr>
+        </thead>
+        <tbody md-body>
+        <tr md-row
+            ng-repeat="user in $ctrl.usersPage.data | orderBy: orderUser"
+            ng-click="$ctrl.selectUser(user)">
+            <td md-cell>{{user.username}}</td>
+            <td md-cell>{{user.displayName}}</td>
+            <td md-cell>{{user.email}}</td>
+            <td md-cell>{{user.source}}</td>
+            <td md-cell>{{user.lastConnectionAt | date:'MMM d, y h:mm:ss a'}}</td>
+            <td md-cell ng-click="$event.stopPropagation()">
+                <div layout="row" layout-align="end center">
+                    <span permission permission-only="['management-user-d']">
+                        <md-tooltip md-direction="top">delete</md-tooltip>
+                        <ng-md-icon icon="delete" ng-click="$ctrl.remove($event, user)" aria-label="delete-user"></ng-md-icon>
+                    </span>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</md-table-container>
+<md-table-pagination
+        ng-if="$ctrl.usersPage.page.size > 0"
+        md-limit="$ctrl.usersPage.page.per_page"
+        md-page="$ctrl.usersPage.page.current"
+        md-total="{{$ctrl.usersPage.page.total_elements}}"
+        md-on-paginate="$ctrl.onPaginate">
+</md-table-pagination>

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as jQuery from 'jquery';
+
 (<any>window).jQuery = jQuery;
 
 import angular = require('angular');
@@ -24,19 +25,24 @@ import 'angular-sanitize';
 import 'angular-local-storage';
 
 import * as traverse from 'traverse';
+
 (<any>window).traverse = traverse;
 
 import * as RAML from 'raml-1-parser';
+
 (<any>window).RAML = {Parser: RAML};
 
 import * as marked from 'marked';
+
 (<any>window).marked = marked;
 
 import * as hljs from 'highlight.js';
+
 (<any>window).hljs = hljs;
 
 // Codemirror
 import * as CodeMirror from 'codemirror';
+
 (<any>window).CodeMirror = CodeMirror;
 
 require('satellizer');
@@ -111,6 +117,7 @@ SolidGauge(Highcharts);
 NoDataToDisplay(Highcharts);
 
 import * as jsyaml from 'js-yaml';
+
 (<any>window).jsyaml = jsyaml;
 
 import * as moment from 'moment';
@@ -153,8 +160,8 @@ import DialogApiExportController from '../management/api/portal/general/dialog/a
 
 // Sidenav
 import SidenavService from '../components/sidenav/sidenav.service';
-import { SidenavComponent } from '../components/sidenav/sidenav.component';
-import { SubmenuComponent } from '../components/sidenav/submenu.component';
+import {SidenavComponent} from '../components/sidenav/sidenav.component';
+import {SubmenuComponent} from '../components/sidenav/submenu.component';
 
 //Api
 import ApiHeaderComponent from '../management/api/header/api-header.component';
@@ -242,10 +249,8 @@ import DashboardController from '../management/platform/dashboard/dashboard.cont
 import ViewsController from '../management/configuration/views/views.controller';
 import ViewService from '../services/view.service';
 import DeleteViewDialogController from '../management/configuration/views/delete.view.dialog.controller';
-import GroupsController from '../management/configuration/groups/groups.controller';
-import GroupService from '../services/group.service';
-import DialogAddGroupController from '../management/configuration/groups/dialog/add-group.dialog.controller';
-import DialogAddGroupMemberController from '../management/configuration/groups/dialog/addMemberDialog.controller';
+import DialogAddGroupController from '../management/configuration/groups/add-group.dialog.controller';
+import DialogAddGroupMemberController from '../management/configuration/group/addMemberDialog.controller';
 import RegistrationController from '../user/registration/registration.controller';
 import ConfirmController from '../user/registration/confirm/confirm.controller';
 import SubscriptionService from '../services/subscription.service';
@@ -288,13 +293,11 @@ import PortalPagesController from '../management/configuration/pages/portalPages
 import NewPageController from '../management/configuration/pages/page/newPage.controller';
 import PortalPagesService from '../services/portalPages.service';
 
-import RolesController from '../management/configuration/roles/roles.controller';
-import RoleSaveController from '../management/configuration/roles/role/save/role.save.controller';
+import RoleComponent from './configuration/roles/role/role.components';
+import RoleMembersComponent from './configuration/roles/role/role.members.component';
 import RolesComponent from '../management/configuration/roles/roles.component';
 import RoleService from '../services/role.service';
-import DeleteRoleDialogController from '../management/configuration/roles/role/delete/delete.role.dialog.controller';
-import DialogAddUserRoleController from '../management/configuration/roles/user/add/add.user.dialog.controller';
-import DeleteUserRoleDialogController from '../management/configuration/roles/user/delete/delete.user.role.dialog.controller';
+import DialogAddUserRoleController from '../management/configuration/roles/role/add.user.dialog.controller';
 
 import applicationRouterConfig from './application/applications.route';
 import apisRouterConfig from './api/apis.route';
@@ -310,7 +313,7 @@ import configurationRouterConfig from './configuration/configuration.route';
 import UserService from '../services/user.service';
 import UserController from '../user/user.controller';
 import UserComponent from '../user/user.component';
-import { submenuFilter } from '../components/sidenav/submenu.filter';
+import {submenuFilter} from '../components/sidenav/submenu.filter';
 
 // User Tasks
 import TasksComponent from '../management/tasks/tasks.component';
@@ -351,6 +354,16 @@ import AuditComponent from '../components/audit/audit.component';
 // Configuration
 import SettingsComponent from '../management/configuration/settings.component';
 
+// Users
+import UsersComponent from '../management/configuration/users/users.component';
+import UserDetailComponent from '../management/configuration/user/userdetail.component';
+import DialogAddUserGroupController from '../management/configuration/user/addusergroup.dialog.controller';
+
+// Groups
+import GroupsComponent from '../management/configuration/groups/groups.component';
+import GroupComponent from '../management/configuration/group/group.component';
+import GroupService from '../services/group.service';
+
 // Others
 import StringService from '../services/string.service';
 import AuthenticationService from '../services/authentication.service';
@@ -381,9 +394,9 @@ import ApiProxyController from "./api/proxy/apiProxy.controller";
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
-  'utf8-base64',  'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
+  'utf8-base64', 'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
   'ngAnimate', 'LocalStorageModule', 'satellizer', ngInfiniteScroll])
-  .config(['cfpLoadingBarProvider', function(cfpLoadingBarProvider) {
+  .config(['cfpLoadingBarProvider', function (cfpLoadingBarProvider) {
     cfpLoadingBarProvider.includeSpinner = false;
   }])
   .config((localStorageServiceProvider: angular.local.storage.ILocalStorageServiceProvider) => {
@@ -460,7 +473,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('TenantsController', TenantsController)
   .controller('DeleteViewDialogController', DeleteViewDialogController)
   .controller('DeleteTenantDialogController', DeleteTenantDialogController)
-  .controller('GroupsController', GroupsController)
+  .component('groups', GroupsComponent)
+  .component('group', GroupComponent)
   .controller('DialogAddGroupController', DialogAddGroupController)
   .controller('DialogAddGroupMemberController', DialogAddGroupMemberController)
   .controller('RegistrationController', RegistrationController)
@@ -482,13 +496,9 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DeleteApiMetadataDialogController', DeleteApiMetadataDialogController)
   .controller('DialogConfirmController', DialogConfirmController)
   .controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController)
-  .controller('DeleteRoleDialogController', DeleteRoleDialogController)
   .controller('DialogAddUserRoleController', DialogAddUserRoleController)
-  .controller('DeleteUserRoleDialogController', DeleteUserRoleDialogController)
   .controller('PortalPagesController', PortalPagesController)
   .controller('NewPageController', NewPageController)
-  .controller('RolesController', RolesController)
-  .controller('RoleSaveController', RoleSaveController)
   .controller('SupportTicketController', SupportTicketController)
   .controller('AuditController', AuditController)
   .controller('ApiAuditController', ApiAuditController)
@@ -540,6 +550,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('portalPages', PortalPagesComponent)
   .component('metadata', MetadataComponent)
   .component('roles', RolesComponent)
+  .component('role', RoleComponent)
+  .component('roleMembers', RoleMembersComponent)
   .component('topApis', TopApisComponent)
   .directive('gvMetadataValidator', () => MetadataValidatorDirective)
 
@@ -613,7 +625,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvPageMarkdown', PageMarkdownComponent)
   .component('gvPageSwagger', PageSwaggerComponent)
   .component('gvPageRaml', PageRamlComponent)
-  .directive('gvPageSidenav',  () => PageSidenavDirective)
+  .directive('gvPageSidenav', () => PageSidenavDirective)
 
   .component('gvSidenav', SidenavComponent)
   .component('gvSubmenu', SubmenuComponent)
@@ -640,8 +652,13 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   // Configuration
   .component('settings', SettingsComponent)
 
+  // Users
+  .component('users', UsersComponent)
+  .component('userDetail', UserDetailComponent)
+  .controller('DialogAddUserGroupController', DialogAddUserGroupController)
+
   .filter('humanDateFilter', function () {
-    return function(input) {
+    return function (input) {
       if (!moment().subtract(1, 'weeks').isAfter(input)) {
         return moment(input).fromNow();
       } else {
@@ -650,7 +667,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
     };
   })
   .filter('humanDatetimeFilter', function () {
-    return function(input) {
+    return function (input) {
       if (!moment().subtract(1, 'weeks').isAfter(input)) {
         return moment(input).fromNow();
       } else {

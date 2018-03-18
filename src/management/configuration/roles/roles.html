@@ -15,73 +15,56 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-  <div class="md-toolbar-tools">
-    <span>Roles</span>
-  </div>
-</md-toolbar>
-
-<md-tabs class="layout-padding" md-dynamic-height md-border-bottom md-selected="$ctrl.roleScopeSelectedIndex"
-  style="padding-bottom: 45px;">
-  <md-tab ng-repeat="roleScope in $ctrl.roleScopes">
-    <md-tab-label>{{::roleScope}}</md-tab-label>
-    <md-tab-body>
-      <v-accordion class="vAccordion--default" multiple>
-        <v-pane ng-repeat="role in $ctrl.roles | filter:{scope: roleScope} | orderBy: 'name'">
-          <v-pane-header ng-click="$ctrl.loadUsers(role)">
-            <div layout="row">
-              <h5 flex="15">{{role.name}}<i ng-if="role.default"> (default)</i></h5>
-              <span flex="70">{{role.description}}</span>
-              <div flex="10" layout="row" layout-align="space-between center">
-                <ng-md-icon permission permission-only="'management-role-u'"
-                            ng-if="$ctrl.userManagementEnabled(role)" icon="person_add" ng-click="$ctrl.addUserRole(role);$event.stopPropagation();">
-                  <md-tooltip>Add user</md-tooltip>
-                </ng-md-icon>
-                <ng-md-icon ng-if="!role.system" permission permission-only="'management-role-u'"
-                            icon="edit" ng-click="$ctrl.editRole(role);$event.stopPropagation();">
-                  <md-tooltip>Edit role</md-tooltip>
-                </ng-md-icon>
-                <ng-md-icon ng-if="!role.system" permission permission-only="'management-role-d'"
-                            icon="delete" ng-click="$ctrl.deleteRole(role);$event.stopPropagation();">
-                  <md-tooltip>Delete role</md-tooltip>
-                </ng-md-icon>
-              </div>
+<div>
+<div ng-repeat="roleScope in $ctrl.roleScopes" style="margin-bottom: 32px;">
+  <md-toolbar class="md-table-toolbar md-default">
+    <div class="md-toolbar-tools">
+      <span>{{::roleScope}}</span>
+    </div>
+  </md-toolbar>
+  <md-table-container>
+    <table md-table>
+      <thead md-head >
+      <tr md-row>
+        <th md-column width="20%">Name</th>
+          <th md-column>Description</th>
+          <th md-column layout="row" layout-align="end end">
+              <md-button permission permission-only="'management-role-c'"
+                         class="md-icon-button"
+                         aria-label="Add role"
+                         ng-click="$ctrl.newRole(roleScope)"
+                         style="padding: 16px;">
+                  <ng-md-icon icon="add" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+                  <md-tooltip md-direction="left">Add new Role</md-tooltip>
+              </md-button>
+          </th>
+      </tr>
+      </thead>
+      <tbody md-body>
+      <tr md-row
+          ng-repeat="role in $ctrl.rolesByScope[roleScope]"
+          ng-click="$ctrl.editRole(role);">
+        <td md-cell>{{role.name}}</td>
+        <td md-cell>
+            {{role.description}}
+            <span ng-if="role.default" flex class="badge" style="background-color: #039be5">Default</span>
+            <span ng-if="role.system" flex class="badge">System</span>
+        </td>
+        <td md-cell ng-click="$event.stopPropagation()">
+            <div layout="row" layout-align="end end">
+                <span style="padding: 0 20px 0 0;" ng-if="$ctrl.idUserManagementEnabled(role)" permission permission-only="['management-role-u']">
+                    <md-tooltip md-direction="top">members</md-tooltip>
+                    <ng-md-icon icon="group" ng-click="$event.stopPropagation();$ctrl.manageMembers(role);" aria-label="delete-user"></ng-md-icon>
+                </span>
+                <span permission permission-only="['management-role-d']">
+                    <md-tooltip md-direction="top">delete</md-tooltip>
+                    <ng-md-icon ng-if="!role.system && !role.default" icon="delete" ng-click="$event.stopPropagation();$ctrl.deleteRole(role);" aria-label="delete-user"></ng-md-icon>
+                </span>
             </div>
-          </v-pane-header>
-          <v-pane-content>
-            <gravitee-empty-state ng-if="$ctrl.userManagementEnabled(role) && !role.users.length" icon="person"
-                                  message="There is no user on this role for the moment"></gravitee-empty-state>
-            <md-table-container ng-show="role.users.length">
-              <table md-table>
-                <tbody md-body>
-                <tr md-row ng-repeat="user in role.users | orderBy: 'username'">
-                  <td md-cell>{{user.username}}</td>
-                  <td md-cell>{{user.lastname}}</td>
-                  <td md-cell>{{user.firstname}}</td>
-                  <td md-cell>
-                    <div layout="row" layout-align="end center">
-                      <ng-md-icon permission permission-only="'management-role-d'"
-                                  ng-click="$ctrl.deleteUser(role, user)" icon="delete" size="24"></ng-md-icon>
-                    </div>
-                  </td>
-                </tr>
-                </tbody>
-              </table>
-            </md-table-container>
-          </v-pane-content>
-        </v-pane>
-      </v-accordion>
-    </md-tab-body>
-  </md-tab>
-</md-tabs>
-<div ui-view=""></div>
-
-<md-fab-speed-dial permission permission-only="'management-role-c'"
-                   md-open="false" class="md-scale md-fab-bottom-right">
-  <md-fab-trigger>
-    <md-button aria-label="Add role" class="md-fab md-success" ng-click="$ctrl.newRole(roleScope)">
-      <md-tooltip md-direction="top" md-visible="false">Add a new role</md-tooltip>
-      <ng-md-icon icon="add"></ng-md-icon>
-    </md-button>
-  </md-fab-trigger>
-</md-fab-speed-dial>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </md-table-container>
+</div>
+</div>

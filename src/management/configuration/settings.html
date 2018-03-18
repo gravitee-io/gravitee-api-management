@@ -62,12 +62,18 @@
                 <strong>User Management</strong>
             </div>
             <ul class="aui-nav">
-                <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                <li class="iterable-item"
+                    ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.users') || $ctrl.$state.includes('management.settings.user') }"
+                    permission permission-only='management-user-r'>
+                    <a class="execute" ui-sref="management.settings.users">Users</a>
+                </li>
+                <li class="iterable-item"
+                    ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.groups') || $ctrl.$state.includes('management.settings.group') }"
                     permission permission-only='management-group-r'>
                     <a class="execute" ui-sref="management.settings.groups">Groups</a>
                 </li>
                 <li class="iterable-item"
-                    ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.roles') || $ctrl.$state.includes('management.settings.role') }"
+                    ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.roles') || $ctrl.$state.includes('management.settings.rolenew') || $ctrl.$state.includes('management.settings.roleedit') || $ctrl.$state.includes('management.settings.rolemembers') }"
                     permission permission-only='management-role-r'>
                     <a class="execute" ui-sref="management.settings.roles">Roles</a>
                 </li>

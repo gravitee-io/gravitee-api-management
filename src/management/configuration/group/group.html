@@ -17,48 +17,44 @@
 -->
 <md-toolbar class="md-table-toolbar md-default">
     <div class="md-toolbar-tools">
-        <span>Groups</span>
+        <span>{{$ctrl.group.name}}</span>
         <div flex></div>
     </div>
 </md-toolbar>
 
-<md-table-container style="margin-bottom: 72px;">
+<md-table-container>
     <table md-table ng-init="orderGrp = 'name'">
         <thead md-head md-order="orderGrp">
         <tr md-row>
             <th md-column width="30%" md-order-by="name">Name</th>
-            <th md-column width="30%" style="text-align: center;">Associate to every new API</th>
-            <th md-column width="30%"  style="text-align: center;">Associate to every new Application</th>
+            <th md-column width="30%">API Role</th>
+            <th md-column width="30%">Application Role</th>
             <th md-column width="10%"></th>
         </tr>
         </thead>
         <tbody md-body>
         <tr md-row
-            ng-repeat="group in $ctrl.groups | orderBy: orderGrp">
-            <td md-cell ng-click="$ctrl.selectGroup(group)">{{group.name}}</td>
-            <td md-cell style="text-align: center;">
-                <md-checkbox ng-model="$ctrl.apiByDefault[group.id]"
-                             ng-change="$ctrl.saveEventRules(group)"
-                             aria-label="Default API">
-
-                </md-checkbox>
+            ng-repeat="member in $ctrl.members | orderBy: orderGrp">
+            <td md-cell>{{member.displayName}}</td>
+            <td md-cell>
+                <md-select ng-model="member.roles['API']"
+                           aria-label="API Role"
+                           ng-change="$ctrl.updateRole(member)">
+                    <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="role.system">{{role.name}}</md-option>
+                </md-select>
             </td>
-            <td md-cell style="text-align: center;">
-                <md-checkbox ng-model="$ctrl.applicationByDefault[group.id]"
-                             ng-change="$ctrl.saveEventRules(group)"
-                             aria-label="Default Application">
-
-                </md-checkbox>
+            <td md-cell>
+                <md-select ng-model="member.roles['APPLICATION']"
+                           aria-label="Application Role"
+                           ng-change="$ctrl.updateRole(member)">
+                    <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system">{{role.name}}</md-option>
+                </md-select>
             </td>
             <td md-cell ng-click="$event.stopPropagation()">
                 <div layout="row" layout-align="end center">
-                    <span style="padding: 0 20px;">
-                        <md-tooltip md-direction="top">edit</md-tooltip>
-                        <ng-md-icon icon="mode_edit" ng-click="$ctrl.showRenameGroupModal($event, group.id, group.name, group.event_rules)" aria-label="rename-group"></ng-md-icon>
-                    </span>
                     <span>
                         <md-tooltip md-direction="top">delete</md-tooltip>
-                        <ng-md-icon icon="delete" ng-click="$ctrl.removeGroup($event, group.id, group.name)" aria-label="delete-group"></ng-md-icon>
+                        <ng-md-icon icon="delete" ng-click="$ctrl.removeUser($event, member)" aria-label="delete-user"></ng-md-icon>
                     </span>
                 </div>
             </td>
@@ -66,10 +62,15 @@
         </tbody>
     </table>
 </md-table-container>
-
-<md-button permission permission-only="['management-group-c']"
+<section>
+    <md-button class="md-button" aria-label="Back to endpoints configuration" ui-sref="management.settings.groups">
+        <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+        <span style="color: rgba(0, 0, 0, 0.54);">Back to groups</span>
+    </md-button>
+</section>
+<md-button permission permission-only="['management-group-u']"
            class="md-fab md-fab-bottom-right gravitee-add-button"
            aria-label="Add"
-           ng-click="$ctrl.showAddGroupModal()">
+           ng-click="$ctrl.showAddMemberModal()">
     <ng-md-icon icon="add"></ng-md-icon>
 </md-button>

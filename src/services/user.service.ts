@@ -18,6 +18,7 @@ import RoleService from "./role.service";
 import ApplicationService from './applications.service';
 import ApiService from './api.service';
 import _ = require('lodash');
+import {ILocationProvider, ILocationService} from "angular";
 
 class UserService {
   private baseURL: string;
@@ -32,9 +33,15 @@ class UserService {
    */
   public currentUser: User;
 
-  constructor(private $http: ng.IHttpService, private $q: ng.IQService, Constants, private RoleService: RoleService,
-              private PermPermissionStore, private $urlRouter, private ApplicationService: ApplicationService,
-              private ApiService: ApiService, private $location) {
+  constructor(private $http: ng.IHttpService,
+              private $q: ng.IQService,
+              Constants,
+              private RoleService: RoleService,
+              private PermPermissionStore,
+              private $urlRouter: ng.ui.IUrlRouterService,
+              private ApplicationService: ApplicationService,
+              private ApiService: ApiService,
+              private $location) {
     'ngInject';
     this.baseURL = Constants.baseURL;
     this.searchUsersURL = `${Constants.baseURL}search/users/`;
@@ -42,23 +49,31 @@ class UserService {
     this.userURL = `${Constants.baseURL}user/`;
   }
 
-  list() {
-    return this.$http.get(this.usersURL);
+  list(page: number): ng.IPromise<any> {
+    if (!page) {
+      return this.$http.get(this.usersURL);
+    } else {
+      return this.$http.get(`${this.usersURL}?page=${page}`);
+    }
   }
 
   get(code: string): ng.IPromise<User> {
     return this.$http.get(this.usersURL + code).then(response => Object.assign(new User(), response.data));
   }
 
-  create(user) {
+  remove(userId: string): ng.IPromise<User> {
+    return this.$http.delete(this.usersURL + userId);
+  }
+
+  create(user): ng.IPromise<any> {
     return this.$http.post(`${this.baseURL}users`, user);
   }
 
-  register(user) {
+  register(user): ng.IPromise<any> {
     return this.$http.post(`${this.usersURL}register`, user);
   }
 
-	search(query) {
+	search(query): ng.IPromise<any> {
 		return this.$http.get(`${this.searchUsersURL}?q=${query}`);
 	}
 
@@ -161,7 +176,7 @@ class UserService {
     return (this.currentUser !== undefined && this.currentUser.username !== undefined);
   }
 
-  login(user) {
+  login(user): ng.IPromise<any> {
     return this.$http.post(`${this.userURL}login`, {}, {
       headers: {
         Authorization: `Basic ${btoa(`${user.username}:${user.password}`)}`
@@ -169,7 +184,7 @@ class UserService {
     });
   }
 
-  logout() {
+  logout(): ng.IPromise<any> {
     let that = this;
     return this.$http.post(`${this.userURL}logout`, {})
       .then(function() {that.currentUser = new User(); that.isLogout = true;});
@@ -183,7 +198,11 @@ class UserService {
     return `${this.usersURL}` + id + '/avatar';
   }
 
-  save(user) {
+  getUserGroups(id: string): ng.IPromise<any> {
+    return this.$http.get(`${this.usersURL}` + id + '/groups');
+  }
+
+  save(user): ng.IPromise<any> {
     return this.$http.put(`${this.userURL}`, {username: user.username, picture: user.picture});
   }
 }

@@ -17,14 +17,14 @@
 -->
 <md-toolbar class="md-table-toolbar md-default">
   <div class="md-toolbar-tools">
-    <span ng-show="!$ctrl.editMode">New custom role [{{$ctrl.role.scope}}]</span>
-    <span ng-show="$ctrl.editMode">Update custom role [{{$ctrl.role.scope}}]: {{::$ctrl.role.name}}</span>
+    <span ng-if="!$ctrl.editMode">New custom role [{{$ctrl.role.scope}}]</span>
+    <span ng-if="$ctrl.editMode">Update custom role [{{$ctrl.role.scope}}]: {{::$ctrl.role.name}}</span>
   </div>
 </md-toolbar>
 
 <form name="$ctrl.formRole" ng-submit="$ctrl.save()" novalidate>
   <div class="layout-padding" layout="row">
-    <md-input-container>
+    <md-input-container ng-if="!$ctrl.editMode">
       <label>Role name</label>
       <input ng-model="$ctrl.role.name" required autofocus>
     </md-input-container>
@@ -36,7 +36,7 @@
 
     <md-input-container flex="10">
       <md-checkbox ng-model="$ctrl.role.default">
-        Role default
+        Default role
       </md-checkbox>
     </md-input-container>
   </div>
@@ -76,6 +76,6 @@
     <md-button class="md-raised" ng-class="{'md-warn': $ctrl.formRole.$dirty}" type="button" ui-sref="management.settings.roles({roleScope: $ctrl.role.scope})">
       Back
     </md-button>
-    <md-button type="submit" ng-disabled="$ctrl.formRole.$invalid || $ctrl.formRole.$pristine">Save</md-button>
+    <md-button type="submit" ng-if="!$ctrl.role.system" ng-disabled="$ctrl.formRole.$invalid || $ctrl.formRole.$pristine">Save</md-button>
   </md-card-actions>
 </form>

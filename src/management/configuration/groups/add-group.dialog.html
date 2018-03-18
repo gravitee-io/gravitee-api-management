@@ -24,10 +24,10 @@
                     <label>Name</label>
                     <input ng-model="name" id="name" required autofocus>
                 </md-input-container>
-                <md-checkbox ng-model="defaultApi" aria-label="Default API">
+                <md-checkbox ng-show="'Add'===action" ng-model="defaultApi" aria-label="Default API">
                     Associate this group to every new API.
                 </md-checkbox>
-                <md-checkbox ng-model="defaultApplication" aria-label="Default Application">
+                <md-checkbox ng-show="'Add'===action" ng-model="defaultApplication" aria-label="Default Application">
                     Associate this group to every new Application.
                 </md-checkbox>
             </div>

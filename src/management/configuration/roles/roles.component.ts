@@ -13,12 +13,72 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import _ = require('lodash');
+import RoleService from "../../../services/role.service";
+import NotificationService from "../../../services/notification.service";
+
 const RolesComponent: ng.IComponentOptions = {
   bindings: {
-    roleScopes: '<'
+    roleScopes: '<',
+    managementRoles: '<',
+    portalRoles: '<',
+    apiRoles: '<',
+    applicationRoles: '<'
   },
-  controller: 'RolesController',
-  template: require('./roles.html')
+  template: require('./roles.html'),
+  controller: function(
+    RoleService: RoleService,
+    $mdDialog: angular.material.IDialogService,
+    NotificationService: NotificationService,
+    $state: ng.ui.IStateService
+  ) {
+    'ngInject';
+    this.rolesByScope = {};
+
+    this.$onInit = () => {
+      this.rolesByScope['MANAGEMENT'] = this.managementRoles;
+      this.rolesByScope['PORTAL'] = this.portalRoles;
+      this.rolesByScope['API'] = this.apiRoles;
+      this.rolesByScope['APPLICATION'] = this.applicationRoles;
+    };
+
+    this.editRole = (role) => {
+      $state.go('management.settings.roleedit', {roleScope: role.scope, role: role.name});
+    };
+
+    this.newRole = (roleScope) => {
+      $state.go('management.settings.rolenew', {roleScope: roleScope});
+    };
+
+    this.deleteRole = (role) => {
+      let that = this;
+      $mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to delete the role "' + role.name + '" ?',
+          confirmButton: 'Remove'
+        }
+      }).then( (response) => {
+        if (response) {
+          RoleService.delete(role).then(function () {
+            NotificationService.show("Role '" + role.name + "' deleted with success");
+            _.remove(that.rolesByScope[role.scope], role);
+          });
+        }
+      });
+    };
+
+    this.idUserManagementEnabled = (role) => {
+      return RoleService.isUserRoleManagement(role.scope);
+    };
+
+    this.manageMembers = (role) => {
+      $state.go('management.settings.rolemembers', {roleScope: role.scope, role: role.name});
+    };
+  }
 };
 
 export default RolesComponent;

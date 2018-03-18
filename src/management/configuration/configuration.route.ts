@@ -24,6 +24,7 @@ import GroupService from "../../services/group.service";
 import {HookScope} from "../../entities/hookScope";
 import NotificationSettingsService from "../../services/notificationSettings.service";
 import TopApiService from "../../services/top-api.service";
+import UserService from "../../services/user.service";
 
 export default configurationRouterConfig;
 
@@ -101,13 +102,47 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
     })
     .state('management.settings.groups', {
       url: '/groups',
-      template: require('./groups/groups.html'),
-      controller: 'GroupsController',
-      controllerAs: 'groupsCtrl',
+      component: 'groups',
+      resolve: {
+        groups: (GroupService: GroupService) =>
+          GroupService.list().then(response =>
+            response.data)
+      },
       data: {
         menu: null,
         docs: {
           page: 'management-configuration-groups'
+        },
+        perms: {
+          only: ['management-group-r']
+        }
+      }
+    })
+    .state('management.settings.group', {
+      url: '/groups/:groupId',
+      component: 'group',
+      resolve: {
+        group: (GroupService: GroupService, $stateParams: ng.ui.IStateParamsService) =>
+          GroupService.get($stateParams.groupId).then(response =>
+            response.data
+          ),
+        members: (GroupService: GroupService, $stateParams: ng.ui.IStateParamsService) =>
+          GroupService.getMembers($stateParams.groupId).then(response =>
+            response.data
+          ),
+        apiRoles: (RoleService: RoleService) =>
+          RoleService.list("API").then( (roles) =>
+            [{"scope":"API", "name": "", "system":false}].concat(roles)
+          ),
+        applicationRoles: (RoleService: RoleService) =>
+          RoleService.list("APPLICATION").then( (roles) =>
+            [{"scope":"APPLICATION", "name": "", "system":false}].concat(roles)
+          )
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-group'
         },
         perms: {
           only: ['management-group-r']
@@ -178,10 +213,14 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
       }
     })
     .state('management.settings.roles', {
-      url: '/roles?roleScope',
+      url: '/roles',
       component: 'roles',
       resolve: {
-        roleScopes: (RoleService: RoleService) => RoleService.listScopes()
+        roleScopes: (RoleService: RoleService) => RoleService.listScopes(),
+        managementRoles: (RoleService: RoleService) => RoleService.list("MANAGEMENT"),
+        portalRoles: (RoleService: RoleService) => RoleService.list("PORTAL"),
+        apiRoles: (RoleService: RoleService) => RoleService.list("API"),
+        applicationRoles: (RoleService: RoleService) => RoleService.list("APPLICATION")
       },
       data: {
         menu: null,
@@ -200,25 +239,11 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
-    .state('management.settings.role', {
-      abstract: true,
-      url: '/role?roleScope',
-      controller: 'RoleSaveController',
-      controllerAs: '$ctrl',
+    .state('management.settings.rolenew', {
+      url: '/role/:roleScope/new',
+      component: 'role',
       data: {
         menu: null,
-        docs: {
-          page: 'management-configuration-roles'
-        },
-        perms: {
-          only: ['management-role-r']
-        }
-      }
-    })
-    .state('management.settings.role.new', {
-      url: '/new',
-      template: require('./roles/role/save/role.save.html'),
-      data: {
         docs: {
           page: 'management-configuration-roles'
         },
@@ -227,16 +252,36 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
-    .state('management.settings.role.edit', {
-      url: '/edit?role',
-      template: require('./roles/role/save/role.save.html'),
+    .state('management.settings.roleedit', {
+      url: '/role/:roleScope/:role',
+      component: 'role',
       data: {
+        menu: null,
         docs: {
           page: 'management-configuration-roles'
         },
         perms: {
           only: ['management-role-u']
         }
+      }
+    })
+    .state('management.settings.rolemembers', {
+      url: '/role/:roleScope/:role/members',
+      component: 'roleMembers',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-roles'
+        },
+        perms: {
+          only: ['management-role-u']
+        }
+      },
+      resolve: {
+        members: (RoleService: RoleService, $stateParams: ng.ui.IStateParamsService) =>
+          RoleService.listUsers($stateParams.roleScope, $stateParams.role).then( (response) =>
+            response
+        )
       }
     })
     .state('management.settings.notifications', {
@@ -283,6 +328,61 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['portal-top_apis-r']
+        }
+      }
+    })
+    .state('management.settings.users', {
+      url: '/users',
+      component: 'users',
+      resolve: {
+        usersPage: (UserService: UserService) => UserService.list(undefined).then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-users'
+        },
+        perms: {
+          only: ['management-user-c', 'management-user-r', 'management-user-u', 'management-user-d']
+        }
+      }
+    })
+    .state('management.settings.user', {
+      url: '/users/:userId',
+      component: 'userDetail',
+      resolve: {
+        selectedUser: (UserService: UserService, $stateParams: ng.ui.IStateParamsService) =>
+          UserService.get($stateParams.userId).then(response =>
+            response
+          ),
+        groups: (UserService: UserService, $stateParams: ng.ui.IStateParamsService) =>
+          UserService.getUserGroups($stateParams.userId).then(response =>
+            response.data
+          ),
+        managementRoles: (RoleService: RoleService) =>
+          RoleService.list("MANAGEMENT").then( (roles) =>
+            roles
+          ),
+        portalRoles: (RoleService: RoleService) =>
+          RoleService.list("PORTAL").then( (roles) =>
+            roles
+          ),
+        apiRoles: (RoleService: RoleService) =>
+          RoleService.list("API").then( (roles) =>
+            [{"scope":"API", "name": "", "system":false}].concat(roles)
+          ),
+        applicationRoles: (RoleService: RoleService) =>
+          RoleService.list("APPLICATION").then( (roles) =>
+            [{"scope":"APPLICATION", "name": "", "system":false}].concat(roles)
+          )
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-user'
+        },
+        perms: {
+          only: ['management-user-c', 'management-user-r', 'management-user-u', 'management-user-d']
         }
       }
     });
