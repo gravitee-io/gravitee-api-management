@@ -76,27 +76,23 @@ public class EnvironmentBeanFactoryPostProcessor implements BeanFactoryPostProce
 
         @Override
         public boolean containsProperty(String name) {
-            removePrefix(name);
-            return propertySource.containsProperty(name);
+            return propertySource.containsProperty(encodedArray(name));
         }
 
         @Override
         public Object getProperty(String name) {
-            removePrefix(name);
-            return propertySource.getProperty(name);
+            return propertySource.getProperty(encodedArray(name));
         }
 
-        private String removePrefix(String name) {
-            if (name == null) {
-                return null;
+        private String encodedArray(String name) {
+            String[] keyWithDefault = name.split(":");
+            String encodedKey = keyWithDefault[0];
+            if(keyWithDefault[0].contains("[")) {
+                encodedKey = encodedKey
+                        .replace("[", ".")
+                        .replace("]", "");
             }
-            for (String propertyPrefix : PROPERTY_PREFIXES) {
-                if (name.startsWith(propertyPrefix)) {
-                    return name.substring(propertyPrefix.length());
-                }
-            }
-
-            return name;
+            return keyWithDefault.length == 1 ? encodedKey : encodedKey + ":" + keyWithDefault[1];
         }
     }
 }
