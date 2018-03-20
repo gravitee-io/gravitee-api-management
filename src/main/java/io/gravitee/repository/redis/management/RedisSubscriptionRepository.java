@@ -151,8 +151,12 @@ public class RedisSubscriptionRepository implements SubscriptionRepository {
         if (subscription.getEndingAt() != null) {
             redisSubscription.setEndingAt(subscription.getEndingAt().getTime());
         }
-        redisSubscription.setCreatedAt(subscription.getCreatedAt().getTime());
-        redisSubscription.setUpdatedAt(subscription.getUpdatedAt().getTime());
+        if (subscription.getCreatedAt() != null) {
+            redisSubscription.setCreatedAt(subscription.getCreatedAt().getTime());
+        }
+        if (subscription.getUpdatedAt() != null) {
+            redisSubscription.setUpdatedAt(subscription.getUpdatedAt().getTime());
+        }
 
         return redisSubscription;
     }

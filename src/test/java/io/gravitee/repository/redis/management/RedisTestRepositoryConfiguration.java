@@ -18,6 +18,9 @@ package io.gravitee.repository.redis.management;
 import io.gravitee.repository.config.TestRepositoryInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import redis.embedded.RedisServer;
+
+import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,5 +32,12 @@ public class RedisTestRepositoryConfiguration extends ManagementRepositoryConfig
     @Bean
     public TestRepositoryInitializer testRepositoryInitializer() {
         return new RedisTestRepositoryInitializer();
+    }
+
+    @Bean(destroyMethod = "stop")
+    public RedisServer redisServer() throws IOException {
+        final RedisServer redisServer = new RedisServer();
+        redisServer.start();
+        return redisServer;
     }
 }

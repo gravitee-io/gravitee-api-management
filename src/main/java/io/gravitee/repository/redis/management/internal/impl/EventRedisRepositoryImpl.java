@@ -131,7 +131,7 @@ public class EventRedisRepositoryImpl extends AbstractRedisRepository implements
             public Object doInRedis(RedisConnection connection) throws DataAccessException {
                 redisTemplate.opsForHash().put(REDIS_KEY, event.getId(), event);
                 redisTemplate.opsForSet().add(REDIS_KEY + ":type:" + event.getType(), event.getId());
-                redisTemplate.opsForZSet().add(REDIS_KEY + ":updated_at", event.getId(), event.getCreatedAt());
+                redisTemplate.opsForZSet().add(REDIS_KEY + ":updated_at", event.getId(), event.getUpdatedAt());
                 if (event.getProperties() != null) {
                     event.getProperties().forEach((key, value) ->
                             redisTemplate.opsForSet().add(REDIS_KEY + ":" + key + ":" + value, event.getId()));

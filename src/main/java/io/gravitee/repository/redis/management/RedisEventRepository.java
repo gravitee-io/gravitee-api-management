@@ -114,8 +114,12 @@ public class RedisEventRepository implements EventRepository {
         RedisEvent redisEvent = new RedisEvent();
         redisEvent.setId(event.getId());
         redisEvent.setParentId(event.getParentId());
-        redisEvent.setCreatedAt(event.getCreatedAt().getTime());
-        redisEvent.setUpdatedAt(event.getUpdatedAt().getTime());
+        if (event.getCreatedAt() != null) {
+            redisEvent.setCreatedAt(event.getCreatedAt().getTime());
+        }
+        if (event.getUpdatedAt() != null) {
+            redisEvent.setUpdatedAt(event.getUpdatedAt().getTime());
+        }
         redisEvent.setPayload(event.getPayload());
         redisEvent.setProperties(event.getProperties());
         redisEvent.setType(event.getType().name());

@@ -25,6 +25,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -133,6 +134,7 @@ public class SubscriptionRedisRepositoryImpl extends AbstractRedisRepository imp
         return new Page<>(
                 subscriptionObjects.stream()
                         .map(event -> convert(event, RedisSubscription.class))
+                        .sorted(Comparator.comparing(RedisSubscription::getCreatedAt).reversed())
                         .collect(Collectors.toList()),
                 (pageable != null) ? pageable.pageNumber() : 0,
                 (pageable != null) ? pageable.pageSize() : 0,
