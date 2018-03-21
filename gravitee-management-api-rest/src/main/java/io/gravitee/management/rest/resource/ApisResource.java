@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -79,14 +81,7 @@ public class ApisResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<ApiListItem> listApis(@QueryParam("view") final String view, @QueryParam("group") final String group,
                                       @QueryParam("top") final boolean top) {
-        if (top) {
-            return topApiService.findAll().stream()
-                    .map(topApiEntity -> apiService.findById(topApiEntity.getApi()))
-                    .map(this::convert)
-                    .collect(Collectors.toList());
-        }
-
-        Set<ApiEntity> apis;
+        final Set<ApiEntity> apis;
         if (isAdmin()) {
             apis = group != null
                     ? apiService.findByGroup(group)
@@ -97,13 +92,22 @@ public class ApisResource extends AbstractResource {
             apis = apiService.findByVisibility(Visibility.PUBLIC);
         }
 
+        if (top) {
+            final List<String> visibleApis = apis.stream().map(ApiEntity::getId).collect(toList());
+            return topApiService.findAll().stream()
+                    .filter(topApi -> visibleApis.contains(topApi.getApi()))
+                    .map(topApiEntity -> apiService.findById(topApiEntity.getApi()))
+                    .map(this::convert)
+                    .collect(toList());
+        }
+
         return apis.stream()
                 .filter(apiEntity -> view == null || View.ALL_ID.equals(view) || (apiEntity.getViews() != null && apiEntity.getViews().contains(view)))
                 .filter(apiEntity -> group == null || (apiEntity.getGroups() != null && apiEntity.getGroups().contains(group)))
                 .map(this::convert)
                 .map(this::setManageable)
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     /**
