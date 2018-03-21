@@ -546,7 +546,7 @@ public class MockTestRepositoryConfiguration {
         final View viewProducts = new View();
         viewProducts.setId("view");
         viewProducts.setName("Products");
-        viewProducts.setCreatedAt(new Date(0));
+        viewProducts.setCreatedAt(new Date(1000000000000L));
         viewProducts.setUpdatedAt(new Date(1111111111111L));
         viewProducts.setHidden(false);
         viewProducts.setOrder(1);
@@ -646,7 +646,7 @@ public class MockTestRepositoryConfiguration {
         final Group group_updated = new Group();
         group_updated.setId("group-application-1");
         group_updated.setName("Modified Name");
-        group_updated.setUpdatedAt(new Date(0));
+        group_updated.setUpdatedAt(new Date(1000000000000L));
         when(groupRepository.findAll()).thenReturn(newSet(group_application_1, group_api_to_delete));
         when(groupRepository.findById("group-application-1")).thenReturn(of(group_application_1));
         when(groupRepository.findById("unknown")).thenReturn(empty());
@@ -754,7 +754,7 @@ public class MockTestRepositoryConfiguration {
         Membership m3 = new Membership("user3", "api3", MembershipReferenceType.API);
         m3.setRoles(API_OWNER_ROLE_MAP);
         Membership m4 = new Membership("userToDelete", "app1", MembershipReferenceType.APPLICATION);
-        m4.setCreatedAt(new Date(0));
+        m4.setCreatedAt(new Date(1000000000000L));
 
         when(repo.findById("user1", MembershipReferenceType.API, "api1"))
                 .thenReturn(of(m1));

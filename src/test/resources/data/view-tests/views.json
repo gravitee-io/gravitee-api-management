@@ -6,7 +6,7 @@
       "defaultView": true,
       "hidden": false,
       "order": 0,
-      "createdAt": 0,
+      "createdAt": 1000000000000,
       "updatedAt": 1111111111111
    },
    {
@@ -16,7 +16,7 @@
       "defaultView": false,
       "hidden": false,
       "order": 1,
-      "createdAt": 0,
+      "createdAt": 1000000000000,
       "updatedAt": 1111111111111
    },
    {
@@ -26,7 +26,7 @@
       "defaultView": false,
       "hidden": false,
       "order": 2,
-      "createdAt": 0,
+      "createdAt": 1000000000000,
       "updatedAt": 1111111111111
    }
 ]

@@ -122,12 +122,12 @@ public class MembershipRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldUpdate() throws TechnicalException {
         Membership membership = new Membership("userToUpdate", "app1", MembershipReferenceType.APPLICATION);
-        membership.setCreatedAt(new Date(0));
+        membership.setCreatedAt(new Date(1000000000000L));
 
         Membership update = membershipRepository.update(membership);
 
         assertNotNull(update);
-        assertEquals(new Date(0), update.getCreatedAt());
+        assertEquals(new Date(1000000000000L), update.getCreatedAt());
     }
 
     @Test

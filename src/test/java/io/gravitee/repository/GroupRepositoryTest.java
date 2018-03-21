@@ -77,13 +77,13 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         Group group = new Group();
         group.setId("group-application-1");
         group.setName("Modified Name");
-        group.setUpdatedAt(new Date(0));
+        group.setUpdatedAt(new Date(1000000000000L));
 
         Group update = groupRepository.update(group);
 
         assertEquals(group.getId(), update.getId());
         assertEquals(group.getName(), update.getName());
-        assertEquals(new Date(0), update.getUpdatedAt());
+        assertEquals(new Date(1000000000000L), update.getUpdatedAt());
     }
 
     @Test

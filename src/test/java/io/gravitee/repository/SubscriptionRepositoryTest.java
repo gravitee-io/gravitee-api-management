@@ -134,12 +134,12 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldUpdate() throws TechnicalException {
         Optional<Subscription> subscription = this.subscriptionRepository.findById("sub1");
-        subscription.get().setUpdatedAt(new Date(0));
+        subscription.get().setUpdatedAt(new Date(1000000000000L));
 
         Subscription update = this.subscriptionRepository.update(subscription.get());
 
         assertNotNull(update);
-        assertEquals(update.getUpdatedAt(), new Date(0));
+        assertEquals(update.getUpdatedAt(), new Date(1000000000000L));
     }
 
     @Test
