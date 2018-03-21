@@ -104,11 +104,11 @@ class ApiAdminController {
   }
 
   updatePicture(api) {
-    var self = this;
     this.ApiService.update(api).then(updatedApi => {
-      self.api = updatedApi.data;
-      self.api.etag = updatedApi.headers('etag');
-      self.NotificationService.show('API \'' + self.api.name + '\' saved');
+      this.api = updatedApi.data;
+      this.api.etag = updatedApi.headers('etag');
+      this.NotificationService.show('API \'' + this.api.name + '\' saved');
+      this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
     });
   }
 }
