@@ -273,15 +273,15 @@ swagger:
   scheme: https
 
 user:
-   login:
-      # Create a default application when user connects to the portal for the very first time (default true)
-      #defaultApplication: true
-   creation:
-      # Allows to register new users from portal (default false)
-      #enabled: true
-      token:
-         #expire-after: 86400
-    reference:
+  login:
+    # Create a default application when user connects to the portal for the very first time (default true)
+    #defaultApplication: true
+  creation:
+    # Allows to register new users from portal (default false)
+    #enabled: true
+    token:
+      #expire-after: 86400
+  reference:
       # Secret key used to generate reference of a user which is unique (default: s3cR3t4grAv1t33.1Ous3D4R3f3r3nc3)
       # Must contains 32 chars (256 bits)
       #secret:
