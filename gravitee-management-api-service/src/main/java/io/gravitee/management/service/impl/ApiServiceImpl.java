@@ -589,7 +589,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     private ApiEntity deployLastPublishedAPI(String apiId, String userId, EventType eventType) throws TechnicalException {
-        Optional<EventEntity> optEvent = eventService.findByApi(apiId).stream()
+        Set<EventEntity> events = eventService.findByApi(apiId);
+        Optional<EventEntity> optEvent = events.stream()
                 .filter(event -> EventType.PUBLISH_API.equals(event.getType()))
                 .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt())).findFirst();
         try {
@@ -611,6 +612,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 eventService.create(eventType, objectMapper.writeValueAsString(lastPublishedAPI), properties);
                 return convert(Collections.singleton(lastPublishedAPI), true).iterator().next();
             } else {
+                if (events.size() == 0) {
+                    // this is the first time we start the api without previously deployed id.
+                    // let's do it.
+                    this.deploy(apiId, userId, EventType.PUBLISH_API);
+                    return deployLastPublishedAPI(apiId, userId, eventType);
+                }
                 throw new TechnicalException("No event found for API " + apiId);
             }
         } catch (Exception e) {
