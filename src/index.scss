@@ -16,20 +16,7 @@ $backgroundColor: rgb(45, 50, 62);
 @import 'portal/portal.scss';
 @import 'user/_user.scss';
 @import 'user/login/_login.scss';
-@import 'management/api/policies/_policy.scss';
 @import 'management/api/_api.scss';
-@import 'management/api/analytics/_analytics.scss';
-@import 'management/api/logs/_logs.scss';
-@import 'management/api/creation/_apiCreation.scss';
-@import 'management/api/documentation/_apiDocumentation.scss';
-@import 'management/api/events/_apiEvents.scss';
-@import 'management/api/healthcheck/_healthcheck.scss';
-@import 'management/api/history/_apiHistory.scss';
-@import 'management/api/members/_members.scss';
-@import 'management/api/plans/_apiPlans.scss';
-@import 'management/api/properties/_properties.scss';
-@import 'management/api/resources/_resources.scss';
-@import 'management/api/subscriptions/_subscriptions.scss';
 @import 'components/dashboard/dashboard.scss';
 @import 'components/sidenav/_sidenav.scss';
 @import 'components/image/_image.scss';
@@ -517,15 +504,19 @@ md-card.no-box-shadow {
   font-family: "gravitee";
   font-style: normal;
   font-weight: normal;
- 
+
   text-decoration: inherit;
   width: 1em;
   margin-right: .1em;
   text-align: center;
- 
+
   font-variant: normal;
   text-transform: none;
- 
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+*:focus {
+  outline: none;
 }

@@ -22,10 +22,9 @@
 </md-list-item>
 
 <md-list-item ng-repeat="menuItem in $ctrl.submenuItems track by menuItem.name">
-  <a
-    ui-sref="{{ :: menuItem.name }}"
-    ui-sref-active="sidenav-active"
-    title="{{ :: menuItem.data.menu.label }}">
+  <md-tooltip md-delay="400">{{menuItem.data.menu.label}}</md-tooltip>
+  <a ui-sref="{{ :: menuItem.name }}" title="{{ :: menuItem.data.menu.label }}"
+    ng-class="{'sidenav-active': $ctrl.isActive(menuItem)}">
     <ng-md-icon icon="{{ :: menuItem.data.menu.icon }}"></ng-md-icon>
     <span ng-if="!$ctrl.reducedMode">{{ :: menuItem.data.menu.label}}</span>
   </a>

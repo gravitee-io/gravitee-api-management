@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import _ = require('lodash');
-import {Hook} from "../../entities/hook";
-import {NotificationConfig} from "../../entities/notificationConfig";
-import NotificationSettingsService from "../../services/notificationSettings.service";
-import NotificationService from "../../services/notification.service";
-import {HookScope} from "../../entities/hookScope";
+import {Hook} from '../../entities/hook';
+import {NotificationConfig} from '../../entities/notificationConfig';
+import NotificationSettingsService from '../../services/notificationSettings.service';
+import NotificationService from '../../services/notification.service';
+import {HookScope} from '../../entities/hookScope';
 
 const NotificationSettingsComponent: ng.IComponentOptions = {
   bindings: {
     resolvedHookScope: '<',
     resolvedHooks: '<',
     resolvedNotifiers: '<',
-    resolvedNotificationSettings: '<'
+    resolvedNotificationSettings: '<',
+    resolvedApi: '<'
   },
   template: require('./notificationsettings.html'),
   controller: function(
-    $stateParams: ng.ui.IStateParamsService,
+    $state: ng.ui.IStateService,
     NotificationSettingsService: NotificationSettingsService,
     NotificationService: NotificationService,
-    $mdDialog: angular.material.IDialogService
+    $mdDialog: angular.material.IDialogService,
+    $timeout
   ) {
     'ngInject';
     const vm = this;
@@ -43,14 +44,17 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
       vm.hooksByCategory = _.groupBy(vm.resolvedHooks, 'category');
       vm.hooksCategories = _.keysIn(vm.hooksByCategory);
       vm.notificationSettings = vm.resolvedNotificationSettings;
-      vm.selectNotificationSetting(vm.notificationSettings[0]);
+      vm.api = vm.resolvedApi;
 
-      if ($stateParams.apiId) {
-        vm.currentReferenceId = $stateParams.apiId;
-      } else if ($stateParams.applicationId) {
-        vm.currentReferenceId = $stateParams.applicationId;
+      vm.selectNotificationSetting(_.find(vm.notificationSettings, {id: $state.params.notificationId})
+        || vm.notificationSettings[0]);
+
+      if ($state.params.apiId) {
+        vm.currentReferenceId = $state.params.apiId;
+      } else if ($state.params.applicationId) {
+        vm.currentReferenceId = $state.params.applicationId;
       } else {
-        vm.currentReferenceId = "DEFAULT";
+        vm.currentReferenceId = 'DEFAULT';
       }
     };
 
@@ -63,10 +67,14 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
       if (vm.selectedNotificationSetting.notifier) {
         vm.selectedNotifier = _.filter(vm.resolvedNotifiers, {
           'id' : vm.selectedNotificationSetting.notifier
-        })[0]
+        })[0];
       } else {
         vm.selectedNotifier = undefined;
       }
+      $timeout(function () {
+        $state.params.notificationId = vm.selectedNotificationSetting.id;
+        $state.transitionTo($state.current, $state.params);
+      });
     };
 
     vm.save = () => {
@@ -94,7 +102,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
         } else {
           vm.notificationSettings[idx] = response.data;
         }
-        NotificationService.show('Saved!');
+        NotificationService.show('Notifications saved with success');
       });
     };
 
@@ -117,19 +125,19 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
       }).then(function (newConfig) {
         let cfg = new NotificationConfig();
         cfg.name = newConfig.name;
-        cfg.config_type = "GENERIC";
+        cfg.config_type = 'GENERIC';
         cfg.referenceId = vm.currentReferenceId;
         cfg.notifier = newConfig.notifierId;
         cfg.hooks = [];
         switch (vm.resolvedHookScope) {
           case HookScope.APPLICATION:
-            cfg.referenceType = "APPLICATION";
+            cfg.referenceType = 'APPLICATION';
             break;
           case HookScope.API:
-            cfg.referenceType = "API";
+            cfg.referenceType = 'API';
             break;
           case HookScope.PORTAL:
-            cfg.referenceType = "PORTAL";
+            cfg.referenceType = 'PORTAL';
             break;
           default:
             break;
@@ -142,9 +150,17 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     };
 
     vm.validate = () => {
-      return vm.selectedNotificationSetting.config_type === "portal" ||
+      return vm.selectedNotificationSetting.config_type === 'portal' ||
         (vm.selectedNotificationSetting.config && vm.selectedNotificationSetting.config !== '');
     };
+
+    vm.isActive = (notificationSetting) => {
+      if (!notificationSetting.id && !$state.params.notificationId) {
+        return true;
+      } else {
+        return notificationSetting.id === $state.params.notificationId;
+      }
+    }
   }
 };
 

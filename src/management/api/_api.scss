@@ -1,11 +1,16 @@
-@import 'analytics/analytics';
+@import 'analytics/logs/logs';
+@import 'analytics/overview/analytics';
+@import 'audit/events/apiEvents';
+@import 'audit/history/apiHistory';
 @import 'creation/apiCreation';
-@import 'documentation/apiDocumentation';
-@import 'events/apiEvents';
-@import 'healthcheck/healthcheck';
-@import 'history/apiHistory';
-@import 'plans/apiPlans';
-@import 'resources/resources';
+@import 'design/policies/policy';
+@import 'design/properties/properties';
+@import 'design/resources/resources';
+@import 'proxy/backend/healthcheck/healthcheck';
+@import 'portal/documentation/pages/apiDocumentation';
+@import 'portal/plans/apiPlans';
+@import 'portal/subscriptions/subscriptions';
+@import 'portal/userGroupAccess/members/members';
 
 .gravitee-api-container {
   border: 1px solid;
@@ -141,15 +146,11 @@
   position: fixed;
   font-weight: bold;
   width: 100%;
-//  left: $sidenavWidth;
-//  width: calc(100% - #{$sidenavWidth});
-  z-index: 10;
+  z-index: 11;
 }
 
 .gravitee-api-banner-min {
   width: 100%;
-//  left: $sidenavMinWidth;
-//  width: calc(100% - #{$sidenavMinWidth});
 }
 
 .gravitee-api-banner-content {

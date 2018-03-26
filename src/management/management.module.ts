@@ -119,36 +119,37 @@ import FormDirective from '../components/form/form.directive';
 import AutofocusDirective from '../components/autofocus/autofocus.directive';
 import ApiService from '../services/api.service';
 import ApisController from '../management/api/apis.controller';
-import ApiGeneralController from '../management/api/general/apiGeneral.controller';
+import ApiPortalController from '../management/api/portal/general/apiPortal.controller';
 import ApiAdminController from '../management/api/apiAdmin.controller';
-import ApiAnalyticsController from '../management/api/analytics/analytics.controller';
-import ApiMembersController from '../management/api/members/members.controller';
-import ApiPoliciesController from '../management/api/policies/policies.controller';
-import ApiEndpointController from '../management/api/endpoint/endpointConfiguration.controller';
-import AddPoliciesPathController from '../management/api/policies/addPoliciesPath.controller';
-import ApiResourcesController from '../management/api/resources/resources.controller';
+import ApiAnalyticsController from '../management/api/analytics/overview/analytics.controller';
+import ApiMembersController from '../management/api/portal/userGroupAccess/members/members.controller';
+import ApiTransferOwnershipController from '../management/api/portal/userGroupAccess/transferOwnership/transferOwnership.controller';
+import ApiPoliciesController from '../management/api/design/policies/policies.controller';
+import ApiEndpointController from '../management/api/proxy/backend/endpoint/endpointConfiguration.controller';
+import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
+import ApiResourcesController from '../management/api/design/resources/resources.controller';
 import NewApiController from '../management/api/creation/newApi.controller';
-import ApiPropertiesController from '../management/api/properties/properties.controller';
-import ApiEventsController from '../management/api/events/apiEvents.controller';
-import ApiHistoryController from '../management/api/history/apiHistory.controller';
-import DialogAddPropertyController from '../management/api/properties/add-property.dialog.controller';
-import DialogAddMemberApiController from '../management/api/members/addMemberDialog.controller';
-import DialogTransferApiController from '../management/api/members/transferAPIDialog.controller';
-import DialogApiKeyExpirationController from '../management/api/subscriptions/apikey.expiration.dialog.controller';
-import DialogEditPolicyController from '../management/api/policies/dialog/policyDialog.controller';
-import DocumentationDirective from '../management/api/documentation/apiDocumentation.directive';
-import DocumentationController from '../management/api/documentation/apiDocumentation.controller';
+import ApiPropertiesController from '../management/api/design/properties/properties.controller';
+import ApiEventsController from '../management/api/audit/events/apiEvents.controller';
+import ApiHistoryController from '../management/api/audit/history/apiHistory.controller';
+import DialogAddPropertyController from '../management/api/design/properties/add-property.dialog.controller';
+import DialogAddMemberApiController from '../management/api/portal/userGroupAccess/members/addMemberDialog.controller';
+import DialogTransferApiController from '../management/api/portal/userGroupAccess/transferownership/transferAPIDialog.controller';
+import DialogApiKeyExpirationController from '../management/api/portal/subscriptions/apikey.expiration.dialog.controller';
+import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
+import DocumentationDirective from '../management/api/portal/documentation/pages/apiDocumentation.directive';
+import DocumentationController from '../management/api/portal/documentation/pages/apiDocumentation.controller';
 import DocumentationService from '../services/apiDocumentation.service';
 import NotificationService from '../services/notification.service';
 
-import PageController from '../management/api/documentation/page/apiPage.controller';
+import PageController from '../management/api/portal/documentation/pages/page/apiPage.controller';
 import PolicyService from '../services/policy.service';
 import ResourceService from '../services/resource.service';
 import FetcherService from '../services/fetcher.service';
 import LoginController from '../user/login/login.controller';
 import DiffDirective from '../components/diff/diff.directive';
-import DialogApiImportController from '../management/api/general/dialog/apiImportDialog.controller';
-import DialogApiExportController from '../management/api/general/dialog/apiExportDialog.controller';
+import DialogApiImportController from '../management/api/portal/general/dialog/apiImportDialog.controller';
+import DialogApiExportController from '../management/api/portal/general/dialog/apiExportDialog.controller';
 
 // Sidenav
 import SidenavService from '../components/sidenav/sidenav.service';
@@ -167,17 +168,17 @@ import ApiCreationStep5Component from '../management/api/creation/steps/api-crea
 
 // API Plan
 import ApiPlanComponent from '../management/api/api-plan.component';
-import ApiEditPlanController from '../management/api/plans/plan/edit-plan.controller';
-import ApiEditPlanComponent from '../management/api/plans/plan/edit-plan.component';
-import ApiListPlansComponent from '../management/api/plans/list-plans.component';
-import ApiListPlansController from '../management/api/plans/list-plans.controller';
-import ApiEditPlanWizardGeneralComponent from '../management/api/plans/plan/plan-wizard-general.component';
-import ApiEditPlanWizardSecurityComponent from '../management/api/plans/plan/plan-wizard-security.component';
-import ApiEditPlanWizardPoliciesComponent from '../management/api/plans/plan/plan-wizard-policies.component';
+import ApiEditPlanController from '../management/api/portal/plans/plan/edit-plan.controller';
+import ApiEditPlanComponent from '../management/api/portal/plans/plan/edit-plan.component';
+import ApiListPlansComponent from '../management/api/portal/plans/list-plans.component';
+import ApiListPlansController from '../management/api/portal/plans/list-plans.controller';
+import ApiEditPlanWizardGeneralComponent from '../management/api/portal/plans/plan/plan-wizard-general.component';
+import ApiEditPlanWizardSecurityComponent from '../management/api/portal/plans/plan/plan-wizard-security.component';
+import ApiEditPlanWizardPoliciesComponent from '../management/api/portal/plans/plan/plan-wizard-policies.component';
 
 // API Subscription
-import ApiSubscriptionsComponent from '../management/api/subscriptions/subscriptions.component';
-import ApiSubscriptionComponent from '../management/api/subscriptions/subscription.component';
+import ApiSubscriptionsComponent from '../management/api/portal/subscriptions/subscriptions.component';
+import ApiSubscriptionComponent from '../management/api/portal/subscriptions/subscription.component';
 
 // Applications
 import ApplicationService from '../services/applications.service';
@@ -226,12 +227,12 @@ import ContextualDocComponent from '../components/contextual/contextual-doc.comp
 import ContextualDocController from '../components/contextual/contextual-doc.controller';
 
 // Logs
-import ApiLogsController from '../management/api/logs/logs.controller';
-import LogsTimeframeComponent from '../management/api/logs/components/logs-timeframe.component';
-import LogsTimeframeController from '../management/api/logs/components/logs-timeframe.controller';
-import LogComponent from '../management/api/logs/log.component';
-import LogsFiltersComponent from '../management/api/logs/components/logs-filters.component';
-import LogsFiltersController from '../management/api/logs/components/logs-filters.controller';
+import ApiLogsController from '../management/api/analytics/logs/logs.controller';
+import LogsTimeframeComponent from '../management/api/analytics/logs/components/logs-timeframe.component';
+import LogsTimeframeController from '../management/api/analytics/logs/components/logs-timeframe.controller';
+import LogComponent from '../management/api/analytics/logs/log.component';
+import LogsFiltersComponent from '../management/api/analytics/logs/components/logs-filters.component';
+import LogsFiltersController from '../management/api/analytics/logs/components/logs-filters.controller';
 
 // Others
 import ImageDirective from '../components/image/image.directive';
@@ -248,12 +249,12 @@ import DialogAddGroupMemberController from '../management/configuration/groups/d
 import RegistrationController from '../user/registration/registration.controller';
 import ConfirmController from '../user/registration/confirm/confirm.controller';
 import SubscriptionService from '../services/subscription.service';
-import DialogSubscriptionRejectController from '../management/api/subscriptions/subscription.reject.dialog.controller';
-import DialogSubscriptionAcceptController from '../management/api/subscriptions/subscription.accept.dialog.controller';
-import DialogSubscriptionCreateController from '../management/api/subscriptions/subscription.create.dialog.controller';
+import DialogSubscriptionRejectController from '../management/api/portal/subscriptions/subscription.reject.dialog.controller';
+import DialogSubscriptionAcceptController from '../management/api/portal/subscriptions/subscription.accept.dialog.controller';
+import DialogSubscriptionCreateController from '../management/api/portal/subscriptions/subscription.create.dialog.controller';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
-import DialogClosePlanController from '../management/api/plans/closePlanDialog.controller';
-import DialogPublishPlanController from '../management/api/plans/publishPlanDialog.controller';
+import DialogClosePlanController from '../management/api/portal/plans/closePlanDialog.controller';
+import DialogPublishPlanController from '../management/api/portal/plans/publishPlanDialog.controller';
 import TagsController from '../management/configuration/tags/tags.controller';
 import TagService from '../services/tag.service';
 import MetadataController from '../management/configuration/metadata/metadata.controller';
@@ -265,7 +266,7 @@ import UpdateMetadataDialogController from '../management/configuration/metadata
 import ChartDirective from '../components/chart/chart.directive';
 import UserAvatarDirective from '../components/avatar/user-avatar.directive';
 import DialogConfirmController from '../components/dialog/confirmDialog.controller';
-import DialogDynamicProviderHttpController from '../management/api/properties/dynamic-provider-http-dialog.controller';
+import DialogDynamicProviderHttpController from '../management/api/design/properties/dynamic-provider-http-dialog.controller';
 import TenantsController from '../management/configuration/tenants/tenants.controller';
 import TenantService from '../services/tenant.service';
 import DeleteTenantDialogController from '../management/configuration/tenants/delete.tenant.dialog.controller';
@@ -276,11 +277,11 @@ import TagsComponent from '../management/configuration/tags/tags.component';
 import MetadataComponent from '../management/configuration/metadata/metadata.component';
 import MetadataValidatorDirective from '../components/metadata/metadata.validator.directive';
 
-import ApiMetadataController from '../management/api/metadata/apiMetadata.controller';
-import ApiMetadataComponent from '../management/api/metadata/apiMetadata.component';
-import UpdateApiMetadataDialogController from './api/metadata/dialog/update.api.metadata.dialog.controller';
-import DeleteApiMetadataDialogController from './api/metadata/dialog/delete.api.metadata.dialog.controller';
-import NewApiMetadataDialogController from './api/metadata/dialog/new.api.metadata.dialog.controller';
+import ApiMetadataController from '../management/api/portal/documentation/metadata/apiMetadata.controller';
+import ApiMetadataComponent from '../management/api/portal/documentation/metadata/apiMetadata.component';
+import UpdateApiMetadataDialogController from './api/portal/documentation/metadata/dialog/update.api.metadata.dialog.controller';
+import DeleteApiMetadataDialogController from './api/portal/documentation/metadata/dialog/delete.api.metadata.dialog.controller';
+import NewApiMetadataDialogController from './api/portal/documentation/metadata/dialog/new.api.metadata.dialog.controller';
 
 import PortalPagesComponent from '../management/configuration/pages/portalPages.component';
 import PortalPagesController from '../management/configuration/pages/portalPages.controller';
@@ -297,6 +298,12 @@ import DeleteUserRoleDialogController from '../management/configuration/roles/us
 
 import applicationRouterConfig from './application/applications.route';
 import apisRouterConfig from './api/apis.route';
+import apisAnalyticsRouterConfig from './api/analytics/apis.analytics.route';
+import apisAuditRouterConfig from './api/audit/apis.audit.route';
+import apisDesignRouterConfig from './api/design/apis.design.route';
+import apisProxyRouterConfig from './api/proxy/apis.proxy.route';
+import apisPortalRouterConfig from './api/portal/apis.portal.route';
+import apisNotificationsRouterConfig from './api/notifications/apis.notifications.route';
 import configurationRouterConfig from './configuration/configuration.route';
 
 // User
@@ -325,11 +332,11 @@ import PageMarkdownComponent from '../components/documentation/page-markdown.com
 import PageSidenavDirective from '../components/documentation/page-sidenav.directive';
 
 // Healthcheck
-import ApiHealthCheckConfigureController from '../management/api/healthcheck/healthcheck-configure.controller';
-import DialogAssertionInformationController from '../management/api/healthcheck/healthcheck-assertion-dialog.controller';
-import ApiHealthCheckController from '../management/api/healthcheck/healthcheck.controller';
+import ApiHealthCheckConfigureController from '../management/api/proxy/backend/healthcheck/healthcheck-configure.controller';
+import DialogAssertionInformationController from '../management/api/proxy/backend/healthcheck/healthcheck-assertion-dialog.controller';
+import ApiHealthCheckController from '../management/api/proxy/backend/healthcheck/healthcheck.controller';
 import ProgressBarComponent from '../components/progressbar/progress-bar.component';
-import ApiHealthCheckLogController from '../management/api/healthcheck/healthcheck-log.controller';
+import ApiHealthCheckLogController from '../management/api/proxy/backend/healthcheck/healthcheck-log.controller';
 
 // Ticket
 import TicketService from '../services/ticket.service';
@@ -338,11 +345,8 @@ import SupportTicketController from '../support/ticket.controller';
 // Audit
 import AuditService from '../services/audit.service';
 import AuditController from '../management/audit/audit.controller';
-import ApiAuditController from '../management/api/audit/audit.controller';
+import ApiAuditController from '../management/api/audit/general/audit.controller';
 import AuditComponent from '../components/audit/audit.component';
-
-// Endpoint discovery
-import ApiDiscoveryController from '../management/api/discovery/discovery.controller';
 
 // Configuration
 import SettingsComponent from '../management/configuration/settings.component';
@@ -372,6 +376,7 @@ import TopApiService from "../services/top-api.service";
 import TopApisComponent from '../management/configuration/top-apis/top-apis.component';
 import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
+import ApiProxyController from "./api/proxy/apiProxy.controller";
 
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -390,6 +395,12 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .config(managementRouterConfig)
   .config(applicationRouterConfig)
   .config(apisRouterConfig)
+  .config(apisPortalRouterConfig)
+  .config(apisProxyRouterConfig)
+  .config(apisDesignRouterConfig)
+  .config(apisAnalyticsRouterConfig)
+  .config(apisAuditRouterConfig)
+  .config(apisNotificationsRouterConfig)
   .config(configurationRouterConfig)
   .config(interceptorConfig)
   .config(delegatorConfig)
@@ -419,7 +430,9 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('ApiPoliciesController', ApiPoliciesController)
   .controller('AddPoliciesPathController', AddPoliciesPathController)
   .controller('ApiMembersController', ApiMembersController)
-  .controller('ApiGeneralController', ApiGeneralController)
+  .controller('ApiTransferOwnershipController', ApiTransferOwnershipController)
+  .controller('ApiPortalController', ApiPortalController)
+  .controller('ApiProxyController', ApiProxyController)
   .controller('ApiHealthCheckController', ApiHealthCheckController)
   .controller('ApiEndpointController', ApiEndpointController)
   .controller('DialogAssertionInformationController', DialogAssertionInformationController)
@@ -623,9 +636,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('ApiHealthCheckConfigureController', ApiHealthCheckConfigureController)
   .controller('ApiHealthCheckLogController', ApiHealthCheckLogController)
   .component('progressBar', ProgressBarComponent)
-
-  // Endpoint discovery
-  .controller('ApiDiscoveryController', ApiDiscoveryController)
 
   // Configuration
   .component('settings', SettingsComponent)

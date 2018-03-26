@@ -36,8 +36,7 @@
     <tbody md-body>
     <tr ng-if="$ctrl.logs.logs.length > 0" md-row
         ng-repeat="log in $ctrl.logs.logs | limitTo: $ctrl.query.size"
-        md-auto-select md-select="log" md-select-id="key"
-        md-on-select="$ctrl.selectLog" ng-class="{'log-error': log.status >= 400}">
+        md-auto-select md-select="log" md-select-id="key" ng-class="{'log-error': log.status >= 400}">
       <td md-cell>{{log.id}}</td>
       <td md-cell>{{$ctrl.logs.metadata[log.api].name}}</td>
       <td md-cell>

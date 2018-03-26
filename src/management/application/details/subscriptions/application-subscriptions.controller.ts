@@ -189,7 +189,7 @@ class ApplicationSubscriptionsController {
     this.$mdDialog.show({
       controller: 'DialogApiKeyExpirationController',
       controllerAs: 'dialogApiKeyExpirationController',
-      template: require('../../../api/subscriptions/apikey.expiration.dialog.html'),
+      template: require('../../../api/portal/subscriptions/apikey.expiration.dialog.html'),
       clickOutsideToClose: true
     }).then(expirationDate =>{
       apiKey.expire_at = expirationDate;

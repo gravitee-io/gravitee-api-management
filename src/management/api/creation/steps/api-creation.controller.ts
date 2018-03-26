@@ -225,12 +225,12 @@ class ApiCreationController {
         _this.ApiService.deploy(api.data.id).then(function() {
           _this.ApiService.start(api.data).then(function() {
             _this.NotificationService.show('API created, deployed and started');
-            _this.$state.go('management.apis.detail.general.main', {apiId: api.data.id});
+            _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
           });
         });
       } else {
         _this.NotificationService.show('API created');
-        _this.$state.go('management.apis.detail.general.main', {apiId: api.data.id});
+        _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
       }
     }).catch(function () {
       _this.vm.showBusyText = false;
@@ -282,7 +282,7 @@ class ApiCreationController {
     var _this = this;
     this.ApiService.import(null, this.$scope.importAPIFile.content).then(function (api) {
       _this.NotificationService.show('API created');
-      _this.$state.go('management.apis.detail.general.main', {apiId: api.data.id});
+      _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
     });
   }
 
@@ -310,7 +310,7 @@ class ApiCreationController {
       importedAPI.description = (importedAPI.description) ? importedAPI.description : "Default API description";
       _this.ApiService.create(importedAPI).then(function(api) {
         _this.NotificationService.show('API created');
-        _this.$state.go('management.apis.detail.general.main', {apiId: api.data.id});
+        _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
       });
     });
   }

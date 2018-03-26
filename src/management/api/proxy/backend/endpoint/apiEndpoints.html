@@ -1,0 +1,129 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h4>Endpoints</h4>
+<form name="apiProxyCtrl.formApi" ng-submit="apiProxyCtrl.update(apiProxyCtrl.api)" novalidate>
+  <md-subheader class="md-primary" style="background-color: #fafafa">Endpoints</md-subheader>
+  <md-table-container>
+    <table md-table md-row-select="true" ng-model="selected" ng-init="order = 'name'" multiple="true">
+      <thead md-head md-order="order">
+      <tr md-row>
+        <th md-column md-order-by="name"><span>Name</span></th>
+        <th md-column md-order-by="target"><span>Target</span></th>
+        <th md-column md-order-by="tenant" hide-gt-xs show-gt-sm>Tenants</th>
+        <th md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
+        <th md-column md-order-by="backup" hide-gt-xs show-gt-sm>Backup</th>
+        <th md-column md-order-by="healthcheck" hide-gt-xs show-gt-sm>Health-check</th>
+        <th md-column permission permission-only="'api-definition-u'">
+          <md-button class="md-icon-button" aria-label="Add endpoint" ui-sref="management.apis.detail.proxy.endpoint({endpointName: ''})">
+            <ng-md-icon icon="add" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+            <md-tooltip md-direction="left">Add new endpoint</md-tooltip>
+          </md-button>
+
+          <md-button class="md-icon-button" aria-label="Remove endpoint" ng-click="apiProxyCtrl.removeEndpoints($event)" ng-disabled="selected.length == 0">
+            <ng-md-icon icon="delete" style="fill: rgba(0, 0, 0, 0.54);" ng-show="selected.length > 0"></ng-md-icon>
+            <ng-md-icon icon="delete" style="fill: rgba(142, 158, 170, 0.54);" ng-show="selected.length == 0"></ng-md-icon>
+            <md-tooltip md-direction="left">Delete endpoint</md-tooltip>
+          </md-button>
+        </th>
+      </tr>
+      </thead>
+      <tbody md-body>
+      <tr md-row md-select="endpoint" md-auto-select="false" ng-repeat="endpoint in apiProxyCtrl.api.proxy.endpoints | orderBy:order">
+        <td md-cell>{{endpoint.name}}</td>
+        <td md-cell>{{endpoint.target}}</td>
+        <td md-cell hide-gt-xs show-gt-sm>{{apiProxyCtrl.getTenants(endpoint.tenants)}}</td>
+        <td md-cell hide-gt-xs show-gt-sm ng-click="apiProxyCtrl.editWeight($event, endpoint)" ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
+        <td md-cell hide-gt-xs show-gt-sm>
+          <ng-md-icon ng-show="endpoint.backup" icon="done" style="fill: #107F20"></ng-md-icon>
+          <ng-md-icon ng-show="!endpoint.backup" icon="clear" style="fill: #BE2628"></ng-md-icon>
+        </td>
+        <td md-cell hide-gt-xs show-gt-sm>
+          <ng-md-icon ng-show="endpoint.healthcheck === undefined || endpoint.healthcheck.enabled === true" icon="done" style="fill: #107F20"></ng-md-icon>
+          <ng-md-icon ng-show="endpoint.healthcheck.enabled === false" icon="clear" style="fill: #BE2628"></ng-md-icon>
+        </td>
+        <td md-cell permission permission-only="'api-definition-u'">
+          <md-button class="md-icon-button" aria-label="Edit endpoint" ui-sref="management.apis.detail.proxy.endpoint({endpointName: endpoint.name})">
+            <ng-md-icon icon="settings" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+            <md-tooltip md-direction="left">Edit endpoint</md-tooltip>
+          </md-button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </md-table-container>
+
+  <md-content flex>
+    <md-content>
+      <md-input-container class="md-block">
+        <md-checkbox
+          ng-model="apiProxyCtrl.discovery.enabled"
+          aria-label="Enable endpoint discovery"
+          class="md-warn md-align-top-left"
+          flex>
+          Enable endpoint discovery<br/>
+          <span class="ipsum">
+          By enabling endpoint discovery, endpoints will be dynamically added or removed (without downtime).
+        </span>
+        </md-checkbox>
+      </md-input-container>
+    </md-content>
+
+    <br>
+
+    <div ng-show="apiProxyCtrl.discovery.enabled">
+      <md-subheader class="md-primary" style="background-color: #fafafa">Consul.io configuration</md-subheader>
+      <md-content layout="column">
+        <md-input-container>
+          <label>HTTP Endpoint</label>
+          <input ng-model="apiProxyCtrl.discovery.configuration.url" autofocus type="url" required placeholder="http://localhost:8500">
+          <div class="hint">Address of the Consul agent with the port.</div>
+        </md-input-container>
+
+        <md-input-container>
+          <label>Service</label>
+          <input ng-model="apiProxyCtrl.discovery.configuration.service" type="text" required placeholder="my-service-name">
+          <div class="hint">The service name to query</div>
+        </md-input-container>
+
+        <md-input-container>
+          <label>ACL</label>
+          <input ng-model="apiProxyCtrl.discovery.configuration.acl" type="text">
+          <div class="hint">ACL token to use in the request. This can also be specified via the CONSUL_HTTP_TOKEN environment variable.
+            If unspecified, the query will default to the token of the Consul agent at the HTTP address.</div>
+        </md-input-container>
+
+        <md-input-container>
+          <label>DC</label>
+          <input ng-model="apiProxyCtrl.discovery.configuration.dc" type="text">
+          <div class="hint">Name of the data-center to query. If unspecified, the query will default to the data-center of the Consul agent at the HTTP address.</div>
+        </md-input-container>
+      </md-content>
+    </div>
+
+  <div class="md-actions gravitee-api-save-button" layout="row">
+    <md-button permission permission-only="'api-definition-u'" class="md-raised" type="submit" ng-disabled="apiProxyCtrl.formApi.$invalid || apiProxyCtrl.formApi.$pristine">
+      Save
+    </md-button>
+    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="button" ng-click="apiProxyCtrl.reset()" ng-disabled="apiProxyCtrl.formApi.$pristine">
+      Reset
+    </md-button>
+    <md-button permission permission-only="'api-definition-d'" class="md-raised md-warn pull-right" type="button" ng-click="apiProxyCtrl.delete(apiProxyCtrl.api.id)" ng-disabled="apiProxyCtrl.api.state === 'started'">
+      Delete
+    </md-button>
+  </div>
+</form>

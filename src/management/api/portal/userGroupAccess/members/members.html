@@ -1,0 +1,111 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<section layout="column" flex>
+  <div layout="column" ng-repeat="grp in apiMembersCtrl.groupIdsWithMembers">
+    <div layout="row" layout-align="start end">
+      <h4>{{apiMembersCtrl.groupMembers[grp].length}} members inherited from "{{apiMembersCtrl.groupById[grp].name}}"</h4>
+      <div style="margin-bottom: 5px;" ng-model="apiMembersCtrl.displayGroups[grp]"
+           ng-if="!apiMembersCtrl.displayGroups[grp]" ng-click="apiMembersCtrl.displayGroups[grp]=true">
+        <a>Show</a>
+      </div>
+      <div style="margin-bottom: 5px;" ng-model="apiMembersCtrl.displayGroups[grp]"
+           ng-if="apiMembersCtrl.displayGroups[grp]" ng-click="apiMembersCtrl.displayGroups[grp]=false">
+        <a>Hide</a>
+      </div>
+    </div>
+    <md-content style="background: none" ng-if="apiMembersCtrl.displayGroups[grp]">
+      <md-table-container ng-show="apiMembersCtrl.groupMembers[grp].length">
+        <table md-table>
+          <thead md-head md-order="order">
+          <tr md-row>
+            <th md-column order-by="username">Member</th>
+            <th md-column order-by="type">Role</th>
+          </tr>
+          </thead>
+          <tbody md-body>
+          <tr md-row ng-repeat="member in apiMembersCtrl.groupMembers[grp] | orderBy: order">
+            <td md-cell>
+              <md-list-item class="md-2-line contact-item">
+                <img ng-src="{{apiMembersCtrl.getMembershipAvatar(member)}}" class="md-avatar" alt="User avatar" />
+                <div class="md-list-item-text compact">
+                  <span>{{apiMembersCtrl.getMembershipDisplay(member)}}</span>
+                </div>
+              </md-list-item>
+            </td>
+            <td md-cell> {{member.roles["API"]}} </td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+    </md-content>
+  </div>
+
+  <div layout="column">
+    <h4>Members</h4>
+    <md-content style="background: none">
+      <md-table-container ng-show="apiMembersCtrl.members.length">
+        <table md-table>
+          <thead md-head md-order="order">
+          <tr md-row>
+            <th md-column order-by="lastname">Member</th>
+            <th md-column order-by="type">Role</th>
+            <th md-column permission permission-only="'api-member-u'"></th>
+          </tr>
+          </thead>
+          <tbody md-body>
+          <tr md-row ng-repeat="member in apiMembersCtrl.members | orderBy: order">
+            <td md-cell>
+              <md-list-item class="md-2-line contact-item">
+                <img ng-src="{{apiMembersCtrl.getMembershipAvatar(member)}}" class="md-avatar" alt="User avatar" />
+                <div class="md-list-item-text compact">
+                  <span ng-if="member.role == 'PRIMARY_OWNER'"><b>{{apiMembersCtrl.getMembershipDisplay(member)}}</b></span>
+                  <span ng-if="member.role != 'PRIMARY_OWNER'">{{apiMembersCtrl.getMembershipDisplay(member)}}</span>
+                </div>
+              </md-list-item>
+            </td>
+            <td permission permission-only="'api-member-u'" md-cell>
+              <md-select ng-model="member.role" ng-change="apiMembersCtrl.updateMember(member)" ng-disabled="member.role == 'PRIMARY_OWNER'" aria-label="Update member role">
+                <md-option ng-value="role.name" ng-repeat="role in apiMembersCtrl.roles" ng-disabled="role.system">{{role.name}}</md-option>
+              </md-select>
+            </td>
+            <td permission permission-except="'api-member-u'" md-cell>
+              <md-select ng-model="member.role" ng-change="apiMembersCtrl.updateMember(member)" disabled aria-label="Update member role">
+                <md-option ng-value="role.name" ng-repeat="role in apiMembersCtrl.roles">{{role.name}}</md-option>
+              </md-select>
+            </td>
+            <td md-cell permission permission-only="'api-member-u'">
+              <ng-md-icon ng-if="member.role != 'PRIMARY_OWNER'" ng-click="apiMembersCtrl.showDeleteMemberConfirm($event, member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+      <gravitee-empty-state ng-if="!apiMembersCtrl.members.length"
+                            icon="group"
+                            model="Member"
+                            message="Members will appear here"
+                            sub-message="Start attaching a member"
+                            create-mode="true"></gravitee-empty-state>
+    </md-content>
+    <div ng-style="!apiMembersCtrl.members.length && {'text-align':'center'}">
+      <md-button permission permission-only="'api-member-c'" ng-class="{'md-fab-bottom-right gravitee-add-button': apiMembersCtrl.members.length}" class="md-fab" aria-label="Add" ng-click="apiMembersCtrl.showAddMemberModal($event)">
+        <ng-md-icon icon="add"></ng-md-icon>
+      </md-button>
+    </div>
+  </div>
+</section>

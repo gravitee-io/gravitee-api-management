@@ -16,7 +16,7 @@
 
 -->
 <md-menu ng-if="$ctrl.user.username" md-offset="0 45">
-    <md-button class="gv-navbar-button" ng-click="$mdMenu.open($event)">
+    <md-button class="gv-navbar-button" ng-click="$mdMenu.open($event)" aria-label="Open notifications">
         <ng-md-icon icon="notifications" gv-theme-element="portal.navbar.notifications"></ng-md-icon>
         <span ng-if="$ctrl.getUserNotificationsCount()>0" flex class="badge gv-notification-badge" gv-theme-element="portal.navbar.user.notification">
             {{ $ctrl.getUserNotificationsCount() }}

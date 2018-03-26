@@ -1,0 +1,152 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-content flex layout-padding class="properties">
+  <span class="md-headline" style="padding: 24px 16px 16px;">Subscription</span>
+
+  <div layout-padding>
+    <md-table-container>
+      <table md-table>
+        <tbody md-body>
+        <tr md-row style="height: 30px;">
+          <td md-cell><span style="font-weight: bold">ID</span></td>
+          <td md-cell>{{$ctrl.subscription.id}}</td>
+          <td md-cell><span style="font-weight: bold">Created at</span></td>
+          <td md-cell>{{$ctrl.subscription.created_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
+        </tr>
+        <tr md-row style="height: 30px;">
+          <td md-cell><span style="font-weight: bold">Plan</span></td>
+          <td md-cell><span style="font-weight: bold">{{$ctrl.subscription.plan.name}}</span> ({{$ctrl.subscription.plan.security}})</td>
+
+          <td md-cell><span style="font-weight: bold">Processed at</span></td>
+          <td md-cell>{{$ctrl.subscription.processed_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
+        </tr>
+        <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status">
+          <td md-cell><span style="font-weight: bold">Application</span></td>
+          <td md-cell><span style="font-weight: bold">{{$ctrl.subscription.application.name}}</span> ({{$ctrl.subscription.application.owner.username}})</td>
+
+          <td md-cell><span style="font-weight: bold">Starting at</span></td>
+          <td md-cell>{{$ctrl.subscription.starting_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
+        </tr>
+        <tr md-row style="height: 30px;" ng-if="'rejected' === $ctrl.subscription.status">
+          <td md-cell><span style="font-weight: bold">Application</span></td>
+          <td md-cell colspan="3"><span style="font-weight: bold">{{$ctrl.subscription.application.name}}</span> ({{$ctrl.subscription.application.owner.username}})</td>
+        </tr>
+        <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status">
+          <td md-cell><span style="font-weight: bold">Status</span></td>
+          <td md-cell>{{$ctrl.subscription.status|uppercase}}</td>
+          <td md-cell><span style="font-weight: bold">Ending at</span></td>
+          <td md-cell>{{$ctrl.subscription.ending_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
+        </tr>
+        <tr md-row style="height: 30px;" ng-if="'rejected' === $ctrl.subscription.status">
+          <td md-cell><span style="font-weight: bold">Status</span></td>
+          <td md-cell>{{$ctrl.subscription.status|uppercase}} (Reason: {{$ctrl.subscription.reason || '-'}})</td>
+          <td md-cell><span style="font-weight: bold">Closed at</span></td>
+          <td md-cell>{{$ctrl.subscription.closed_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
+        </tr>
+        <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status && $ctrl.subscription.closed_at">
+          <td md-cell colspan="2"></td>
+          <td md-cell><span style="font-weight: bold">Closed at</span></td>
+          <td md-cell>{{$ctrl.subscription.closed_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </md-table-container>
+
+    <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.subscription.status === 'pending'">
+      <div permission permission-only="'api-subscription-u'">
+        <md-button class="md-raised" ng-click="$ctrl.accept()">
+          <ng-md-icon icon="done" style="fill: green"></ng-md-icon>
+          Accept
+        </md-button>
+        <md-button class="md-raised md-warn" ng-click="$ctrl.reject()">
+          <ng-md-icon icon="block" style="fill: white"></ng-md-icon>
+          Reject
+        </md-button>
+      </div>
+    </div>
+
+    <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.subscription.status === 'accepted'">
+      <md-button class="md-raised md-warn" ng-click="$ctrl.close()" permission permission-only="'api-subscription-u'">
+        <ng-md-icon icon="not_interested" style="fill: white"></ng-md-icon>
+        Close
+      </md-button>
+
+    </div>
+
+    <div class="md-actions gravitee-api-save-button" layout="row">
+      <md-button class="md-raised" ui-sref="management.apis.detail.portal.subscriptions.list">
+        <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+        <span style="color: rgba(0, 0, 0, 0.54);">Back to subscriptions</span>
+      </md-button>
+    </div>
+
+    <div ng-if="$ctrl.subscription.status !== 'pending' && $ctrl.subscription.status !== 'rejected'">
+      <div ng-if="$ctrl.subscription.plan.security === 'api_key'">
+        <md-subheader>Api Keys</md-subheader>
+
+        <md-table-container>
+          <table md-table>
+            <thead md-head>
+            <tr md-row>
+              <th md-column>Key</th>
+              <th md-column>Created at</th>
+              <th md-column>Revoked / Expire at</th>
+              <th md-column></th>
+            </tr>
+            </thead>
+            <tbody md-body>
+            <tr md-row ng-repeat="key in $ctrl.keys track by key.key">
+              <td md-cell style="line-height: 30px;">
+                <ng-md-icon icon="{{key.revoked?'clear':'done'}}" ng-style="{'fill': key.revoked ? '#BE2628':'#107F20'}"></ng-md-icon>
+                <code>{{key.key}}</code>
+                <span ng-if="!key.revoked && $ctrl.subscription.status === 'accepted'">
+                  <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
+                  <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{key.key}}"
+                              ngclipboard-success="$ctrl.onCopyApiKeySuccess(e);" role="button"></ng-md-icon>
+                </span>
+              </td>
+              <td md-cell>{{key.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+              <td md-cell>{{key.revoked_at || key.expire_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+              <td md-cell>
+                <span ng-if="!key.revoked && $ctrl.subscription.status === 'accepted'">
+                  <md-tooltip md-direction="left">Revoke</md-tooltip>
+                  <ng-md-icon permission permission-only="'api-subscription-u'" style="top: 0;" icon="not_interested"
+                              ng-click="$ctrl.revokeApiKey(key.key)"></ng-md-icon>
+                </span>
+                <span ng-if="!key.revoked && $ctrl.subscription.status === 'accepted'">
+                  <md-tooltip md-direction="left">Set expiration date</md-tooltip>
+                  <ng-md-icon permission permission-only="'api-subscription-u'" style="top: 0;" icon="schedule"
+                              ng-click="$ctrl.expireApiKey(key)"></ng-md-icon>
+                </span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+
+        <div class="md-actions gravitee-api-save-button" layout="row"
+             permission permission-only="'api-subscription-u'" ng-if="$ctrl.subscription.status === 'accepted'">
+          <md-button class="md-raised md-primary" ng-click="$ctrl.renewApiKey()">
+            <ng-md-icon icon="autorenew" style="fill: white"></ng-md-icon>
+            Renew API Key
+          </md-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</md-content>

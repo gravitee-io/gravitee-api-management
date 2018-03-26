@@ -45,7 +45,7 @@ const TasksComponent: ng.IComponentOptions = {
     };
 
     vm.go = function(task) {
-      $state.go("management.apis.detail.subscriptions.subscription",
+      $state.go("management.apis.detail.portal.subscriptions.subscription",
         {
           apiId: task.data.api,
           subscriptionId: task.data.id

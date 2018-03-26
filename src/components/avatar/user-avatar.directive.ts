@@ -35,12 +35,10 @@ class UserAvatarDirective {
               deferred.resolve(true);
             };
             image.src = ctrl.Constants.baseURL + 'users/' + attrs.graviteeUserAvatar + '/avatar';
-            console.log('1' + image.src);
             return deferred.promise;
           } else {
             // Default image
             element.attr('src', 'assets/default_photo.png');
-            console.log('2' + element.attr('src'));
           }
         });
       }

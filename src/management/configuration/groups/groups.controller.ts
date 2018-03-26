@@ -155,7 +155,6 @@ class GroupsController {
       group: _this.selectedGroup
     }).then( (members) => {
       if (members) {
-        console.log(members);
         _this.selectedGroup.members = _.unionWith(members, _this.selectedGroup.members, _.isEqual);
       }
     }, () => {

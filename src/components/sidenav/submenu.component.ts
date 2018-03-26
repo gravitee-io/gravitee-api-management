@@ -75,5 +75,14 @@ export const SubmenuComponent: ng.IComponentOptions = {
       UserService.reloadPermissions();
       that.submenuItems = $filter<any>('currentSubmenus')(that.allMenuItems);
     };
+
+    this.isActive = function (menuItem) {
+      let menuItemSplitted = menuItem.name.split('.');
+      let currentStateSplitted = $state.current.name.split('.');
+      return menuItemSplitted[0] === currentStateSplitted[0] &&
+        menuItemSplitted[1] === currentStateSplitted[1] &&
+        menuItemSplitted[2] === currentStateSplitted[2] &&
+        menuItemSplitted[3] === currentStateSplitted[3];
+    };
   }
 };

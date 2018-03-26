@@ -15,12 +15,11 @@
     limitations under the License.
 
 -->
-<md-content class="gv-sub-menu" flex layout-padding>
-    <span class="md-headline">Settings</span>
-
-
+<div layout-padding>
+<div class="gv-sub-menu" flex>
     <div layout="row" flex>
         <div class="menu" flex="15">
+            <div class="md-headline">Settings</div>
 
             <div class="aui-nav-heading">
                 <strong>Portal</strong>
@@ -86,7 +85,9 @@
             </ul>
         </div>
 
-        <md-content flex style="padding-left: 16px;" ui-view></md-content>
-    </div>
+        <div flex class="gv-sub-content" ui-view></div>
 
-</md-content>
+    </div>
+</div>
+
+</div>

@@ -24,8 +24,9 @@
 
   <md-list class="sidenav-list">
     <md-list-item ng-repeat="menuItem in $ctrl.menuItems|orderBy:'data.menu.order' track by menuItem.name">
+      <md-tooltip md-delay="400">{{menuItem.data.menu.label}}</md-tooltip>
       <a ui-sref="{{ :: menuItem.name}}" title="{{ :: menuItem.data.menu.label}}"
-         ui-sref-active="sidenav-active">
+         ng-class="{'sidenav-active': $ctrl.isActive(menuItem)}">
         <ng-md-icon icon="{{ :: menuItem.data.menu.icon }}"></ng-md-icon>
         <span ng-if="!$ctrl.reducedMode">{{ :: menuItem.data.menu.label }}</span>
       </a>

@@ -46,7 +46,7 @@
               <td md-cell>{{event.updated_at | humanDatetimeFilter }}</td>
               <td md-cell>{{dashboardCtrl.getEventLabel(event.type)}}</td>
               <td md-cell>
-                <a ui-sref="management.apis.detail.analytics({ apiId: event.properties.api_id, from: dashboardCtrl.$state.params.from, to: dashboardCtrl.$state.params.to} )">
+                <a ui-sref="management.apis.detail.analytics.overview({ apiId: event.properties.api_id, from: dashboardCtrl.$state.params.from, to: dashboardCtrl.$state.params.to} )">
                   {{event.properties.api_name}} <small>({{event.properties.api_version}})</small>
                 </a>
               </td>

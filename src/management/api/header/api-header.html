@@ -23,7 +23,7 @@
 			<div flex="70" layout="column"layout-align="start start">
 				<div>
 					<h4>{{$ctrl.api.name}}
-						<small>( {{$ctrl.api.version}} )
+						<small>({{$ctrl.api.version}})
 							<span ng-switch-when="public" flex="10"><ng-md-icon icon="public"></ng-md-icon><md-tooltip md-direction="right">public</md-tooltip></span>
 							<span ng-switch-when="private" flex="10"><ng-md-icon icon="lock"></ng-md-icon><md-tooltip md-direction="right">private</md-tooltip></span>
 						</small>
@@ -63,7 +63,7 @@
 				<p ng-if="$ctrl.readOnly" style="padding: 0; margin: 0;">
 					<md-button class="md-raised md-primary"
 							   style="margin: 6px 0; background-color: #006CAB"
-							   ui-sref="management.apis.detail.plans">
+							   ui-sref="management.apis.detail.portal.plans">
 						Subscribe
 					</md-button>
 				</p>

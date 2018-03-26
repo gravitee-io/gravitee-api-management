@@ -47,7 +47,6 @@ class UserService {
   }
 
   get(code: string): ng.IPromise<User> {
-    console.log(code);
     return this.$http.get(this.usersURL + code).then(response => Object.assign(new User(), response.data));
   }
 

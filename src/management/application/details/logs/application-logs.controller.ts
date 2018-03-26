@@ -56,10 +56,6 @@ class ApplicationLogsController {
     this.refresh();
   }
 
-  selectLog(log) {
-    console.log(log);
-  }
-
   refresh() {
     this.ApplicationService.findLogs(this.application.id, this.query).then((logs) => {
       this.logs = logs.data;

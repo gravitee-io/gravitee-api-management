@@ -44,7 +44,7 @@
               </tr>
               </thead>
               <tbody md-body>
-              <tr md-row ui-sref="management.apis.detail.general.main({apiId: api.id})"
+              <tr md-row ui-sref="management.apis.detail.portal.general({apiId: api.id})"
                   ng-repeat="api in $ctrl.apis track by api.id">
                 <td md-cell><img height="40" ng-src="{{::api.picture_url}}"/></td>
                 <td md-cell>{{api.name}}</td>

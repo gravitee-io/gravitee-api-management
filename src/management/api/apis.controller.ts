@@ -94,7 +94,7 @@ export class ApisController {
     this.$mdDialog.show({
       controller: 'DialogApiImportController',
       controllerAs: 'dialogApiImportCtrl',
-      template: require('./general/dialog/apiImport.dialog.html'),
+      template: require('./portal/general/dialog/apiImport.dialog.html'),
       apiId: '',
       clickOutsideToClose: true
     }).then(function (response) {

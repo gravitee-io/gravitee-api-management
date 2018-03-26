@@ -24,7 +24,8 @@ export const SidenavComponent: ng.IComponentOptions = {
   },
   controller: function(
     $window: IWindowService,
-    $scope: IScope) {
+    $scope: IScope,
+    $state: ng.ui.IStateService) {
     'ngInject';
     const reduceModeKey = 'gv-sidenav-reduce-mode';
     this.$window = $window;
@@ -36,9 +37,16 @@ export const SidenavComponent: ng.IComponentOptions = {
       }
     };
 
-    this.toggleReducedMode = function() {
+    this.toggleReducedMode = function () {
       this.reducedMode = !this.reducedMode;
       $window.localStorage.setItem(reduceModeKey, this.reducedMode);
+    };
+
+    this.isActive = function (menuItem) {
+      let menuItemSplitted = menuItem.name.split('.');
+      let currentStateSplitted = $state.current.name.split('.');
+      return menuItemSplitted[0] === currentStateSplitted[0] &&
+        menuItemSplitted[1] === currentStateSplitted[1];
     };
 
     $scope.$on('reduceSideNav', () => {

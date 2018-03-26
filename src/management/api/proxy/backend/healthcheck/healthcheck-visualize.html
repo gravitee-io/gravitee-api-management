@@ -1,0 +1,252 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-button class="md-primary" style="position: absolute;top: 10px;right: 50px;margin-top: 0;"
+           permission permission-only="'api-health-r'" ng-click="healthCheckCtrl.updateChart()">
+  <ng-md-icon icon="refresh" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+  Refresh data
+</md-button>
+<md-content flex>
+  <div layout="column" flex>
+    <div layout="row" flex>
+      <md-card flex>
+        <div class="widget-card" flex>
+          <md-card-title>
+            <md-card-title-text>
+              <span class="md-title"><strong>Global availability</strong></span>
+              <span class="md-subhead">Global availability including results of all health-checked endpoints (see below).</span>
+            </md-card-title-text>
+            <md-card-title-media>
+            </md-card-title-media>
+          </md-card-title>
+          <md-card-content>
+            <div>
+              <gravitee-chart options="healthCheckCtrl.chartData" zoom="true" type="areaspline" height="180"></gravitee-chart>
+            </div>
+            <div layout="row" layout-padding layout-align="center center">
+              <div layout="column" flex="15">
+                <h5>Last minute</h5>
+                <progress-bar value="healthCheckCtrl.endpoint.availabilities.data.global['1m'] | number: 0"></progress-bar>
+                <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.global['1m'] | number: 0 }} ms</span>
+              </div>
+              <div layout="column" flex="15">
+                <h5>Last hour</h5>
+                <progress-bar value="healthCheckCtrl.endpoint.availabilities.data.global['1h'] | number: 0"></progress-bar>
+                <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.global['1h'] | number: 0 }} ms</span>
+              </div>
+              <div layout="column" flex="15">
+                <h5>Last day</h5>
+                <progress-bar value="healthCheckCtrl.endpoint.availabilities.data.global['1d'] | number: 0"></progress-bar>
+                <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.global['1d'] | number: 0 }} ms</span>
+              </div>
+              <div layout="column" flex="15">
+                <h5>Last week</h5>
+                <progress-bar value="healthCheckCtrl.endpoint.availabilities.data.global['1w'] | number: 0"></progress-bar>
+                <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.global['1w'] | number: 0 }} ms</span>
+              </div>
+              <div layout="column" flex="15">
+                <h5>Last month</h5>
+                <progress-bar value="healthCheckCtrl.endpoint.availabilities.data.global['1M'] | number: 0"></progress-bar>
+                <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.global['1M'] | number: 0 }} ms</span>
+              </div>
+            </div>
+          </md-card-content>
+        </div>
+      </md-card>
+    </div>
+    <div layout="row">
+      <md-card flex="50">
+        <div class="widget-card" flex>
+          <md-card-title>
+            <md-card-title-text>
+              <span class="md-title"><strong>Per-endpoint availability</strong></span>
+              <span class="md-subhead">Availability per-endpoint where health-check is enabled</span>
+            </md-card-title-text>
+            <md-card-title-media>
+            </md-card-title-media>
+          </md-card-title>
+          <md-card-content>
+            <div align="column">
+              <div layout="row" layout-padding>
+                <div flex="25"></div>
+                <div flex="15"><h5>Last minute</h5></div>
+                <div flex="15"><h5>Last hour</h5></div>
+                <div flex="15"><h5>Last day</h5></div>
+                <div flex="15"><h5>Last week</h5></div>
+                <div flex="15"><h5>Last month</h5></div>
+              </div>
+              <div layout="row" ng-repeat="(endpoint, metrics) in healthCheckCtrl.endpoint.availabilities.data.buckets" layout-padding>
+                <div layout="column" flex="25">
+                  <span style="font-weight: bold">{{endpoint}}</span>
+                  <span style="color: rgba(0,0,0,0.54);font-size: 11px;">{{healthCheckCtrl.endpoint.availabilities.data.metadata[endpoint].target}}</span>
+                </div>
+                <div layout="column" flex="15">
+                  <progress-bar value="metrics['1m'] | number: 0"></progress-bar>
+                  <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1m'] | number: 0 }} ms</span>
+                </div>
+                <div layout="column" flex="15">
+                  <progress-bar value="metrics['1h'] | number: 0"></progress-bar>
+                  <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1h'] | number: 0 }} ms</span>
+                </div>
+                <div layout="column" flex="15">
+                  <progress-bar value="metrics['1d'] | number: 0"></progress-bar>
+                  <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1d'] | number: 0 }} ms</span>
+                </div>
+                <div layout="column" flex="15">
+                  <progress-bar value="metrics['1w'] | number: 0"></progress-bar>
+                  <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1w'] | number: 0 }} ms</span>
+                </div>
+                <div layout="column" flex="15">
+                  <progress-bar value="metrics['1M'] | number: 0"></progress-bar>
+                  <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1M'] | number: 0 }} ms</span>
+                </div>
+              </div>
+            </div>
+          </md-card-content>
+        </div>
+      </md-card>
+
+      <md-card flex="50">
+        <div class="widget-card" flex>
+          <md-card-title>
+            <md-card-title-text>
+              <span class="md-title"><strong>Per-gateway availability</strong></span>
+              <span class="md-subhead">Availability per-gateway where health-check is enabled</span>
+            </md-card-title-text>
+            <md-card-title-media>
+            </md-card-title-media>
+          </md-card-title>
+          <md-card-content>
+            <div align="column">
+              <div layout="row" layout-padding>
+                <div flex="25"></div>
+                <div flex="15"><h5>Last minute</h5></div>
+                <div flex="15"><h5>Last hour</h5></div>
+                <div flex="15"><h5>Last day</h5></div>
+                <div flex="15"><h5>Last week</h5></div>
+                <div flex="15"><h5>Last month</h5></div>
+              </div>
+              <div layout="row"  ng-repeat="(gateway, metrics)  in healthCheckCtrl.gateway.availabilities.data.buckets">
+                <div layout="row" layout-padding ng-if="healthCheckCtrl.gateway.availabilities.data.metadata[gateway].deleted !== 'true'" flex>
+                  <div layout="column" flex="25">
+                    <span style="font-weight: bold">{{healthCheckCtrl.gateway.availabilities.data.metadata[gateway].hostname}}</span>
+                    <span style="color: rgba(0,0,0,0.54);font-size: 11px;">{{healthCheckCtrl.gateway.availabilities.data.metadata[gateway].deleted}}</span>
+                    <span style="color: rgba(0,0,0,0.54);font-size: 11px;">{{healthCheckCtrl.gateway.availabilities.data.metadata[gateway].ip}}</span>
+                  </div>
+                  <div layout="column" flex="15">
+                    <progress-bar value="metrics['1m'] | number: 0"></progress-bar>
+                    <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1m'] | number: 0 }} ms</span>
+                  </div>
+                  <div layout="column" flex="15">
+                    <progress-bar value="metrics['1h'] | number: 0"></progress-bar>
+                    <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1h'] | number: 0 }} ms</span>
+                  </div>
+                  <div layout="column" flex="15">
+                    <progress-bar value="metrics['1d'] | number: 0"></progress-bar>
+                    <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1d'] | number: 0 }} ms</span>
+                  </div>
+                  <div layout="column" flex="15">
+                    <progress-bar value="metrics['1w'] | number: 0"></progress-bar>
+                    <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1w'] | number: 0 }} ms</span>
+                  </div>
+                  <div layout="column" flex="15">
+                    <progress-bar value="metrics['1M'] | number: 0"></progress-bar>
+                    <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1M'] | number: 0 }} ms</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </md-card-content>
+        </div>
+      </md-card>
+    </div>
+    <div layout="row">
+      <md-card flex>
+        <div class="widget-card" flex>
+          <md-card-title>
+            <md-card-title-text>
+              <span class="md-title"><strong>Latest check</strong></span>
+              <span class="md-subhead">&nbsp;</span>
+            </md-card-title-text>
+            <md-card-title-media>
+            </md-card-title-media>
+          </md-card-title>
+          <md-card-content>
+            <div layout="column" layout-padding>
+              <md-table-container>
+                <table md-table class="gravitee-analytics-top-hits-table" multiple md-row-select="healthCheckCtrl.widget.chart.selectable" data-ng-model="healthCheckCtrl.selected">
+                  <thead md-head>
+                    <tr md-row>
+                      <th md-column>Date</th>
+                      <th md-column>Endpoint</th>
+                      <th md-column>Gateway</th>
+                      <th md-column>Health</th>
+                      <th md-column>Target</th>
+                      <th md-column>Status | Elapsed Time</th>
+                      <th md-column></th>
+                    </tr>
+                  </thead>
+                  <tbody md-body>
+                    <tr ng-if="healthCheckCtrl.logs.logs.length > 0" md-row
+                        ng-repeat="log in healthCheckCtrl.logs.logs | limitTo: healthCheckCtrl.query.size"
+                        md-auto-select md-select="log" md-select-id="key">
+                      <td md-cell>{{log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
+                      <td md-cell>
+                        <md-tooltip md-direction="bottom">{{healthCheckCtrl.getEndpointStatus(log.state)}}</md-tooltip>
+                        <ng-md-icon ng-if="log.state === 0" icon="close" size="14px" style="fill: red"></ng-md-icon>
+                        <ng-md-icon ng-if="log.state === 1" icon="trending_down" size="14px" style="fill: orange"></ng-md-icon>
+                        <ng-md-icon ng-if="log.state === 2" icon="trending_up" size="14px" style="fill: orange"></ng-md-icon>
+                        <ng-md-icon ng-if="log.state === 3" icon="check" size="14px" style="fill: green"></ng-md-icon>
+                        {{log.endpoint}}
+                      </td>
+                      <td md-cell>{{healthCheckCtrl.getMetadata(log.gateway).hostname}}</td>
+                      <td md-cell>
+                        <ng-md-icon ng-if="log.success" icon="done" size="14px" style="fill: green"></ng-md-icon>
+                        <ng-md-icon ng-if="!log.success" icon="close" size="14px" style="fill: red"></ng-md-icon>
+                      </td>
+                      <td md-cell>
+                        <span>
+                          {{log.request.method | uppercase}} {{log.request.uri}}
+                        </span>
+                      </td>
+                      <td md-cell>{{log.response.status}} | {{log.responseTime}} ms</td>
+                      <td md-cell>
+                        <ng-md-icon ng-if="!log.success" icon="remove_red_eye" size="16px" ui-sref="management.apis.detail.proxy.healthcheck.log({log: log.id})"></ng-md-icon>
+                      </td>
+                    </tr>
+                    <tr ng-if="healthCheckCtrl.logs.total === 0">
+                      <td md-cell colspan="6">No log</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </md-table-container>
+
+              <md-table-pagination
+                md-limit="healthCheckCtrl.query.size"
+                md-limit-options="[10, 25, 50, 75, 100]"
+                md-page="healthCheckCtrl.query.page"
+                md-total="{{healthCheckCtrl.logs.total}}"
+                md-on-paginate="healthCheckCtrl.onPaginate"
+                md-page-select>
+              </md-table-pagination>
+            </div>
+          </md-card-content>
+        </div>
+      </md-card>
+    </div>
+  </div>
+</md-content>

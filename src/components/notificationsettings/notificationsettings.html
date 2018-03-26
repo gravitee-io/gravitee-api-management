@@ -15,11 +15,19 @@
     limitations under the License.
 
 -->
-<md-content flex layout-padding>
+
+
+<div class="gv-sub-menu" flex>
   <div layout="row" flex>
-    <div flex="15">
+    <div class="menu" flex="15">
+
+      <div ng-if="$ctrl.api" class="md-headline">{{$ctrl.api.name}} ({{$ctrl.api.version}})</div>
+      <div ng-if="$ctrl.api" class="aui-nav-heading">
+        <strong>Settings</strong>
+      </div>
+
       <ul class="aui-nav">
-        <li class="iterable-item" ng-class="{'aui-nav-selected':notificationSetting.id === $ctrl.selectedNotificationSetting.id}"
+        <li class="iterable-item" ng-class="{'aui-nav-selected': $ctrl.isActive(notificationSetting)}"
             ng-repeat="notificationSetting in $ctrl.notificationSettings"
             ng-click="$ctrl.selectNotificationSetting(notificationSetting)">
           <a class="execute" >{{notificationSetting.name}}</a>
@@ -29,24 +37,25 @@
 
     <md-content flex layout-padding ui-view>
       <div layout="column">
-        <div ng-if="$ctrl.selectedNotificationSetting.config_type==='generic'">
-          <h4>Configure the notifier you want to use:</h4>
-          <div layout="row" layout-wrap>
-            <md-input-container flex="60">
-              <label>Notifier</label>
-              <input readonly ng-model="$ctrl.selectedNotificationSetting.notifier">
-            </md-input-container>
-            <md-input-container flex="60">
-              <label ng-if="$ctrl.selectedNotifier.type === 'EMAIL'">Email list (use space, ',' or ';' to separate emails)</label>
-              <label ng-if="$ctrl.selectedNotifier.type === 'WEBHOOK'">URL (Gravitee will POST datas to this url)</label>
-              <input ng-model="$ctrl.selectedNotificationSetting.config">
-            </md-input-container>
+        <h4>{{$ctrl.selectedNotificationSetting.name}}</h4>
+          <div ng-if="$ctrl.selectedNotificationSetting.config_type==='generic'">
+            <h5>Configure the notifier you want to use:</h5>
+            <div layout="row" layout-wrap>
+              <md-input-container flex="60">
+                <label>Notifier</label>
+                <input readonly ng-model="$ctrl.selectedNotificationSetting.notifier">
+              </md-input-container>
+              <md-input-container flex="60">
+                <label ng-if="$ctrl.selectedNotifier.type === 'EMAIL'">Email list (use space, ',' or ';' to separate emails)</label>
+                <label ng-if="$ctrl.selectedNotifier.type === 'WEBHOOK'">URL (Gravitee will POST datas to this url)</label>
+                <input ng-model="$ctrl.selectedNotificationSetting.config" aria-label="Notifier configuration">
+              </md-input-container>
+            </div>
           </div>
-        </div>
-        <h4>Which events would you like to subscribe for ?</h4>
+        <h5>Which events would you like to subscribe for ?</h5>
         <div layout="column" layout-wrap>
           <div flex ng-repeat="category in $ctrl.hooksCategories">
-            <h5>{{category}}</h5>
+            <h6>{{category}}</h6>
             <div layout="row" layout-wrap>
               <div flex="35" ng-repeat="hook in $ctrl.hooksByCategory[category]">
                 <md-checkbox ng-model="$ctrl.hookStatus[hook.id]"
@@ -78,11 +87,11 @@
         </md-button>
       </div>
     </md-content>
+    <md-button permission permission-only="['api-notification-c', 'application-notification-c', 'management-notification-c']"
+               class="md-fab md-fab-bottom-right gravitee-add-button"
+               aria-label="Add"
+               ng-click="$ctrl.addDialog()">
+      <ng-md-icon icon="add"></ng-md-icon>
+    </md-button>
   </div>
-</md-content>
-<md-button permission permission-only="['api-notification-c', 'application-notification-c', 'management-notification-c']"
-           class="md-fab md-fab-bottom-right gravitee-add-button"
-           aria-label="Add"
-           ng-click="$ctrl.addDialog()">
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
+</div>
