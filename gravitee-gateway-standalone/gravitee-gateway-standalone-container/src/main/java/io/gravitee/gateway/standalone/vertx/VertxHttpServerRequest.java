@@ -60,7 +60,6 @@ class VertxHttpServerRequest implements Request {
         this.metrics.setHttpMethod(method());
         this.metrics.setLocalAddress(localAddress());
         this.metrics.setRemoteAddress(remoteAddress());
-        this.metrics.setPath(path());
         this.metrics.setUri(uri());
     }
 
