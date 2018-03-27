@@ -18,14 +18,22 @@
 <md-dialog aria-label="Define dates for the subscription">
   <md-dialog-content layout-padding>
     <h4>Accept subscription</h4>
-    <div ng-cloak class="md-inline-form">
+    <div ng-cloak layout="column">
+      <div class="md-inline-form">
+        <md-input-container>
+          <label>Start date</label>
+          <md-datepicker ng-model="starting_at" md-min-date="now"></md-datepicker>
+        </md-input-container>
+        <md-input-container>
+          <label>End date</label>
+          <md-datepicker ng-model="ending_at" md-min-date="starting_at"></md-datepicker>
+        </md-input-container>
+      </div>
       <md-input-container>
-        <label>Start date</label>
-        <md-datepicker ng-model="starting_at" md-min-date="now"></md-datepicker>
-      </md-input-container>
-      <md-input-container>
-        <label>End date</label>
-        <md-datepicker ng-model="ending_at" md-min-date="starting_at"></md-datepicker>
+        <div layout="column" ng-cloak class="md-inline-form">
+          <h5>If needed, add a message:</h5>
+          <textarea ng-model="reason"></textarea>
+        </div>
       </md-input-container>
     </div>
   </md-dialog-content>

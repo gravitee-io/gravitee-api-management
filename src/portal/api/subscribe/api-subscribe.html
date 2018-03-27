@@ -39,8 +39,7 @@
             md-min-length="0"
             placeholder="Search plans ..."
             md-autofocus="true"
-            md-menu-class="autocomplete-custom-template"
-            style="width: 450px;">
+            md-menu-class="autocomplete-custom-template" >
             <md-item-template>
               <md-list-item class="md-2-line contact-item">
                 <div class="md-list-item-text compact">
@@ -69,7 +68,7 @@
         <h1 translate="api.subscription.step2.title"></h1>
         <h5 translate="api.subscription.step2.subtitle"></h5>
 
-        <div layout="row">
+        <div layout="column">
           <md-autocomplete
             md-selected-item="$ctrl.selectedApp"
             md-search-text="filterApp"
@@ -81,8 +80,7 @@
             placeholder="{{'api.subscription.step2.application.placeholder' | translate}}"
             md-autofocus="true"
             ng-if="$ctrl.isPlanSubscribable()"
-            md-menu-class="autocomplete-custom-template"
-            style="width: 450px;">
+            md-menu-class="autocomplete-custom-template" >
             <md-item-template>
               <md-list-item class="md-2-line contact-item">
                 <div class="md-list-item-text compact">
@@ -92,7 +90,10 @@
             </md-item-template>
             <md-not-found translate="application.notFound" translate-values="{applicationName: filterApp}"></md-not-found>
           </md-autocomplete>
-
+          <md-input-container class="md-block">
+            <label>Optional message to the API Owner</label>
+            <textarea ng-model="$ctrl.requestMessage" md-maxlength="150" rows="2"></textarea>
+          </md-input-container>
           <md-button class="md-raised" ng-click="$ctrl.subscribe($ctrl.selectedApp)"
                      aria-label="subscribe-api-plan"
                      ng-disabled="!$ctrl.canApplicationSubscribe()"

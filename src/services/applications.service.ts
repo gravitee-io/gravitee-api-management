@@ -105,8 +105,14 @@ class ApplicationService {
   /*
    * Subscriptions
    */
-  subscribe(applicationId, planId): ng.IHttpPromise<any> {
-    return this.$http.post(this.subscriptionsURL(applicationId) + '?plan=' + planId, '');
+  subscribe(applicationId: string, planId: string, request?: string): ng.IHttpPromise<any> {
+    let data;
+    if (request) {
+      data = {request: request}
+    } else {
+      data = '';
+    }
+    return this.$http.post(this.subscriptionsURL(applicationId) + '?plan=' + planId, data);
   }
 
   listSubscriptions(applicationId: string, query?: string): ng.IHttpPromise<PagedResult> {

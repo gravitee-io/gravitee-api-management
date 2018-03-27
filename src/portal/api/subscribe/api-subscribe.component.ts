@@ -37,6 +37,7 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
     private planInformation: any;
     private apiKey: any;
     private subscription: any;
+    private requestMessage: string;
 
     constructor(
       private $stateParams: ng.ui.IStateParamsService,
@@ -44,7 +45,7 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
       private ApplicationService: ApplicationService,
       private ApiService: ApiService,
       private Constants,
-      private $translate) {
+      private $scope: ng.IScope) {
       'ngInject';
     }
 
@@ -78,7 +79,7 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
     }
 
     subscribe(application: any) {
-      this.ApplicationService.subscribe(application.id, this.selectedPlan.id).then( (subscription) => {
+      this.ApplicationService.subscribe(application.id, this.selectedPlan.id, this.requestMessage).then( (subscription) => {
         this.subscription = subscription.data;
         this.NotificationService.show('api.subscription.step3.successful', null, {planName: this.selectedPlan.name});
         this.fetchApiKey(this.subscription.id);

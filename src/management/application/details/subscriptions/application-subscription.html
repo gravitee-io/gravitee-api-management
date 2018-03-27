@@ -32,35 +32,38 @@
         <tr md-row style="height: 30px;">
           <td md-cell><span style="font-weight: bold">API</span></td>
           <td md-cell><span style="font-weight: bold">{{$ctrl.subscription.api.name}}</span></td>
-
           <td md-cell><span style="font-weight: bold">Processed at</span></td>
           <td md-cell>{{$ctrl.subscription.processed_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status">
           <td md-cell><span style="font-weight: bold">Plan</span></td>
           <td md-cell><span style="font-weight: bold">{{$ctrl.subscription.plan.name}}</span> ({{$ctrl.subscription.plan.security}})</td>
-
           <td md-cell><span style="font-weight: bold">Starting at</span></td>
           <td md-cell>{{$ctrl.subscription.starting_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
         <tr md-row style="height: 30px;"  ng-if="'rejected' !== $ctrl.subscription.status">
           <td md-cell><span style="font-weight: bold">Status</span></td>
           <td md-cell>{{$ctrl.subscription.status|uppercase}}</td>
-
           <td md-cell><span style="font-weight: bold">Ending at</span></td>
           <td md-cell>{{$ctrl.subscription.ending_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' === $ctrl.subscription.status">
           <td md-cell><span style="font-weight: bold">Status</span></td>
-          <td md-cell>{{$ctrl.subscription.status|uppercase}} (Reason: {{$ctrl.subscription.reason || '-'}})</td>
-
+          <td md-cell>{{$ctrl.subscription.status|uppercase}}</td>
           <td md-cell><span style="font-weight: bold">Closed at</span></td>
           <td md-cell>{{$ctrl.subscription.closed_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
+        <tr md-row style="height: 30px;" ng-if="$ctrl.subscription.request">
+          <td md-cell><span style="font-weight: bold">Message from subscriber</span></td>
+          <td md-cell colspan="3">{{$ctrl.subscription.request}}</td>
+        </tr>
+        <tr md-row style="height: 30px;" ng-if="$ctrl.subscription.reason">
+          <td md-cell><span style="font-weight: bold">Message to subscriber</span></td>
+          <td md-cell colspan="3">{{$ctrl.subscription.reason}}</td>
+        </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status && $ctrl.subscription.closed_at">
-          <td md-cell colspan="2"></td>
           <td md-cell><span style="font-weight: bold">Closed at</span></td>
-          <td md-cell>{{$ctrl.subscription.closed_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
+          <td md-cell colspan="3">{{$ctrl.subscription.closed_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
         <tr md-row style="height: 30px;">
           <td md-cell><span style="font-weight: bold">Subscribed by</span></td>

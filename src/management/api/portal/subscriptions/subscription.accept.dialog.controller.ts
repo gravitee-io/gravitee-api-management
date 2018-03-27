@@ -25,7 +25,11 @@ function DialogSubscriptionAcceptController($scope, $mdDialog) {
   };
 
   this.save = function () {
-    $mdDialog.hide({starting_at: $scope.starting_at, ending_at: $scope.ending_at});
+    $mdDialog.hide({
+      starting_at: $scope.starting_at,
+      ending_at: $scope.ending_at,
+      reason: $scope.reason
+    });
   };
 }
 
