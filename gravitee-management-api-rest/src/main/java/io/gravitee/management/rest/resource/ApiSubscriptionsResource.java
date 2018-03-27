@@ -107,7 +107,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             @ApiParam(name = "plan", required = true)
             @NotNull @QueryParam("plan") String plan) {
         // Create subscription
-        SubscriptionEntity subscription = subscriptionService.create(plan, application);
+        SubscriptionEntity subscription = subscriptionService.create(new NewSubscriptionEntity(plan, application));
 
         if (subscription.getStatus() == SubscriptionStatus.PENDING) {
             ProcessSubscriptionEntity process = new ProcessSubscriptionEntity();

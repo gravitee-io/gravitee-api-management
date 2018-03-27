@@ -176,7 +176,7 @@ public class SubscriptionServiceTest {
         when(planService.findById(PLAN_ID)).thenReturn(plan);
 
         // Run
-        subscriptionService.create(PLAN_ID, APPLICATION_ID);
+        subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
@@ -186,7 +186,7 @@ public class SubscriptionServiceTest {
         when(planService.findById(PLAN_ID)).thenReturn(plan);
 
         // Run
-        subscriptionService.create(PLAN_ID, APPLICATION_ID);
+        subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
 
     @Test(expected = PlanNotSubscribableException.class)
@@ -196,7 +196,7 @@ public class SubscriptionServiceTest {
         when(planService.findById(PLAN_ID)).thenReturn(plan);
 
         // Run
-        subscriptionService.create(PLAN_ID, APPLICATION_ID);
+        subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
 
     @Test
@@ -259,7 +259,7 @@ public class SubscriptionServiceTest {
         });
 
         // Run
-        final SubscriptionEntity subscriptionEntity = subscriptionService.create(PLAN_ID, APPLICATION_ID);
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
 
         // Verify
         verify(subscriptionRepository, times(1)).create(any(Subscription.class));
@@ -355,7 +355,7 @@ public class SubscriptionServiceTest {
                 });
 
         // Run
-        final SubscriptionEntity subscriptionEntity = subscriptionService.create(PLAN_ID, APPLICATION_ID);
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
 
         // Verify
         verify(subscriptionRepository, times(1)).create(any(Subscription.class));
@@ -453,7 +453,7 @@ public class SubscriptionServiceTest {
                 });
 
         // Run
-        final SubscriptionEntity subscriptionEntity = subscriptionService.create(PLAN_ID, APPLICATION_ID);
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
 
         // Verify
         verify(subscriptionRepository, times(1)).create(any(Subscription.class));
@@ -531,7 +531,7 @@ public class SubscriptionServiceTest {
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
 
         // Run
-        subscriptionService.create(PLAN_ID, APPLICATION_ID);
+        subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
 
     @Test(expected = SubscriptionNotFoundException.class)
@@ -790,7 +790,7 @@ public class SubscriptionServiceTest {
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
 
         // Run
-        subscriptionService.create(PLAN_ID, APPLICATION_ID);
+        subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
 
     @Test(expected = PlanNotSubscribableException.class)
@@ -801,7 +801,7 @@ public class SubscriptionServiceTest {
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
 
         // Run
-        subscriptionService.create(PLAN_ID, APPLICATION_ID);
+        subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
 
     @Test(expected = PlanNotSubscribableException.class)
@@ -826,6 +826,6 @@ public class SubscriptionServiceTest {
         when(planService.findById("my-plan-2")).thenReturn(plan2);
 
         // Run
-        subscriptionService.create(PLAN_ID, APPLICATION_ID);
+        subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
 }

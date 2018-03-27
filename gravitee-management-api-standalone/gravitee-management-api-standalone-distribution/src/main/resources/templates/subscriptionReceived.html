@@ -9,6 +9,10 @@
 			<#if plan.validation == 'MANUAL'>
 				<p>This subscription need your approval<#if subscriptionsUrl?? && subscriptionsUrl != ''> <a href="${subscriptionsUrl}">here</a></#if>.</p>
 			</#if>
+
+			<#if subscription.request??>
+				<p>${subscription.request}</p>
+			</#if>
       	</div>
 	</body>
 </html>

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.management.model.PlanSecurityType;
 import io.gravitee.management.model.SubscriptionStatus;
 
+import javax.ws.rs.BeanParam;
 import java.util.Date;
 
 /**
@@ -45,6 +46,8 @@ public class Subscription {
 
     @JsonProperty("subscribed_by")
     private User subscribedBy;
+
+    private String request;
 
     private String reason;
 
@@ -134,6 +137,14 @@ public class Subscription {
 
     public void setSubscribedBy(User subscribedBy) {
         this.subscribedBy = subscribedBy;
+    }
+
+    public String getRequest() {
+        return request;
+    }
+
+    public void setRequest(String request) {
+        this.request = request;
     }
 
     public String getReason() {

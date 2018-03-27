@@ -44,6 +44,8 @@ public class SubscriptionEntity {
     @JsonProperty("subscribed_by")
     private String subscribedBy;
 
+    private String request;
+
     private String reason;
 
     @JsonProperty("starting_at")
@@ -148,6 +150,14 @@ public class SubscriptionEntity {
 
     public void setSubscribedBy(String subscribedBy) {
         this.subscribedBy = subscribedBy;
+    }
+
+    public String getRequest() {
+        return request;
+    }
+
+    public void setRequest(String request) {
+        this.request = request;
     }
 
     public String getReason() {

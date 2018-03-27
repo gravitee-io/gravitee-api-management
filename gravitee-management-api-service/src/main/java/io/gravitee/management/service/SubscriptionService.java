@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.management.model.NewSubscriptionEntity;
 import io.gravitee.management.model.ProcessSubscriptionEntity;
 import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.model.UpdateSubscriptionEntity;
@@ -45,7 +46,7 @@ public interface SubscriptionService {
 
     Collection<SubscriptionEntity> findByPlan(String plan);
 
-    SubscriptionEntity create(String plan, String application);
+    SubscriptionEntity create(NewSubscriptionEntity newSubscriptionEntity);
 
     SubscriptionEntity update(UpdateSubscriptionEntity subscription);
 

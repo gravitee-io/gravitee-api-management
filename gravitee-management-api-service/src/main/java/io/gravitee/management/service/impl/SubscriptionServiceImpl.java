@@ -146,7 +146,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     @Override
-    public SubscriptionEntity create(String plan, String application) {
+    public SubscriptionEntity create(NewSubscriptionEntity newSubscriptionEntity) {
+        String plan = newSubscriptionEntity.getPlan();
+        String application = newSubscriptionEntity.getApplication();
         try {
             logger.debug("Create a new subscription for plan {} and application {}", plan, application);
 
@@ -227,6 +229,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setCreatedAt(new Date());
             subscription.setUpdatedAt(subscription.getCreatedAt());
             subscription.setStatus(Subscription.Status.PENDING);
+            subscription.setRequest(newSubscriptionEntity.getRequest());
             subscription.setSubscribedBy(getAuthenticatedUser().getUsername());
             subscription.setClientId(applicationEntity.getClientId());
             String apiId = planEntity.getApis().iterator().next();
@@ -256,6 +259,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .plan(planEntity)
                     .application(applicationEntity)
                     .owner(apiOwner)
+                    .subscription(convert(subscription))
                     .subscriptionsUrl(subscriptionsUrl)
                     .build();
 
@@ -370,6 +374,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setStartingAt((processSubscription.getStartingAt() != null) ?
                         processSubscription.getStartingAt() : new Date());
                 subscription.setEndingAt(processSubscription.getEndingAt());
+                subscription.setReason(processSubscription.getReason());
             } else {
                 subscription.setStatus(Subscription.Status.REJECTED);
                 subscription.setReason(processSubscription.getReason());
@@ -622,6 +627,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setProcessedAt(subscription.getProcessedAt());
         entity.setStatus(SubscriptionStatus.valueOf(subscription.getStatus().name()));
         entity.setProcessedBy(subscription.getProcessedBy());
+        entity.setRequest(subscription.getRequest());
         entity.setReason(subscription.getReason());
         entity.setApplication(subscription.getApplication());
         entity.setStartingAt(subscription.getStartingAt());
