@@ -71,7 +71,7 @@ public class FileReporterTest {
 				reportable.setRequestContentLength(12345);
 				reportable.setHttpMethod(HttpMethod.POST);
 				reportable.setLocalAddress("12.12.12.12");
-				reportable.setPath("/dfhgkdlfjgklfgjflkd/yeah");
+				reportable.setUri("/dfhgkdlfjgklfgjflkd/yeah");
 				reportable.setRemoteAddress("123.123.123.123");
 				reportable.setResponseContentLength(12345);
 				reportable.setStatus(200);

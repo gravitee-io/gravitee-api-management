@@ -142,7 +142,7 @@ public class FileReporter extends AbstractService implements Reporter {
 		// Append request method and URI
 		buf.append(metrics.getHttpMethod());
 		buf.append(' ');
-		buf.append(metrics.getPath());
+		buf.append(metrics.getUri());
 		buf.append(' ');
 
 		// Append response status
