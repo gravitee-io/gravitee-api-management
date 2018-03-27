@@ -18,7 +18,7 @@ package io.gravitee.gateway.report.impl.lmax;
 import io.gravitee.reporter.api.Reportable;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 class ReportableEvent {
@@ -31,5 +31,9 @@ class ReportableEvent {
 
     void setReportable(Reportable reportable) {
         this.reportable = reportable;
+    }
+
+    void clear() {
+        reportable = null;
     }
 }

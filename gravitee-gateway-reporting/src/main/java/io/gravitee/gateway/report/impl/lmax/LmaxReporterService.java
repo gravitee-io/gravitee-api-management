@@ -30,7 +30,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class LmaxReporterService extends ReporterServiceImpl implements InitializingBean {
@@ -74,8 +74,9 @@ public class LmaxReporterService extends ReporterServiceImpl implements Initiali
     protected void doStart() throws Exception {
         super.doStart();
 
-        disruptor.handleEventsWith(
-                (ReporterEventHandler []) getReporters().stream().map(ReporterEventHandler::new).collect(Collectors.toList()).toArray(new ReporterEventHandler[getReporters().size()]));
+        disruptor
+                .handleEventsWith((ReporterEventHandler []) getReporters().stream().map(ReporterEventHandler::new).collect(Collectors.toList()).toArray(new ReporterEventHandler[getReporters().size()]))
+                .then(new ClearingEventHandler());
 
         logger.info("Start reportable event disruptor");
         disruptor.start();
@@ -85,8 +86,8 @@ public class LmaxReporterService extends ReporterServiceImpl implements Initiali
     protected void doReport(Reportable reportable) {
         boolean eventWasPublished = disruptor.getRingBuffer().tryPublishEvent((reportableEvent, l) -> reportableEvent.setReportable(reportable));
         if(!eventWasPublished) {
-        	logger.warn("A reportable event was dropped ! Check for slow reporter consumer or a too small {reporters.system.buffersize}, actual value = {}",
-        			disruptor.getRingBuffer().getBufferSize());
+            logger.warn("A reportable event was dropped ! Check for slow reporter consumer or a too small {reporters.system.buffersize}, actual value = {}",
+                    disruptor.getRingBuffer().getBufferSize());
         }
     }
 }
