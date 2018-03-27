@@ -159,6 +159,9 @@ public class JdbcMembershipRepository implements MembershipRepository {
                     , membership.getReferenceType().name()
                     , membership.getReferenceId()
             );
+            jdbcTemplate.update("delete from membership_roles where user_id = ? and reference_id = ? and reference_type = ?"
+                    , membership.getUserId(), membership.getReferenceId(), membership.getReferenceType().name()
+            );
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete membership", ex);
             throw new TechnicalException("Failed to delete membership", ex);
