@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.ldap.LimitExceededException;
+import org.springframework.ldap.NameNotFoundException;
 import org.springframework.ldap.core.ContextMapper;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.LdapTemplate;
@@ -144,6 +145,8 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
                             LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME
                     },
                     USER_CONTEXT_MAPPER);
+        } catch (final NameNotFoundException nnfe) {
+            return null;
         } finally {
             Thread.currentThread().setContextClassLoader(classLoader);
         }

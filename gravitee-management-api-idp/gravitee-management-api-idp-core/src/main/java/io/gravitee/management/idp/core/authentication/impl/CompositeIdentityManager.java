@@ -28,6 +28,9 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -42,22 +45,24 @@ public class CompositeIdentityManager implements IdentityManager {
     private Collection<IdentityLookup> identityLookups = new ArrayList<>();
 
     @Override
-    public Optional<User> lookup(String reference) {
+    public Optional<User> lookup(final String reference) {
         LOGGER.debug("Looking for a user: reference[{}]", reference);
         try {
             IdentityReference identityReference = referenceSerializer.deserialize(reference);
             LOGGER.debug("Lookup identity information from reference: source[{}] id[{}]",
                     identityReference.getSource(), identityReference.getReference());
-
-            return identityLookups.stream()
-                    .filter(identityLookup -> identityLookup.canHandle(identityReference))
-                    .map(identityLookup -> identityLookup.retrieve(identityReference))
-                    .findFirst();
-        } catch (Exception ex) {
-            LOGGER.error("Unable to extract IDP: token[{}]", reference);
+            for (final IdentityLookup identityLookup : identityLookups) {
+                if (identityLookup.canHandle(identityReference)) {
+                    final User user = identityLookup.retrieve(identityReference);
+                    if (user != null) {
+                        return of(user);
+                    }
+                }
+            }
+        } catch (final Exception ex) {
+            LOGGER.error("Unable to extract IDP: token[" + reference + "]", ex);
         }
-
-        return Optional.empty();
+        return empty();
     }
 
     @Override
