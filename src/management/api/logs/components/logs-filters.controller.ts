@@ -142,11 +142,11 @@ class LogsFiltersController {
       if (key === 'application' || key === 'plan') {
         val = that.map(val, that.reordererdMedata, false);
       }
-      if (key === 'path') {
+      if (key === 'uri') {
         if (!val.startsWith('/')) {
           val = '/' + val;
         }
-        val = val.replace(/\//g, '//');
+        val = val.replace(/\//g, '\\\\/') + '*';
       }
       let params = (val.constructor === Array && val.length > 1) ? that.convert(val) : val;
       query += that.map(key, that.fields, true) + ':' + params;
