@@ -107,6 +107,7 @@ public class RedisSubscriptionRepository implements SubscriptionRepository {
         subscription.setClientId(redisSubscription.getClientId());
         subscription.setPlan(redisSubscription.getPlan());
         subscription.setProcessedBy(redisSubscription.getProcessedBy());
+        subscription.setRequest(redisSubscription.getRequest());
         subscription.setReason(redisSubscription.getReason());
         subscription.setSubscribedBy(redisSubscription.getSubscribedBy());
 
@@ -134,6 +135,7 @@ public class RedisSubscriptionRepository implements SubscriptionRepository {
         RedisSubscription redisSubscription = new RedisSubscription();
         redisSubscription.setId(subscription.getId());
         redisSubscription.setStatus(subscription.getStatus().name());
+        redisSubscription.setRequest(subscription.getRequest());
         redisSubscription.setReason(subscription.getReason());
         redisSubscription.setProcessedBy(subscription.getProcessedBy());
         redisSubscription.setApplication(subscription.getApplication());

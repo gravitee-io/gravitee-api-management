@@ -58,6 +58,7 @@ public class RedisSubscription {
      * Give a reason to the developer if the subscription is not accepted.
      */
     private String reason;
+    private String request;
 
     private String status;
 
@@ -134,6 +135,14 @@ public class RedisSubscription {
 
     public void setProcessedAt(long processedAt) {
         this.processedAt = processedAt;
+    }
+
+    public String getRequest() {
+        return request;
+    }
+
+    public void setRequest(String request) {
+        this.request = request;
     }
 
     public String getReason() {
