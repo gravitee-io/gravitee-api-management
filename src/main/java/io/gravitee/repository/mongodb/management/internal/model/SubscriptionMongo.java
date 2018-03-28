@@ -65,7 +65,12 @@ public class SubscriptionMongo extends Auditable {
     private Date processedAt;
 
     /**
-     * Give a reason to the developer if the subscription is not accepted.
+     * Give a request message to the api owner why a user want to subscribe
+     */
+    private String request;
+
+    /**
+     * Give a reason to the developer if the subscription is accepted or not.
      */
     private String reason;
 
@@ -124,6 +129,14 @@ public class SubscriptionMongo extends Auditable {
 
     public void setProcessedAt(Date processedAt) {
         this.processedAt = processedAt;
+    }
+
+    public String getRequest() {
+        return request;
+    }
+
+    public void setRequest(String request) {
+        this.request = request;
     }
 
     public String getReason() {
