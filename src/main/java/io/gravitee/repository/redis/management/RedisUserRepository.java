@@ -15,8 +15,10 @@
  */
 package io.gravitee.repository.redis.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.redis.management.internal.UserRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisUser;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -49,6 +52,11 @@ public class RedisUserRepository implements UserRepository {
     public User create(User user) throws TechnicalException {
         RedisUser redisUser = userRedisRepository.saveOrUpdate(convert(user));
         return convert(redisUser);
+    }
+
+    @Override
+    public void delete(String id) throws TechnicalException {
+        userRedisRepository.delete(id);
     }
 
     @Override
@@ -81,12 +89,16 @@ public class RedisUserRepository implements UserRepository {
     }
 
     @Override
-    public Set<User> findAll() throws TechnicalException {
-        Set<RedisUser> users = userRedisRepository.findAll();
-
-        return users.stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+    public Page<User> search(Pageable pageable) throws TechnicalException {
+        Page<RedisUser> redisUserPage = userRedisRepository.search(pageable);
+        return new Page<>(
+                redisUserPage.getContent()
+                        .stream()
+                        .map(this::convert)
+                        .collect(Collectors.toList()),
+                redisUserPage.getPageNumber(),
+                Long.valueOf(redisUserPage.getPageElements()).intValue(),
+                redisUserPage.getTotalElements());
     }
 
     private User convert(RedisUser redisUser) {

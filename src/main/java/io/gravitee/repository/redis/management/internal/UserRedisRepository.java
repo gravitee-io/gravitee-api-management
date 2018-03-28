@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.redis.management.model.RedisUser;
 
 import java.util.List;
@@ -35,6 +37,8 @@ public interface UserRedisRepository {
     Set<RedisUser> findAll();
 
     RedisUser saveOrUpdate(RedisUser user);
+
+    Page<RedisUser> search(Pageable pageable);
 
     void delete(String user);
 }

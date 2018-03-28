@@ -30,6 +30,8 @@ public interface MembershipRedisRepository {
 
     Set<RedisMembership> findByIds(String userId, String referenceType, Set<String> referenceIds);
 
+    Set<RedisMembership> findByUser(String userId);
+
     RedisMembership saveOrUpdate(RedisMembership membership);
 
     void delete(RedisMembership membership);
@@ -37,4 +39,6 @@ public interface MembershipRedisRepository {
     Set<RedisMembership> findByReferences(String referenceType, List<String> referenceIds);
 
     Set<RedisMembership> findByUserAndReferenceType(String userId, String referenceType);
+
+    Set<RedisMembership> findAll();
 }

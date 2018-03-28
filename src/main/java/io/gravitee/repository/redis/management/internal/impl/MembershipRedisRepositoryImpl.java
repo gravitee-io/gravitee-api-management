@@ -58,11 +58,24 @@ public class MembershipRedisRepositoryImpl extends AbstractRedisRepository imple
     }
 
     @Override
+    public Set<RedisMembership> findByUser(String userId) {
+        Set<Object> keys = redisTemplate.opsForSet().members(getUserKey(userId));
+        List<Object> values = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
+        Set<RedisMembership> memberships = values.stream()
+                .filter(Objects::nonNull)
+                .map(membership -> convert(membership, RedisMembership.class))
+                .distinct()
+                .collect(Collectors.toSet());
+        return memberships;
+    }
+
+    @Override
     public RedisMembership saveOrUpdate(RedisMembership membership) {
         redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
             redisTemplate.opsForHash().put(REDIS_KEY, getMembershipKey(membership), membership);
             redisTemplate.opsForSet().add(getMembershipByReferenceKey(membership), getMembershipKey(membership));
             redisTemplate.opsForSet().add(getMembershipByUserKey(membership), getMembershipKey(membership));
+            redisTemplate.opsForSet().add(getUserKey(membership.getUserId()), getMembershipKey(membership));
             return null;
         });
         return membership;
@@ -74,6 +87,7 @@ public class MembershipRedisRepositoryImpl extends AbstractRedisRepository imple
             redisTemplate.opsForHash().delete(REDIS_KEY, getMembershipKey(membership));
             redisTemplate.opsForSet().remove(getMembershipByReferenceKey(membership), getMembershipKey(membership));
             redisTemplate.opsForSet().remove(getMembershipByUserKey(membership), getMembershipKey(membership));
+            redisTemplate.opsForSet().remove(getUserKey(membership.getUserId()), getMembershipKey(membership));
             return null;
         });
     }
@@ -102,6 +116,14 @@ public class MembershipRedisRepositoryImpl extends AbstractRedisRepository imple
                 .collect(Collectors.toSet());
     }
 
+    public Set<RedisMembership> findAll() {
+        Collection<Object> values = redisTemplate.opsForHash().entries(REDIS_KEY).values();
+        return values.stream()
+                .filter(Objects::nonNull)
+                .map(membership -> convert(membership, RedisMembership.class))
+                .collect(Collectors.toSet());
+    }
+
 
     private String getMembershipKey(RedisMembership membership) {
         return getMembershipKey(membership.getUserId(), membership.getReferenceType(), membership.getReferenceId());
@@ -124,5 +146,9 @@ public class MembershipRedisRepositoryImpl extends AbstractRedisRepository imple
 
     private String getMembershipByUserKey(String userId, String referenceType) {
         return REDIS_KEY + ":user:" + userId + ":" + referenceType;
+    }
+
+    private String getUserKey(String userId) {
+        return REDIS_KEY + ":user:" + userId;
     }
 }

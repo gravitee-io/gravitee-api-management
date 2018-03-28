@@ -15,15 +15,19 @@
  */
 package io.gravitee.repository.redis.management.internal.impl;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.redis.management.internal.UserRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisUser;
 import org.springframework.stereotype.Component;
 
+import javax.swing.plaf.synth.SynthEditorPaneUI;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -68,6 +72,31 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
                 .stream()
                 .map(object -> convert(object, RedisUser.class))
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Page<RedisUser> search(Pageable pageable) {
+        Set<Object> keys = redisTemplate
+                .opsForHash()
+                .keys(REDIS_KEY);
+
+        Set<Object> subKeys = keys.stream()
+                .skip(pageable.from())
+                .limit(pageable.to())
+                .collect(Collectors.toSet());
+
+        List<Object> usersObject = redisTemplate
+                .opsForHash()
+                .multiGet(REDIS_KEY, subKeys);
+
+        Page<RedisUser> page = new Page<>(
+                usersObject.stream()
+                        .map(u -> convert(u, RedisUser.class))
+                        .collect(Collectors.toList()),
+                pageable.pageNumber(),
+                pageable.pageSize(),
+                keys.size());
+        return page;
     }
 
     @Override

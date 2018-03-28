@@ -70,6 +70,11 @@ public class RedisMembershipRepository implements MembershipRepository {
     }
 
     @Override
+    public Set<Membership> findByUser(String userId) throws TechnicalException {
+        return membershipRedisRepository.findByUser(userId).stream().map(this::convert).collect(Collectors.toSet());
+    }
+
+    @Override
     public Set<Membership> findByIds(String userId, MembershipReferenceType referenceType, Set<String> referenceIds) throws TechnicalException {
         return membershipRedisRepository.findByIds(userId, referenceType.name(), referenceIds).stream().map(this::convert).collect(Collectors.toSet());
     }
@@ -114,6 +119,15 @@ public class RedisMembershipRepository implements MembershipRepository {
                     .map(this::convert)
                     .collect(Collectors.toSet());
         }
+    }
+
+    @Override
+    public Set<Membership> findByRole(RoleScope roleScope, String roleName) throws TechnicalException {
+        String membershipType = convertRoleToType(roleScope, roleName);
+        return membershipRedisRepository.findAll().stream()
+                .filter(membership -> membership.getRoles().contains(membershipType))
+                .map(this::convert)
+                .collect(Collectors.toSet());
     }
 
     private RedisMembership convert(Membership membership) {
