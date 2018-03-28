@@ -900,6 +900,7 @@ public class MockTestRepositoryConfiguration {
         sub1.setPlan("plan1");
         sub1.setApplication("app1");
         sub1.setApi("api1");
+        sub1.setRequest("request");
         sub1.setReason("reason");
         sub1.setStatus(Subscription.Status.PENDING);
         sub1.setProcessedBy("user1");

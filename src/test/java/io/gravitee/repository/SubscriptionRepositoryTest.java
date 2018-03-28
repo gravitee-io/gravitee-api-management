@@ -53,6 +53,7 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Subscription application", "app1", subscription.getApplication());
         assertEquals("Subscription api", "api1", subscription.getApi());
         assertEquals("Subscription reason", "reason", subscription.getReason());
+        assertEquals("Subscription request", "request", subscription.getRequest());
         assertEquals("Subscription status", Subscription.Status.PENDING, subscription.getStatus());
         assertEquals("Subscription processed by", "user1", subscription.getProcessedBy());
         assertEquals("Subscription subscribed by", "user2", subscription.getSubscribedBy());
