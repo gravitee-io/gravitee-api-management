@@ -184,7 +184,7 @@ class UserService {
   }
 
   save(user) {
-    return this.$http.put(`${this.userURL + user.username}/`, {username: user.username, picture: user.picture});
+    return this.$http.put(`${this.userURL}`, {username: user.username, picture: user.picture});
   }
 }
 
