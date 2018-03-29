@@ -448,7 +448,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	private TechnicalManagementException onUpdateFail(String pageId, FetcherException ex) {
 		logger.error("An error occurs while trying to update page {}", pageId, ex);
-		return new TechnicalManagementException("An error occurs while trying to update page " + pageId, ex);
+		return new TechnicalManagementException("An error occurs while trying to fetch content. " + ex.getMessage(), ex);
 	}
 
     @Override
