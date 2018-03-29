@@ -40,7 +40,7 @@ databaseChangeLog:
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
-                - column: {name: description, type: nvarchar(2048), constraints: { nullable: true } }
+                - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
                 - column: {name: version, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: definition, type: nclob, constraints: { nullable: false } }
                 - column: {name: deployed_at, type: timestamp(6), constraints: { nullable: true } }
@@ -431,7 +431,7 @@ databaseChangeLog:
                 - column: {name: processed_at, type: timestamp(6), constraints: { nullable: true } }
                 - column: {name: processed_by, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: subscribed_by, type: nvarchar(64), constraints: { nullable: true } }
-                - column: {name: reason, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: reason, type: nvarchar(1024), constraints: { nullable: true } }
                 - column: {name: status, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: api, type: nvarchar(64), constraints: { nullable: true } }
                 - column: {name: client_id, type: nvarchar(64), constraints: { nullable: true } }
@@ -683,7 +683,7 @@ databaseChangeLog:
             tableName: parameters
             columns:
                 - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: value, type: nvarchar(1024), constraints: { nullable: false } }
+                - column: {name: value, type: nvarchar(4000), constraints: { nullable: false } }
 
         - addPrimaryKey:
             constraintName: pk_parameters
@@ -695,7 +695,7 @@ databaseChangeLog:
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: title, type: nvarchar(64), constraints: { nullable: false } }
-                - column: {name: message, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: message, type: nvarchar(4000), constraints: { nullable: false } }
                 - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
 

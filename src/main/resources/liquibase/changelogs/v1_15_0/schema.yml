@@ -8,4 +8,4 @@ databaseChangeLog:
             columns:
                 - column:
                     name: request
-                    type: nvarchar(64)
+                    type: nvarchar(1024)
