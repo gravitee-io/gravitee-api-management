@@ -123,7 +123,7 @@ public class CurrentUserResource extends AbstractResource {
     @PUT
     @ApiOperation(value = "Update user")
     public Response updateCurrentUser(@Valid @NotNull final UpdateUserEntity user) {
-        if (!user.getUsername().equals(getAuthenticatedUser())) {
+        if (!user.getUsername().equals(userService.findById(getAuthenticatedUser()).getUsername())) {
             throw new ForbiddenAccessException();
         }
 

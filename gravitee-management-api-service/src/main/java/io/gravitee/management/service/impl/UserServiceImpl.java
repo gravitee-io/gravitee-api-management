@@ -290,6 +290,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     imageEntity.setType(parts[0].split(":")[1]);
                     String base64Content = picture.split(",", 2)[1];
                     imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
+                    return imageEntity;
                 } catch (Exception ex) {
                     LOGGER.warn("Unable to get user picture for id[{}]", id);
                 }
