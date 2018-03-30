@@ -134,7 +134,7 @@ import ApiEventsController from '../management/api/audit/events/apiEvents.contro
 import ApiHistoryController from '../management/api/audit/history/apiHistory.controller';
 import DialogAddPropertyController from '../management/api/design/properties/add-property.dialog.controller';
 import DialogAddMemberApiController from '../management/api/portal/userGroupAccess/members/addMemberDialog.controller';
-import DialogTransferApiController from '../management/api/portal/userGroupAccess/transferownership/transferAPIDialog.controller';
+import DialogTransferApiController from '../management/api/portal/userGroupAccess/transferOwnership/transferAPIDialog.controller';
 import DialogApiKeyExpirationController from '../management/api/portal/subscriptions/apikey.expiration.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
 import DocumentationDirective from '../management/api/portal/documentation/pages/apiDocumentation.directive';
