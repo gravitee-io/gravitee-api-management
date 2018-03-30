@@ -18,12 +18,10 @@ package io.gravitee.management.service;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.model.UserEntity;
-import io.gravitee.management.service.exceptions.ApplicationAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Application;
@@ -32,6 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.internal.util.collections.Sets;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
@@ -40,9 +39,7 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -99,7 +96,9 @@ public class ApplicationService_CreateTest {
 
     @Test(expected = ClientIdAlreadyExistsException.class)
     public void shouldNotCreateBecauseClientIdExists() throws TechnicalException {
-        when(applicationRepository.findByClientId(anyString())).thenReturn(Optional.of(application));
+        when(applicationRepository.findAll(ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(application));
+        when(application.getClientId()).thenReturn(CLIENT_ID);
+
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getClientId()).thenReturn(CLIENT_ID);
         when(newApplication.getDescription()).thenReturn("My description");
@@ -109,7 +108,7 @@ public class ApplicationService_CreateTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateForUserBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findByClientId(anyString())).thenThrow(TechnicalException.class);
+        when(applicationRepository.findAll(ApplicationStatus.ACTIVE)).thenThrow(TechnicalException.class);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getClientId()).thenReturn(CLIENT_ID);
         when(newApplication.getDescription()).thenReturn("My description");
