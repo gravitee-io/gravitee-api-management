@@ -65,15 +65,15 @@ export const NavbarComponent: ng.IComponentOptions = {
         }
       });
 
-      $scope.$on("graviteeUserTaskRefresh", function () {
-        vm.refreshUserTasks();
-      });
-
-      $scope.$on("graviteeUserCancelScheduledServices", function () {
-        vm.cancelRefreshUserTasks();
-      });
-
       vm.supportEnabled = Constants.support && Constants.support.enabled;
+    });
+
+    $scope.$on("graviteeUserTaskRefresh", function () {
+      vm.refreshUserTasks();
+    });
+
+    $scope.$on("graviteeUserCancelScheduledServices", function () {
+      vm.cancelRefreshUserTasks();
     });
 
     $transitions.onFinish({}, function (trans) {
