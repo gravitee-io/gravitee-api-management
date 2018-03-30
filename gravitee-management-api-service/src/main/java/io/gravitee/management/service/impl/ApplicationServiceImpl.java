@@ -25,7 +25,6 @@ import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.management.service.exceptions.SubscriptionNotClosableException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.ApplicationHook;
 import io.gravitee.management.service.notification.HookScope;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -197,8 +196,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             if (clientId != null && ! clientId.trim().isEmpty()) {
                 LOGGER.debug("Check that client_id is unique among all applications");
-                Optional<Application> byClientId = applicationRepository.findByClientId(clientId);
-                if (byClientId.isPresent()) {
+                final Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ACTIVE);
+                final boolean alreadyExistingApp = applications.stream().anyMatch(application -> clientId.equals(application.getClientId()));
+                if (alreadyExistingApp) {
                     LOGGER.error("An application already exists with the same client_id");
                     throw new ClientIdAlreadyExistsException(clientId);
                 }
@@ -284,10 +284,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             if (clientId != null && ! clientId.trim().isEmpty()) {
                 LOGGER.debug("Check that client_id is unique among all applications");
-                Optional<Application> byClientId = applicationRepository.findByClientId(clientId);
-
-                if (byClientId.isPresent() &&
-                        ! byClientId.get().getId().equals(optApplicationToUpdate.get().getId())) {
+                final Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ACTIVE);
+                final Optional<Application> byClientId = applications.stream().filter(application -> clientId.equals(application.getClientId())).findAny();
+                if (byClientId.isPresent() && !byClientId.get().getId().equals(optApplicationToUpdate.get().getId())) {
                     LOGGER.error("An application already exists with the same client_id");
                     throw new ClientIdAlreadyExistsException(clientId);
                 }
