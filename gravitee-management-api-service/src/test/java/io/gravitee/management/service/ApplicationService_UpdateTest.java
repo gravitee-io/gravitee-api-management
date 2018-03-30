@@ -35,6 +35,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.internal.util.collections.Sets;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
@@ -167,9 +168,11 @@ public class ApplicationService_UpdateTest {
     public void shouldNotUpdateBecauseDifferentApplication() throws TechnicalException {
         Application other = mock(Application.class);
         when(other.getId()).thenReturn("other-app");
+        when(other.getClientId()).thenReturn(CLIENT_ID);
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
-        when(applicationRepository.findByClientId(CLIENT_ID)).thenReturn(Optional.of(other));
+        when(applicationRepository.findAll(ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(other));
+
         when(application.getId()).thenReturn(APPLICATION_ID);
         when(existingApplication.getClientId()).thenReturn(CLIENT_ID);
 
