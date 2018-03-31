@@ -45,7 +45,7 @@ class DashboardController {
       col: 0,
       row: 0,
       sizeY: 1,
-      sizeX: 3,
+      sizeX: 2,
       title: 'Top API',
       subhead: 'Ordered by API calls',
       chart: {
@@ -60,10 +60,10 @@ class DashboardController {
         }
       }
     }, {
-      col: 3,
+      col: 2,
       row: 0,
       sizeY: 1,
-      sizeX: 3,
+      sizeX: 2,
       title: 'Top applications',
       subhead: 'Ordered by application calls',
       chart: {
@@ -134,7 +134,60 @@ class DashboardController {
           size: 10000
         }
       }
-    }];
+    },
+    {
+      col: 0,
+      row: 2,
+      sizeY: 1,
+      sizeX: 6,
+      title: 'Response Status',
+      subhead: 'Hits repartition by HTTP Status',
+      chart: {
+        type: 'line',
+        stacked: true,
+        labelPrefix: 'HTTP Status',
+        request: {
+          'type': 'date_histo',
+          'aggs': 'field:status'
+        }
+      }
+    }, {
+      col: 0,
+      row: 3,
+      sizeY: 1,
+      sizeX: 6,
+      title: 'Response times',
+      subhead: 'Average response time for the gateway and the API',
+      chart: {
+        type: 'line',
+        stacked: false,
+        request: {
+          'type': 'date_histo',
+          'aggs': 'avg:response-time;avg:api-response-time'
+        },
+        labels: ['Global latency (ms)', 'API latency (ms)']
+      }
+    },
+  {
+    col: 4,
+    row: 0,
+    sizeY: 1,
+    sizeX: 2,
+    title: 'Tenant repartition',
+    subhead: 'Hits repartition by tenant',
+    chart: {
+      type: 'table',
+      selectable: true,
+      columns: ['Tenant', 'Hits'],
+      paging: 5,
+      request: {
+        type: 'group_by',
+        field: 'tenant',
+        size: 20
+
+      }
+    }
+  }];
 
     var _that = this;
 
