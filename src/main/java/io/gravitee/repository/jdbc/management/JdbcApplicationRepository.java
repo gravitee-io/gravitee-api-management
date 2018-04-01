@@ -29,6 +29,8 @@ import java.sql.Types;
 import java.util.*;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptySet;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  *
@@ -125,6 +127,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     public Set<Application> findByIds(List<String> ids) throws TechnicalException {
         LOGGER.debug("JdbcApplicationRepository.findByIds({})", ids);
         try {
+            if (isEmpty(ids)) {
+                return emptySet();
+            }
             List<Application> applications = jdbcTemplate.query("select * from applications where id in ( "
                     + ORM.buildInClause(ids) + " )"
                     , (PreparedStatement ps) -> ORM.setArguments(ps, ids, 1)

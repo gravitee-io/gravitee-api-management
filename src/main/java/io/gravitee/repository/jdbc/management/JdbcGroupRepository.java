@@ -203,6 +203,9 @@ public class JdbcGroupRepository implements GroupRepository {
     @Override
     public Set<Group> findByIds(Set<String> ids) throws TechnicalException {
         LOGGER.debug("JdbcGroupRepository.findByIds({})", ids);
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptySet();
+        }
         final StringBuilder query = new StringBuilder(SELECT_ESCAPED_GROUP_TABLE_NAME
                 + " g left join group_administrators ga on g.id = ga.group_id ");
         ORM.buildInCondition(true, query, "id", ids);

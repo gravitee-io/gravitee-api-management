@@ -227,6 +227,17 @@ public class JdbcMembershipRepository implements MembershipRepository {
         return queryAndAddRoles(referenceId, referenceType, roleScope, roleName, query.toString());
     }
 
+    @Override
+    public Set<Membership> findByRole(RoleScope roleScope, String roleName) throws TechnicalException {
+        LOGGER.debug("JdbcMembershipRepository.findByRole({}, {})", roleScope, roleName);
+        final StringBuilder query = new StringBuilder("select m.user_id, m.reference_type, m.reference_id, m.created_at, m.updated_at "
+                + " from memberships m"
+                + " left join membership_roles mr on mr.user_id = m.user_id" +
+                " and mr.reference_type = m.reference_type and mr.reference_id = m.reference_id");
+        initializeWhereClause(null, null, roleScope, roleName, query);
+        return queryAndAddRoles(null, null, roleScope, roleName, query.toString());
+    }
+
     private void initializeWhereClause(final String referenceId, final MembershipReferenceType referenceType,
                                        final RoleScope roleScope, final String roleName, final StringBuilder query) {
         boolean first = true;
@@ -370,6 +381,20 @@ public class JdbcMembershipRepository implements MembershipRepository {
         } catch (final Exception ex) {
             LOGGER.error("Failed to find membership by user and membership type", ex);
             throw new TechnicalException("Failed to find membership by user and membership type", ex);
+        }
+    }
+
+    @Override
+    public Set<Membership> findByUser(String userId) throws TechnicalException {
+        LOGGER.debug("JdbcMembershipRepository.findByUser({})", userId);
+        try {
+            final String query = "select "
+                    + " user_id, reference_type, reference_id, created_at, updated_at "
+                    + " from memberships where user_id = ? ";
+            return queryAndAddRoles(userId, null, null, null, query);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find membership by user ", ex);
+            throw new TechnicalException("Failed to find by user ", ex);
         }
     }
 }

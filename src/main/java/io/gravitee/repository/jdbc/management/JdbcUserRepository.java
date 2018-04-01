@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,5 +105,18 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             LOGGER.error(msg, ex);
             throw new TechnicalException(msg, ex);
         }
+    }
+
+    @Override
+    public Page<User> search(Pageable pageable) throws TechnicalException {
+            LOGGER.debug("JdbcAbstractCrudRepository<{}>.findAll()", getOrm().getTableName());
+            try {
+                return getResultAsPage(
+                        pageable,
+                        jdbcTemplate.query(getOrm().getSelectAllSql(), getRowMapper()));
+            } catch (final Exception ex) {
+                LOGGER.error("Failed to find all {} items:", getOrm().getTableName(), ex);
+                throw new TechnicalException("Failed to find all " + getOrm().getTableName() + " items", ex);
+            }
     }
 }
