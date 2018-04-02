@@ -172,10 +172,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 			if (page.isPresent()) {
 				PageEntity pageEntity = convert(page.get());
-				if (transform
-						&& pageEntity.getConfiguration() != null
-						&& pageEntity.getConfiguration().getTryItURL() != null
-						&& !pageEntity.getConfiguration().getTryItURL().isEmpty()) {
+				if (transform) {
 					transformUsingConfiguration(pageEntity);
 					if (page.get().getApi() != null) {
 						transformWithTemplate(pageEntity, page.get().getApi());

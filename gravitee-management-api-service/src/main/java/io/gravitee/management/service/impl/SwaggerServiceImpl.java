@@ -110,7 +110,10 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     @Override
     public void transform(final PageEntity page) {
-        if (page.getContent() != null) {
+        if (page.getContent() != null
+                && page.getConfiguration() != null
+                && page.getConfiguration().getTryItURL() != null
+                && !page.getConfiguration().getTryItURL().isEmpty()) {
 
             Object swagger = transformV2(page.getContent(), page.getConfiguration());
 
