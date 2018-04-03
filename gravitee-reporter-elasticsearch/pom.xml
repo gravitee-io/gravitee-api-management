@@ -26,6 +26,7 @@
 		<version>1.15.0-SNAPSHOT</version>
 	</parent>
 
+	<groupId>io.gravitee.reporter</groupId>
 	<artifactId>gravitee-reporter-elasticsearch</artifactId>
 	<version>1.15.0-SNAPSHOT</version>
 
