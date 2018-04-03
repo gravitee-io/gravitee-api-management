@@ -250,10 +250,6 @@
 "type": "string",
 "index": "not_analyzed"
 },
-"path": {
-"type": "string",
-"index": "not_analyzed"
-},
 "plan": {
 "type": "string",
 "index": "not_analyzed"

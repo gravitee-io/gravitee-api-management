@@ -94,7 +94,6 @@ public class ElasticsearchReporterTest {
         requestMetrics.setResponseContentLength(10);
         requestMetrics.setUri("uri");
         requestMetrics.setRemoteAddress("remoteAddress");
-        requestMetrics.setPath("requestPath");
         requestMetrics.setLocalAddress("localAddress");
         requestMetrics.setRequestId("requestId");
         requestMetrics.setHttpMethod(HttpMethod.GET);
@@ -268,7 +267,6 @@ public class ElasticsearchReporterTest {
         requestMetrics.setHttpMethod(HttpMethod.GET);
         requestMetrics.setRequestId("ac096af0-cc48-4264-896a-f0cc4872644e");
         requestMetrics.setLocalAddress("172.18.0.6");
-        requestMetrics.setPath("/echo");
         requestMetrics.setRemoteAddress("172.18.0.1");
         requestMetrics.setUri("/echo");
         requestMetrics.setResponseContentLength(700);
