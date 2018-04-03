@@ -19,6 +19,7 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
+import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.Indexer;
 import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
 import io.gravitee.reporter.elasticsearch.spring.context.Elastic2xBeanRegistrer;
@@ -47,6 +48,9 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 	@Autowired
 	private Client client;
 
+	@Autowired
+	private ReporterConfiguration configuration;
+
 	/**
 	 * Indexer is settled in a lazy way as soon as the ES version has been discovered.
 	 */
@@ -54,69 +58,73 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 
 	@Override
 	protected void doStart() throws Exception {
-		super.doStart();
+		if (configuration.isEnabled()) {
+			super.doStart();
 
-		logger.info("Starting Elastic reporter engine...");
+			logger.info("Starting Elastic reporter engine...");
 
-		// Wait for a connection to ES and retry each 5 seconds
-		Single<Integer> singleVersion = client.getVersion()
-				.retryWhen(error -> error.flatMap(
-						throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST)));
+			// Wait for a connection to ES and retry each 5 seconds
+			Single<Integer> singleVersion = client.getVersion()
+					.retryWhen(error -> error.flatMap(
+							throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST)));
 
-		singleVersion.subscribe();
+			singleVersion.subscribe();
 
-		Integer version = singleVersion.blockingGet();
+			Integer version = singleVersion.blockingGet();
 
-		boolean registered = true;
+			boolean registered = true;
 
-		DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
+			DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
 
-		switch (version) {
-			case 2:
-				new Elastic2xBeanRegistrer().register(beanFactory);
-				break;
-			case 5:
-				new Elastic5xBeanRegistrer().register(beanFactory);
-				break;
-			case 6:
-				new Elastic6xBeanRegistrer().register(beanFactory);
-				break;
-			default:
-				registered = false;
-				logger.error("Version {} is not supported by this Elasticsearch connector", version);
-		}
+			switch (version) {
+				case 2:
+					new Elastic2xBeanRegistrer().register(beanFactory);
+					break;
+				case 5:
+					new Elastic5xBeanRegistrer().register(beanFactory);
+					break;
+				case 6:
+					new Elastic6xBeanRegistrer().register(beanFactory);
+					break;
+				default:
+					registered = false;
+					logger.error("Version {} is not supported by this Elasticsearch connector", version);
+			}
 
-		if (registered) {
-			IndexPreparer preparer = applicationContext.getBean(IndexPreparer.class);
-			preparer
-					.prepare()
-					.subscribe(new CompletableObserver() {
-						@Override
-						public void onSubscribe(Disposable d) {
+			if (registered) {
+				IndexPreparer preparer = applicationContext.getBean(IndexPreparer.class);
+				preparer
+						.prepare()
+						.subscribe(new CompletableObserver() {
+							@Override
+							public void onSubscribe(Disposable d) {
 
-						}
+							}
 
-						@Override
-						public void onComplete() {
-							logger.info("Index mapping template successfully defined");
-						}
+							@Override
+							public void onComplete() {
+								logger.info("Index mapping template successfully defined");
+							}
 
-						@Override
-						public void onError(Throwable t) {
-							logger.error("An error occurs while creating index mapping template", t);
-						}
-					});
+							@Override
+							public void onError(Throwable t) {
+								logger.error("An error occurs while creating index mapping template", t);
+							}
+						});
 
-			indexer = applicationContext.getBean(Indexer.class);
-			logger.info("Starting Elastic reporter engine... DONE");
-		} else {
-			logger.info("Starting Elastic reporter engine... ERROR");
+				indexer = applicationContext.getBean(Indexer.class);
+				logger.info("Starting Elastic reporter engine... DONE");
+			} else {
+				logger.info("Starting Elastic reporter engine... ERROR");
+			}
 		}
 	}
 
 	@Override
 	public void report(Reportable reportable) {
-		rxReport(reportable).subscribe();
+		if (configuration.isEnabled()) {
+			rxReport(reportable).subscribe();
+		}
 	}
 
 	Single rxReport(Reportable reportable) {
@@ -127,8 +135,10 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 
 	@Override
 	protected void doStop() throws Exception {
-		super.doStop();
+		if (configuration.isEnabled()) {
+			super.doStop();
 
-		logger.info("Stopping Elastic reporter engine... DONE");
+			logger.info("Stopping Elastic reporter engine... DONE");
+		}
 	}
 }
