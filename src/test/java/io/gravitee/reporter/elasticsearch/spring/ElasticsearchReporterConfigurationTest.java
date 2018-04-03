@@ -47,7 +47,7 @@ public class ElasticsearchReporterConfigurationTest {
     public ReporterConfiguration configuration() {
         ReporterConfiguration elasticConfiguration = new ReporterConfiguration();
         elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://localhost:" + elasticsearchNode().getHttpPort())));
-        elasticConfiguration.setIngestPlugins(Arrays.asList("geoip"));
+//        elasticConfiguration.setIngestPlugins(Arrays.asList("geoip"));
         return elasticConfiguration;
     }
 
