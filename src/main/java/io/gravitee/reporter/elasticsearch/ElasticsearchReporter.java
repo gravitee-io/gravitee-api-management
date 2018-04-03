@@ -97,9 +97,7 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 						.prepare()
 						.subscribe(new CompletableObserver() {
 							@Override
-							public void onSubscribe(Disposable d) {
-
-							}
+							public void onSubscribe(Disposable d) {}
 
 							@Override
 							public void onComplete() {
