@@ -32,6 +32,6 @@ public class ES2IndexPreparer extends AbstractIndexPreparer {
         final String template = freeMarkerComponent.generateFromTemplate(
                 "/es2x/mapping/index-template.ftl", getTemplateData());
 
-        return client.putTemplate(templateName, template).toCompletable();
+        return client.putTemplate(templateName, template);
     }
 }

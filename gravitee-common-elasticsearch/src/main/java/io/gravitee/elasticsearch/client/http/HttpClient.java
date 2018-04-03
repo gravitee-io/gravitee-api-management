@@ -25,6 +25,7 @@ import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.model.Health;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
+import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -191,19 +192,19 @@ public class HttpClient implements Client {
     }
 
     @Override
-    public Single<Boolean> putTemplate(String templateName, String template) {
+    public Completable putTemplate(String templateName, String template) {
         return httpClient
                 .put(URL_TEMPLATE + '/' + templateName)
                 .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .rxSendBuffer(Buffer.buffer(template))
-                .map(response -> {
+                .flatMapCompletable(response -> {
                     if (response.statusCode() != HttpStatusCode.OK_200) {
                         logger.error("Unable to put template mapping: status[{}] template[{}] response[{}]",
                                 response.statusCode(), template, response.body());
-                        throw new ElasticsearchException("Unable to put template mapping");
+                        return Completable.error(new ElasticsearchException("Unable to put template mapping"));
                     }
 
-                    return true;
+                    return Completable.complete();
                 });
     }
 
@@ -242,15 +243,15 @@ public class HttpClient implements Client {
     }
 
     @Override
-    public Single<Boolean> putPipeline(String pipelineName, String pipeline) {
+    public Completable putPipeline(String pipelineName, String pipeline) {
         return httpClient
                 .put(URL_INGEST + '/' + pipelineName)
                 .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .rxSendBuffer(Buffer.buffer(pipeline))
-                .map(response -> {
+                .flatMapCompletable(response -> {
                     switch (response.statusCode()) {
                         case HttpStatusCode.OK_200:
-                            return true;
+                            return Completable.complete();
                         case HttpStatusCode.BAD_REQUEST_400:
                             logger.warn("Impossible to create ES pipeline for gateway reporter");
                             break;
@@ -260,7 +261,7 @@ public class HttpClient implements Client {
                             break;
                     }
 
-                    return false;
+                    return Completable.error(new ElasticsearchException("Impossible to create ES pipeline for gateway reporter"));
                 });
     }
 

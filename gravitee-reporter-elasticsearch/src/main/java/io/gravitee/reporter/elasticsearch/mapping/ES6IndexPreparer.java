@@ -58,7 +58,7 @@ public class ES6IndexPreparer extends AbstractIndexPreparer {
                             final String template = freeMarkerComponent.generateFromTemplate(
                                     "/es6x/mapping/index-template-" + typeName + ".ftl", data);
 
-                            return client.putTemplate(templateName, template).toCompletable();
+                            return client.putTemplate(templateName, template);
                         }));
     }
 
@@ -66,7 +66,8 @@ public class ES6IndexPreparer extends AbstractIndexPreparer {
         String pipelineTemplate = pipelineConfiguration.createPipeline();
 
         if (pipelineTemplate != null && pipelineConfiguration.getPipelineName() != null) {
-            return client.putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate).toCompletable();
+            return client.putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate)
+                    .doOnComplete(() -> pipelineConfiguration.valid());
         }
 
         return Completable.complete();

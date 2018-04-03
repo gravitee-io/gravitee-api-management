@@ -19,6 +19,7 @@ import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.model.Health;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
+import io.reactivex.Completable;
 import io.reactivex.Single;
 
 import java.util.List;
@@ -35,9 +36,9 @@ public interface Client {
 
     Single<BulkResponse> bulk(List<String> data);
 
-    Single<Boolean> putTemplate(String templateName, String template);
+    Completable putTemplate(String templateName, String template);
 
-    Single<Boolean> putPipeline(String templateName, String template);
+    Completable putPipeline(String templateName, String template);
 
     Single<SearchResponse> search(String indexes, String type, String query);
 }

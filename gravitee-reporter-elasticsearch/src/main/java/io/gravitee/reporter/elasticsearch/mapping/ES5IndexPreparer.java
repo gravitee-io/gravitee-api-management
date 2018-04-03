@@ -44,14 +44,15 @@ public class ES5IndexPreparer extends AbstractIndexPreparer {
         final String template = freeMarkerComponent.generateFromTemplate(
                 "/es5x/mapping/index-template.ftl", getTemplateData());
 
-        return client.putTemplate(templateName, template).toCompletable();
+        return client.putTemplate(templateName, template);
     }
 
     private Completable pipeline() {
         String pipelineTemplate = pipelineConfiguration.createPipeline();
 
         if (pipelineTemplate != null && pipelineConfiguration.getPipelineName() != null) {
-            return client.putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate).toCompletable();
+            return client.putPipeline(pipelineConfiguration.getPipelineName(), pipelineTemplate)
+                    .doOnComplete(() -> pipelineConfiguration.valid());
         }
 
         return Completable.complete();
