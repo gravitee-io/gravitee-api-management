@@ -36,9 +36,6 @@
 "method": {
 "type": "short"
 },
-"path": {
-"type": "keyword"
-},
 "plan": {
 "type": "keyword"
 },
@@ -94,8 +91,7 @@
 "type": "keyword"
 },
 "uri": {
-"type": "keyword",
-"index": false
+"type": "keyword"
 }
 }
 },
