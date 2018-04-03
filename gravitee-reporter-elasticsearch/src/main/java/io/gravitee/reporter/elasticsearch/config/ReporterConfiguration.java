@@ -87,6 +87,9 @@ public class ReporterConfiguration {
 	@Value("${reporters.elasticsearch.settings.refresh_interval:5s}")
 	private String refreshInterval;
 
+	@Value("${reporters.elasticsearch.enabled:true}")
+	private boolean enabled;
+
 	/**
 	 * Elasticsearch endpoints
 	 */
@@ -185,5 +188,13 @@ public class ReporterConfiguration {
 
 	public void setRefreshInterval(String refreshInterval) {
 		this.refreshInterval = refreshInterval;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 }
