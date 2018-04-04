@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import UserService from '../../../../../services/user.service';
-import NotificationService from '../../../../../services/notification.service';
-import RoleService from '../../../../../services/role.service';
+import UserService from "../../../../services/user.service";
+import NotificationService from "../../../../services/notification.service";
+import RoleService from "../../../../services/role.service";
+
 
 function DialogAddUserRoleController($mdDialog: angular.material.IDialogService, role, roleScope, $q: ng.IQService,
                                      UserService: UserService, NotificationService: NotificationService, RoleService: RoleService) {
