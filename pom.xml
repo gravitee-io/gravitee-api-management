@@ -192,17 +192,17 @@
                             <skip>true</skip>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>mysql</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <systemPropertyVariables>
-                                <jdbcType>mysql</jdbcType>
-                            </systemPropertyVariables>
-                        </configuration>
-                    </execution>
+                    <!--<execution>-->
+                        <!--<id>mysql</id>-->
+                        <!--<goals>-->
+                            <!--<goal>test</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<systemPropertyVariables>-->
+                                <!--<jdbcType>mysql</jdbcType>-->
+                            <!--</systemPropertyVariables>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
                     <execution>
                         <id>postgresql</id>
                         <goals>
