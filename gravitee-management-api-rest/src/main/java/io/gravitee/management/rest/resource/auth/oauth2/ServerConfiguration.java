@@ -23,13 +23,23 @@ import java.util.List;
  */
 public class ServerConfiguration {
 
+    private String clientId;
     private String clientSecret;
     private String tokenEndpoint;
+    private String tokenIntrospectionEndpoint;
     private String accessTokenProperty;
     private String userInfoEndpoint;
     private String authorizationHeader;
     private UserMapping userMapping = new UserMapping();
     private List<ExpressionMapping> groupsMapping = Collections.emptyList();
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
 
     public String getClientSecret() {
         return clientSecret;
@@ -87,4 +97,11 @@ public class ServerConfiguration {
         this.groupsMapping = groupsMapping;
     }
 
+    public String getTokenIntrospectionEndpoint() {
+        return tokenIntrospectionEndpoint;
+    }
+
+    public void setTokenIntrospectionEndpoint(String tokenIntrospectionEndpoint) {
+        this.tokenIntrospectionEndpoint = tokenIntrospectionEndpoint;
+    }
 }

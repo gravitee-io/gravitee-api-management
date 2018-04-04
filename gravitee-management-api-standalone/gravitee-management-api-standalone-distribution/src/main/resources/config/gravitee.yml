@@ -218,6 +218,7 @@ security:
 #      clientSecret: xxxx-xxx-xxx-xxx
 #      tokenEndpoint: https://oauth2_authorization_server/token
 #      userInfoEndpoint: https://oauth2_authorization_server/userinfo
+#      tokenIntrospectionEndpoint: https://oauth2_authorization_server/token/introspect
 #      accessTokenProperty: access_token
 #      authorizationHeader: "Bearer %s"
 #      mapping:

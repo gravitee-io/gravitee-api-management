@@ -18,10 +18,10 @@ package io.gravitee.management.rest.resource.auth;
 import com.auth0.jwt.JWTSigner;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.rest.model.TokenEntity;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.common.JWTHelper;
@@ -36,7 +36,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.HashMap;
@@ -44,6 +43,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static io.gravitee.management.rest.model.TokenType.BEARER;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
 
 /**
@@ -66,7 +66,7 @@ abstract class AbstractAuthenticationResource {
 
     public static final String CLIENT_ID_KEY = "client_id", REDIRECT_URI_KEY = "redirect_uri",
             CLIENT_SECRET = "client_secret", CODE_KEY = "code", GRANT_TYPE_KEY = "grant_type",
-            AUTH_CODE = "authorization_code";
+            AUTH_CODE = "authorization_code", TOKEN = "token";
 
     protected Map<String, Object> getResponseEntity(final Response response) throws IOException {
         return getEntity((getResponseEntityAsString(response)));
@@ -124,19 +124,12 @@ abstract class AbstractAuthenticationResource {
         options.setIssuedAt(true);
         options.setJwtId(true);
 
-        return Response.ok()
-                .entity(user)
-                .cookie(new NewCookie(
-                        HttpHeaders.AUTHORIZATION,
-                        "Bearer " + new JWTSigner(
-                                environment.getProperty("jwt.secret")
-                        ).sign(claims, options),
-                        environment.getProperty("jwt.cookie-path", "/"),
-                        environment.getProperty("jwt.cookie-domain"),
-                        "",
-                        environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER),
-                        environment.getProperty("jwt.cookie-secure", Boolean.class, false),
-                        true))
+        final TokenEntity tokenEntity = new TokenEntity();
+        tokenEntity.setType(BEARER);
+        tokenEntity.setToken(new JWTSigner(environment.getProperty("jwt.secret")).sign(claims, options));
+
+        return Response
+                .ok(tokenEntity)
                 .build();
     }
 

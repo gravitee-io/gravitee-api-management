@@ -22,6 +22,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.model.*;
+import io.gravitee.management.rest.model.TokenEntity;
 import io.gravitee.management.rest.resource.AbstractResourceTest;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
@@ -156,7 +157,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         // verify response body
-        verifyUserInResponseBody(response);
+//        verifyUserInResponseBody(response);
 
 
         // verify jwt token
@@ -164,9 +165,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     private void verifyJwtToken(Response response) throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerifyException {
-        String cookieContent = response.getCookies().get(HttpHeaders.AUTHORIZATION).getValue();
-        assertThat(cookieContent, StringStartsWith.startsWith("Bearer "));
-        String jwt = cookieContent.substring(7);
+        TokenEntity responseToken = response.readEntity(TokenEntity.class);
+        assertEquals("BEARER", responseToken.getType().name());
+
+        String jwt = responseToken.getToken();
 
         JWTVerifier jwtVerifier = new JWTVerifier("myJWT4Gr4v1t33_S3cr3t");
 
@@ -240,13 +242,14 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         // verify response body
-        verifyUserInResponseBody(response);
+//        verifyUserInResponseBody(response);
 
         // verify jwt token
         verifyJwtToken(response);
 
     }
 
+    /*
     private void verifyUserInResponseBody(Response response) {
         UserEntity responseUser = response.readEntity(UserEntity.class);
 
@@ -257,6 +260,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertEquals(responseUser.getPicture(),"http://example.com/janedoe/me.jpg");
         assertEquals(responseUser.getSource(),"oauth2");
     }
+    */
 
     private UpdateUserEntity mockUpdateUserPicture(UserEntity user) {
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
@@ -535,7 +539,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         // verify response body
-        verifyUserInResponseBody(response);
+//        verifyUserInResponseBody(response);
 
         // verify jwt token
         verifyJwtToken(response);
@@ -593,7 +597,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         // verify response body
-        verifyUserInResponseBody(response);
+//        verifyUserInResponseBody(response);
 
         // verify jwt token
         verifyJwtToken(response);

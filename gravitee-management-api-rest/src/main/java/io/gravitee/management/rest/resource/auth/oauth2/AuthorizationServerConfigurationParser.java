@@ -43,11 +43,13 @@ public class AuthorizationServerConfigurationParser {
     private ServerConfiguration parseServerConfiguration(Map<String, Object> configuration) {
 
         ServerConfiguration serverConfiguration = new ServerConfiguration();
+        serverConfiguration.setClientId((String)configuration.get("clientId"));
         serverConfiguration.setClientSecret((String)configuration.get("clientSecret"));
         serverConfiguration.setTokenEndpoint((String)configuration.get("tokenEndpoint"));
         serverConfiguration.setAccessTokenProperty((String)configuration.get("accessTokenProperty"));
         serverConfiguration.setUserInfoEndpoint((String)configuration.get("userInfoEndpoint"));
         serverConfiguration.setAuthorizationHeader((String)configuration.get("authorizationHeader"));
+        serverConfiguration.setTokenIntrospectionEndpoint((String)configuration.get("tokenIntrospectionEndpoint"));
 
         return serverConfiguration;
     }

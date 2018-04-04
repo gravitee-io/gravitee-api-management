@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.resource.auth;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.ReadContext;
@@ -104,8 +105,45 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     }
 
     @POST
+    @Path("exchange")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response oauth2(@Valid final Payload payload) throws IOException {
+    public Response tokenExchange(@QueryParam(value = "token") String token) throws IOException {
+        // Step1. Check the token by invoking the introspection endpoint
+        final MultivaluedStringMap introspectData = new MultivaluedStringMap();
+        introspectData.add(TOKEN, token);
+        Response response = client
+                .target(serverConfiguration.getTokenIntrospectionEndpoint())
+                .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+                .header(HttpHeaders.AUTHORIZATION,
+                        String.format("Basic %s",
+                                Base64.getEncoder().encodeToString(
+                                        (serverConfiguration.getClientId() + ':' + serverConfiguration.getClientSecret()).getBytes())))
+                .post(Entity.form(introspectData));
+        introspectData.clear();
+
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            JsonNode introspectPayload = response.readEntity(JsonNode.class);
+            boolean active = introspectPayload.path("active").asBoolean(true);
+
+            if (active) {
+                return authenticateUser(token);
+            } else {
+                return Response
+                        .status(Response.Status.UNAUTHORIZED)
+                        .entity(introspectPayload)
+                        .build();
+            }
+        }
+
+        return Response
+                .status(response.getStatusInfo())
+                .entity(response.getEntity())
+                .build();
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response exchangeAuthorizationCode(@Valid final Payload payload) throws IOException {
         // Step 1. Exchange authorization code for access token.
         final MultivaluedStringMap accessData = new MultivaluedStringMap();
         accessData.add(CLIENT_ID_KEY, payload.getClientId());
@@ -118,9 +156,18 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 .post(Entity.form(accessData));
         accessData.clear();
 
-        // Step 2. Retrieve profile information about the current user.
         final String accessToken = (String) getResponseEntity(response).get(serverConfiguration.getAccessTokenProperty());
-        response = client
+        return authenticateUser(accessToken);
+    }
+
+    /**
+     * Retrieve profile information about the authenticated oauth end-user and authenticate it in Gravitee.
+     *
+     * @return
+     */
+    private Response authenticateUser(String accessToken) throws IOException {
+        // Step 2. Retrieve profile information about the authenticated end-user.
+        Response response = client
                 .target(serverConfiguration.getUserInfoEndpoint())
                 .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
                 .header(HttpHeaders.AUTHORIZATION,
