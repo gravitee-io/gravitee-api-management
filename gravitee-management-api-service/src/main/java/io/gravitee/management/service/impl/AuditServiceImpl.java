@@ -111,15 +111,34 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     private Map<String, String> getMetadata(List<AuditEntity> content) {
         Map<String, String> metadata = new HashMap<>();
         for (AuditEntity auditEntity : content) {
+            //add user's display name
+            String metadataKey = "USER:"+auditEntity.getUser()+":name";
+            String name = auditEntity.getUser();
+            try {
+                Optional<User> optUser = userRepository.findById(auditEntity.getUser());
+                if (optUser.isPresent()) {
+                    if (optUser.get().getFirstname() != null && optUser.get().getLastname() != null) {
+                        name = optUser.get().getFirstname() + " " + optUser.get().getLastname();
+                    } else {
+                        name = optUser.get().getUsername();
+                    }
+                }
+            } catch (TechnicalException e) {
+                LOGGER.error("Error finding metadata {}", auditEntity.getUser());
+
+            }
+            metadata.put(metadataKey, name);
+
+            //add property metadata
             if (auditEntity.getProperties() != null) {
                 for (Map.Entry<String, String> property : auditEntity.getProperties().entrySet()) {
-                    String metadataKey = new StringJoiner(":").
+                    metadataKey = new StringJoiner(":").
                             add(property.getKey()).
                             add(property.getValue()).
                             add("name").
                             toString();
                     if (!metadata.containsKey(metadataKey)) {
-                        String name = property.getValue();
+                        name = property.getValue();
                         try {
                             switch (Audit.AuditProperties.valueOf(property.getKey())) {
                                 case PAGE:
