@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>io.gravitee.management.standalone</groupId>
 		<artifactId>gravitee-management-api-standalone-distribution</artifactId>
-		<version>1.15.0</version>
+		<version>1.16.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>gravitee-management-api-standalone-distribution-rpm</artifactId>
