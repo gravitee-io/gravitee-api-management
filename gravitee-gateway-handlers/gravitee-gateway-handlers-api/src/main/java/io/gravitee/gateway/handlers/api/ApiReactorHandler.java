@@ -36,7 +36,6 @@ import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.handlers.api.context.ExecutionContextFactory;
 import io.gravitee.gateway.handlers.api.cors.CorsHandler;
-import io.gravitee.gateway.handlers.api.cors.CorsResponseHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.logging.LoggableClientRequest;
 import io.gravitee.gateway.handlers.api.logging.LoggableClientResponse;
@@ -118,12 +117,9 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
                 Request finalServerRequest = serverRequest;
                 Response finalServerResponse = serverResponse;
 
-                new CorsHandler(cors).responseHandler(new Handler<Response>() {
-                    @Override
-                    public void handle(Response response) {
-                        handleClientRequest(finalServerRequest, finalServerResponse, executionContext, new CorsResponseHandler(handler));
-                    }
-                }).handle(serverRequest, serverResponse, handler);
+                new CorsHandler(cors)
+                        .responseHandler(response -> handleClientRequest(finalServerRequest, finalServerResponse, executionContext, handler))
+                        .handle(serverRequest, serverResponse, handler);
             } else {
                 handleClientRequest(serverRequest, serverResponse, executionContext, handler);
             }
