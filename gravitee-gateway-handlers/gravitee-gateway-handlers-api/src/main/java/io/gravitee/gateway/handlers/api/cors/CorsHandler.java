@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CorsHandler extends AbstractCorsHandler {
+public class CorsHandler {
 
     public final static String ALLOW_ORIGIN_PUBLIC_WILDCARD = "*";
 
@@ -55,6 +55,9 @@ public class CorsHandler extends AbstractCorsHandler {
         }
 
         if (isPreflightRequest(request)) {
+            // In case of pre-flight request, set application to unknown
+            request.metrics().setApplication( "1");
+
             response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
                     String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlAllowHeaders()));
 
