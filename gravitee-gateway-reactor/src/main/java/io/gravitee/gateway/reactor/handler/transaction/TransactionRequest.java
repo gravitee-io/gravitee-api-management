@@ -87,6 +87,11 @@ public class TransactionRequest implements Request {
     }
 
     @Override
+    public String rawMethod() {
+        return request.rawMethod();
+    }
+
+    @Override
     public HttpVersion version() {
         return request.version();
     }

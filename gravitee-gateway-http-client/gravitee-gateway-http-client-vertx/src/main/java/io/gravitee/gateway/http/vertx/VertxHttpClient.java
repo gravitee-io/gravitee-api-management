@@ -87,6 +87,10 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         clientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
         clientRequest.setFollowRedirects(endpoint.getHttpClientOptions().isFollowRedirects());
 
+        if (proxyRequest.method() == io.gravitee.common.http.HttpMethod.OTHER) {
+            clientRequest.setRawMethod(proxyRequest.rawMethod());
+        }
+
         VertxProxyConnection proxyConnection = new VertxProxyConnection(proxyRequest, clientRequest);
         clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse));
 
@@ -98,7 +102,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
 
         clientRequest.exceptionHandler(event -> {
             if (! proxyConnection.isCanceled() && ! proxyConnection.isTransmitted()) {
-                proxyRequest.request().metrics().setMessage(event.getMessage());
+                proxyRequest.metrics().setMessage(event.getMessage());
 
                 if (proxyConnection.timeoutHandler() != null
                         && (event instanceof ConnectException ||
@@ -159,6 +163,8 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                 return HttpMethod.PUT;
             case TRACE:
                 return HttpMethod.TRACE;
+            case OTHER:
+                return HttpMethod.OTHER;
         }
 
         return null;
