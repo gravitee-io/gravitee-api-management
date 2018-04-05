@@ -126,6 +126,11 @@ class VertxHttpServerRequest implements Request {
     }
 
     @Override
+    public String rawMethod() {
+        return httpServerRequest.rawMethod();
+    }
+
+    @Override
     public HttpVersion version() {
         return HttpVersion.valueOf(httpServerRequest.version().name());
     }

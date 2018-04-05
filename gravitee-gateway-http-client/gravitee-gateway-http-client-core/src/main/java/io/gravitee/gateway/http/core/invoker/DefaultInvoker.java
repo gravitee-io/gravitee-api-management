@@ -119,6 +119,7 @@ public abstract class DefaultInvoker implements Invoker {
                 ProxyRequest proxyRequest = ProxyRequestBuilder.from(serverRequest)
                         .uri(requestUri)
                         .method(httpMethod)
+                        .rawMethod(serverRequest.rawMethod())
                         .headers(setProxyHeaders(serverRequest.headers(), requestUri, targetEndpoint.endpoint))
                         .build();
 

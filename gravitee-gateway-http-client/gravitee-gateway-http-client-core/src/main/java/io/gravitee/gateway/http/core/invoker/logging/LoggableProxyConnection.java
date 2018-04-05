@@ -39,15 +39,15 @@ public class LoggableProxyConnection implements ProxyConnection {
 
     public LoggableProxyConnection(final ProxyConnection proxyConnection, final ProxyRequest proxyRequest) {
         this.proxyConnection = proxyConnection;
-        Log log = proxyRequest.request().metrics().getLog();
+        Log log = proxyRequest.metrics().getLog();
 
         // If log is enable only for 'Proxy only' mode, the log structure is not yet created
         if (log == null) {
-            log = new Log(proxyRequest.request().metrics().timestamp().toEpochMilli());
-            log.setRequestId(proxyRequest.request().id());
+            log = new Log(proxyRequest.metrics().timestamp().toEpochMilli());
+            log.setRequestId(proxyRequest.metrics().getRequestId());
 
             // Associate log
-            proxyRequest.request().metrics().setLog(log);
+            proxyRequest.metrics().setLog(log);
         }
 
         this.log = log;

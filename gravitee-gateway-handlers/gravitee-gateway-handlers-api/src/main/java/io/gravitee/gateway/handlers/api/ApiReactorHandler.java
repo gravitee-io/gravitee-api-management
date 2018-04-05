@@ -153,12 +153,9 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
             } else {
                 // Call an invoker to get a proxy connection (connection to an underlying backend, mainly HTTP)
                 Invoker upstreamInvoker = (Invoker) executionContext.getAttribute(ExecutionContext.ATTR_INVOKER);
-
                 long serviceInvocationStart = System.currentTimeMillis();
 
-                AtomicReference<ProxyConnection> proxyConnection = new AtomicReference<>();
                 Request invokeRequest = upstreamInvoker.invoke(executionContext, serverRequest, requestPolicyChainResult.getPolicyChain(), connection -> {
-                    proxyConnection.set(connection);
                     connection.responseHandler(
                             proxyResponse -> handleProxyResponse(serverRequest, serverResponse, executionContext, proxyResponse, serviceInvocationStart, handler));
 
