@@ -98,6 +98,7 @@ require('angular-ui-tree');
 require('angular-jwt');
 require('ng-showdown');
 require('showdown-prettify');
+require('showdown-highlightjs-extension');
 
 require('angular-gridster');
 require('angular-scroll');
@@ -432,6 +433,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   })
   .config(function ($showdownProvider) {
     $showdownProvider.setOption('tables', true);
+    $showdownProvider.loadExtension('highlightjs');
     $showdownProvider.loadExtension('prettify');
     $showdownProvider.loadExtension('docHelper');
   })
