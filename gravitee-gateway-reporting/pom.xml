@@ -48,11 +48,10 @@
             <artifactId>gravitee-plugin-core</artifactId>
         </dependency>
 
-        <!-- Disruptor -->
+        <!-- Vert.x -->
         <dependency>
-            <groupId>com.lmax</groupId>
-            <artifactId>disruptor</artifactId>
-            <version>3.3.6</version>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
         </dependency>
 
         <!-- Logging -->

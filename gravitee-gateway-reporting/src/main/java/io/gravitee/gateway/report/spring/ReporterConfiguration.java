@@ -16,12 +16,12 @@
 package io.gravitee.gateway.report.spring;
 
 import io.gravitee.gateway.report.ReporterService;
-import io.gravitee.gateway.report.impl.lmax.LmaxReporterService;
+import io.gravitee.gateway.report.impl.bus.VertxReporterServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
@@ -29,6 +29,6 @@ public class ReporterConfiguration {
 
     @Bean
     public ReporterService reporterService() {
-        return new LmaxReporterService();
+        return new VertxReporterServiceImpl();
     }
 }
