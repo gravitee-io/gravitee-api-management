@@ -20,7 +20,7 @@ import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ReporterService extends Service {
