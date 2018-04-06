@@ -22,6 +22,7 @@ import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.Reactable;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -103,6 +104,7 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
                 .forEach(path -> policies.addAll(
                         path.getRules()
                                 .stream()
+                                .filter(Rule::isEnabled)
                                 .map(Rule::getPolicy)
                                 .distinct()
                                 .collect(Collectors.toSet())));
@@ -137,6 +139,7 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
                         .forEach(path -> policies.addAll(
                                 path.getRules()
                                         .stream()
+                                        .filter(Rule::isEnabled)
                                         .map(Rule::getPolicy)
                                         .distinct()
                                         .collect(Collectors.toSet())));
