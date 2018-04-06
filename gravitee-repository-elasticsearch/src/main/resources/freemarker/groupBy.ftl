@@ -50,7 +50,7 @@
       "by_${query.field()}": {
         "terms":{
           "field":"${query.field()}",
-          "size":20
+          "size": 1000
   <#if query.sort()?has_content>
           ,"order":{
             "${query.sort().getType().name()?lower_case}_${query.sort().getField()}":"${query.sort().getOrder()?lower_case}"

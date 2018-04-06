@@ -16,7 +16,7 @@
     "terms" : {
       "terms" : {
         "field" : "${query.field()?lower_case}",
-        "size" : 10,
+        "size" : 100,
         "order" : [
           {
             "_count" : "desc"
@@ -58,7 +58,7 @@
             "results" : {
               "terms" : {
                 "field" : "available",
-                "size" : 10,
+                "size" : 2,
                 "order" : [
                   {
                     "_count" : "desc"

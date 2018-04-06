@@ -46,7 +46,8 @@
       <#case "FIELD">
       "by_${aggregation.field()}": {
         "terms": {
-          "field": "${aggregation.field()}"
+          "field": "${aggregation.field()}",
+          "size": 100
         }
       }
         <#break>
