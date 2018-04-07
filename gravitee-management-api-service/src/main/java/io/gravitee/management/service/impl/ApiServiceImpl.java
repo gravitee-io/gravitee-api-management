@@ -959,7 +959,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         try {
             ApiEntity apiEntity = this.findById(apiId);
             apiEntity.getTags().remove(tagId);
-            update(apiId, convert(apiEntity));
+            update(apiId, ApiService.convert(apiEntity));
         } catch (Exception ex) {
             LOGGER.error("An error occurs while removing tag from API: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while removing tag from API: " + apiId, ex);
@@ -1127,26 +1127,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         return null;
-    }
-
-    private static UpdateApiEntity convert(ApiEntity apiEntity) {
-        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-
-        updateApiEntity.setProxy(apiEntity.getProxy());
-        updateApiEntity.setVersion(apiEntity.getVersion());
-        updateApiEntity.setName(apiEntity.getName());
-        updateApiEntity.setProperties(apiEntity.getProperties());
-        updateApiEntity.setDescription(apiEntity.getDescription());
-        updateApiEntity.setGroups(apiEntity.getGroups());
-        updateApiEntity.setPaths(apiEntity.getPaths());
-        updateApiEntity.setPicture(apiEntity.getPicture());
-        updateApiEntity.setResources(apiEntity.getResources());
-        updateApiEntity.setTags(apiEntity.getTags());
-        updateApiEntity.setServices(apiEntity.getServices());
-        updateApiEntity.setVisibility(apiEntity.getVisibility());
-        updateApiEntity.setLabels(apiEntity.getLabels());
-
-        return updateApiEntity;
     }
 
     private LifecycleState convert(EventType eventType) {

@@ -105,7 +105,7 @@ public class DynamicPropertyUpdater implements Handler<Long> {
             boolean isSync = apiService.isSynchronized(api.getId());
 
             // Update API
-            apiService.update(latestApi.getId(), convert(latestApi));
+            apiService.update(latestApi.getId(), ApiService.convert(latestApi));
 
             // Do not deploy if there are manual changes to push
             if (isSync) {
@@ -115,28 +115,6 @@ public class DynamicPropertyUpdater implements Handler<Long> {
                 }
             }
         }
-    }
-
-    private static UpdateApiEntity convert(ApiEntity apiEntity) {
-        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-
-        updateApiEntity.setProxy(apiEntity.getProxy());
-        updateApiEntity.setVersion(apiEntity.getVersion());
-        updateApiEntity.setName(apiEntity.getName());
-        updateApiEntity.setProperties(apiEntity.getProperties());
-        updateApiEntity.setDescription(apiEntity.getDescription());
-
-        if (apiEntity.getGroups() != null) {
-            updateApiEntity.setGroups(apiEntity.getGroups());
-        }
-        updateApiEntity.setPaths(apiEntity.getPaths());
-        updateApiEntity.setPicture(apiEntity.getPicture());
-        updateApiEntity.setResources(apiEntity.getResources());
-        updateApiEntity.setTags(apiEntity.getTags());
-        updateApiEntity.setServices(apiEntity.getServices());
-        updateApiEntity.setVisibility(apiEntity.getVisibility());
-
-        return updateApiEntity;
     }
 
     public void setApiService(ApiService apiService) {

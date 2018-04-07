@@ -77,4 +77,25 @@ public interface ApiService {
     ApiModelEntity findByIdForTemplates(String apiId);
 
     boolean exists(String apiId);
+
+    static UpdateApiEntity convert(ApiEntity apiEntity) {
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+
+        updateApiEntity.setProxy(apiEntity.getProxy());
+        updateApiEntity.setVersion(apiEntity.getVersion());
+        updateApiEntity.setName(apiEntity.getName());
+        updateApiEntity.setProperties(apiEntity.getProperties());
+        updateApiEntity.setDescription(apiEntity.getDescription());
+        updateApiEntity.setGroups(apiEntity.getGroups());
+        updateApiEntity.setPaths(apiEntity.getPaths());
+        updateApiEntity.setPicture(apiEntity.getPicture());
+        updateApiEntity.setResources(apiEntity.getResources());
+        updateApiEntity.setTags(apiEntity.getTags());
+        updateApiEntity.setServices(apiEntity.getServices());
+        updateApiEntity.setVisibility(apiEntity.getVisibility());
+        updateApiEntity.setLabels(apiEntity.getLabels());
+
+        return updateApiEntity;
+    }
+
 }
