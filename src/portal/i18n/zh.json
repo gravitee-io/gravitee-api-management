@@ -1,185 +1,185 @@
 {
   "common": {
-    "copyToClipboard": "¸´ÖÆ",
-    "NANOSECONDS": "ÄÉÃë",
-    "MICROSECONDS": "Î¢Ãë",
-    "MILLISECONDS": "ºÁÃë",
-    "SECONDS": "Ãë",
-    "MINUTES": "·Ö",
-    "HOURS": "Ê±",
-    "DAYS": "Ìì",
-    "close": "¹Ø±Õ",
-    "create": "´´½¨",
-    "cancel": "È¡Ïû",
+    "copyToClipboard": "å¤åˆ¶",
+    "NANOSECONDS": "çº³ç§’",
+    "MICROSECONDS": "å¾®ç§’",
+    "MILLISECONDS": "æ¯«ç§’",
+    "SECONDS": "ç§’",
+    "MINUTES": "åˆ†",
+    "HOURS": "æ—¶",
+    "DAYS": "å¤©",
+    "close": "å…³é—­",
+    "create": "åˆ›å»º",
+    "cancel": "å–æ¶ˆ",
     "ok": "OK",
-    "submit": "Ìá½»",
-    "answer": "»Ø´ğ",
-    "ratings.none": "Ã»ÓĞÆÀ¼¶",
+    "submit": "æäº¤",
+    "answer": "å›ç­”",
+    "ratings.none": "æ²¡æœ‰è¯„çº§",
     "paging": {
-      "first": "Ê×Ò³",
-      "previous": "ÉÏÒ»Ò³",
-      "next": "ÏÂÒ»Ò³",
-      "last": "Î²Ò³"
+      "first": "é¦–é¡µ",
+      "previous": "ä¸Šä¸€é¡µ",
+      "next": "ä¸‹ä¸€é¡µ",
+      "last": "å°¾é¡µ"
     }
   },
   "home": {
     "title": "Gravitee.io",
-    "subtitle": "¿ª·¢ÕßÃÅ»§",
-    "version": "°æ±¾: {{version}}",
+    "subtitle": "å¼€å‘è€…é—¨æˆ·",
+    "version": "ç‰ˆæœ¬: {{version}}",
     "pages": {
-      "title": "ÎÄµµ"
+      "title": "æ–‡æ¡£"
     },
     "apis": {
-      "search": "ËÑË÷API...",
+      "search": "æœç´¢API...",
       "top": "Top APIs",
-      "all": "²é¿´ËùÓĞAPI"
+      "all": "æŸ¥çœ‹æ‰€æœ‰API"
     }
   },
   "menu": {
-    "login": "µÇÂ¼",
-    "gallery": "API ¿â",
-    "documentation": "ÎÄµµ",
-    "profile": "ÎÒµÄÕË»§",
-    "management": "¹ÜÀíÖĞĞÄ",
-    "applications": "ÎÒµÄÓ¦ÓÃ",
-    "apis": "ÎÒµÄAPI",
-    "tasks": "ÈÎÎñ",
-    "logout": "µÇ³ö",
-    "support": "Ö§³Ö"
+    "login": "ç™»å½•",
+    "gallery": "API åº“",
+    "documentation": "æ–‡æ¡£",
+    "profile": "æˆ‘çš„è´¦æˆ·",
+    "management": "ç®¡ç†ä¸­å¿ƒ",
+    "applications": "æˆ‘çš„åº”ç”¨",
+    "apis": "æˆ‘çš„API",
+    "tasks": "ä»»åŠ¡",
+    "logout": "ç™»å‡º",
+    "support": "æ”¯æŒ"
   },
   "apis": {
-    "all": "ËùÓĞAPI",
-    "filter": "¹ıÂËAPI..."
+    "all": "æ‰€æœ‰API",
+    "filter": "è¿‡æ»¤API..."
   },
   "api": {
-    "version": "°æ±¾",
-    "endpoint": "¶Ëµã",
-    "owner": "ÓµÓĞÕß",
-    "publishedAt": "·¢²¼ÓÚ",
+    "version": "ç‰ˆæœ¬",
+    "endpoint": "ç«¯ç‚¹",
+    "owner": "æ‹¥æœ‰è€…",
+    "publishedAt": "å‘å¸ƒäº",
     "subscription": {
-    
-     "step1": {
-        "title": "Ñ¡ÔñÒ»¸öapi¼Æ»®",
-        "subtitle": "API¼Æ»®ÓëÄúºÍAPIÖ®¼äµÄ·şÎñÆõÔ¼Ïà¶ÔÓ¦¡£",
-        "keyless": "Õâ¸ö¶©ÔÄ¼Æ»®ÊÇÃâÃÜÔ¿µÄ£¬Äú¿ÉÒÔÔÚ²»¶©ÔÄµÄÇé¿öÏÂÊ¹ÓÃËü¡£."
+
+      "step1": {
+        "title": "é€‰æ‹©ä¸€ä¸ªapiè®¡åˆ’",
+        "subtitle": "APIè®¡åˆ’ä¸æ‚¨å’ŒAPIä¹‹é—´çš„æœåŠ¡å¥‘çº¦ç›¸å¯¹åº”ã€‚",
+        "keyless": "è¿™ä¸ªè®¢é˜…è®¡åˆ’æ˜¯å…å¯†é’¥çš„ï¼Œæ‚¨å¯ä»¥åœ¨ä¸è®¢é˜…çš„æƒ…å†µä¸‹ä½¿ç”¨å®ƒã€‚."
       },
       "step2": {
-        "title": "Ñ¡ÔñÒ»¸öÓ¦ÓÃ³ÌĞò",
-        "subtitle": "Ó¦ÓÃ³ÌĞòÊÇÄú¡¢Ê¹ÓÃÕßºÍAPI¼Æ»®µÄ¶©ÔÄÖ®¼äµÄÁ´½Ó¡£",
+        "title": "é€‰æ‹©ä¸€ä¸ªåº”ç”¨ç¨‹åº",
+        "subtitle": "åº”ç”¨ç¨‹åºæ˜¯æ‚¨ã€ä½¿ç”¨è€…å’ŒAPIè®¡åˆ’çš„è®¢é˜…ä¹‹é—´çš„é“¾æ¥ã€‚",
         "application": {
-          "placeholder": "Ñ¡ÔñÓ¦ÓÃ..."
+          "placeholder": "é€‰æ‹©åº”ç”¨..."
         },
-        "clientIdRequired": "Ò»¸öclientIdĞèÒª¶©ÔÄÕâ¸ö¼Æ»®¡£Çë¼ì²éÓ¦ÓÃ³ÌĞòµÄÅäÖÃ¡£",
-        "action": "¶©ÔÄ"
+        "clientIdRequired": "ä¸€ä¸ªclientIdéœ€è¦è®¢é˜…è¿™ä¸ªè®¡åˆ’ã€‚è¯·æ£€æŸ¥åº”ç”¨ç¨‹åºçš„é…ç½®ã€‚",
+        "action": "è®¢é˜…"
       },
       "step3": {
         "apikey": {
-          "key": "Äú¿ÉÒÔÊ¹ÓÃÒÔÏÂapiÃÜÔ¿·ÃÎÊAPI:",
-          "curl": "Ê¹ÓÃcurlÇëÇóÊµÀı:",
-          "clipboard": "apiÃÜÔ¿ÒÑ¸´ÖÆµ½¼ôÌù°å¡£"
+          "key": "æ‚¨å¯ä»¥ä½¿ç”¨ä»¥ä¸‹apiå¯†é’¥è®¿é—®API:",
+          "curl": "ä½¿ç”¨curlè¯·æ±‚å®ä¾‹:",
+          "clipboard": "apiå¯†é’¥å·²å¤åˆ¶åˆ°å‰ªè´´æ¿ã€‚"
         },
         "oauth2": {
-          "bearer": "ÄãĞèÒª´ÓÊÚÈ¨·şÎñ»ñÈ¡Ò»¸öaccess_token²Å¿ÉÒÔÊ¹ÓÃ´ËAPI¡£",
-          "curl": "Ê¹ÓÃcurlÇëÇóÊµÀı:"
+          "bearer": "ä½ éœ€è¦ä»æˆæƒæœåŠ¡è·å–ä¸€ä¸ªaccess_tokenæ‰å¯ä»¥ä½¿ç”¨æ­¤APIã€‚",
+          "curl": "ä½¿ç”¨curlè¯·æ±‚å®ä¾‹:"
         },
         "jwt": {
-          "bearer": "ÄãĞèÒª´ÓÊÚÈ¨·şÎñ»ñÈ¡Ò»¸öaccess_token²Å¿ÉÒÔÊ¹ÓÃ´ËAPI¡£",
-          "curl": "Ê¹ÓÃcurlÇëÇóÊµÀı:"
+          "bearer": "ä½ éœ€è¦ä»æˆæƒæœåŠ¡è·å–ä¸€ä¸ªaccess_tokenæ‰å¯ä»¥ä½¿ç”¨æ­¤APIã€‚",
+          "curl": "ä½¿ç”¨curlè¯·æ±‚å®ä¾‹:"
         },
         "pending": {
-          "title": "¶©ÔÄÕıÔÚµÈ´ıÑéÖ¤¡£",
-          "subtitle": "ÄúµÄ¶©ÔÄÈÔ´¦ÓÚ¹ÒÆğ×´Ì¬£¬Äú½«ÊÕµ½Ò»´Î´¦ÀíÍ¨Öª¡£"
+          "title": "è®¢é˜…æ­£åœ¨ç­‰å¾…éªŒè¯ã€‚",
+          "subtitle": "æ‚¨çš„è®¢é˜…ä»å¤„äºæŒ‚èµ·çŠ¶æ€ï¼Œæ‚¨å°†æ”¶åˆ°ä¸€æ¬¡å¤„ç†é€šçŸ¥ã€‚"
         },
         "accepted": {
-          "title": "ÈÃÎÒÃÇÔÚÓ¦ÓÃ\"{{applicationName}}\"ÖĞ¿ªÊ¼Ê¹ÓÃÕâ¸öAPI \"{{apiName}}\"°É!"
+          "title": "è®©æˆ‘ä»¬åœ¨åº”ç”¨\"{{applicationName}}\"ä¸­å¼€å§‹ä½¿ç”¨è¿™ä¸ªAPI \"{{apiName}}\"å§!"
         },
-        "successful": "ÒÑÌá½»¶©ÔÄÇëÇó¡£"
+        "successful": "å·²æäº¤è®¢é˜…è¯·æ±‚ã€‚"
       },
 
-      "planInformation": "Ã¿{{quotaPeriodTime}}{{quotaPeriodTimeUnit}}Åä¶î{{quotaLimit}}¸öÇëÇó"
+      "planInformation": "æ¯{{quotaPeriodTime}}{{quotaPeriodTimeUnit}}é…é¢{{quotaLimit}}ä¸ªè¯·æ±‚"
     },
     "plan": {
-      "title": "¶©ÔÄ¼Æ»®",
-      "subscribe": "¶©ÔÄ",
-      "manual": "¶©ÔÄĞë¾­ÑéÖ¤",
+      "title": "è®¢é˜…è®¡åˆ’",
+      "subscribe": "è®¢é˜…",
+      "manual": "è®¢é˜…é¡»ç»éªŒè¯",
       "empty": {
-        "title": "¸ÃAPIÉĞÎŞ¶©ÔÄ¼Æ»®",
-        "message": "´´½¨¼Æ»®ºó£¬Äú¿ÉÒÔ¶©ÔÄ´ËAPI"
+        "title": "è¯¥APIå°šæ— è®¢é˜…è®¡åˆ’",
+        "message": "åˆ›å»ºè®¡åˆ’åï¼Œæ‚¨å¯ä»¥è®¢é˜…æ­¤API"
       }
     },
     "documentation": {
-      "title": "ÎÄµµ",
+      "title": "æ–‡æ¡£",
       "empty": {
-        "title": "¸ÃAPIÃ»ÓĞÎÄµµ",
-        "message": "ÉÔºóÔÙÀ´£¬API½«ºÜ¿ìÍê³É"
+        "title": "è¯¥APIæ²¡æœ‰æ–‡æ¡£",
+        "message": "ç¨åå†æ¥ï¼ŒAPIå°†å¾ˆå¿«å®Œæˆ"
       }
     },
     "metadata": {
-      "title": "ÔªÊı¾İ",
-      "name": "Ãû³Æ",
-      "value": "Öµ"
+      "title": "å…ƒæ•°æ®",
+      "name": "åç§°",
+      "value": "å€¼"
     },
     "rating": {
-      "title": "ÄãÆÀÂÛµÄ±êÌâ»òÕªÒª",
-      "comment": "ÆÀÂÛ",
+      "title": "ä½ è¯„è®ºçš„æ ‡é¢˜æˆ–æ‘˜è¦",
+      "comment": "è¯„è®º",
       "by": "By",
       "rate": "{{numberOfRatings}} rating(s)",
       "empty": {
-        "title": "´ËAPIÃ»ÓĞÆÀ¼¶",
-        "message": "Ê×ÏÈÒªÆÀ¼ÛËü",
-        "rights.message": "ÄúÃ»ÓĞ¶ÔÕâ¸öAPI½øĞĞ¶¨¼ÛµÄ±ØÒªÈ¨ÏŞ"
+        "title": "æ­¤APIæ²¡æœ‰è¯„çº§",
+        "message": "é¦–å…ˆè¦è¯„ä»·å®ƒ",
+        "rights.message": "æ‚¨æ²¡æœ‰å¯¹è¿™ä¸ªAPIè¿›è¡Œå®šä»·çš„å¿…è¦æƒé™"
       },
       "messages": {
-        "1": "ÌÖÑá",
-        "2": "²»Ï²»¶",
-        "3": "ÓĞµãÏ²»¶",
-        "4": "Ï²»¶",
-        "5": "Ì«°ôÁË"
+        "1": "è®¨åŒ",
+        "2": "ä¸å–œæ¬¢",
+        "3": "æœ‰ç‚¹å–œæ¬¢",
+        "4": "å–œæ¬¢",
+        "5": "å¤ªæ£’äº†"
       },
-      "successCreation": "ÄúµÄÆÀ¼¶ÒÑ³É¹¦Ìá½»",
-      "successUpdate": "ÄúµÄÆÀ¼¶ÒÑ³É¹¦¸üĞÂ",
-      "successDeletion": "´ËÆÀ¼¶ÒÑ³É¹¦É¾³ı",
-      "deletion": "ÄúÈ·¶¨ÒªÉ¾³ı´ËÆÀ¼¶Âğ?",
+      "successCreation": "æ‚¨çš„è¯„çº§å·²æˆåŠŸæäº¤",
+      "successUpdate": "æ‚¨çš„è¯„çº§å·²æˆåŠŸæ›´æ–°",
+      "successDeletion": "æ­¤è¯„çº§å·²æˆåŠŸåˆ é™¤",
+      "deletion": "æ‚¨ç¡®å®šè¦åˆ é™¤æ­¤è¯„çº§å—?",
       "list": {
-        "label": "{{numberOfAnswers}} ´ğ°¸",
-        "title": "ÊÕÊÓÂÊ"
+        "label": "{{numberOfAnswers}} ç­”æ¡ˆ",
+        "title": "æ”¶è§†ç‡"
       },
       "answer": {
-        "successCreation": "ÄãµÄ´ğ°¸ÒÑ¾­³É¹¦Ìá½»ÁË",
-        "successDeletion": "´ËÏìÓ¦ÒÑ³É¹¦É¾³ı",
-        "deletion": "ÄúÈ·¶¨ÒªÉ¾³ı´Ë´ğ°¸Âğ?",
+        "successCreation": "ä½ çš„ç­”æ¡ˆå·²ç»æˆåŠŸæäº¤äº†",
+        "successDeletion": "æ­¤å“åº”å·²æˆåŠŸåˆ é™¤",
+        "deletion": "æ‚¨ç¡®å®šè¦åˆ é™¤æ­¤ç­”æ¡ˆå—?",
         "new": {
-          "label": "»Ø¸´"
+          "label": "å›å¤"
         }
       },
       "summary": {
-        "title": "×î¸ß5·Ö,Æ½¾ù{{averageRate}}",
-        "link": "²ÎÕÕ {{numberOfRatings}} ÆÀ¼¶"
+        "title": "æœ€é«˜5åˆ†,å¹³å‡{{averageRate}}",
+        "link": "å‚ç…§ {{numberOfRatings}} è¯„çº§"
       }
     }
   },
   "applications": {
-    "empty": "Äú»¹Ã»ÓĞÈÎºÎÓ¦ÓÃ!",
-    "start": "´´½¨ÄúµÄµÚÒ»¸öÓ¦ÓÃ¿ªÊ¼°É¡£"
+    "empty": "æ‚¨è¿˜æ²¡æœ‰ä»»ä½•åº”ç”¨!",
+    "start": "åˆ›å»ºæ‚¨çš„ç¬¬ä¸€ä¸ªåº”ç”¨å¼€å§‹å§ã€‚"
   },
   "application": {
-    "notFound": "Æ¥Åä \"{{applicationName}}\" µÄÓ¦ÓÃÎ´ÕÒµ½¡£"
+    "notFound": "åŒ¹é… \"{{applicationName}}\" çš„åº”ç”¨æœªæ‰¾åˆ°ã€‚"
   },
   "support": {
     "ticket": {
-      "title": "Ö§³ÖÆ±¾İ´´×÷",
-      "subject": "±êÌâ",
-      "content": "ÄÚÈİ",
-      "api": "Ñ¡ÔñÒ»¸öAPI",
-      "application": "Ñ¡ÔñÒ»¸öÓ¦ÓÃ",
-      "copyToSender": "½ÓÊÕÕâ¸öÓÊ¼şµÄ³­ËÍ",
-      "successCreation": "Ö§³ÖÆ±ÒÑ³É¹¦´´½¨",
+      "title": "åˆ›å»ºå·¥å•",
+      "subject": "æ ‡é¢˜",
+      "content": "å†…å®¹",
+      "api": "é€‰æ‹©ä¸€ä¸ªAPI",
+      "application": "é€‰æ‹©ä¸€ä¸ªåº”ç”¨",
+      "copyToSender": "æ¥å—è¿™ä¸ªé‚®ä»¶çš„æŠ„é€",
+      "successCreation": "å·¥å•å·²æˆåŠŸåˆ›å»º",
       "notAuthenticated": {
-        "title": "´´½¨Ö§³ÖÆ±",
-        "message": "ÎªÁËÂòÆ±£¬ÇëµÇÂ¼¡£"
+        "title": "åˆ›å»ºå·¥å•",
+        "message": "ç™»å½•ä»¥åˆ›å»ºå·¥å•ã€‚"
       },
       "userWithoutEmail": {
-        "message": "Äú²»ÄÜÌá½»Æ±¾İ£¬ÒòÎªÄúµÄÕÊ»§ÉÏÃ»ÓĞÅäÖÃµç×ÓÓÊ¼ş"
+        "message": "æ‚¨ä¸èƒ½æäº¤å·¥å•ï¼Œå› ä¸ºæ‚¨çš„å¸æˆ·ä¸Šæ²¡æœ‰é…ç½®ç”µå­é‚®ä»¶"
       }
     }
   }
