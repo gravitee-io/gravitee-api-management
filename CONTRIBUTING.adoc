@@ -18,7 +18,7 @@ Providing the following information will help us to deal quickly with your issue
 
 == Submitting changes
 
-You've submitted an issue to the project and know how to fix it? You can contribute to the project?by https://guides.github.com/activities/forking/[forking the repository] and https://guides.github.com/activities/forking/#making-a-pull-request[submitting your pull requests].
+You've submitted an issue to the project and know how to fix it? You can contribute to the project by https://guides.github.com/activities/forking/[forking the repository] and https://guides.github.com/activities/forking/#making-a-pull-request[submitting your pull requests].
 
 Before you submit your pull request consider the following guidelines:
 
