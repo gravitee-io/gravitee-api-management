@@ -18,6 +18,7 @@ import * as _ from 'lodash';
 class LogsFiltersController {
   public filters: any = {};
   public methods = {
+    0: 'OTHER',
     1: 'CONNECT',
     2: 'DELETE',
     3: 'GET',
