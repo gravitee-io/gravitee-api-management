@@ -18,6 +18,17 @@ yarn install
 
 __Prefer the use of yarn to use stable dependencies versions fixed by the yarn.lock file__
 
+**If you're working on Windows**
+
+- Install Microsoft's windows-build-tools using npm install --global --production windows-build-tools from an elevated PowerShell or CMD.exe (run as Administrator).
+- Restart your computer
+- Re-run yarn install
+
+If you don't install this library, you may have such errors when you'll do yarn install :
+```
+ERROR in ./~/css-loader?importLoaders=1!./~/sass-loader!./~/postcss-loader!./src/index.scss Module build failed: Error: Node Sass does not yet support your current environment: Windows 64-bit with Unsupported runtime (57) For more information on which environments are supported please see: https://github.com/sass/node-sass/releases/tag/v3.13.1
+```
+
 == Tasks
 
 If you wanna serve the built version on dev mode :
