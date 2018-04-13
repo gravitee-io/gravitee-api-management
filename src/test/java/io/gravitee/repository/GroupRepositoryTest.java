@@ -48,8 +48,6 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(group1);
         assertNotNull(group1.getId());
         assertEquals(group.getId(), group1.getId());
-        assertNotNull(group1.getAdministrators());
-        assertTrue(group1.getAdministrators().isEmpty());
     }
 
     @Test
@@ -60,7 +58,6 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertTrue(group.isPresent());
         assertEquals("group-application-1", group.get().getId());
         assertEquals("group-application-1", group.get().getName());
-        assertEquals(2, group.get().getAdministrators().size());
         assertEquals(2, group.get().getEventRules().size());
     }
 

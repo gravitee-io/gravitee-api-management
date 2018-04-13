@@ -2,10 +2,6 @@
   {
     "id": "group-application-1",
     "name": "group-application-1",
-    "administrators": [
-      "user1",
-      "user2"
-    ],
     "eventRules": [
       {
         "event": "API_CREATE"
@@ -17,7 +13,6 @@
   },
   {
     "id": "group-api-to-delete",
-    "name": "group-api-to-delete",
-    "administrators": []
+    "name": "group-api-to-delete"
   }
 ]

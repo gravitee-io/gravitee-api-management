@@ -632,13 +632,11 @@ public class MockTestRepositoryConfiguration {
 
         final Group createGroup = new Group();
         createGroup.setId("1");
-        createGroup.setAdministrators(Collections.emptyList());
         when(groupRepository.create(any())).thenReturn(createGroup);
 
         final Group group_application_1 = new Group();
         group_application_1.setId("group-application-1");
         group_application_1.setName("group-application-1");
-        group_application_1.setAdministrators(asList("user1", "user2"));
         GroupEventRule eventRule1 = new GroupEventRule();
         eventRule1.setEvent(GroupEvent.API_CREATE);
         GroupEventRule eventRule2 = new GroupEventRule();
@@ -647,7 +645,6 @@ public class MockTestRepositoryConfiguration {
         final Group group_api_to_delete = new Group();
         group_api_to_delete.setId("group-api-to-delete");
         group_api_to_delete.setName("group-api-to-delete");
-        group_api_to_delete.setAdministrators(Collections.emptyList());
         final Group group_updated = new Group();
         group_updated.setId("group-application-1");
         group_updated.setName("Modified Name");
