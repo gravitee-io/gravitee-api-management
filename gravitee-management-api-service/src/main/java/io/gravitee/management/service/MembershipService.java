@@ -51,6 +51,8 @@ public interface MembershipService {
 
     Map<String, char[]> getMemberPermissions(ApplicationEntity application, String userId);
 
+    Map<String, char[]> getMemberPermissions(GroupEntity group, String userId);
+
     boolean removeRole(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope);
 
     void removeRoleUsage(RoleScope roleScope, String roleName, String newName);

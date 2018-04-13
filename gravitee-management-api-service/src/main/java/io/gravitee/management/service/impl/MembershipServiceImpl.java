@@ -177,7 +177,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 throw new NotAuthorizedMembershipException(role.getName());
             } else if (MembershipReferenceType.GROUP.equals(reference.getType())
                     && !io.gravitee.management.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())
-                    && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())) {
+                    && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())
+                    && !io.gravitee.management.model.permissions.RoleScope.GROUP.equals(roleEntity.getScope())) {
                 throw new NotAuthorizedMembershipException(role.getName());
             }
 
@@ -314,6 +315,15 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 userId,
                 application.getGroups(),
                 RoleScope.APPLICATION);
+    }
+
+    @Override
+    public Map<String, char[]> getMemberPermissions(GroupEntity group, String userId) {
+        return getMemberPermissions(MembershipReferenceType.GROUP,
+                group.getId(),
+                userId,
+                null,
+                RoleScope.GROUP);
     }
 
     @Override

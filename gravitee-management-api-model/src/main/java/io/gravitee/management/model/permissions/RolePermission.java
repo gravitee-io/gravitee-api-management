@@ -59,7 +59,9 @@ public enum RolePermission {
     APPLICATION_ANALYTICS   (RoleScope.APPLICATION, ApplicationPermission.ANALYTICS),
     APPLICATION_LOG         (RoleScope.APPLICATION, ApplicationPermission.LOG),
     APPLICATION_SUBSCRIPTION(RoleScope.APPLICATION, ApplicationPermission.SUBSCRIPTION),
-    APPLICATION_NOTIFICATION(RoleScope.APPLICATION, ApplicationPermission.NOTIFICATION);
+    APPLICATION_NOTIFICATION(RoleScope.APPLICATION, ApplicationPermission.NOTIFICATION),
+
+    GROUP_MEMBER            (RoleScope.GROUP, GroupPermission.MEMBER);
 
 
     RoleScope scope;

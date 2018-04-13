@@ -162,6 +162,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             createOrUpdateSystemRole(SystemRole.PRIMARY_OWNER, RoleScope.API, io.gravitee.management.model.permissions.RoleScope.API, ApiPermission.values());
             //APPLICATION - PRIMARY_OWNER
             createOrUpdateSystemRole(SystemRole.PRIMARY_OWNER, RoleScope.APPLICATION, io.gravitee.management.model.permissions.RoleScope.APPLICATION, ApplicationPermission.values());
+            //GROUP - ADMINISTRATOR
+            createOrUpdateSystemRole(SystemRole.ADMIN, RoleScope.GROUP, io.gravitee.management.model.permissions.RoleScope.GROUP, GroupPermission.values());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create admin roles", ex);
             throw new TechnicalManagementException("An error occurs while trying to create admin roles ", ex);

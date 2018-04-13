@@ -16,13 +16,28 @@
 package io.gravitee.management.model.permissions;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum RoleScope {
-    MANAGEMENT,
-    PORTAL,
-    API,
-    APPLICATION,
-    GROUP
+public enum GroupPermission implements Permission {
+    MEMBER("MEMBER", 1000);
+
+    String name;
+    int mask;
+
+    GroupPermission(String name, int mask) {
+        this.name = name;
+        this.mask = mask;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public int getMask() {
+        return mask;
+    }
+
 }

@@ -18,9 +18,13 @@ package io.gravitee.management.service.impl;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.MembershipService;
+import io.gravitee.management.service.PermissionService;
 import io.gravitee.management.service.exceptions.GroupNameAlreadyExistsException;
 import io.gravitee.management.service.exceptions.GroupNotFoundException;
 import io.gravitee.management.service.exceptions.GroupsNotFoundException;
@@ -39,6 +43,8 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.management.model.permissions.RolePermissionAction.*;
+import static io.gravitee.management.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.GROUP;
 import static io.gravitee.repository.management.model.Group.AuditEvent.*;
 
@@ -47,7 +53,7 @@ import static io.gravitee.repository.management.model.Group.AuditEvent.*;
  * @author GraviteeSource Team
  */
 @Component
-public class GroupServiceImpl extends TransactionalService implements GroupService {
+public class GroupServiceImpl extends AbstractService implements GroupService {
     private final Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
     @Autowired
@@ -68,16 +74,34 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
     @Autowired
     private AuditService auditService;
 
+    @Autowired
+    private PermissionService permissionService;
+
     @Override
     public List<GroupEntity> findAll() {
         try {
             logger.debug("Find all groups");
             Set<Group> all = groupRepository.findAll();
             logger.debug("Find all groups - DONE");
-            return all.stream()
+            List<GroupEntity> result = all.stream()
                     .map(this::map)
                     .sorted(Comparator.comparing(GroupEntity::getName))
                     .collect(Collectors.toList());
+
+            if (permissionService.hasPermission(RolePermission.MANAGEMENT_GROUP, null, CREATE, UPDATE, DELETE)) {
+                result.forEach(groupEntity -> groupEntity.setManageable(true));
+            } else {
+                List<String> groupIds = membershipRepository.findByUserAndReferenceTypeAndRole(
+                        getAuthenticatedUsername(),
+                        MembershipReferenceType.GROUP,
+                        RoleScope.GROUP,
+                        SystemRole.ADMIN.name())
+                        .stream()
+                        .map(Membership::getReferenceId)
+                        .collect(Collectors.toList());
+                result.forEach(groupEntity -> groupEntity.setManageable(groupIds.contains(groupEntity.getId())));
+            }
+            return result;
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find all groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
@@ -167,7 +191,24 @@ public class GroupServiceImpl extends TransactionalService implements GroupServi
                 throw new GroupNotFoundException(groupId);
             }
             logger.debug("findById {} - DONE", group.get());
-            return this.map(group.get());
+            GroupEntity groupEntity = this.map(group.get());
+
+            if (permissionService.hasPermission(RolePermission.MANAGEMENT_GROUP, null, CREATE, UPDATE, DELETE)) {
+                groupEntity.setManageable(true);
+            } else {
+                List<String> groupIds = membershipRepository.findByUserAndReferenceTypeAndRole(
+                        getAuthenticatedUsername(),
+                        MembershipReferenceType.GROUP,
+                        RoleScope.GROUP,
+                        SystemRole.ADMIN.name())
+                        .stream()
+                        .map(Membership::getReferenceId)
+                        .collect(Collectors.toList());
+                groupEntity.setManageable(groupIds.contains(groupEntity.getId()));
+            }
+
+            return groupEntity;
+
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to find a group", ex);

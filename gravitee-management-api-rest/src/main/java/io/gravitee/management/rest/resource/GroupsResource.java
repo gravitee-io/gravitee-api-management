@@ -22,6 +22,7 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.GroupService;
+import io.gravitee.management.service.MembershipService;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -47,6 +48,9 @@ public class GroupsResource extends AbstractResource {
     @Inject
     private GroupService groupService;
 
+    @Inject
+    private MembershipService membershipService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -59,15 +63,12 @@ public class GroupsResource extends AbstractResource {
             @ApiResponse(code = 200, message = "List of groups", response = GroupEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.READ)
+    })
     public Response findAll(){
-        if (hasPermission(RolePermission.MANAGEMENT_ROLE, RolePermissionAction.READ)) {
-                return Response
-                        .ok(groupService.findAll())
-                        .build();
-        }
         return Response
-                .status(Response.Status.FORBIDDEN)
-                .entity("Only administrators are allowed to do get groups.")
+                .ok(groupService.findAll())
                 .build();
     }
 

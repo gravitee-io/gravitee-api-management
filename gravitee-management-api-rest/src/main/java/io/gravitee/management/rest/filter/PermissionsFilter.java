@@ -17,15 +17,13 @@ package io.gravitee.management.rest.filter;
 
 import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.rest.resource.AbstractResource;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.ApplicationService;
-import io.gravitee.management.service.MembershipService;
-import io.gravitee.management.service.RoleService;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
@@ -76,6 +74,9 @@ public class PermissionsFilter implements ContainerRequestFilter {
     @Inject
     private RoleService roleService;
 
+    @Inject
+    private GroupService groupService;
+
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         if (securityContext.isUserInRole(SystemRole.ADMIN.name()) ||
@@ -124,6 +125,13 @@ public class PermissionsFilter implements ContainerRequestFilter {
                                 return;
                             }
                             break;
+                        case GROUP:
+                            GroupEntity group = getGroup(requestContext);
+                            memberPermissions = membershipService.getMemberPermissions(group, username);
+                            if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
+                                return;
+                            }
+                            break;
                         default:
                             sendSecurityError();
                     }
@@ -139,6 +147,14 @@ public class PermissionsFilter implements ContainerRequestFilter {
             return null;
         }
         return apiService.findById(apiId);
+    }
+
+    private GroupEntity getGroup(ContainerRequestContext requestContext) {
+        String groupId = getId("group", requestContext);
+        if (groupId == null) {
+            return null;
+        }
+        return groupService.findById(groupId);
     }
 
     private ApplicationEntity getApplication(ContainerRequestContext requestContext) {

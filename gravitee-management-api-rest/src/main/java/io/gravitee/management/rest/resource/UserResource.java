@@ -95,7 +95,7 @@ public class UserResource extends AbstractResource {
     )
     public List<UserGroupEntity> getGroups(@PathParam("id") String userId) {
         List<UserGroupEntity> groups = new ArrayList<>();
-        RoleScope[] scopes = {RoleScope.API, RoleScope.APPLICATION};
+        RoleScope[] scopes = {RoleScope.API, RoleScope.APPLICATION, RoleScope.GROUP};
         groupService.findByUser(userId).forEach(groupEntity -> {
             UserGroupEntity userGroupEntity = new UserGroupEntity();
             userGroupEntity.setId(groupEntity.getId());

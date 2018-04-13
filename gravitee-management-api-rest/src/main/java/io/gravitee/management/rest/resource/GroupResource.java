@@ -82,7 +82,8 @@ public class GroupResource extends AbstractResource {
             @ApiResponse(code = 200, message = "Group successfully updated", response = GroupEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE)
     })
     public GroupEntity update(
             @PathParam("group")String group,

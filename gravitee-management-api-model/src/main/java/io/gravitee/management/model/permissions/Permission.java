@@ -33,6 +33,8 @@ public interface Permission {
                  return ApiPermission.values();
              case APPLICATION:
                  return ApplicationPermission.values();
+             case GROUP:
+                 return GroupPermission.values();
              default:
                  throw new IllegalArgumentException("[" + scope + "] are not a RolePermission");
         }

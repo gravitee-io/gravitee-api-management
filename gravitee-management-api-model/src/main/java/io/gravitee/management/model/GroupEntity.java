@@ -32,6 +32,8 @@ public class GroupEntity {
     @JsonProperty("event_rules")
     private List<GroupEventRuleEntity> eventRules;
 
+    boolean manageable;
+
     @JsonProperty("created_at")
     private Date createdAt;
 
@@ -60,6 +62,14 @@ public class GroupEntity {
 
     public void setEventRules(List<GroupEventRuleEntity> eventRules) {
         this.eventRules = eventRules;
+    }
+
+    public boolean isManageable() {
+        return manageable;
+    }
+
+    public void setManageable(boolean manageable) {
+        this.manageable = manageable;
     }
 
     public Date getCreatedAt() {
