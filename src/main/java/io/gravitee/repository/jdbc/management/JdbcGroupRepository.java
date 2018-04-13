@@ -41,7 +41,7 @@ import static java.lang.String.format;
  * @author njt
  */
 @Repository
-public class JdbcGroupRepository implements GroupRepository {
+public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, String>  implements GroupRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcGroupRepository.class);
 
@@ -57,25 +57,26 @@ public class JdbcGroupRepository implements GroupRepository {
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
 
-    private static final JdbcHelper.ChildAdder<Group> CHILD_ADDER = (Group parent, ResultSet rs) -> {
-        if (parent.getAdministrators() == null) {
-            parent.setAdministrators(new ArrayList<>());
-        }
-        if (rs.getString("administrator") != null) {
-            parent.getAdministrators().add(rs.getString("administrator"));
-        }
-    };
+    @Override
+    protected JdbcObjectMapper getOrm() {
+        return ORM;
+    }
 
     @Override
+    protected String getId(Group item) {
+        return item.getId();
+    }
+
     public Optional<Group> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcGroupRepository.findById({})", id);
         try {
-            CollatingRowMapper<Group> rowMapper = new CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query(SELECT_ESCAPED_GROUP_TABLE_NAME + " g left join group_administrators ga on g.id = ga.group_id where id = ?"
-                    , rowMapper
+            Optional<Group> group = jdbcTemplate.query(
+                    SELECT_ESCAPED_GROUP_TABLE_NAME + " g where id = ?"
+                    , ORM.getRowMapper()
                     , id
-            );
-            Optional<Group> group = rowMapper.getRows().stream().findFirst();
+            )
+                    .stream()
+                    .findFirst();
             if (group.isPresent()) {
                 addGroupEvents(group.get());
             }
@@ -90,7 +91,6 @@ public class JdbcGroupRepository implements GroupRepository {
     public Group create(final Group group) throws TechnicalException {
         try {
             jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(group));
-            storeAdministrators(group, false);
             storeGroupEvents(group, false);
             return findById(group.getId()).orElse(null);
         } catch (final Exception ex) {
@@ -106,7 +106,6 @@ public class JdbcGroupRepository implements GroupRepository {
         }
         try {
             jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(group, group.getId()));
-            storeAdministrators(group, true);
             storeGroupEvents(group, true);
             return findById(group.getId()).orElseThrow(() -> new IllegalStateException(format("No group found with id [%s]", group.getId())));
         } catch (final IllegalStateException ex) {
@@ -119,7 +118,6 @@ public class JdbcGroupRepository implements GroupRepository {
 
     @Override
     public void delete(final String id) throws TechnicalException {
-        jdbcTemplate.update("delete from group_administrators where group_id = ?", id);
         jdbcTemplate.update(ORM.getDeleteSql(), id);
     }
 
@@ -165,31 +163,15 @@ public class JdbcGroupRepository implements GroupRepository {
         }
     }
 
-    private void storeAdministrators(Group group, boolean deleteFirst) {
-        if (deleteFirst) {
-            jdbcTemplate.update("delete from group_administrators where group_id = ?", group.getId());
-        }
-        List<String> filteredAdministrators = ORM.filterStrings(group.getAdministrators());
-        LOGGER.debug("Storing administrators ({}) for {}", filteredAdministrators, group.getId());
-        if (!filteredAdministrators.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into group_administrators ( group_id, administrator ) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(group.getId(), filteredAdministrators));
-        }
-        if (group.getAdministrators() == null) {
-            group.setAdministrators(new ArrayList<>());
-        }
-    }
-
     @Override
     public Set<Group> findAll() throws TechnicalException {
         LOGGER.debug("JdbcGroupRepository.findAll()");
         try {
-            CollatingRowMapper<Group> rowMapper = new CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query(SELECT_ESCAPED_GROUP_TABLE_NAME + " g left join group_administrators ga on g.id = ga.group_id "
-                    , rowMapper
-            );
+            List<Group> rows = jdbcTemplate.query(
+                    SELECT_ESCAPED_GROUP_TABLE_NAME
+                    , ORM.getRowMapper());
             Set<Group> groups = new HashSet<>();
-            for (Group group : rowMapper.getRows()) {
+            for (Group group : rows) {
                 addGroupEvents(group);
                 groups.add(group);
             }
@@ -206,17 +188,15 @@ public class JdbcGroupRepository implements GroupRepository {
         if (ids == null || ids.isEmpty()) {
             return Collections.emptySet();
         }
-        final StringBuilder query = new StringBuilder(SELECT_ESCAPED_GROUP_TABLE_NAME
-                + " g left join group_administrators ga on g.id = ga.group_id ");
+        final StringBuilder query = new StringBuilder(SELECT_ESCAPED_GROUP_TABLE_NAME);
         ORM.buildInCondition(true, query, "id", ids);
         try {
-            final CollatingRowMapper<Group> rowMapper = new CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query(query.toString()
+            List<Group> rows = jdbcTemplate.query(query.toString()
                     , (PreparedStatement ps) -> ORM.setArguments(ps, ids, 1)
-                    , rowMapper
+                    , ORM.getRowMapper()
             );
             Set<Group> groups = new HashSet<>();
-            for (Group group : rowMapper.getRows()) {
+            for (Group group : rows) {
                 addGroupEvents(group);
                 groups.add(group);
             }

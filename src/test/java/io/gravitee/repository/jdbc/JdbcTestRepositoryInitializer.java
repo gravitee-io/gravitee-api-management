@@ -62,7 +62,6 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "generic_notification_config_hooks",
             "groups",
             "group_event_rules",
-            "group_administrators",
             "memberships",
             "membership_roles",
             "metadata",
