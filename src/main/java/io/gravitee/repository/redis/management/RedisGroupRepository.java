@@ -48,9 +48,6 @@ public class RedisGroupRepository implements GroupRepository{
 
     @Override
     public Group create(Group item) throws TechnicalException {
-        if (item != null && item.getAdministrators() == null) {
-            item.setAdministrators(Collections.emptyList());
-        }
         return convert(internalRepository.saveOrUpdate(convert(item)));
     }
 
@@ -105,7 +102,6 @@ public class RedisGroupRepository implements GroupRepository{
         }
         group.setCreatedAt(redisGroup.getCreatedAt());
         group.setUpdatedAt(redisGroup.getUpdatedAt());
-        group.setAdministrators(redisGroup.getAdminstrators());
         return group;
     }
 
@@ -124,7 +120,6 @@ public class RedisGroupRepository implements GroupRepository{
         }
         redisGroup.setCreatedAt(group.getCreatedAt());
         redisGroup.setUpdatedAt(group.getUpdatedAt());
-        redisGroup.setAdminstrators(group.getAdministrators());
         return redisGroup;
     }
 }
