@@ -65,9 +65,6 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public Group create(Group group) throws TechnicalException {
         logger.debug("Create group [{}]", group.getName());
-        if(group.getAdministrators() == null){
-            group.setAdministrators(Collections.emptyList());
-        }
         Group createdGroup = map(internalRepository.insert(map(group)));
         logger.debug("Create group [{}] - Done", createdGroup.getName());
         return createdGroup;
@@ -85,9 +82,6 @@ public class MongoGroupRepository implements GroupRepository {
         }
         
         logger.debug("Update group [{}]", group.getName());
-        if(group.getAdministrators() == null){
-            group.setAdministrators(Collections.emptyList());
-        }
         Group updatedGroup = map(internalRepository.save(map(group)));
         logger.debug("Update group [{}] - Done", updatedGroup.getName());
         return updatedGroup;
