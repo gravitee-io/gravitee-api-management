@@ -26,7 +26,8 @@ public enum RoleScope {
     MANAGEMENT(1),
     PORTAL(2),
     API(3),
-    APPLICATION(4);
+    APPLICATION(4),
+    GROUP(5);
 
     private int id;
 

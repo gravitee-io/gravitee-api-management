@@ -38,11 +38,6 @@ public class Group {
     private String name;
 
     /**
-     * administrators of the group. May be null
-     */
-    private List<String> administrators;
-
-    /**
      * events
      */
     private List<GroupEventRule> eventRules;
@@ -71,14 +66,6 @@ public class Group {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<String> getAdministrators() {
-        return administrators;
-    }
-
-    public void setAdministrators(List<String> administrators) {
-        this.administrators = administrators;
     }
 
     public Date getCreatedAt() {
