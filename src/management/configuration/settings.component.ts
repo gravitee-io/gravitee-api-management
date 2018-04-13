@@ -17,6 +17,7 @@
 import SidenavService from "../../components/sidenav/sidenav.service";
 import {IScope} from "angular";
 import UserService from "../../services/user.service";
+import _ = require('lodash');
 
 const SettingsComponent: ng.IComponentOptions = {
 
@@ -29,33 +30,78 @@ const SettingsComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
     this.$state = $state;
+    this.settingsMenu = {
+      // PORTAL
+      documentations: {
+        perm: UserService.isUserHasPermissions(
+          ['portal-documentation-c', 'portal-documentation-u', 'portal-documentation-d']),
+        goTo: 'management.settings.pages'
+      },
+      metadata: {
+        perm: UserService.isUserHasPermissions(
+          ['portal-metadata-c', 'portal-metadata-u', 'portal-metadata-d']),
+        goTo: 'management.settings.metadata'
+      },
+      views: {
+        perm: UserService.isUserHasPermissions(
+          ['portal-view-c', 'portal-view-u', 'portal-view-d']),
+        goTo: 'management.settings.views'
+      },
+      topApis: {
+        perm: UserService.isUserHasPermissions(
+          ['portal-top_apis-c', 'portal-top_apis-u', 'portal-top_apis-d']),
+        goTo: 'management.settings.top-apis'
+      },
+
+      // GATEWAYS
+      tags: {
+        perm: UserService.isUserHasPermissions(
+          ['management-tag-c', 'management-tag-u', 'management-tag-d']),
+        goTo: 'management.settings.tags'
+      },
+      tenants: {
+        perm: UserService.isUserHasPermissions(
+          ['management-tenant-c', 'management-tenant-u', 'management-tenant-d']),
+        goTo: 'management.settings.tenants'
+      },
+
+      // USER MANAGEMENT
+      users: {
+        perm: UserService.isUserHasPermissions(
+          ['management-user-c', 'management-user-u', 'management-user-d']),
+        goTo: 'management.settings.users'
+      },
+      groups: {
+        perm: UserService.isUserHasPermissions(
+          ['management-group-c', 'management-group-r', 'management-group-u', 'management-group-d']),
+        goTo: 'management.settings.groups'
+      },
+      roles: {
+        perm: UserService.isUserHasPermissions(
+          ['management-role-c', 'management-role-u', 'management-role-d']),
+        goTo: 'management.settings.roles'
+      },
+
+      // ALERT
+      notifications: {
+        perm: UserService.isUserHasPermissions(
+          ['management-notification-c', 'management-notification-u', 'management-notification-d']),
+        goTo: 'management.settings.notifications'
+      }};
 
     this.$onInit = () => {
       if ($state.current.name === 'management.settings') {
         $rootScope.$broadcast('reduceSideNav');
         SidenavService.setCurrentResource('SETTINGS');
 
-        if (UserService.isUserHasPermissions(['portal-documentation-r'])) {
-          $state.go('management.settings.pages');
-        } else if (UserService.isUserHasPermissions(['portal-metadata-r'])) {
-          $state.go("management.settings.metadata");
-        } else if (UserService.isUserHasPermissions(['portal-view-r'])) {
-          $state.go("management.settings.views");
-        } else if (UserService.isUserHasPermissions(['portal-top_apis-r'])) {
-          $state.go("management.settings.top-apis");
-        } else if (UserService.isUserHasPermissions(['management-tag-r'])) {
-          $state.go("management.settings.tags");
-        } else if (UserService.isUserHasPermissions(['management-tenant-r'])) {
-          $state.go("management.settings.tenants");
-        } else if (UserService.isUserHasPermissions(['management-group-r'])) {
-          $state.go("management.settings.groups");
-        } else if (UserService.isUserHasPermissions(['management-role-r'])) {
-          $state.go("management.settings.roles");
-        } else if (UserService.isUserHasPermissions(['management-notification-r'])) {
-          $state.go("management.settings.notifications");
+        for ( let entry of _.keys(this.settingsMenu)) {
+          if (this.settingsMenu[entry].perm) {
+            $state.go(this.settingsMenu[entry].goTo);
+            break;
+          }
         }
       }
-    }
+    };
   }
 };
 

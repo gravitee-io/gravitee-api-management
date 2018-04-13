@@ -21,72 +21,82 @@
         <div class="menu" flex="15">
             <div class="md-headline">Settings</div>
 
-            <div class="aui-nav-heading">
+            <div class="aui-nav-heading"
+                 ng-if="$ctrl.settingsMenu.documentations.perm
+                 || $ctrl.settingsMenu.metadata.perm
+                 || $ctrl.settingsMenu.settings.perm
+                 || $ctrl.settingsMenu.topApis.perm">
                 <strong>Portal</strong>
             </div>
             <ul class="aui-nav">
                 <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                    permission permission-only='portal-documentation-r'>
-                    <a class="execute" ui-sref="management.settings.pages">Documentation</a>
+                    ng-if="$ctrl.settingsMenu.documentations.perm">
+                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.documentations.goTo}}">Documentation</a>
                 </li>
                 <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                    permission permission-only='portal-metadata-r'>
-                    <a class="execute" ui-sref="management.settings.metadata">Metadata</a>
+                    ng-if="$ctrl.settingsMenu.metadata.perm">
+                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.metadata.goTo}}">Metadata</a>
                 </li>
                 <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                    permission permission-only='portal-view-r'>
-                    <a class="execute" ui-sref="management.settings.views">Views</a>
+                    ng-if="$ctrl.settingsMenu.settings.perm">
+                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.settings.goTo}}">Views</a>
                 </li>
                 <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                    permission permission-only='portal-top_apis-r'>
-                    <a class="execute" ui-sref="management.settings.top-apis">Top APIs</a>
+                    ng-if="$ctrl.settingsMenu.topApis.perm">
+                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.topApis.goTo}}">Top APIs</a>
                 </li>
             </ul>
 
 
-            <div class="aui-nav-heading">
+            <div class="aui-nav-heading"
+                 ng-if="$ctrl.settingsMenu.tags.perm
+                 || $ctrl.settingsMenu.tenants.perm">
                 <strong>Gateway</strong>
             </div>
             <ul class="aui-nav">
                 <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                    permission permission-only='management-tag-r'>
-                    <a class="execute" ui-sref="management.settings.tags">Sharding Tags</a>
+                    ng-if="$ctrl.settingsMenu.tags.perm">
+                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.tags.goTo}}">Sharding Tags</a>
                 </li>
                 <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                    permission permission-only='management-tenant-r'>
-                    <a class="execute" ui-sref="management.settings.tenants">Tenants</a>
+                    ng-if="$ctrl.settingsMenu.tenants.perm">
+                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.tenants.goTo}}">Tenants</a>
                 </li>
             </ul>
 
-            <div class="aui-nav-heading">
+            <div class="aui-nav-heading"
+                 ng-if="$ctrl.settingsMenu.users.perm
+                 || $ctrl.settingsMenu.groups.perm
+                 || $ctrl.settingsMenu.roles.perm">
                 <strong>User Management</strong>
             </div>
             <ul class="aui-nav">
                 <li class="iterable-item"
                     ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.users') || $ctrl.$state.includes('management.settings.user') }"
-                    permission permission-only='management-user-r'>
-                    <a class="execute" ui-sref="management.settings.users">Users</a>
+                    ng-if="$ctrl.settingsMenu.users.perm">
+                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.users.goTo}}">Users</a>
                 </li>
                 <li class="iterable-item"
                     ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.groups') || $ctrl.$state.includes('management.settings.group') }"
-                    permission permission-only='management-group-r'>
-                    <a class="execute" ui-sref="management.settings.groups">Groups</a>
+                    ng-if="$ctrl.settingsMenu.groups.perm">
+                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.groups.goTo}}">Groups</a>
                 </li>
                 <li class="iterable-item"
                     ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.roles') || $ctrl.$state.includes('management.settings.rolenew') || $ctrl.$state.includes('management.settings.roleedit') || $ctrl.$state.includes('management.settings.rolemembers') }"
-                    permission permission-only='management-role-r'>
-                    <a class="execute" ui-sref="management.settings.roles">Roles</a>
+                    ng-if="$ctrl.settingsMenu.roles.perm">
+                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.roles.goTo}}">Roles</a>
                 </li>
             </ul>
 
 
-            <div class="aui-nav-heading">
+            <div class="aui-nav-heading"
+                 ng-if="$ctrl.settingsMenu.notifications.perm">
                 <strong>Alerts</strong>
             </div>
             <ul class="aui-nav">
                 <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                    permission permission-only='management-notification-r'>
-                    <a class="execute" ui-sref="management.settings.notifications">Notifications</a>
+                    ng-if="$ctrl.settingsMenu.notifications.perm">
+                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.notifications.goTo}}">Notifications</a>
                 </li>
             </ul>
         </div>

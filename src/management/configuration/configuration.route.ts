@@ -16,7 +16,6 @@
 import ViewService from '../../services/view.service';
 import TenantService from '../../services/tenant.service';
 import TagService from '../../services/tag.service';
-import SidenavService from '../../components/sidenav/sidenav.service';
 import PortalPagesService from '../../services/portalPages.service';
 import MetadataService from "../../services/metadata.service";
 import RoleService from "../../services/role.service";
@@ -25,6 +24,7 @@ import {HookScope} from "../../entities/hookScope";
 import NotificationSettingsService from "../../services/notificationSettings.service";
 import TopApiService from "../../services/top-api.service";
 import UserService from "../../services/user.service";
+import _ = require('lodash');
 
 export default configurationRouterConfig;
 
@@ -44,7 +44,7 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
         perms: {
           only: [
             //hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
-            'portal-view-r', 'portal-metadata-r', 'portal-top_apis-r',
+            'portal-view-r', 'portal-metadata-r', 'portal-top_apis-r', 'management-group-r',
             'management-tag-c', 'management-tenant-c', 'management-group-c', 'management-role-c', 'portal-documentation-c',
             'management-tag-u', 'management-tenant-u', 'management-group-u', 'management-role-u', 'portal-documentation-u',
             'management-tag-d', 'management-tenant-d', 'management-group-d', 'management-role-d', 'portal-documentation-d'
@@ -106,7 +106,7 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
       resolve: {
         groups: (GroupService: GroupService) =>
           GroupService.list().then(response =>
-            response.data)
+            _.filter(response.data, 'manageable'))
       },
       data: {
         menu: null,

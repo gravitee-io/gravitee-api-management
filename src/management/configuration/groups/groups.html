@@ -22,7 +22,7 @@
     </div>
 </md-toolbar>
 
-<md-table-container style="margin-bottom: 72px;">
+<md-table-container style="margin-bottom: 72px;" ng-if="$ctrl.groups.length > 0">
     <table md-table ng-init="orderGrp = 'name'">
         <thead md-head md-order="orderGrp">
         <tr md-row>
@@ -51,11 +51,11 @@
                 </md-checkbox>
             </td>
             <td md-cell ng-click="$event.stopPropagation()" layout="row" style="padding: 10px 0;">
-              <span>
+              <span ng-if="group.manageable">
                 <md-tooltip md-direction="top">edit</md-tooltip>
                 <ng-md-icon icon="mode_edit" ng-click="$ctrl.showRenameGroupModal($event, group.id, group.name, group.event_rules)" aria-label="rename-group"></ng-md-icon>
               </span>
-              <span>
+              <span ng-if="group.manageable">
                 <md-tooltip md-direction="top">delete</md-tooltip>
                 <ng-md-icon icon="delete" ng-click="$ctrl.removeGroup($event, group.id, group.name)" aria-label="delete-group"></ng-md-icon>
               </span>
@@ -65,9 +65,17 @@
     </table>
 </md-table-container>
 
-<md-button permission permission-only="['management-group-c']"
-           class="md-fab md-fab-bottom-right gravitee-add-button"
-           aria-label="Add"
-           ng-click="$ctrl.showAddGroupModal()">
-    <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
+
+<gravitee-empty-state ng-if="$ctrl.groups.length == 0"
+                      icon="dashboard"
+                      model="GROUPS"
+                      message="There is no group to manage"
+                      ></gravitee-empty-state>
+<div ng-style="{'text-align': $ctrl.groups.length == 0 ? 'center' : 'none' }">
+    <md-button permission permission-only="['management-group-c']"
+               ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.groups.length > 0}" class="md-fab"
+               aria-label="Add"
+               ng-click="$ctrl.showAddGroupModal()">
+        <ng-md-icon icon="add"></ng-md-icon>
+    </md-button>
+</div>

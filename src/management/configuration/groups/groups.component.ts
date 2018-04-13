@@ -16,6 +16,7 @@
 import _ = require('lodash');
 import GroupService from "../../../services/group.service";
 import NotificationService from "../../../services/notification.service";
+import UserService from "../../../services/user.service";
 
 const GroupsComponent: ng.IComponentOptions = {
   bindings: {
@@ -24,6 +25,7 @@ const GroupsComponent: ng.IComponentOptions = {
   template: require("./groups.html"),
   controller: function (
     GroupService: GroupService,
+    UserService: UserService,
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
     $state: ng.ui.IStateService
@@ -64,7 +66,7 @@ const GroupsComponent: ng.IComponentOptions = {
           GroupService.create(newGroup).then(() => {
             NotificationService.show('Group ' + newGroup.name + ' has been removed.');
             GroupService.list().then( (response) => {
-                this.groups = response.data;
+              this.groups = _.filter(response.data, 'manageable');
                 this.initEventRules();
               }
             );
@@ -91,7 +93,7 @@ const GroupsComponent: ng.IComponentOptions = {
           GroupService.update(groupId, updatedGroup).then(() => {
             NotificationService.show('Group ' + updatedGroup.name + ' has been updated.');
             GroupService.list().then( (response) => {
-                this.groups = response.data;
+              this.groups = _.filter(response.data, 'manageable');
                 this.initEventRules();
               }
             );
@@ -116,7 +118,7 @@ const GroupsComponent: ng.IComponentOptions = {
           GroupService.remove(groupId).then( () => {
             NotificationService.show('Group ' + groupName + ' has been deleted.');
             GroupService.list().then( (response) => {
-                this.groups = response.data;
+                this.groups = _.filter(response.data, 'manageable');
                 this.initEventRules();
               }
             );
@@ -126,17 +128,21 @@ const GroupsComponent: ng.IComponentOptions = {
     };
 
     this.saveEventRules = (group: any) => {
-      GroupService.update(group.id, {
-        name: group.name,
-        defaultApi: this.apiByDefault[group.id],
-        defaultApplication: this.applicationByDefault[group.id]
-      }).then(() => {
-        NotificationService.show('Group ' + group.name + ' has been updated.');
-      });
+      if (group.manageable) {
+        GroupService.update(group.id, {
+          name: group.name,
+          defaultApi: this.apiByDefault[group.id],
+          defaultApplication: this.applicationByDefault[group.id]
+        }).then(() => {
+          NotificationService.show('Group ' + group.name + ' has been updated.');
+        });
+      }
     };
 
     this.selectGroup = (group: any) => {
-      $state.go('management.settings.group', {groupId: group.id});
+      if (group.manageable) {
+        $state.go('management.settings.group', {groupId: group.id});
+      }
     };
   }
 };

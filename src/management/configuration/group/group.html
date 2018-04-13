@@ -26,16 +26,25 @@
     <table md-table ng-init="orderGrp = 'name'">
         <thead md-head md-order="orderGrp">
         <tr md-row>
-            <th md-column width="30%" md-order-by="name">Name</th>
-            <th md-column width="30%">API Role</th>
-            <th md-column width="30%">Application Role</th>
-            <th md-column width="10%"></th>
+            <th md-column width="22%" md-order-by="name">Name</th>
+            <th md-column width="22%">Group Admin</th>
+            <th md-column width="22%">API Role</th>
+            <th md-column width="22%">Application Role</th>
+            <th md-column width="12%"></th>
         </tr>
         </thead>
         <tbody md-body>
         <tr md-row
             ng-repeat="member in $ctrl.members | orderBy: orderGrp">
             <td md-cell>{{member.displayName}}</td>
+            <td md-cell>
+                <md-checkbox ng-model="member.roles['GROUP']"
+                             ng-true-value="'ADMIN'"
+                             ng-false-value="''"
+                             ng-change="$ctrl.updateRole(member)"
+                             aria-label="Administrator of this group">
+                </md-checkbox>
+            </td>
             <td md-cell>
                 <md-select ng-model="member.roles['API']"
                            aria-label="API Role"
@@ -52,7 +61,7 @@
             </td>
             <td md-cell ng-click="$event.stopPropagation()">
                 <div layout="row" layout-align="end center">
-                    <span>
+                    <span ng-if="$ctrl.group.manageable">
                         <md-tooltip md-direction="top">delete</md-tooltip>
                         <ng-md-icon icon="delete" ng-click="$ctrl.removeUser($event, member)" aria-label="delete-user"></ng-md-icon>
                     </span>
@@ -68,7 +77,7 @@
         <span style="color: rgba(0, 0, 0, 0.54);">Back to groups</span>
     </md-button>
 </section>
-<md-button permission permission-only="['management-group-u']"
+<md-button ng-if="$ctrl.group.manageable"
            class="md-fab md-fab-bottom-right gravitee-add-button"
            aria-label="Add"
            ng-click="$ctrl.showAddMemberModal()">
