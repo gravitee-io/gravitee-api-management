@@ -1,5 +1,11 @@
 <#ftl output_format="JSON">
 {
+    "index_patterns": ["${indexName}-*"],
+    "settings": {
+        "index.number_of_shards":${numberOfShards},
+        "index.number_of_replicas":${numberOfReplicas},
+        "index.refresh_interval": "${refreshInterval}"
+    },
     "mappings": {
         "request": {
             "properties": {
@@ -13,7 +19,7 @@
                     "type": "keyword",
                     "index": false
                 },
-                    "api-response-time": {
+                "api-response-time": {
                     "type": "integer"
                 },
                 "application": {
@@ -39,7 +45,7 @@
                 "plan": {
                     "type": "keyword"
                 },
-                "proxy-latency": {
+                    "proxy-latency": {
                     "type": "integer",
                     "index": false
                 },
@@ -49,19 +55,19 @@
                 },
                 "geoip" : {
                     "properties": {
-                        "continent_name": {
+                        "continent_name":{
                             "type": "keyword",
                             "index": true
                         },
-                        "country_iso_code": {
+                        "country_iso_code":{
                             "type": "keyword",
                             "index": true
                         },
-                        "region_name": {
+                        "region_name":{
                             "type": "keyword",
                             "index": true
                         },
-                        "city_name": {
+                        "city_name":{
                             "type": "keyword",
                             "index": true
                         },
@@ -94,74 +100,6 @@
                     "type": "keyword"
                 }
             }
-        },
-        "monitor": {
-            "properties": {
-                "gateway": {
-                    "type": "keyword"
-                },
-                "hostname": {
-                    "type": "keyword"
-                }
-            }
-        },
-        "log": {
-            "properties": {
-                "client-request": {
-                    "type": "object",
-                    "enabled": false
-                },
-                "client-response": {
-                    "type": "object",
-                    "enabled": false
-                },
-                "proxy-request": {
-                    "type": "object",
-                    "enabled": false
-                },
-                "proxy-response": {
-                    "type": "object",
-                    "enabled": false
-                }
-            }
-        },
-        "health": {
-            "properties": {
-                "api": {
-                    "type": "keyword"
-                },
-                "available": {
-                    "type": "boolean",
-                    "index": false
-                },
-                "endpoint": {
-                    "type": "keyword"
-                },
-                "gateway": {
-                    "type": "keyword"
-                },
-                "response-time": {
-                    "type": "integer"
-                },
-                "state": {
-                    "type": "integer",
-                    "index": false
-                },
-                "steps": {
-                    "type": "object",
-                    "enabled": false
-                },
-                "success": {
-                    "type": "boolean",
-                    "index": false
-                }
-            }
         }
-    },
-    "settings": {
-        "index.number_of_shards":${numberOfShards},
-        "index.number_of_replicas":${numberOfReplicas},
-        "index.refresh_interval": "${refreshInterval}"
-    },
-    "template": "${indexName}-*"
+    }
 }

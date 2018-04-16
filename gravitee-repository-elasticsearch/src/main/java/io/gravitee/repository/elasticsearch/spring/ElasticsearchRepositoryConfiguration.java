@@ -91,14 +91,10 @@ public class ElasticsearchRepositoryConfiguration {
 
         Integer version = singleVersion.blockingGet();
 
-        switch (version) {
-            case 2:
-            case 5:
-                return new MultiTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
-            case 6:
-                return new PerTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
+        if (version == 6 || repositoryConfiguration.isPerTypeIndex()) {
+            return new PerTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
+        } else {
+            return new MultiTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
         }
-
-        return null;
     }
 }

@@ -17,7 +17,7 @@ package io.gravitee.reporter.elasticsearch.spring.context;
 
 import io.gravitee.reporter.elasticsearch.indexer.es6.ES6BulkIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
-import io.gravitee.reporter.elasticsearch.mapping.ES6IndexPreparer;
+import io.gravitee.reporter.elasticsearch.mapping.es6.ES6IndexPreparer;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 

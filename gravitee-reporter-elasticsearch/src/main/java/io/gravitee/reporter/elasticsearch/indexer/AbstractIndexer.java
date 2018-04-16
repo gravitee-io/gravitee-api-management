@@ -51,7 +51,8 @@ public abstract class AbstractIndexer implements Indexer {
     /**
      * Logger
      */
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     /**
      * Elasticsearch client.
      */

@@ -253,7 +253,7 @@ public class HttpClient implements Client {
                         case HttpStatusCode.OK_200:
                             return Completable.complete();
                         case HttpStatusCode.BAD_REQUEST_400:
-                            logger.warn("Impossible to create ES pipeline for gateway reporter");
+                            logger.warn("Unable to create ES pipeline: {}", pipelineName);
                             break;
                         default:
                             logger.error("Unable to put pipeline: status[{}] pipeline[{}] response[{}]",
@@ -261,7 +261,7 @@ public class HttpClient implements Client {
                             break;
                     }
 
-                    return Completable.error(new ElasticsearchException("Impossible to create ES pipeline for gateway reporter"));
+                    return Completable.error(new ElasticsearchException("Unable to create ES pipeline: " + pipelineName));
                 });
     }
 

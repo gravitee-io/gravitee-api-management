@@ -41,7 +41,13 @@ public class RepositoryConfiguration {
 	 */
 	@Value("${analytics.elasticsearch.index:gravitee}")
 	private String indexName;
-	
+
+	/**
+	 * Single index or index per type?
+	 */
+	@Value("${analytics.elasticsearch.index_per_type:false}")
+	private boolean perTypeIndex;
+
 	/**
 	 * Elasticsearch basic oauth login. 
 	 */
@@ -93,6 +99,14 @@ public class RepositoryConfiguration {
 
 	public void setIndexName(String indexName) {
 		this.indexName = indexName;
+	}
+
+	public boolean isPerTypeIndex() {
+		return perTypeIndex;
+	}
+
+	public void setPerTypeIndex(boolean perTypeIndex) {
+		this.perTypeIndex = perTypeIndex;
 	}
 
 	private List<Endpoint> initializeEndpoints() {

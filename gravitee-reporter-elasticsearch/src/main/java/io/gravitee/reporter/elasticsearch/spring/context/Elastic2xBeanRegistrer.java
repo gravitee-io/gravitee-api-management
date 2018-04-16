@@ -16,8 +16,12 @@
 package io.gravitee.reporter.elasticsearch.spring.context;
 
 import io.gravitee.reporter.elasticsearch.indexer.es2.ES2BulkIndexer;
+import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.MultiTypeIndexNameGenerator;
-import io.gravitee.reporter.elasticsearch.mapping.ES2IndexPreparer;
+import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
+import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
+import io.gravitee.reporter.elasticsearch.mapping.es2.ES2MultiTypeIndexPreparer;
+import io.gravitee.reporter.elasticsearch.mapping.es2.ES2PerTypeIndexPreparer;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
@@ -27,14 +31,16 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
  */
 public class Elastic2xBeanRegistrer {
 
-    public void register(DefaultListableBeanFactory beanFactory) {
+    public void register(DefaultListableBeanFactory beanFactory, boolean perTypeIndex) {
         BeanDefinitionBuilder beanIndexer = BeanDefinitionBuilder.rootBeanDefinition(ES2BulkIndexer.class);
         beanFactory.registerBeanDefinition("indexer", beanIndexer.getBeanDefinition());
 
-        BeanDefinitionBuilder beanIndexPreparer = BeanDefinitionBuilder.rootBeanDefinition(ES2IndexPreparer.class);
+        Class<? extends IndexPreparer> indexPreparerClass = (perTypeIndex) ? ES2PerTypeIndexPreparer.class : ES2MultiTypeIndexPreparer.class;
+        BeanDefinitionBuilder beanIndexPreparer = BeanDefinitionBuilder.rootBeanDefinition(indexPreparerClass);
         beanFactory.registerBeanDefinition("indexPreparer", beanIndexPreparer.getBeanDefinition());
 
-        BeanDefinitionBuilder beanIndexNameGenerator = BeanDefinitionBuilder.rootBeanDefinition(MultiTypeIndexNameGenerator.class);
+        Class<? extends IndexNameGenerator> indexNameGeneratorClass = (perTypeIndex) ? PerTypeIndexNameGenerator.class : MultiTypeIndexNameGenerator.class;
+        BeanDefinitionBuilder beanIndexNameGenerator = BeanDefinitionBuilder.rootBeanDefinition(indexNameGeneratorClass);
         beanFactory.registerBeanDefinition("indexNameGenerator", beanIndexNameGenerator.getBeanDefinition());
     }
 }
