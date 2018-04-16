@@ -29,7 +29,7 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-abstract class AbstractIndexPreparer implements IndexPreparer {
+public abstract class AbstractIndexPreparer implements IndexPreparer {
 
     /** Logger. */
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());

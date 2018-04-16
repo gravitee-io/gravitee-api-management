@@ -44,6 +44,12 @@ public class ReporterConfiguration {
 	 */
 	@Value("${reporters.elasticsearch.index:gravitee}")
 	private String indexName;
+
+	/**
+	 * Single index or index per type?
+	 */
+	@Value("${reporters.elasticsearch.index_per_type:false}")
+	private boolean perTypeIndex;
 	
 	/**
 	 * Request actions max by bulk 
@@ -196,5 +202,13 @@ public class ReporterConfiguration {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+	}
+
+	public boolean isPerTypeIndex() {
+		return perTypeIndex;
+	}
+
+	public void setPerTypeIndex(boolean perTypeIndex) {
+		this.perTypeIndex = perTypeIndex;
 	}
 }

@@ -59,6 +59,7 @@ public abstract class BulkIndexer extends AbstractIndexer {
 	@Override
 	public Single<String> index(Reportable reportable) {
 		return transform(reportable)
-				.doOnSuccess(bulkProcessor::onNext);
+				.doOnSuccess(bulkProcessor::onNext)
+				.doOnError(throwable -> logger.error("An error occurs while transforming reportable element into an ES data", throwable));
 	}
 }

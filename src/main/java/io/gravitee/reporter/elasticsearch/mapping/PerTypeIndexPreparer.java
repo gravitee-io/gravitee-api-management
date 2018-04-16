@@ -15,23 +15,27 @@
  */
 package io.gravitee.reporter.elasticsearch.mapping;
 
+import io.gravitee.elasticsearch.utils.Type;
 import io.reactivex.Completable;
+import io.reactivex.CompletableSource;
+import io.reactivex.Flowable;
+import io.reactivex.functions.Function;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ES2IndexPreparer extends AbstractIndexPreparer {
+public abstract class PerTypeIndexPreparer extends AbstractIndexPreparer {
 
-    @Override
-    public Completable prepare() {
-        final String templateName = configuration.getIndexName();
-
-        logger.debug("Trying to put template mapping [{}] name[{}]", templateName);
-
-        final String template = freeMarkerComponent.generateFromTemplate(
-                "/es2x/mapping/index-template.ftl", getTemplateData());
-
-        return client.putTemplate(templateName, template);
+    protected Completable indexMapping() {
+        return Completable.merge(
+                Flowable
+                        .fromArray(Type.TYPES)
+                        .map(indexTypeMapper()));
     }
+
+    /**
+     * Index mapping for a single {@link Type}.
+     */
+    protected abstract Function<Type, CompletableSource> indexTypeMapper();
 }

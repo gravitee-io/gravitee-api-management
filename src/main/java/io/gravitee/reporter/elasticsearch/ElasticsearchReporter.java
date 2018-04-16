@@ -78,10 +78,10 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 
 			switch (version) {
 				case 2:
-					new Elastic2xBeanRegistrer().register(beanFactory);
+					new Elastic2xBeanRegistrer().register(beanFactory, configuration.isPerTypeIndex());
 					break;
 				case 5:
-					new Elastic5xBeanRegistrer().register(beanFactory);
+					new Elastic5xBeanRegistrer().register(beanFactory, configuration.isPerTypeIndex());
 					break;
 				case 6:
 					new Elastic6xBeanRegistrer().register(beanFactory);
