@@ -56,11 +56,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     @Autowired
     private Environment env;
 
-    private static char escapeReservedWordsChar = '\"';
-
-    public static void setEscapeReservedWordsChar(char escapeReservedWordsChar) {
-        AbstractJdbcRepositoryConfiguration.escapeReservedWordsChar = escapeReservedWordsChar;
-    }
+    private static char escapeReservedWordsChar = '`';
 
     public static String escapeReservedWord(final String word) {
         return escapeReservedWordsChar + word + escapeReservedWordsChar;
@@ -90,9 +86,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         dsConfig.setPoolName("gravitee-jdbc-pool-1");
 
         final String jdbcUrl = readPropertyValue("management.jdbc.url");
-        if (jdbcUrl != null && "mysql".equals(jdbcUrl.split(":")[1])) {
-            escapeReservedWordsChar = '`';
-        }
+        setEscapeReservedWordFromJDBCUrl(jdbcUrl);
 
         dsConfig.setJdbcUrl(jdbcUrl);
         dsConfig.setUsername(readPropertyValue("management.jdbc.username"));
@@ -109,6 +103,12 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         final DataSource dataSource = new HikariDataSource(dsConfig);
         runLiquibase(dataSource);
         return dataSource;
+    }
+
+    public static void setEscapeReservedWordFromJDBCUrl(final String jdbcUrl) {
+        if (jdbcUrl != null && "postgresql".equals(jdbcUrl.split(":")[1])) {
+            escapeReservedWordsChar = '\"';
+        }
     }
 
     @Bean

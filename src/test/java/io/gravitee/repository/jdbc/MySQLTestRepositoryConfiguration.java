@@ -24,7 +24,6 @@ import javax.inject.Inject;
 
 import static com.wix.mysql.EmbeddedMysql.anEmbeddedMysql;
 import static com.wix.mysql.distribution.Version.v5_7_latest;
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.setEscapeReservedWordsChar;
 import static java.lang.String.format;
 
 /**
@@ -46,7 +45,6 @@ public class MySQLTestRepositoryConfiguration extends AbstractJdbcTestRepository
 
     @Bean(destroyMethod = "stop")
     public EmbeddedMysql embeddedMysql() {
-        setEscapeReservedWordsChar('`');
         return anEmbeddedMysql(v5_7_latest).addSchema("gravitee").start();
     }
 }

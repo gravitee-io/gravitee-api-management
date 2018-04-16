@@ -2,7 +2,7 @@
 
 # Gravitee JDBC Repository
 
-JDBC repository implementation that supports MySQL and PostgreSQL.
+JDBC repository implementation that supports MySQL, MariaDB and PostgreSQL.
 
 ## Requirement
 

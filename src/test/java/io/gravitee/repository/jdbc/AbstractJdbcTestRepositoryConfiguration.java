@@ -22,6 +22,8 @@ import org.springframework.context.annotation.ComponentScan;
 
 import javax.sql.DataSource;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.setEscapeReservedWordFromJDBCUrl;
+
 /**
  *
  * @author njt
@@ -34,7 +36,9 @@ public abstract class AbstractJdbcTestRepositoryConfiguration {
     @Bean
     public DataSource graviteeDataSource() {
         final HikariConfig dsConfig = new HikariConfig();
-        dsConfig.setJdbcUrl(getJdbcUrl());
+        final String jdbcUrl = getJdbcUrl();
+        dsConfig.setJdbcUrl(jdbcUrl);
+        setEscapeReservedWordFromJDBCUrl(jdbcUrl);
         return new HikariDataSource(dsConfig);
     }
 }
