@@ -15,22 +15,32 @@
  */
 package io.gravitee.management.rest.resource;
 
+import com.auth0.jwt.JWTSigner;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.idp.api.authentication.UserDetailRole;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.*;
 import io.gravitee.management.rest.model.PagedResult;
+import io.gravitee.management.rest.model.TokenEntity;
 import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.service.TaskService;
 import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.common.JWTHelper.Claims;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
+import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -43,10 +53,13 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.gravitee.management.rest.model.TokenType.BEARER;
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
+import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+import static javax.ws.rs.core.Response.ok;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -61,18 +74,16 @@ public class CurrentUserResource extends AbstractResource {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private JWTCookieGenerator jwtCookieGenerator;
-
     @Context
     private HttpServletResponse response;
-
     @Autowired
     private TaskService taskService;
-
     @Context
     private ResourceContext resourceContext;
+    @Autowired
+    private ConfigurableEnvironment environment;
+    @Autowired
+    private JWTCookieGenerator jwtCookieGenerator;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -91,7 +102,7 @@ public class CurrentUserResource extends AbstractResource {
                 } else {
                     LOG.info(unfeMessage, userId);
                 }
-                return logout();
+                return ok().build();
             }
 
             List<GrantedAuthority> authorities = new ArrayList<>(details.getAuthorities());
@@ -114,9 +125,9 @@ public class CurrentUserResource extends AbstractResource {
                         return userDetailRole;
                     }).collect(Collectors.toList()));
 
-            return Response.ok(userDetails, MediaType.APPLICATION_JSON).build();
+            return ok(userDetails, MediaType.APPLICATION_JSON).build();
         } else {
-            return Response.ok().build();
+            return ok().build();
         }
     }
 
@@ -127,7 +138,7 @@ public class CurrentUserResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
-        return Response.ok(userService.update(user)).build();
+        return ok(userService.update(user)).build();
     }
 
     @GET
@@ -142,7 +153,7 @@ public class CurrentUserResource extends AbstractResource {
         }
 
         if (picture instanceof UrlPictureEntity) {
-            return Response.temporaryRedirect(URI.create(((UrlPictureEntity)picture).getUrl())).build();
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
         }
 
         InlinePictureEntity image = (InlinePictureEntity) picture;
@@ -157,8 +168,7 @@ public class CurrentUserResource extends AbstractResource {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(image.getContent(), 0, image.getContent().length);
 
-        return Response
-                .ok()
+        return ok()
                 .entity(baos)
                 .tag(etag)
                 .type(image.getType())
@@ -168,8 +178,56 @@ public class CurrentUserResource extends AbstractResource {
     @POST
     @Path("/login")
     @ApiOperation(value = "Login")
-    public Response login() {
-        return Response.ok().build();
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response login(final @Context javax.ws.rs.core.HttpHeaders headers) {
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            // JWT signer
+            final Map<String, Object> claims = new HashMap<>();
+            claims.put(Claims.ISSUER, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER));
+
+            final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+            // Manage authorities, initialize it with dynamic permissions from the IDP
+            Set<GrantedAuthority> authorities = new HashSet<>(userDetails.getAuthorities());
+
+            // We must also load permissions from repository for configured management or portal role
+            RoleEntity role = membershipService.getRole(
+                    MembershipReferenceType.MANAGEMENT,
+                    MembershipDefaultReferenceId.DEFAULT.toString(),
+                    userDetails.getUsername(),
+                    RoleScope.MANAGEMENT);
+            if (role != null) {
+                authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
+            }
+
+            role = membershipService.getRole(
+                    MembershipReferenceType.PORTAL,
+                    MembershipDefaultReferenceId.DEFAULT.toString(),
+                    userDetails.getUsername(),
+                    RoleScope.PORTAL);
+            if (role != null) {
+                authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
+            }
+
+            claims.put(Claims.PERMISSIONS, authorities);
+            claims.put(Claims.SUBJECT, userDetails.getUsername());
+            claims.put(Claims.EMAIL, userDetails.getEmail());
+            claims.put(Claims.FIRSTNAME, userDetails.getFirstname());
+            claims.put(Claims.LASTNAME, userDetails.getLastname());
+
+            final JWTSigner.Options options = new JWTSigner.Options();
+            options.setExpirySeconds(environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER));
+            options.setIssuedAt(true);
+            options.setJwtId(true);
+
+            final TokenEntity tokenEntity = new TokenEntity();
+            tokenEntity.setType(BEARER);
+            tokenEntity.setToken(new JWTSigner(environment.getProperty("jwt.secret")).sign(claims, options));
+
+            return ok(tokenEntity).build();
+        }
+        return ok().build();
     }
 
     @POST

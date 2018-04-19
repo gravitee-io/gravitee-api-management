@@ -19,7 +19,6 @@ import com.auth0.jwt.JWTVerifier;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.idp.api.authentication.UserDetails;
-import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.service.common.JWTHelper.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +35,14 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.net.URLDecoder.decode;
+import static java.nio.charset.Charset.defaultCharset;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * @author Azize Elamrani (azize at gravitee.io)
@@ -47,38 +52,38 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
 
-    private final JWTCookieGenerator jwtCookieGenerator;
     private final JWTVerifier jwtVerifier;
 
-    public JWTAuthenticationFilter(final JWTCookieGenerator jwtCookieGenerator, final String jwtSecret) {
-        this.jwtCookieGenerator = jwtCookieGenerator;
+    public JWTAuthenticationFilter(final String jwtSecret) {
         this.jwtVerifier = new JWTVerifier(jwtSecret);
     }
 
     @Override
     @SuppressWarnings(value = "unchecked")
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-            ServletException {
+    public void doFilter(final ServletRequest request, final ServletResponse response,
+                         final FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
 
-        final Optional<Cookie> optionalStringToken;
+        String stringToken = req.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (req.getCookies() == null) {
-            optionalStringToken = Optional.empty();
-        } else {
-            optionalStringToken = Arrays.stream(req.getCookies())
+        if (isEmpty(stringToken) && req.getCookies() != null) {
+            final Optional<Cookie> optionalStringToken = Arrays.stream(req.getCookies())
                     .filter(cookie -> HttpHeaders.AUTHORIZATION.equals(cookie.getName()))
                     .findAny();
+            if (optionalStringToken.isPresent()) {
+                stringToken = decode(optionalStringToken.get().getValue(), defaultCharset().name());
+            }
         }
-        if (optionalStringToken.isPresent()) {
-            String stringToken = optionalStringToken.get().getValue();
 
+        if (isEmpty(stringToken)) {
+            LOGGER.debug("Authorization header/cookie not found");
+        } else {
             final String authorizationSchema = "Bearer";
             if (stringToken.contains(authorizationSchema)) {
-                stringToken = stringToken.substring(authorizationSchema.length()).trim();
+                final String jwtToken = stringToken.substring(authorizationSchema.length()).trim();
                 try {
-                    final Map<String, Object> verify = jwtVerifier.verify(stringToken);
+                    final Map<String, Object> verify = jwtVerifier.verify(jwtToken);
 
                     List<Map> permissions = (List<Map>) verify.get(Claims.PERMISSIONS);
                     List<SimpleGrantedAuthority> authorities;
@@ -98,19 +103,19 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
                     userDetails.setLastname((String) verify.get(Claims.LASTNAME));
 
                     SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
-                } catch (Exception e) {
-                    LOGGER.error("Invalid token", e);
-
-                    final Cookie bearerCookie = jwtCookieGenerator.generate(null);
-                    res.addCookie(bearerCookie);
-
+                } catch (final Exception e) {
+                    final String errorMessage = "Invalid token";
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.error(errorMessage, e);
+                    } else {
+                        LOGGER.error(errorMessage);
+                    }
                     res.sendError(HttpStatusCode.UNAUTHORIZED_401);
                 }
             } else {
                 LOGGER.debug("Authorization schema not found");
             }
         }
-
         chain.doFilter(request, response);
     }
 
