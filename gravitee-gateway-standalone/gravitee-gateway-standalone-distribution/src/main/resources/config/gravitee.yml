@@ -173,6 +173,12 @@ services:
   healthcheck:
     threads: 3 # Threads core size used to check endpoint availability
 
+  # metrics service
+  metrics:
+    enabled: false
+    prometheus:
+      enabled: true
+
 handlers:
   request:
     transaction:

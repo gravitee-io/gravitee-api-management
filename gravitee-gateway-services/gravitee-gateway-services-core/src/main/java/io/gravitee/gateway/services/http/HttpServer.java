@@ -23,15 +23,19 @@ import io.gravitee.gateway.services.http.handler.apis.ApiHandler;
 import io.gravitee.gateway.services.http.handler.apis.ApisHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.gravitee.gateway.services.http.handler.metrics.micrometer.prometheus.PrometheusMetricsHandler;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.vertx.core.Vertx;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.AuthHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
+import io.vertx.micrometer.backends.BackendRegistries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,6 +60,9 @@ public class HttpServer extends AbstractService {
 
     @Autowired
     private Vertx vertx;
+
+    @Autowired
+    private Environment environment;
 
     @Autowired
     private AuthProvider authProvider;
@@ -89,7 +96,6 @@ public class HttpServer extends AbstractService {
            nodeRouter.route().handler(authHandler);
         }
 
-
         // Set default handler
         mainRouter.route().handler(ctx -> ctx.fail(HttpStatusCode.NOT_FOUND_404));
 
@@ -119,6 +125,21 @@ public class HttpServer extends AbstractService {
         ApiHandler apiHandler = new ApiHandler();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(apiHandler);
         nodeRouter.get("/apis/:apiId").handler(apiHandler);
+
+        // Metrics
+        boolean metricsEnabled = environment.getProperty("services.metrics.enabled", Boolean.class, false);
+        if (metricsEnabled) {
+
+            // Set Prometheus handler
+            boolean prometheusEnabled = environment.getProperty("services.metrics.prometheus.enabled", Boolean.class, true);
+            if (prometheusEnabled) {
+                PrometheusMetricsHandler prometheusMetricsHandler = new PrometheusMetricsHandler(
+                        (PrometheusMeterRegistry) BackendRegistries.getDefaultNow());
+                nodeRouter
+                        .get("/metrics/prometheus")
+                        .handler(prometheusMetricsHandler);
+            }
+        }
     }
 
     @Override
