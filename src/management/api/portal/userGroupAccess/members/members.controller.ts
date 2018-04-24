@@ -31,20 +31,17 @@ class ApiMembersController {
   private displayGroups: any;
   constructor (
     private ApiService: ApiService,
-    private resolvedApi,
     private resolvedMembers,
     private resolvedGroups,
-    private $state,
     private $mdDialog: ng.material.IDialogService,
     private NotificationService,
     private $scope,
     private UserService: UserService,
     private GroupService,
-    private RoleService,
-    private Constants
+    private RoleService
   ) {
     'ngInject';
-    this.api = resolvedApi.data;
+    this.api = this.$scope.$parent.apiCtrl.api;
     this.members = resolvedMembers.data;
     this.newPrimaryOwner = null;
     this.$scope.searchText = "";
