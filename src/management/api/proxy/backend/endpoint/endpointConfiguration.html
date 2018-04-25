@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form name="formEndpoint" ng-submit="endpointCtrl.update(endpointCtrl.api)" novalidate>
+<form name="formEndpoint" ng-submit="endpointCtrl.update(endpointCtrl.api)" novalidate autocomplete="false">
 
   <section>
     <md-button class="md-button" aria-label="Back to endpoints configuration" ng-click="endpointCtrl.backToEndpointsConfiguration()">
@@ -223,7 +223,7 @@
       <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
           <label>Password</label>
-          <input ng-model="endpointCtrl.endpoint.proxy.password" type="password" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
+          <input ng-model="endpointCtrl.endpoint.proxy.password" type="password" autocomplete="new-password" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
           <div class="hint">Optional proxy password</div>
         </md-input-container>
       </div>
