@@ -25,7 +25,7 @@ public class ES2IndexPreparer extends AbstractIndexPreparer {
 
     @Override
     public Completable prepare() {
-        final String templateName = "gravitee";
+        final String templateName = configuration.getIndexName();
 
         logger.debug("Trying to put template mapping [{}] name[{}]", templateName);
 

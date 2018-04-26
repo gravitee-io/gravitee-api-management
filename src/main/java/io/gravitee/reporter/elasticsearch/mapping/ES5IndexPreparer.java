@@ -37,7 +37,7 @@ public class ES5IndexPreparer extends AbstractIndexPreparer {
     }
 
     private Completable indexMapping() {
-        final String templateName = "gravitee";
+        final String templateName = configuration.getIndexName();
 
         logger.debug("Trying to put template mapping [{}] name[{}]", templateName);
 
