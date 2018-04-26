@@ -25,14 +25,6 @@ function DialogClosePlanController($scope, $rootScope, $mdDialog, ApiService, No
   };
 
   $scope.close = function () {
-    if ($scope.plan.security === 'key_less' || $scope.subscriptions === 0) {
-      ApiService.deletePlan($scope.apiId, $scope.plan.id).then(function() {
-        NotificationService.show('Plan ' + plan.name + ' has been deleted');
-      }).catch(function (error) {
-        NotificationService.show('Error while deleting plan ' + plan.name);
-        $scope.error = error;
-      });
-    } else {
       ApiService.closePlan($scope.apiId, $scope.plan.id).then(function() {
         NotificationService.show('Plan ' + plan.name + ' has been closed');
         $rootScope.$broadcast("planChangeSuccess", { state: "closed"});
@@ -40,7 +32,6 @@ function DialogClosePlanController($scope, $rootScope, $mdDialog, ApiService, No
         NotificationService.show('Error while closing plan ' + plan.name);
         $scope.error = error;
       });
-    }
 
     $mdDialog.hide($scope.plan);
   };
