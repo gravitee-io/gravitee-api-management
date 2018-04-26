@@ -48,7 +48,7 @@ public class ES6IndexPreparer extends AbstractIndexPreparer {
                         .fromArray(Type.TYPES)
                         .map((Function<Type, CompletableSource>) type -> {
                             final String typeName = type.getType();
-                            final String templateName = "gravitee-" + typeName;
+                            final String templateName = configuration.getIndexName() + '-' + typeName;
 
                             logger.debug("Trying to put template mapping for type[{}] name[{}]", typeName, templateName);
 
