@@ -151,6 +151,15 @@
 			<resource>
 				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
+				<includes>
+					<include>plugin.properties</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>plugin.properties</exclude>
+				</excludes>
 			</resource>
 		</resources>
 		<plugins>

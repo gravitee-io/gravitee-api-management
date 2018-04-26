@@ -152,6 +152,7 @@ public final class LogBuilder {
                     response.setStatus(stepNode.get(FIELD_STATUS).asInt());
                     step.setResponse(response);
                 }
+                steps.add(step);
             }
             log.setSteps(steps);
         }
