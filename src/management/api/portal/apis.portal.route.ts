@@ -79,6 +79,14 @@ function apisPortalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       component: 'editPlan',
       resolve: {
         groups: (GroupService: GroupService) => GroupService.list().then(response => response.data)
+      },
+      data: {
+        perms: {
+          only: ['api-plan-c']
+        },
+        docs: {
+          page: 'management-api-plans-wizard'
+        }
       }
     })
     .state('management.apis.detail.portal.plans.plan', {
@@ -88,6 +96,14 @@ function apisPortalRouterConfig($stateProvider: ng.ui.IStateProvider) {
         plan: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
           ApiService.getApiPlan($stateParams.apiId, $stateParams.planId).then(response => response.data),
         groups: (GroupService: GroupService) => GroupService.list().then(response => response.data)
+      },
+      data: {
+        perms: {
+          only: ['api-plan-u']
+        },
+        docs: {
+          page: 'management-api-plans-wizard'
+        }
       }
     })
     .state('management.apis.detail.portal.subscriptions', {
