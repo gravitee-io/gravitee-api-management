@@ -29,7 +29,7 @@
             <th md-column width="30%" md-order-by="name">Name</th>
             <th md-column width="30%" style="text-align: center;">Associate to every new API</th>
             <th md-column width="30%"  style="text-align: center;">Associate to every new Application</th>
-            <th md-column width="10%"></th>
+            <th md-column width="10%">Action</th>
         </tr>
         </thead>
         <tbody md-body>
@@ -50,17 +50,15 @@
 
                 </md-checkbox>
             </td>
-            <td md-cell ng-click="$event.stopPropagation()">
-                <div layout="row" layout-align="end center">
-                    <span style="padding: 0 20px;">
-                        <md-tooltip md-direction="top">edit</md-tooltip>
-                        <ng-md-icon icon="mode_edit" ng-click="$ctrl.showRenameGroupModal($event, group.id, group.name, group.event_rules)" aria-label="rename-group"></ng-md-icon>
-                    </span>
-                    <span>
-                        <md-tooltip md-direction="top">delete</md-tooltip>
-                        <ng-md-icon icon="delete" ng-click="$ctrl.removeGroup($event, group.id, group.name)" aria-label="delete-group"></ng-md-icon>
-                    </span>
-                </div>
+            <td md-cell ng-click="$event.stopPropagation()" layout="row" style="padding: 10px 0;">
+              <span>
+                <md-tooltip md-direction="top">edit</md-tooltip>
+                <ng-md-icon icon="mode_edit" ng-click="$ctrl.showRenameGroupModal($event, group.id, group.name, group.event_rules)" aria-label="rename-group"></ng-md-icon>
+              </span>
+              <span>
+                <md-tooltip md-direction="top">delete</md-tooltip>
+                <ng-md-icon icon="delete" ng-click="$ctrl.removeGroup($event, group.id, group.name)" aria-label="delete-group"></ng-md-icon>
+              </span>
             </td>
         </tr>
         </tbody>
