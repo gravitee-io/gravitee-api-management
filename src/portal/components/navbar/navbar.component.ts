@@ -17,7 +17,6 @@ import UserService from "../../../services/user.service";
 import TaskService from "../../../services/task.service";
 import {IIntervalService, IScope} from "angular";
 import {PagedResult} from "../../../entities/pagedResult";
-import {UserNotification} from "../../../entities/userNotification";
 import UserNotificationService from "../../../services/userNotification.service";
 import AuthenticationService from '../../../services/authentication.service';
 export const NavbarComponent: ng.IComponentOptions = {
@@ -49,12 +48,6 @@ export const NavbarComponent: ng.IComponentOptions = {
         vm.graviteeUser = user;
         if (user && user.username) {
           let that = vm;
-          /*
-          UserService.currentUserPicture().then( (picture) => {
-            that.graviteeUser.picture = picture;
-          });
-          */
-
           // schedule an automatic refresh of the user tasks
           if (!that.tasksScheduler) {
             that.refreshUserTasks();
@@ -63,6 +56,9 @@ export const NavbarComponent: ng.IComponentOptions = {
             }, TaskService.getTaskSchedulerInSeconds() * 1000);
           }
         }
+      }).catch(function () {
+        delete vm.graviteeUser;
+        $state.go('portal.home');
       });
 
       vm.supportEnabled = Constants.support && Constants.support.enabled;
@@ -133,7 +129,7 @@ export const NavbarComponent: ng.IComponentOptions = {
         $interval.cancel(vm.tasksScheduler);
         vm.tasksScheduler = undefined;
       }
-    }
+    };
 
     vm.authenticate = function(provider: string) {
       AuthenticationService.authenticate(provider)

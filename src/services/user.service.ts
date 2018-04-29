@@ -18,7 +18,6 @@ import RoleService from "./role.service";
 import ApplicationService from './applications.service';
 import ApiService from './api.service';
 import _ = require('lodash');
-import {ILocationProvider, ILocationService} from "angular";
 
 class UserService {
   private baseURL: string;
@@ -41,7 +40,9 @@ class UserService {
               private $urlRouter: ng.ui.IUrlRouterService,
               private ApplicationService: ApplicationService,
               private ApiService: ApiService,
-              private $location) {
+              private $location,
+              private $cookies,
+              private $state) {
     'ngInject';
     this.baseURL = Constants.baseURL;
     this.searchUsersURL = `${Constants.baseURL}search/users/`;
@@ -61,7 +62,7 @@ class UserService {
     return this.$http.get(this.usersURL + code).then(response => Object.assign(new User(), response.data));
   }
 
-  remove(userId: string): ng.IPromise<User> {
+  remove(userId: string): ng.IPromise<any> {
     return this.$http.delete(this.usersURL + userId);
   }
 
@@ -85,7 +86,11 @@ class UserService {
     let that = this;
 
     if (! this.currentUser || !this.currentUser.username) {
-      const promises = [this.$http.get(this.userURL)];
+      const promises = [];
+
+      if (this.$cookies.get('Authorization') || this.$state.current.name === 'login') {
+        promises.push(this.$http.get(this.userURL));
+      }
 
       const applicationRegex = /applications\/([\w|\-]+)/;
       let applicationId = applicationRegex.exec(this.$location.$$path);
@@ -185,9 +190,11 @@ class UserService {
   }
 
   logout(): ng.IPromise<any> {
-    let that = this;
-    return this.$http.post(`${this.userURL}logout`, {})
-      .then(function() {that.currentUser = new User(); that.isLogout = true;});
+    return this.$http.post(`${this.userURL}logout`, {}).then(() => {
+      this.currentUser = new User();
+      this.isLogout = true;
+      this.$cookies.remove('Authorization');
+    });
   }
 
   currentUserPicture(): string {

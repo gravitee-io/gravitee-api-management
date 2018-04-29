@@ -35,5 +35,10 @@
   "scheduler": {
     "tasks": 10,
     "notifications": 10
+  },
+  "authentication": {
+    "github": {
+      "clientId": "dd87828a86ea514952de"
+    }
   }
 }

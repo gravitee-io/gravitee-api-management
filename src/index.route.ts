@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import UserService from './services/user.service';
-import LoginController from './user/login/login.controller';
 import { User } from './entities/user';
 import {IScope} from 'angular';
 
@@ -85,6 +84,13 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
       controllerAs: '$ctrl',
       data: {
         devMode: true
+      },
+      resolve: {
+        checkUser : function (UserService, $state) {
+          if (UserService.currentUser && UserService.currentUser.id) {
+            $state.go('portal.home');
+          }
+        }
       }
     })
     .state('registration', {
@@ -112,7 +118,7 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
             $state.go('portal.home');
             $rootScope.$broadcast('graviteeUserRefresh');
             $rootScope.$broadcast('graviteeUserCancelScheduledServices');
-            if ((Constants.authentication && Constants.authentication.oauth2.userLogoutEndpoint) || false) {
+            if (Constants.authentication && Constants.authentication.oauth2 && Constants.authentication.oauth2.userLogoutEndpoint) {
               var redirectUri = encodeURIComponent(window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname));
               $window.location.href= Constants.authentication.oauth2.userLogoutEndpoint + "?redirect_uri=" + redirectUri;
             }

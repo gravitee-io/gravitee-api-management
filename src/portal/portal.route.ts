@@ -38,7 +38,9 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       },
       controllerAs: 'indexCtrl',
       resolve: {
-        resolvedDocumentation: (PortalPagesService: PortalPagesService) => PortalPagesService.listPortalDocumentation().then(response => response.data)
+        resolvedDocumentation: function (PortalPagesService: PortalPagesService) {
+          return PortalPagesService.listPortalDocumentation().then(response => response.data)
+        }
       }
     })
     .state('portal.home', {
@@ -48,9 +50,11 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       controllerAs: 'homeCtrl',
       resolve: {
         resolvedApis: function (ApiService) {
-          return ApiService.listTopAPIs();
+          return ApiService.listTopAPIs().then(response => response.data);
         },
-        resolvedHomepage: (PortalPagesService: PortalPagesService) => PortalPagesService.getHomepage().then(response => response.data)
+        resolvedHomepage: function (PortalPagesService: PortalPagesService) {
+          return PortalPagesService.getHomepage().then(response => response.data);
+        }
       }
     })
     .state('portal.apis', {

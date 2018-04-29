@@ -27,7 +27,7 @@ export class HomeController {
                 private Constants,
                 private ApiService: ApiService) {
     'ngInject';
-    this.apis = resolvedApis.data;
+    this.apis = resolvedApis;
     this.homepage = resolvedHomepage;
     this.$state = $state;
     this.ratingEnabled = ApiService.isRatingEnabled();

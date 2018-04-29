@@ -16,6 +16,7 @@
 import AuthenticationService from '../../services/authentication.service';
 import UserService from '../../services/user.service';
 import {IScope} from 'angular';
+import _ = require('lodash');
 
 class LoginController {
   user: any = {};
@@ -33,7 +34,8 @@ class LoginController {
     private $state: ng.ui.IStateService,
     Constants,
     private $rootScope: IScope,
-    private AuthenticationService: AuthenticationService
+    private AuthenticationService: AuthenticationService,
+    private $cookies
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.userCreationEnabled;
@@ -57,7 +59,8 @@ class LoginController {
   login($event: Event) {
     $event.preventDefault();
 
-    this.UserService.login(this.user).then(() => {
+    this.UserService.login(this.user).then((response) => {
+      this.$cookies.put('Authorization', _.capitalize(response.data.type) + ' ' + response.data.token);
       this.UserService.current().then( () => {
         this.$rootScope.$broadcast('graviteeUserRefresh');
         this.$state.go('portal.home');

@@ -35,6 +35,7 @@ function interceptorConfig(
         var notificationService = ($injector.get('NotificationService') as NotificationService);
         if (unauthorizedError) {
           if (error.config.headers.Authorization) {
+            sessionExpired = false;
             errorMessage = 'Wrong user or password';
           } else {
             if (!sessionExpired) {
@@ -62,7 +63,7 @@ function interceptorConfig(
     }
   });
 
-  var interceptorTimeout = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
+  const interceptorTimeout = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
     return {
       request: function (config) {
         // Use defined HTTP timeout or default value
@@ -83,8 +84,20 @@ function interceptorConfig(
     };
   };
 
+  const interceptorAuthorization = function ($cookies): angular.IHttpInterceptor {
+    return {
+      request: function (config) {
+        if ($cookies.get('Authorization')) {
+          config.headers.Authorization = $cookies.get('Authorization');
+        }
+        return config;
+      }
+    };
+  };
+
 
   if ($httpProvider.interceptors) {
+    $httpProvider.interceptors.push(interceptorAuthorization);
     $httpProvider.interceptors.push(interceptorUnauthorized);
     $httpProvider.interceptors.push(interceptorTimeout);
   }
