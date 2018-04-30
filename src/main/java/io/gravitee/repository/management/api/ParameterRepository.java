@@ -15,11 +15,16 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Parameter;
+
+import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ParameterRepository extends CrudRepository<Parameter, String>{
+    List<Parameter> findAll(List<String> keys) throws TechnicalException;
 }
