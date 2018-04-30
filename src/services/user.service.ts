@@ -42,7 +42,7 @@ class UserService {
               private ApiService: ApiService,
               private $location,
               private $cookies,
-              private $state) {
+              private $window) {
     'ngInject';
     this.baseURL = Constants.baseURL;
     this.searchUsersURL = `${Constants.baseURL}search/users/`;
@@ -188,6 +188,7 @@ class UserService {
     return this.$http.post(`${this.userURL}logout`, {}).then(() => {
       this.currentUser = new User();
       this.isLogout = true;
+      this.$window.localStorage.removeItem('satellizer_token');
       this.$cookies.remove('Authorization');
     });
   }

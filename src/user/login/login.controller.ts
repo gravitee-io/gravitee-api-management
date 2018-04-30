@@ -47,7 +47,8 @@ class LoginController {
 
   authenticate(provider: string) {
     this.AuthenticationService.authenticate(provider)
-      .then( () => {
+      .then( (response) => {
+        this.$cookies.put('Authorization', _.capitalize(response.data.type) + ' ' + response.data.token);
         this.UserService.current().then( () => {
           this.$rootScope.$broadcast('graviteeUserRefresh');
           this.$state.go('portal.home');
