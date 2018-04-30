@@ -32,6 +32,7 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
     vm.notificationsScheduler = null;
 
     vm.$onInit = () => {
+      this.lastNbNotification = -1;
       // schedule an automatic refresh of the user notifications
       if (!vm.notificationsScheduler) {
         vm.refreshUserNotifications();
@@ -42,12 +43,14 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
     };
 
     vm.delete = (notification: UserNotification) => {
+      this.lastNbNotification --;
       UserNotificationService.delete(notification).then((response) => {
         vm.refreshUserNotifications();
       });
     };
 
     vm.deleteAll = ($event) => {
+      this.lastNbNotification = -1;
       $event.preventDefault();
       UserNotificationService.deleteAll().then((response) => {
         vm.refreshUserNotifications();
@@ -77,8 +80,34 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
         const result = new PagedResult();
         result.populate(response.data);
         UserNotificationService.fillUserNotifications(vm.user, result);
+
+        if (this.lastNbNotification < 0) {
+          this.lastNbNotification = vm.user.notifications.data.length;
+        } else {
+          if (vm.user.notifications.data.length > 0 && this.lastNbNotification < vm.user.notifications.data.length) {
+            for (var i = this.lastNbNotification; i < vm.user.notifications.data.length; i++) {
+              this.windowNotification(
+                vm.user.notifications.data[i].title,
+                vm.user.notifications.data[i].message
+              );
+            }
+            this.lastNbNotification = vm.user.notifications.data.length;
+          }
+        }
       });
     };
+
+    vm.windowNotification = (title: string, message: string) => {
+
+      if(("Notification" in window)) {
+        Notification.requestPermission().then((result) => {
+          console.log("Title : " + title + " Message: " + message);
+
+          var notification = new Notification(title,{body: message, icon: "/favicon.ico"});
+        });
+      }
+    };
+
   }
 };
 
