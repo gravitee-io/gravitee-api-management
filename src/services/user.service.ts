@@ -86,11 +86,7 @@ class UserService {
     let that = this;
 
     if (! this.currentUser || !this.currentUser.username) {
-      const promises = [];
-
-      if (this.$cookies.get('Authorization') || this.$state.current.name === 'login') {
-        promises.push(this.$http.get(this.userURL));
-      }
+      const promises = [this.$http.get(this.userURL, {silentCall: true})];
 
       const applicationRegex = /applications\/([\w|\-]+)/;
       let applicationId = applicationRegex.exec(this.$location.$$path);

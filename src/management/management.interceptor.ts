@@ -38,13 +38,13 @@ function interceptorConfig(
             sessionExpired = false;
             errorMessage = 'Wrong user or password';
           } else {
-            if (!sessionExpired) {
+            if (!sessionExpired && !error.config.silentCall) {
               sessionExpired = true;
-                // session expired
-                notificationService.showError(error, 'Session expired, redirecting to home...');
-                $injector.get('$timeout')(function () {
-                  $injector.get('$rootScope').$broadcast('graviteeLogout');
-                }, 2000);
+              // session expired
+              notificationService.showError(error, 'Session expired, redirecting to home...');
+              $injector.get('$timeout')(function () {
+                $injector.get('$rootScope').$broadcast('graviteeLogout');
+              }, 2000);
             }
           }
         } else {
