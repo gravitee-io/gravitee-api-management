@@ -385,5 +385,20 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
           only: ['management-user-c', 'management-user-r', 'management-user-u', 'management-user-d']
         }
       }
+    })
+    .state('management.settings.portal', {
+      url: '/portal',
+      component: 'portalSettings',
+      resolve: {
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-portal'
+        },
+        perms: {
+          only: ['portal-settings-r']
+        }
+      }
     });
 }

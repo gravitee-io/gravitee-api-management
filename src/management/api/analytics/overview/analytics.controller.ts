@@ -131,11 +131,11 @@ class ApiAnalyticsController {
       }
     }];
 
-    if (Constants.portalAnalytics && Constants.portalAnalytics.widgets) {
+    if (Constants.portal.dashboard && Constants.portal.dashboard.widgets) {
 
-      for (let i = 0; i < Constants.portalAnalytics.widgets.length; i++) {
+      for (let i = 0; i < Constants.portal.dashboard.widgets.length; i++) {
 
-        switch (Constants.portalAnalytics.widgets[i]) {
+        switch (Constants.portal.dashboard.widgets[i]) {
           case 'geo_country':
             this.$scope.apiDashboard.push({
               col: i * 3,

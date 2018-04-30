@@ -45,6 +45,10 @@
                     ng-if="$ctrl.settingsMenu.topApis.perm">
                     <a class="execute" ui-sref="{{$ctrl.settingsMenu.topApis.goTo}}">Top APIs</a>
                 </li>
+                <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                    ng-if="$ctrl.settingsMenu.portalSettings.perm">
+                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.portalSettings.goTo}}">Settings</a>
+                </li>
             </ul>
 
 

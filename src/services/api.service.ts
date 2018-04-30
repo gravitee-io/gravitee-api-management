@@ -385,7 +385,7 @@ class ApiService {
    */
 
   isRatingEnabled() {
-    return this.Constants.rating && this.Constants.rating.enabled;
+    return this.Constants.portal.rating.enabled;
   }
 
   getApiRatings(api, pageNumber) {

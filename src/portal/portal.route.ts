@@ -31,7 +31,7 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       controller: function (Build, $rootScope, Constants, resolvedDocumentation) {
         this.graviteeVersion = Build.version;
         this.companyName = Constants.company ? Constants.company.name : '';
-        $rootScope.portalTitle = Constants.portalTitle;
+        $rootScope.portalTitle = Constants.portal.title;
         this.pages = resolvedDocumentation;
 
         this.getLogo = () => Constants.theme.logo;

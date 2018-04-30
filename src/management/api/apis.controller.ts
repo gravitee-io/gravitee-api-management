@@ -45,13 +45,13 @@ export class ApisController {
 
     this.graviteeUser = graviteeUser;
     this.graviteeUIVersion = Build.version;
-    this.portalTitle = Constants.portalTitle;
+    this.portalTitle = Constants.portal.title;
     this.apisProvider = _.filter(resolvedApis.data, 'manageable');
 
     this.apisScrollAreaHeight = this.$state.current.name === 'apis.list' ? 195 : 90;
     this.isAPIsHome = this.$state.includes('apis');
 
-    this.createMode = !Constants.devMode; // && Object.keys($rootScope.graviteeUser).length > 0;
+    this.createMode = !Constants.portal.devMode.enabled; // && Object.keys($rootScope.graviteeUser).length > 0;
     this.selectedApis = [];
     this.syncStatus = [];
 

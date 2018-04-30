@@ -21,7 +21,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
   'ngInject';
 
   $transitions.onStart({ to: (state) => state.name !== 'login' && state.name !== 'registration'}, function(trans) {
-    let forceLogin = (Constants.authentication && Constants.authentication.forceLogin) || false;
+    let forceLogin = Constants.authentication.forceLogin.enabled || false;
 
     if (forceLogin && !UserService.isAuthenticated()) {
       return trans.router.stateService.target('login');
@@ -32,8 +32,8 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
     let fromState = trans.from();
     let toState = trans.to();
 
-    let notEligibleForDevMode = Constants.devMode && toState.data && !toState.data.devMode;
-    let notEligibleForUserCreation = !Constants.userCreationEnabled && (fromState.name === 'registration' || fromState === 'confirm');
+    let notEligibleForDevMode = Constants.portal.devMode.enabled && toState.data && !toState.data.devMode;
+    let notEligibleForUserCreation = !Constants.portal.userCreation.enabled && (fromState.name === 'registration' || fromState === 'confirm');
 
     if (notEligibleForDevMode || notEligibleForUserCreation) {
       return trans.router.stateService.target('login');

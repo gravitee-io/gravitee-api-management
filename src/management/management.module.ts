@@ -354,6 +354,7 @@ import AuditComponent from '../components/audit/audit.component';
 
 // Configuration
 import SettingsComponent from '../management/configuration/settings.component';
+import PortalConfigService from '../services/portalConfig.service';
 
 // Users
 import UsersComponent from '../management/configuration/users/users.component';
@@ -391,6 +392,7 @@ import TopApisComponent from '../management/configuration/top-apis/top-apis.comp
 import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
 import ApiProxyController from "./api/proxy/apiProxy.controller";
+import PortalSettingsComponent from "./configuration/portal/portal.component";
 
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -555,6 +557,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('role', RoleComponent)
   .component('roleMembers', RoleMembersComponent)
   .component('topApis', TopApisComponent)
+  .component('portalSettings', PortalSettingsComponent)
   .directive('gvMetadataValidator', () => MetadataValidatorDirective)
 
   .component('instances', InstancesComponent)
@@ -653,6 +656,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   // Configuration
   .component('settings', SettingsComponent)
+  .service("PortalConfigService", PortalConfigService)
 
   // Users
   .component('users', UsersComponent)

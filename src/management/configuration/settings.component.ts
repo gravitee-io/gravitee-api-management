@@ -52,6 +52,11 @@ const SettingsComponent: ng.IComponentOptions = {
           ['portal-top_apis-c', 'portal-top_apis-u', 'portal-top_apis-d']),
         goTo: 'management.settings.top-apis'
       },
+      portalSettings: {
+        perm: UserService.isUserHasPermissions(
+          ['portal-settings-r']),
+        goTo: 'management.settings.portal'
+      },
 
       // GATEWAYS
       tags: {

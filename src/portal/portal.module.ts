@@ -100,7 +100,7 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
     $mdThemingProvider.theme('toast-success');
     $mdThemingProvider.theme('toast-error');
   }).run(function(Constants, $window, $rootScope, $location) {
-    if ((Constants.analytics && Constants.analytics.enabled)) {
+    if ((Constants.portal.analytics.enabled)) {
       const script = document.createElement('script');
       script.async = true;
       script.text = '(function(i,s,o,g,r,a,m){i[\'GoogleAnalyticsObject\']=r;i[r]=i[r]||function(){\n' +
@@ -109,7 +109,7 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
         '        })(window,document,\'script\',\'//www.google-analytics.com/analytics.js\',\'ga\');';
       document.head.appendChild(script);
 
-      $window.ga('create', Constants.analytics.trackingId, { 'cookieDomain': 'none' });
+      $window.ga('create', Constants.portal.analytics.trackingId, { 'cookieDomain': 'none' });
 
       $rootScope.$on('$stateChangeSuccess', function () {
         $window.ga('send', 'pageview', $location.path());

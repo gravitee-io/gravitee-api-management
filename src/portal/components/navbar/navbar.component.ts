@@ -41,7 +41,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     vm.displayContextualDocumentationButton = false;
     vm.visible = true;
     vm.providers = AuthenticationService.getProviders();
-    vm.localLoginDisabled = (Constants.authentication && Constants.authentication.localLoginDisabled) || false;
+    vm.localLoginDisabled = (!Constants.authentication.localLogin.enabled) || false;
 
     $scope.$on('graviteeUserRefresh', function () {
       UserService.current().then(function (user) {
@@ -61,7 +61,7 @@ export const NavbarComponent: ng.IComponentOptions = {
         $state.go('portal.home');
       });
 
-      vm.supportEnabled = Constants.support && Constants.support.enabled;
+      vm.supportEnabled = Constants.portal.support.enabled;
     });
 
     $scope.$on("graviteeUserTaskRefresh", function () {
@@ -80,7 +80,7 @@ export const NavbarComponent: ng.IComponentOptions = {
         !trans.to().name.startsWith('registration') &&
         !trans.to().name.startsWith('user');
 
-      let forceLogin = (Constants.authentication && Constants.authentication.forceLogin) || false;
+      let forceLogin = Constants.authentication.forceLogin.enabled || false;
       vm.visible = ! forceLogin || (forceLogin && !trans.to().name.startsWith('login') &&
         !trans.to().name.startsWith('registration'));
     });

@@ -41,7 +41,7 @@ export class PortalApisController {
 
     if ($window.sessionStorage.getItem(this.tilesModeKey) === null) {
       if (Constants.portal && Constants.portal.apis) {
-        this.tilesMode = Constants.portal.apis.tilesMode;
+        this.tilesMode = Constants.portal.apis.tilesMode.enabled;
       } else {
         this.tilesMode = true;
       }

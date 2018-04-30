@@ -20,35 +20,47 @@ import './index.scss';
 import './portal/portal.module';
 import './management/management.module';
 
-let constants: any;
 let configNoCache = {headers: {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'}};
+let baseURL: string;
 
-fetchData().then(initLoader).then(initTheme).then(bootstrapApplication);
+fetchData()
+  .then((constants:any) => initLoader(constants))
+  .then((constants:any) => initTheme(constants))
+  .then(bootstrapApplication);
 
 function fetchData() {
   let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
   let $http: ng.IHttpService = initInjector.get('$http');
   let $q: ng.IQService = initInjector.get('$q');
 
-  return $q.all([$http.get('constants.json', configNoCache), $http.get('build.json', configNoCache)]).then(function (responses: any) {
-    constants = responses[0].data;
-    angular.module('gravitee-management').constant('Constants', constants);
-    angular.module('gravitee-management').constant('Build', responses[1].data);
+  return $q.all(
+    [$http.get('constants.json', configNoCache),
+      $http.get('build.json', configNoCache)])
+    .then((responses: any) => {
+      baseURL = responses[0].data.baseURL;
+      let build = responses[1].data;
+      angular.module('gravitee-management').constant('Build', build);
+      angular.module('gravitee-portal').constant('Build', build);
+      return $http.get(`${baseURL}portal`);
+    })
+    .then( (response: any) => {
+      let constants = response.data;
+      constants.baseURL = baseURL;
+      angular.module('gravitee-management').constant('Constants', constants);
+      angular.module('gravitee-portal').constant('Constants', constants);
 
-    angular.module('gravitee-portal').constant('Constants', constants);
-    angular.module('gravitee-portal').constant('Build', responses[1].data);
-
-    if(constants.theme.css) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.type = "text/css";
-      link.href = constants.theme.css;
-      document.head.appendChild(link);
-    }
-  });
+      if (constants.theme.css) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.type = "text/css";
+        link.href = constants.theme.css;
+        document.head.appendChild(link);
+      }
+      return constants;
+    });
 }
 
-function initLoader() {
+function initLoader(constants:any) {
   let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
   let $q: ng.IQService = initInjector.get('$q');
 
@@ -58,10 +70,10 @@ function initLoader() {
 
   document.getElementById('loader').appendChild(img);
 
-  return $q.resolve();
+  return $q.resolve(constants);
 }
 
-function initTheme() {
+function initTheme(constants:any) {
   let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
   let $http: ng.IHttpService = initInjector.get('$http');
 

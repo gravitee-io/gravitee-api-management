@@ -59,7 +59,7 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
                     let isMenuItem = routeMenuItem.data.menu.firstLevel;
                     let isMenuAllowed = !routeMenuItem.data.perms || !routeMenuItem.data.perms.only
                       || graviteeUser.allowedTo(routeMenuItem.data.perms.only);
-                    if (Constants.devMode) {
+                    if (Constants.portal.devMode.enabled) {
                       return isMenuItem && isMenuAllowed && routeMenuItem.data.devMode;
                     }  else {
                       return isMenuItem && isMenuAllowed;

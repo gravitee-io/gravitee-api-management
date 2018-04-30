@@ -38,8 +38,8 @@ class LoginController {
     private $cookies
   ) {
     'ngInject';
-    this.userCreationEnabled = Constants.userCreationEnabled;
-    this.localLoginDisabled = (Constants.authentication && Constants.authentication.localLoginDisabled) || false;
+    this.userCreationEnabled = Constants.portal.userCreation.enabled;
+    this.localLoginDisabled = (!Constants.authentication.localLogin.enabled) || false;
     this.$state = $state;
     this.$rootScope = $rootScope;
     this.providers = AuthenticationService.getProviders();
