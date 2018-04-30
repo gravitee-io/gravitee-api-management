@@ -18,6 +18,7 @@ package io.gravitee.management.service;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.exceptions.RatingAlreadyExistsException;
 import io.gravitee.management.service.exceptions.RatingNotFoundException;
 import io.gravitee.management.service.impl.RatingServiceImpl;
@@ -90,11 +91,11 @@ public class RatingServiceTest {
     private UserEntity user;
     @Mock
     private AuditService auditService;
+    @Mock
+    private ParameterService mockParameterService;
 
     @Before
     public void init() {
-        setField(ratingService, "enabled", true);
-
         final Authentication authentication = mock(Authentication.class);
         when(authentication.getPrincipal()).thenReturn(new UserDetails(USER, "", emptyList()));
         final SecurityContext securityContext = mock(SecurityContext.class);
@@ -110,6 +111,8 @@ public class RatingServiceTest {
 
         when(userService.findById(USER)).thenReturn(user);
         when(user.getId()).thenReturn(USER);
+
+        when(mockParameterService.findAsBoolean(Key.PORTAL_RATING_ENABLED.key())).thenReturn(Boolean.TRUE);
     }
 
     @Test(expected = RatingAlreadyExistsException.class)

@@ -21,6 +21,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.common.Pageable;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.common.JWTHelper.Claims;
@@ -92,6 +93,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Autowired
     private ApiService apiService;
+
+    @Autowired
+    private ParameterService parameterService;
 
     @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
     private String defaultAvatar;
@@ -218,7 +222,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     private void checkUserRegistrationEnabled() {
-        if (!environment.getProperty("user.creation.enabled", Boolean.class, false)) {
+        if (!parameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED.key())) {
             throw new IllegalStateException("The user registration is disabled");
         }
     }

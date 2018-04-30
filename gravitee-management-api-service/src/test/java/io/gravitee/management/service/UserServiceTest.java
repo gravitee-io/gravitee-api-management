@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
 import com.auth0.jwt.JWTSigner;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.common.JWTHelper;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
@@ -89,6 +90,8 @@ public class UserServiceTest {
     private Date date;
     @Mock
     private AuditService auditService;
+    @Mock
+    private ParameterService mockParameterService;
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
@@ -240,14 +243,14 @@ public class UserServiceTest {
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateUserIfRegistrationIsDisabled() {
-        when(environment.getProperty(any(), any(), any())).thenReturn(false);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED.key())).thenReturn(Boolean.FALSE);
 
         userService.create(new RegisterUserEntity());
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void createNewRegistrationUserThatIsNotCreatedYet() throws TechnicalException {
-        when(environment.getProperty("user.creation.enabled", Boolean.class, false)).thenReturn(true);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED.key())).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
         when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.empty());
         when(userRepository.create(any(User.class))).thenReturn(user);
@@ -262,7 +265,7 @@ public class UserServiceTest {
 
     @Test
     public void createAlreadyPreRegisteredUser() throws TechnicalException {
-        when(environment.getProperty("user.creation.enabled", Boolean.class, false)).thenReturn(true);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED.key())).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
 
         User user = new User();
@@ -295,7 +298,7 @@ public class UserServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldValidateJWTokenAndFail() throws TechnicalException {
-        when(environment.getProperty("user.creation.enabled", Boolean.class, false)).thenReturn(true);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED.key())).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
 
         RegisterUserEntity userEntity = new RegisterUserEntity();

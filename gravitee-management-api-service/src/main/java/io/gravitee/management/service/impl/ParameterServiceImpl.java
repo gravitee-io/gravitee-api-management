@@ -17,8 +17,6 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.ParameterService;
-import io.gravitee.management.service.exceptions.ParameterAlreadyExistsException;
-import io.gravitee.management.service.exceptions.ParameterNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
@@ -28,9 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -40,12 +36,12 @@ import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAM
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_UPDATED;
 import static java.lang.String.join;
 import static java.util.Arrays.stream;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonMap;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -61,8 +57,19 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     private AuditService auditService;
 
     @Override
+    public boolean findAsBoolean(String key) {
+        List<String> values = findAll(key);
+        return values != null && !values.isEmpty() && Boolean.valueOf(values.get(0));
+    }
+
+    @Override
     public List<String> findAll(final String key) {
         return findAll(key, value -> value, null);
+    }
+
+    @Override
+    public Map<String, List<String>> findAll(final List<String> keys) {
+        return findAll(keys, value -> value, null);
     }
 
     @Override
@@ -71,18 +78,16 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     @Override
+    public <T> Map<String, List<T>> findAll(final List<String> keys, final Function<String, T> mapper) {
+        return findAll(keys, mapper, null);
+    }
+
+    @Override
     public <T> List<T> findAll(final String key, final Function<String, T> mapper, final Predicate<String> filter) {
         try {
             final Optional<Parameter> optionalParameter = parameterRepository.findById(key);
             if (optionalParameter.isPresent()) {
-                final String value = optionalParameter.get().getValue();
-                if (!value.isEmpty()) {
-                    Stream<String> stream = stream(value.split(SEPARATOR));
-                    if (filter != null) {
-                        stream = stream.filter(filter);
-                    }
-                    return stream.map(mapper).collect(toList());
-                }
+                return splitValue(optionalParameter.get().getValue(), mapper, filter);
             }
             return emptyList();
         } catch (final TechnicalException ex) {
@@ -93,23 +98,72 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     @Override
-    public Parameter create(final String key, final String value) {
+    public <T> Map<String, List<T>> findAll(List<String> keys, Function<String, T> mapper, Predicate<String> filter) {
         try {
-            final Optional<Parameter> optionalParameter = parameterRepository.findById(key);
-            if (optionalParameter.isPresent()) {
-                throw new ParameterAlreadyExistsException(key);
+            List<Parameter> parameters = parameterRepository.findAll(keys);
+            if (parameters.isEmpty()) {
+                return emptyMap();
             }
+            Map<String, List<T>> result = new HashMap<>();
+            parameters.forEach( p -> result.put(p.getKey(), splitValue(p.getValue(), mapper, filter)) );
+            return result;
+        } catch (final TechnicalException ex) {
+            final String message = "An error occurs while trying to find parameter values with keys: " + keys;
+            LOGGER.error(message, ex);
+            throw new TechnicalManagementException(message, ex);
+        }
+    }
+
+    private <T> List<T> splitValue(final String value, final Function<String, T> mapper, final Predicate<String> filter) {
+        if (value == null || value.isEmpty()) {
+            return emptyList();
+        }
+        Stream<String> stream = stream(value.split(SEPARATOR));
+        if (filter != null) {
+            stream = stream.filter(filter);
+        }
+        return stream.map(mapper).collect(toList());
+    }
+
+    @Override
+    public Parameter save(final String key, final String value) {
+
+        try {
+            Optional<Parameter> optionalParameter = parameterRepository.findById(key);
+            final boolean updateMode = optionalParameter.isPresent();
+
             final Parameter parameter = new Parameter();
             parameter.setKey(key);
             parameter.setValue(value);
-            final Parameter savedParameter = parameterRepository.create(parameter);
-            auditService.createPortalAuditLog(
-                    singletonMap(PARAMETER, savedParameter.getKey()),
-                    PARAMETER_CREATED,
-                    new Date(),
-                    null,
-                    savedParameter);
-            return savedParameter;
+
+            if (updateMode) {
+                if (value == null) {
+                    parameterRepository.delete(key);
+                    return null;
+                } else {
+                    final Parameter updatedParameter = parameterRepository.update(parameter);
+                    auditService.createPortalAuditLog(
+                            singletonMap(PARAMETER, updatedParameter.getKey()),
+                            PARAMETER_UPDATED,
+                            new Date(),
+                            optionalParameter.get(),
+                            updatedParameter);
+                    return updatedParameter;
+                }
+            } else {
+                if (value == null) {
+                    return null;
+                }
+                final Parameter savedParameter = parameterRepository.create(parameter);
+                auditService.createPortalAuditLog(
+                        singletonMap(PARAMETER, savedParameter.getKey()),
+                        PARAMETER_CREATED,
+                        new Date(),
+                        null,
+                        savedParameter);
+                return savedParameter;
+            }
+
         } catch (final TechnicalException ex) {
             final String message = "An error occurs while trying to create parameter for key/value: " + key + '/' + value;
             LOGGER.error(message, ex);
@@ -118,57 +172,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     @Override
-    public Parameter update(final String key, final String value) {
-        try {
-            final Optional<Parameter> optionalParameter = parameterRepository.findById(key);
-            if (!optionalParameter.isPresent()) {
-                throw new ParameterNotFoundException(key);
-            }
-            final Parameter parameter = new Parameter();
-            parameter.setKey(key);
-            parameter.setValue(value);
-            final Parameter updatedParameter = parameterRepository.update(parameter);
-            auditService.createPortalAuditLog(
-                    singletonMap(PARAMETER, updatedParameter.getKey()),
-                    PARAMETER_UPDATED,
-                    new Date(),
-                    optionalParameter.get(),
-                    updatedParameter);
-            return updatedParameter;
-        } catch (final TechnicalException ex) {
-            final String message = "An error occurs while trying to update parameter for key/value: " + key + '/' + value;
-            LOGGER.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
-        }
-    }
-
-    @Override
-    public void createMultipleValue(final String key, final String value) {
-        try {
-            final Optional<Parameter> optionalParameter = parameterRepository.findById(key);
-            final Parameter parameter = new Parameter();
-            parameter.setKey(key);
-            if (optionalParameter.isPresent()) {
-                final String existingValue = optionalParameter.get().getValue();
-                if (existingValue.isEmpty()) {
-                    parameter.setValue(value);
-                } else {
-                    parameter.setValue(existingValue + SEPARATOR + value);
-                }
-                update(parameter.getKey(), parameter.getValue());
-            } else {
-                parameter.setValue(value);
-                create(parameter.getKey(), parameter.getValue());
-            }
-        } catch (final TechnicalException ex) {
-            final String message = "An error occurs while trying to update parameter for key/value: " + key + '/' + value;
-            LOGGER.error(message, ex);
-            throw new TechnicalManagementException(message, ex);
-        }
-    }
-
-    @Override
-    public void updateMultipleValue(final String key, final List<String> values) {
-        update(key, join(SEPARATOR, values));
+    public Parameter save(final String key, final List<String> values) {
+        return save(key, values==null ? null : join(SEPARATOR, values));
     }
 }

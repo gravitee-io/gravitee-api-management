@@ -84,7 +84,7 @@ public class TopApiServiceTest {
 
         topApiService.create(topApi);
 
-        verify(parameterService).createMultipleValue(PORTAL_TOP_APIS.getKey(), "api");
+        verify(parameterService).save(PORTAL_TOP_APIS.getKey(), asList("api"));
         verify(parameterService).findAll(eq(PORTAL_TOP_APIS.getKey()), any(), any());
     }
 
@@ -111,7 +111,7 @@ public class TopApiServiceTest {
 
         topApiService.update(asList(topApi, topApi2));
 
-        verify(parameterService).updateMultipleValue(PORTAL_TOP_APIS.getKey(), asList("api2", "api"));
+        verify(parameterService).save(PORTAL_TOP_APIS.getKey(), asList("api2", "api"));
         verify(parameterService).findAll(eq(PORTAL_TOP_APIS.getKey()), any(), any());
     }
 
@@ -143,6 +143,6 @@ public class TopApiServiceTest {
 
         topApiService.delete("1");
 
-        verify(parameterService).updateMultipleValue(PORTAL_TOP_APIS.getKey(), singletonList("2"));
+        verify(parameterService).save(PORTAL_TOP_APIS.getKey(), singletonList("2"));
     }
 }

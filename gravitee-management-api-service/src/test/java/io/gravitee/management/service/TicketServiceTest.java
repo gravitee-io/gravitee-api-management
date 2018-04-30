@@ -20,6 +20,7 @@ import io.gravitee.management.model.ApiModelEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewTicketEntity;
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.EmailRequiredException;
 import io.gravitee.management.service.exceptions.SupportUnavailableException;
@@ -80,18 +81,18 @@ public class TicketServiceTest {
     private ApiModelEntity api;
     @Mock
     private ApplicationEntity application;
+    @Mock
+    private ParameterService mockParameterService;
 
     @Test(expected = SupportUnavailableException.class)
     public void shouldNotCreateIfSupportDisabled() {
-        setField(ticketService, "enabled", false);
-
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key())).thenReturn(Boolean.FALSE);
         ticketService.create(USERNAME, newTicketEntity);
     }
 
     @Test(expected = EmailRequiredException.class)
     public void shouldNotCreateIfUserEmailIsMissing() {
-        setField(ticketService, "enabled", true);
-
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key())).thenReturn(Boolean.TRUE);
         when(userService.findById(USERNAME)).thenReturn(user);
 
         ticketService.create(USERNAME, newTicketEntity);
@@ -99,8 +100,7 @@ public class TicketServiceTest {
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateIfDefaultEmailSupportIsMissing() {
-        setField(ticketService, "enabled", true);
-
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key())).thenReturn(Boolean.TRUE);
         when(userService.findById(USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
@@ -111,8 +111,7 @@ public class TicketServiceTest {
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateIfDefaultEmailSupportHasNotBeenChanged() {
-        setField(ticketService, "enabled", true);
-
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key())).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
         when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
@@ -131,8 +130,7 @@ public class TicketServiceTest {
 
     @Test
     public void shouldCreateWithApi() {
-        setField(ticketService, "enabled", true);
-
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key())).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
         when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);

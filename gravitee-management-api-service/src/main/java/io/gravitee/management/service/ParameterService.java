@@ -18,26 +18,28 @@ package io.gravitee.management.service;
 import io.gravitee.repository.management.model.Parameter;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ParameterService {
 
+
+    boolean findAsBoolean(String key);
     List<String> findAll(String key);
+    Map<String, List<String>> findAll(List<String> keys);
 
     <T> List<T> findAll(String key, Function<String, T> mapper);
+    <T> Map<String, List<T>> findAll(List<String> keys, Function<String, T> mapper);
 
     <T> List<T> findAll(String key, Function<String, T> mapper, Predicate<String> filter);
+    <T> Map<String, List<T>> findAll(List<String> keys, Function<String, T> mapper, Predicate<String> filter);
 
-    Parameter create(String key, String value);
-
-    void createMultipleValue(String key, String value);
-
-    Parameter update(String key, String value);
-
-    void updateMultipleValue(String key, List<String> values);
+    Parameter save(String key, String value);
+    Parameter save(String key, List<String> value);
 }

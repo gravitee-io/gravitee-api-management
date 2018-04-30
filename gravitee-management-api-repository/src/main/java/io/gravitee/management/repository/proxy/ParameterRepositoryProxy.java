@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,6 +33,11 @@ public class ParameterRepositoryProxy extends AbstractProxy<ParameterRepository>
     @Override
     public Optional<Parameter> findById(String s) throws TechnicalException {
         return target.findById(s);
+    }
+
+    @Override
+    public List<Parameter> findAll(List<String> keys) throws TechnicalException {
+        return target.findAll(keys);
     }
 
     @Override

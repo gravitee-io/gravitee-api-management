@@ -18,7 +18,9 @@ package io.gravitee.management.service.impl;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.AuditService;
+import io.gravitee.management.service.ParameterService;
 import io.gravitee.management.service.RatingService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.ApiRatingUnavailableException;
@@ -35,7 +37,6 @@ import io.gravitee.repository.management.model.RatingAnswer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -68,12 +69,12 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     @Autowired
     private AuditService auditService;
 
-    @Value("${rating.enabled:false}")
-    private boolean enabled;
+    @Autowired
+    private ParameterService parameterService;
 
     @Override
     public RatingEntity create(final NewRatingEntity ratingEntity) {
-        if (!enabled) {
+        if (!isEnabled()) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -92,7 +93,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public RatingEntity createAnswer(final NewRatingAnswerEntity answerEntity) {
-        if (!enabled) {
+        if (!isEnabled()) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -115,7 +116,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public Page<RatingEntity> findByApi(final String api, final Pageable pageable) {
-        if (!enabled) {
+        if (!isEnabled()) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -133,7 +134,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public RatingSummaryEntity findSummaryByApi(final String api) {
-        if (!enabled) {
+        if (!isEnabled()) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -155,7 +156,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public RatingEntity findByApiForConnectedUser(final String api) {
-        if (!enabled) {
+        if (!isEnabled()) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -173,7 +174,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public RatingEntity update(final UpdateRatingEntity ratingEntity) {
-        if (!enabled) {
+        if (!isEnabled()) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -204,7 +205,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public void delete(final String id) {
-        if (!enabled) {
+        if (!isEnabled()) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -219,7 +220,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public void deleteAnswer(final String ratingId, final String answerId) {
-        if (!enabled) {
+        if (!isEnabled()) {
             throw new ApiRatingUnavailableException();
         }
         try {
@@ -234,11 +235,11 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public boolean isEnabled() {
-        return enabled;
+        return parameterService.findAsBoolean(Key.PORTAL_RATING_ENABLED.key());
     }
 
     private Rating findById(String id) {
-        if (!enabled) {
+        if (!isEnabled()) {
             throw new ApiRatingUnavailableException();
         }
         try {

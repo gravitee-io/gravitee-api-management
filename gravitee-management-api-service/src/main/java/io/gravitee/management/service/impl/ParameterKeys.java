@@ -15,6 +15,10 @@
  */
 package io.gravitee.management.service.impl;
 
+/**
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public enum ParameterKeys {
 
     PORTAL_TOP_APIS("portal.top-apis");

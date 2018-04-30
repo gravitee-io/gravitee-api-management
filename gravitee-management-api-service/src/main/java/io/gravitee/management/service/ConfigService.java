@@ -13,29 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
+package io.gravitee.management.service;
 
-import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.management.model.PortalConfigEntity;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-public class ParameterAlreadyExistsException extends AbstractManagementException {
-
-    private final String parameterKey;
-
-    public ParameterAlreadyExistsException(String parameterKey) {
-        this.parameterKey = parameterKey;
-    }
-
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
-    }
-
-    @Override
-    public String getMessage() {
-        return "A parameter [" + parameterKey + "] already exists.";
-    }
+public interface ConfigService {
+    PortalConfigEntity getPortalConfig();
+    void save(PortalConfigEntity portalConfigEntity);
 }

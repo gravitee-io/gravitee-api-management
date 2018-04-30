@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
+package io.gravitee.management.model.annotations;
+
+import io.gravitee.management.model.parameters.Key;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ParameterNotFoundException extends AbstractNotFoundException {
-
-    private final String parameterKey;
-
-    public ParameterNotFoundException(String parameterKey) {
-        this.parameterKey = parameterKey;
-    }
-
-    @Override
-    public String getMessage() {
-        return "Parameter [" + parameterKey + "] can not be found.";
-    }
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ParameterKey {
+   Key value();
 }

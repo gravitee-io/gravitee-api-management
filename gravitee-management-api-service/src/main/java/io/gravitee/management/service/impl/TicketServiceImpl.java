@@ -19,13 +19,13 @@ import io.gravitee.management.model.ApiModelEntity;
 import io.gravitee.management.model.MetadataEntity;
 import io.gravitee.management.model.NewTicketEntity;
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.EmailRequiredException;
 import io.gravitee.management.service.exceptions.SupportUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -55,13 +55,16 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     private ApplicationService applicationService;
     @Inject
     private EmailService emailService;
+    @Inject
+    private ParameterService parameterService;
 
-    @Value("${support.enabled:false}")
-    private boolean enabled;
+    private boolean isEnabled() {
+        return parameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key());
+    }
 
     @Override
     public void create(final String userId, final NewTicketEntity ticketEntity) {
-        if (!enabled) {
+        if (!isEnabled()) {
             throw new SupportUnavailableException();
         }
         LOGGER.info("Creating a support ticket: {}", ticketEntity);

@@ -79,7 +79,9 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
         if (existingTopApis.contains(topApi.getApi())) {
             throw new IllegalArgumentException("The API is already defined on top APIs");
         }
-        parameterService.createMultipleValue(PORTAL_TOP_APIS.getKey(), topApi.getApi());
+        ArrayList<String> newTopApis = new ArrayList<>(existingTopApis);
+        newTopApis.add(topApi.getApi());
+        parameterService.save(PORTAL_TOP_APIS.getKey(), newTopApis);
         return findAll();
     }
 
@@ -91,7 +93,7 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
                 !existingTopApis.containsAll(updatingTopApis)) {
             throw new IllegalArgumentException("Invalid content to update");
         }
-        parameterService.updateMultipleValue(PORTAL_TOP_APIS.getKey(), topApis.stream()
+        parameterService.save(PORTAL_TOP_APIS.getKey(), topApis.stream()
                 .sorted(comparing(UpdateTopApiEntity::getOrder)).map(UpdateTopApiEntity::getApi).collect(toList()));
         return findAll();
     }
@@ -101,7 +103,7 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
         final List<TopApiEntity> topApis = findAll();
         if (!topApis.isEmpty()) {
             topApis.removeIf(topApiEntity -> apiId.equals(topApiEntity.getApi()));
-            parameterService.updateMultipleValue(PORTAL_TOP_APIS.getKey(),
+            parameterService.save(PORTAL_TOP_APIS.getKey(),
                     topApis.stream().sorted(comparing(TopApiEntity::getOrder)).map(TopApiEntity::getApi).collect(toList()));
         }
     }

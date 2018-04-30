@@ -15,8 +15,6 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.service.exceptions.ParameterAlreadyExistsException;
-import io.gravitee.management.service.exceptions.ParameterNotFoundException;
 import io.gravitee.management.service.impl.ParameterServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
@@ -27,7 +25,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PARAMETER;
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_CREATED;
@@ -37,6 +38,7 @@ import static java.util.Collections.singletonMap;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -86,6 +88,31 @@ public class ParameterServiceTest {
     }
 
     @Test
+    public void shouldFindAllKeysWithFilter() throws TechnicalException {
+        final String p1key = PARAMETER_KEY + ".1";
+        final String p2key = PARAMETER_KEY + ".2";
+        final String p3key = PARAMETER_KEY + ".3";
+        final Parameter parameter1 = new Parameter();
+        parameter1.setKey(p1key);
+        parameter1.setValue("api1;api2;;api1");
+
+        final Parameter parameter2 = new Parameter();
+        parameter2.setKey(p2key);
+        parameter2.setValue("api3;api4;;api5");
+
+        final Parameter parameter3 = new Parameter();
+        parameter3.setKey(p3key);
+
+        when(parameterRepository.findAll(Arrays.asList(p1key, p2key, p3key))).thenReturn(Arrays.asList(parameter1, parameter2, parameter3));
+
+        final Map<String, List<String>> values = parameterService.findAll(Arrays.asList(p1key, p2key, p3key), value -> value, value -> !value.isEmpty());
+
+        assertEquals(asList("api1", "api2", "api1"), values.get(p1key));
+        assertEquals(asList("api3", "api4", "api5"), values.get(p2key));
+        assertTrue(values.get(p3key).isEmpty());
+    }
+
+    @Test
     public void shouldCreate() throws TechnicalException {
         final Parameter parameter = new Parameter();
         parameter.setKey(PARAMETER_KEY);
@@ -94,22 +121,11 @@ public class ParameterServiceTest {
         when(parameterRepository.findById(PARAMETER_KEY)).thenReturn(empty());
         when(parameterRepository.create(parameter)).thenReturn(parameter);
 
-        parameterService.create(PARAMETER_KEY, "api1");
+        parameterService.save(PARAMETER_KEY, "api1");
 
         verify(parameterRepository).create(parameter);
         verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PARAMETER_KEY)), eq(PARAMETER_CREATED),
                 any(), eq(null), eq(parameter));
-    }
-
-    @Test(expected = ParameterAlreadyExistsException.class)
-    public void shouldNotCreate() throws TechnicalException {
-        final Parameter parameter = new Parameter();
-        parameter.setKey(PARAMETER_KEY);
-        parameter.setValue("api1");
-
-        when(parameterRepository.findById(PARAMETER_KEY)).thenReturn(of(parameter));
-
-        parameterService.create(PARAMETER_KEY, "api1");
     }
 
     @Test
@@ -125,22 +141,11 @@ public class ParameterServiceTest {
         when(parameterRepository.findById(PARAMETER_KEY)).thenReturn(of(parameter));
         when(parameterRepository.update(newParameter)).thenReturn(newParameter);
 
-        parameterService.update(PARAMETER_KEY, "api2");
+        parameterService.save(PARAMETER_KEY, "api2");
 
         verify(parameterRepository).update(newParameter);
         verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PARAMETER_KEY)), eq(PARAMETER_UPDATED),
                 any(), eq(parameter), eq(newParameter));
-    }
-
-    @Test(expected = ParameterNotFoundException.class)
-    public void shouldNotUpdate() throws TechnicalException {
-        final Parameter parameter = new Parameter();
-        parameter.setKey(PARAMETER_KEY);
-        parameter.setValue("api1");
-
-        when(parameterRepository.findById(PARAMETER_KEY)).thenReturn(empty());
-
-        parameterService.update(PARAMETER_KEY, "api2");
     }
 
     @Test
@@ -152,7 +157,7 @@ public class ParameterServiceTest {
         when(parameterRepository.findById(PARAMETER_KEY)).thenReturn(empty());
         when(parameterRepository.create(parameter)).thenReturn(parameter);
 
-        parameterService.createMultipleValue(PARAMETER_KEY, "api1");
+        parameterService.save(PARAMETER_KEY, Collections.singletonList("api1"));
 
         verify(parameterRepository).create(parameter);
         verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PARAMETER_KEY)), eq(PARAMETER_CREATED),
@@ -172,7 +177,7 @@ public class ParameterServiceTest {
         when(parameterRepository.findById(PARAMETER_KEY)).thenReturn(of(parameter));
         when(parameterRepository.update(newParameter)).thenReturn(newParameter);
 
-        parameterService.createMultipleValue(PARAMETER_KEY, "api1");
+        parameterService.save(PARAMETER_KEY, Collections.singletonList("api1"));
 
         verify(parameterRepository).update(newParameter);
         verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PARAMETER_KEY)), eq(PARAMETER_UPDATED),
@@ -192,7 +197,7 @@ public class ParameterServiceTest {
         when(parameterRepository.findById(PARAMETER_KEY)).thenReturn(of(parameter));
         when(parameterRepository.update(newParameter)).thenReturn(newParameter);
 
-        parameterService.updateMultipleValue(PARAMETER_KEY, asList("api1", "api2", "api2"));
+        parameterService.save(PARAMETER_KEY, asList("api1", "api2", "api2"));
 
         verify(parameterRepository).update(newParameter);
         verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PARAMETER_KEY)), eq(PARAMETER_UPDATED),
