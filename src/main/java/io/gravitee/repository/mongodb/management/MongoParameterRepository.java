@@ -26,7 +26,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -49,6 +52,16 @@ public class MongoParameterRepository implements ParameterRepository {
         final ParameterMongo parameter = internalParameterRepo.findOne(parameterKey);
         LOGGER.debug("Find parameter by key [{}] - Done", parameterKey);
         return Optional.ofNullable(mapper.map(parameter, Parameter.class));
+    }
+
+    @Override
+    public List<Parameter> findAll(List<String> keys) throws TechnicalException  {
+        LOGGER.debug("Find parameters by keys [{}]", keys);
+        Iterable<ParameterMongo> all = internalParameterRepo.findAll(keys);
+        LOGGER.debug("Find parameters by keys [{}] - Done", keys);
+        return StreamSupport.stream(all.spliterator(), false)
+                .map(parameter -> mapper.map(parameter, Parameter.class))
+                .collect(Collectors.toList());
     }
 
     @Override
