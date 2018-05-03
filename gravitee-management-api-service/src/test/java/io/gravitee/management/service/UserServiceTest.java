@@ -15,13 +15,12 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.NewExternalUserEntity;
-import io.gravitee.management.model.RoleEntity;
-import io.gravitee.management.model.UserRoleEntity;
+import com.auth0.jwt.JWTSigner;
+import io.gravitee.management.model.*;
+import io.gravitee.management.service.common.JWTHelper;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
@@ -35,11 +34,10 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.util.StringUtils;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
@@ -58,6 +56,7 @@ public class UserServiceTest {
     private static final String FIRST_NAME = "The";
     private static final String LAST_NAME = "User";
     private static final String PASSWORD = "gh2gyf8!zjfnz";
+    private static final String JWT_SECRET = "VERYSECURE";
     private static final Set<UserRoleEntity> ROLES = Collections.singleton(new UserRoleEntity());
     static {
         UserRoleEntity r = ROLES.iterator().next();
@@ -78,6 +77,9 @@ public class UserServiceTest {
     private RoleService roleService;
 
     @Mock MembershipService membershipService;
+
+    @Mock
+    private ConfigurableEnvironment environment;
 
     @Mock
     private NewExternalUserEntity newUser;
@@ -234,5 +236,84 @@ public class UserServiceTest {
         userService.connect(USER_NAME);
 
         verify(applicationService, never()).create(any(), eq(USER_NAME));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotCreateUserIfRegistrationIsDisabled() {
+        when(environment.getProperty(any(), any(), any())).thenReturn(false);
+
+        userService.create(new RegisterUserEntity());
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void createNewRegistrationUserThatIsNotCreatedYet() throws TechnicalException {
+        when(environment.getProperty("user.creation.enabled", Boolean.class, false)).thenReturn(true);
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.empty());
+        when(userRepository.create(any(User.class))).thenReturn(user);
+
+        RegisterUserEntity userEntity = new RegisterUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));
+        userEntity.setPassword(PASSWORD);
+
+        userService.create(userEntity);
+
+    }
+
+    @Test
+    public void createAlreadyPreRegisteredUser() throws TechnicalException {
+        when(environment.getProperty("user.creation.enabled", Boolean.class, false)).thenReturn(true);
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+
+        User user = new User();
+        user.setId("CUSTOM_LONG_ID");
+        user.setUsername(USER_NAME);
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenReturn(user);
+
+        RegisterUserEntity userEntity = new RegisterUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));
+        userEntity.setPassword(PASSWORD);
+
+        userService.create(userEntity);
+
+        verify(userRepository).update(argThat(new ArgumentMatcher<User>() {
+            public boolean matches(final Object argument) {
+                final User userToCreate = (User) argument;
+                return USER_NAME.equals(userToCreate.getUsername()) &&
+                        EMAIL.equals(userToCreate.getEmail()) &&
+                        FIRST_NAME.equals(userToCreate.getFirstname()) &&
+                        LAST_NAME.equals(userToCreate.getLastname()) &&
+                        "CUSTOM_LONG_ID".equals(userToCreate.getId()) &&
+                        !StringUtils.isEmpty(userToCreate.getPassword());
+            }
+        }));
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldValidateJWTokenAndFail() throws TechnicalException {
+        when(environment.getProperty("user.creation.enabled", Boolean.class, false)).thenReturn(true);
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+
+        RegisterUserEntity userEntity = new RegisterUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis()/1000 - 100));
+        userEntity.setPassword(PASSWORD);
+
+        verify(userRepository, never()).findByUsername(USER_NAME);
+
+        userService.create(userEntity);
+    }
+
+    private String createJWT(long expirationSeconds) {
+        HashMap<String, Object> claims = new HashMap<>();
+        claims.put(JWTHelper.Claims.SUBJECT, USER_NAME);
+        claims.put(JWTHelper.Claims.EMAIL, EMAIL);
+        claims.put(JWTHelper.Claims.FIRSTNAME, FIRST_NAME);
+        claims.put(JWTHelper.Claims.LASTNAME, LAST_NAME);
+        claims.put("exp", expirationSeconds);
+        return new JWTSigner(JWT_SECRET).sign(claims);
     }
 }

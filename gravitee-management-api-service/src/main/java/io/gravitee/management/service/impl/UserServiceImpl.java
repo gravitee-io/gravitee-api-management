@@ -238,30 +238,23 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             final Map<String, Object> claims = new JWTVerifier(jwtSecret).verify(registerUserEntity.getToken());
+            String username = claims.get(Claims.SUBJECT).toString();
 
-            final NewUserEntity newUserEntity = new NewUserEntity();
-            newUserEntity.setUsername(claims.get(Claims.SUBJECT).toString());
-            newUserEntity.setEmail(claims.get(Claims.EMAIL).toString());
-            newUserEntity.setFirstname(claims.get(Claims.FIRSTNAME).toString());
-            newUserEntity.setLastname(claims.get(Claims.LASTNAME).toString());
-            newUserEntity.setPassword(registerUserEntity.getPassword());
+            LOGGER.debug("Create an internal user {}", username);
+            Optional<User> checkUser = userRepository.findByUsername(username);
+            User user = checkUser.orElseThrow(() -> new UserNotFoundException(username));
 
-            LOGGER.debug("Create an internal user {}", newUserEntity);
-            Optional<User> checkUser = userRepository.findByUsername(newUserEntity.getUsername());
-            if (checkUser.isPresent() && StringUtils.isNotBlank(checkUser.get().getPassword())) {
-                throw new UsernameAlreadyExistsException(newUserEntity.getUsername());
-            }
-
-            User user = convert(newUserEntity);
-            user.setId(UUID.toString(UUID.random()));
-
-            // Encrypt password if internal user
-            if (user.getPassword() != null) {
-                user.setPassword(passwordEncoder.encode(user.getPassword()));
+            if (StringUtils.isNotBlank(user.getPassword())) {
+                throw new UsernameAlreadyExistsException(username);
             }
 
             // Set date fields
             user.setUpdatedAt(new Date());
+            // Encrypt password if internal user
+            if (registerUserEntity.getPassword() != null) {
+                user.setPassword(passwordEncoder.encode(registerUserEntity.getPassword()));
+            }
+
             user = userRepository.update(user);
             auditService.createPortalAuditLog(
                     Collections.singletonMap(USER, user.getUsername()),
