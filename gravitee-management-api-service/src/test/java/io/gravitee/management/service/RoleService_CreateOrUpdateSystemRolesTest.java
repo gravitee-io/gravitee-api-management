@@ -71,9 +71,9 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         roleService.createOrUpdateSystemRoles();
 
-        verify(mockRoleRepository, times(4)).findById(any(), anyString());
+        verify(mockRoleRepository, times(5)).findById(any(), anyString());
         verify(mockRoleRepository, never()).update(any());
-        verify(mockRoleRepository, times(4)).create(any());
+        verify(mockRoleRepository, times(5)).create(any());
     }
 
     @Test
@@ -84,10 +84,11 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
         when(mockRoleRepository.findById(RoleScope.PORTAL, "ADMIN")).thenReturn(empty());
         when(mockRoleRepository.findById(RoleScope.API, "PRIMARY_OWNER")).thenReturn(empty());
         when(mockRoleRepository.findById(RoleScope.APPLICATION, "PRIMARY_OWNER")).thenReturn(empty());
+        when(mockRoleRepository.findById(RoleScope.GROUP, "ADMIN")).thenReturn(empty());
 
         roleService.createOrUpdateSystemRoles();
 
-        verify(mockRoleRepository, times(4)).findById(any(), anyString());
+        verify(mockRoleRepository, times(5)).findById(any(), anyString());
         verify(mockRoleRepository, times(1)).update(argThat(new ArgumentMatcher<Role>() {
             @Override
             public boolean matches(Object o) {
@@ -96,12 +97,13 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
                                 == Arrays.stream(mgmtAdminPermissions).reduce(Math::addExact).orElse(0);
             }
         }));
-        verify(mockRoleRepository, times(3)).create(argThat(new ArgumentMatcher<Role>() {
+        verify(mockRoleRepository, times(4)).create(argThat(new ArgumentMatcher<Role>() {
             @Override
             public boolean matches(Object o) {
                 return ((Role) o).getScope().equals(RoleScope.API)
                         || ((Role) o).getScope().equals(RoleScope.APPLICATION)
-                        || ((Role) o).getScope().equals(RoleScope.PORTAL);
+                        || ((Role) o).getScope().equals(RoleScope.PORTAL)
+                        || ((Role) o).getScope().equals(RoleScope.GROUP);
             }
         }));
     }
@@ -115,17 +117,19 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
         when(mockRoleRepository.findById(RoleScope.PORTAL, "ADMIN")).thenReturn(empty());
         when(mockRoleRepository.findById(RoleScope.API, "PRIMARY_OWNER")).thenReturn(empty());
         when(mockRoleRepository.findById(RoleScope.APPLICATION, "PRIMARY_OWNER")).thenReturn(empty());
+        when(mockRoleRepository.findById(RoleScope.GROUP, "ADMIN")).thenReturn(empty());
 
         roleService.createOrUpdateSystemRoles();
 
-        verify(mockRoleRepository, times(4)).findById(any(), anyString());
+        verify(mockRoleRepository, times(5)).findById(any(), anyString());
         verify(mockRoleRepository, never()).update(any());
-        verify(mockRoleRepository, times(3)).create(argThat(new ArgumentMatcher<Role>() {
+        verify(mockRoleRepository, times(4)).create(argThat(new ArgumentMatcher<Role>() {
             @Override
             public boolean matches(Object o) {
                 return ((Role) o).getScope().equals(RoleScope.API)
                         || ((Role) o).getScope().equals(RoleScope.APPLICATION)
-                        || ((Role) o).getScope().equals(RoleScope.PORTAL);
+                        || ((Role) o).getScope().equals(RoleScope.PORTAL)
+                        || ((Role) o).getScope().equals(RoleScope.GROUP);
             }
         }));
     }
