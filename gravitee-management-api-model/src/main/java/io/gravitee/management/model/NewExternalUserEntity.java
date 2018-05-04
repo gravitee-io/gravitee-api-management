@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.model;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -39,6 +41,7 @@ public class NewExternalUserEntity {
     /**
      * The user email
      */
+    @NotNull
     private String email;
 
 	/**

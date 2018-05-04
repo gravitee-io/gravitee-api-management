@@ -19,6 +19,7 @@ import com.auth0.jwt.JWTSigner;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.common.JWTHelper;
+import io.gravitee.management.service.exceptions.UserNotInternallyManagedException;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
@@ -40,6 +41,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.*;
 
+import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -90,6 +92,10 @@ public class UserServiceTest {
     private Date date;
     @Mock
     private AuditService auditService;
+    @Mock
+    private NotifierService notifierService;
+    @Mock
+    private EmailService emailService;
     @Mock
     private ParameterService mockParameterService;
 
@@ -308,6 +314,34 @@ public class UserServiceTest {
         verify(userRepository, never()).findByUsername(USER_NAME);
 
         userService.create(userEntity);
+    }
+
+    @Test
+    public void shouldResetPassword() throws TechnicalException {
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(user.getUsername()).thenReturn(USER_NAME);
+        when(user.getSource()).thenReturn("gravitee");
+        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+
+        userService.resetPassword(USER_NAME);
+
+        verify(user).setPassword(null);
+        verify(userRepository).update(user);
+    }
+
+    @Test(expected = UserNotFoundException.class)
+    public void shouldNotResetPasswordCauseUserNotFound() throws TechnicalException {
+        when(userRepository.findById(USER_NAME)).thenReturn(empty());
+        userService.resetPassword(USER_NAME);
+    }
+
+    @Test(expected = UserNotInternallyManagedException.class)
+    public void shouldNotResetPasswordCauseUserNotInternallyManaged() throws TechnicalException {
+        when(user.getUsername()).thenReturn(USER_NAME);
+        when(user.getSource()).thenReturn("external");
+        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+
+        userService.resetPassword(USER_NAME);
     }
 
     private String createJWT(long expirationSeconds) {

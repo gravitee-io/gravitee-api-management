@@ -84,7 +84,8 @@ public class EmailNotificationBuilder {
         APPLICATION_MEMBER_SUBSCRIPTION("applicationMember.html"),
         API_MEMBER_SUBSCRIPTION("apiMember.html"),
         GROUP_MEMBER_SUBSCRIPTION("groupMember.html"),
-        SUPPORT_TICKET("supportTicket.html");
+        SUPPORT_TICKET("supportTicket.html"),
+        PASSWORD_RESET("passwordReset.html");
 
         private String template;
 

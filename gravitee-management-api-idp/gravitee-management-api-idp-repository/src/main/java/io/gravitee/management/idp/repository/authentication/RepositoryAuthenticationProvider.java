@@ -76,6 +76,11 @@ public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthent
 		try {
 			UserEntity user = userService.findByUsername(username, true);
 			if (RepositoryIdentityProvider.PROVIDER_TYPE.equals(user.getSource())) {
+				if (user.getPassword() == null) {
+					throw new BadCredentialsException(messages.getMessage(
+							"AbstractUserDetailsAuthenticationProvider.badCredentials",
+							"Bad credentials"));
+				}
 				return mapUserEntityToUserDetails(user);
 			} else {
 				throw new UserNotFoundException(username);

@@ -21,7 +21,8 @@ package io.gravitee.management.service.notification;
  */
 public enum PortalHook implements Hook {
 
-    USER_REGISTERED("User Registered", "Triggered when a User is registered for the first time.", "USER");
+    USER_REGISTERED("User Registered", "Triggered when a User is registered for the first time.", "USER"),
+    PASSWORD_RESET("Password Reset", "Triggered when a password is reset.", "USER");
 
     private String label;
     private String description;

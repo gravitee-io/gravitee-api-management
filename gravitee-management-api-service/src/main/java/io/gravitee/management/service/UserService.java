@@ -31,26 +31,16 @@ import java.util.Set;
 public interface UserService {
 
     UserEntity connect(String userId);
-
     UserEntity findById(String id);
-
     UserEntity findByIdWithRoles(String id);
-
     UserEntity findByUsername(String username, boolean loadRoles);
-
     Set<UserEntity> findByIds(List<String> ids);
-
     UserEntity create(RegisterUserEntity registerUserEntity);
-
     UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
-
     UserEntity update(UpdateUserEntity updateUserEntity);
-
     Page<UserEntity> search(Pageable pageable);
-
     UserEntity register(NewExternalUserEntity newExternalUserEntity);
-
     PictureEntity getPicture(String id);
-
     void delete(String id);
+    void resetPassword(String id);
 }

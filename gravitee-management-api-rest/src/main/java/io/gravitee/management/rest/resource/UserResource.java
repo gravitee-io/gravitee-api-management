@@ -36,7 +36,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 
@@ -53,13 +52,10 @@ public class UserResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-
     @Inject
     private UserService userService;
-
     @Inject
     private MembershipService membershipService;
-
     @Inject
     private GroupService groupService;
 
@@ -111,6 +107,16 @@ public class UserResource extends AbstractResource {
         });
 
         return groups;
+    }
+
+    @POST
+    @Permissions(
+            @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.UPDATE)
+    )
+    @Path("resetPassword")
+    public Response resetPassword(@PathParam("id") String userId) {
+        userService.resetPassword(userId);
+        return Response.noContent().build();
     }
 
     @GET

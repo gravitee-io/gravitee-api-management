@@ -46,6 +46,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -380,12 +382,44 @@ public class UserServiceImpl extends AbstractService implements UserService {
     public UserEntity register(final NewExternalUserEntity newExternalUserEntity) {
         checkUserRegistrationEnabled();
 
+        try {
+            new InternetAddress(newExternalUserEntity.getEmail()).validate();
+        } catch (final AddressException ex) {
+            throw new EmailFormatInvalidException(newExternalUserEntity.getEmail());
+        }
+
+        final Optional<User> optionalUser;
+        try {
+            optionalUser = userRepository.findByUsername(newExternalUserEntity.getEmail());
+            if (optionalUser.isPresent()) {
+                throw new UsernameAlreadyExistsException(newExternalUserEntity.getEmail());
+            }
+        } catch (final TechnicalException e) {
+            LOGGER.error("An error occurs while trying to register user {}", newExternalUserEntity.getEmail(), e);
+            throw new TechnicalManagementException(e.getMessage(), e);
+        }
+
         newExternalUserEntity.setUsername(newExternalUserEntity.getEmail());
         newExternalUserEntity.setSource("gravitee");
         newExternalUserEntity.setSourceId(newExternalUserEntity.getUsername());
 
         final UserEntity userEntity = create(newExternalUserEntity, true);
+        final Map<String, Object> params = getTokenRegistrationParams(userEntity, "/#!/registration/confirm/");
 
+        notifierService.trigger(PortalHook.USER_REGISTERED, params);
+
+        emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
+                .to(userEntity.getEmail())
+                .subject("User registration - " + userEntity.getUsername())
+                .template(EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION)
+                .params(params)
+                .build()
+        );
+
+        return userEntity;
+    }
+
+    private Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri) {
         // generate a JWT to store user's information and for security purpose
         final Map<String, Object> claims = new HashMap<>();
         claims.put(Claims.ISSUER, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER));
@@ -410,29 +444,17 @@ public class UserServiceImpl extends AbstractService implements UserService {
         final String token = new JWTSigner(jwtSecret).sign(claims, options);
         String portalUrl = environment.getProperty("portalURL");
 
-        if (portalUrl.endsWith("/")) {
+        if (portalUrl!= null && portalUrl.endsWith("/")) {
             portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
         }
 
-        String registrationUrl = portalUrl + "/#!/registration/confirm/" + token;
+        String registrationUrl = portalUrl + portalUri + token;
 
-        final Map<String, Object> params = new NotificationParamsBuilder()
+        return new NotificationParamsBuilder()
                 .user(userEntity)
                 .token(token)
                 .registrationUrl(registrationUrl)
                 .build();
-
-        notifierService.trigger(PortalHook.USER_REGISTERED, params);
-
-        emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                .to(userEntity.getEmail())
-                .subject("User registration - " + userEntity.getUsername())
-                .template(EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION)
-                .params(params)
-                .build()
-        );
-
-        return userEntity;
     }
 
     @Override
@@ -524,27 +546,51 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
     }
 
-    public boolean isDefaultApplicationForFirstConnection() {
-        return defaultApplicationForFirstConnection;
+    @Override
+    public void resetPassword(final String id) {
+        try {
+            LOGGER.debug("Resetting password of user id {}", id);
+
+            Optional<User> optionalUser = userRepository.findById(id);
+
+            if (!optionalUser.isPresent()) {
+                throw new UserNotFoundException(id);
+            }
+            final User user = optionalUser.get();
+            if (!"gravitee".equals(user.getSource())) {
+                throw new UserNotInternallyManagedException(id);
+            }
+            user.setPassword(null);
+            user.setUpdatedAt(new Date());
+            userRepository.update(user);
+
+            final Map<String, Object> params = getTokenRegistrationParams(convert(user, false),
+                    "/#!/resetPassword/");
+
+            notifierService.trigger(PortalHook.PASSWORD_RESET, params);
+
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(USER, user.getUsername()),
+                    User.AuditEvent.PASSWORD_RESET,
+                    user.getUpdatedAt(),
+                    null,
+                    null);
+            emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
+                    .to(user.getEmail())
+                    .subject("Password reset - " + user.getUsername())
+                    .template(EmailNotificationBuilder.EmailTemplate.PASSWORD_RESET)
+                    .params(params)
+                    .build()
+            );
+        } catch (TechnicalException ex) {
+            final String message = "An error occurs while trying to reset password for user " + id;
+            LOGGER.error(message, ex);
+            throw new TechnicalManagementException(message, ex);
+        }
     }
 
     public void setDefaultApplicationForFirstConnection(boolean defaultApplicationForFirstConnection) {
         this.defaultApplicationForFirstConnection = defaultApplicationForFirstConnection;
-    }
-
-    private static User convert(NewUserEntity newUserEntity) {
-        if (newUserEntity == null) {
-            return null;
-        }
-        User user = new User();
-
-        user.setUsername(newUserEntity.getUsername());
-        user.setEmail(newUserEntity.getEmail());
-        user.setFirstname(newUserEntity.getFirstname());
-        user.setLastname(newUserEntity.getLastname());
-        user.setPassword(newUserEntity.getPassword());
-
-        return user;
     }
 
     private static User convert(NewExternalUserEntity newExternalUserEntity) {
