@@ -148,7 +148,7 @@ public class MockTestRepositoryConfiguration {
                             }
                         }
                 ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(Collections.singletonList(mock(Audit.class)), 0, 1, 1));
+                thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(mock(Audit.class)), 0, 1, 1));
 
         return auditRepository;
     }
@@ -190,7 +190,7 @@ public class MockTestRepositoryConfiguration {
             public boolean matches(Object o) {
                 return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).getTo() == 1486771400000L);
             }
-        }))).thenReturn(Collections.singletonList(mockCriteria1));
+        }))).thenReturn(singletonList(mockCriteria1));
         when(apiKeyRepository.findByCriteria(argThat(new ArgumentMatcher<ApiKeyCriteria>() {
             @Override
             public boolean matches(Object o) {
@@ -716,15 +716,53 @@ public class MockTestRepositoryConfiguration {
         when(plan2.getCharacteristics()).thenReturn(asList("charac 1", "charac 2"));
         when(plan2.getExcludedGroups()).thenReturn(singletonList("grp1"));
 
+        final Plan planOAuth2 = mock(Plan.class);
+        when(planOAuth2.getName()).thenReturn("Plan oauth2 name");
+        when(planOAuth2.getDescription()).thenReturn("Description for the new oauth2 plan");
+        when(planOAuth2.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(planOAuth2.getType()).thenReturn(Plan.PlanType.API);
+        when(planOAuth2.getApis()).thenReturn(singleton("my-api"));
+        when(planOAuth2.getCreatedAt()).thenReturn(parse("11/02/2016"));
+        when(planOAuth2.getUpdatedAt()).thenReturn(parse("12/02/2016"));
+        when(planOAuth2.getPublishedAt()).thenReturn(parse("13/02/2016"));
+        when(planOAuth2.getClosedAt()).thenReturn(parse("14/02/2016"));
+        when(planOAuth2.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(planOAuth2.getSecurity()).thenReturn(Plan.PlanSecurityType.OAUTH2);
+        when(planOAuth2.getSecurityDefinition()).thenReturn("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
+
+        final Plan createdPlanOAuth2 = mock(Plan.class);
+        when(createdPlanOAuth2.getId()).thenReturn("plan-oauth2");
+        when(createdPlanOAuth2.getName()).thenReturn("oauth2");
+        when(createdPlanOAuth2.getDescription()).thenReturn("Description of oauth2");
+        when(createdPlanOAuth2.getValidation()).thenReturn(Plan.PlanValidationType.MANUAL);
+        when(createdPlanOAuth2.getType()).thenReturn(Plan.PlanType.API);
+        when(createdPlanOAuth2.getApis()).thenReturn(singleton("4e0db366-f772-4489-8db3-66f772b48989"));
+        when(createdPlanOAuth2.getCreatedAt()).thenReturn(parse("11/02/2016"));
+        when(createdPlanOAuth2.getUpdatedAt()).thenReturn(parse("12/02/2016"));
+        when(createdPlanOAuth2.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(createdPlanOAuth2.getOrder()).thenReturn(0);
+        when(createdPlanOAuth2.getExcludedGroups()).thenReturn(singletonList("7c546c6b-2f2f-4487-946c-6b2f2f648784"));
+        when(createdPlanOAuth2.getSecurity()).thenReturn(Plan.PlanSecurityType.OAUTH2);
+        when(createdPlanOAuth2.getSecurityDefinition()).thenReturn("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
+
         final Plan updatedPlan = mock(Plan.class);
         when(updatedPlan.getId()).thenReturn("updated-plan");
         when(updatedPlan.getName()).thenReturn("New plan");
+        when(updatedPlan.getDescription()).thenReturn("New description");
+
+        final Plan updatedOauth2Plan = mock(Plan.class);
+        when(updatedOauth2Plan.getId()).thenReturn("updated-plan-oauth2");
+        when(updatedOauth2Plan.getName()).thenReturn("New oauth2 plan");
+        when(updatedOauth2Plan.getDescription()).thenReturn("New oauth2 description");
 
         when(planRepository.create(any(Plan.class))).thenReturn(plan);
 
         when(planRepository.findById("new-plan")).thenReturn(of(plan));
         when(planRepository.findById("my-plan")).thenReturn(of(plan2));
+        when(planRepository.findById("new-oauth2-plan")).thenReturn(of(planOAuth2));
+        when(planRepository.findById("plan-oauth2")).thenReturn(of(createdPlanOAuth2));
         when(planRepository.findById("updated-plan")).thenReturn(of(updatedPlan));
+        when(planRepository.findById("updated-plan-oauth2")).thenReturn(of(updatedOauth2Plan));
 
         when(planRepository.findById("stores")).thenReturn(Optional.empty());
 
@@ -918,6 +956,7 @@ public class MockTestRepositoryConfiguration {
         sub1.setCreatedAt(new Date(1459022010883L));
         sub1.setUpdatedAt(new Date(1469022010883L));
         sub1.setProcessedAt(new Date(1479022010883L));
+        sub1.setClientId("my-client-id");
 
         final Subscription sub3 = new Subscription();
         sub3.setId("sub3");
@@ -929,7 +968,7 @@ public class MockTestRepositoryConfiguration {
                 new SubscriptionCriteria.Builder()
                         .plans(singleton("plan1"))
                         .build()))
-                .thenReturn(Collections.singletonList(sub1));
+                .thenReturn(singletonList(sub1));
         when(subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
                         .plans(singleton("unknown-plan"))

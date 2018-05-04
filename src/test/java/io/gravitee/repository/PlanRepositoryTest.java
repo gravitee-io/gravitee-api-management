@@ -24,6 +24,7 @@ import org.junit.Test;
 import java.util.*;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
+import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 
 /**
@@ -58,6 +59,31 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertEquals(new Date(1507611600000L), plan.get().getClosedAt());
         assertEquals(Arrays.asList("charac 1", "charac 2"), plan.get().getCharacteristics());
         assertEquals("grp1", plan.get().getExcludedGroups().get(0));
+    }
+
+    @Test
+    public void shouldFindOAuth2PlanById() throws TechnicalException {
+        final Optional<Plan> planOAuth2 = planRepository.findById("plan-oauth2");
+
+        assertNotNull(planOAuth2);
+        assertTrue(planOAuth2.isPresent());
+        assertEquals("plan-oauth2", planOAuth2.get().getId());
+        assertEquals("oauth2", planOAuth2.get().getName());
+        assertEquals("Description of oauth2", planOAuth2.get().getDescription());
+        assertEquals("4e0db366-f772-4489-8db3-66f772b48989", planOAuth2.get().getApis().stream().findFirst().get());
+        assertEquals(Plan.PlanSecurityType.OAUTH2, planOAuth2.get().getSecurity());
+        assertEquals(Plan.PlanValidationType.MANUAL, planOAuth2.get().getValidation());
+        assertEquals(Plan.PlanType.API, planOAuth2.get().getType());
+        assertEquals(Plan.Status.STAGING, planOAuth2.get().getStatus());
+        assertEquals(0, planOAuth2.get().getOrder());
+        assertEquals(parse("11/02/2016"), planOAuth2.get().getCreatedAt());
+        assertEquals(parse("12/02/2016"), planOAuth2.get().getUpdatedAt());
+        assertNull(planOAuth2.get().getPublishedAt());
+        assertNull(planOAuth2.get().getClosedAt());
+        assertEquals(emptyList(), planOAuth2.get().getCharacteristics());
+        assertEquals("7c546c6b-2f2f-4487-946c-6b2f2f648784", planOAuth2.get().getExcludedGroups().get(0));
+        assertEquals("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
+                planOAuth2.get().getSecurityDefinition());
     }
 
     @Test
@@ -113,23 +139,86 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldCreateOAuth2Plan() throws Exception {
+        String planName = "new-oauth2-plan";
+
+        final Plan plan = new Plan();
+        plan.setId(planName);
+        plan.setName("Plan oauth2 name");
+        plan.setDescription("Description for the new oauth2 plan");
+        plan.setValidation(Plan.PlanValidationType.AUTO);
+        plan.setType(Plan.PlanType.API);
+        plan.setStatus(Plan.Status.STAGING);
+        plan.setApis(Collections.singleton("my-api"));
+        plan.setCreatedAt(parse("11/02/2016"));
+        plan.setUpdatedAt(parse("12/02/2016"));
+        plan.setPublishedAt(parse("13/02/2016"));
+        plan.setClosedAt(parse("14/02/2016"));
+        plan.setSecurity(Plan.PlanSecurityType.OAUTH2);
+        plan.setSecurityDefinition("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
+
+        planRepository.create(plan);
+
+        Optional<Plan> optional = planRepository.findById(planName);
+        Assert.assertTrue("New oauth2 plan not found", optional != null && optional.isPresent());
+
+        final Plan createdPlan = optional.get();
+        Assert.assertEquals("Invalid oauth2 plan name.", plan.getName(), createdPlan.getName());
+        Assert.assertEquals("Invalid oauth2 plan description.", plan.getDescription(), createdPlan.getDescription());
+        Assert.assertEquals("Invalid oauth2 plan validation.", plan.getValidation(), createdPlan.getValidation());
+        Assert.assertEquals("Invalid oauth2 plan type.", plan.getType(), createdPlan.getType());
+        Assert.assertEquals("Invalid oauth2 plan APIs.", plan.getApis().size(), createdPlan.getApis().size());
+        Assert.assertEquals("Invalid oauth2 plan created date.", plan.getCreatedAt(), createdPlan.getCreatedAt());
+        Assert.assertEquals("Invalid oauth2 plan updated date.", plan.getUpdatedAt(), createdPlan.getUpdatedAt());
+        Assert.assertEquals("Invalid oauth2 plan status.", plan.getStatus(), createdPlan.getStatus());
+        Assert.assertEquals("Invalid oauth2 plan published date.", plan.getPublishedAt(), createdPlan.getPublishedAt());
+        Assert.assertEquals("Invalid oauth2 plan closed date.", plan.getClosedAt(), createdPlan.getClosedAt());
+        Assert.assertEquals("Invalid oauth2 plan security.", plan.getSecurity(), createdPlan.getSecurity());
+        Assert.assertEquals("Invalid oauth2 plan security definition.", plan.getSecurityDefinition(), createdPlan.getSecurityDefinition());
+    }
+
+    @Test
     public void shouldUpdate() throws Exception {
         Optional<Plan> optional = planRepository.findById("updated-plan");
-        Assert.assertTrue("Plan to update not found", optional.isPresent());
+        Assert.assertTrue("Plan to update not found", optional != null && optional.isPresent());
 
         final Plan plan = optional.get();
         plan.setName("New plan");
+        plan.setDescription("New description");
         plan.setStatus(Plan.Status.CLOSED);
 
         planRepository.update(plan);
 
         Optional<Plan> optionalUpdated = planRepository.findById("updated-plan");
-        Assert.assertTrue("View to update not found", optionalUpdated.isPresent());
+        Assert.assertTrue("Plan to update not found", optionalUpdated != null && optionalUpdated.isPresent());
 
         final Plan planUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved plan name.", "New plan", planUpdated.getName());
+        Assert.assertEquals("Invalid saved plan name.", plan.getName(), planUpdated.getName());
         Assert.assertEquals("Invalid plan description.", plan.getDescription(), planUpdated.getDescription());
         Assert.assertEquals("Invalid plan status.", plan.getStatus(), planUpdated.getStatus());
+    }
+
+    @Test
+    public void shouldUpdateOAuth2Plan() throws Exception {
+        Optional<Plan> optional = planRepository.findById("plan-oauth2");
+        Assert.assertTrue("Plan to update not found", optional != null && optional.isPresent());
+
+        final Plan plan = optional.get();
+        plan.setName("New oauth2 plan");
+        plan.setDescription("New oauth2 description");
+        plan.setStatus(Plan.Status.CLOSED);
+        plan.setSecurityDefinition("{}");
+
+        planRepository.update(plan);
+
+        Optional<Plan> optionalUpdated = planRepository.findById("plan-oauth2");
+        Assert.assertTrue("Plan to update not found", optionalUpdated != null && optionalUpdated.isPresent());
+
+        final Plan planUpdated = optionalUpdated.get();
+        Assert.assertEquals("Invalid saved plan name.", plan.getName(), planUpdated.getName());
+        Assert.assertEquals("Invalid plan description.", plan.getDescription(), planUpdated.getDescription());
+        Assert.assertEquals("Invalid plan status.", plan.getStatus(), planUpdated.getStatus());
+        Assert.assertEquals("Invalid plan security definition.", plan.getSecurityDefinition(), planUpdated.getSecurityDefinition());
     }
 
     @Test

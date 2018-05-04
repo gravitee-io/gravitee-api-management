@@ -35,5 +35,25 @@
       "name":"Stores",
       "description": "Description for stores view",
       "apis": ["api2"]
+   },
+   {
+      "id": "plan-oauth2",
+      "name": "oauth2",
+      "description": "Description of oauth2",
+      "validation": "MANUAL",
+      "security": "OAUTH2",
+      "securityDefinition": "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
+      "type": "API",
+      "status": "STAGING",
+      "apis": [
+         "4e0db366-f772-4489-8db3-66f772b48989"
+      ],
+      "order": 0,
+      "characteristics": [],
+      "createdAt": 1455148800000,
+      "updatedAt": 1455235200000,
+      "excludedGroups": [
+         "7c546c6b-2f2f-4487-946c-6b2f2f648784"
+      ]
    }
 ]
