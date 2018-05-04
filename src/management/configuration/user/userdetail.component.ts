@@ -99,7 +99,7 @@ const UserDetailComponent: ng.IComponentOptions = {
         $mdDialog.show({
           controller: 'DialogAddUserGroupController',
           controllerAs: 'dialogCtrl',
-          template: require('./addusergroup.dialog.html'),
+          template: require('./dialog/addusergroup.dialog.html'),
           clickOutsideToClose: true,
           locals: {
             groups: groups.data,
@@ -109,6 +109,26 @@ const UserDetailComponent: ng.IComponentOptions = {
         }).then((groupWithRole) => {
           that.updateGroupRole(groupWithRole);
         });
+      });
+    }
+
+    this.resetPasswordDialog = () => {
+      $mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to reset password of user "' + this.selectedUser.username + '"?',
+          msg: 'An email with a link to change it will be sent to him',
+          confirmButton: 'Reset'
+        }
+      }).then( (response) => {
+        if (response) {
+          UserService.resetPassword(this.selectedUser.id).then( () => {
+            NotificationService.show('The password of user ' + this.selectedUser.displayName + ' has been successfully reset"');
+          });
+        }
       });
     }
   }

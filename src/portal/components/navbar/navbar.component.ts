@@ -46,19 +46,15 @@ export const NavbarComponent: ng.IComponentOptions = {
     $scope.$on('graviteeUserRefresh', function () {
       UserService.current().then(function (user) {
         vm.graviteeUser = user;
-        if (user && user.username) {
-          let that = vm;
-          // schedule an automatic refresh of the user tasks
-          if (!that.tasksScheduler) {
-            that.refreshUserTasks();
-            that.tasksScheduler = $interval(() => {
-              that.refreshUserTasks();
-            }, TaskService.getTaskSchedulerInSeconds() * 1000);
-          }
+        // schedule an automatic refresh of the user tasks
+        if (!vm.tasksScheduler) {
+          vm.refreshUserTasks();
+          vm.tasksScheduler = $interval(() => {
+            vm.refreshUserTasks();
+          }, TaskService.getTaskSchedulerInSeconds() * 1000);
         }
       }).catch(function () {
         delete vm.graviteeUser;
-        $state.go('portal.home');
       });
 
       vm.supportEnabled = Constants.portal.support.enabled;

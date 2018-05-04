@@ -21,7 +21,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
   'ngInject';
 
   $transitions.onStart({ to: (state) => state.name !== 'login' && state.name !== 'registration'}, function(trans) {
-    let forceLogin = Constants.authentication.forceLogin.enabled || false;
+    let forceLogin = Constants.authentication.forceLogin.enabled;
 
     if (forceLogin && !UserService.isAuthenticated()) {
       return trans.router.stateService.target('login');

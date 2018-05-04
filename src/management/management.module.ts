@@ -254,6 +254,7 @@ import DialogAddGroupController from '../management/configuration/groups/add-gro
 import DialogAddGroupMemberController from '../management/configuration/group/addMemberDialog.controller';
 import RegistrationController from '../user/registration/registration.controller';
 import ConfirmController from '../user/registration/confirm/confirm.controller';
+import ResetPasswordController from '../user/resetPassword/resetPassword.controller';
 import SubscriptionService from '../services/subscription.service';
 import DialogSubscriptionRejectController from '../management/api/portal/subscriptions/subscription.reject.dialog.controller';
 import DialogSubscriptionAcceptController from '../management/api/portal/subscriptions/subscription.accept.dialog.controller';
@@ -359,7 +360,7 @@ import PortalConfigService from '../services/portalConfig.service';
 // Users
 import UsersComponent from '../management/configuration/users/users.component';
 import UserDetailComponent from '../management/configuration/user/userdetail.component';
-import DialogAddUserGroupController from '../management/configuration/user/addusergroup.dialog.controller';
+import DialogAddUserGroupController from '../management/configuration/user/dialog/addusergroup.dialog.controller';
 
 // Groups
 import GroupsComponent from '../management/configuration/groups/groups.component';
@@ -483,6 +484,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DialogAddGroupMemberController', DialogAddGroupMemberController)
   .controller('RegistrationController', RegistrationController)
   .controller('ConfirmController', ConfirmController)
+  .controller('ResetPasswordController', ResetPasswordController)
   .controller('DialogSubscriptionRejectController', DialogSubscriptionRejectController)
   .controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController)
   .controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController)

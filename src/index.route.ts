@@ -100,6 +100,13 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
       controllerAs: 'registrationCtrl',
       data: {
         devMode: true
+      },
+      resolve: {
+        checkUser : function (UserService, $state) {
+          if (UserService.currentUser && UserService.currentUser.id) {
+            $state.go('portal.home');
+          }
+        }
       }
     })
     .state('confirm', {
@@ -107,6 +114,15 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
       template: require('./user/registration/confirm/confirm.html'),
       controller: 'ConfirmController',
       controllerAs: 'confirmCtrl',
+      data: {
+        devMode: true
+      }
+    })
+    .state('resetPassword', {
+      url: '/resetPassword/:token',
+      template: require('./user/resetPassword/resetPassword.html'),
+      controller: 'ResetPasswordController',
+      controllerAs: 'resetPasswordCtrl',
       data: {
         devMode: true
       }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ConfirmController {
+class ResetPasswordController {
   constructor(jwtHelper, $state, $scope, UserService, NotificationService) {
     'ngInject';
     if (!$state.params.token) {
@@ -21,7 +21,7 @@ class ConfirmController {
     }
     try {
       if (jwtHelper.isTokenExpired($state.params.token)) {
-        $scope.error = 'Your registration is expired!';
+        $scope.error = 'Your token is expired!';
       } else {
         $scope.user = jwtHelper.decodeToken($state.params.token);
       }
@@ -29,7 +29,7 @@ class ConfirmController {
       $scope.error = e.toString();
     }
 
-    $scope.confirmRegistration = function () {
+    $scope.changePassword = function () {
       UserService.create({token: $state.params.token, password: $scope.confirmPassword}).then(function () {
         $scope.formConfirm.$setPristine();
         NotificationService.show('Your password has been initialized successfully, you can now login...');
@@ -43,4 +43,4 @@ class ConfirmController {
   }
 }
 
-export default ConfirmController;
+export default ResetPasswordController;

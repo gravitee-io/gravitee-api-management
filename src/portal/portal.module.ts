@@ -99,7 +99,7 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
 
     $mdThemingProvider.theme('toast-success');
     $mdThemingProvider.theme('toast-error');
-  }).run(function(Constants, $window, $rootScope, $location) {
+  }).run(function(Constants, $window, $rootScope, $location, $state) {
     if ((Constants.portal.analytics.enabled)) {
       const script = document.createElement('script');
       script.async = true;

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import UserService from "../../../services/user.service";
 import NotificationService from "../../../services/notification.service";
 import {User} from "../../../entities/user";

@@ -17,10 +17,10 @@
 -->
 <md-toolbar class="md-table-toolbar md-default">
     <div class="md-toolbar-tools">
-        <span>{{$ctrl.selectedUser.displayName}}</span>
-        <div flex></div>
+      <span flex>{{$ctrl.selectedUser.displayName}}</span>
     </div>
 </md-toolbar>
+
 <md-table-container layout="row" layout-align="center center">
     <table md-table flex="80">
         <tbody md-body>
@@ -58,7 +58,12 @@
     </table>
 </md-table-container>
 
-<md-divider style="margin-top: 50px;"></md-divider>
+<md-button type="button" class="md-raised md-warn" permission permission-only="'management-user-u'"
+           aria-label="User reset password" style="fill: white"
+           ng-if="$ctrl.selectedUser.source === 'gravitee'" ng-click="$ctrl.resetPasswordDialog()">
+  <ng-md-icon icon="autorenew"></ng-md-icon>Reset password
+</md-button>
+
 <md-toolbar class="md-table-toolbar md-default">
     <div class="md-toolbar-tools">
         <span>Groups</span>
@@ -118,7 +123,7 @@
         <span style="color: rgba(0, 0, 0, 0.54);">Back to users</span>
     </md-button>
 </section>
-<md-button permission permission-only="['management-user-d']"
+<md-button permission permission-only="['management-user-c']"
            class="md-fab md-fab-bottom-right gravitee-add-button"
            aria-label="Add"
            ng-click="$ctrl.addGroupDialog()">

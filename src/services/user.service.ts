@@ -85,7 +85,7 @@ class UserService {
   current() {
     let that = this;
 
-    if (! this.currentUser || !this.currentUser.username) {
+    if (!this.currentUser || !this.currentUser.username) {
       const promises = [this.$http.get(this.userURL, {silentCall: true} as ng.IRequestShortcutConfig)];
 
       const applicationRegex = /applications\/([\w|\-]+)/;
@@ -137,13 +137,12 @@ class UserService {
           that.reloadPermissions();
 
           return that.currentUser;
-        }).then(response => {
+        }).finally(() => {
           if (!that.routerInitialized) {
             that.$urlRouter.sync();
             that.$urlRouter.listen();
             that.routerInitialized = true;
           }
-          return response;
         });
     } else {
       return this.$q.resolve<User>(this.currentUser);
@@ -207,6 +206,10 @@ class UserService {
 
   save(user): ng.IPromise<any> {
     return this.$http.put(`${this.userURL}`, {username: user.username, picture: user.picture});
+  }
+
+  resetPassword(id: string): ng.IPromise<any> {
+    return this.$http.post(`${this.usersURL}${id}/resetPassword`, {});
   }
 }
 
