@@ -39,7 +39,7 @@ public class RedisPlanRepository implements PlanRepository {
     private PlanRedisRepository planRedisRepository;
 
     @Override
-    public Set<Plan> findByApi(String api) throws TechnicalException {
+    public Set<Plan> findByApi(String api) {
         return planRedisRepository.findByApi(api)
                 .stream()
                 .map(this::convert)
@@ -126,6 +126,7 @@ public class RedisPlanRepository implements PlanRepository {
         if (redisPlan.getClosedAt() != 0) {
             plan.setClosedAt(new Date(redisPlan.getClosedAt()));
         }
+        plan.setSecurityDefinition(redisPlan.getSecurityDefinition());
         return plan;
     }
 
@@ -172,6 +173,7 @@ public class RedisPlanRepository implements PlanRepository {
         if (plan.getPublishedAt() != null) {
             redisPlan.setPublishedAt(plan.getPublishedAt().getTime());
         }
+        redisPlan.setSecurityDefinition(plan.getSecurityDefinition());
 
         return redisPlan;
     }

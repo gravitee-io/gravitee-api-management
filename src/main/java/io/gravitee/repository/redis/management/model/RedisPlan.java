@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.redis.management.model;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -80,6 +79,8 @@ public class RedisPlan {
     private String security;
 
     private List<String> excludedGroups;
+
+    private String securityDefinition;
 
     public String getId() {
         return id;
@@ -207,6 +208,14 @@ public class RedisPlan {
 
     public void setExcludedGroups(List<String> excludedGroups) {
         this.excludedGroups = excludedGroups;
+    }
+
+    public String getSecurityDefinition() {
+        return securityDefinition;
+    }
+
+    public void setSecurityDefinition(String securityDefinition) {
+        this.securityDefinition = securityDefinition;
     }
 
     @Override
