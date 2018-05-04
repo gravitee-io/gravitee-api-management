@@ -42,7 +42,7 @@ public class PostgreSQLTestRepositoryConfiguration extends AbstractJdbcTestRepos
     @Bean(destroyMethod = "stop")
     public EmbeddedPostgres embeddedPostgres() throws IOException {
         final EmbeddedPostgres embeddedPostgres = new EmbeddedPostgres(V10);
-        embeddedPostgres.start("localhost", 5432, "gravitee", "gravitee", "gravitee");
+        embeddedPostgres.start("localhost", 5423, "gravitee", "gravitee", "gravitee");
         return embeddedPostgres;
     }
 }

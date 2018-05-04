@@ -17,8 +17,6 @@ package io.gravitee.repository.jdbc;
 
 import com.wix.mysql.EmbeddedMysql;
 import com.wix.mysql.config.MysqldConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 
@@ -35,8 +33,6 @@ import static java.lang.String.format;
  */
 @Conditional(MySQLCondition.class)
 public class MySQLTestRepositoryConfiguration extends AbstractJdbcTestRepositoryConfiguration {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MySQLTestRepositoryConfiguration.class);
 
     @Inject
     private EmbeddedMysql embeddedMysql;
