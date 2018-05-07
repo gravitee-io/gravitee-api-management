@@ -26,6 +26,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.ldap.CommunicationException;
 import org.springframework.ldap.LimitExceededException;
 import org.springframework.ldap.NameNotFoundException;
 import org.springframework.ldap.core.ContextMapper;
@@ -121,7 +122,10 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
             return ldapTemplate.search(ldapQuery, USER_CONTEXT_MAPPER);
         } catch(LimitExceededException lee) {
-            LOGGER.info("Too much results while searching for [" + query +"]. Returns an empty list.");
+            LOGGER.info("Too much results while searching for [{}]. Returns an empty list.", query);
+            return Collections.emptyList();
+        } catch(CommunicationException ce) {
+            LOGGER.error("LDAP server is not reachable.");
             return Collections.emptyList();
         } finally {
             Thread.currentThread().setContextClassLoader(classLoader);
