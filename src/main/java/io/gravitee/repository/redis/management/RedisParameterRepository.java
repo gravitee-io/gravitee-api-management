@@ -23,7 +23,9 @@ import io.gravitee.repository.redis.management.model.RedisParameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -66,6 +68,13 @@ public class RedisParameterRepository implements ParameterRepository {
     @Override
     public void delete(final String parameterId) throws TechnicalException {
         parameterRedisRepository.delete(parameterId);
+    }
+
+    @Override
+    public List<Parameter> findAll(List<String> keys) throws TechnicalException {
+        return parameterRedisRepository.findAll(keys).stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
 
     private Parameter convert(final RedisParameter redisParameter) {

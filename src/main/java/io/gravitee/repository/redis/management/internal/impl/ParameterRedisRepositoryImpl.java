@@ -19,8 +19,14 @@ import io.gravitee.repository.redis.management.internal.ParameterRedisRepository
 import io.gravitee.repository.redis.management.model.RedisParameter;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -46,5 +52,13 @@ public class ParameterRedisRepositoryImpl extends AbstractRedisRepository implem
     @Override
     public void delete(final String parameter) {
         redisTemplate.opsForHash().delete(REDIS_KEY, parameter);
+    }
+
+    @Override
+    public List<RedisParameter> findAll(List<String> keys) {
+        return redisTemplate.opsForHash().multiGet(REDIS_KEY, Collections.unmodifiableCollection(keys)).stream()
+                .filter(Objects::nonNull)
+                .map(o -> this.convert(o, RedisParameter.class))
+                .collect(Collectors.toList());
     }
 }

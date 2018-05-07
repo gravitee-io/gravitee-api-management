@@ -17,8 +17,11 @@ package io.gravitee.repository.redis.management.internal;
 
 import io.gravitee.repository.redis.management.model.RedisParameter;
 
+import java.util.List;
+
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ParameterRedisRepository {
@@ -28,4 +31,6 @@ public interface ParameterRedisRepository {
     RedisParameter saveOrUpdate(RedisParameter parameter);
 
     void delete(String parameter);
+
+    List<RedisParameter> findAll(List<String> keys);
 }
