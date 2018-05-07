@@ -1399,6 +1399,7 @@ public class MockTestRepositoryConfiguration {
             }
         }))).thenThrow(new IllegalStateException());
 
+        when(parameterRepository.findAll(any())).thenReturn(Arrays.asList(mock(Parameter.class), mock(Parameter.class)));
         return parameterRepository;
     }
 }

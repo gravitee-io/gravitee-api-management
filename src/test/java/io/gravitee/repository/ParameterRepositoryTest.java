@@ -19,6 +19,8 @@ import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Parameter;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
@@ -85,5 +87,13 @@ public class ParameterRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         parameterRepository.update(null);
         fail("A null parameter should not be updated");
+    }
+
+    @Test
+    public void shouldFindAll() throws Exception {
+        List<Parameter> parameters = parameterRepository.findAll(Arrays.asList("management.oAuth.clientId", "management.oAuth.clientSecret", "unknown"));
+        assertNotNull(parameters);
+        assertFalse(parameters.isEmpty());
+        assertEquals(2, parameters.size());
     }
 }
