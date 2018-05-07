@@ -29,6 +29,14 @@
 #  accesslog:
 #    enabled: true
 #    path: ${gravitee.home}/logs/gravitee_accesslog_yyyy_mm_dd.log
+#  secured: false
+#  ssl:
+#    keystore:
+#      path: ${gravitee.home}/security/keystore.jks
+#      password: secret
+#    truststore:
+#      path: ${gravitee.home}/security/truststore.jks
+#      password: secret
 
 http:
   cors:

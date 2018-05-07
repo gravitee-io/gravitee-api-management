@@ -15,9 +15,11 @@
  */
 package io.gravitee.management.standalone.jetty;
 
+import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,24 +64,50 @@ public class JettyServerFactory implements FactoryBean<Server> {
 
         // HTTP Configuration
         HttpConfiguration httpConfig = new HttpConfiguration();
-        httpConfig.setSecureScheme("https");
-        httpConfig.setSecurePort(8443);
         httpConfig.setOutputBufferSize(32768);
         httpConfig.setRequestHeaderSize(8192);
         httpConfig.setResponseHeaderSize(8192);
         httpConfig.setSendServerVersion(false);
         httpConfig.setSendDateHeader(false);
 
-        // Setup Jetty HTTP Connector
-        ServerConnector http = new ServerConnector(server,
-                jettyConfiguration.getAcceptors(),
-                jettyConfiguration.getSelectors(),
-                new HttpConnectionFactory(httpConfig));
-        http.setHost(jettyConfiguration.getHttpHost());
-        http.setPort(jettyConfiguration.getHttpPort());
-        http.setIdleTimeout(jettyConfiguration.getIdleTimeout());
+        // Setup Jetty HTTP or HTTPS Connector
+        if (jettyConfiguration.isSecured()) {
+            httpConfig.setSecureScheme("https");
+            httpConfig.setSecurePort(jettyConfiguration.getHttpPort());
 
-        server.addConnector(http);
+            // SSL Context Factory
+            SslContextFactory sslContextFactory = new SslContextFactory();
+
+            if (jettyConfiguration.getKeyStorePath() != null) {
+                sslContextFactory.setKeyStorePath(jettyConfiguration.getKeyStorePath());
+                sslContextFactory.setKeyStorePassword(jettyConfiguration.getKeyStorePassword());
+            }
+
+            if (jettyConfiguration.getTrustStorePath() != null) {
+                sslContextFactory.setTrustStorePath(jettyConfiguration.getTrustStorePath());
+                sslContextFactory.setTrustStorePassword(jettyConfiguration.getTrustStorePassword());
+            }
+
+            HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+            httpsConfig.addCustomizer(new SecureRequestCustomizer());
+
+            ServerConnector https = new ServerConnector(server,
+                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                    new HttpConnectionFactory(httpsConfig));
+            https.setHost(jettyConfiguration.getHttpHost());
+            https.setPort(jettyConfiguration.getHttpPort());
+            server.addConnector(https);
+        } else {
+            ServerConnector http = new ServerConnector(server,
+                    jettyConfiguration.getAcceptors(),
+                    jettyConfiguration.getSelectors(),
+                    new HttpConnectionFactory(httpConfig));
+            http.setHost(jettyConfiguration.getHttpHost());
+            http.setPort(jettyConfiguration.getHttpPort());
+            http.setIdleTimeout(jettyConfiguration.getIdleTimeout());
+
+            server.addConnector(http);
+        }
 
         // Setup Jetty statistics
         if (jettyConfiguration.isStatisticsEnabled()) {
