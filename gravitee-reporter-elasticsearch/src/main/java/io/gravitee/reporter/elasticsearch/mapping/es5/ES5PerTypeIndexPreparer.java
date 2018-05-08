@@ -46,7 +46,7 @@ public class ES5PerTypeIndexPreparer extends PerTypeIndexPreparer {
     protected Function<Type, CompletableSource> indexTypeMapper() {
         return type -> {
             final String typeName = type.getType();
-            final String templateName = "gravitee-" + typeName;
+            final String templateName = configuration.getIndexName() + '-' + typeName;
 
             logger.debug("Trying to put template mapping for type[{}] name[{}]", typeName, templateName);
 
