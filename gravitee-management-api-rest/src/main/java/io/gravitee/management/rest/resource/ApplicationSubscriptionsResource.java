@@ -80,6 +80,10 @@ public class ApplicationSubscriptionsResource {
             @ApiParam(name = "plan", required = true)
             @NotNull @QueryParam("plan") String plan,
             NewSubscriptionEntity newSubscriptionEntity) {
+        // If no request message has been passed, the entity is not created
+        if (newSubscriptionEntity == null) {
+            newSubscriptionEntity = new NewSubscriptionEntity();
+        }
         newSubscriptionEntity.setApplication(application);
         newSubscriptionEntity.setPlan(plan);
         Subscription subscription = convert(subscriptionService.create(newSubscriptionEntity));

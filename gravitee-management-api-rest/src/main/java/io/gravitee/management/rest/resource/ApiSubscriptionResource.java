@@ -246,6 +246,7 @@ public class ApiSubscriptionResource extends AbstractResource {
         subscription.setProcessedBy(subscriptionEntity.getProcessedBy());
         subscription.setRequest(subscriptionEntity.getRequest());
         subscription.setReason(subscriptionEntity.getReason());
+        subscription.setRequest(subscriptionEntity.getRequest());
         subscription.setStatus(subscriptionEntity.getStatus());
         subscription.setSubscribedBy(
                 new Subscription.User(
