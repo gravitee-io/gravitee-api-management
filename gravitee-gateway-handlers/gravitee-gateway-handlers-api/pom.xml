@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.gateway.handlers</groupId>
         <artifactId>gravitee-gateway-handlers</artifactId>
-        <version>1.16.0</version>
+        <version>1.17.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-gateway-handlers-api</artifactId>
