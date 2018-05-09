@@ -78,8 +78,8 @@ public class ApplicationSubscriptionsResource {
     public Response createSubscription(
             @PathParam("application") String application,
             @ApiParam(name = "plan", required = true)
-            @NotNull @QueryParam("plan") String plan) {
-        NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
+            @NotNull @QueryParam("plan") String plan,
+            NewSubscriptionEntity newSubscriptionEntity) {
         newSubscriptionEntity.setApplication(application);
         newSubscriptionEntity.setPlan(plan);
         Subscription subscription = convert(subscriptionService.create(newSubscriptionEntity));
