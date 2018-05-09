@@ -16,14 +16,12 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.ApplicationPermission;
 import io.gravitee.management.model.permissions.ManagementPermission;
 import io.gravitee.management.model.permissions.PortalPermission;
-import io.gravitee.management.service.InitializerService;
-import io.gravitee.management.service.MetadataService;
-import io.gravitee.management.service.RoleService;
-import io.gravitee.management.service.ViewService;
+import io.gravitee.management.service.*;
 import io.gravitee.repository.management.model.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -55,6 +54,10 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
     private MetadataService metadataService;
     @Autowired
     private ViewService viewService;
+    @Autowired
+    private ParameterService parameterService;
+    @Autowired
+    private ConfigService configService;
 
     @Override
     protected String name() {
@@ -201,6 +204,7 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
                     perms
             ));
         }
+        roleService.createOrUpdateSystemRoles();
 
         // Initialize default view
         Optional<ViewEntity> optionalAllView = viewService.findAll().
@@ -211,7 +215,12 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
             logger.info("Create default View");
             viewService.createDefaultView();
         }
-        roleService.createOrUpdateSystemRoles();
+
+        // Initialize default portal config
+        List<String> defaultConfigValues = parameterService.findAll(Key.PORTAL_USERCREATION_ENABLED.key());
+        if (defaultConfigValues.isEmpty()) {
+            configService.save(new PortalConfigEntity());
+        }
     }
 }
 
