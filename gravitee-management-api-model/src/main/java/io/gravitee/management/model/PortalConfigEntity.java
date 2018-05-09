@@ -390,6 +390,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class OAuth2Authentication {
 //        @ParameterKey(Key.AUTHENTICATION_OAUTH2_CLIENTID)
         private String clientId;
@@ -406,6 +407,7 @@ public class PortalConfigEntity {
 
         public OAuth2Authentication() {
             scope = Collections.emptyList();
+            color = "#0076b4";
         }
 
         public String getClientId() {
