@@ -19,9 +19,10 @@ import './index.scss';
 
 import './portal/portal.module';
 import './management/management.module';
+import _ = require('lodash');
 
 let configNoCache = {headers: {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'}};
-let baseURL: string;
+let ConstantsJSON: any;
 
 fetchData()
   .then((constants:any) => initLoader(constants))
@@ -37,15 +38,14 @@ function fetchData() {
     [$http.get('constants.json', configNoCache),
       $http.get('build.json', configNoCache)])
     .then((responses: any) => {
-      baseURL = responses[0].data.baseURL;
+      ConstantsJSON = responses[0].data;
       let build = responses[1].data;
       angular.module('gravitee-management').constant('Build', build);
       angular.module('gravitee-portal').constant('Build', build);
-      return $http.get(`${baseURL}portal`);
+      return $http.get(`${ConstantsJSON.baseURL}portal`);
     })
     .then( (response: any) => {
-      let constants = response.data;
-      constants.baseURL = baseURL;
+      let constants = _.assign(response.data, ConstantsJSON);
       angular.module('gravitee-management').constant('Constants', constants);
       angular.module('gravitee-portal').constant('Constants', constants);
 

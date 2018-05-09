@@ -40,7 +40,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
 
     this.reset = () => {
       PortalConfigService.get().then((response) => {
-        this.Constants = response.data;
+        Constants = response.data;
       });
     };
   }
