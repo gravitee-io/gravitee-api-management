@@ -27,9 +27,7 @@ public class Proxy {
 
     private String contextPath;
 
-    private Set<Endpoint> endpoints;
-
-    private LoadBalancer loadBalancer = new LoadBalancer();
+    private Set<EndpointGroup> groups;
 
     private Failover failover;
 
@@ -47,28 +45,12 @@ public class Proxy {
         this.contextPath = contextPath;
     }
 
-    public Set<Endpoint> getEndpoints() {
-        return endpoints;
-    }
-
-    public void setEndpoints(Set<Endpoint> endpoints) {
-        this.endpoints = endpoints;
-    }
-
     public boolean isStripContextPath() {
         return stripContextPath;
     }
 
     public void setStripContextPath(boolean stripContextPath) {
         this.stripContextPath = stripContextPath;
-    }
-
-    public LoadBalancer getLoadBalancer() {
-        return loadBalancer;
-    }
-
-    public void setLoadBalancer(LoadBalancer loadBalancer) {
-        this.loadBalancer = loadBalancer;
     }
 
     public boolean failoverEnabled() {
@@ -97,5 +79,13 @@ public class Proxy {
 
     public void setCors(Cors cors) {
         this.cors = cors;
+    }
+
+    public Set<EndpointGroup> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(Set<EndpointGroup> groups) {
+        this.groups = groups;
     }
 }

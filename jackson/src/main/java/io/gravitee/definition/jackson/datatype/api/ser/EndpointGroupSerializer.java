@@ -18,8 +18,8 @@ package io.gravitee.definition.jackson.datatype.api.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.Proxy;
 
 import java.io.IOException;
 import java.util.Set;
@@ -28,28 +28,26 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ProxySerializer extends StdScalarSerializer<Proxy> {
+public class EndpointGroupSerializer extends StdScalarSerializer<EndpointGroup> {
 
-    public ProxySerializer(Class<Proxy> t) {
-        super(t);
+    public EndpointGroupSerializer(Class<EndpointGroup> vc) {
+        super(vc);
     }
 
     @Override
-    public void serialize(Proxy proxy, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(EndpointGroup group, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
-        jgen.writeStringField("context_path", proxy.getContextPath());
-        jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
-        if (proxy.getLoggingMode() != null) {
-            jgen.writeStringField("loggingMode", proxy.getLoggingMode().name());
-        }
 
-        final Set<EndpointGroup> groups = proxy.getGroups();
+        jgen.writeStringField("name", group.getName());
 
-        if (groups != null) {
-            jgen.writeArrayFieldStart("groups");
-            groups.forEach(group -> {
+
+        final Set<Endpoint> endpoints = group.getEndpoints();
+
+        if (endpoints != null) {
+            jgen.writeArrayFieldStart("endpoints");
+            endpoints.forEach(endpoint -> {
                 try {
-                    jgen.writeObject(group);
+                    jgen.writeObject(endpoint);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -57,12 +55,8 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
             jgen.writeEndArray();
         }
 
-        if (proxy.getFailover() != null) {
-            jgen.writeObjectField("failover", proxy.getFailover());
-        }
-
-        if (proxy.getCors() != null && proxy.getCors().isEnabled()) {
-            jgen.writeObjectField("cors", proxy.getCors());
+        if (group.getLoadBalancer() != null) {
+            jgen.writeObjectField("load_balancing", group.getLoadBalancer());
         }
 
         jgen.writeEndObject();

@@ -36,7 +36,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_defaultHttpConfig() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertEquals("http://localhost:1234", endpoint.getTarget());
         Assert.assertSame(HttpEndpoint.class, endpoint.getClass());
 
@@ -48,7 +48,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_overridedHttpConfig() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-overridedhttpconfig.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertEquals("http://localhost:1234", endpoint.getTarget());
         Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpProxy());
         Assert.assertTrue(((HttpEndpoint) endpoint).getHttpProxy().isEnabled());
@@ -226,47 +226,47 @@ public class ApiDeserializerTest extends AbstractTest {
     @Test
     public void definition_singleEndpoint() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-singleendpoint.json", Api.class);
-        Assert.assertEquals(1, api.getProxy().getEndpoints().size());
+        Assert.assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
     }
 
     @Test
     public void definition_singleEndpoint_backup() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-singleendpoint.json", Api.class);
-        Assert.assertEquals(1, api.getProxy().getEndpoints().size());
-        Assert.assertFalse(api.getProxy().getEndpoints().iterator().next().isBackup());
+        Assert.assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
+        Assert.assertFalse(api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().isBackup());
     }
 
     @Test
     public void definition_singleEndpoint_inArray() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-singleendpoint-inarray.json", Api.class);
-        Assert.assertEquals(1, api.getProxy().getEndpoints().size());
+        Assert.assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
     }
 
     @Test
     public void definition_multipleEndpoints() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-multipleendpoints.json", Api.class);
-        Assert.assertEquals(2, api.getProxy().getEndpoints().size());
+        Assert.assertEquals(2, api.getProxy().getGroups().iterator().next().getEndpoints().size());
     }
 
     @Test
     public void definition_singleEndpoint_inArray_backup() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-singleendpoint-inarray.json", Api.class);
-        Assert.assertEquals(1, api.getProxy().getEndpoints().size());
-        Assert.assertFalse(api.getProxy().getEndpoints().iterator().next().isBackup());
+        Assert.assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
+        Assert.assertFalse(api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().isBackup());
     }
 
     @Test
     public void definition_multipleEndpoints_inSingleEndpoint() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-multipleendpoints-insingleendpoint.json", Api.class);
-        Assert.assertEquals(1, api.getProxy().getEndpoints().size());
-        Assert.assertEquals("http://host1:8083/myapi", api.getProxy().getEndpoints().iterator().next().getTarget());
+        Assert.assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
+        Assert.assertEquals("http://host1:8083/myapi", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
     }
 
     @Test
     public void definition_withclientoptions() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
         Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientSslOptions());
     }
@@ -275,7 +275,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_withclientoptions_nossl() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nossl.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
         Assert.assertNull(((HttpEndpoint) endpoint).getHttpClientSslOptions());
     }
@@ -284,7 +284,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_withclientoptions_nooptions() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
         Assert.assertNull(((HttpEndpoint) endpoint).getHttpClientSslOptions());
     }
@@ -293,7 +293,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_withclientoptions_nooptions_defaultconfiguration() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
         HttpClientOptions options = ((HttpEndpoint) endpoint).getHttpClientOptions();
         Assert.assertNotNull(options);
@@ -308,8 +308,8 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_defaultLoadBalancer_roundRobin() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
 
-        Assert.assertNotNull(api.getProxy().getLoadBalancer());
-        Assert.assertEquals(LoadBalancerType.ROUND_ROBIN, api.getProxy().getLoadBalancer().getType());
+        Assert.assertNotNull(api.getProxy().getGroups().iterator().next().getLoadBalancer());
+        Assert.assertEquals(LoadBalancerType.ROUND_ROBIN, api.getProxy().getGroups().iterator().next().getLoadBalancer().getType());
     }
 
     @Test
@@ -359,7 +359,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_failover_singlecase_backup() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-failover-singlecase.json", Api.class);
 
-        api.getProxy().getEndpoints().forEach(endpoint -> {
+        api.getProxy().getGroups().iterator().next().getEndpoints().forEach(endpoint -> {
             if ("endpoint_0".equals(endpoint.getName())) {
                 Assert.assertFalse(endpoint.isBackup());
             } else {
@@ -372,14 +372,14 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_multiTenant_enable() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-multitenant.json", Api.class);
 
-        Assert.assertEquals("europe", api.getProxy().getEndpoints().iterator().next().getTenants().get(0));
+        Assert.assertEquals("europe", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTenants().get(0));
     }
 
     @Test
     public void definition_multiTenants_enable() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-multitenants.json", Api.class);
         
-        List<String> tenants = api.getProxy().getEndpoints().iterator().next().getTenants();
+        List<String> tenants = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTenants();
         Assert.assertEquals("europe", tenants.get(0));
         Assert.assertEquals("asie", tenants.get(1));
     }
@@ -394,7 +394,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_hostHeader_empty() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-empty-hostHeader.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertNull(((HttpEndpoint) endpoint).getHostHeader());
     }
 
@@ -402,7 +402,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_hostHeader() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-hostHeader.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertNotNull(((HttpEndpoint) endpoint).getHostHeader());
     }
 
@@ -410,7 +410,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_defaultFollowRedirect() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertFalse(((HttpEndpoint) endpoint).getHttpClientOptions().isFollowRedirects());
     }
 
@@ -418,7 +418,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_withFollowRedirect() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getEndpoints().iterator().next();
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
         Assert.assertTrue(((HttpEndpoint) endpoint).getHttpClientOptions().isFollowRedirects());
     }

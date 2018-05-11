@@ -16,13 +16,14 @@
 package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -51,43 +52,17 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         }
 
         final JsonNode nodeEndpoints = node.get("endpoints");
+        final JsonNode nodeGroups = node.get("groups");
 
         if (nodeEndpoints != null && nodeEndpoints.isArray()) {
-            Set<Endpoint> endpoints = new LinkedHashSet<>(nodeEndpoints.size());
-            for (JsonNode jsonNode : nodeEndpoints) {
-                EndpointType type = EndpointType.valueOf(
-                        jsonNode.path("type").asText(EndpointType.HTTP.name()).toUpperCase());
-
-                Endpoint endpoint;
-                switch (type) {
-                    case HTTP:
-                        endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(HttpEndpoint.class);
-                        break;
-                    default:
-                        endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(HttpEndpoint.class);
-                        break;
-                }
-
-                if (endpoint != null) {
-                    boolean added = endpoints.add(endpoint);
-                    if (!added) {
-                        throw ctxt.mappingException("[api] API must have single endpoint names");
-                    }
-                }
-            }
-
-            proxy.setEndpoints(endpoints);
+            createDefaultEndpointGroup(node, jp.getCodec(), proxy);
+        } else if (nodeGroups != null && nodeGroups.isArray()) {
+            createEndpointGroups(node, jp.getCodec(), proxy);
         }
 
         JsonNode stripContextNode = node.get("strip_context_path");
         if (stripContextNode != null) {
             proxy.setStripContextPath(stripContextNode.asBoolean(false));
-        }
-
-        JsonNode loadBalancingNode = node.get("load_balancing");
-        if (loadBalancingNode != null) {
-            LoadBalancer loadBalancer = loadBalancingNode.traverse(jp.getCodec()).readValueAs(LoadBalancer.class);
-            proxy.setLoadBalancer(loadBalancer);
         }
 
         JsonNode failoverNode = node.get("failover");
@@ -110,6 +85,25 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         }
 
         return proxy;
+    }
+
+    private void createDefaultEndpointGroup(JsonNode node, ObjectCodec codec, Proxy proxy) throws IOException {
+        final EndpointGroup group = node.traverse(codec).readValueAs(EndpointGroup.class);
+        group.setName("default-group");
+        proxy.setGroups(Collections.singleton(group));
+    }
+
+    private void createEndpointGroups(JsonNode node, ObjectCodec codec, Proxy proxy) throws IOException {
+        final JsonNode nodeGroups = node.get("groups");
+
+        Set<EndpointGroup> groups = new LinkedHashSet<>(nodeGroups.size());
+
+        for (JsonNode jsonNode : nodeGroups) {
+            EndpointGroup group = jsonNode.traverse(codec).readValueAs(EndpointGroup.class);
+            groups.add(group);
+        }
+
+        proxy.setGroups(groups);
     }
 
     private String formatContextPath(String contextPath) {

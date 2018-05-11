@@ -4,12 +4,16 @@
 
   "proxy": {
     "context_path": "/team",
-    "endpoints": [
+    "groups": [
       {
         "name": "default",
-        "target": "http://localhost:8083/myapi"
-      }
-    ],
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "http://localhost:8083/myapi"
+          }
+        ]
+      }],
     "strip_context_path": false
   },
 

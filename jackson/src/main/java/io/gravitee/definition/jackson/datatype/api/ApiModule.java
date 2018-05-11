@@ -51,6 +51,7 @@ public class ApiModule extends GraviteeModule {
         addDeserializer(Properties.class, new PropertiesDeserializer(Properties.class));
         addDeserializer(Property.class, new PropertyDeserializer(Property.class));
         addDeserializer(Cors.class, new CorsDeserializer(Cors.class));
+        addDeserializer(EndpointGroup.class, new EndpointGroupDeserializer(EndpointGroup.class));
 
         // then serializers:
         addSerializer(Api.class, new ApiSerializer(Api.class));
@@ -68,5 +69,6 @@ public class ApiModule extends GraviteeModule {
         addSerializer(Properties.class, new PropertiesSerializer(Properties.class));
         addSerializer(Property.class, new PropertySerializer(Property.class));
         addSerializer(Cors.class, new CorsSerializer(Cors.class));
+        addSerializer(EndpointGroup.class, new EndpointGroupSerializer(EndpointGroup.class));
     }
 }
