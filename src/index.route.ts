@@ -128,6 +128,7 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
       }
     })
     .state('logout', {
+      template: '<div class="gravitee-no-sidenav-container"></div>',
       controller: (UserService: UserService, $state: ng.ui.IStateService, $rootScope: IScope, $window: ng.IWindowService, Constants: any) => {
         UserService.logout().then(
           () => {

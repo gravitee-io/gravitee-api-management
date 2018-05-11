@@ -57,9 +57,7 @@ class LoginController {
       .catch( () => {});
   };
 
-  login($event: Event) {
-    $event.preventDefault();
-
+  login() {
     this.UserService.login(this.user).then((response) => {
       this.$cookies.put('Authorization', _.capitalize(response.data.type) + ' ' + response.data.token);
       this.UserService.current().then( () => {
