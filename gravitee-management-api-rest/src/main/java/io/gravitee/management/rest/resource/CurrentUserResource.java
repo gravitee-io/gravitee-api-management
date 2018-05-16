@@ -60,6 +60,7 @@ import static io.gravitee.management.rest.model.TokenType.BEARER;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 import static javax.ws.rs.core.Response.ok;
+import static javax.ws.rs.core.Response.status;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -102,7 +103,8 @@ public class CurrentUserResource extends AbstractResource {
                 } else {
                     LOG.info(unfeMessage, userId);
                 }
-                return ok().build();
+                response.addCookie(jwtCookieGenerator.generate(null));
+                return status(Response.Status.UNAUTHORIZED).build();
             }
 
             List<GrantedAuthority> authorities = new ArrayList<>(details.getAuthorities());
