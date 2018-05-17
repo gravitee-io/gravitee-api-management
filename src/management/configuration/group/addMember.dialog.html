@@ -23,7 +23,11 @@
       <md-select ng-model="ctrl.defaultApiRole"
                  aria-label="API Role"
                  class="md-no-underline">
-        <md-option ng-value="role.name" ng-repeat="role in ctrl.apiRoles">{{role.name}}</md-option>
+        <md-option ng-repeat="role in ctrl.apiRoles"
+                   ng-value="role.name"
+                   ng-disabled="role.system">
+          {{role.name}}
+        </md-option>
       </md-select>
     </div>
     <div layout="row" layout-align="space-between center">
@@ -31,7 +35,11 @@
       <md-select ng-model="ctrl.defaultApplicationRole"
                  aria-label="Application Role"
                  class="md-no-underline">
-        <md-option ng-value="role.name" ng-repeat="role in ctrl.applicationRoles">{{role.name}}</md-option>
+        <md-option ng-repeat="role in ctrl.applicationRoles"
+                   ng-value="role.name"
+                   ng-disabled="role.system">
+          {{role.name}}
+        </md-option>
       </md-select>
     </div>
     <div ng-if="!ctrl.defaultApiRole && !ctrl.defaultApplicationRole"
