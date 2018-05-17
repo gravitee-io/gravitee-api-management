@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.providers.User;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
@@ -178,6 +179,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             } else if (MembershipReferenceType.GROUP.equals(reference.getType())
                     && !io.gravitee.management.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())
                     && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())) {
+                throw new NotAuthorizedMembershipException(role.getName());
+            } else if (MembershipReferenceType.GROUP.equals(reference.getType())
+                && SystemRole.PRIMARY_OWNER.name().equals(role.getName())) {
                 throw new NotAuthorizedMembershipException(role.getName());
             }
 
