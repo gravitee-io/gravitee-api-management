@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
-  version: '1.0.0'
-  title: Swagger Petstore (Simple)
+  version: '1.2.3'
+  title: Gravitee.io Swagger API
   description: A sample API that uses a petstore as an example to demonstrate features in the swagger-2.0 specification
   termsOfService: http://helloreverb.com/terms/
   contact:
@@ -11,10 +11,10 @@ info:
   license:
     name: MIT
     url: http://opensource.org/licenses/MIT
-host: petstore.swagger.io
-basePath: /api
+host: demo.gravitee.io
+basePath: /gateway/echo
 schemes:
-  - http
+  - https
 consumes:
   - application/json
 produces:
@@ -76,7 +76,7 @@ paths:
           description: unexpected error
           schema:
             $ref: '#/definitions/errorModel'
-  /pets/{id}:
+  /pets/{petId}:
     get:
       description: Returns a user based on a single ID, if the user does not have access to the pet
       operationId: findPetById
@@ -86,7 +86,7 @@ paths:
         - text/xml
         - text/html
       parameters:
-        - name: id
+        - name: petId
           in: path
           description: ID of pet to fetch
           required: true
@@ -105,7 +105,7 @@ paths:
       description: deletes a single pet based on the ID supplied
       operationId: deletePet
       parameters:
-        - name: id
+        - name: petId
           in: path
           description: ID of pet to delete
           required: true

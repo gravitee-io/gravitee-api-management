@@ -65,8 +65,18 @@ public class SwaggerService_TransformTest {
     }
 
     @Test
+    public void shouldTransformAPIFromSwaggerV1_json() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/management/service/swagger-v1.json", MediaType.APPLICATION_JSON);
+
+        swaggerService.transform(pageEntity);
+
+        assertNotNull(pageEntity.getContent());
+        validateV2(Json.mapper().readTree(pageEntity.getContent()));
+    }
+
+    @Test
     public void shouldTransformAPIFromSwaggerV2_json() throws IOException {
-        PageEntity pageEntity = getPage("io/gravitee/management/service/swagger-petstore.json", MediaType.APPLICATION_JSON);
+        PageEntity pageEntity = getPage("io/gravitee/management/service/swagger-v2.json", MediaType.APPLICATION_JSON);
 
         swaggerService.transform(pageEntity);
 
@@ -76,7 +86,7 @@ public class SwaggerService_TransformTest {
 
     @Test
     public void shouldTransformAPIFromSwaggerV2_yaml() throws IOException {
-        PageEntity pageEntity = getPage("io/gravitee/management/service/swagger-petstore.yaml", MediaType.TEXT_PLAIN);
+        PageEntity pageEntity = getPage("io/gravitee/management/service/swagger-v2.yaml", MediaType.TEXT_PLAIN);
 
         swaggerService.transform(pageEntity);
 
@@ -106,16 +116,16 @@ public class SwaggerService_TransformTest {
     }
 
     private void validateV2(JsonNode node) {
-        assertEquals("1.0.0", node.get("info").get("version").asText());
-        assertEquals("Swagger Petstore (Simple)", node.get("info").get("title").asText());
+        assertEquals("1.2.3", node.get("info").get("version").asText());
+        assertEquals("Gravitee.io Swagger API", node.get("info").get("title").asText());
         assertEquals("https", node.get("schemes").get(0).asText());
         assertEquals("my.domain.com", node.get("host").asText());
         assertEquals("/v1", node.get("basePath").asText());
     }
 
     private void validateV3(JsonNode node) {
-        assertEquals("1.0.0", node.get("info").get("version").asText());
-        assertEquals("Swagger Petstore", node.get("info").get("title").asText());
+        assertEquals("1.2.3", node.get("info").get("version").asText());
+        assertEquals("Gravitee.io Swagger API", node.get("info").get("title").asText());
         assertEquals("https://my.domain.com/v1", node.get("servers").get(0).get("url").asText());
     }
 }

@@ -62,49 +62,73 @@ public class SwaggerServiceImpl implements SwaggerService {
     @Value("${swagger.scheme:https}")
     private String defaultScheme;
 
+    @Override
     public NewApiEntity prepare(ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        Swagger swagger = null;
+        NewApiEntity apiEntity;
 
-        switch (swaggerDescriptor.getVersion()) {
-            case VERSION_1_0:
-                try {
-                    logger.info("Loading an old Swagger descriptor from {}", swaggerDescriptor.getPayload());
+        // try to read swagger in version 2
+        apiEntity = prepareV2(swaggerDescriptor);
 
-                    // For spec < 2.0, only read by url is possible
-                    swagger = new SwaggerCompatConverter().read(swaggerDescriptor.getPayload());
-                } catch (IOException ioe) {
-                    logger.error("Can not read old Swagger specification", ioe);
-                    throw new SwaggerDescriptorException();
-                }
-            case VERSION_2_0:
-                if (swaggerDescriptor.getType() == ImportSwaggerDescriptorEntity.Type.INLINE) {
-                    logger.info("Loading an inline Swagger descriptor");
-                    swagger = new SwaggerParser().parse(swaggerDescriptor.getPayload());
-                } else if (swaggerDescriptor.getType() == ImportSwaggerDescriptorEntity.Type.URL) {
-                    logger.info("Loading a Swagger descriptor from URL: ", swaggerDescriptor.getPayload());
-                    swagger = new SwaggerParser().read(swaggerDescriptor.getPayload());
-                }
+        // try to read swagger in version 3 (openAPI)
+        if (apiEntity == null) {
+            apiEntity = prepareV3(swaggerDescriptor);
         }
 
-        if (swagger == null) {
+        // try to read swagger in version 1
+        if (apiEntity == null) {
+            apiEntity = prepareV1(swaggerDescriptor);
+        }
+
+        if (apiEntity == null) {
             throw new SwaggerDescriptorException();
         }
 
-        NewApiEntity apiEntity = new NewApiEntity();
-        apiEntity.setName(swagger.getInfo().getTitle());
-        apiEntity.setDescription(swagger.getInfo().getDescription());
-        apiEntity.setVersion(swagger.getInfo().getVersion());
+        return apiEntity;
+    }
 
-        String scheme = (swagger.getSchemes() == null || swagger.getSchemes().isEmpty()) ? defaultScheme :
-                swagger.getSchemes().iterator().next().toValue();
+    private NewApiEntity prepareV1(ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        NewApiEntity apiEntity;
+        try {
+            logger.info("Loading an old Swagger descriptor from {}", swaggerDescriptor.getPayload());
+            if (swaggerDescriptor.getType() == ImportSwaggerDescriptorEntity.Type.INLINE) {
+                File temp = null;
+                try {
+                    temp = createTmpSwagger1File(swaggerDescriptor.getPayload());
+                    apiEntity = mapSwagger12ToNewApi(new SwaggerCompatConverter().read(temp.getAbsolutePath()));
+                } finally {
+                    if (temp != null) {
+                        temp.delete();
+                    }
+                }
+            } else {
+                apiEntity = mapSwagger12ToNewApi(new SwaggerCompatConverter().read(swaggerDescriptor.getPayload()));
+            }
+        } catch (IOException ioe) {
+            logger.error("Can not read old Swagger specification", ioe);
+            throw new SwaggerDescriptorException();
+        }
+        return apiEntity;
+    }
 
-        apiEntity.setEndpoint(scheme + "://" + swagger.getHost() + swagger.getBasePath());
-        apiEntity.setPaths(new ArrayList<>(
-                swagger.getPaths().keySet()
-                        .stream()
-                        .map(path -> path.replaceAll("\\{(.[^/]*)\\}", ":$1"))
-                        .collect(Collectors.toList())));
+    private NewApiEntity prepareV2(ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        NewApiEntity apiEntity;
+        logger.info("Trying to loading a Swagger descriptor in v2");
+        if (swaggerDescriptor.getType() == ImportSwaggerDescriptorEntity.Type.INLINE) {
+            apiEntity = mapSwagger12ToNewApi(new SwaggerParser().parse(swaggerDescriptor.getPayload()));
+        } else {
+            apiEntity = mapSwagger12ToNewApi(new SwaggerParser().read(swaggerDescriptor.getPayload()));
+        }
+        return apiEntity;
+    }
 
+    private NewApiEntity prepareV3(ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        NewApiEntity apiEntity;
+        logger.info("Trying to loading an OpenAPI descriptor");
+        if (swaggerDescriptor.getType() == ImportSwaggerDescriptorEntity.Type.INLINE) {
+            apiEntity = mapOpenApiToNewApi(new OpenAPIV3Parser().readContents(swaggerDescriptor.getPayload()));
+        } else {
+            apiEntity = mapOpenApiToNewApi(new OpenAPIV3Parser().readWithInfo(swaggerDescriptor.getPayload(), null));
+        }
         return apiEntity;
     }
 
@@ -145,7 +169,7 @@ public class SwaggerServiceImpl implements SwaggerService {
         }
     }
 
-    private Swagger transformV1(String content, PageConfigurationEntity config) {
+    private File createTmpSwagger1File(String content) {
         // Create temporary file for Swagger parser (only for descriptor version < 2.x)
         File temp = null;
         String fileName = "gio_swagger_" + System.currentTimeMillis();
@@ -158,13 +182,6 @@ public class SwaggerServiceImpl implements SwaggerService {
             bw = new BufferedWriter(out);
             bw.write(content);
             bw.close();
-            swagger = new SwaggerCompatConverter().read(temp.getAbsolutePath());
-            if (swagger != null && config != null && config.getTryItURL() != null) {
-                URI newURI = URI.create(config.getTryItURL());
-                swagger.setSchemes(Collections.singletonList(Scheme.forValue(newURI.getScheme())));
-                swagger.setHost((newURI.getPort() != -1) ? newURI.getHost() + ':' + newURI.getPort() : newURI.getHost());
-                swagger.setBasePath((newURI.getRawPath().isEmpty()) ? "/" : newURI.getRawPath());
-            }
         } catch (IOException ioe) {
             // Fallback to the new parser
         } finally {
@@ -180,6 +197,26 @@ public class SwaggerServiceImpl implements SwaggerService {
                 } catch (IOException e) {
                 }
             }
+        }
+        return temp;
+    }
+
+    private Swagger transformV1(String content, PageConfigurationEntity config) {
+        // Create temporary file for Swagger parser (only for descriptor version < 2.x)
+        File temp = null;
+        Swagger swagger = null;
+        try {
+            temp = createTmpSwagger1File(content);
+            swagger = new SwaggerCompatConverter().read(temp.getAbsolutePath());
+            if (swagger != null && config != null && config.getTryItURL() != null) {
+                URI newURI = URI.create(config.getTryItURL());
+                swagger.setSchemes(Collections.singletonList(Scheme.forValue(newURI.getScheme())));
+                swagger.setHost((newURI.getPort() != -1) ? newURI.getHost() + ':' + newURI.getPort() : newURI.getHost());
+                swagger.setBasePath((newURI.getRawPath().isEmpty()) ? "/" : newURI.getRawPath());
+            }
+        } catch (IOException ioe) {
+            // Fallback to the new parser
+        } finally {
             if (temp != null) {
                 temp.delete();
             }
@@ -222,4 +259,48 @@ public class SwaggerServiceImpl implements SwaggerService {
             return null;
         }
     }
+
+    private NewApiEntity mapSwagger12ToNewApi(Swagger swagger) {
+        if (swagger == null) {
+            return null;
+        }
+        NewApiEntity apiEntity = new NewApiEntity();
+        apiEntity.setName(swagger.getInfo().getTitle());
+        apiEntity.setDescription(swagger.getInfo().getDescription());
+        apiEntity.setVersion(swagger.getInfo().getVersion());
+
+        String scheme = (swagger.getSchemes() == null || swagger.getSchemes().isEmpty()) ? defaultScheme :
+                swagger.getSchemes().iterator().next().toValue();
+
+        apiEntity.setEndpoint(scheme + "://" + swagger.getHost() + swagger.getBasePath());
+        apiEntity.setPaths(new ArrayList<>(
+                swagger.getPaths().keySet()
+                        .stream()
+                        .map(path -> path.replaceAll("\\{(.[^/]*)\\}", ":$1"))
+                        .collect(Collectors.toList())));
+
+        return apiEntity;
+    }
+
+    private NewApiEntity mapOpenApiToNewApi(SwaggerParseResult swagger) {
+        if (swagger == null || swagger.getOpenAPI() == null) {
+            return null;
+        }
+        NewApiEntity apiEntity = new NewApiEntity();
+        apiEntity.setName(swagger.getOpenAPI().getInfo().getTitle());
+        apiEntity.setDescription(swagger.getOpenAPI().getInfo().getDescription());
+        apiEntity.setVersion(swagger.getOpenAPI().getInfo().getVersion());
+
+        if (!swagger.getOpenAPI().getServers().isEmpty()) {
+            apiEntity.setEndpoint(swagger.getOpenAPI().getServers().get(0).getUrl());
+        }
+
+        apiEntity.setPaths(new ArrayList<>(
+                swagger.getOpenAPI().getPaths().keySet()
+                        .stream()
+                        .map(path -> path.replaceAll("\\{(.[^/]*)\\}", ":$1"))
+                        .collect(Collectors.toList())));
+        return apiEntity;
+    }
+
 }
