@@ -1,2 +1,0 @@
-io.gravitee.gateway.api.expression.TemplateVariableProvider=\
-    io.gravitee.gateway.http.core.endpoint.EndpointLifecycleManager

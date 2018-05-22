@@ -1,0 +1,2 @@
+io.gravitee.gateway.core.endpoint.factory.EndpointFactory=\
+    io.gravitee.gateway.http.endpoint.HttpEndpointFactory

@@ -21,6 +21,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.ChangeListener;
 import io.gravitee.common.util.ObservableSet;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.schedule.Trigger;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -37,6 +38,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -82,7 +87,12 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     private void startHealthCheck(Api api) {
         if (healthcheckEnabled(api)) {
-            Set<Endpoint> endpoints = api.getProxy().getEndpoints();
+            Set<Endpoint> endpoints = api.getProxy()
+                    .getGroups()
+                    .stream()
+                    .flatMap(group -> group.getEndpoints().stream())
+                    .collect(Collectors.toSet());
+
             LOGGER.info("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
             apiTimers.put(api, new ArrayList<>());
 

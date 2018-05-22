@@ -27,7 +27,6 @@
         <version>1.17.0-SNAPSHOT</version>
     </parent>
 
-
     <artifactId>gravitee-gateway-policy</artifactId>
     <name>Gravitee.io APIM - Gateway - Policy</name>
 

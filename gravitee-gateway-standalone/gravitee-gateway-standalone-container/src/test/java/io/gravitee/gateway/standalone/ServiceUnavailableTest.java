@@ -53,7 +53,7 @@ public class ServiceUnavailableTest extends AbstractGatewayTest {
     @Test
     public void call_unavailable_api() throws Exception {
         // Set the endpoint as down
-        api.getProxy().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
+        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
 
         Request request = Request.Get("http://localhost:8082/test/my_team");
         Response response = request.execute();
@@ -65,7 +65,7 @@ public class ServiceUnavailableTest extends AbstractGatewayTest {
     @Test
     public void call_availableAndUnavailable_api() throws Exception {
         // Set the endpoint as down
-        api.getProxy().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
+        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
 
         Request request = Request.Get("http://localhost:8082/test/my_team");
         Response response = request.execute();
@@ -74,7 +74,7 @@ public class ServiceUnavailableTest extends AbstractGatewayTest {
         assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, returnResponse.getStatusLine().getStatusCode());
 
         // Set the endpoint as up
-        api.getProxy().getEndpoints().iterator().next().setStatus(Endpoint.Status.UP);
+        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.UP);
 
         Request request2 = Request.Get("http://localhost:8082/test/my_team");
         Response response2 = request2.execute();
