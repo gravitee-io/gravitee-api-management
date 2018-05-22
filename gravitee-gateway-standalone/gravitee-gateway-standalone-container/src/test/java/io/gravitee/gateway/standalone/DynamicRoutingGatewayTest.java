@@ -50,7 +50,7 @@ public class DynamicRoutingGatewayTest extends AbstractGatewayTest {
 
     @Test
     public void call_dynamic_api() throws Exception {
-        String initialTarget = api.getProxy().getEndpoints().iterator().next().getTarget();
+        String initialTarget = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget();
         String dynamicTarget = create(URI.create("http://localhost:8080/team"), new URL(initialTarget).getPort()).toString();
 
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Get("http://localhost:8082/test/my_team");
@@ -64,10 +64,10 @@ public class DynamicRoutingGatewayTest extends AbstractGatewayTest {
 
     @Test
     public void call_dynamic_api_unavailable() throws Exception {
-        String initialTarget = api.getProxy().getEndpoints().iterator().next().getTarget();
+        String initialTarget = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget();
         String dynamicTarget = create(URI.create("http://localhost:8080/team"), new URL(initialTarget).getPort()).toString();
 
-        api.getProxy().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
+        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Get("http://localhost:8082/test/my_team");
         request.addHeader("X-Dynamic-Routing-URI", dynamicTarget);
 

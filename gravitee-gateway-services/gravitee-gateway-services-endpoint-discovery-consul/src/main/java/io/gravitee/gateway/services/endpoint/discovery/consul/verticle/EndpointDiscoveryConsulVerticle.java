@@ -141,12 +141,14 @@ public class EndpointDiscoveryConsulVerticle extends AbstractVerticle implements
         LOGGER.info("Remove a de-registered endpoint from Consul.io: id[{}] name[{}]",
                 service.getId(), service.getName());
         Endpoint endpoint = createEndpoint(service);
-        api.getProxy().getEndpoints().remove(endpoint);
+        //TODO: check that there is an existing group, if not, create a default one
+        api.getProxy().getGroups().iterator().next().getEndpoints().remove(endpoint);
     }
 
     private void handleRegisterService(Api api, Service service) {
         Endpoint createdEndpoint = createEndpoint(service);
-        Set<Endpoint> managedEndpoints = api.getProxy().getEndpoints();
+        //TODO: check that there is an existing group, if not, create a default one
+        Set<Endpoint> managedEndpoints = api.getProxy().getGroups().iterator().next().getEndpoints();
 
         // Get previous endpoint reference
         Endpoint preEndpoint = managedEndpoints.stream().filter(createdEndpoint::equals).findAny().orElse(null);

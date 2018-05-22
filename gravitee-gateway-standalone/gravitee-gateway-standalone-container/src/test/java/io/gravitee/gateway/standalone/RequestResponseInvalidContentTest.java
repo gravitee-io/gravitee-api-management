@@ -86,7 +86,7 @@ public class RequestResponseInvalidContentTest extends AbstractGatewayTest {
         super.before(api);
 
         try {
-            Endpoint edpt = api.getProxy().getEndpoints().iterator().next();
+            Endpoint edpt = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
             URL target = new URL(edpt.getTarget());
             URL newTarget = new URL(target.getProtocol(), target.getHost(), wireMockRule.port(), target.getFile());
             edpt.setTarget(newTarget.toString());

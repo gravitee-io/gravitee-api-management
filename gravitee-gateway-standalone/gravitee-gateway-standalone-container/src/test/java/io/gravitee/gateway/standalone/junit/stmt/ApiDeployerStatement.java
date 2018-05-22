@@ -18,6 +18,7 @@ package io.gravitee.gateway.standalone.junit.stmt;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -32,6 +33,7 @@ import org.junit.runners.model.Statement;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -81,6 +83,14 @@ public class ApiDeployerStatement extends Statement {
         URL jsonFile = ApiDeployerStatement.class.getResource(apiDescriptorPath);
         Api api = new GraviteeMapper().readValue(jsonFile, Api.class);
 
+        if (api.getProxy().getGroups() == null || api.getProxy().getGroups().isEmpty()) {
+            // Createa default endpoint group
+            EndpointGroup group = new EndpointGroup();
+            group.setName("default");
+            group.setEndpoints(Collections.emptySet());
+            api.getProxy().setGroups(Collections.singleton(group));
+        }
+
         if (ApiLoaderInterceptor.class.isAssignableFrom(target.getClass())) {
             ApiLoaderInterceptor loader = (ApiLoaderInterceptor) target;
             loader.before(api);
@@ -89,7 +99,8 @@ public class ApiDeployerStatement extends Statement {
         boolean enhanceHttpPort = target.getClass().getAnnotation(ApiDescriptor.class).enhanceHttpPort();
 
         if (enhanceHttpPort) {
-            List<Endpoint> endpoints = new ArrayList<>(api.getProxy().getEndpoints());
+            EndpointGroup group = api.getProxy().getGroups().iterator().next();
+            List<Endpoint> endpoints = new ArrayList<>(group.getEndpoints());
             List<Integer> bindPorts = SocketUtils.getBindPorts();
 
             for(int i = 0 ; i < bindPorts.size() ; i++) {
@@ -107,7 +118,7 @@ public class ApiDeployerStatement extends Statement {
                     URL newTarget = new URL(target.getProtocol(), target.getHost(), port, target.getFile());
                     HttpEndpoint edpt = new HttpEndpoint(UUID.random().toString(), newTarget.toString());
                     edpt.setHttpClientOptions(first.getHttpClientOptions());
-                    api.getProxy().getEndpoints().add(edpt);
+                    group.getEndpoints().add(edpt);
                 }
             }
         }

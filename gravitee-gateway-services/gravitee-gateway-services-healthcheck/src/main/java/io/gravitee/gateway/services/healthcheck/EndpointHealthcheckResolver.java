@@ -46,10 +46,11 @@ public class EndpointHealthcheckResolver {
      */
     public List<EndpointRule> resolve(Api api) {
         HealthCheckService rootHealthCheck = api.getServices().get(HealthCheckService.class);
-        Stream<Endpoint> endpoints = api.getProxy().getEndpoints().stream();
 
-        // Only HTTP endpoint
-        Stream<HttpEndpoint> httpEndpoints = endpoints
+        // Filter to check only HTTP endpoints
+        Stream<HttpEndpoint> httpEndpoints = api.getProxy().getGroups()
+                .stream()
+                .flatMap(group -> group.getEndpoints().stream())
                 .filter(endpoint -> endpoint.getType() == EndpointType.HTTP)
                 .map(endpoint -> (HttpEndpoint) endpoint);
 
