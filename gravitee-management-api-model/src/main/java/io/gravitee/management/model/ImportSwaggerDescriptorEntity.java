@@ -23,20 +23,10 @@ import javax.validation.constraints.NotNull;
  */
 public class ImportSwaggerDescriptorEntity {
 
-    private Version version = Version.VERSION_2_0;
-
     private Type type = Type.INLINE;
 
     @NotNull
     private String payload;
-
-    public Version getVersion() {
-        return version;
-    }
-
-    public void setVersion(Version version) {
-        this.version = version;
-    }
 
     public Type getType() {
         return type;
@@ -52,12 +42,6 @@ public class ImportSwaggerDescriptorEntity {
 
     public void setPayload(String payload) {
         this.payload = payload;
-    }
-
-    public enum Version {
-        VERSION_1_0,
-        VERSION_2_0,
-        VERSION_3_0
     }
 
     public enum Type {

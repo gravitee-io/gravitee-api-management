@@ -173,7 +173,7 @@ public class MembershipService_AddOrUpdateMemberTest {
         membershipService.addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
                 new MembershipService.MembershipUser("xxxxx", null),
-                new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "PRIMAY_OWNER"));
+                new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "name"));
     }
 
     @Test(expected = NotAuthorizedMembershipException.class)
@@ -184,6 +184,28 @@ public class MembershipService_AddOrUpdateMemberTest {
         membershipService.addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
                 new MembershipService.MembershipUser("xxxxx", null),
-                new MembershipService.MembershipRole(RoleScope.PORTAL, "PRIMAY_OWNER"));
+                new MembershipService.MembershipRole(RoleScope.PORTAL, "name"));
+    }
+
+    @Test(expected = NotAuthorizedMembershipException.class)
+    public void shouldDisallowAddAPIPrimaryOwnerRoleOnGroup() throws Exception {
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.API);
+        when(roleService.findById(any(), any())).thenReturn(role);
+        membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                new MembershipService.MembershipUser("xxxxx", null),
+                new MembershipService.MembershipRole(RoleScope.API, "PRIMARY_OWNER"));
+    }
+
+    @Test(expected = NotAuthorizedMembershipException.class)
+    public void shouldDisallowAddApplicationPrimaryOwnerRoleOnGroup() throws Exception {
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.APPLICATION);
+        when(roleService.findById(any(), any())).thenReturn(role);
+        membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                new MembershipService.MembershipUser("xxxxx", null),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "PRIMARY_OWNER"));
     }
 }

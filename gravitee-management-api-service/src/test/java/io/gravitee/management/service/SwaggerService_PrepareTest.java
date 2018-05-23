@@ -28,8 +28,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,35 +47,84 @@ public class SwaggerService_PrepareTest {
         swaggerService = new SwaggerServiceImpl();
     }
 
+    // Swagger v1
     @Test
-    public void shouldPrepareAPIFromSwaggerV2_json() throws IOException {
-        URL url =  Resources.getResource("io/gravitee/management/service/swagger-petstore.json");
-        String descriptor = Resources.toString(url, Charsets.UTF_8);
-        ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
-        swaggerDescriptor.setPayload(descriptor);
-
-        NewApiEntity api = swaggerService.prepare(swaggerDescriptor);
-
-        assertEquals("1.0.0", api.getVersion());
-        assertEquals("Swagger Petstore (Simple)", api.getName());
-        assertEquals("http://petstore.swagger.io/api", api.getEndpoint());
-        assertEquals(2, api.getPaths().size());
-        assertEquals("/pets/:id", api.getPaths().get(1));
+    public void shouldPrepareAPIFromSwaggerV1_URL_json() throws IOException {
+        validate(prepareUrl("io/gravitee/management/service/swagger-v1.json"));
     }
 
     @Test
-    public void shouldPrepareAPIFromSwaggerV2_yaml() throws IOException {
-        URL url =  Resources.getResource("io/gravitee/management/service/swagger-petstore.yaml");
+    public void shouldPrepareAPIFromSwaggerV1_Inline_json() throws IOException {
+        validate(prepareInline("io/gravitee/management/service/swagger-v1.json"));
+    }
+
+    // Swagger v2
+    @Test
+    public void shouldPrepareAPIFromSwaggerV2_URL_json() throws IOException {
+        validate(prepareUrl("io/gravitee/management/service/swagger-v2.json"));
+    }
+
+    @Test
+    public void shouldPrepareAPIFromSwaggerV2_Inline_json() throws IOException {
+        validate(prepareInline("io/gravitee/management/service/swagger-v2.json"));
+    }
+
+    @Test
+    public void shouldPrepareAPIFromSwaggerV2_URL_yaml() throws IOException {
+        validate(prepareUrl("io/gravitee/management/service/swagger-v2.yaml"));
+    }
+
+    @Test
+    public void shouldPrepareAPIFromSwaggerV2_Inline_yaml() throws IOException {
+        validate(prepareInline("io/gravitee/management/service/swagger-v2.yaml"));
+    }
+
+
+    // OpenAPI
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3_URL_json() throws IOException {
+        validate(prepareUrl("io/gravitee/management/service/openapi.json"));
+    }
+
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3_Inline_json() throws IOException {
+        validate(prepareInline("io/gravitee/management/service/openapi.json"));
+    }
+
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3_URL_yaml() throws IOException {
+        validate(prepareUrl("io/gravitee/management/service/openapi.yaml"));
+    }
+
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3_Inline_yaml() throws IOException {
+        validate(prepareInline("io/gravitee/management/service/openapi.yaml"));
+    }
+
+    private void validate(NewApiEntity api) {
+        assertEquals("1.2.3", api.getVersion());
+        assertEquals("Gravitee.io Swagger API", api.getName());
+        assertEquals("https://demo.gravitee.io/gateway/echo", api.getEndpoint());
+        assertEquals(2, api.getPaths().size());
+        assertTrue(api.getPaths().containsAll(Arrays.asList("/pets", "/pets/:petId")));
+    }
+
+    private NewApiEntity prepareInline(String file) throws IOException {
+        URL url =  Resources.getResource(file);
         String descriptor = Resources.toString(url, Charsets.UTF_8);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        swaggerDescriptor.setType(ImportSwaggerDescriptorEntity.Type.INLINE);
         swaggerDescriptor.setPayload(descriptor);
 
-        NewApiEntity api = swaggerService.prepare(swaggerDescriptor);
+        return swaggerService.prepare(swaggerDescriptor);
+    }
 
-        assertEquals("1.0.0", api.getVersion());
-        assertEquals("Swagger Petstore (Simple)", api.getName());
-        assertEquals("http://petstore.swagger.io/api", api.getEndpoint());
-        assertEquals(2, api.getPaths().size());
-        assertEquals("/pets/:id", api.getPaths().get(1));
+    private NewApiEntity prepareUrl(String file) throws IOException {
+        URL url =  Resources.getResource(file);
+        ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        swaggerDescriptor.setType(ImportSwaggerDescriptorEntity.Type.URL);
+        swaggerDescriptor.setPayload(url.getPath());
+
+        return swaggerService.prepare(swaggerDescriptor);
     }
 }

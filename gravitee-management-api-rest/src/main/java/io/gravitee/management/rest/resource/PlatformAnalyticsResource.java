@@ -183,8 +183,10 @@ public class PlatformAnalyticsResource extends AbstractResource  {
     private void addExtraFilter(AbstractQuery query, String extraFilter) {
         if (query.getQuery() == null || query.getQuery().isEmpty()) {
             query.setQuery(extraFilter);
-        } else {
+        } else if (extraFilter != null && ! extraFilter.isEmpty()) {
             query.setQuery(query.getQuery() + " AND " + extraFilter);
+        } else {
+            query.setQuery(query.getQuery());
         }
     }
 
