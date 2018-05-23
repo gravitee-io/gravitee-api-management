@@ -20,18 +20,17 @@ import com.google.common.io.Resources;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.service.impl.SwaggerServiceImpl;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -119,11 +118,15 @@ public class SwaggerService_PrepareTest {
         return swaggerService.prepare(swaggerDescriptor);
     }
 
-    private NewApiEntity prepareUrl(String file) throws IOException {
+    private NewApiEntity prepareUrl(String file) {
         URL url =  Resources.getResource(file);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
         swaggerDescriptor.setType(ImportSwaggerDescriptorEntity.Type.URL);
-        swaggerDescriptor.setPayload(url.getPath());
+        try {
+            swaggerDescriptor.setPayload(url.toURI().getPath());
+        } catch (URISyntaxException e) {
+            fail(e.getMessage());
+        }
 
         return swaggerService.prepare(swaggerDescriptor);
     }
