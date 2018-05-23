@@ -24,7 +24,7 @@
     <parent>
 		<groupId>io.gravitee.management</groupId>
 		<artifactId>gravitee-management-api</artifactId>
-		<version>1.15.1</version>
+		<version>1.15.2</version>
 	</parent>
 
     <groupId>io.gravitee.management.services</groupId>
