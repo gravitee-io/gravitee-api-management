@@ -199,6 +199,7 @@ public abstract class DefaultInvoker implements Invoker {
      * Select an endpoint according to the URI passed in the execution request attribute.
      */
     private TargetEndpoint selectUserDefinedEndpoint(Request serverRequest, String target, ExecutionContext executionContext) {
+        boolean trailingSlash = target.charAt(target.length() - 1) == 47;
         QueryStringDecoder decoder = new QueryStringDecoder(target);
         Map<String, List<String>> queryParameters = decoder.parameters();
 
@@ -215,7 +216,7 @@ public abstract class DefaultInvoker implements Invoker {
             builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
         }
 
-        String encodedTarget = builder.substring(0, builder.length() - 1);
+        String encodedTarget = builder.substring(0, builder.length() - (trailingSlash ? 0 : 1));
 
         // Do we have a single path or a plain URI ?
         if (encodedTarget.startsWith("/")) {
