@@ -92,6 +92,9 @@ function apisProxyRouterConfig($stateProvider: ng.ui.IStateProvider) {
       template: require('./backend/endpoint/apiEndpoints.html'),
       controller: 'ApiProxyController',
       controllerAs: 'apiProxyCtrl',
+      resolve: {
+        resolvedTenants: (TenantService: TenantService) => TenantService.list()
+      },
       data: {
         perms: {
           only: ['api-definition-r']
