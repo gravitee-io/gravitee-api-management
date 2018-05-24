@@ -31,6 +31,7 @@ import org.springframework.transaction.support.AbstractPlatformTransactionManage
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,6 +51,11 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoConfi
 
     @Override
     protected String getDatabaseName() {
+        String uri = environment.getProperty("management.mongodb.uri");
+        if (uri != null && ! uri.isEmpty()) {
+            return URI.create(uri).getPath().substring(1);
+        }
+
         return environment.getProperty("management.mongodb.dbname", "gravitee");
     }
 

@@ -27,6 +27,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+import java.net.URI;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -42,6 +44,11 @@ public class RateLimitRepositoryConfiguration {
 	private Mongo mongo;
 
 	protected String getDatabaseName() {
+		String uri = environment.getProperty("ratelimit.mongodb.uri");
+		if (uri != null && ! uri.isEmpty()) {
+			return URI.create(uri).getPath().substring(1);
+		}
+
 		return environment.getProperty("ratelimit.mongodb.dbname", "gravitee");
 	}
 
