@@ -50,6 +50,7 @@ import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HttpEndpointRuleHandler implements Handler<Long> {
@@ -316,13 +317,14 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
     }
 
     private void report(final EndpointStatus endpointStatus) {
+        final int previousStatusCode = rule.endpoint().getStatus().code();
         this.endpointStatus.updateStatus(endpointStatus.isSuccess());
         endpointStatus.setState(rule.endpoint().getStatus().code());
         endpointStatus.setAvailable(!rule.endpoint().getStatus().isDown());
         endpointStatus.setResponseTime((long) endpointStatus.getSteps().stream().mapToLong(Step::getResponseTime).average().getAsDouble());
+        endpointStatus.setTransition(previousStatusCode != rule.endpoint().getStatus().code());
 
         statusHandler.handle(endpointStatus);
-
     }
 
     public void setStatusHandler(Handler<EndpointStatus> statusHandler) {

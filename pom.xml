@@ -170,7 +170,7 @@
         <gravitee-plugin-resource.version>1.4.0</gravitee-plugin-resource.version>
         <gravitee-policy-api.version>1.2.0</gravitee-policy-api.version>
         <gravitee-gateway-api.version>1.9.0</gravitee-gateway-api.version>
-        <gravitee-reporter-api.version>1.9.0</gravitee-reporter-api.version>
+        <gravitee-reporter-api.version>1.10.0-SNAPSHOT</gravitee-reporter-api.version>
         <jetty.version>9.3.3.v20150827</jetty.version>
         <httpclient.version>4.5.2</httpclient.version>
         <reflections.version>0.9.10</reflections.version>
