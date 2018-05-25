@@ -17,7 +17,7 @@
 import UserService from '../services/user.service';
 import _ = require('lodash');
 
-function runBlock($rootScope, $window, $http, $mdSidenav, $transitions,
+function runBlock($rootScope, $window: Window, $http, $mdSidenav, $transitions,
                   $timeout, UserService: UserService, Constants, PermissionStrategies) {
   'ngInject';
 
@@ -63,6 +63,15 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions,
   });
 
   $rootScope.PermissionStrategies = PermissionStrategies;
+
+  // set status of the window
+  $rootScope.isWindowFocused = true;
+  $window.onblur = () => {
+    $rootScope.isWindowFocused = false;
+  };
+  $window.onfocus = () => {
+    $rootScope.isWindowFocused = true;
+  };
 }
 
 export default runBlock;

@@ -121,11 +121,13 @@ export const NavbarComponent: ng.IComponentOptions = {
     };
 
     vm.refreshUserTasks = function() {
-      TaskService.getTasks().then((response) => {
-        const result = new PagedResult();
-        result.populate(response.data);
-        TaskService.fillUserTasks(vm.graviteeUser, result);
-      });
+      if(vm.$rootScope.isWindowFocused) {
+        TaskService.getTasks().then((response) => {
+          const result = new PagedResult();
+          result.populate(response.data);
+          TaskService.fillUserTasks(vm.graviteeUser, result);
+        });
+      }
     };
 
     vm.cancelRefreshUserTasks = function() {
