@@ -33,6 +33,7 @@ import javax.ws.rs.core.SecurityContext;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class AbstractResource {
@@ -87,5 +88,12 @@ public abstract class AbstractResource {
 
     protected boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
         return isAuthenticated() && (isAdmin() || permissionService.hasPermission(permission, referenceId, acls));
+    }
+
+    void checkImageSize(final int imageBase64Length) {
+        final int approximateImageSizeInByte = 3 * imageBase64Length / 4;
+        if (approximateImageSizeInByte > 50_000) {
+            throw new IllegalArgumentException("The image is too big");
+        }
     }
 }

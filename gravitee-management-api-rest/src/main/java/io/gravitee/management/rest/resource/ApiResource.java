@@ -51,6 +51,7 @@ import static java.lang.String.format;
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"API"})
@@ -214,6 +215,8 @@ public class ApiResource extends AbstractResource {
         if (builder != null) {
             return builder.build();
         }
+
+        checkImageSize(apiToUpdate.getPicture().length());
 
         final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
         // Force context-path if user is not the primary_owner or an administrator
