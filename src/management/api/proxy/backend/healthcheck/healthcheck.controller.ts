@@ -22,6 +22,7 @@ class ApiHealthCheckController {
   private gateway: any;
   private endpoint: any;
   private logs: {total: string; logs: any[], metadata: any};
+  private transitionLogs: {total: string; logs: any[], metadata: any};
   private query: LogsQuery;
   private chartData: any;
 
@@ -73,6 +74,9 @@ class ApiHealthCheckController {
   refresh(averageFrom?, averageTo?) {
     this.ApiService.apiHealthLogs(this.api.id, this.query).then((logs) => {
       this.logs = logs.data;
+    });
+    this.ApiService.apiHealthLogs(this.api.id, _.assign({transition: true}, this.query)).then((logs) => {
+      this.transitionLogs = logs.data;
     });
 
     let from = averageFrom || moment().subtract(1, 'months');
@@ -160,10 +164,6 @@ class ApiHealthCheckController {
         }
       }
     });
-  }
-
-  getMetadata(id) {
-    return this.logs.metadata[id];
   }
 
   getEndpointStatus(state) {

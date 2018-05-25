@@ -178,9 +178,9 @@
       <md-card flex>
         <div class="widget-card" flex>
           <md-card-title>
-            <md-card-title-text>
-              <span class="md-title"><strong>Latest check</strong></span>
-              <span class="md-subhead">&nbsp;</span>
+            <md-card-title-text layout="row">
+              <span class="md-title" flex><strong>Latest check</strong></span>
+              <span class="md-title"><md-switch aria-label="Show only status transitions" ng-model="transitionMode">Show only status transitions</md-switch></span>
             </md-card-title-text>
             <md-card-title-media>
             </md-card-title-media>
@@ -190,47 +190,47 @@
               <md-table-container>
                 <table md-table class="gravitee-analytics-top-hits-table" multiple md-row-select="healthCheckCtrl.widget.chart.selectable" data-ng-model="healthCheckCtrl.selected">
                   <thead md-head>
-                    <tr md-row>
-                      <th md-column>Date</th>
-                      <th md-column>Endpoint</th>
-                      <th md-column>Gateway</th>
-                      <th md-column>Health</th>
-                      <th md-column>Target</th>
-                      <th md-column>Status | Elapsed Time</th>
-                      <th md-column></th>
-                    </tr>
+                  <tr md-row>
+                    <th md-column>Date</th>
+                    <th md-column>Endpoint</th>
+                    <th md-column>Gateway</th>
+                    <th md-column>Health</th>
+                    <th md-column>Target</th>
+                    <th md-column>Status | Elapsed Time</th>
+                    <th md-column></th>
+                  </tr>
                   </thead>
                   <tbody md-body>
-                    <tr ng-if="healthCheckCtrl.logs.logs.length > 0" md-row
-                        ng-repeat="log in healthCheckCtrl.logs.logs | limitTo: healthCheckCtrl.query.size"
-                        md-auto-select md-select="log" md-select-id="key">
-                      <td md-cell>{{log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
-                      <td md-cell>
-                        <md-tooltip md-direction="bottom">{{healthCheckCtrl.getEndpointStatus(log.state)}}</md-tooltip>
-                        <ng-md-icon ng-if="log.state === 0" icon="close" size="14px" style="fill: red"></ng-md-icon>
-                        <ng-md-icon ng-if="log.state === 1" icon="trending_down" size="14px" style="fill: orange"></ng-md-icon>
-                        <ng-md-icon ng-if="log.state === 2" icon="trending_up" size="14px" style="fill: orange"></ng-md-icon>
-                        <ng-md-icon ng-if="log.state === 3" icon="check" size="14px" style="fill: green"></ng-md-icon>
-                        {{log.endpoint}}
-                      </td>
-                      <td md-cell>{{healthCheckCtrl.getMetadata(log.gateway).hostname}}</td>
-                      <td md-cell>
-                        <ng-md-icon ng-if="log.success" icon="done" size="14px" style="fill: green"></ng-md-icon>
-                        <ng-md-icon ng-if="!log.success" icon="close" size="14px" style="fill: red"></ng-md-icon>
-                      </td>
-                      <td md-cell>
+                  <tr ng-if="transitionMode?healthCheckCtrl.transitionLogs.logs.length > 0:healthCheckCtrl.logs.logs.length > 0" md-row
+                      ng-repeat="log in transitionMode?healthCheckCtrl.transitionLogs.logs:healthCheckCtrl.logs.logs | limitTo: healthCheckCtrl.query.size"
+                      md-auto-select md-select="log" md-select-id="key">
+                    <td md-cell>{{log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
+                    <td md-cell>
+                      <md-tooltip md-direction="bottom">{{healthCheckCtrl.getEndpointStatus(log.state)}}</md-tooltip>
+                      <ng-md-icon ng-if="log.state === 0" icon="close" size="14px" style="fill: red"></ng-md-icon>
+                      <ng-md-icon ng-if="log.state === 1" icon="trending_down" size="14px" style="fill: orange"></ng-md-icon>
+                      <ng-md-icon ng-if="log.state === 2" icon="trending_up" size="14px" style="fill: orange"></ng-md-icon>
+                      <ng-md-icon ng-if="log.state === 3" icon="check" size="14px" style="fill: green"></ng-md-icon>
+                      {{log.endpoint}}
+                    </td>
+                    <td md-cell>{{transitionMode?healthCheckCtrl.transitionLogs.metadata[log.gateway].hostname:healthCheckCtrl.logs.metadata[log.gateway].hostname}}</td>
+                    <td md-cell>
+                      <ng-md-icon ng-if="log.success" icon="done" size="14px" style="fill: green"></ng-md-icon>
+                      <ng-md-icon ng-if="!log.success" icon="close" size="14px" style="fill: red"></ng-md-icon>
+                    </td>
+                    <td md-cell>
                         <span>
                           {{log.request.method | uppercase}} {{log.request.uri}}
                         </span>
-                      </td>
-                      <td md-cell>{{log.response.status}} | {{log.responseTime}} ms</td>
-                      <td md-cell>
-                        <ng-md-icon ng-if="!log.success" icon="remove_red_eye" size="16px" ui-sref="management.apis.detail.proxy.healthcheck.log({log: log.id})"></ng-md-icon>
-                      </td>
-                    </tr>
-                    <tr ng-if="healthCheckCtrl.logs.total === 0">
-                      <td md-cell colspan="6">No log</td>
-                    </tr>
+                    </td>
+                    <td md-cell>{{log.response.status}} | {{log.responseTime}} ms</td>
+                    <td md-cell>
+                      <ng-md-icon ng-if="!log.success" icon="remove_red_eye" size="16px" ui-sref="management.apis.detail.proxy.healthcheck.log({log: log.id})"></ng-md-icon>
+                    </td>
+                  </tr>
+                  <tr ng-if="transitionMode?healthCheckCtrl.transitionLogs.total === 0:healthCheckCtrl.logs.total === 0">
+                    <td md-cell colspan="6">No log</td>
+                  </tr>
                   </tbody>
                 </table>
               </md-table-container>
@@ -239,7 +239,7 @@
                 md-limit="healthCheckCtrl.query.size"
                 md-limit-options="[10, 25, 50, 75, 100]"
                 md-page="healthCheckCtrl.query.page"
-                md-total="{{healthCheckCtrl.logs.total}}"
+                md-total="{{transitionMode?healthCheckCtrl.transitionLogs.total:healthCheckCtrl.logs.total}}"
                 md-on-paginate="healthCheckCtrl.onPaginate"
                 md-page-select>
               </md-table-pagination>
