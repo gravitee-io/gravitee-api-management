@@ -30,6 +30,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -70,7 +71,8 @@ public class GoogleAuthenticationResource extends AbstractAuthenticationResource
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response google(@Valid final Payload payload,
-                           @Context final HttpServletRequest request) throws IOException {
+                           @Context final HttpServletRequest request,
+                           @Context final HttpServletResponse servletResponse) throws IOException {
         // Step 1. Exchange authorization code for access token.
         final MultivaluedStringMap accessData = new MultivaluedStringMap();
         accessData.add(CLIENT_ID_KEY, payload.getClientId());
@@ -92,13 +94,13 @@ public class GoogleAuthenticationResource extends AbstractAuthenticationResource
         // Step 3. Process the authenticated user.
         final Map<String, Object> userInfo = getResponseEntity(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return processUser(userInfo);
+            return processUser(userInfo, servletResponse);
         }
 
         return Response.status(response.getStatusInfo()).build();
     }
 
-    private Response processUser(final Map<String, Object> userInfo) {
+    private Response processUser(final Map<String, Object> userInfo, final HttpServletResponse servletResponse) {
         String username = (String) userInfo.get("email");
 
         //set user to Authentication Context
@@ -128,6 +130,6 @@ public class GoogleAuthenticationResource extends AbstractAuthenticationResource
 
         userService.update(user);
 
-        return connectUser(userDetails.getUsername());
+        return connectUser(userDetails.getUsername(), servletResponse);
     }
 }

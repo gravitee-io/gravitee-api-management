@@ -42,15 +42,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.*;
@@ -181,7 +179,7 @@ public class CurrentUserResource extends AbstractResource {
     @Path("/login")
     @ApiOperation(value = "Login")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response login(final @Context javax.ws.rs.core.HttpHeaders headers) {
+    public Response login(final @Context javax.ws.rs.core.HttpHeaders headers, final @Context HttpServletResponse servletResponse) {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             // JWT signer
@@ -223,9 +221,13 @@ public class CurrentUserResource extends AbstractResource {
             options.setIssuedAt(true);
             options.setJwtId(true);
 
+            final String sign = new JWTSigner(environment.getProperty("jwt.secret")).sign(claims, options);
             final TokenEntity tokenEntity = new TokenEntity();
             tokenEntity.setType(BEARER);
-            tokenEntity.setToken(new JWTSigner(environment.getProperty("jwt.secret")).sign(claims, options));
+            tokenEntity.setToken(sign);
+
+            final Cookie bearerCookie = jwtCookieGenerator.generate("Bearer " + sign);
+            servletResponse.addCookie(bearerCookie);
 
             return ok(tokenEntity).build();
         }

@@ -46,11 +46,13 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -107,7 +109,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @POST
     @Path("exchange")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response tokenExchange(@QueryParam(value = "token") String token) throws IOException {
+    public Response tokenExchange(@QueryParam(value = "token") String token,
+                                  @Context final HttpServletResponse servletResponse) throws IOException {
         // Step1. Check the token by invoking the introspection endpoint
         final MultivaluedStringMap introspectData = new MultivaluedStringMap();
         introspectData.add(TOKEN, token);
@@ -126,7 +129,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             boolean active = introspectPayload.path("active").asBoolean(true);
 
             if (active) {
-                return authenticateUser(token);
+                return authenticateUser(token, servletResponse);
             } else {
                 return Response
                         .status(Response.Status.UNAUTHORIZED)
@@ -143,7 +146,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public Response exchangeAuthorizationCode(@Valid final Payload payload) throws IOException {
+    public Response exchangeAuthorizationCode(@Valid final Payload payload,
+                                              @Context final HttpServletResponse servletResponse) throws IOException {
         // Step 1. Exchange authorization code for access token.
         final MultivaluedStringMap accessData = new MultivaluedStringMap();
         accessData.add(CLIENT_ID_KEY, payload.getClientId());
@@ -157,7 +161,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         accessData.clear();
 
         final String accessToken = (String) getResponseEntity(response).get(serverConfiguration.getAccessTokenProperty());
-        return authenticateUser(accessToken);
+        return authenticateUser(accessToken, servletResponse);
     }
 
     /**
@@ -165,7 +169,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
      *
      * @return
      */
-    private Response authenticateUser(String accessToken) throws IOException {
+    private Response authenticateUser(String accessToken, final HttpServletResponse servletResponse) throws IOException {
         // Step 2. Retrieve profile information about the authenticated end-user.
         Response response = client
                 .target(serverConfiguration.getUserInfoEndpoint())
@@ -179,13 +183,13 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return processUser(userInfo);
+            return processUser(userInfo, servletResponse);
         }
 
         return Response.status(response.getStatusInfo()).build();
     }
 
-    private Response processUser(String userInfo) throws IOException {
+    private Response processUser(String userInfo, final HttpServletResponse servletResponse) {
         HashMap<String, String> attrs = getUserProfileAttrs(userInfo);
         List<ExpressionMapping> mappings = serverConfiguration.getGroupsMapping();
 
@@ -251,7 +255,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
         UserEntity updatedUser = userService.update(user);
 
-        return connectUser(updatedUser.getId());
+        return connectUser(updatedUser.getId(), servletResponse);
     }
 
     private HashMap<String, String> getUserProfileAttrs(String userInfo) {

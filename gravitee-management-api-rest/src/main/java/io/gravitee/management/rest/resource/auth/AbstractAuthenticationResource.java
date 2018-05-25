@@ -22,6 +22,7 @@ import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.rest.model.TokenEntity;
+import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.common.JWTHelper;
@@ -36,6 +37,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.HashMap;
@@ -55,12 +58,12 @@ abstract class AbstractAuthenticationResource {
 
     @Autowired
     protected Environment environment;
-
     @Autowired
     protected UserService userService;
-
     @Autowired
     protected MembershipService membershipService;
+    @Autowired
+    protected JWTCookieGenerator jwtCookieGenerator;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -80,7 +83,7 @@ abstract class AbstractAuthenticationResource {
         return MAPPER.readValue(response, new TypeReference<Map<String, Object>>() {});
     }
 
-    protected Response connectUser(String userId) {
+    protected Response connectUser(String userId, final HttpServletResponse servletResponse) {
         UserEntity user = userService.connect(userId);
 
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -124,9 +127,13 @@ abstract class AbstractAuthenticationResource {
         options.setIssuedAt(true);
         options.setJwtId(true);
 
+        final String sign = new JWTSigner(environment.getProperty("jwt.secret")).sign(claims, options);
         final TokenEntity tokenEntity = new TokenEntity();
         tokenEntity.setType(BEARER);
-        tokenEntity.setToken(new JWTSigner(environment.getProperty("jwt.secret")).sign(claims, options));
+        tokenEntity.setToken(sign);
+
+        final Cookie bearerCookie = jwtCookieGenerator.generate("Bearer " + sign);
+        servletResponse.addCookie(bearerCookie);
 
         return Response
                 .ok(tokenEntity)
