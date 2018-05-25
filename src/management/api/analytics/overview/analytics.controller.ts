@@ -183,11 +183,11 @@ class ApiAnalyticsController {
             });
           break;
         }
-      };
+      }
     }
 
-
-    if (!this.api.proxy.multiTenant) {
+    let hasTenants = _.find(this.api.proxy.endpoints, endpoint => _.has(endpoint, 'tenants'));
+    if (hasTenants === undefined) {
       this.$scope.apiDashboard.push({
         col: 3,
         row: 1,
