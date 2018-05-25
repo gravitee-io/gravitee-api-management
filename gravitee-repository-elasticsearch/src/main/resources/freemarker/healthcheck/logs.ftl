@@ -4,13 +4,18 @@
   "size": ${query.size()},
   "query" : {
     "bool" : {
-      "filter" : [
-        {
+<#if query.transition()?has_content && query.transition() = true>
+            "must":{
+                "term":{
+                   "transition": true
+                }
+            },
+</#if>
+        "filter" : [{
           "term" : {
             "api": "${query.root().id()}"
           }
-        }
-      ]
+        }]
     }
   },
   "sort" : [

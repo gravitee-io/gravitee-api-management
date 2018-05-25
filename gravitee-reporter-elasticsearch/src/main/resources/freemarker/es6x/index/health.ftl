@@ -14,6 +14,7 @@
     "response-time":${status.getResponseTime()},
     "success":${status.isSuccess()?c},
     "state":${status.getState()},
+    "transition":${status.isTransition()?c},
     "steps": [
 <#list status.getSteps() as step>
         {"name": "${step.getName()}",

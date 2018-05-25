@@ -86,7 +86,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    public void shouldReportMetrics() throws InterruptedException {
+    public void shouldReportMetrics() {
         final Metrics requestMetrics = Metrics.on(Instant.now().toEpochMilli()).build();
         requestMetrics.setTransactionId("transactionId");
         requestMetrics.setTenant("tenant");

@@ -112,7 +112,7 @@
 			<version>${jackson.version}</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
     		<groupId>org.unitils</groupId>
     		<artifactId>unitils-core</artifactId>

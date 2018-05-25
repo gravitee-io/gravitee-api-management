@@ -36,6 +36,9 @@
                 "state": {
                     "type": "integer"
                 },
+                "transition": {
+                    "type": "boolean"
+                },
                 "status": {
                     "type": "short"
                 },

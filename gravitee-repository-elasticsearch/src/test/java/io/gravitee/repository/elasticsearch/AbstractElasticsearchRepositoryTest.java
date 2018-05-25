@@ -21,7 +21,6 @@ import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.repository.elasticsearch.embedded.ElasticsearchNode;
 import io.gravitee.repository.elasticsearch.spring.ElasticsearchRepositoryConfigurationTest;
 import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateRequest;
-import org.elasticsearch.action.admin.indices.template.put.PutIndexTemplateResponse;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -38,8 +37,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.IMMEDIATE;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -79,13 +81,11 @@ public abstract class AbstractElasticsearchRepositoryTest {
         data.put("numberOfShards", 5);
         data.put("numberOfReplicas", 1);
 
-        PutIndexTemplateResponse putMappingResponse = this.embeddedNode.getNode().client()
+        this.embeddedNode.getNode().client()
                 .admin()
-                .indices().putTemplate(
-                        new PutIndexTemplateRequest("gravitee")
-                                .source(
-                                        this.freeMarkerComponent.generateFromTemplate("index-template-es-5x.ftl", data))
-                ).get();
+                .indices().putTemplate(new PutIndexTemplateRequest("gravitee")
+                    .source(this.freeMarkerComponent.generateFromTemplate("index-template-es-5x.ftl", data), XContentType.JSON))
+                .get();
 
         final String body = this.freeMarkerComponent.generateFromTemplate("bulk.json", data);
         String lines[] = body.split("\\r?\\n");
@@ -104,6 +104,7 @@ public abstract class AbstractElasticsearchRepositoryTest {
                                 indexNode.get("_id").asText()
                         )
                         .setSource(value, XContentType.JSON)
+                        .setRefreshPolicy(IMMEDIATE)
                         .get();
             } catch (IOException e) {
                 e.printStackTrace();
