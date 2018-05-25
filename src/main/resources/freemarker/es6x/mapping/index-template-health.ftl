@@ -29,6 +29,9 @@
                     "type": "integer",
                     "index": false
                 },
+                "transition": {
+                    "type": "boolean"
+                },
                 "steps": {
                     "type": "object",
                     "enabled": false
