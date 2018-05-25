@@ -21,6 +21,7 @@ import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class LogsParam {
@@ -35,6 +36,9 @@ public class LogsParam {
     @QueryParam("page")
     @DefaultValue("1")
     private int page;
+
+    @QueryParam("transition")
+    private Boolean transition;
 
     public String getQuery() {
         return query;
@@ -58,6 +62,14 @@ public class LogsParam {
 
     public void setPage(int page) {
         this.page = page;
+    }
+
+    public Boolean isTransition() {
+        return transition;
+    }
+
+    public void setTransition(Boolean transition) {
+        this.transition = transition;
     }
 
     public void validate() throws WebApplicationException {

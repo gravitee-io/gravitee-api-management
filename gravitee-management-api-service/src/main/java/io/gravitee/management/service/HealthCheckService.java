@@ -32,7 +32,7 @@ public interface HealthCheckService {
 
     ApiMetrics getResponseTime(String api, String field);
 
-    SearchLogResponse findByApi(String api, LogQuery logQuery);
+    SearchLogResponse findByApi(String api, LogQuery logQuery, Boolean transition);
 
     Log findLog(String id);
 

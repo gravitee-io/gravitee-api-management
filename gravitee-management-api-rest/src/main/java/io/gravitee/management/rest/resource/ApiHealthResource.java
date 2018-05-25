@@ -52,6 +52,7 @@ import static java.util.Collections.singletonList;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"API"})
@@ -142,7 +143,7 @@ public class ApiHealthResource extends AbstractResource {
         logQuery.setPage(param.getPage());
         logQuery.setSize(param.getSize());
 
-        return healthCheckService.findByApi(api, logQuery);
+        return healthCheckService.findByApi(api, logQuery, param.isTransition());
     }
 
     @GET

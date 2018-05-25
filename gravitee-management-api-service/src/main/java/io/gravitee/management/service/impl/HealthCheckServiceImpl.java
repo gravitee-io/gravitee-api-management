@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -193,7 +194,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     @Override
-    public SearchLogResponse findByApi(String api, LogQuery query) {
+    public SearchLogResponse findByApi(String api, LogQuery query, Boolean transition) {
         logger.debug("Run health logs query for API '{}'", api);
 
         try {
@@ -203,6 +204,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                             .page(query.getPage())
                             .size(query.getSize())
                             .query(query.getQuery())
+                            .transition(transition)
                             .build());
 
             return convert(response);
