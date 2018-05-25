@@ -34,8 +34,7 @@ class LoginController {
     private $state: ng.ui.IStateService,
     Constants,
     private $rootScope: IScope,
-    private AuthenticationService: AuthenticationService,
-    private $cookies
+    private AuthenticationService: AuthenticationService
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.portal.userCreation.enabled;
@@ -48,7 +47,6 @@ class LoginController {
   authenticate(provider: string) {
     this.AuthenticationService.authenticate(provider)
       .then( (response) => {
-        this.$cookies.put('Authorization', _.capitalize(response.data.type) + ' ' + response.data.token);
         this.UserService.current().then( () => {
           this.$rootScope.$broadcast('graviteeUserRefresh');
           this.$state.go('portal.home');
@@ -59,7 +57,6 @@ class LoginController {
 
   login() {
     this.UserService.login(this.user).then((response) => {
-      this.$cookies.put('Authorization', _.capitalize(response.data.type) + ' ' + response.data.token);
       this.UserService.current().then( () => {
         this.$rootScope.$broadcast('graviteeUserRefresh');
         this.$state.go('portal.home');

@@ -84,20 +84,8 @@ function interceptorConfig(
     };
   };
 
-  const interceptorAuthorization = function ($cookies): angular.IHttpInterceptor {
-    return {
-      request: function (config) {
-        if ($cookies.get('Authorization')) {
-          config.headers.Authorization = $cookies.get('Authorization');
-        }
-        return config;
-      }
-    };
-  };
-
 
   if ($httpProvider.interceptors) {
-    $httpProvider.interceptors.push(interceptorAuthorization);
     $httpProvider.interceptors.push(interceptorUnauthorized);
     $httpProvider.interceptors.push(interceptorTimeout);
   }
