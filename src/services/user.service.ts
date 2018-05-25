@@ -18,6 +18,7 @@ import RoleService from "./role.service";
 import ApplicationService from './applications.service';
 import ApiService from './api.service';
 import _ = require('lodash');
+import StringService from './string.service';
 
 class UserService {
   private baseURL: string;
@@ -42,7 +43,8 @@ class UserService {
               private ApiService: ApiService,
               private $location,
               private $cookies,
-              private $window) {
+              private $window,
+              private StringService: StringService) {
     'ngInject';
     this.baseURL = Constants.baseURL;
     this.searchUsersURL = `${Constants.baseURL}search/users/`;
@@ -194,7 +196,7 @@ class UserService {
   }
 
   currentUserPicture(): string {
-    return `${this.userURL}avatar`;
+    return `${this.userURL}avatar?${this.StringService.hashCode(this.currentUser.username)}`;
   }
 
   getUserAvatar(id: string): string {
