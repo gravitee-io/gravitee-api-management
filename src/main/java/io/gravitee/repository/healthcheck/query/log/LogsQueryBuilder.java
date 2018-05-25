@@ -40,4 +40,9 @@ public class LogsQueryBuilder extends AbstractQueryBuilder<LogsQueryBuilder, Log
         query.size(size);
         return this;
     }
+
+    public LogsQueryBuilder transition(Boolean transition) {
+        query.transition(transition);
+        return this;
+    }
 }

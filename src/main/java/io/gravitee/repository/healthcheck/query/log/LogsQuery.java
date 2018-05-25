@@ -27,6 +27,8 @@ public class LogsQuery extends AbstractQuery<LogsResponse> {
 
     private int page = 0;
 
+    private Boolean transition;
+
     @Override
     public Class<LogsResponse> responseType() {
         return LogsResponse.class;
@@ -46,5 +48,13 @@ public class LogsQuery extends AbstractQuery<LogsResponse> {
 
     void page(int page) {
         this.page = page;
+    }
+
+    public Boolean transition() {
+        return transition;
+    }
+
+    public void transition(Boolean transition) {
+        this.transition = transition;
     }
 }
