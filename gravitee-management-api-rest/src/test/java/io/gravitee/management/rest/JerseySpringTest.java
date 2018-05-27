@@ -18,16 +18,19 @@ package io.gravitee.management.rest;
 import io.gravitee.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.management.rest.resource.GraviteeApplication;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.After;
 import org.junit.Before;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Priority;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -106,6 +109,14 @@ public abstract class JerseySpringTest {
 
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
+
+        final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
+        resourceConfig.register(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                bind(response).to(HttpServletResponse.class);
+            }
+        });
     }
 
     @Priority(50)

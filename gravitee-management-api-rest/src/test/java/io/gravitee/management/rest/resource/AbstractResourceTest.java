@@ -18,6 +18,7 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.management.rest.JerseySpringTest;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
+import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.service.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -181,6 +182,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public TopApiService topApiService() {
             return mock(TopApiService.class);
+        }
+
+        @Bean
+        public JWTCookieGenerator jwtCookieGenerator() {
+    	    return mock(JWTCookieGenerator.class);
         }
     }
 }

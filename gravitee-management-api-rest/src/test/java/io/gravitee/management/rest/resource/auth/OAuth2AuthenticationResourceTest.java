@@ -29,7 +29,6 @@ import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import org.apache.commons.io.IOUtils;
-import org.hamcrest.core.StringStartsWith;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
