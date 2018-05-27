@@ -90,10 +90,13 @@ public abstract class AbstractResource {
         return isAuthenticated() && (isAdmin() || permissionService.hasPermission(permission, referenceId, acls));
     }
 
-    void checkImageSize(final int imageBase64Length) {
-        final int approximateImageSizeInByte = 3 * imageBase64Length / 4;
-        if (approximateImageSizeInByte > 50_000) {
-            throw new IllegalArgumentException("The image is too big");
+    void checkImageSize(final String picture) {
+        if (picture != null) {
+            final int imageBase64Length = picture.length();
+            final int approximateImageSizeInByte = 3 * imageBase64Length / 4;
+            if (approximateImageSizeInByte > 50_000) {
+                throw new IllegalArgumentException("The image is too big");
+            }
         }
     }
 }
