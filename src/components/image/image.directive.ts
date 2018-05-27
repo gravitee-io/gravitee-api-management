@@ -43,18 +43,22 @@ class ImageController {
   }
 
   selectImage(file) {
-    this.Upload.base64DataUrl(file).then((image: any) =>{
-      if (image) {
-        if (!this.$scope.imageOriginal) {
-          this.$scope.imageOriginal = this.$scope.image;
-        }
-        this.$scope.image = image;
-        if (this.$scope.imageForm) {
-          this.$scope.imageForm.$setDirty();
-        }
-        this.$rootScope.$broadcast("apiPictureChangeSuccess", {image: image});
-      }
-    });
+    if (file) {
+      this.Upload.resize(file, {width: 200}).then((file) => {
+        this.Upload.base64DataUrl(file).then((image: any) => {
+          if (image) {
+            if (!this.$scope.imageOriginal) {
+              this.$scope.imageOriginal = this.$scope.image;
+            }
+            this.$scope.image = image;
+            if (this.$scope.imageForm) {
+              this.$scope.imageForm.$setDirty();
+            }
+            this.$rootScope.$broadcast("apiPictureChangeSuccess", {image: image});
+          }
+        });
+      });
+    }
   }
 
   getSource() {

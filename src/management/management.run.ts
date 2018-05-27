@@ -60,6 +60,15 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
   });
 
   $rootScope.PermissionStrategies = PermissionStrategies;
+
+  // set status of the window
+  $rootScope.isWindowFocused = true;
+  $window.onblur = () => {
+    $rootScope.isWindowFocused = false;
+  };
+  $window.onfocus = () => {
+    $rootScope.isWindowFocused = true;
+  };
 }
 
 export default runBlock;
