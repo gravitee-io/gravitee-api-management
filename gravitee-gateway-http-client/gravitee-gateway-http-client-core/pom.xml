@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.gateway.http</groupId>
         <artifactId>gravitee-gateway-http-client</artifactId>
-        <version>1.15.3-SNAPSHOT</version>
+        <version>1.15.3</version>
     </parent>
 
     <artifactId>gravitee-gateway-http-client-core</artifactId>
