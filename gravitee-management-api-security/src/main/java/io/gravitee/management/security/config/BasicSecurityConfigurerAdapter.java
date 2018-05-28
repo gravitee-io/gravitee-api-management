@@ -142,6 +142,21 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
             throw new IllegalStateException("JWT secret is mandatory");
         }
 
+        //Warning if the secret is still the default one
+        if ("myJWT4Gr4v1t33_S3cr3t".equals(jwtSecret)) {
+            LOGGER.warn("");
+            LOGGER.warn("##############################################################");
+            LOGGER.warn("#                      SECURITY WARNING                      #");
+            LOGGER.warn("##############################################################");
+            LOGGER.warn("");
+            LOGGER.warn("You still use the default jwt secret.");
+            LOGGER.warn("This known secret can be used to impersonate anyone.");
+            LOGGER.warn("Please change this value, or ask your administrator to do it !");
+            LOGGER.warn("");
+            LOGGER.warn("##############################################################");
+            LOGGER.warn("");
+        }
+
         http
             .httpBasic()
                 .realmName("Gravitee.io Management API")
