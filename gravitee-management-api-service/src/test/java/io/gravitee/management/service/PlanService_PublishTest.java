@@ -123,25 +123,6 @@ public class PlanService_PublishTest {
         planService.publish(PLAN_ID);
     }
 
-    @Test(expected = ClientIdBasedPlanAlreadyPublishedException.class)
-    public void shouldNotPublishBecauseExistingOAuth2Plan() throws TechnicalException {
-        Plan keylessPlan = mock(Plan.class);
-        when(keylessPlan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
-        when(keylessPlan.getSecurity()).thenReturn(Plan.PlanSecurityType.OAUTH2);
-
-        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.OAUTH2);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
-        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
-        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
-
-        planService.publish(PLAN_ID);
-    }
-
     @Test
     public void shouldPublish() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);

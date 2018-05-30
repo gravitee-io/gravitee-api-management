@@ -383,21 +383,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 if (count > 0) {
                     throw new KeylessPlanAlreadyPublishedException(planId);
                 }
-            } else if (plan.getSecurity() == Plan.PlanSecurityType.OAUTH2 ||
-                    plan.getSecurity() == Plan.PlanSecurityType.JWT) {
-                // Look to other plans if there is already an OAuth2 or JWT plan
-                long count = plans
-                        .stream()
-                        .filter(plan1 -> plan1.getStatus() == Plan.Status.PUBLISHED)
-                        .filter(plan1 -> plan1.getSecurity() == Plan.PlanSecurityType.OAUTH2 ||
-                                plan1.getSecurity() == Plan.PlanSecurityType.JWT)
-                        .count();
-
-                if (count > 0) {
-                    throw new ClientIdBasedPlanAlreadyPublishedException(planId);
-                }
             }
-
+            
             // Update plan status
             plan.setStatus(Plan.Status.PUBLISHED);
             // Update plan order
