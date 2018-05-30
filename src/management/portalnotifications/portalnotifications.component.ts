@@ -100,10 +100,8 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
     vm.windowNotification = (title: string, message: string) => {
 
       if(("Notification" in window)) {
-        Notification.requestPermission().then((result) => {
-          console.log("Title : " + title + " Message: " + message);
-
-          var notification = new Notification(title,{body: message, icon: "/favicon.ico"});
+        Notification.requestPermission().then(() => {
+          new Notification(title,{body: message, icon: "/favicon.ico"});
         });
       }
     };
