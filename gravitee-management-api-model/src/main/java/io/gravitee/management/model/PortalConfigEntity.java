@@ -38,6 +38,7 @@ public class PortalConfigEntity {
     private Scheduler scheduler;
     private Documentation documentation;
     private Theme theme;
+    private Plan plan;
 
     public PortalConfigEntity() {
         company = new Company();
@@ -47,6 +48,7 @@ public class PortalConfigEntity {
         scheduler = new Scheduler();
         documentation = new Documentation();
         theme = new Theme();
+        plan = new Plan();
     }
 
     public Company getCompany() {
@@ -96,6 +98,14 @@ public class PortalConfigEntity {
     }
     public void setTheme(Theme theme) {
         this.theme = theme;
+    }
+
+    public Plan getPlan() {
+        return plan;
+    }
+
+    public void setPlan(Plan plan) {
+        this.plan = plan;
     }
 
     public class Company {
@@ -591,6 +601,73 @@ public class PortalConfigEntity {
 
         public void setUrl(String url) {
             this.url = url;
+        }
+    }
+
+    public class Plan {
+        private PlanSecurity security;
+        public Plan() {
+            security = new PlanSecurity();
+        }
+
+        public PlanSecurity getSecurity() {
+            return security;
+        }
+        public void setSecurity(PlanSecurity security) {
+            this.security = security;
+        }
+    }
+
+    public static class PlanSecurity {
+        @ParameterKey(Key.PLAN_SECURITY_APIKEY_ENABLED)
+        private Enabled apikey;
+
+        @ParameterKey(Key.PLAN_SECURITY_OAUTH2_ENABLED)
+        private Enabled oauth2;
+
+        @ParameterKey(Key.PLAN_SECURITY_KEYLESS_ENABLED)
+        private Enabled keyless;
+
+        @ParameterKey(Key.PLAN_SECURITY_JWT_ENABLED)
+        private Enabled jwt;
+
+        public PlanSecurity() {
+            apikey = TRUE;
+            oauth2 = TRUE;
+            keyless = TRUE;
+            jwt = TRUE;
+        }
+
+        public Enabled getApikey() {
+            return apikey;
+        }
+
+        public void setApikey(Enabled apikey) {
+            this.apikey = apikey;
+        }
+
+        public Enabled getOauth2() {
+            return oauth2;
+        }
+
+        public void setOauth2(Enabled oauth2) {
+            this.oauth2 = oauth2;
+        }
+
+        public Enabled getKeyless() {
+            return keyless;
+        }
+
+        public void setKeyless(Enabled keyless) {
+            this.keyless = keyless;
+        }
+
+        public Enabled getJwt() {
+            return jwt;
+        }
+
+        public void setJwt(Enabled jwt) {
+            this.jwt = jwt;
         }
     }
 }

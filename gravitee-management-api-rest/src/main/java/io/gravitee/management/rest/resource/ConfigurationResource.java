@@ -109,4 +109,9 @@ public class ConfigurationResource {
     public TopApisResource getTopApisResource() {
         return resourceContext.getResource(TopApisResource.class);
     }
+
+    @Path("plans")
+    public PlansResource getPlansResource() {
+        return resourceContext.getResource(PlansResource.class);
+    }
 }

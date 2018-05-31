@@ -13,39 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.NewPlanEntity;
-import io.gravitee.management.model.PlanEntity;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.PlansConfigurationEntity;
-import io.gravitee.management.model.UpdatePlanEntity;
-import io.gravitee.management.model.plan.PlanQuery;
+import io.gravitee.management.service.PlanService;
+import io.swagger.annotations.Api;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-import java.util.Set;
+import javax.ws.rs.GET;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PlanService {
+@Api(tags = {"Plans"})
+public class PlansResource extends AbstractResource  {
 
-    PlanEntity findById(String plan);
+    @Context
+    private UriInfo uriInfo;
 
-    Set<PlanEntity> findByApi(String api);
+    @Autowired
+    private PlanService planService;
 
-    List<PlanEntity> search(PlanQuery query);
-
-    PlanEntity create(NewPlanEntity plan);
-
-    PlanEntity update(UpdatePlanEntity plan);
-
-    PlanEntity close(String plan, String username);
-
-    void delete(String plan);
-
-    PlanEntity publish(String plan);
-
-    PlansConfigurationEntity getConfiguration();
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public PlansConfigurationEntity getConfiguration() {
+        return planService.getConfiguration();
+    }
 }

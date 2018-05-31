@@ -21,8 +21,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Path;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.annotations.ParameterKey;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.plan.PlanQuery;
 import io.gravitee.management.service.AuditService;
+import io.gravitee.management.service.ParameterService;
 import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.SubscriptionService;
 import io.gravitee.management.service.exceptions.*;
@@ -66,6 +69,17 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private ParameterService parameterService;
+
+    private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST =
+            Collections.unmodifiableList(Arrays.asList(
+                    new PlanSecurityEntity("oauth2", "OAuth2", "oauth2"),
+                    new PlanSecurityEntity("jwt", "JWT", "'jwt'"),
+                    new PlanSecurityEntity("api_key", "API Key", "api-key"),
+                    new PlanSecurityEntity("key_less", "Keyless (public)", "")
+            ));
 
     @Override
     public PlanEntity findById(String plan) {
@@ -134,6 +148,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         try {
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApi());
 
+            assertPlanSecurityIsAllowed(newPlan.getSecurity());
             Plan plan = new Plan();
 
             plan.setId(UUID.toString(UUID.random()));
@@ -185,12 +200,12 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     public PlanEntity update(UpdatePlanEntity updatePlan) {
         try {
             logger.debug("Update plan {}", updatePlan.getName());
-
             Optional<Plan> optPlan = planRepository.findById(updatePlan.getId());
             if (! optPlan.isPresent()) {
                 throw new PlanNotFoundException(updatePlan.getId());
             }
             Plan oldPlan = optPlan.get();
+            assertPlanSecurityIsAllowed(PlanSecurityType.valueOf(oldPlan.getSecurity().name()));
 
             Plan newPlan = new Plan();
             //copy immutable values
@@ -418,6 +433,13 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         }
     }
 
+    @Override
+    public PlansConfigurationEntity getConfiguration() {
+        PlansConfigurationEntity config = new PlansConfigurationEntity();
+        config.setSecurity(DEFAULT_SECURITY_LIST);
+        return config;
+    }
+
     private void reorderAndSavePlans(final Plan planToReorder) throws TechnicalException {
         final Collection<Plan> plans = planRepository.findByApi(planToReorder.getApis().iterator().next());
         Plan[] plansToReorder = plans.stream()
@@ -513,5 +535,28 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         entity.setCharacteristics(plan.getCharacteristics());
 
         return entity;
+    }
+
+    private void assertPlanSecurityIsAllowed(PlanSecurityType securityType) {
+        Key securityKey;
+        switch (securityType) {
+            case API_KEY:
+                securityKey = Key.PLAN_SECURITY_APIKEY_ENABLED;
+                break;
+            case OAUTH2:
+                securityKey = Key.PLAN_SECURITY_OAUTH2_ENABLED;
+                break;
+            case JWT:
+                securityKey = Key.PLAN_SECURITY_JWT_ENABLED;
+                break;
+            case KEY_LESS:
+                securityKey = Key.PLAN_SECURITY_KEYLESS_ENABLED;
+                break;
+            default:
+                return;
+        }
+        if(!parameterService.findAsBoolean(securityKey.key())) {
+            throw new UnauthorizedPlanSecurityTypeException(securityType);
+        }
     }
 }

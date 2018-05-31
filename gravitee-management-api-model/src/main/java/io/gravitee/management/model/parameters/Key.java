@@ -55,7 +55,12 @@ public enum Key {
     SCHEDULER_TASKS("scheduler.tasks"),
     SCHEDULER_NOTIFICATIONS("scheduler.notifications"),
 
-    DOCUMENTATION_URL("documentation.url")
+    DOCUMENTATION_URL("documentation.url"),
+
+    PLAN_SECURITY_JWT_ENABLED("plan.security.jwt.enabled"),
+    PLAN_SECURITY_OAUTH2_ENABLED("plan.security.oauth2.enabled"),
+    PLAN_SECURITY_APIKEY_ENABLED("plan.security.apikey.enabled"),
+    PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled")
     ;
 
     String key;
