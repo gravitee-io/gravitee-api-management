@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.idp.core.plugin.impl;
 
+import io.gravitee.common.util.RelaxedPropertySource;
 import io.gravitee.management.idp.api.IdentityProvider;
 import io.gravitee.management.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.management.idp.api.identity.IdentityLookup;
@@ -31,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.StandardEnvironment;
 
@@ -130,7 +130,7 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
                     return new StandardEnvironment() {
                         @Override
                         protected void customizePropertySources(MutablePropertySources propertySources) {
-                            propertySources.addFirst(new MapPropertySource(plugin.id(), properties));
+                            propertySources.addFirst(new RelaxedPropertySource(plugin.id(), properties));
                             super.customizePropertySources(propertySources);
                         }
                     };

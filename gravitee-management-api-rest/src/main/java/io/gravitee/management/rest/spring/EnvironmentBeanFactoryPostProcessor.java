@@ -16,13 +16,12 @@
 package io.gravitee.management.rest.spring;
 
 
+import io.gravitee.common.util.RelaxedPropertySource;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
-import org.springframework.core.env.SystemEnvironmentPropertySource;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,44 +54,8 @@ public class EnvironmentBeanFactoryPostProcessor implements BeanFactoryPostProce
                         }
                         prefixlessSystemEnvironment.put(prefixKey, systemEnvironment.get(key));
                     });
-            SystemEnvironmentPropertySource systemEnvironmentPropertySource =
-                    new SystemEnvironmentPropertySource(
-                            StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, prefixlessSystemEnvironment);
-
             environment.getPropertySources().replace(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-                    new PrefixAwarePropertySource(systemEnvironmentPropertySource));
-        }
-    }
-
-    class PrefixAwarePropertySource extends PropertySource {
-
-
-        private final PropertySource propertySource;
-
-        public PrefixAwarePropertySource(PropertySource propertySource) {
-            super(propertySource.getName());
-            this.propertySource = propertySource;
-        }
-
-        @Override
-        public boolean containsProperty(String name) {
-            return propertySource.containsProperty(encodedArray(name));
-        }
-
-        @Override
-        public Object getProperty(String name) {
-            return propertySource.getProperty(encodedArray(name));
-        }
-
-        private String encodedArray(String name) {
-            String[] keyWithDefault = name.split(":");
-            String encodedKey = keyWithDefault[0];
-            if(keyWithDefault[0].contains("[")) {
-                encodedKey = encodedKey
-                        .replace("[", ".")
-                        .replace("]", "");
-            }
-            return keyWithDefault.length == 1 ? encodedKey : encodedKey + ":" + keyWithDefault[1];
+                    new RelaxedPropertySource(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, prefixlessSystemEnvironment));
         }
     }
 }

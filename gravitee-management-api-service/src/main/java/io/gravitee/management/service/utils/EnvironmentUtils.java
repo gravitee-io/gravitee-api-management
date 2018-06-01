@@ -41,12 +41,19 @@ public final class EnvironmentUtils {
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
 
-            if (key.startsWith(aKeyPrefix)) {
+            if (encodedKey(key).startsWith(encodedKey(aKeyPrefix))) {
                 result.put(key, entry.getValue());
             }
         }
 
         return result;
+    }
+
+    public static String encodedKey(String key) {
+        return key.replaceAll("\\.", "_")
+                .replaceAll("\\[", "_")
+                .replaceAll("\\]", "")
+                .toUpperCase();
     }
 
     public static Map<String,Object> getAllProperties(ConfigurableEnvironment aEnv) {

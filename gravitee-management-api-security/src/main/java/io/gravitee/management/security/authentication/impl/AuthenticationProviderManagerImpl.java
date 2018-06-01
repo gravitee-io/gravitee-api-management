@@ -64,7 +64,7 @@ public class AuthenticationProviderManagerImpl implements AuthenticationProvider
         Map<String, Object> properties = EnvironmentUtils.getPropertiesStartingWith(environment, prefix);
         Map<String, Object> unprefixedProperties = new HashMap<>(properties.size());
         properties.entrySet().stream().forEach(propEntry -> unprefixedProperties.put(
-                propEntry.getKey().substring(prefix.length()), propEntry.getValue()));
+                EnvironmentUtils.encodedKey(propEntry.getKey()).substring(EnvironmentUtils.encodedKey(prefix).length()), propEntry.getValue()));
         return unprefixedProperties;
     }
 
