@@ -21,8 +21,10 @@
       <#list log.getClientRequest().getHeaders() as headerKey, headerValue>
       "${headerKey}": [
         <#list headerValue as value>
-        "${value?j_string}"
-          <#sep>,</#sep>
+          <#if value??>
+            "${value?j_string}"
+            <#sep>,</#sep>
+          </#if>
         </#list>
       ]
         <#sep>,</#sep>
@@ -40,8 +42,10 @@
       <#list log.getClientResponse().getHeaders() as headerKey, headerValue>
       "${headerKey}": [
         <#list headerValue as value>
-        "${value?j_string}"
-          <#sep>,</#sep>
+          <#if value??>
+            "${value?j_string}"
+            <#sep>,</#sep>
+          </#if>
         </#list>
       ]
         <#sep>,</#sep>
