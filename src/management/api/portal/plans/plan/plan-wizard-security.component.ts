@@ -29,10 +29,10 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
     private securitySchema: any;
     private parent: ApiEditPlanController;
 
-    constructor(private PolicyService: PolicyService) {
+    constructor(private PolicyService: PolicyService, Constants: any) {
       'ngInject';
 
-      this.securityTypes = [
+      this.securityTypes = _.filter([
         {
           'id': 'oauth2',
           'name': 'OAuth2',
@@ -48,7 +48,9 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
         }, {
           'id': 'key_less',
           'name': 'Keyless (public)'
-        }];
+        }], (security) => {
+          return Constants.plan.security[_.replace(security.id, '_', '')].enabled;
+      });
     }
 
     $onInit() {

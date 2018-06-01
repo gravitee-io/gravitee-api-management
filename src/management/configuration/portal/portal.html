@@ -41,6 +41,27 @@
     <label>Title</label>
     <input ng-model="$ctrl.Constants.management.title">
 </md-input-container>
+<h6>Security plans type available</h6>
+<md-input-container class="md-block" flex-gt-xs>
+    <md-checkbox ng-model="$ctrl.Constants.plan.security.keyless.enabled" aria-label="A">
+        Keyless plans
+    </md-checkbox>
+</md-input-container>
+<md-input-container class="md-block" flex-gt-xs>
+    <md-checkbox ng-model="$ctrl.Constants.plan.security.apikey.enabled" aria-label="A">
+        Api-key plans
+    </md-checkbox>
+</md-input-container>
+<md-input-container class="md-block" flex-gt-xs>
+    <md-checkbox ng-model="$ctrl.Constants.plan.security.oauth2.enabled" aria-label="A">
+        Oauth2 plans
+    </md-checkbox>
+</md-input-container>
+<md-input-container class="md-block" flex-gt-xs>
+    <md-checkbox ng-model="$ctrl.Constants.plan.security.jwt.enabled" aria-label="A">
+        JWT plans
+    </md-checkbox>
+</md-input-container>
 
 <md-subheader class="md-primary" style="background-color: #fafafa">Portal</md-subheader>
 <md-input-container class="md-block" flex-gt-xs>

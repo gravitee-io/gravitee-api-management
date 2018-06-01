@@ -28,9 +28,6 @@ const PortalSettingsComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
     this.Constants = Constants;
-    this.$onInit = () => {
-      console.log(this.Constants)
-    };
 
     this.save = () => {
       PortalConfigService.save().then( (response) => {

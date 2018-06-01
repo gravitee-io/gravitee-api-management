@@ -61,7 +61,8 @@ class ApiCreationController {
               private $window,
               private ApiService: ApiService,
               private NotificationService: NotificationService,
-              private $state: ng.ui.IStateService) {
+              private $state: ng.ui.IStateService,
+              private Constants: any) {
     'ngInject';
 
     this.api = _.clone(this.$stateParams.api) !== null ? _.clone(this.$stateParams.api) : {};
@@ -76,14 +77,19 @@ class ApiCreationController {
     };
 
     this.pages = {};
-    this.securityTypes = [
-      {
+    this.securityTypes = [];
+    if (this.Constants.plan.security.apikey.enabled) {
+      this.securityTypes.push({
         'id': 'API_KEY',
         'name': 'API Key'
-      }, {
+      });
+    }
+    if (this.Constants.plan.security.keyless.enabled) {
+      this.securityTypes.push({
         'id': 'KEY_LESS',
         'name': 'Keyless (public)'
-      }];
+      });
+    }
 
     this.rateLimitTimeUnits = ['SECONDS', 'MINUTES'];
     this.quotaTimeUnits = ['HOURS', 'DAYS', "WEEKS", "MONTHS"];
