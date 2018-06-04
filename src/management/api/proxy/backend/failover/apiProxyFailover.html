@@ -15,23 +15,8 @@
     limitations under the License.
 
 -->
-<h4>Load balancing</h4>
+<h4>Failover</h4>
 <form name="apiProxyCtrl.formApi" ng-submit="apiProxyCtrl.update(apiProxyCtrl.api)" novalidate>
-  <md-subheader class="md-primary" style="background-color: #fafafa">Load balancing</md-subheader>
-  <div layout="column" layout-wrap layout-gt-sm="row">
-    <div flex-xs flex="50">
-      <md-input-container class="md-block" flex-gt-sm>
-        <label>Algorithm</label>
-        <md-select ng-model="apiProxyCtrl.api.proxy.load_balancing.type">
-          <md-option ng-repeat="lb in lbs" value="{{lb.value}}">
-            {{lb.name}}
-          </md-option>
-        </md-select>
-      </md-input-container>
-    </div>
-  </div>
-
-  <br />
 
   <md-subheader class="md-primary" style="background-color: #fafafa">
     <md-checkbox
@@ -69,9 +54,6 @@
     </md-button>
     <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="button" ng-click="apiProxyCtrl.reset()" ng-disabled="apiProxyCtrl.formApi.$pristine">
       Reset
-    </md-button>
-    <md-button permission permission-only="'api-definition-d'" class="md-raised md-warn pull-right" type="button" ng-click="apiProxyCtrl.delete(apiProxyCtrl.api.id)" ng-disabled="apiProxyCtrl.api.state === 'started'">
-      Delete
     </md-button>
   </div>
 </form>

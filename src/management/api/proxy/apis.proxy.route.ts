@@ -73,9 +73,9 @@ function apisProxyRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
-    .state('management.apis.detail.proxy.loadbalancing', {
-      url: '/loadbalancing',
-      template: require('./backend/loadbalancing/apiProxyLoadBalancing.html'),
+    .state('management.apis.detail.proxy.failover', {
+      url: '/failover',
+      template: require('./backend/failover/apiProxyFailover.html'),
       controller: 'ApiProxyController',
       controllerAs: 'apiProxyCtrl',
       data: {
@@ -105,7 +105,7 @@ function apisProxyRouterConfig($stateProvider: ng.ui.IStateProvider) {
       }
     })
     .state('management.apis.detail.proxy.endpoint', {
-      url: '/endpoints/:endpointName',
+      url: '/groups/:groupName/endpoints/:endpointName',
       template: require('./backend/endpoint/endpointConfiguration.html'),
       controller: 'ApiEndpointController',
       controllerAs: 'endpointCtrl',
@@ -118,6 +118,20 @@ function apisProxyRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         docs: {
           page: 'management-api-proxy-endpoints'
+        }
+      }
+    })
+    .state('management.apis.detail.proxy.group', {
+      url: '/groups/:groupName',
+      template: require('./backend/endpoint/group.html'),
+      controller: 'ApiEndpointGroupController',
+      controllerAs: 'groupCtrl',
+      data: {
+        perms: {
+          only: ['api-definition-r']
+        },
+        docs: {
+          page: 'management-api-proxy-group'
         }
       }
     })

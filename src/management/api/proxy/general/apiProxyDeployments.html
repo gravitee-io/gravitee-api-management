@@ -41,8 +41,5 @@
     <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="button" ng-click="apiProxyCtrl.reset()" ng-disabled="apiProxyCtrl.formApi.$pristine">
       Reset
     </md-button>
-    <md-button permission permission-only="'api-definition-d'" class="md-raised md-warn pull-right" type="button" ng-click="apiProxyCtrl.delete(apiProxyCtrl.api.id)" ng-disabled="apiProxyCtrl.api.state === 'started'">
-      Delete
-    </md-button>
   </div>
 </form>

@@ -20,6 +20,8 @@ import UserService from '../../../services/user.service';
 
 class ApiProxyController {
   private initialApi: any;
+  private initialDiscovery: any;
+
   private api: any;
   private groups: any;
   private views: any;
@@ -62,6 +64,7 @@ class ApiProxyController {
     this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.discovery = this.api.services && this.api.services['discovery'];
     this.discovery = this.discovery || {enabled: false, configuration: {}};
+    this.initialDiscovery = _.cloneDeep(this.discovery);
     this.tenants = resolvedTenants.data;
     this.$scope.selected = [];
 
@@ -198,10 +201,12 @@ class ApiProxyController {
     }).then(function (response) {
       if (response) {
         _(_that.$scope.selected).forEach(function (endpoint) {
-          _(_that.api.proxy.endpoints).forEach(function (endpoint2, index, object) {
-            if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
-              object.splice(index, 1);
-            }
+          _(_that.api.proxy.groups).forEach(function (group) {
+            _(group.endpoints).forEach(function (endpoint2, index, object) {
+              if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
+                object.splice(index, 1);
+              }
+            });
           });
         });
 
@@ -212,6 +217,8 @@ class ApiProxyController {
 
   reset() {
     this.api = _.cloneDeep(this.initialApi);
+    this.discovery = _.cloneDeep(this.initialDiscovery);
+
     if (this.formApi) {
       this.formApi.$setPristine();
       this.formApi.$setUntouched();
@@ -300,6 +307,35 @@ class ApiProxyController {
     return function filterFn(header) {
       return angular.lowercase(header).indexOf(lowercaseQuery) === 0;
     };
+  }
+
+  createGroup() {
+    this.$state.go('management.apis.detail.proxy.group', {groupName: ''});
+  }
+
+  deleteGroup(groupname) {
+    var _that = this;
+    let that = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      template: require('../../../components/dialog/confirmWarning.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        title: 'Are you sure you want to delete group ' + groupname + '?',
+        msg: '',
+        confirmButton: 'Delete group'
+      }
+    }).then(function (response) {
+      if (response) {
+          _(_that.api.proxy.groups).forEach(function (group, index, object) {
+            if (group.name !== undefined && group.name === groupname) {
+              object.splice(index, 1);
+              that.update(that.api);
+            }
+          });
+      }
+    });
   }
 }
 

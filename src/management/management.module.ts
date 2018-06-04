@@ -134,6 +134,7 @@ import ApiMembersController from '../management/api/portal/userGroupAccess/membe
 import ApiTransferOwnershipController from '../management/api/portal/userGroupAccess/transferOwnership/transferOwnership.controller';
 import ApiPoliciesController from '../management/api/design/policies/policies.controller';
 import ApiEndpointController from '../management/api/proxy/backend/endpoint/endpointConfiguration.controller';
+import ApiEndpointGroupController from '../management/api/proxy/backend/endpoint/group.controller';
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import ApiResourcesController from '../management/api/design/resources/resources.controller';
 import NewApiController from '../management/api/creation/newApi.controller';
@@ -453,6 +454,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('ApiProxyController', ApiProxyController)
   .controller('ApiHealthCheckController', ApiHealthCheckController)
   .controller('ApiEndpointController', ApiEndpointController)
+  .controller('ApiEndpointGroupController', ApiEndpointGroupController)
   .controller('DialogAssertionInformationController', DialogAssertionInformationController)
   .controller('ApiPropertiesController', ApiPropertiesController)
   .controller('ApiEventsController', ApiEventsController)

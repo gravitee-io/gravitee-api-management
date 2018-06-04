@@ -17,6 +17,7 @@ import _ = require('lodash');
 
 class ApiEndpointController {
 
+  private group: any;
   private api: any;
   private endpoint: any;
   private initialEndpoints: any;
@@ -37,8 +38,9 @@ class ApiEndpointController {
     this.api = this.$scope.$parent.apiCtrl.api;
     this.tenants = resolvedTenants.data;
 
-    this.endpoint = _.find(this.api.proxy.endpoints, { 'name': $stateParams.endpointName});
-    this.initialEndpoints = _.cloneDeep(this.api.proxy.endpoints);
+    this.group = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
+    this.endpoint = _.find(this.group.endpoints, { 'name': $stateParams.endpointName});
+    this.initialEndpoints = _.cloneDeep(this.group.endpoints);
 
     // Creation mode
     if (!this.endpoint) {
@@ -76,15 +78,18 @@ class ApiEndpointController {
   }
 
   update(api) {
-    if (!_.includes(api.proxy.endpoints, this.endpoint)) {
-      api.proxy.endpoints.push(this.endpoint);
+    let group: any = _.find(this.api.proxy.groups, { 'name': this.$stateParams.groupName});
+
+    if (!_.includes(group.endpoints, this.endpoint)) {
+      group.endpoints = group.endpoints || [];
+      group.endpoints.push(this.endpoint);
     }
 
     this.ApiService.update(api).then((updatedApi) => {
       this.api = updatedApi.data;
       this.api.etag = updatedApi.headers('etag');
       this.onApiUpdate();
-      this.initialEndpoints = _.cloneDeep(api.proxy.endpoints);
+      this.initialEndpoints = _.cloneDeep(group.endpoints);
     });
   }
 
@@ -100,7 +105,8 @@ class ApiEndpointController {
   }
 
   backToEndpointsConfiguration() {
-    this.api.proxy.endpoints = _.cloneDeep(this.initialEndpoints);
+    let group: any = _.find(this.api.proxy.groups, { 'name': this.$stateParams.groupName});
+    group.endpoints = _.cloneDeep(this.initialEndpoints);
     this.$state.go('management.apis.detail.proxy.endpoints');
   }
 
