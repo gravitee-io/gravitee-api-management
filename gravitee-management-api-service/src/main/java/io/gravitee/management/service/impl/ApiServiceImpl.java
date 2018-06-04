@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
@@ -124,8 +125,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         Proxy proxy = new Proxy();
         proxy.setContextPath(newApiEntity.getContextPath());
-        proxy.setEndpoints(new LinkedHashSet<>());
-        proxy.getEndpoints().add(new HttpEndpoint("default", newApiEntity.getEndpoint()));
+        EndpointGroup group = new EndpointGroup();
+        group.setEndpoints(Collections.singleton(new HttpEndpoint("default", newApiEntity.getEndpoint())));
+        proxy.setGroups(Collections.singleton(group));
         apiEntity.setProxy(proxy);
 
         List<String> declaredPaths = (newApiEntity.getPaths() != null) ? newApiEntity.getPaths() : new ArrayList<>();

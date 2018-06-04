@@ -36,6 +36,7 @@
     <properties>
         <gravitee-definition.version>1.10.0</gravitee-definition.version>
         <gravitee-common.version>1.11.0-SNAPSHOT</gravitee-common.version>
+        <gravitee-definition.version>1.11.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-plugin.version>1.4.0</gravitee-plugin.version>
         <gravitee-repository.version>1.17.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-gateway-api.version>1.9.0</gravitee-gateway-api.version>

@@ -386,8 +386,10 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     private Map<String, String> getEndpointMetadata(ApiEntity api, String endpointName) {
         Map<String, String> metadata = new HashMap<>();
 
-        Optional<Endpoint> endpointOpt = api.getProxy().getEndpoints()
+        Optional<Endpoint> endpointOpt = api.getProxy()
+                .getGroups()
                 .stream()
+                .flatMap(group -> group.getEndpoints().stream())
                 .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
                 .findFirst();
 
