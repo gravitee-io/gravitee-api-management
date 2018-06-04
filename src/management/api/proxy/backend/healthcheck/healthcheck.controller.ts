@@ -153,7 +153,7 @@ class ApiHealthCheckController {
           events: {
             selection: (event) => {
               if (!event.resetSelection) {
-                this.refresh(Math.floor(event.xAxis[0].min), Math.round(event.xAxis[0].max));
+                this.refresh(Math.floor(event.xAxis[0].min), Math.floor(event.xAxis[0].max));
               }
             }
           }
