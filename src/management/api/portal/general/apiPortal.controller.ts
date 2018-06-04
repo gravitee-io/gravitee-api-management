@@ -240,11 +240,11 @@ class ApiPortalController {
   onApiUpdate(updatedApi) {
     this.api = updatedApi;
     this.initialApi = _.cloneDeep(updatedApi);
-    this.initState();
     this.formApi.$setPristine();
     this.$rootScope.$broadcast('apiChangeSuccess', {api: _.cloneDeep(updatedApi)});
     this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
     this.SidenavService.setCurrentResource(this.api.name);
+    this.initState();
   }
 
   update(api) {
