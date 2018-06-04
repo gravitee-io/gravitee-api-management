@@ -57,35 +57,20 @@ class ChartDirective {
         function onWindowResized() {
           setTimeout(function () {
             onResize();
-          }, 500);
+          }, 100);
         }
 
         angular.element(controller.$window).bind('resize', function() {
           onWindowResized();
         });
 
-        scope.$root.$watch('reducedMode', function (reducedMode) {
-          if (reducedMode !== undefined && lastOptions) {
-            onWindowResized();
-          }
-        });
-
         scope.$on('onWidgetResize', function () {
-          setTimeout(function () {
-            onResize();
-          });
+          onWindowResized();
         });
 
         function onResize() {
           displayChart(lastOptions, chartElement);
         }
-
-        // function setChartSize() {
-        //   let containerElement = element.parent().parent().parent().parent()[0];
-        //   let parentElement = element.parent()[0];
-        //   element.css('height', scope.height || parentElement.clientHeight || containerElement.clientHeight);
-        //   element.css('width', scope.width || parentElement.clientWidth || containerElement.clientWidth);
-        // }
 
         function initSynchronizedCharts() {
           element.bind('mousemove touchmove touchstart', function (e) {

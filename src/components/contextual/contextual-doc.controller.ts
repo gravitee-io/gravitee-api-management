@@ -47,6 +47,7 @@ class ContextualDocController {
   openDocumentation() {
     this.isOpen = !this.isOpen;
     this.setDocumentationVisibility();
+    this.$rootScope.$broadcast('onWidgetResize');
   }
 
   changeDocumentationPage(state) {
