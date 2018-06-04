@@ -63,15 +63,22 @@ public class AverageDateHistogramCommand extends AstractElasticsearchQueryComman
 		final String sQuery = this.createQuery(TEMPLATE, dateHistogramQuery);
 
 		try {
-			final long now = System.currentTimeMillis();
-			final long from = ZonedDateTime
-					.ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault())
-					.minus(1, ChronoUnit.MONTHS)
-					.toInstant()
-					.toEpochMilli();
+			final long to;
+			final long from;
+			if (dateHistogramQuery.timeRange().range().to() != null) {
+				to = dateHistogramQuery.timeRange().range().to();
+				from = dateHistogramQuery.timeRange().range().from();
+			} else {
+				to = System.currentTimeMillis();
+				from = ZonedDateTime
+						.ofInstant(Instant.ofEpochMilli(to), ZoneId.systemDefault())
+						.minus(1, ChronoUnit.MONTHS)
+						.toInstant()
+						.toEpochMilli();
+			}
 
 			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now),
+					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to),
 					Type.HEALTH_CHECK.getType(),
 					sQuery);
 			return this.toAvailabilityResponseResponse(result.blockingGet(), dateHistogramQuery);
