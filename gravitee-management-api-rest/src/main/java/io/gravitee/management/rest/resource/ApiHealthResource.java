@@ -89,12 +89,7 @@ public class ApiHealthResource extends AbstractResource {
     public Response healthAverage(
             @PathParam("api") String api,
             @BeanParam AnalyticsAverageParam analyticsAverageParam) {
-        switch (analyticsAverageParam.getType()) {
-            case RESPONSE_TIME:
-                return Response.ok(executeDateHisto(api, analyticsAverageParam)).build();
-            default:
-                return Response.ok(executeDateHisto(api, analyticsAverageParam)).build();
-        }
+        return Response.ok(executeDateHisto(api, analyticsAverageParam)).build();
     }
 
     private Analytics executeDateHisto(final String api, final AnalyticsAverageParam analyticsAverageParam) {
