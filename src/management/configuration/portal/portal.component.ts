@@ -30,7 +30,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     this.Constants = Constants;
 
     this.save = () => {
-      PortalConfigService.save().then( (response) => {
+      PortalConfigService.save().then( () => {
         NotificationService.show("Configuration saved !");
       });
     };
