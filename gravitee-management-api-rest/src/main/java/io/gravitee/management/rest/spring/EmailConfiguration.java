@@ -16,7 +16,7 @@
 package io.gravitee.management.rest.spring;
 
 import freemarker.cache.FileTemplateLoader;
-import io.gravitee.management.service.utils.EnvironmentUtils;
+import io.gravitee.common.util.EnvironmentUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

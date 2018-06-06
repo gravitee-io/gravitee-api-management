@@ -15,10 +15,10 @@
  */
 package io.gravitee.management.security.authentication.impl;
 
+import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.gravitee.management.security.config.BasicSecurityConfigurerAdapter;
-import io.gravitee.management.service.utils.EnvironmentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
