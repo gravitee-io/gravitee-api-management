@@ -56,7 +56,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
     }
 
     $onInit() {
-      if (! this.parent.plan.paths) {
+      if (!this.parent.plan.paths || !this.parent.plan.paths['/']) {
         this.parent.plan.paths = {'/': []};
       }
 
