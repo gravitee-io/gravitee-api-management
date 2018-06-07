@@ -182,11 +182,11 @@ handlers:
 ds:
   mongodb:
     dbname: gravitee
-    host: ${GRAVITEEIO_MONGODB_HOST:localhost}
-    port: ${GRAVITEEIO_MONGODB_PORT:27017}
+    host: localhost
+    port: 27017
   elastic:
-    host: ${GRAVITEEIO_ELASTIC_HOST:localhost}
-    port: ${GRAVITEEIO_ELASTIC_PORT:9200}
+    host: localhost
+    port: 9200
 
 # Sharding tags configuration
 # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
