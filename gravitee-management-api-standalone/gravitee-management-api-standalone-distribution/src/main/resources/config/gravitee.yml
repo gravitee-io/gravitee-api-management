@@ -259,11 +259,11 @@ email:
 ds:
   mongodb:
     dbname: gravitee
-    host: ${GRAVITEEIO_MONGODB_HOST:localhost}
-    port: ${GRAVITEEIO_MONGODB_PORT:27017}
+    host: localhost
+    port: 27017
   elastic:
-    host: ${GRAVITEEIO_ELASTIC_HOST:localhost}
-    port: ${GRAVITEEIO_ELASTIC_PORT:9200}
+    host: localhost
+    port: 9200
 
 jwt:
   secret: myJWT4Gr4v1t33_S3cr3t
