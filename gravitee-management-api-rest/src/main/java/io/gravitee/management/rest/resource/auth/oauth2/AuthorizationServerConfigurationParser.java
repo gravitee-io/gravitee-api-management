@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.resource.auth.oauth2;
 
+import io.gravitee.management.service.utils.EnvironmentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -43,13 +44,13 @@ public class AuthorizationServerConfigurationParser {
     private ServerConfiguration parseServerConfiguration(Map<String, Object> configuration) {
 
         ServerConfiguration serverConfiguration = new ServerConfiguration();
-        serverConfiguration.setClientId((String)configuration.get("clientId"));
-        serverConfiguration.setClientSecret((String)configuration.get("clientSecret"));
-        serverConfiguration.setTokenEndpoint((String)configuration.get("tokenEndpoint"));
-        serverConfiguration.setAccessTokenProperty((String)configuration.get("accessTokenProperty"));
-        serverConfiguration.setUserInfoEndpoint((String)configuration.get("userInfoEndpoint"));
-        serverConfiguration.setAuthorizationHeader((String)configuration.get("authorizationHeader"));
-        serverConfiguration.setTokenIntrospectionEndpoint((String)configuration.get("tokenIntrospectionEndpoint"));
+        serverConfiguration.setClientId((String)EnvironmentUtils.get("clientId", configuration));
+        serverConfiguration.setClientSecret((String)EnvironmentUtils.get("clientSecret", configuration));
+        serverConfiguration.setTokenEndpoint((String)EnvironmentUtils.get("tokenEndpoint", configuration));
+        serverConfiguration.setAccessTokenProperty((String)EnvironmentUtils.get("accessTokenProperty", configuration));
+        serverConfiguration.setUserInfoEndpoint((String)EnvironmentUtils.get("userInfoEndpoint", configuration));
+        serverConfiguration.setAuthorizationHeader((String)EnvironmentUtils.get("authorizationHeader", configuration));
+        serverConfiguration.setTokenIntrospectionEndpoint((String)EnvironmentUtils.get("tokenIntrospectionEndpoint", configuration));
 
         return serverConfiguration;
     }
@@ -58,11 +59,11 @@ public class AuthorizationServerConfigurationParser {
     private UserMapping parseUserMapping(Map<String, Object> configuration) {
 
         UserMapping userMapping = new UserMapping();
-        userMapping.setEmail((String)configuration.get("mapping.email"));
-        userMapping.setId((String)configuration.get("mapping.id"));
-        userMapping.setLastname((String)configuration.get("mapping.lastname"));
-        userMapping.setFirstname((String)configuration.get("mapping.firstname"));
-        userMapping.setPicture((String)configuration.get("mapping.picture"));
+        userMapping.setEmail((String)EnvironmentUtils.get("mapping.email", configuration));
+        userMapping.setId((String)EnvironmentUtils.get("mapping.id", configuration));
+        userMapping.setLastname((String)EnvironmentUtils.get("mapping.lastname", configuration));
+        userMapping.setFirstname((String)EnvironmentUtils.get("mapping.firstname", configuration));
+        userMapping.setPicture((String)EnvironmentUtils.get("mapping.picture", configuration));
 
         return userMapping;
     }
@@ -78,7 +79,7 @@ public class AuthorizationServerConfigurationParser {
         while(found) {
 
             String path = "groups[" + idx + "].mapping";
-            String condition = (String) configuration.get(path +".condition");
+            String condition = (String) EnvironmentUtils.get(path +".condition", configuration);
 
             if(!StringUtils.isEmpty(condition)) {
 
@@ -108,7 +109,7 @@ public class AuthorizationServerConfigurationParser {
         boolean found = true;
 
         while(found) {
-            String groupName = (String)configuration.get(path + ".values[" + idx + "]");
+            String groupName = (String)EnvironmentUtils.get(path + ".values[" + idx + "]", configuration);
             if(!StringUtils.isEmpty(groupName)) {
                 result.add(groupName.trim());
                 idx++;

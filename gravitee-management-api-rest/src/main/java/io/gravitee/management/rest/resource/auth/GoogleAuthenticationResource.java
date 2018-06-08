@@ -22,6 +22,7 @@ import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
+import io.gravitee.management.service.utils.EnvironmentUtils;
 import io.swagger.annotations.Api;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -77,7 +78,7 @@ public class GoogleAuthenticationResource extends AbstractAuthenticationResource
         final MultivaluedStringMap accessData = new MultivaluedStringMap();
         accessData.add(CLIENT_ID_KEY, payload.getClientId());
         accessData.add(REDIRECT_URI_KEY, payload.getRedirectUri());
-        accessData.add(CLIENT_SECRET, (String) authenticationProvider.configuration().get("clientSecret"));
+        accessData.add(CLIENT_SECRET, (String) EnvironmentUtils.get("clientSecret", authenticationProvider.configuration()));
         accessData.add(CODE_KEY, payload.getCode());
         accessData.add(GRANT_TYPE_KEY, AUTH_CODE);
         Response response = client.target(GOOGLE_ACCESS_TOKEN_URL).request().post(Entity.form(accessData));

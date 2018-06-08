@@ -49,6 +49,14 @@ public final class EnvironmentUtils {
         return result;
     }
 
+    public static Object get(String key, Map<String, Object> map) {
+        if (map == null || map.isEmpty()) {
+            return null;
+        }
+
+        return map.get(encodedKey(key));
+    }
+
     public static String encodedKey(String key) {
         return key.replaceAll("\\.", "_")
                 .replaceAll("\\[", "_")

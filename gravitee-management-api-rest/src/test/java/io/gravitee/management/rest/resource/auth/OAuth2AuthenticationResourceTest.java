@@ -26,6 +26,7 @@ import io.gravitee.management.rest.model.TokenEntity;
 import io.gravitee.management.rest.resource.AbstractResourceTest;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
+import io.gravitee.management.service.utils.EnvironmentUtils;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import org.apache.commons.io.IOUtils;
@@ -83,25 +84,25 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     private void cleanEnvironment() {
-        getConfiguration().remove("tokenEndpoint");
-        getConfiguration().remove("accessTokenProperty");
-        getConfiguration().remove("userInfoEndpoint");
-        getConfiguration().remove("authorizationHeader");
-        getConfiguration().remove("mapping.email");
-        getConfiguration().remove("mapping.id");
-        getConfiguration().remove("mapping.lastname");
-        getConfiguration().remove("mapping.firstname");
-        getConfiguration().remove("mapping.picture");
+        getConfiguration().remove(EnvironmentUtils.encodedKey("tokenEndpoint"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("accessTokenProperty"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("userInfoEndpoint"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("authorizationHeader"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("mapping.email"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("mapping.id"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("mapping.lastname"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("mapping.firstname"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("mapping.picture"));
     }
 
     private void cleanRolesGroupMapping() {
-        getConfiguration().remove("groups[0].mapping.condition");
-        getConfiguration().remove("groups[0].mapping.values[0]");
-        getConfiguration().remove("groups[0].mapping.values[1]");
-        getConfiguration().remove("groups[1].mapping.condition");
-        getConfiguration().remove("groups[1].mapping.values[0]");
-        getConfiguration().remove("groups[2].mapping.condition");
-        getConfiguration().remove("groups[2].mapping.values[0]");
+        getConfiguration().remove(EnvironmentUtils.encodedKey("groups[0].mapping.condition"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("groups[0].mapping.values[0]"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("groups[0].mapping.values[1]"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("groups[1].mapping.condition"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("groups[1].mapping.values[0]"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("groups[2].mapping.condition"));
+        getConfiguration().remove(EnvironmentUtils.encodedKey("groups[2].mapping.values[0]"));
     }
 
     private Map<String,Object> getConfiguration() {
@@ -394,20 +395,20 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     private void mockDefaultEnvironment() {
-        getConfiguration().put("tokenEndpoint", "http://localhost:" + wireMockRule.port() + "/token");
-        getConfiguration().put("userInfoEndpoint","http://localhost:" + wireMockRule.port() + "/userinfo");
-        getConfiguration().put("accessTokenProperty","access_token");
-        getConfiguration().put("authorizationHeader","Bearer %s");
-        getConfiguration().put("mapping.email","email");
-        getConfiguration().put("mapping.id","sub");
-        getConfiguration().put("mapping.lastname","family_name");
-        getConfiguration().put("mapping.firstname","given_name");
-        getConfiguration().put("mapping.picture","picture");
+        getConfiguration().put(EnvironmentUtils.encodedKey("tokenEndpoint"), "http://localhost:" + wireMockRule.port() + "/token");
+        getConfiguration().put(EnvironmentUtils.encodedKey("userInfoEndpoint"), "http://localhost:" + wireMockRule.port() + "/userinfo");
+        getConfiguration().put(EnvironmentUtils.encodedKey("accessTokenProperty"), "access_token");
+        getConfiguration().put(EnvironmentUtils.encodedKey("authorizationHeader"), "Bearer %s");
+        getConfiguration().put(EnvironmentUtils.encodedKey("mapping.email"), "email");
+        getConfiguration().put(EnvironmentUtils.encodedKey("mapping.id"), "sub");
+        getConfiguration().put(EnvironmentUtils.encodedKey("mapping.lastname"), "family_name");
+        getConfiguration().put(EnvironmentUtils.encodedKey("mapping.firstname"), "given_name");
+        getConfiguration().put(EnvironmentUtils.encodedKey("mapping.picture"), "picture");
     }
 
     private void mockWrongEnvironment() {
         mockDefaultEnvironment();
-        getConfiguration().put("mapping.email","theEmail");
+        getConfiguration().put(EnvironmentUtils.encodedKey("mapping.email"), "theEmail");
     }
 
     private InputStream read(String resource) throws IOException {
@@ -483,7 +484,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- CALL
 
-        AbstractAuthenticationResource.Payload payload = createPayload("the_client_id","http://localhost/callback","CoDe","StAtE");;
+        AbstractAuthenticationResource.Payload payload = createPayload("the_client_id","http://localhost/callback","CoDe","StAtE");
 
         Response response = target().request().post(json(payload));
 
@@ -725,28 +726,28 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     private void mockGroupsMapping() {
 
-        getConfiguration().put("groups[0].mapping.condition","{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
-        getConfiguration().put("groups[0].mapping.values[0]","Example group");
-        getConfiguration().put("groups[0].mapping.values[1]","soft user");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[0].mapping.condition"), "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[0].mapping.values[0]"), "Example group");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[0].mapping.values[1]"), "soft user");
 
-        getConfiguration().put("groups[1].mapping.condition","{#jsonPath(#profile, '$.identity_provider_id') == 'idp_6'}");
-        getConfiguration().put("groups[1].mapping.values[0]","Others");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[1].mapping.condition"), "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_6'}");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[1].mapping.values[0]"), "Others");
 
-        getConfiguration().put("groups[2].mapping.condition","{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
-        getConfiguration().put("groups[2].mapping.values[0]","Api consumer");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[2].mapping.condition"), "{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[2].mapping.values[0]"), "Api consumer");
     }
 
     private void mockWrongELGroupsMapping() {
 
-        getConfiguration().put("groups[0].mapping.condition","Some Soup");
-        getConfiguration().put("groups[0].mapping.values[0]","Example group");
-        getConfiguration().put("groups[0].mapping.values[1]","soft user");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[0].mapping.condition"), "Some Soup");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[0].mapping.values[0]"), "Example group");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[0].mapping.values[1]"), "soft user");
 
-        getConfiguration().put("groups[1].mapping.condition","{#jsonPath(#profile, '$.identity_provider_id') == 'idp_6'}");
-        getConfiguration().put("groups[1].mapping.values[0]","Others");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[1].mapping.condition"), "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_6'}");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[1].mapping.values[0]"), "Others");
 
-        getConfiguration().put("groups[2].mapping.condition","{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
-        getConfiguration().put("groups[2].mapping.values[0]","Api consumer");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[2].mapping.condition"), "{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        getConfiguration().put(EnvironmentUtils.encodedKey("groups[2].mapping.values[0]"), "Api consumer");
     }
 
 

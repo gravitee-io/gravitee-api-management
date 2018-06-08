@@ -27,6 +27,7 @@ import io.gravitee.management.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.management.rest.resource.search.SearchResource;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
+import io.gravitee.management.service.utils.EnvironmentUtils;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import io.swagger.jaxrs.listing.SwaggerSerializers;
@@ -107,8 +108,8 @@ public class GraviteeApplication extends ResourceConfig {
             Optional<AuthenticationProvider> socialProvider = authenticationProviderManager.findIdentityProviderByType(provider);
             if (socialProvider.isPresent()) {
                 Map<String, Object> configuration = socialProvider.get().configuration();
-                String clientId = (String) configuration.get("clientId");
-                String clientSecret = (String) configuration.get("clientSecret");
+                String clientId = (String) EnvironmentUtils.get("clientId", configuration);
+                String clientSecret = (String) EnvironmentUtils.get("clientSecret", configuration);
 
                 if (clientId != null && !clientId.isEmpty() && clientSecret != null && !clientSecret.isEmpty()) {
                     register(resource);
