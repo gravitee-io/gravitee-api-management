@@ -67,7 +67,7 @@ import static io.gravitee.repository.management.model.Api.AuditEvent.*;
 @Component
 public class ApiServiceImpl extends TransactionalService implements ApiService {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
 
     @Autowired
     private ApiRepository apiRepository;
@@ -101,7 +101,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private IdentityService identityService;
     @Autowired
     private TopApiService topApiService;
-
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
 
@@ -218,8 +217,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 //TODO add membership log
                 return convert(createdApi, primaryOwner, true);
             } else {
-                LOGGER.error("Unable to create API {} because of previous error.");
-                throw new TechnicalManagementException("Unable to create API " + id);
+                LOGGER.error("Unable to create API {} because of previous error.", api.getName());
+                throw new TechnicalManagementException("Unable to create API " + api.getName());
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
@@ -398,7 +397,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
                 return convert(Collections.singleton(updatedApi), true).iterator().next();
             } else {
-                LOGGER.error("Unable to update API {} because of previous error.");
+                LOGGER.error("Unable to update API {} because of previous error.", api.getId());
                 throw new TechnicalManagementException("Unable to update API " + apiId);
             }
         } catch (TechnicalException ex) {
@@ -1015,17 +1014,17 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         );
 
         int poMissing = apis.size() - memberships.size();
+        final Set<String> apiIds = apis.stream().map(Api::getId).collect(Collectors.toSet());
         if (poMissing > 0) {
-            Set<String> apiIds = apis.stream().map(Api::getId).collect(Collectors.toSet());
             Set<String> apiMembershipsIds = memberships.stream().map(Membership::getReferenceId).collect(Collectors.toSet());
 
             apiIds.removeAll(apiMembershipsIds);
             Optional<String> optionalApisAsString = apiIds.stream().reduce((a, b) -> a + " / " + b);
             String apisAsString = "?";
-            if (optionalApisAsString.isPresent())
+            if (optionalApisAsString.isPresent()) {
                 apisAsString = optionalApisAsString.get();
-            LOGGER.error("{} apis has no identified primary owners in this list {}.", poMissing, apisAsString);
-            throw new TechnicalManagementException(poMissing + " apis has no identified primary owners in this list " + apisAsString + ".");
+            }
+            LOGGER.error("{} apis has no identified primary owners in this list {}.", poMissing , apisAsString);
         }
 
         Map<String, String> apiToUser = new HashMap<>(memberships.size());
@@ -1036,6 +1035,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
         return apis.stream()
+                .filter(api -> !apiIds.contains(api.getId()))
                 .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId())), readDefinition))
                 .collect(Collectors.toSet());
     }
