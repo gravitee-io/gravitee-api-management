@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class TicketService {
-  private ticketURL: string;
 
-  constructor(private $http, private Constants) {
-    'ngInject';
-    this.ticketURL = `${Constants.baseURL}platform/tickets`;
-  }
+import SupportTicketController from '../../../support/ticket.controller';
 
-  create(ticket) {
-    if (ticket) {
-      return this.$http.post(this.ticketURL, ticket);
-    }
-  }
+const ApiPageComponent: ng.IComponentOptions = {
+  bindings: {
+    api: '<'
+  },
+  template: require('../../../support/ticket.html'),
+  controller: SupportTicketController,
+  controllerAs: 'supportTicketCtrl'
+};
 
-  isSupportEnabled() {
-    return this.Constants.portal.support.enabled;
-  }
-}
-
-export default TicketService;
+export default ApiPageComponent;

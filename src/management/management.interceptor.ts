@@ -16,6 +16,7 @@
 import angular = require('angular');
 
 import NotificationService from '../services/notification.service';
+import {StateProvider} from "angular-ui-router";
 
 function interceptorConfig(
   $httpProvider: angular.IHttpProvider
@@ -46,8 +47,7 @@ function interceptorConfig(
                 $injector.get('$rootScope').$broadcast('graviteeLogout');
               }, 2000);
             } else {
-              let state = ($injector.get('$state') as ng.ui.IStateService);
-              state.go('portal.home');
+              ($injector.get('$state') as ng.ui.IStateService).go('portal.home');
             }
           }
         } else {

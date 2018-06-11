@@ -54,6 +54,8 @@ import uiRouter from 'angular-ui-router';
 import {permission, uiPermission} from 'angular-permission';
 import StarRatingDirective from "./components/starRating/star.rating.directive";
 
+import ApiSupport from './api/support/api-support.component';
+
 require('angulartics');
 
 angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMaterial', 'pascalprecht.translate',
@@ -71,6 +73,7 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
   .component('apiPlans', ApiPlansComponent)
   .component('apiPages', ApiPagesComponent)
   .component('apiPage', ApiPageComponent)
+  .component('apiSupport', ApiSupport)
   .component('pages', PagesComponent)
   .component('page', PageComponent)
   .component('apiSubscribe', ApiSubscribeComponent)

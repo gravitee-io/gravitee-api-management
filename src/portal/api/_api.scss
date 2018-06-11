@@ -246,7 +246,7 @@ a.ui.label:focus, a.ui.label:hover {
   box-sizing: border-box;
 }
 
-.api-nav ul li.subscribe {
+.api-nav ul li.header-button {
   float: right;
 }
 
@@ -255,7 +255,7 @@ a.ui.label:focus, a.ui.label:hover {
   padding-bottom: 0;
 }
 
-.api-nav ul li.subscribe button.oui-button.thin-button {
+.api-nav ul li.header-button button.oui-button.thin-button {
   margin: 10px 0 8px;
   line-height: 28px;
   padding: 2px 2ex;

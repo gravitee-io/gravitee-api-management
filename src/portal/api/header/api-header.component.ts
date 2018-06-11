@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import ApiService from "../../../services/api.service";
+import TicketService from "../../../services/ticket.service";
 
 const ApiHeaderComponent: ng.IComponentOptions = {
   bindings: {
@@ -21,9 +22,10 @@ const ApiHeaderComponent: ng.IComponentOptions = {
     apiRatingSummary: '<'
   },
   template: require('./api-header.html'),
-  controller: function(Constants, ApiService: ApiService, $state, $stateParams, $rootScope) {
+  controller: function(Constants, ApiService: ApiService, $state, $stateParams, $rootScope, TicketService) {
     'ngInject';
     this.ratingEnabled = ApiService.isRatingEnabled();
+    this.supportEnabled = TicketService.isSupportEnabled();
 
     this.getEndpoint = function () {
       return Constants.portal.entrypoint + this.api.context_path;

@@ -18,6 +18,7 @@ import NotificationService from '../services/notification.service';
 import ApiService from '../services/api.service';
 import ApplicationService from '../services/applications.service';
 import UserService from '../services/user.service';
+import _ = require('lodash');
 
 class SupportTicketController {
 
@@ -26,18 +27,31 @@ class SupportTicketController {
   private applications: [any];
   private isAuthenticated: boolean;
   private userHasAnEmail: boolean;
+  private stateParams: any;
 
   constructor(
     private TicketService: TicketService,
     private NotificationService: NotificationService,
     private UserService: UserService,
     private ApiService: ApiService,
-    private ApplicationService: ApplicationService) {
+    private ApplicationService: ApplicationService,
+    private $stateParams) {
     'ngInject';
+
+    this.stateParams = $stateParams;
 
     if (this.isAuthenticated = UserService.isAuthenticated()) {
       this.userHasAnEmail = !!UserService.currentUser.email;
-      ApiService.list().then((response) => this.apis = response.data);
+      ApiService.list().then((response) => this.apis = response.data).then((apis) => {
+        if ($stateParams.apiId) {
+          let api = _.find(apis, {id: $stateParams.apiId});
+          if (api) {
+            this.ticket = {
+              api: $stateParams.apiId
+            };
+          }
+        }
+      });
       ApplicationService.list().then((response) => this.applications = response.data);
     }
   }

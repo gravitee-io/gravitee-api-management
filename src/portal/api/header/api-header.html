@@ -61,7 +61,10 @@
       <li ui-sref-active="active">
         <a ui-sref="portal.api.pages({apiId: $ctrl.api.id})">{{'api.documentation.title' | translate}}</a>
       </li>
-      <li class="subscribe">
+      <li ui-sref-active="active" ng-if="$ctrl.supportEnabled">
+        <a ui-sref="portal.api.support({apiId: $ctrl.api.id})">{{'menu.support' | translate}}</a>
+      </li>
+      <li class="header-button">
         <button class="oui-button inverted progressive thin-button" ui-sref="portal.api.detail({apiId: $ctrl.api.id, '#': 'plans'})">{{'api.plan.subscribe' | translate}}</button>
       </li>
     </ul>

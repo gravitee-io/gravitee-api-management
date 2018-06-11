@@ -159,6 +159,13 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
+    .state('portal.api.support', {
+      url: '/support',
+      views: {
+        'header': {component: 'apiPortalHeader'},
+        'content': {component: 'apiSupport'}
+      }
+    })
     .state('portal.pages', {
       url: '/pages',
       component: 'pages',

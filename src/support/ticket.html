@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div style="padding-top: 100px;">
+<div ng-style="{'padding-top': supportTicketCtrl.stateParams.apiId?'0':'50px'}">
   <div ng-if="!supportTicketCtrl.isAuthenticated">
     <div layout="column" flex layout-align="center center" style="color: #424E5A;">
       <ng-md-icon icon="bug_report" style="fill: #cdcccc;" size="120"></ng-md-icon>
@@ -27,41 +27,44 @@
     </div>
   </div>
 
-  <form name="formTicket" ng-submit="supportTicketCtrl.create()" novalidate ng-if="supportTicketCtrl.isAuthenticated">
+  <form name="formTicket" ng-submit="supportTicketCtrl.create()" novalidate ng-if="supportTicketCtrl.isAuthenticated"
+    style="width: 70%; margin: 0 auto;">
     <h5 ng-if="!supportTicketCtrl.userHasAnEmail" style="color: red;margin-left: 10px;">
       <ng-md-icon icon="warning" style="fill: red"></ng-md-icon>
       <span translate="support.ticket.userWithoutEmail.message"></span>
     </h5>
 
     <md-card>
-      <md-card-title>
+      <md-card-title style="background-color: #E8E8E8;">
         <md-card-title-text>
           <span class="md-headline" translate="support.ticket.title"></span>
         </md-card-title-text>
       </md-card-title>
-      <md-card-content layout="column">
-        <md-input-container>
+      <md-card-content layout="column" style="background-color: #FAFAFA;">
+        <md-input-container ng-if="!supportTicketCtrl.stateParams.apiId">
           <label translate="support.ticket.api"></label>
-          <md-select ng-model="supportTicketCtrl.ticket.api">
+          <md-select ng-model="supportTicketCtrl.ticket.api" ng-disabled="!supportTicketCtrl.userHasAnEmail">
             <md-option ng-repeat="api in supportTicketCtrl.apis" ng-value="api.id">{{api.name}} ({{api.version}})</md-option>
           </md-select>
         </md-input-container>
         <md-input-container>
           <label translate="support.ticket.application"></label>
-          <md-select ng-model="supportTicketCtrl.ticket.application">
-            <md-option ng-repeat="application in supportTicketCtrl.applications" ng-value="application.id">{{application.name}} ({{application.owner.username}})</md-option>
+          <md-select ng-model="supportTicketCtrl.ticket.application" ng-disabled="!supportTicketCtrl.userHasAnEmail">
+            <md-option ng-repeat="application in supportTicketCtrl.applications" ng-value="application.id">{{application.name}} ({{application.owner.displayName}})</md-option>
           </md-select>
         </md-input-container>
         <md-input-container>
           <label translate="support.ticket.subject"></label>
-          <input ng-model="supportTicketCtrl.ticket.subject" ng-required="true">
+          <input ng-model="supportTicketCtrl.ticket.subject" ng-required="true" ng-disabled="!supportTicketCtrl.userHasAnEmail">
         </md-input-container>
         <md-input-container flex>
           <label translate="support.ticket.content"></label>
-          <textarea ng-model="supportTicketCtrl.ticket.content" ng-required="true" rows="10"></textarea>
+          <textarea ng-model="supportTicketCtrl.ticket.content" ng-required="true" rows="10" ng-disabled="!supportTicketCtrl.userHasAnEmail"></textarea>
         </md-input-container>
         <md-input-container flex>
-          <md-checkbox ng-model="supportTicketCtrl.ticket.copyToSender" aria-label="cb-copy-to-sender"><span translate="support.ticket.copyToSender"></span></md-checkbox>
+          <md-checkbox ng-model="supportTicketCtrl.ticket.copyToSender" aria-label="cb-copy-to-sender" ng-disabled="!supportTicketCtrl.userHasAnEmail">
+            <span translate="support.ticket.copyToSender"></span>
+          </md-checkbox>
         </md-input-container>
       </md-card-content>
       <md-card-actions layout="row" layout-align="end center">
