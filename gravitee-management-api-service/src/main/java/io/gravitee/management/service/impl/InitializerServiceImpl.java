@@ -179,7 +179,7 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
             perms.put(ApplicationPermission.MEMBER.getName(), new char[]{READ.getId()});
             perms.put(ApplicationPermission.ANALYTICS.getName(), new char[]{READ.getId()});
             perms.put(ApplicationPermission.LOG.getName(), new char[]{READ.getId()});
-            perms.put(ApplicationPermission.SUBSCRIPTION.getName(), new char[]{READ.getId()});
+            perms.put(ApplicationPermission.SUBSCRIPTION.getName(), new char[]{CREATE.getId(), READ.getId()});
             roleService.create(new NewRoleEntity(
                     "USER",
                     "Default Application Role. Created by Gravitee.io.",
