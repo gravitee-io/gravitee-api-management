@@ -169,8 +169,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
                 // Be sure that lifecycle is set to STOPPED by default and visibility is private
                 repoApi.setLifecycleState(LifecycleState.STOPPED);
-                repoApi.setVisibility(Visibility.PRIVATE);
-
+                if (api.getVisibility() == null) {
+                    repoApi.setVisibility(Visibility.PRIVATE);
+                } else {
+                    repoApi.setVisibility(Visibility.valueOf(api.getVisibility().toString()));
+                }
+                
                 // Add Default groups
                 Set<String> defaultGroups = groupService.findByEvent(GroupEvent.API_CREATE).
                         stream().
@@ -409,7 +413,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             LOGGER.debug("Delete API {}", apiId);
 
             Optional<Api> optApi = apiRepository.findById(apiId);
-            if (! optApi.isPresent()) {
+            if (!optApi.isPresent()) {
                 throw new ApiNotFoundException(apiId);
             }
 
@@ -423,7 +427,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                         .map(PlanEntity::getName)
                         .collect(Collectors.toSet());
 
-                if (! plansNotClosed.isEmpty()) {
+                if (!plansNotClosed.isEmpty()) {
                     throw new ApiNotDeletableException("Plan(s) [" + String.join(", ", plansNotClosed) +
                             "] must be closed before being able to delete the API !");
                 }
@@ -493,7 +497,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     eventService.search(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API),
                             properties, 0, 0, 0, 1);
 
-            if (! events.getContent().isEmpty()) {
+            if (!events.getContent().isEmpty()) {
                 // According to page size, we know that we have only one element in the list
                 EventEntity lastEvent = events.getContent().get(0);
 
@@ -643,7 +647,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         field = "groups";
         if (!filteredFiedsList.contains(field)) {
-             apiJsonNode.remove(field);
+            apiJsonNode.remove(field);
             if (apiEntity.getGroups() != null && !apiEntity.getGroups().isEmpty()) {
                 Set<GroupEntity> groupEntities = groupService.findByIds(apiEntity.getGroups());
                 apiJsonNode.putPOJO(field, groupEntities.stream().map(GroupEntity::getName).collect(Collectors.toSet()));
@@ -741,8 +745,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             if (apiEntity == null || apiEntity.getId() == null) {
                 createdOrUpdatedApiEntity = create0(importedApi, userId);
                 members = Collections.emptySet();
-            }
-            else {
+            } else {
                 createdOrUpdatedApiEntity = update(apiEntity.getId(), importedApi);
                 members = membershipService.getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API)
                         .stream()
@@ -761,7 +764,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     MemberToImport memberEntity = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
                     Collection<SearchableUser> idpUsers = identityService.search(memberEntity.getUsername());
 
-                    if (! idpUsers.isEmpty()) {
+                    if (!idpUsers.isEmpty()) {
                         SearchableUser user = idpUsers.iterator().next();
 
                         if (!members.contains(memberEntity)
@@ -1021,7 +1024,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             String apisAsString = "?";
             if (optionalApisAsString.isPresent())
                 apisAsString = optionalApisAsString.get();
-            LOGGER.error("{} apis has no identified primary owners in this list {}.", poMissing , apisAsString);
+            LOGGER.error("{} apis has no identified primary owners in this list {}.", poMissing, apisAsString);
             throw new TechnicalManagementException(poMissing + " apis has no identified primary owners in this list " + apisAsString + ".");
         }
 
@@ -1148,7 +1151,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         private String username;
         private String role;
 
-        public MemberToImport() {}
+        public MemberToImport() {
+        }
 
         public MemberToImport(String username, String role) {
             this.username = username;
