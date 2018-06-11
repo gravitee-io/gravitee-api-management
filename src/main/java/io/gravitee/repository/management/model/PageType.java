@@ -23,6 +23,7 @@ public enum PageType {
 
 	MARKDOWN,
 	RAML,
-	SWAGGER
+	SWAGGER,
+	FOLDER
 	
 }

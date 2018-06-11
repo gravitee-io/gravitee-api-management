@@ -62,6 +62,7 @@ public class Page {
 
 	private Date updatedAt;
 
+	private String parentId;
 	/**
 	 * List of excluded groups
 	 */
@@ -179,6 +180,10 @@ public class Page {
 		this.excludedGroups = excludedGroups;
 	}
 
+	public String getParentId() { return parentId; }
+
+	public void setParentId(String parentId) { this.parentId = parentId; }
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -208,6 +213,7 @@ public class Page {
 				", excludedGroups=" + excludedGroups +
 				", createdAt=" + createdAt +
 				", updatedAt=" + updatedAt +
+				", parentId=" + parentId +
 				'}';
 	}
 }

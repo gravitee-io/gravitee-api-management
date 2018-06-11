@@ -38,4 +38,6 @@ public interface PageRepository extends CrudRepository<Page, String> {
 	Collection<Page> findPortalPages() throws TechnicalException;
 
 	Integer findMaxPortalPageOrder() throws TechnicalException;
+
+    void removeAllFolderParentWith(String parentId, String apiId) throws TechnicalException;
 }
