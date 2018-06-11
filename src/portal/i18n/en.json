@@ -23,7 +23,6 @@
     }
   },
   "home": {
-    "title": "Gravitee.io",
     "subtitle": "Developers portal",
     "version": "Version: {{version}}",
     "pages": {
@@ -139,10 +138,10 @@
       "successDeletion": "This rating has been successfully deleted",
       "deletion": "Are you sure you want to delete this rating?",
       "list": {
-        "label": "{{numberOfAnswers}} answer(s)",
-        "title": "Ratings"
+        "title": "{{numberOfRatings}} rating(s)"
       },
       "answer": {
+        "label": "{{numberOfAnswers}} answer(s)",
         "successCreation": "Your answer has been submitted successfully",
         "successDeletion": "This response has been successfully removed",
         "deletion": "Are you sure you want to delete this answer?",
