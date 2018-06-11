@@ -25,4 +25,6 @@ public interface PageMongoRepositoryCustom {
 	int findMaxPageOrderByApi(String apiId);
 
 	int findMaxPortalPageOrder();
+
+	void updateAllPageWithParent(String pageFolderId, String apiId);
 }

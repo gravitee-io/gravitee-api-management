@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import com.mongodb.WriteResult;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
@@ -26,6 +27,10 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -36,6 +41,7 @@ import java.util.Set;
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Guillaume GILLON (guillaume.gillon@outlook.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -106,6 +112,7 @@ public class MongoPageRepository implements PageRepository {
             pageMongo.setPublished(page.isPublished());
             pageMongo.setHomepage(page.isHomepage());
             pageMongo.setExcludedGroups(page.getExcludedGroups());
+            pageMongo.setParentId(page.getParentId());
             if (page.getSource() != null) {
                 pageMongo.setSource(convert(page.getSource()));
             } else {
@@ -179,5 +186,10 @@ public class MongoPageRepository implements PageRepository {
 
         logger.debug("Find portal pages - Done");
         return res;
+    }
+
+    @Override
+    public void removeAllFolderParentWith(String pageId, String apiId) throws TechnicalException {
+        internalPageRepo.updateAllPageWithParent(pageId, apiId);
     }
 }
