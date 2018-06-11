@@ -49,7 +49,7 @@
         <md-button ng-click="pageCtrl.toggleHomepage()"
                    class="md-icon-button" ng-class="{'icon-button-homepage': pageCtrl.page.homepage, 'icon-button-nothomepage': !pageCtrl.page.homepage}"
                    aria-label="Homepage"
-                   ng-if="pageCtrl.page.id">
+                   ng-if="pageCtrl.page.id && pageCtrl.page.type!=='FOLDER'">
           <md-tooltip md-direction="top" ng-if="pageCtrl.page.homepage">This page is your homepage. Click to convert to a documentation page</md-tooltip>
           <md-tooltip md-direction="top" ng-if="!pageCtrl.page.homepage">This page is a documentation page. Click to convert to the api homepage</md-tooltip>
           <ng-md-icon icon="home"></ng-md-icon>
@@ -70,6 +70,24 @@
     </div>
   </div>
 
+<!-- Folder -->
+<md-card-content style="border: 1px solid #e7eaec; padding: 0" layout="row" ng-if="pageCtrl.folderName && !pageCtrl.editMode">
+    <div style="padding: 5px 10px 10px 10px"><md-icon md-svg-src="assets/logo_folder.svg"></md-icon></div>
+    <h5  style="color: #676a6c; clear:both;">{{pageCtrl.folderName}}</h5>
+</md-card-content>
+<md-card-content style="border: 1px solid #e7eaec; padding: 0" layout="row" ng-if="pageCtrl.editMode && pageCtrl.page.type!=='FOLDER'">
+    <div style="padding: 28px 10px 0px 10px"><md-icon md-svg-src="assets/logo_folder.svg"></md-icon></div>
+    <md-input-container class="md-block">
+      <label>Add to Folder</label>
+      <md-select ng-model="pageCtrl.page.parentId"  style="margin: 4px 0 0 0">
+          <md-option value=""></md-option>
+          <md-option ng-repeat="folderEntrie in pageCtrl.folderEntries" value="{{folderEntrie.id}}">
+              {{folderEntrie.name}}
+          </md-option>
+      </md-select>
+    </md-input-container>
+</md-card-content>
+
   <!-- Read Mode -->
   <md-card-content ng-show="!pageCtrl.editMode" style="border: 1px solid #e7eaec; padding-top: 0" layout="row">
     <gv-page flex  page="pageCtrl.page"></gv-page>
@@ -78,7 +96,7 @@
   <!-- Edit Mode -->
   <div ng-show="pageCtrl.editMode">
     <md-card-content style="border: 1px solid #e7eaec; padding-top: 0" layout="row">
-      <dix layout="column" flex="50">
+      <dix layout="column" flex="50" ng-show="pageCtrl.page.type !== 'FOLDER'">
         <div>
           <h4>Edit your page</h4>
           <md-input-container class="md-block" ng-show="pageCtrl.editMode">
@@ -162,6 +180,7 @@
         <div class="hint">Limits the number of tagged operations displayed to at most this many (-1 means show all operations).</div>
       </md-input-container>
     </div>
+    <div ng-if="pageCtrl.page.type!=='FOLDER'"></div>
     <md-subheader class="md-primary">Configure page's source</md-subheader>
     <div>
       <md-checkbox ng-model="pageCtrl.useFetcher" ng-change="pageCtrl.toggleUseFetcher()">
@@ -181,6 +200,7 @@
         <form name="PageConfigFetcherForm" sf-schema="fetcherJsonSchema" sf-form="pageCtrl.fetcherJsonSchemaForm" sf-model="pageCtrl.page.source.configuration"></form>
       </div>
     </div>
+  </div>
     <md-subheader class="md-primary">Groups Authorizations</md-subheader>
     <div>
       <md-input-container class="md-block" flex="100">

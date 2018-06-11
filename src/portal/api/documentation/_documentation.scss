@@ -9,10 +9,13 @@
 */
 
 .doc-sidenav {
+  margin-top: 20px;
   margin-left: 30px;
 
   ul {
     list-style-type: none;
+    margin: 0;
+    padding: 0;
 
     li {
       outline: none;
@@ -24,24 +27,36 @@
       margin-bottom: 0;
       padding: 1px 0;
 
-      span {
+      span, p {
         line-height: 1.2;
         color: #000000;
         display: block;
-        margin: 10px;
+        margin: 8px 10px 8px 10px;
         padding-left: 8px;
         text-decoration: none;
         font-size: 12px;
       }
+
+      li.l2 {
+        padding: 1px 1px 1px 10px;
+      }
+
+      p {
+        font-weight: 450;
+        font-size: 1.05em;
+        background-color: #f7f7f7;
+        padding: 6px 10px 6px 10px;
+      }
+
     }
 
     li.active {
-      border-left: 2px solid #11939A;
+      border-left: 2px solid #35a0d4;
     }
 
     li.active span, li.sidenav_item:hover span {
       -webkit-transition: all .4s ease!important;
-      color: #11939A;
+      color: #35a0d4;
     }
   }
 }

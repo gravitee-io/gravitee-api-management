@@ -18,6 +18,10 @@ import _ = require('lodash');
 
 class PageController {
   private page: any;
+
+  private folderName: string;
+  private folderMap;
+  private folderEntries = [];
   private emptyFetcher: {
     type: string;
     id: string;
@@ -82,13 +86,15 @@ class PageController {
     FetcherService.list().then(response => {
       this.fetchers = response.data;
       if ( $state.current.name === 'management.apis.detail.portal.documentation.new' ) {
-        if (['SWAGGER', 'RAML', 'MARKDOWN'].indexOf($state.params.type) === -1) {
+        if (['SWAGGER', 'RAML', 'MARKDOWN', 'FOLDER'].indexOf($state.params.type) === -1) {
           $state.go('apis.admin.documentation');
         }
         this.createMode = true;
         this.page = { type: this.$state.params.type };
         this.initialPage = _.clone(this.page);
         this.edit();
+        
+        this.loadFolders();
       } else {
         this.preview();
         DocumentationService.get($state.params.apiId, $state.params.pageId).then( response => {
@@ -107,9 +113,25 @@ class PageController {
               }
             });
           }
+        }).then( () => {
+          this.loadFolders();
         });
       }
     });
+  }
+
+  loadFolders() {
+    this.DocumentationService.getFolderPromise().then(
+      (folderMap: Map<string, string>) => {
+        this.folderName = folderMap.get(this.page.parentId);
+        this.folderMap = folderMap;
+        
+        this.folderEntries = [];
+        folderMap.forEach((value, key, map) => {
+          this.folderEntries.push({id: key, name: value});
+        });
+      }
+    );
   }
 
   toggleUseFetcher() {

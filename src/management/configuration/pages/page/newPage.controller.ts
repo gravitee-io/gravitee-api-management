@@ -18,6 +18,11 @@ import _ = require('lodash');
 
 class NewPageController {
   private page: any;
+
+  private folderName: string;
+  private folderMap;
+  private folderEntries = [];
+
   private emptyFetcher: {
     type: string;
     id: string;
@@ -34,6 +39,7 @@ class NewPageController {
 	constructor(
 	  private PortalPagesService,
     private $state,
+    private $stateParams,
     private $mdDialog,
     private $rootScope,
     private $scope,
@@ -70,13 +76,15 @@ class NewPageController {
     FetcherService.list().then(response => {
       this.fetchers = response.data;
       if ( $state.current.name === 'management.settings.pages.new' ) {
-        if (['SWAGGER', 'RAML', 'MARKDOWN'].indexOf($state.params.type) === -1) {
+        if (['SWAGGER', 'RAML', 'MARKDOWN', 'FOLDER'].indexOf($state.params.type) === -1) {
           $state.go('management.settings.pages');
         }
         this.createMode = true;
         this.page = { type: this.$state.params.type };
         this.initialPage = _.clone(this.page);
         this.edit();
+
+        this.loadFolders();
       } else {
         this.preview();
         PortalPagesService.get($state.params.pageId).then( response => {
@@ -95,9 +103,26 @@ class NewPageController {
               }
             });
           }
+
+        }) .then( () => {
+          this.loadFolders();
         });
       }
     });
+  }
+
+  loadFolders() {
+    this.PortalPagesService.getFolderPromise().then(
+      (folderMap: Map<string, string>) => {
+        this.folderName = folderMap.get(this.page.parentId);
+        this.folderMap = folderMap;
+        
+        this.folderEntries = [];
+        folderMap.forEach((value, key, map) => {
+          this.folderEntries.push({id: key, name: value});
+        });
+      }
+    );
   }
 
   toggleUseFetcher() {
@@ -121,7 +146,7 @@ class NewPageController {
     if ( !this.useFetcher && this.page.source ) {
       delete this.page.source;
     }
-    if(this.createMode) {
+    if (this.createMode) {
       this.PortalPagesService.createPage(this.page)
         .then((page) => {
           this.onPageUpdate();
@@ -186,7 +211,7 @@ class NewPageController {
     }
     this.editMode = true;
     this.$scope.$parent.listPagesDisplayed = false;
-    if(this.page.source) {
+    if (this.page.source) {
       this.useFetcher = true;
       _.forEach(this.fetchers, (fetcher) => {
         if(fetcher.id === this.page.source.type) {

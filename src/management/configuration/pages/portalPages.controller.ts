@@ -65,10 +65,8 @@ class PortalPagesController {
   }
 
   list() {
-    return this.PortalPagesService.list().then(response => {
-      this.pages = response.data;
-      return {pages: this.pages};
-    }).then( response => {
+    return this.PortalPagesService.fullList().then( response => {
+      this.pages = response.pages;
       if (response.pages && response.pages.length > 0) {
         if (this.$state.params.pageId !== undefined) {
           this.$state.go("management.settings.pages.page", {pageId: this.$state.params.pageId});

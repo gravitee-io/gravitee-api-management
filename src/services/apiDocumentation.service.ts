@@ -15,6 +15,7 @@
  */
 class DocumentationService {
   private documentationURL: (apiId: string) => string;
+  private folderPromise;
 
   constructor(private $http, private $q, Constants) {
     'ngInject';
@@ -23,6 +24,32 @@ class DocumentationService {
 
   list(apiId) {
     return this.$http.get(this.documentationURL(apiId));
+  }
+
+  fullList(apiId) {
+    const deferredFolders = this.$q.defer();
+    this.folderPromise = deferredFolders.promise;
+
+    return this.$http.get(this.documentationURL(apiId), {params: {"flatMode": true}})
+      .then(response => {
+
+        let pages = response.data;
+
+        const map = new Map<string, string>();
+        pages.forEach(p => {
+          if (p.type === 'folder') {
+            map.set(p.id, p.name);
+          }
+        });
+
+        deferredFolders.resolve(map);
+
+        return {pages: pages};
+      });
+  }
+
+  getFolderPromise() {
+    return this.folderPromise;
   }
 
   get(apiId: string, pageId?: string, portal?: boolean) {
@@ -78,7 +105,8 @@ class DocumentationService {
         source: editPage.source,
         homepage: editPage.homepage,
         configuration: editPage.configuration,
-        excluded_groups: editPage.excludedGroups
+        excluded_groups: editPage.excludedGroups,
+        parentId: editPage.parentId
       }
     );
   }

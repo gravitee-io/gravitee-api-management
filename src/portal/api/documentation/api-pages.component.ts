@@ -15,30 +15,63 @@
  */
 import * as _ from 'lodash';
 
+class ApiPagesComponentCtrl implements ng.IComponentController {
+  public pages: any;
+  private selectedPage;
+
+  constructor(
+    private $state,
+    private $stateParams,
+    private $location
+    ) {
+    'ngInject';
+
+  }
+
+  $onInit() {
+    if (this.pages.length && !this.$stateParams.pageId) {
+
+      this.selectedPage = this.pages[0];
+      this.selectedPage.selected = true;
+      this.$location.url(`/apis/${this.$stateParams.apiId}/pages/${this.pages[0].id}`);
+    } else {
+      const page = this.pages.find(p => p.id === this.$stateParams.pageId);
+
+      if (page && this.isFolder(page) && page.pages && page.pages.length > 0) {
+        page.pages[0].selected = true;
+        this.selectedPage = page.pages[0];
+
+      } else if (page) {
+        page.selected = true;
+        this.selectedPage = page;
+      }
+    }
+  };
+
+  selectPage (page) {
+    if (this.selectedPage !== undefined) {
+      this.selectedPage.selected = false;
+    }
+
+    this.selectedPage = page;
+    this.selectedPage.selected = true;
+
+    page.selected = true;
+    this.$state.go('portal.api.pages.page', {pageId: page.id});
+  }
+
+  isFolder(page: any) {
+    return page.type === 'folder';
+  }
+}
+
 const ApiPagesComponent: ng.IComponentOptions = {
   bindings: {
     pages: '<',
     api: '<'
   },
   template: require('./api-pages.html'),
-  controller: function($state, $stateParams, $location) {
-    'ngInject';
-
-    this.$onInit = function() {
-      if (this.pages.length && !$stateParams.pageId) {
-        this.pages[0].selected = true;
-        $location.url(`/apis/${$stateParams.apiId}/pages/${this.pages[0].id}`);
-      } else {
-        _.each(this.pages, function(p) { if (p.id === $stateParams.pageId) {p.selected = true; }});
-      }
-    };
-
-    this.selectPage = function (page) {
-      _.each(this.pages, function(p) { p.selected = false; });
-      page.selected = true;
-      $state.go('portal.api.pages.page', {pageId: page.id});
-    }
-  }
+  controller: ApiPagesComponentCtrl
 };
 
 export default ApiPagesComponent;

@@ -17,6 +17,7 @@ import * as _ from 'lodash';
 
 class PortalPagesService {
   private pagesURL: () => string;
+  private folderPromise;
 
   constructor(private $http, private $q, Constants) {
     'ngInject';
@@ -25,6 +26,32 @@ class PortalPagesService {
 
   list() {
     return this.$http.get(this.pagesURL());
+  }
+
+  fullList() {
+    const deferredFolders = this.$q.defer();
+    this.folderPromise = deferredFolders.promise;
+
+    return this.$http.get(this.pagesURL(), {params: {"flatMode": true}})
+      .then(response => {
+
+        let pages = response.data;
+
+        const map = new Map<string, string>();
+        pages.forEach(p => {
+          if (p.type === 'folder') {
+            map.set(p.id, p.name);
+          }
+        });
+
+        deferredFolders.resolve(map);
+
+        return {pages: pages};
+      });
+  }
+
+  getFolderPromise() {
+    return this.folderPromise;
   }
 
   get(pageId?: string) {
@@ -82,7 +109,8 @@ class PortalPagesService {
         source: editPage.source,
         homepage: editPage.homepage,
         configuration: editPage.configuration,
-        excluded_groups: editPage.excludedGroups
+        excluded_groups: editPage.excludedGroups,
+        parentId: editPage.parentId
       }
     );
   }

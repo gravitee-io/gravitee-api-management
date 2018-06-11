@@ -65,10 +65,8 @@ class DocumentationController {
   }
 
   list() {
-    return this.DocumentationService.list(this.$state.params.apiId).then(response => {
-      this.pages = response.data;
-      return {pages: this.pages};
-    }).then( response => {
+    return this.DocumentationService.fullList(this.$state.params.apiId).then( response => {
+      this.pages = response.pages;
       if(response.pages && response.pages.length > 0) {
         this.$state.go("management.apis.detail.portal.documentation.page", {pageId: this.getPageId(response.pages[0].id)});
       }
