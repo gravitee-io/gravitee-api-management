@@ -34,6 +34,7 @@ import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
+import io.gravitee.management.service.exceptions.PageFolderActionException;
 import io.gravitee.management.service.exceptions.PageNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
@@ -65,6 +66,7 @@ import static java.util.Collections.emptyList;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
+ * @author Guillaume Gillon
  */
 @Component
 public class PageServiceImpl extends TransactionalService implements PageService, ApplicationContextAware {
@@ -105,11 +107,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Override
 	public List<PageListItem> findApiPagesByApi(String apiId) {
-	    return findApiPagesByApiAndHomepage(apiId, null);
+	    return findApiPagesByApiAndHomepage(apiId, null, null);
     }
 
 	@Override
-	public List<PageListItem> findApiPagesByApiAndHomepage(String apiId, Boolean homepage) {
+	public List<PageListItem> findApiPagesByApiAndHomepage(String apiId, Boolean homepage, Boolean flatMode ) {
 		try {
 			final Collection<Page> pages;
 			if (homepage == null) {
@@ -121,10 +123,21 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				return emptyList();
 			}
 
-			return pages.stream()
-					.map(this::reduce)
-					.sorted(Comparator.comparingInt(PageListItem::getOrder))
-					.collect(Collectors.toList());
+			if(flatMode == null || Boolean.FALSE.equals(flatMode)) {
+                Map<String, List<Page>> groupedParent =
+                        pages.stream().filter(p -> (p.getParentId() != null && p.getParentId().length() > 0)).sorted(Comparator.comparingInt(Page::getOrder)).collect(Collectors.groupingBy(Page::getParentId));
+
+                return pages.stream()
+                        .filter(p -> (p.getParentId() == null || p.getParentId().length() == 0))
+                        .map(p -> this.reduce(p,groupedParent))
+                        .sorted(Comparator.comparingInt(PageListItem::getOrder))
+                        .collect(Collectors.toList());
+			} else {
+                return pages.stream()
+                        .map(this::reduce)
+                        .sorted(Comparator.comparingInt(PageListItem::getOrder))
+                        .collect(Collectors.toList());
+			}
 
 		} catch (TechnicalException ex) {
 			logger.error("An error occurs while trying to get API pages using api ID {}", apiId, ex);
@@ -134,7 +147,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	}
 
 	@Override
-	public List<PageListItem> findPortalPagesByHomepage(Boolean homepage) {
+	public List<PageListItem> findPortalPagesByHomepage(Boolean homepage, Boolean flatMode) {
 		try {
 			final Collection<Page> pages;
 			if (homepage == null) {
@@ -146,10 +159,22 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				return emptyList();
 			}
 
-			return pages.stream()
-					.map(this::reduce)
-					.sorted(Comparator.comparingInt(PageListItem::getOrder))
-					.collect(Collectors.toList());
+			if(flatMode == null || Boolean.FALSE.equals(flatMode)) {
+                Map<String, List<Page>> groupedParent =
+                        pages.stream().filter(p -> (p.getParentId() != null && p.getParentId().length() > 0)).sorted(Comparator.comparingInt(Page::getOrder)).collect(Collectors.groupingBy(Page::getParentId));
+
+
+                return pages.stream()
+                        .filter(p -> (p.getParentId() == null || p.getParentId().length() == 0))
+                        .map(p -> this.reduce(p,groupedParent))
+                        .sorted(Comparator.comparingInt(PageListItem::getOrder))
+                        .collect(Collectors.toList());
+            } else {
+                return pages.stream()
+                        .map(this::reduce)
+                        .sorted(Comparator.comparingInt(PageListItem::getOrder))
+                        .collect(Collectors.toList());
+            }
 
 		} catch (TechnicalException ex) {
 			logger.error("An error occurs while trying to get Portal pages", ex);
@@ -251,6 +276,17 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				throw new PageAlreadyExistsException(id);
 			}
 
+            if (PageType.FOLDER.equals(newPageEntity.getType())) {
+
+                if (newPageEntity.getContent() != null  && newPageEntity.getContent().length() > 0) {
+                    throw new PageFolderActionException("have a content");
+                }
+
+                if (newPageEntity.isHomepage()) {
+                    throw new PageFolderActionException("be affected to the home page");
+                }
+            }
+
 			Page page = convert(newPageEntity);
 
 			if (page.getSource() != null) {
@@ -289,6 +325,17 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			if (checkPage.isPresent()) {
 				throw new PageAlreadyExistsException(id);
 			}
+
+			if (PageType.FOLDER.equals(newPageEntity.getType())) {
+
+			    if (newPageEntity.getContent() != null  && newPageEntity.getContent().length() > 0) {
+                    throw new PageFolderActionException("have a content");
+                }
+
+                if (newPageEntity.isHomepage()) {
+                    throw new PageFolderActionException("be affected to the home page");
+                }
+            }
 
 			Page page = convert(newPageEntity);
 
@@ -461,7 +508,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			}
 
 			pageRepository.delete(pageId);
-			createAuditLog(optPage.get().getApi(), PAGE_DELETED, new Date(), optPage.get(), null);
+            createAuditLog(optPage.get().getApi(), PAGE_DELETED, new Date(), optPage.get(), null);
+			if(io.gravitee.repository.management.model.PageType.FOLDER.equals(optPage.get().getType())) {
+                pageRepository.removeAllFolderParentWith(pageId, optPage.get().getApi());
+            }
+
 		} catch (TechnicalException ex) {
 			logger.error("An error occurs while trying to delete Page {}", pageId, ex);
 			throw new TechnicalManagementException("An error occurs while trying to delete Page " + pageId, ex);
@@ -550,6 +601,27 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return pageItem;
 	}
 
+    private PageListItem reduce(Page page, Map<String, List<Page>> groupedParent) {
+        PageListItem pageItem = new PageListItem();
+
+        pageItem.setId(page.getId());
+        pageItem.setName(page.getName());
+        pageItem.setType(PageType.valueOf(page.getType().toString()));
+        pageItem.setOrder(page.getOrder());
+        pageItem.setLastContributor(page.getLastContributor());
+        pageItem.setPublished(page.isPublished());
+        pageItem.setHomepage(page.isHomepage());
+        pageItem.setSource(convert(page.getSource()));
+        pageItem.setConfiguration(convert(page.getConfiguration()));
+        pageItem.setExcludedGroups(page.getExcludedGroups());
+
+        if(groupedParent != null && groupedParent.containsKey(page.getId())) {
+            pageItem.setPages(groupedParent.get(page.getId()).stream().map((p) -> this.reduce(p,groupedParent)).collect(Collectors.toList()));
+        }
+
+        return pageItem;
+    }
+
 	private static Page convert(NewPageEntity newPageEntity) {
 		Page page = new Page();
 
@@ -566,6 +638,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setSource(convert(newPageEntity.getSource()));
 		page.setConfiguration(newPageEntity.getConfiguration());
 		page.setExcludedGroups(newPageEntity.getExcludedGroups());
+		page.setParentId(newPageEntity.getParentId());
 
 		return page;
 	}
@@ -600,6 +673,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			pageEntity.setConfiguration(page.getConfiguration());
 		}
 		pageEntity.setExcludedGroups(page.getExcludedGroups());
+		pageEntity.setParentId(page.getParentId());
 		return pageEntity;
 	}
 
@@ -615,6 +689,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
         page.setConfiguration(updatePageEntity.getConfiguration());
         page.setHomepage(updatePageEntity.isHomepage());
         page.setExcludedGroups(updatePageEntity.getExcludedGroups());
+        page.setParentId(updatePageEntity.getParentId());
 		return page;
 	}
 

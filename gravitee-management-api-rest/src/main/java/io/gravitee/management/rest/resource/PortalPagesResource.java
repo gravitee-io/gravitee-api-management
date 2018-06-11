@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
+ * @author Guillaume GILLON 
  */
 @Api(tags = {"Portal"})
 public class PortalPagesResource extends AbstractResource {
@@ -94,8 +95,9 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 200, message = "List of pages", response = PageListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<PageListItem> listPages(
-            @QueryParam("homepage") Boolean homepage) {
-        return pageService.findPortalPagesByHomepage(homepage).
+            @QueryParam("homepage") Boolean homepage,
+            @QueryParam("flatMode") Boolean flatMode) {
+        return pageService.findPortalPagesByHomepage(homepage, flatMode).
                 stream().
                 filter(page -> isDisplayable(page.isPublished(), page.getExcludedGroups())).
                 collect(Collectors.toList());

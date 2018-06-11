@@ -27,6 +27,7 @@ import java.util.Optional;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
+ * @author Guillaume GILLON 
  */
 @Component
 public class PageRepositoryProxy extends AbstractProxy<PageRepository> implements PageRepository {
@@ -79,5 +80,10 @@ public class PageRepositoryProxy extends AbstractProxy<PageRepository> implement
     @Override
     public Integer findMaxPortalPageOrder() throws TechnicalException {
         return target.findMaxPortalPageOrder();
+    }
+
+    @Override
+    public void removeAllFolderParentWith(String pageId, String apiId) throws TechnicalException {
+        target.removeAllFolderParentWith(pageId, apiId);
     }
 }

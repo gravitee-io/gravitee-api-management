@@ -24,6 +24,7 @@ import java.util.Objects;
 
 /**
  * @author Titouan COMPIEGNE
+ * @author Guillaume GILLON 
  */
 public class PageEntity {
 
@@ -50,6 +51,8 @@ public class PageEntity {
 	private Map<String, String> configuration;
 
 	private boolean homepage;
+
+	private String parentId;
 
 	@JsonProperty("excluded_groups")
 	private List<String> excludedGroups;
@@ -157,6 +160,10 @@ public class PageEntity {
 	public void setExcludedGroups(List<String> excludedGroups) {
 		this.excludedGroups = excludedGroups;
 	}
+
+	public String getParentId() { return parentId; }
+
+	public void setParentId(String parentId) { this.parentId = parentId; }
 
 	public boolean equals(Object o) {
 		if (this == o) {

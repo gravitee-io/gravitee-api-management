@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Guillaume GILLON (guillaume.gillon@outlook.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"API"})
@@ -68,11 +69,12 @@ public class ApiPagesResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<PageListItem> listPages(
             @PathParam("api") String api,
-            @QueryParam("homepage") Boolean homepage) {
+            @QueryParam("homepage") Boolean homepage,
+            @QueryParam("flatMode") Boolean flatMode) {
         final ApiEntity apiEntity = apiService.findById(api);
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
-            final List<PageListItem> pages = pageService.findApiPagesByApiAndHomepage(api, homepage);
+            final List<PageListItem> pages = pageService.findApiPagesByApiAndHomepage(api, homepage, flatMode);
 
             return pages.stream()
                     .filter(page -> isDisplayable(apiEntity, page.isPublished(), page.getExcludedGroups()))

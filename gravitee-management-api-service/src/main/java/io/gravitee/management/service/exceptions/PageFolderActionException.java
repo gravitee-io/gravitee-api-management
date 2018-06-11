@@ -13,18 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.service.exceptions;
+
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author Ludovic Dussart (ludovic.dussart at gmail.com)
- * @author Guillaume GILLON 
- * Managed types for page documentation
- *
+ * @author Guillaume GILLON
  */
-public enum PageType {
+public class PageFolderActionException  extends AbstractManagementException {
+    private final String action;
 
-	MARKDOWN,
-	RAML,
-	SWAGGER,
-	FOLDER
+    public PageFolderActionException(String action) {
+        this.action = action;
+    }
+
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
+
+    @Override
+    public String getMessage() {
+        return "The folder page can not " + action;
+    }
 }

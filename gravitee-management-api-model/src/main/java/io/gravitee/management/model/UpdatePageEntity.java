@@ -24,6 +24,7 @@ import java.util.Map;
 
 /**
  * @author Titouan COMPIEGNE
+ * @author Guillaume GILLON 
  */
 public class UpdatePageEntity {
 
@@ -47,6 +48,8 @@ public class UpdatePageEntity {
 
 	@JsonProperty("excluded_groups")
 	private List<String> excludedGroups;
+
+    private String parentId;
 
 	public String getName() {
 		return name;
@@ -119,4 +122,8 @@ public class UpdatePageEntity {
 	public void setExcludedGroups(List<String> excludedGroups) {
 		this.excludedGroups = excludedGroups;
 	}
+
+    public String getParentId() { return parentId; }
+
+    public void setParentId(String parentId) { this.parentId = parentId; }
 }

@@ -25,14 +25,15 @@ import java.util.Optional;
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
+ * @author Guillaume GILLON 
  */
 public interface PageService {
 
 	List<PageListItem> findApiPagesByApi(String apiId);
 
-	List<PageListItem> findApiPagesByApiAndHomepage(String apiId, Boolean homepage);
+	List<PageListItem> findApiPagesByApiAndHomepage(String apiId, Boolean homepage, Boolean flatMode);
 
-	List<PageListItem> findPortalPagesByHomepage(Boolean homepage);
+	List<PageListItem> findPortalPagesByHomepage(Boolean homepage, Boolean flatMode);
 
 	PageEntity findById(String pageId);
 
