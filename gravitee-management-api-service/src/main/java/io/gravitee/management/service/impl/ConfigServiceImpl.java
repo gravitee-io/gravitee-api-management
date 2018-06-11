@@ -71,19 +71,20 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     boolean accessible = f.isAccessible();
                     f.setAccessible(true);
                     try {
+                        final List<String> values = parameterMap.get(parameterKey.value().key());
                         if (PortalConfigEntity.Enabled.class.isAssignableFrom(f.getType())) {
-                            f.set(o, Boolean.valueOf(parameterMap.get(parameterKey.value().key()).get(0))
+                            f.set(o, Boolean.valueOf(getFirstValueOrEmpty(values))
                                     ? PortalConfigEntity.TRUE
                                     : PortalConfigEntity.FALSE
                             );
                         } else if (Boolean.class.isAssignableFrom(f.getType())) {
-                            f.set(o, Boolean.valueOf(parameterMap.get(parameterKey.value().key()).get(0)));
+                            f.set(o, Boolean.valueOf(getFirstValueOrEmpty(values)));
                         } else if (Integer.class.isAssignableFrom(f.getType())) {
-                            f.set(o, Integer.valueOf(parameterMap.get(parameterKey.value().key()).get(0)));
+                            f.set(o, Integer.valueOf(getFirstValueOrEmpty(values)));
                         } else if (List.class.isAssignableFrom(f.getType())) {
-                            f.set(o, parameterMap.get(parameterKey.value().key()));
+                            f.set(o, values);
                         } else {
-                            f.set(o, parameterMap.get(parameterKey.value().key()).get(0));
+                            f.set(o, getFirstValueOrEmpty(values));
                         }
                     } catch (IllegalAccessException e) {
                         LOGGER.error("Unable to set parameter {}. Use the default value", parameterKey.value().key(), e);
@@ -95,6 +96,10 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
         enhanceFromConfigFile(portalConfigEntity);
         return portalConfigEntity;
+    }
+
+    private String getFirstValueOrEmpty(final List<String> values) {
+        return values.isEmpty()?"":values.get(0);
     }
 
     private void enhanceFromConfigFile(PortalConfigEntity portalConfigEntity) {
