@@ -196,7 +196,7 @@ class UserService {
   }
 
   currentUserPicture(): string {
-    if (this.currentUser) {
+    if (this.currentUser && this.currentUser.username) {
       return `${this.userURL}avatar?${this.StringService.hashCode(this.currentUser.username)}`;
     }
   }

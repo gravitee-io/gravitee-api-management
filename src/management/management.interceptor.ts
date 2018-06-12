@@ -45,6 +45,8 @@ function interceptorConfig(
               $injector.get('$timeout')(function () {
                 $injector.get('$rootScope').$broadcast('graviteeLogout');
               }, 2000);
+            } else {
+              $injector.get('$state').go('portal.home');
             }
           }
         } else {
