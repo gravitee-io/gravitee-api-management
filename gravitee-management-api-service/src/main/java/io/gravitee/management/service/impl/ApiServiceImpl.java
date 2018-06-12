@@ -55,6 +55,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
 
@@ -1015,6 +1016,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         int poMissing = apis.size() - memberships.size();
         final Set<String> apiIds = apis.stream().map(Api::getId).collect(Collectors.toSet());
+        Stream<Api> streamApis = apis.stream();
         if (poMissing > 0) {
             Set<String> apiMembershipsIds = memberships.stream().map(Membership::getReferenceId).collect(Collectors.toSet());
 
@@ -1025,6 +1027,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 apisAsString = optionalApisAsString.get();
             }
             LOGGER.error("{} apis has no identified primary owners in this list {}.", poMissing , apisAsString);
+            streamApis = streamApis.filter(api -> !apiIds.contains(api.getId()));
         }
 
         Map<String, String> apiToUser = new HashMap<>(memberships.size());
@@ -1034,8 +1037,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         userService.findByIds(memberships.stream().map(Membership::getUserId).collect(Collectors.toList()))
                 .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
-        return apis.stream()
-                .filter(api -> !apiIds.contains(api.getId()))
+        return streamApis
                 .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId())), readDefinition))
                 .collect(Collectors.toSet());
     }
