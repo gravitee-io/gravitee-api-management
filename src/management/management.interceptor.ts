@@ -46,7 +46,8 @@ function interceptorConfig(
                 $injector.get('$rootScope').$broadcast('graviteeLogout');
               }, 2000);
             } else {
-              $injector.get('$state').go('portal.home');
+              let state = ($injector.get('$state') as ng.ui.IStateService);
+              state.go('portal.home');
             }
           }
         } else {
