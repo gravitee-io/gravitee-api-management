@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.management.standalone</groupId>
         <artifactId>gravitee-management-api-standalone</artifactId>
-        <version>1.15.4</version>
+        <version>1.15.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-management-api-standalone-bootstrap</artifactId>
