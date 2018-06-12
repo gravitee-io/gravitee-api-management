@@ -17,6 +17,7 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.PortalConfigEntity;
 import io.gravitee.management.model.annotations.ParameterKey;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.ConfigService;
 import io.gravitee.management.service.ParameterService;
 import org.slf4j.Logger;
@@ -52,39 +53,43 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         Object[] objects = getObjectArray(portalConfigEntity);
 
         // get values from DB
-        List<String> parameterKeys = new ArrayList<>();
-        for (Object o: objects) {
+        final List<Key> parameterKeys = new ArrayList<>();
+        for (Object o : objects) {
             for (Field f : o.getClass().getDeclaredFields()) {
                 ParameterKey parameterKey = f.getAnnotation(ParameterKey.class);
                 if (parameterKey != null) {
-                    parameterKeys.add(parameterKey.value().key());
+                    parameterKeys.add(parameterKey.value());
                 }
             }
         }
         Map<String, List<String>> parameterMap = parameterService.findAll(parameterKeys);
 
         // set values
-        for (Object o: objects) {
+        for (Object o : objects) {
             for (Field f : o.getClass().getDeclaredFields()) {
                 ParameterKey parameterKey = f.getAnnotation(ParameterKey.class);
-                if (parameterKey != null && parameterMap.containsKey(parameterKey.value().key())) {
+                if (parameterKey != null) {
                     boolean accessible = f.isAccessible();
                     f.setAccessible(true);
                     try {
                         final List<String> values = parameterMap.get(parameterKey.value().key());
                         if (PortalConfigEntity.Enabled.class.isAssignableFrom(f.getType())) {
-                            f.set(o, Boolean.valueOf(getFirstValueOrEmpty(values))
+                            f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, parameterKey.value().defaultValue()))
                                     ? PortalConfigEntity.TRUE
                                     : PortalConfigEntity.FALSE
                             );
                         } else if (Boolean.class.isAssignableFrom(f.getType())) {
-                            f.set(o, Boolean.valueOf(getFirstValueOrEmpty(values)));
+                            f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, parameterKey.value().defaultValue())));
                         } else if (Integer.class.isAssignableFrom(f.getType())) {
-                            f.set(o, Integer.valueOf(getFirstValueOrEmpty(values)));
+                            f.set(o, Integer.valueOf(getFirstValueOrDefault(values, parameterKey.value().defaultValue())));
                         } else if (List.class.isAssignableFrom(f.getType())) {
-                            f.set(o, values);
+                            if (values == null || values.isEmpty()) {
+                                f.set(o, parameterKey.value().defaultValue());
+                            } else {
+                                f.set(o, values);
+                            }
                         } else {
-                            f.set(o, getFirstValueOrEmpty(values));
+                            f.set(o, getFirstValueOrDefault(values, parameterKey.value().defaultValue()));
                         }
                     } catch (IllegalAccessException e) {
                         LOGGER.error("Unable to set parameter {}. Use the default value", parameterKey.value().key(), e);
@@ -98,8 +103,13 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         return portalConfigEntity;
     }
 
-    private String getFirstValueOrEmpty(final List<String> values) {
-        return values.isEmpty()?"":values.get(0);
+    private String getFirstValueOrDefault(final List<String> values, final String defaultValue) {
+        if (values == null) {
+            return defaultValue;
+        } else if (values.isEmpty()) {
+            return "";
+        }
+        return values.get(0);
     }
 
     private void enhanceFromConfigFile(PortalConfigEntity portalConfigEntity) {
@@ -128,7 +138,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     public void save(PortalConfigEntity portalConfigEntity) {
         Object[] objects = getObjectArray(portalConfigEntity);
 
-        for (Object o: objects) {
+        for (Object o : objects) {
             for (Field f : o.getClass().getDeclaredFields()) {
                 ParameterKey parameterKey = f.getAnnotation(ParameterKey.class);
                 if (parameterKey != null) {
@@ -136,7 +146,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     f.setAccessible(true);
                     try {
                         Object value;
-                        if (f.get(o) != null && PortalConfigEntity.Enabled.class.isAssignableFrom(f.getType())){
+                        if (f.get(o) != null && PortalConfigEntity.Enabled.class.isAssignableFrom(f.getType())) {
                             value = Boolean.toString(((PortalConfigEntity.Enabled) f.get(o)).isEnabled());
                         } else if (f.get(o) != null && !Collection.class.isAssignableFrom(f.getType())) {
                             value = f.get(o).toString();
@@ -145,9 +155,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                         }
 
                         if (List.class.isAssignableFrom(f.getType())) {
-                            parameterService.save(parameterKey.value().key(), (List)value);
+                            parameterService.save(parameterKey.value(), (List) value);
                         } else {
-                            parameterService.save(parameterKey.value().key(), (String)value);
+                            parameterService.save(parameterKey.value(), (String) value);
                         }
                     } catch (IllegalAccessException e) {
                         LOGGER.error("Unable to set parameter {}. Use the default value", parameterKey.value().key(), e);

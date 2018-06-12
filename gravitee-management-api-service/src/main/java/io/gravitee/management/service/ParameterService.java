@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.repository.management.model.Parameter;
 
 import java.util.List;
@@ -30,16 +31,16 @@ import java.util.function.Predicate;
 public interface ParameterService {
 
 
-    boolean findAsBoolean(String key);
-    List<String> findAll(String key);
-    Map<String, List<String>> findAll(List<String> keys);
+    boolean findAsBoolean(Key key);
+    List<String> findAll(Key key);
+    Map<String, List<String>> findAll(List<Key> keys);
 
-    <T> List<T> findAll(String key, Function<String, T> mapper);
-    <T> Map<String, List<T>> findAll(List<String> keys, Function<String, T> mapper);
+    <T> List<T> findAll(Key key, Function<String, T> mapper);
+    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper);
 
-    <T> List<T> findAll(String key, Function<String, T> mapper, Predicate<String> filter);
-    <T> Map<String, List<T>> findAll(List<String> keys, Function<String, T> mapper, Predicate<String> filter);
+    <T> List<T> findAll(Key key, Function<String, T> mapper, Predicate<String> filter);
+    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, Predicate<String> filter);
 
-    Parameter save(String key, String value);
-    Parameter save(String key, List<String> value);
+    Parameter save(Key key, String value);
+    Parameter save(Key key, List<String> value);
 }

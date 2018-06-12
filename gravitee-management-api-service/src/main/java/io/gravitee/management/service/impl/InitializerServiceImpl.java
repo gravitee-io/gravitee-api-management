@@ -16,7 +16,6 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.ApplicationPermission;
 import io.gravitee.management.model.permissions.ManagementPermission;
@@ -29,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -214,12 +212,6 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
         if(!optionalAllView.isPresent()) {
             logger.info("Create default View");
             viewService.createDefaultView();
-        }
-
-        // Initialize default portal config
-        List<String> defaultConfigValues = parameterService.findAll(Key.PORTAL_USERCREATION_ENABLED.key());
-        if (defaultConfigValues.isEmpty()) {
-            configService.save(new PortalConfigEntity());
         }
     }
 }

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Path;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.annotations.ParameterKey;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.plan.PlanQuery;
 import io.gravitee.management.service.AuditService;
@@ -555,7 +554,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             default:
                 return;
         }
-        if(!parameterService.findAsBoolean(securityKey.key())) {
+        if(!parameterService.findAsBoolean(securityKey)) {
             throw new UnauthorizedPlanSecurityTypeException(securityType);
         }
     }

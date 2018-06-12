@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.management.model.annotations.ParameterKey;
 import io.gravitee.management.model.parameters.Key;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -113,10 +112,6 @@ public class PortalConfigEntity {
         @ParameterKey(Key.COMPANY_NAME)
         private String name;
 
-        public Company() {
-            name = "Gravitee.io";
-        }
-
         public String getName() {
             return name;
         }
@@ -147,14 +142,7 @@ public class PortalConfigEntity {
         private PortalDashboard dashboard;
 
         public Portal() {
-            title = "Gravitee.io Portal";
-            entrypoint = "https://api.company.com";
-            apikeyHeader = "X-Gravitee-Api-Key";
             apis = new PortalApis();
-            support = FALSE;
-            rating = FALSE;
-            devMode = FALSE;
-            userCreation = TRUE;
             analytics = new PortalAnalytics();
             dashboard = new PortalDashboard();
         }
@@ -253,10 +241,6 @@ public class PortalConfigEntity {
         @ParameterKey(Key.MANAGEMENT_TITLE)
         private String title;
 
-        public Management() {
-            title = "Gravitee.io Management";
-        }
-
         public String getTitle() {
             return title;
         }
@@ -275,13 +259,6 @@ public class PortalConfigEntity {
         private String loader;
         @ParameterKey(Key.THEME_CSS)
         private String css;
-
-        public Theme() {
-            name = "default";
-            logo = "themes/assets/GRAVITEE_LOGO1-01.png";
-            loader = "assets/gravitee_logo_anim.gif";
-            //css = "themes/assets/gravitee.css";
-        }
 
         public String getName() {
             return name;
@@ -326,8 +303,6 @@ public class PortalConfigEntity {
         private OAuth2Authentication oauth2;
 
         public Authentication() {
-            forceLogin = FALSE;
-            localLogin = TRUE;
             google = new GoogleAuthentication();
             github = new GithubAuthentication();
             oauth2 = new OAuth2Authentication();
@@ -415,11 +390,6 @@ public class PortalConfigEntity {
         @ParameterKey(Key.AUTHENTICATION_OAUTH2_SCOPE)
         private List<String> scope;
 
-        public OAuth2Authentication() {
-            scope = Collections.emptyList();
-            color = "#0076b4";
-        }
-
         public String getClientId() {
             return clientId;
         }
@@ -498,15 +468,6 @@ public class PortalConfigEntity {
         @ParameterKey(Key.PORTAL_ANALYTICS_TRACKINGID)
         private String trackingId;
 
-        public PortalAnalytics() {
-            enabled = false;
-        }
-
-        public PortalAnalytics(boolean enabled, String trackingId) {
-            this.enabled = enabled;
-            this.trackingId = trackingId;
-        }
-
         public Boolean isEnabled() {
             return enabled;
         }
@@ -533,11 +494,6 @@ public class PortalConfigEntity {
         @JsonProperty("notifications")
         @ParameterKey(Key.SCHEDULER_NOTIFICATIONS)
         private Integer notificationsInSeconds;
-
-        public Scheduler() {
-            tasksInSeconds = 10;
-            notificationsInSeconds = 10;
-        }
 
         public Integer getTasksInSeconds() {
             return tasksInSeconds;
@@ -591,10 +547,6 @@ public class PortalConfigEntity {
         @ParameterKey(Key.DOCUMENTATION_URL)
         String url;
 
-        public Documentation() {
-            url = "https://docs.gravitee.io";
-        }
-
         public String getUrl() {
             return url;
         }
@@ -630,13 +582,6 @@ public class PortalConfigEntity {
 
         @ParameterKey(Key.PLAN_SECURITY_JWT_ENABLED)
         private Enabled jwt;
-
-        public PlanSecurity() {
-            apikey = TRUE;
-            oauth2 = TRUE;
-            keyless = TRUE;
-            jwt = TRUE;
-        }
 
         public Enabled getApikey() {
             return apikey;

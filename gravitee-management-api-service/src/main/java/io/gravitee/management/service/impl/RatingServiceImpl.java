@@ -235,7 +235,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public boolean isEnabled() {
-        return parameterService.findAsBoolean(Key.PORTAL_RATING_ENABLED.key());
+        return parameterService.findAsBoolean(Key.PORTAL_RATING_ENABLED);
     }
 
     private Rating findById(String id) {

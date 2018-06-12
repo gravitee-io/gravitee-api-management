@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.impl;
 
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.ParameterService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -57,35 +58,41 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     private AuditService auditService;
 
     @Override
-    public boolean findAsBoolean(String key) {
-        List<String> values = findAll(key);
-        return values != null && !values.isEmpty() && Boolean.valueOf(values.get(0));
+    public boolean findAsBoolean(final Key key) {
+        final List<String> values = findAll(key);
+        final String value;
+        if (values == null || values.isEmpty()) {
+            value = key.defaultValue();
+        } else {
+            value = values.get(0);
+        }
+        return Boolean.valueOf(value);
     }
 
     @Override
-    public List<String> findAll(final String key) {
+    public List<String> findAll(final Key key) {
         return findAll(key, value -> value, null);
     }
 
     @Override
-    public Map<String, List<String>> findAll(final List<String> keys) {
+    public Map<String, List<String>> findAll(final List<Key> keys) {
         return findAll(keys, value -> value, null);
     }
 
     @Override
-    public <T> List<T> findAll(final String key, final Function<String, T> mapper) {
+    public <T> List<T> findAll(final Key key, final Function<String, T> mapper) {
         return findAll(key, mapper, null);
     }
 
     @Override
-    public <T> Map<String, List<T>> findAll(final List<String> keys, final Function<String, T> mapper) {
+    public <T> Map<String, List<T>> findAll(final List<Key> keys, final Function<String, T> mapper) {
         return findAll(keys, mapper, null);
     }
 
     @Override
-    public <T> List<T> findAll(final String key, final Function<String, T> mapper, final Predicate<String> filter) {
+    public <T> List<T> findAll(final Key key, final Function<String, T> mapper, final Predicate<String> filter) {
         try {
-            final Optional<Parameter> optionalParameter = parameterRepository.findById(key);
+            final Optional<Parameter> optionalParameter = parameterRepository.findById(key.key());
             if (optionalParameter.isPresent()) {
                 return splitValue(optionalParameter.get().getValue(), mapper, filter);
             }
@@ -98,9 +105,9 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     @Override
-    public <T> Map<String, List<T>> findAll(List<String> keys, Function<String, T> mapper, Predicate<String> filter) {
+    public <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, Predicate<String> filter) {
         try {
-            List<Parameter> parameters = parameterRepository.findAll(keys);
+            List<Parameter> parameters = parameterRepository.findAll(keys.stream().map(Key::key).collect(toList()));
             if (parameters.isEmpty()) {
                 return emptyMap();
             }
@@ -126,19 +133,19 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     @Override
-    public Parameter save(final String key, final String value) {
+    public Parameter save(final Key key, final String value) {
 
         try {
-            Optional<Parameter> optionalParameter = parameterRepository.findById(key);
+            Optional<Parameter> optionalParameter = parameterRepository.findById(key.key());
             final boolean updateMode = optionalParameter.isPresent();
 
             final Parameter parameter = new Parameter();
-            parameter.setKey(key);
+            parameter.setKey(key.key());
             parameter.setValue(value);
 
             if (updateMode) {
                 if (value == null) {
-                    parameterRepository.delete(key);
+                    parameterRepository.delete(key.key());
                     return null;
                 } else {
                     final Parameter updatedParameter = parameterRepository.update(parameter);
@@ -172,7 +179,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     @Override
-    public Parameter save(final String key, final List<String> values) {
+    public Parameter save(final Key key, final List<String> values) {
         return save(key, values==null ? null : join(SEPARATOR, values));
     }
 }

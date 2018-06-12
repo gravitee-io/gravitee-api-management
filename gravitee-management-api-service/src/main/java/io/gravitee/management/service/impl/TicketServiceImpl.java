@@ -59,7 +59,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     private ParameterService parameterService;
 
     private boolean isEnabled() {
-        return parameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key());
+        return parameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED);
     }
 
     @Override

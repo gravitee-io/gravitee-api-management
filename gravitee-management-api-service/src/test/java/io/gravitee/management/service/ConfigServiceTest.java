@@ -28,6 +28,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.util.*;
 
+import static io.gravitee.management.model.parameters.Key.COMPANY_NAME;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -53,7 +54,7 @@ public class ConfigServiceTest {
     public void shouldGetPortalConfig() {
 
         Map<String, List<String>> params = new HashMap<>();
-        params.put(Key.COMPANY_NAME.key(), singletonList("ACME"));
+        params.put(COMPANY_NAME.key(), singletonList("ACME"));
         params.put(Key.AUTHENTICATION_FORCELOGIN_ENABLED.key(), singletonList("true"));
         params.put(Key.AUTHENTICATION_OAUTH2_SCOPE.key(), Arrays.asList("scope1", "scope2"));
         params.put(Key.SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
@@ -74,10 +75,10 @@ public class ConfigServiceTest {
     public void shouldCreateProtalConfig() {
         PortalConfigEntity portalConfigEntity = new PortalConfigEntity();
         portalConfigEntity.getCompany().setName("ACME");
-        when(mockParameterService.save(Key.COMPANY_NAME.key(), "ACME")).thenReturn(new Parameter());
+        when(mockParameterService.save(COMPANY_NAME, "ACME")).thenReturn(new Parameter());
 
         configService.save(portalConfigEntity);
 
-        verify(mockParameterService, times(1)).save(Key.COMPANY_NAME.key(), "ACME");
+        verify(mockParameterService, times(1)).save(COMPANY_NAME, "ACME");
     }
 }

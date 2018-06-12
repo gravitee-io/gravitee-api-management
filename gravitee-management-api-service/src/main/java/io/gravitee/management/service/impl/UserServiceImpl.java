@@ -224,7 +224,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     private void checkUserRegistrationEnabled() {
-        if (!parameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED.key())) {
+        if (!parameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)) {
             throw new IllegalStateException("The user registration is disabled");
         }
     }

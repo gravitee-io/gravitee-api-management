@@ -39,7 +39,6 @@ import static io.gravitee.management.service.impl.InitializerServiceImpl.DEFAULT
 import static io.gravitee.management.service.impl.InitializerServiceImpl.METADATA_EMAIL_SUPPORT_KEY;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -86,13 +85,13 @@ public class TicketServiceTest {
 
     @Test(expected = SupportUnavailableException.class)
     public void shouldNotCreateIfSupportDisabled() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key())).thenReturn(Boolean.FALSE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.FALSE);
         ticketService.create(USERNAME, newTicketEntity);
     }
 
     @Test(expected = EmailRequiredException.class)
     public void shouldNotCreateIfUserEmailIsMissing() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key())).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.TRUE);
         when(userService.findById(USERNAME)).thenReturn(user);
 
         ticketService.create(USERNAME, newTicketEntity);
@@ -100,7 +99,7 @@ public class TicketServiceTest {
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateIfDefaultEmailSupportIsMissing() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key())).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.TRUE);
         when(userService.findById(USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
@@ -111,7 +110,7 @@ public class TicketServiceTest {
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateIfDefaultEmailSupportHasNotBeenChanged() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key())).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
         when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
@@ -130,7 +129,7 @@ public class TicketServiceTest {
 
     @Test
     public void shouldCreateWithApi() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED.key())).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
         when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);

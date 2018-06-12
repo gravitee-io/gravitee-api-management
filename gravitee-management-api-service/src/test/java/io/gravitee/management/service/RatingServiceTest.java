@@ -48,7 +48,6 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -112,7 +111,7 @@ public class RatingServiceTest {
         when(userService.findById(USER)).thenReturn(user);
         when(user.getId()).thenReturn(USER);
 
-        when(mockParameterService.findAsBoolean(Key.PORTAL_RATING_ENABLED.key())).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_RATING_ENABLED)).thenReturn(Boolean.TRUE);
     }
 
     @Test(expected = RatingAlreadyExistsException.class)

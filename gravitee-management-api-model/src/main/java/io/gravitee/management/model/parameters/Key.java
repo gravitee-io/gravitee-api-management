@@ -17,59 +17,70 @@ package io.gravitee.management.model.parameters;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum Key {
-    COMPANY_NAME("company.name"),
+    COMPANY_NAME("company.name", "Gravitee.io"),
 
-    PORTAL_TITLE("portal.title"),
-    PORTAL_ENTRYPOINT("portal.entrypoint"),
-    PORTAL_APIKEY_HEADER("portal.apikey.header"),
-    PORTAL_SUPPORT_ENABLED("portal.support.enabled"),
-    PORTAL_RATING_ENABLED("portal.rating.enabled"),
-    PORTAL_DEVMODE_ENABLED("portal.devMode.enabled"),
-    PORTAL_USERCREATION_ENABLED("portal.userCreation.enabled"),
-    PORTAL_ANALYTICS_ENABLED("portal.analytics.enabled"),
+    PORTAL_TOP_APIS("portal.top-apis"),
+    PORTAL_TITLE("portal.title", "Gravitee.io Portal"),
+    PORTAL_ENTRYPOINT("portal.entrypoint", "https://api.company.com"),
+    PORTAL_APIKEY_HEADER("portal.apikey.header", "X-Gravitee-Api-Key"),
+    PORTAL_SUPPORT_ENABLED("portal.support.enabled", "false"),
+    PORTAL_RATING_ENABLED("portal.rating.enabled", "false"),
+    PORTAL_DEVMODE_ENABLED("portal.devMode.enabled", "false"),
+    PORTAL_USERCREATION_ENABLED("portal.userCreation.enabled", "true"),
+    PORTAL_ANALYTICS_ENABLED("portal.analytics.enabled", "false"),
     PORTAL_ANALYTICS_TRACKINGID("portal.analytics.trackingId"),
-    PORTAL_APIS_TILESMODE_ENABLED("portal.apis.tilesMode.enabled"),
+    PORTAL_APIS_TILESMODE_ENABLED("portal.apis.tilesMode.enabled", "true"),
     PORTAL_DASHBOARD_WIDGETS("portal.dashboard.widgets"),
 
-    MANAGEMENT_TITLE("management.title"),
+    MANAGEMENT_TITLE("management.title", "Gravitee.io Management"),
 
-    THEME_NAME("theme.name"),
-    THEME_LOGO("theme.logo"),
-    THEME_LOADER("theme.loader"),
+    THEME_NAME("theme.name", "default"),
+    THEME_LOGO("theme.logo", "themes/assets/GRAVITEE_LOGO1-01.png"),
+    THEME_LOADER("theme.loader", "assets/gravitee_logo_anim.gif"),
     THEME_CSS("theme.css"),
 
-    AUTHENTICATION_FORCELOGIN_ENABLED("authentication.forceLogin.enabled"),
-    AUTHENTICATION_LOCALLOGIN_ENABLED("authentication.localLogin.enabled"),
+    AUTHENTICATION_FORCELOGIN_ENABLED("authentication.forceLogin.enabled", "false"),
+    AUTHENTICATION_LOCALLOGIN_ENABLED("authentication.localLogin.enabled", "true"),
     AUTHENTICATION_GOOGLE_CLIENTID("authentication.google.clientId"),
     AUTHENTICATION_GITHUB_CLIENTID("authentication.github.clientId"),
     AUTHENTICATION_OAUTH2_CLIENTID("authentication.oauth2.clientId"),
     AUTHENTICATION_OAUTH2_NAME("authentication.oauth2.name"),
-    AUTHENTICATION_OAUTH2_COLOR("authentication.oauth2.color"),
+    AUTHENTICATION_OAUTH2_COLOR("authentication.oauth2.color", "#0076b4"),
     AUTHENTICATION_OAUTH2_AUTHORIZATION_ENDPOINT("authentication.oauth2.authorization.endpoint"),
     AUTHENTICATION_OAUTH2_USER_LOGOUT_ENDPOINT("authentication.oauth2.user.logout.endpoint"),
     AUTHENTICATION_OAUTH2_SCOPE("authentication.oauth2.scopes"),
 
-    SCHEDULER_TASKS("scheduler.tasks"),
-    SCHEDULER_NOTIFICATIONS("scheduler.notifications"),
+    SCHEDULER_TASKS("scheduler.tasks", "10"),
+    SCHEDULER_NOTIFICATIONS("scheduler.notifications", "10"),
 
-    DOCUMENTATION_URL("documentation.url"),
+    DOCUMENTATION_URL("documentation.url", "https://docs.gravitee.io"),
 
-    PLAN_SECURITY_JWT_ENABLED("plan.security.jwt.enabled"),
-    PLAN_SECURITY_OAUTH2_ENABLED("plan.security.oauth2.enabled"),
-    PLAN_SECURITY_APIKEY_ENABLED("plan.security.apikey.enabled"),
-    PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled")
-    ;
+    PLAN_SECURITY_JWT_ENABLED("plan.security.jwt.enabled", "true"),
+    PLAN_SECURITY_OAUTH2_ENABLED("plan.security.oauth2.enabled", "true"),
+    PLAN_SECURITY_APIKEY_ENABLED("plan.security.apikey.enabled", "true"),
+    PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled", "true");
 
     String key;
+    String defaultValue;
 
     Key(String key) {
         this.key = key;
     }
 
+    Key(String key, String defaultValue) {
+        this.key = key;
+        this.defaultValue = defaultValue;
+    }
+
     public String key() {
         return key;
+    }
+
+    public String defaultValue() {
+        return defaultValue;
     }
 }
