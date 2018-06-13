@@ -21,6 +21,7 @@ import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.service.impl.SwaggerServiceImpl;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -36,6 +37,7 @@ import static org.junit.Assert.*;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Ignore
 @RunWith(MockitoJUnitRunner.class)
 public class SwaggerService_PrepareTest {
 

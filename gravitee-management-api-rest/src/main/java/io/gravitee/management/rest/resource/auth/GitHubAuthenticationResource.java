@@ -16,6 +16,7 @@
 package io.gravitee.management.rest.resource.auth;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.NewExternalUserEntity;
 import io.gravitee.management.model.UpdateUserEntity;
@@ -80,7 +81,7 @@ public class GitHubAuthenticationResource extends AbstractAuthenticationResource
         accessData.add(CLIENT_ID_KEY, payload.getClientId());
         accessData.add(REDIRECT_URI_KEY, payload.getRedirectUri());
         accessData.add(CLIENT_SECRET,
-                (String) authenticationProvider.configuration().get("clientSecret"));
+                (String) EnvironmentUtils.get("clientSecret", authenticationProvider.configuration()));
         accessData.add(CODE_KEY, payload.getCode());
         accessData.add(GRANT_TYPE_KEY, AUTH_CODE);
         Response response = client.target(GITHUB_ACCESS_TOKEN_URL)

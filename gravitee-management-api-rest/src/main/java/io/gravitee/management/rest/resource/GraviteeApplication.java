@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.common.util.Version;
 import io.gravitee.management.rest.bind.AuthenticationBinder;
 import io.gravitee.management.rest.filter.PermissionsFilter;
@@ -107,8 +108,8 @@ public class GraviteeApplication extends ResourceConfig {
             Optional<AuthenticationProvider> socialProvider = authenticationProviderManager.findIdentityProviderByType(provider);
             if (socialProvider.isPresent()) {
                 Map<String, Object> configuration = socialProvider.get().configuration();
-                String clientId = (String) configuration.get("clientId");
-                String clientSecret = (String) configuration.get("clientSecret");
+                String clientId = (String) EnvironmentUtils.get("clientId", configuration);
+                String clientSecret = (String) EnvironmentUtils.get("clientSecret", configuration);
 
                 if (clientId != null && !clientId.isEmpty() && clientSecret != null && !clientSecret.isEmpty()) {
                     register(resource);

@@ -16,6 +16,7 @@
 package io.gravitee.management.rest.resource.auth;
 
 import com.google.common.base.Throwables;
+import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.gravitee.management.security.authentication.impl.OAuth2AuthenticationProvider;
@@ -79,8 +80,8 @@ class Oauth2TestAuthenticationProviderManager implements AuthenticationProviderM
 
     private Map<String,Object> createConfigMap() {
         Map<String,Object> configuration = new HashMap<>();
-        configuration.put("clientId","the_client_id");
-        configuration.put("clientSecret","the_client_secret");
+        configuration.put(EnvironmentUtils.encodedKey("clientId"),"the_client_id");
+        configuration.put(EnvironmentUtils.encodedKey("clientSecret"),"the_client_secret");
         return configuration;
     }
 
