@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import angular = require('angular');
+import _ = require('lodash');
 
 import NotificationService from '../services/notification.service';
-import {StateProvider} from "angular-ui-router";
 
 function interceptorConfig(
   $httpProvider: angular.IHttpProvider
@@ -47,7 +46,10 @@ function interceptorConfig(
                 $injector.get('$rootScope').$broadcast('graviteeLogout');
               }, 2000);
             } else {
-              ($injector.get('$state') as ng.ui.IStateService).go('portal.home');
+              let state = ($injector.get('$state') as ng.ui.IStateService);
+              if (!_.startsWith('portal.', state.current.name)) {
+                state.go('portal.home');
+              }
             }
           }
         } else {

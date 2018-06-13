@@ -103,7 +103,7 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         resolvedApiPermissions: (ApiService, $stateParams) => ApiService.getPermissions($stateParams.apiId),
         onEnter: function (UserService, resolvedApiPermissions) {
-          if (!UserService.currentUser.userApiPermissions) {
+          if (UserService.currentUser && !UserService.currentUser.userApiPermissions) {
             UserService.currentUser.userApiPermissions = [];
             _.forEach(_.keys(resolvedApiPermissions.data), function (permission) {
               _.forEach(resolvedApiPermissions.data[permission], function (right) {
