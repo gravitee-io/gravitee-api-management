@@ -57,7 +57,10 @@ public class EndpointHealthcheckResolver {
         if (gatewayConfiguration.tenant().isPresent()) {
             String tenant = gatewayConfiguration.tenant().get();
             httpEndpoints = httpEndpoints
-                    .filter(endpoint -> endpoint.getTenants() != null && endpoint.getTenants().contains(tenant));
+                    .filter(endpoint ->
+                            endpoint.getTenants() == null
+                            || endpoint.getTenants().isEmpty()
+                            || endpoint.getTenants().contains(tenant));
         }
 
         // Remove backup endpoints
