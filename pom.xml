@@ -29,11 +29,11 @@
 
     <groupId>io.gravitee.repository</groupId>
     <artifactId>gravitee-repository</artifactId>
-    <version>1.17.0-SNAPSHOT</version>
+    <version>1.17.0</version>
     <name>Gravitee.io APIM - Repository - API</name>
 
     <properties>
-        <gravitee-common.version>1.9.0</gravitee-common.version>
+        <gravitee-common.version>1.11.0</gravitee-common.version>
     </properties>
 
     <dependencies>
