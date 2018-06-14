@@ -34,6 +34,7 @@
             <th md-column></th>
             <th md-column md-order-by="name" ng-click="$ctrl.loadMore(query.order, searchApplications, false)"><span>Name</span></th>
             <th md-column md-order-by="type" ng-click="$ctrl.loadMore(query.order, searchApplications, false)">Type</th>
+            <th md-column md-order-by="owner.displayName" ng-click="$ctrl.loadMore(query.order, searchApplications, false)">Owner</th>
           </tr>
           </thead>
           <tbody md-body>
@@ -42,6 +43,7 @@
             <td md-cell class="api-box-icon default"></td>
             <td md-cell>{{application.name}}</td>
             <td md-cell>{{application.type}}</td>
+            <td md-cell>{{application.owner.displayName}}</td>
           </tr>
           </tbody>
         </table>
