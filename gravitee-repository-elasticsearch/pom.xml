@@ -42,8 +42,6 @@
 		<dependency>
 			<groupId>io.gravitee.repository</groupId>
 			<artifactId>gravitee-repository</artifactId>
-			<version>${gravitee-repository.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		
 		<!-- Used to consume JSON REST services -->

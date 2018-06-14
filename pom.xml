@@ -50,6 +50,35 @@
 		<module>gravitee-reporter-elasticsearch</module>
 	</modules>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.gravitee.gateway</groupId>
+				<artifactId>gravitee-gateway-api</artifactId>
+				<version>${gravitee-gateway-api.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.gravitee.reporter</groupId>
+				<artifactId>gravitee-reporter-api</artifactId>
+				<version>${gravitee-reporter-api.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.gravitee.policy</groupId>
+				<artifactId>gravitee-policy-api</artifactId>
+				<version>${gravitee-policy-api.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.gravitee.repository</groupId>
+				<artifactId>gravitee-repository</artifactId>
+				<version>${gravitee-repository.version}</version>
+				<scope>provided</scope>
+			</dependency>
+        </dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<!-- Gravitee internal dependencies -->
 		<dependency>
