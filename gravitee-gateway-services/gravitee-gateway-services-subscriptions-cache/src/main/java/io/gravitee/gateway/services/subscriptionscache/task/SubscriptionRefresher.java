@@ -149,6 +149,13 @@ public class SubscriptionRefresher implements Runnable {
             LOGGER.debug("Cache a subscription: plan[{}] application[{}] client_id[{}]", subscription.getPlan(), subscription.getApplication(), subscription.getClientId());
             cache.put(new Element(subscription.getId(), key));
             cache.put(new Element(key, subscription));
+
+            if (element != null) {
+                final String oldKey = (String) element.getObjectValue();
+                if (!oldKey.equals(key)) {
+                    cache.remove(oldKey);
+                }
+            }
         }
     }
 
