@@ -89,13 +89,13 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         boolean started = false;
         if (criteria.getFrom() > 0) {
             builder.append(WHERE_CLAUSE);
-            builder.append("created_at >= ?");
+            builder.append("updated_at >= ?");
             argsList.add(new Date(criteria.getFrom()));
             started = true;
         }
         if (criteria.getTo() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("created_at <= ?");
+            builder.append("updated_at <= ?");
             argsList.add(new Date(criteria.getTo()));
             started = true;
         }
