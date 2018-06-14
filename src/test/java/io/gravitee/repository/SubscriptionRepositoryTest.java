@@ -21,7 +21,10 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 
 import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
@@ -166,5 +169,19 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         subscriptionRepository.update(null);
         fail("A null subscription should not be updated");
+    }
+
+    @Test
+    public void shouldFindBetweenDates() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+                new SubscriptionCriteria.Builder()
+                        .from(1469022010883L)
+                        .to(1569022010883L)
+                        .build());
+
+        assertNotNull(subscriptions);
+        assertFalse(subscriptions.isEmpty());
+        assertEquals("Subscriptions size", 1, subscriptions.size());
+        assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
     }
 }

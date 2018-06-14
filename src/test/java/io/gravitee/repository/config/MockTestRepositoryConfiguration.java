@@ -997,6 +997,14 @@ public class MockTestRepositoryConfiguration {
                 return o == null || (o instanceof Subscription && ((Subscription) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
+
+        when(subscriptionRepository.search(
+                new SubscriptionCriteria.Builder()
+                        .from(1469022010883L)
+                        .to(1569022010883L)
+                        .build()))
+                .thenReturn(singletonList(sub1));
+
         return subscriptionRepository;
     }
 

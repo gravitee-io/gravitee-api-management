@@ -28,7 +28,8 @@
     "plan": "plan2",
     "application": "app1",
     "status": "PENDING",
-    "createdAt": 1739022010883
+    "createdAt": 1739022010883,
+    "updatedAt": 1739022010883
   },
   {
     "id":"sub4",
