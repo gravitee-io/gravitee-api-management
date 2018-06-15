@@ -98,7 +98,7 @@ class UserService {
 
       const apiRegex = /apis\/([\w|\-]+)/;
       const apiId = apiRegex.exec(this.$location.$$path);
-      if (!that.isLogout && apiId) {
+      if (!that.isLogout && apiId && apiId[1] !== 'new') {
         promises.push(this.ApiService.getPermissions(apiId[1]));
       }
 

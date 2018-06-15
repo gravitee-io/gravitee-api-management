@@ -32,17 +32,6 @@ class NewApiController {
   };
   private contextPathInvalid: boolean;
   private plan: any;
-  /*
-  private plan: {
-    name: string;
-    characteristics: any[];
-    security: string;
-    validation: string
-    paths: {
-      [path: string]: any[];
-    }
-  };
-  */
 
   private pages: any;
   private securityTypes: { id: string; name: string }[];
@@ -63,9 +52,8 @@ class NewApiController {
 
   constructor(private $scope, private $timeout, private $mdDialog, private $stateParams, private $window, private ApiService, private NotificationService, private $state) {
     'ngInject';
-
-    this.api = _.clone(this.$stateParams.api) !== null ? _.clone(this.$stateParams.api) : {};
     this.contextPathInvalid = true;
+    this.api = {};
     this.api.proxy = {};
     this.api.proxy.endpoints = [];
     this.api.pages = [];

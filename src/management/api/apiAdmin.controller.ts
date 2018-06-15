@@ -32,6 +32,7 @@ class ApiAdminController {
     private resolvedApiState,
     private SidenavService: SidenavService) {
     'ngInject';
+
     this.$scope = $scope;
     this.$state = $state;
     this.$mdDialog = $mdDialog;

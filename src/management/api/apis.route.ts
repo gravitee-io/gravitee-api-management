@@ -79,9 +79,6 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
       template: require('./creation/newApi.html'),
       controller: 'NewApiController',
       controllerAs: 'newApiCtrl',
-      params: {
-        api: null
-      },
       data: {
         perms: {
           only: ['management-api-c']
@@ -94,9 +91,6 @@ function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
     .state('management.apis.create', {
       url: '/new/create',
       component: 'apiCreation',
-      params: {
-        api: null
-      },
       data: {
         perms: {
           only: ['management-api-c']
