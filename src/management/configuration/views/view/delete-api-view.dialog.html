@@ -15,4 +15,16 @@
     limitations under the License.
 
 -->
-<div ui-view></div>
+<md-dialog aria-label="Detach api '{{api}}'">
+  <md-dialog-content layout-padding>
+    <p>Are you sure you want to detach the API {{api}} ?</p>
+  </md-dialog-content>
+  <md-dialog-actions layout="row">
+    <md-button ng-click="cancel()" md-auto-focus class="md-primary">
+      Cancel
+    </md-button>
+    <md-button ng-click="ok()" class="md-raised md-warn">
+      Detach API
+    </md-button>
+  </md-dialog-actions>
+</md-dialog>

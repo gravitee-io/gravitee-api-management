@@ -18,9 +18,7 @@ import ViewService from '../../../services/view.service';
 import NotificationService from '../../../services/notification.service';
 
 class ViewsController {
-  private viewsToCreate: any[];
   private viewsToUpdate: any[];
-  private initialViews: any[];
   private views: any[];
 
   constructor(
@@ -28,10 +26,10 @@ class ViewsController {
     private NotificationService: NotificationService,
     private $q: ng.IQService,
     private $mdEditDialog,
-    private $mdDialog: angular.material.IDialogService) {
+    private $mdDialog: angular.material.IDialogService,
+    private $state: ng.ui.IStateService) {
     'ngInject';
 
-    this.viewsToCreate = [];
     this.viewsToUpdate = [];
   }
 
@@ -40,36 +38,6 @@ class ViewsController {
     _.forEach(this.views, (view, idx) => {
       view.order = idx;
     });
-  }
-
-  newView(event) {
-    event.stopPropagation();
-
-    this.$mdEditDialog
-      .small({
-        placeholder: 'Add a name',
-        save: input =>{
-          const view = {
-            name: input.$modelValue,
-            order: _.size(this.views),
-            hidden: false
-          };
-          this.viewsToCreate.push(view);
-          this.save();
-        },
-        targetEvent: event,
-        validators: {
-          'md-maxlength': 30
-        }
-      })
-      .then((ctrl) => {
-        const input = ctrl.getInput();
-
-        input.$viewChangeListeners.push(() => {
-          input.$setValidity('empty', input.$modelValue.length !== 0);
-          input.$setValidity('duplicate', !_.includes(_.map(this.views, 'name'), input.$modelValue));
-        });
-      });
   }
 
   toggleDefault(view) {
@@ -84,63 +52,11 @@ class ViewsController {
   }
 
   toggleVisibility(view) {
+    let that = this;
     view.hidden = !view.hidden;
-    this.viewsToUpdate.push(view);
-    this.save();
-  }
-
-  editName(event, view) {
-    event.stopPropagation();
-
-    let that = this;
-
-    let promise = this.$mdEditDialog.small({
-      modelValue: view.name,
-      placeholder: 'Add a name',
-      clickOutsideToClose: false,
-      save: function (input) {
-        view.name = input.$modelValue;
-        if (!_.includes(that.viewsToCreate, view)) {
-          that.viewsToUpdate.push(view);
-          that.save();
-        }
-      },
-      targetEvent: event,
-      validators: {
-        'md-maxlength': 30
-      }
-    });
-
-    promise.then(function (ctrl) {
-      let input = ctrl.getInput();
-
-      input.$viewChangeListeners.push(function () {
-        input.$setValidity('empty', input.$modelValue.length !== 0);
-      });
-    });
-  }
-
-  editDescription(event, view) {
-    event.stopPropagation();
-
-    let that = this;
-
-    this.$mdEditDialog.small({
-      modelValue: view.description,
-      placeholder: 'Add a description',
-      clickOutsideToClose: false,
-      save: function (input) {
-        view.description = input.$modelValue;
-        if (!_.includes(that.viewsToCreate, view)) {
-          that.viewsToUpdate.push(view);
-          that.save();
-        }
-      },
-      targetEvent: event,
-      validators: {
-        'md-maxlength': 160
-      }
-    });
+    this.ViewService.update(view).then(() => {
+      that.NotificationService.show('View ' + view.name + ' has been saved.');
+    })
   }
 
   upward(index) {
@@ -167,18 +83,9 @@ class ViewsController {
 
   private save() {
     let that = this;
-
-    this.$q.all([
-      this.ViewService.create(that.viewsToCreate),
-      this.ViewService.update(that.viewsToUpdate)
-    ]).then(function (resultArray) {
+    this.ViewService.updateViews(that.viewsToUpdate).then(() => {
       that.NotificationService.show("Views saved with success");
-      that.viewsToCreate = [];
       that.viewsToUpdate = [];
-      let createResult = resultArray[0];
-      if (createResult) {
-        that.views = _.sortBy(_.unionBy(createResult.data, that.views, 'name'), 'order');
-      }
     });
   }
 
@@ -192,17 +99,16 @@ class ViewsController {
       }
     }).then(function (deleteView) {
       if (deleteView) {
-        if (view.id) {
-          that.ViewService.delete(view).then(function () {
-            that.NotificationService.show("View '" + view.name + "' deleted with success");
-            _.remove(that.views, view);
-          });
-        } else {
-          _.remove(that.viewsToCreate, view);
+        that.ViewService.delete(view).then(function () {
+          that.NotificationService.show("View '" + view.name + "' deleted with success");
           _.remove(that.views, view);
-        }
+        });
       }
     });
+  }
+
+  selectView(view) {
+    this.$state.go('management.settings.view', {viewId: view.id})
   }
 }
 

@@ -20,7 +20,7 @@ class ViewService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.viewsURL = `${Constants.baseURL}configuration/views`;
+    this.viewsURL = `${Constants.baseURL}configuration/views/`;
   }
 
   list(all?: boolean) {
@@ -28,20 +28,26 @@ class ViewService {
     return this.$http.get(url);
   }
 
-  create(views) {
-    if (views && views.length) {
-      return this.$http.post(this.viewsURL, views);
-    }
+  get(viewId) {
+    return this.$http.get(this.viewsURL + viewId);
   }
 
-  update(views) {
+  create(view) {
+    return this.$http.post(this.viewsURL, view);
+  }
+
+  update(view) {
+    return this.$http.put(this.viewsURL + view.id, view);
+  }
+
+  updateViews(views) {
     if (views && views.length) {
       return this.$http.put(this.viewsURL, views);
     }
   }
 
   getDefault() {
-    return this.$http.get(this.viewsURL + "/default");
+    return this.$http.get(this.viewsURL + "default");
   }
 
   getDefaultOrFirstOne() {
@@ -62,9 +68,7 @@ class ViewService {
   }
 
   delete(view) {
-    if (view) {
-      return this.$http.delete(this.viewsURL + '/' + view.id);
-    }
+    return this.$http.delete(this.viewsURL + view.id);
   }
 }
 

@@ -249,8 +249,10 @@ import EventsService from '../services/events.service';
 import AnalyticsService from '../services/analytics.service';
 import DashboardController from '../management/platform/dashboard/dashboard.controller';
 import ViewsController from '../management/configuration/views/views.controller';
+import ViewController from './configuration/views/view/view.controller';
 import ViewService from '../services/view.service';
 import DeleteViewDialogController from '../management/configuration/views/delete.view.dialog.controller';
+import DeleteAPIViewDialogController from './configuration/views/view/delete-api-view.dialog.controller';
 import DialogAddGroupController from '../management/configuration/groups/add-group.dialog.controller';
 import DialogAddGroupMemberController from '../management/configuration/group/addMemberDialog.controller';
 import RegistrationController from '../user/registration/registration.controller';
@@ -280,6 +282,7 @@ import TenantService from '../services/tenant.service';
 import DeleteTenantDialogController from '../management/configuration/tenants/delete.tenant.dialog.controller';
 
 import ViewsComponent from '../management/configuration/views/views.component';
+import ViewComponent from './configuration/views/view/view.component';
 import TenantsComponent from '../management/configuration/tenants/tenants.component';
 import TagsComponent from '../management/configuration/tags/tags.component';
 import MetadataComponent from '../management/configuration/metadata/metadata.component';
@@ -477,8 +480,10 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('InstanceMonitoringController', InstanceMonitoringController)
   .controller('DashboardController', DashboardController)
   .controller('ViewsController', ViewsController)
+  .controller('ViewController', ViewController)
   .controller('TenantsController', TenantsController)
   .controller('DeleteViewDialogController', DeleteViewDialogController)
+  .controller('DeleteAPIViewDialogController', DeleteAPIViewDialogController)
   .controller('DeleteTenantDialogController', DeleteTenantDialogController)
   .component('groups', GroupsComponent)
   .component('group', GroupComponent)
@@ -553,6 +558,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvWidgetChartLine', WidgetChartLineComponent)
 
   .component('views', ViewsComponent)
+  .component('view', ViewComponent)
   .component('tenants', TenantsComponent)
   .component('tags', TagsComponent)
   .component('portalPages', PortalPagesComponent)

@@ -182,5 +182,16 @@
         "message": "您不能提交工单，因为您的帐户上没有配置电子邮件"
       }
     }
+  },
+  "views": {
+    "filter": "过滤Views..."
+  },
+  "view": {
+    "defaultDescription":  "检索{{viewName}}类别的API",
+    "api": {
+      "documentation": "文档",
+      "ratings": "评级"
+    },
+    "moreApis": "更多的API ..."
   }
 }

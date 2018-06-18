@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class PortalApisController {
+function DeleteAPIViewDialogController($scope, $mdDialog, api) {
+  'ngInject';
 
-  constructor (private $state,
-               private Constants) {
-    'ngInject';
-    if (Constants.portal
-      && Constants.portal.apis
-      && Constants.portal.apis.viewMode
-      && Constants.portal.apis.viewMode.enabled) {
-      $state.go('portal.views');
-    } else {
-      $state.go('portal.apilist');
-    }
-  }
+  $scope.api = api.name;
+
+  $scope.cancel = function() {
+    $mdDialog.cancel();
+  };
+
+  $scope.ok = function() {
+    $mdDialog.hide(true);
+  };
 }
+
+export default DeleteAPIViewDialogController;

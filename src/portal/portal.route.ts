@@ -20,6 +20,7 @@ import PortalPagesService from "../services/portalPages.service";
 import ApplicationService from "../services/applications.service";
 import UserService from '../services/user.service';
 import _ = require('lodash');
+import PortalViewsController from "./views/views.controller";
 
 function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
   'ngInject';
@@ -58,14 +59,12 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       }
     })
     .state('portal.apis', {
-      abstract: true,
-      url: '/apis',
-      template: require('./api/apis.html')
+      controller: 'PortalApisController'
     })
-    .state('portal.apis.list', {
-      url: '?view',
-      template: require('./api/apisList.html'),
-      controller: 'PortalApisController',
+    .state('portal.apilist', {
+      url: '/apis?view',
+      template: require('./api/api-list.html'),
+      controller: 'PortalApiListController',
       controllerAs: 'apisCtrl',
       resolve: {
         resolvedApis: function ($stateParams, ApiService, ViewService: ViewService) {
@@ -88,6 +87,25 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       },
       params: {
         view: undefined,
+      }
+    })
+    .state('portal.views', {
+      url: '/views',
+      template: require('./views/views.html'),
+      controller: 'PortalViewsController',
+      controllerAs: 'viewsCtrl',
+      resolve: {
+        resolvedViews: (ViewService: ViewService) => ViewService.list()
+      }
+    })
+    .state('portal.view', {
+      url: '/views/:viewId',
+      template: require('./views/view/view.html'),
+      controller: 'PortalViewController',
+      controllerAs: 'viewCtrl',
+      resolve: {
+        resolvedView: ($stateParams: ng.ui.IStateParamsService, ViewService: ViewService) => ViewService.get($stateParams.viewId),
+        resolvedApis: ($stateParams: ng.ui.IStateParamsService, ApiService:ApiService) => ApiService.list($stateParams.viewId)
       }
     })
     .state('portal.api', {

@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class PortalApisController {
+class PortalViewsController {
+  public views: any[];
 
-  constructor (private $state,
-               private Constants) {
+  constructor(private $state,
+              private resolvedViews) {
     'ngInject';
-    if (Constants.portal
-      && Constants.portal.apis
-      && Constants.portal.apis.viewMode
-      && Constants.portal.apis.viewMode.enabled) {
-      $state.go('portal.views');
-    } else {
-      $state.go('portal.apilist');
-    }
+    this.views = resolvedViews.data;
+  }
+
+  $onInit() {
+  }
+
+  goToView(view) {
+    this.$state.go('portal.view', {viewId: view.id});
   }
 }
+
+export default PortalViewsController;

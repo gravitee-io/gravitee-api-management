@@ -61,7 +61,7 @@ export class HomeController {
 
   goToView(event, view) {
     event.stopPropagation();
-    this.$state.go('portal.apis.list', {view: view});
+    this.$state.go('portal.apilist', {view: view});
   }
 
   goToRating(event, api) {

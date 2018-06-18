@@ -179,5 +179,16 @@
         "message": "Vous ne pouvez pas saisir de ticket car vous n'avez pas d'email configuré sur votre compte"
       }
     }
+  },
+  "views": {
+    "filter": "Filtrer les vues..."
+  },
+  "view": {
+    "defaultDescription":  "Retrouver les APIs de la catégorie {{viewName}}",
+    "api": {
+      "documentation": "Documentation",
+      "ratings": "Notes"
+    },
+    "moreApis": "Retrouver plus d'APIs ..."
   }
 }

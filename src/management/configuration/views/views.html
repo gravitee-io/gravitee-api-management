@@ -37,23 +37,15 @@
     </thead>
     <tbody md-body>
     <tr md-row ng-repeat="view in $ctrl.views | orderBy:view.order">
-      <td permission permission-only="'portal-view-u'"
-          md-cell ng-click="$ctrl.editName($event, view)" ng-class="{'gravitee-placeholder': !view.name}">
-        {{view.name || 'Add a name'}}
-      </td>
-      <td permission permission-only="'portal-view-u'"
-          md-cell ng-click="$ctrl.editDescription($event, view)" ng-class="{'gravitee-placeholder': !view.description}">
-        {{view.description || 'Add a description'}}
-      </td>
+      <td md-cell><a ng-click="$ctrl.selectView(view)">{{view.name}}</a></td>
+      <td md-cell>{{view.description}}</td>
       <td permission permission-only="'portal-view-u'" md-cell>
         <md-checkbox ng-model="view.defaultView" aria-label="default" ng-change="$ctrl.toggleDefault(view)"></md-checkbox>
       </td>
       <td permission permission-only="'portal-view-u'" md-cell>
         <ng-md-icon icon="visibility{{view.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility(view)"></ng-md-icon>
       </td>
-      <td permission permission-only="'portal-view-u'" md-cell ng-click="">
-        {{view.totalApis}}
-      </td>
+      <td md-cell>{{view.totalApis}}</td>
       <td md-cell layout="row" layout-align="center center">
         <div permission permission-only="'portal-view-u'">
           <ng-md-icon ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward($index)"></ng-md-icon>
@@ -63,30 +55,15 @@
       <td md-cell>
         <ng-md-icon permission permission-only="'portal-view-d'" icon="delete" ng-click="$ctrl.deleteView(view)" ng-if="view.id !== 'all'"></ng-md-icon>
       </td>
-      <!-- --------------------------------------------------------------------------------------------------------- -->
-      <td permission permission-except="'portal-view-u'">{{view.name}}</td>
-      <td permission permission-except="'portal-view-u'">{{view.description}}</td>
-      <td permission permission-except="'portal-view-u'">
-        <md-checkbox ng-model="view.defaultView" aria-label="default"></md-checkbox>
-      </td>
-      <td permission permission-except="'portal-view-u'">
-        <ng-md-icon icon="visibility{{view.hidden?'_off':''}}" ng-click="$ctrl.deleteView(view)"></ng-md-icon>
-      </td>
-      <td permission permission-except="'portal-view-u'" md-cell>
-        {{view.totalApis}}
-      </td>
-    </tr>
-    <tr md-row permission permission-only="'portal-view-c'">
-      <td md-cell ng-click="$ctrl.newView($event)" class="gravitee-placeholder">
-        New view
-      </td>
-      <td md-cell></td><!-- description -->
-      <td md-cell></td><!-- default     -->
-      <td md-cell></td><!-- visibility  -->
-      <td md-cell></td><!-- apis        -->
-      <td md-cell></td><!-- update      -->
-      <td md-cell></td><!-- delete      -->
     </tr>
     </tbody>
   </table>
 </md-table-container>
+
+<md-button permission permission-only="'portal-view-c'"
+           aria-label="Add view"
+           class="md-fab md-fab-bottom-right gravitee-add-button"
+           ui-sref="management.settings.viewnew">
+  <md-tooltip md-direction="top" md-visible="false">Add a new view</md-tooltip>
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

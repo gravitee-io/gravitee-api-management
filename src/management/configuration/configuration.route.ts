@@ -24,6 +24,7 @@ import {HookScope} from "../../entities/hookScope";
 import NotificationSettingsService from "../../services/notificationSettings.service";
 import TopApiService from "../../services/top-api.service";
 import UserService from "../../services/user.service";
+import ApiService from "../../services/api.service";
 import _ = require('lodash');
 
 export default configurationRouterConfig;
@@ -65,6 +66,36 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
         },
         perms: {
           only: ['portal-view-r']
+        }
+      }
+    })
+    .state('management.settings.viewnew', {
+      url: '/views/new',
+      component: 'view',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-views'
+        },
+        perms: {
+          only: ['portal-view-c']
+        }
+      }
+    })
+    .state('management.settings.view', {
+      url: '/views/:viewId',
+      component: 'view',
+      resolve: {
+        view: (ViewService: ViewService, $stateParams: ng.ui.IStateParamsService) => ViewService.get($stateParams.viewId).then(response => response.data),
+        viewApis: (ApiService: ApiService, $stateParams: ng.ui.IStateParamsService) => ApiService.list($stateParams.viewId).then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-views'
+        },
+        perms: {
+          only: ['management-view-u']
         }
       }
     })

@@ -30,6 +30,7 @@ import i18nCustomLoader from './i18n/loader';
 
 import { HomeController } from './home/home.controller';
 import { PortalApisController } from './api/apis.controller';
+import PortalApiListController from './api/api-list.controller';
 
 // API
 import ApiComponent from './api/api.component';
@@ -56,6 +57,10 @@ import StarRatingDirective from "./components/starRating/star.rating.directive";
 
 import ApiSupport from './api/support/api-support.component';
 
+// Views
+import PortalViewsController from './views/views.controller';
+import PortalViewController from './views/view/view.controller';
+
 require('angulartics');
 
 angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMaterial', 'pascalprecht.translate',
@@ -67,6 +72,9 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
   .factory('i18nCustomLoader', i18nCustomLoader)
   .controller('HomeController', HomeController)
   .controller('PortalApisController', PortalApisController)
+  .controller('PortalApiListController', PortalApiListController)
+  .controller('PortalViewsController', PortalViewsController)
+  .controller('PortalViewController', PortalViewController)
   .component('api', ApiComponent)
   .component('apiPortalHeader', ApiHeaderComponent) // apiHeader already used in management.... :(
   .component('apiHomepage', ApiHomepageComponent)

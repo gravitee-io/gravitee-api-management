@@ -1,0 +1,86 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-content gv-theme-element="portal.apisList">
+  <div id="main-content" layout="row" layout-align="center start" flex="100" style="padding-top: 70px; padding-bottom: 50px;">
+    <div layout="column" flex="60" class="portal-view-container">
+      <h3>{{viewCtrl.view.name}}</h3>
+      <div layout="row" layout-align="center start">
+        <div class="portal-view-description" flex="40">
+          <p>
+            <span ng-if="!viewCtrl.view.description" translate="view.defaultDescription" translate-values="{viewName: viewCtrl.view.name}" ></span>
+            {{viewCtrl.view.description}}
+          </p>
+        </div>
+        <div flex="60" class="portal-view-highlight-api">
+          <md-card ng-if="viewCtrl.highlightApi" ng-click="viewCtrl.goToApi($event, viewCtrl.highlightApi)">
+            <div class="portal-view-highlight-api-view-header" layout="row" layout-align="center center">
+              <img style="width: 120px; height: auto;" ng-src="{{::viewCtrl.highlightApi.picture_url}}" alt="api-logo" />
+            </div>
+            <md-card-title>
+              <md-card-title-text>
+                <span class="md-headline">{{::viewCtrl.highlightApi.name}} <small ng-if="viewCtrl.highlightApi.version">({{viewCtrl.highlightApi.version}})</small></span>
+              </md-card-title-text>
+            </md-card-title>
+            <md-card-content>
+              <p>
+                {{::viewCtrl.highlightApi.description}}
+              </p>
+            </md-card-content>
+            <md-card-actions layout="row" layout-align="start center">
+              <div flex layout="column">
+                <div class="portal-view-highlight-api-information" flex layout="row" ng-click="viewCtrl.goToApiDocumentation($event, viewCtrl.highlightApi)">
+                  <h5 flex>{{'view.api.documentation' | translate}}</h5>
+                  <ng-md-icon icon="keyboard_arrow_right" style="top: 0px" fill="rgba(0,0,0,0.65)"></ng-md-icon>
+                </div>
+                <div class="portal-view-highlight-api-information" flex layout="row" ng-if="viewCtrl.ratingEnabled && viewCtrl.highlightApi.rate" ng-click="viewCtrl.goToApiRating($event, viewCtrl.highlightApi)">
+                  <h5 flex>{{'view.api.ratings' | translate}}</h5>
+                  <gv-star-rating flex value="viewCtrl.highlightApi.rate"
+                                  message="'api.rating.rate' | translate:{numberOfRatings: viewCtrl.highlightApi.numberOfRatings}" display-none-message="true"></gv-star-rating>
+                  <ng-md-icon icon="keyboard_arrow_right" style="top: 0px" fill="rgba(0,0,0,0.65)"></ng-md-icon>
+                </div>
+              </div>
+            </md-card-actions>
+          </md-card>
+
+          <gravitee-empty-state ng-if="!viewCtrl.highlightApi"
+                                icon="dashboard"
+                                model="API"
+                                message="Hmmm, there is no API for you here :("></gravitee-empty-state>
+        </div>
+      </div>
+
+      <div class="portal-view-more-apis" ng-if="viewCtrl.apis && viewCtrl.apis.length > 0">
+        <h3>{{'view.moreApis' | translate}}</h3>
+        <div style="margin-top: 32px">
+          <md-list-item flex ng-repeat="api in viewCtrl.apis" ng-click="viewCtrl.goToApi($event, api)" class="md-2-line">
+            <img style="height:auto;" alt="{{ api.name }}" ng-src="{{::api.picture_url}}" class="md-avatar" />
+            <div class="md-list-item-text">
+              <h3>{{ api.name }} <small ng-if="api.version">({{api.version}})</small></h3>
+              <p>{{api.description}}</p>
+            </div>
+            <div ng-if="viewCtrl.ratingEnabled && api.rate">
+              <gv-star-rating style="margin-right: 70px;" value="api.rate"
+                              message="'api.rating.rate' | translate:{numberOfRatings: api.numberOfRatings}" display-none-message="true"></gv-star-rating>
+            </div>
+            <ng-md-icon icon="keyboard_arrow_right" fill="rgba(0,0,0,0.65)"></ng-md-icon>
+          </md-list-item>
+        </div>
+      </div>
+    </div>
+  </div>
+</md-content>

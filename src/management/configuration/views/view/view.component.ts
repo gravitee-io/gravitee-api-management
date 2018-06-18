@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class PortalApisController {
+const ViewComponent: ng.IComponentOptions = {
+  bindings: {
+    view: '<',
+    viewApis: '<'
+  },
+  controller: 'ViewController',
+  template: require('./view.html')
+};
 
-  constructor (private $state,
-               private Constants) {
-    'ngInject';
-    if (Constants.portal
-      && Constants.portal.apis
-      && Constants.portal.apis.viewMode
-      && Constants.portal.apis.viewMode.enabled) {
-      $state.go('portal.views');
-    } else {
-      $state.go('portal.apilist');
-    }
-  }
-}
+export default ViewComponent;

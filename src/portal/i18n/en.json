@@ -179,5 +179,16 @@
         "message": "You can not submit a ticket because you do not have an email configured on your account"
       }
     }
+  },
+  "views": {
+    "filter": "Filter views..."
+  },
+  "view": {
+    "defaultDescription":  "Retrieve APIs of the {{viewName}} category",
+    "api": {
+      "documentation": "Documentation",
+      "ratings": "Ratings"
+    },
+    "moreApis": "More APIs ..."
   }
 }

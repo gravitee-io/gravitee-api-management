@@ -1,0 +1,11 @@
+md-card.view-box {
+  min-height: 130px;
+  max-height: 130px;
+
+  md-card-title-text {
+    .md-subhead {
+      color: rgba(0,0,0,0.54);
+      padding-top: 0px !important;
+    }
+  }
+}

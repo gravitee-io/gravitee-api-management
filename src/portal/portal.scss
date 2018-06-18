@@ -6,6 +6,9 @@
 @import 'components/navbar/_navbar';
 @import 'components/starRating/_star.rating';
 
+@import 'views/views';
+@import 'views/view/view';
+
 a, a:active, a:hover, a:visited {
   text-decoration: none;
 }
