@@ -36,8 +36,8 @@
                 <th md-column></th>
                 <th md-column md-order-by="name" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)"><span>Name</span></th>
                 <th md-column md-order-by="version" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)">Version</th>
-                <th md-column>Context path</th>
-                <th md-column>State</th>
+                <th md-column md-order-by="context_path" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)">Context path</th>
+                <th md-column md-order-by="state" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)">State</th>
                 <th md-column>Synchronize state</th>
                 <th md-column>Visibility</th>
                 <th md-column>Owner</th>
