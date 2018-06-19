@@ -1,0 +1,158 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.repository.management.api.search;
+
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
+
+import java.util.List;
+import java.util.Objects;
+
+import static java.util.Arrays.asList;
+
+/**
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public class ApiCriteria {
+
+    private List<String> ids;
+    private List<String> groups;
+    private String view;
+    private String label;
+    private LifecycleState state;
+    private Visibility visibility;
+    private String version;
+    private String name;
+
+    ApiCriteria(ApiCriteria.Builder builder) {
+        this.ids = builder.ids;
+        this.groups = builder.groups;
+        this.view = builder.view;
+        this.label = builder.label;
+        this.state = builder.state;
+        this.visibility = builder.visibility;
+        this.version = builder.version;
+        this.name = builder.name;
+    }
+
+    public List<String> getIds() {
+        return ids;
+    }
+
+    public List<String> getGroups() {
+        return groups;
+    }
+
+    public String getView() {
+        return view;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public LifecycleState getState() {
+        return state;
+    }
+
+    public Visibility getVisibility() {
+        return visibility;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ApiCriteria)) return false;
+        ApiCriteria that = (ApiCriteria) o;
+        return Objects.equals(ids, that.ids) &&
+                Objects.equals(groups, that.groups) &&
+                Objects.equals(view, that.view) &&
+                Objects.equals(label, that.label) &&
+                Objects.equals(state, that.state) &&
+                Objects.equals(visibility, that.visibility) &&
+                Objects.equals(version, that.version) &&
+                Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ids, groups, view, label, state, visibility, version, name);
+    }
+
+    public static class Builder {
+        private List<String> ids;
+        private List<String> groups;
+        private String view;
+        private String label;
+        private LifecycleState state;
+        private Visibility visibility;
+        private String version;
+        private String name;
+
+        public ApiCriteria.Builder ids(final String... id) {
+            this.ids = asList(id);
+            return this;
+        }
+
+        public ApiCriteria.Builder groups(final String... group) {
+            this.groups = asList(group);
+            return this;
+        }
+
+        public ApiCriteria.Builder view(final String view) {
+            this.view = view;
+            return this;
+        }
+
+        public ApiCriteria.Builder label(final String label) {
+            this.label = label;
+            return this;
+        }
+
+        public ApiCriteria.Builder state(final LifecycleState state) {
+            this.state = state;
+            return this;
+        }
+
+        public ApiCriteria.Builder visibility(final Visibility visibility) {
+            this.visibility = visibility;
+            return this;
+        }
+
+        public ApiCriteria.Builder version(final String version) {
+            this.version = version;
+            return this;
+        }
+
+        public ApiCriteria.Builder name(final String name) {
+            this.name = name;
+            return this;
+        }
+
+        public ApiCriteria build() {
+            return new ApiCriteria(this);
+        }
+    }
+}

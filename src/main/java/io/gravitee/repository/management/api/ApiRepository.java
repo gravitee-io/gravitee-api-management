@@ -15,46 +15,25 @@
  */
 package io.gravitee.repository.management.api;
 
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Visibility;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiRepository extends CrudRepository<Api, String>{
+public interface ApiRepository extends CrudRepository<Api, String> {
 
-    /**
-     * List all APIs.
-     *
-     * @return All APIs.
-     */
-    Set<Api> findAll() throws TechnicalException;
+    Page<Api> search(ApiCriteria apiCriteria, Pageable pageable);
 
-    /**
-     * List APIs for a given visibility.
-     *
-     * @param visibility i.e. Public or Private
-     * @return List APIs.
-     */
-    Set<Api> findByVisibility(Visibility visibility) throws TechnicalException;
+    List<Api> search(ApiCriteria apiCriteria);
 
-    /**
-     * find a list of Apis via their ids.
-     * @param ids a list of apis id
-     * @return List APIs.
-     */
-    Set<Api> findByIds(List<String> ids) throws TechnicalException;
-
-    /**
-     * find apis by their groups
-     * @param groupIds a list of group ids
-     * @return applications
-     */
-    Set<Api> findByGroups(List<String> groupIds) throws TechnicalException;
+    List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter);
 }
