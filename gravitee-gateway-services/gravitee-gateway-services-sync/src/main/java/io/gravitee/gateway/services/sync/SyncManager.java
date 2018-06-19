@@ -26,6 +26,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
@@ -83,100 +84,97 @@ public class SyncManager {
         logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
         logger.debug("Refreshing gateway state...");
 
-        try {
-            // Extract all registered APIs
-            Map<String, io.gravitee.repository.management.model.Api> apis = apiRepository.findAll()
-                    .stream()
-                    .collect(toMap(io.gravitee.repository.management.model.Api::getId, api -> api));
+        // Extract all registered APIs
+        Map<String, io.gravitee.repository.management.model.Api> apis = apiRepository.search(null,
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().build())
+                .stream()
+                .collect(toMap(io.gravitee.repository.management.model.Api::getId, api -> api));
 
-            long nextLastRefreshAt = System.currentTimeMillis();
-            // Get last event by API
-            Map<String, Event> events = new HashMap<>();
-            apis.forEach((id, api) -> {
-                Event event = getLastEvent(id, nextLastRefreshAt);
-                if (event != null) {
-                    events.put(id, event);
-                }
-            });
+        long nextLastRefreshAt = System.currentTimeMillis();
+        // Get last event by API
+        Map<String, Event> events = new HashMap<>();
+        apis.forEach((id, api) -> {
+            Event event = getLastEvent(id, nextLastRefreshAt);
+            if (event != null) {
+                events.put(id, event);
+            }
+        });
 
-            // Extract definition for each event
-            Map<String, Api> definitions = new HashMap<>();
-            events
-                    .values()
-                    .forEach(event -> {
-                        try {
-                            // Read API definition from event
-                            io.gravitee.repository.management.model.Api eventPayload = objectMapper.readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class);
-                            io.gravitee.definition.model.Api eventApiDefinition =
-                                    objectMapper.readValue(eventPayload.getDefinition(), io.gravitee.definition.model.Api.class);
-                            io.gravitee.repository.management.model.Api api = apis.get(eventApiDefinition.getId());
-
-                            // Update definition with required information for deployment phase
-                            final Api definition = new Api(eventApiDefinition);
-                            definition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
-                            definition.setDeployedAt(eventPayload.getDeployedAt());
-                            definitions.put(definition.getId(), definition);
-                        } catch (IOException ioe) {
-                            logger.error("Error while determining deployed APIs store into events payload", ioe);
-                        }
-                    });
-
-            // Determine APIs to undeploy because of deployment tags
-            Set<String> apisToRemove = definitions.values()
-                    .stream()
-                    .filter(api -> !hasMatchingTags(api))
-                    .map(Api::getId)
-                    .collect(toSet());
-
-            // Undeploy APIs not relative to this gateway instance (different deployment tags)
-            apisToRemove.forEach(apiId -> {
-                apiManager.undeploy(apiId);
-                apis.remove(apiId);
-                events.remove(apiId);
-                definitions.remove(apiId);
-            });
-
-            // Determine API which must be stopped and stop them
-            events.entrySet()
-                    .stream()
-                    .filter(apiEvent -> {
-                        Event event = apiEvent.getValue();
-                        return event.getType() == EventType.STOP_API || event.getType() == EventType.UNPUBLISH_API;
-                    })
-                    .forEach(apiEvent -> apiManager.undeploy(apiEvent.getKey()));
-
-            // Determine API which must be deployed
-            events.entrySet()
-                    .stream()
-                    .filter(apiEvent -> {
-                        Event event = apiEvent.getValue();
-                        return event.getType() == EventType.START_API || event.getType() == EventType.PUBLISH_API;
-                    })
-                    .forEach(apiEvent -> {
+        // Extract definition for each event
+        Map<String, Api> definitions = new HashMap<>();
+        events
+                .values()
+                .forEach(event -> {
+                    try {
                         // Read API definition from event
-                        Api definition = definitions.get(apiEvent.getKey());
+                        io.gravitee.repository.management.model.Api eventPayload = objectMapper.readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class);
+                        io.gravitee.definition.model.Api eventApiDefinition =
+                                objectMapper.readValue(eventPayload.getDefinition(), io.gravitee.definition.model.Api.class);
+                        io.gravitee.repository.management.model.Api api = apis.get(eventApiDefinition.getId());
+
+                        // Update definition with required information for deployment phase
+                        final Api definition = new Api(eventApiDefinition);
+                        definition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
+                        definition.setDeployedAt(eventPayload.getDeployedAt());
+                        definitions.put(definition.getId(), definition);
+                    } catch (IOException ioe) {
+                        logger.error("Error while determining deployed APIs store into events payload", ioe);
+                    }
+                });
+
+        // Determine APIs to undeploy because of deployment tags
+        Set<String> apisToRemove = definitions.values()
+                .stream()
+                .filter(api -> !hasMatchingTags(api))
+                .map(Api::getId)
+                .collect(toSet());
+
+        // Undeploy APIs not relative to this gateway instance (different deployment tags)
+        apisToRemove.forEach(apiId -> {
+            apiManager.undeploy(apiId);
+            apis.remove(apiId);
+            events.remove(apiId);
+            definitions.remove(apiId);
+        });
+
+        // Determine API which must be stopped and stop them
+        events.entrySet()
+                .stream()
+                .filter(apiEvent -> {
+                    Event event = apiEvent.getValue();
+                    return event.getType() == EventType.STOP_API || event.getType() == EventType.UNPUBLISH_API;
+                })
+                .forEach(apiEvent -> apiManager.undeploy(apiEvent.getKey()));
+
+        // Determine API which must be deployed
+        events.entrySet()
+                .stream()
+                .filter(apiEvent -> {
+                    Event event = apiEvent.getValue();
+                    return event.getType() == EventType.START_API || event.getType() == EventType.PUBLISH_API;
+                })
+                .forEach(apiEvent -> {
+                    // Read API definition from event
+                    Api definition = definitions.get(apiEvent.getKey());
 
 
-                        if (definition != null) {
-                            // API to deploy
-                            enhanceWithData(definition);
+                    if (definition != null) {
+                        // API to deploy
+                        enhanceWithData(definition);
 
-                            // Get deployed API
-                            Api deployedApi = apiManager.get(definition.getId());
+                        // Get deployed API
+                        Api deployedApi = apiManager.get(definition.getId());
 
-                            // API is not yet deployed, so let's do it !
-                            if (deployedApi == null) {
-                                apiManager.deploy(definition);
-                            } else if (deployedApi.getDeployedAt().before(definition.getDeployedAt())) {
-                                apiManager.update(definition);
-                            }
+                        // API is not yet deployed, so let's do it !
+                        if (deployedApi == null) {
+                            apiManager.deploy(definition);
+                        } else if (deployedApi.getDeployedAt().before(definition.getDeployedAt())) {
+                            apiManager.update(definition);
                         }
-                    });
+                    }
+                });
 
-            lastRefreshAt = nextLastRefreshAt;
-        } catch (TechnicalException te) {
-            logger.error("Unable to sync instance", te);
-        }
+        lastRefreshAt = nextLastRefreshAt;
         logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
     }
 
