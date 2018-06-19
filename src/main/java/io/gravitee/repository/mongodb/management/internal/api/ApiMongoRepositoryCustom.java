@@ -15,17 +15,17 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Repository
-public interface ApiMongoRepository extends MongoRepository<ApiMongo, String>, ApiMongoRepositoryCustom {
+public interface ApiMongoRepositoryCustom {
+
+    Page<ApiMongo> search(ApiCriteria criteria, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
 }
-
-

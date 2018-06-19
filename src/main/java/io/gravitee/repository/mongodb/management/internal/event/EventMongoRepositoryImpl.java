@@ -77,6 +77,6 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
 
         return new Page<>(
                 events, (pageable != null) ? pageable.pageNumber() : 0,
-                (pageable != null) ? pageable.pageSize() : 0, total);
+                events.size(), total);
     }
 }

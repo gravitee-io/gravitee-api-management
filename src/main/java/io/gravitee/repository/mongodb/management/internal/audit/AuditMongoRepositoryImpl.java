@@ -74,6 +74,6 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
         List<AuditMongo> audits = mongoTemplate.find(query, AuditMongo.class);
         long total = mongoTemplate.count(query, AuditMongo.class);
 
-        return new Page<>(audits, pageable.pageNumber(), pageable.pageSize(), total);
+        return new Page<>(audits, pageable.pageNumber(), audits.size(), total);
     }
 }

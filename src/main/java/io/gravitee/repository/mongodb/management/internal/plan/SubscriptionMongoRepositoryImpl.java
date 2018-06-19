@@ -95,6 +95,6 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
 
         return new Page<>(
                 subscriptions, (pageable != null) ? pageable.pageNumber() : 0,
-                (pageable != null) ? pageable.pageSize() : 0, total);
+                subscriptions.size(), total);
     }
 }

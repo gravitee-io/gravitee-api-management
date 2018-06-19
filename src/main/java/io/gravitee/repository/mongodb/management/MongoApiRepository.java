@@ -15,25 +15,26 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -49,27 +50,6 @@ public class MongoApiRepository implements ApiRepository {
 	public Optional<Api> findById(String apiId) throws TechnicalException {
 		ApiMongo apiMongo =  internalApiRepo.findOne(apiId);
 		return Optional.ofNullable(mapApi(apiMongo));
-	}
-
-	@Override
-	public Set<Api> findByVisibility(Visibility visibility) throws TechnicalException {
-		return mapApis(internalApiRepo.findByVisibility(visibility.name()));
-	}
-
-	@Override
-	public Set<Api> findByIds(List<String> ids) throws TechnicalException {
-		return mapApis(internalApiRepo.findByIds(ids));
-	}
-
-	@Override
-	public Set<Api> findByGroups(List<String> groupIds) throws TechnicalException {
-		return mapApis(internalApiRepo.findByGroups(groupIds));
-	}
-
-	@Override
-	public Set<Api> findAll() throws TechnicalException {
-		List<ApiMongo> apis = internalApiRepo.findAll();
-		return mapApis(apis);
 	}
 	
 	@Override
@@ -113,8 +93,26 @@ public class MongoApiRepository implements ApiRepository {
 		internalApiRepo.delete(apiId);
 	}
 
-	private Set<Api> mapApis(Collection<ApiMongo> apis) {
-		return apis.stream().map(this::mapApi).collect(Collectors.toSet());
+	@Override
+	public Page<Api> search(final ApiCriteria apiCriteria, final Pageable pageable) {
+		final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, pageable, null);
+		final List<Api> content = mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
+		return new Page<>(content, apisMongo.getPageNumber(), (int) apisMongo.getPageElements(), apisMongo.getTotalElements());
+	}
+
+	@Override
+	public List<Api> search(ApiCriteria apiCriteria) {
+		return findByCriteria(apiCriteria, null);
+	}
+
+	@Override
+	public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+		return findByCriteria(apiCriteria, apiFieldExclusionFilter);
+	}
+
+	private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+		final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, apiFieldExclusionFilter);
+		return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
 	}
 
 	private ApiMongo mapApi(Api api){

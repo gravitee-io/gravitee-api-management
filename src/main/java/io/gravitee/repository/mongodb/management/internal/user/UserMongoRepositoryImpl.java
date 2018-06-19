@@ -51,7 +51,7 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
 
         return new Page<>(
                 users, (pageable != null) ? pageable.pageNumber() : 0,
-                (pageable != null) ? pageable.pageSize() : 0, total);
+                users.size(), total);
     }
 }
 
