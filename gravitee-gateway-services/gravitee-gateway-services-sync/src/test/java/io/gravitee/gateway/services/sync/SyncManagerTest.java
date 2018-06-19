@@ -25,6 +25,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
@@ -42,7 +43,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
-import static java.util.Collections.emptySet;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -82,7 +84,7 @@ public class SyncManagerTest {
 
     @Test
     public void test_empty() throws TechnicalException {
-        when(apiRepository.findAll()).thenReturn(emptySet());
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(emptyList());
 
         syncManager.refresh();
 
@@ -102,9 +104,9 @@ public class SyncManagerTest {
         when(eventRepository.search(
                 any(EventCriteria.class),
                 any(Pageable.class)
-        )).thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
+        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
 
         syncManager.refresh();
 
@@ -124,9 +126,9 @@ public class SyncManagerTest {
         when(eventRepository.search(
                 any(EventCriteria.class),
                 any(Pageable.class)
-        )).thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
+        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
         when(apiManager.get(api.getId())).thenReturn(null);
 
         syncManager.refresh();
@@ -155,9 +157,9 @@ public class SyncManagerTest {
         when(eventRepository.search(
                 any(EventCriteria.class),
                 any(Pageable.class)
-        )).thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
+        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
 
         syncManager.refresh();
 
@@ -167,7 +169,7 @@ public class SyncManagerTest {
         final io.gravitee.definition.model.Api mockApi2 = mockApi(api2);
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
-        Set<io.gravitee.repository.management.model.Api> apis = new HashSet<>();
+        final List<io.gravitee.repository.management.model.Api> apis = new ArrayList<>();
         apis.add(api);
         apis.add(api2);
 
@@ -180,7 +182,7 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(events, 0, 0, 1), new Page<>(Collections.emptyList(), 0, 0, 1));
 
-        when(apiRepository.findAll()).thenReturn(apis);
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(apis);
 
         syncManager.refresh();
 
@@ -207,9 +209,9 @@ public class SyncManagerTest {
         when(eventRepository.search(
                 any(EventCriteria.class),
                 any(Pageable.class)
-        )).thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
+        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
 
         syncManager.refresh();
 
@@ -218,8 +220,8 @@ public class SyncManagerTest {
         final io.gravitee.definition.model.Api mockApi2 = mockApi(api2);
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api2));
-        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api2));
+        when(apiManager.apis()).thenReturn(singletonList(new Api(mockApi)));
 
         syncManager.refresh();
 
@@ -259,11 +261,11 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(events, 0, 0, 1));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
 
         syncManager.refresh();
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api2));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api2));
 
         final Api apiDefinition = new Api(mockApi);
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
@@ -299,26 +301,15 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(events, 0, 0, 1));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
 
         syncManager.refresh();
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api2));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api2));
 
         syncManager.refresh();
 
         verify(apiManager, times(2)).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
-    }
-
-    @Test
-    public void test_throwTechnicalException() throws TechnicalException {
-        when(apiRepository.findAll()).thenThrow(TechnicalException.class);
-
-        syncManager.refresh();
-
-        verify(apiManager, never()).deploy(any(Api.class));
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
@@ -370,12 +361,12 @@ public class SyncManagerTest {
         final io.gravitee.definition.model.Api mockApi = mockApi(api, apiTags);
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList(tags.split(","))));
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
         when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(any(EventCriteria.class), any(Pageable.class)))
-                .thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
+                .thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
         syncManager.refresh();
 
@@ -392,14 +383,14 @@ public class SyncManagerTest {
         final io.gravitee.definition.model.Api mockApi = mockApi(api);
         mockApi.setTags(new HashSet<>(Arrays.asList(new String[]{"test"})));
 
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Collections.singletonList("!test")));
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("!test")));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(
                 any(EventCriteria.class),
                 any(Pageable.class)
-        )).thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
+        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
         syncManager.refresh();
 
@@ -416,14 +407,14 @@ public class SyncManagerTest {
         final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("!test", "toto")));
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
         when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(
                 any(EventCriteria.class),
                 any(Pageable.class)
-        )).thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
+        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
         syncManager.refresh();
 
@@ -440,13 +431,13 @@ public class SyncManagerTest {
         final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test", "toto")));
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(
                 any(EventCriteria.class),
                 any(Pageable.class)
-        )).thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
+        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
         syncManager.refresh();
 
@@ -462,7 +453,7 @@ public class SyncManagerTest {
         final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test", "!test")));
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
         when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
@@ -471,7 +462,7 @@ public class SyncManagerTest {
                         .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
                         .property(Event.EventProperties.API_ID.getValue(), api.getId())
                         .build()), any()
-        )).thenReturn((new Page(Collections.singletonList(mockEvent), 0, 0, 0)));
+        )).thenReturn((new Page(singletonList(mockEvent), 0, 0, 0)));
 
         syncManager.refresh();
     }
@@ -487,7 +478,7 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
 
         syncManager.refresh();
 
@@ -503,7 +494,7 @@ public class SyncManagerTest {
 
         final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
-        Set<io.gravitee.repository.management.model.Api> apis = new HashSet<>();
+        final List<io.gravitee.repository.management.model.Api> apis = new ArrayList<>();
         apis.add(api);
         apis.add(api2);
 
@@ -513,9 +504,9 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(
                 new Page<>(Collections.emptyList(), 0, 0, 0),
-                new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
+                new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.findAll()).thenReturn(apis);
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(apis);
 
         syncManager.refresh();
 
@@ -542,14 +533,14 @@ public class SyncManagerTest {
         when(eventRepository.search(
                 any(EventCriteria.class),
                 any(Pageable.class)
-        )).thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1), new Page<>(Collections.singletonList(mockEvent2), 0, 0, 1));
+        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1), new Page<>(singletonList(mockEvent2), 0, 0, 1));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
 
         syncManager.refresh();
 
         when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
 
         syncManager.refresh();
 
@@ -588,9 +579,9 @@ public class SyncManagerTest {
         when(eventRepository.search(
                 any(EventCriteria.class),
                 any(Pageable.class)
-        )).thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
+        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
 
         syncManager.refresh();
 
@@ -599,7 +590,7 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(events, 0, 0, 2));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api2));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api2));
 
         final Api apiDefinition = new Api(mockApi);
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
@@ -643,9 +634,9 @@ public class SyncManagerTest {
         when(eventRepository.search(
                 any(EventCriteria.class),
                 any(Pageable.class)
-        )).thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
+        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api));
         when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         syncManager.refresh();
@@ -655,7 +646,7 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(events, 0, 0, 2));
 
-        when(apiRepository.findAll()).thenReturn(Collections.singleton(api2));
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(api2));
 
         final Api apiDefinition = new Api(mockApi);
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
