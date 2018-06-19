@@ -18,7 +18,7 @@ package io.gravitee.management.service;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
-import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.management.model.api.NewApiEntity;
 import io.gravitee.management.service.impl.SwaggerServiceImpl;
 import org.junit.Before;
 import org.junit.Ignore;

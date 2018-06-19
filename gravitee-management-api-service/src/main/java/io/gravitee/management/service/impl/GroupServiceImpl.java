@@ -18,8 +18,8 @@ package io.gravitee.management.service.impl;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.RolePermission;
-import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.GroupService;
@@ -34,6 +34,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -286,7 +287,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             //remove all applications or apis
             Date updatedDate = new Date();
-            apiRepository.findByGroups(Collections.singletonList(groupId)).forEach( api -> {
+            apiRepository.search(new ApiCriteria.Builder().groups(groupId).build()).forEach(api -> {
                 api.getGroups().remove(groupId);
                 api.setUpdatedAt(updatedDate);
                 try {

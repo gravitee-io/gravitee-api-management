@@ -15,9 +15,17 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.ApiModelEntity;
+import io.gravitee.management.model.EventType;
+import io.gravitee.management.model.InlinePictureEntity;
+import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.ApiQuery;
+import io.gravitee.management.model.api.NewApiEntity;
+import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -31,9 +39,9 @@ public interface ApiService {
 
     Set<ApiEntity> findAll();
 
-    Set<ApiEntity> findByUser(String userId);
+    Set<ApiEntity> findAllLight();
 
-    Set<ApiEntity> findByGroup(String groupId);
+    Set<ApiEntity> findByUser(String userId, ApiQuery apiQuery);
 
     Set<ApiEntity> findByVisibility(Visibility visibility);
 
@@ -100,4 +108,6 @@ public interface ApiService {
 
         return updateApiEntity;
     }
+
+    Collection<ApiEntity> search(ApiQuery query);
 }

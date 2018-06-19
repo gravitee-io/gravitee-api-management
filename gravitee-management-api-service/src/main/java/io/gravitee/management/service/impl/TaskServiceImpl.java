@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.pagedresult.Metadata;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
 import io.gravitee.management.service.*;
@@ -24,6 +25,7 @@ import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
@@ -116,7 +118,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
             // 5. add apiId that comes from group
             apiIds.addAll(apiRepository
-                    .findByGroups(groupIds)
+                    .search(new ApiCriteria.Builder().groups(groupIds.toArray(new String[0])).build())
                     .stream()
                     .map(Api::getId)
                     .collect(Collectors.toSet()));

@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.repository.management.model.GroupEvent;
 
 import java.util.List;

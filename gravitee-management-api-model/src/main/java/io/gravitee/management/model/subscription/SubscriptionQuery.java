@@ -19,6 +19,7 @@ import io.gravitee.management.model.SubscriptionStatus;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -99,26 +100,18 @@ public class SubscriptionQuery {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (!(o instanceof SubscriptionQuery)) return false;
         SubscriptionQuery that = (SubscriptionQuery) o;
-
-        if (from != that.from) return false;
-        if (to != that.to) return false;
-        if (apis != null ? !apis.equals(that.apis) : that.apis != null) return false;
-        if (plans != null ? !plans.equals(that.plans) : that.plans != null) return false;
-        if (statuses != null ? !statuses.equals(that.statuses) : that.statuses != null) return false;
-        return applications != null ? applications.equals(that.applications) : that.applications == null;
+        return from == that.from &&
+                to == that.to &&
+                Objects.equals(apis, that.apis) &&
+                Objects.equals(plans, that.plans) &&
+                Objects.equals(statuses, that.statuses) &&
+                Objects.equals(applications, that.applications);
     }
 
     @Override
     public int hashCode() {
-        int result = apis != null ? apis.hashCode() : 0;
-        result = 31 * result + (plans != null ? plans.hashCode() : 0);
-        result = 31 * result + (statuses != null ? statuses.hashCode() : 0);
-        result = 31 * result + (applications != null ? applications.hashCode() : 0);
-        result = 31 * result + (int) (from ^ (from >>> 32));
-        result = 31 * result + (int) (to ^ (to >>> 32));
-        return result;
+        return Objects.hash(apis, plans, statuses, applications, from, to);
     }
 }

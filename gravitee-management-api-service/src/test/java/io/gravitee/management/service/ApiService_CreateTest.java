@@ -17,9 +17,9 @@ package io.gravitee.management.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.NewApiEntity;
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.NewApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
@@ -36,11 +36,10 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Optional;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
@@ -175,7 +174,7 @@ public class ApiService_CreateTest {
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
 
-        when(apiRepository.findAll()).thenReturn(new HashSet<>(Arrays.asList(api)));
+        when(apiRepository.search(null)).thenReturn(asList(api));
         when(api.getId()).thenReturn(API_ID);
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 

@@ -29,6 +29,7 @@ import io.gravitee.management.fetcher.FetcherConfigurationFactory;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;

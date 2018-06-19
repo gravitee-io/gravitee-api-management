@@ -18,7 +18,7 @@ package io.gravitee.management.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
-import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.management.model.api.NewApiEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.exceptions.SwaggerDescriptorException;

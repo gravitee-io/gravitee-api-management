@@ -21,6 +21,7 @@ import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.idp.api.identity.SearchableUser;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;

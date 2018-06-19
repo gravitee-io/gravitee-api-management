@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.rest.filter;
 
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.RoleEntity;

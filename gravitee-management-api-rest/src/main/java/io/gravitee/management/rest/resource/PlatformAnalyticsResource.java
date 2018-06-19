@@ -16,12 +16,10 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.analytics.Analytics;
 import io.gravitee.management.model.analytics.query.*;
-import io.gravitee.management.model.permissions.RolePermission;
-import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.Aggregation;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.management.rest.resource.param.Range;
@@ -84,7 +82,7 @@ public class PlatformAnalyticsResource extends AbstractResource  {
             if ("api".equals(analyticsParam.getField()) || "tenant".equals(analyticsParam.getField())) {
                 extraFilter = getExtraFilter(
                         "api",
-                        apiService.findByUser(getAuthenticatedUser())
+                        apiService.findByUser(getAuthenticatedUser(), null)
                                 .stream()
                                 .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
                                 .map(ApiEntity::getId)

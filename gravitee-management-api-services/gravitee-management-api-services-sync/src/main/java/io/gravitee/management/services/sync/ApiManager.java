@@ -17,7 +17,7 @@ package io.gravitee.management.services.sync;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.event.ApiEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

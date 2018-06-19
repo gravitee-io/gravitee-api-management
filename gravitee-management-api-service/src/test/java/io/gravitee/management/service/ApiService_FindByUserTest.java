@@ -19,15 +19,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,8 +39,12 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Set;
 
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.anyString;
@@ -78,20 +85,20 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldFindByUser() throws TechnicalException {
-        when(apiRepository.findByVisibility(any(Visibility.class)))
-                .thenReturn(new HashSet<>(Arrays.asList(api)));
+        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).ids(USER_NAME).build()))
+                .thenReturn(singletonList(api));
+
         Membership membership = new Membership(USER_NAME, api.getId(), MembershipReferenceType.API);
         membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), "USER"));
         Set<Membership> memberships = Collections.singleton(membership);
         when(membershipRepository.findByUserAndReferenceType(anyString(), any(MembershipReferenceType.class)))
                 .thenReturn(memberships);
-        when(apiRepository.findByIds(Arrays.asList(USER_NAME))).thenReturn(new HashSet<>(Arrays.asList(api)));
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
                 .thenReturn(Collections.singleton(po));
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null);
 
         assertNotNull(apiEntities);
         assertEquals(1, apiEntities.size());
@@ -99,23 +106,14 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
-        when(apiRepository.findByVisibility(any(Visibility.class)))
-                .thenReturn(Collections.emptySet());
+        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(emptyList());
         when(membershipRepository.findByUserAndReferenceType(anyString(), any(MembershipReferenceType.class)))
                 .thenReturn(Collections.emptySet());
-        when(apiRepository.findByIds(any())).thenReturn(Collections.emptySet());
+        when(apiRepository.search(new ApiCriteria.Builder().ids(USER_NAME).build())).thenReturn(emptyList());
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null);
 
         assertNotNull(apiEntities);
         assertTrue(apiEntities.isEmpty());
     }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldNotFindByUserBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findByVisibility(any(Visibility.class))).thenThrow(TechnicalException.class);
-
-        apiService.findByUser(USER_NAME);
-    }
-
 }

@@ -17,9 +17,8 @@ package io.gravitee.management.services.dynamicproperties;
 
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.management.services.dynamicproperties.provider.Provider;

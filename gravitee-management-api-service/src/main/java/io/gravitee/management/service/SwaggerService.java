@@ -16,7 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
-import io.gravitee.management.model.NewApiEntity;
+import io.gravitee.management.model.api.NewApiEntity;
 import io.gravitee.management.model.PageEntity;
 
 /**

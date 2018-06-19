@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service.notifiers.impl;
 
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.ApiModelEntity;
 import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.service.EmailService;

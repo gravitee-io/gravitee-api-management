@@ -16,9 +16,9 @@
 package io.gravitee.management.services.subscriptions;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.management.model.ApiEntity;
 import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.model.SubscriptionStatus;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.SubscriptionService;
@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -83,24 +85,21 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
     @Override
     public void run() {
         logger.debug("Refresh subscriptions #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
+        final Set<String> apiIds = apiService.findAllLight().stream()
+                .map(ApiEntity::getId)
+                .collect(toSet());
 
-        Date now = new Date();
-        Set<ApiEntity> apis = apiService.findAll();
-
-        for(ApiEntity api : apis) {
-            // TODO: this service must be optimized by providing a better way to search for subscription
-            // Something like the Event Repository API
-            SubscriptionQuery query = new SubscriptionQuery();
-            query.setApi(api.getId());
-            query.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
-            Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
-            subscriptions
-                    .forEach(subscription -> {
-                        if (subscription.getEndingAt() != null && subscription.getEndingAt().before(now)) {
-                            subscriptionService.close(subscription.getId());
-                        }
-                    });
-        }
+        final SubscriptionQuery query = new SubscriptionQuery();
+        query.setApis(apiIds);
+        query.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
+        final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
+        final Date now = new Date();
+        subscriptions
+                .forEach(subscription -> {
+                    if (subscription.getEndingAt() != null && subscription.getEndingAt().before(now)) {
+                        subscriptionService.close(subscription.getId());
+                    }
+                });
 
         logger.debug("Refresh subscriptions #{} ended at {}", counter.get(), Instant.now().toString());
     }

@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.model.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.management.model.PrimaryOwnerEntity;
+import io.gravitee.management.model.Visibility;
 
 import java.util.Date;
 import java.util.List;

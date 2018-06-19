@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.model.api;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,6 +23,9 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.management.model.DeploymentRequired;
+import io.gravitee.management.model.PrimaryOwnerEntity;
+import io.gravitee.management.model.Visibility;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;

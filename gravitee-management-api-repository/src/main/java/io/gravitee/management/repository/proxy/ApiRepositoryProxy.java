@@ -15,16 +15,17 @@
  */
 package io.gravitee.management.repository.proxy;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Visibility;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,11 +34,6 @@ import java.util.Set;
  */
 @Component
 public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements ApiRepository {
-
-    @Override
-    public Set<Api> findAll() throws TechnicalException {
-        return target.findAll();
-    }
 
     @Override
     public Api create(Api api) throws TechnicalException {
@@ -60,18 +56,17 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     }
 
     @Override
-    public Set<Api> findByVisibility(Visibility visibility) throws TechnicalException {
-        return target.findByVisibility(visibility);
+    public Page<Api> search(ApiCriteria apiCriteria, Pageable pageable) {
+        return target.search(apiCriteria, pageable);
     }
 
     @Override
-    public Set<Api> findByIds(List<String> ids) throws TechnicalException {
-        return target.findByIds(ids);
+    public List<Api> search(ApiCriteria apiCriteria) {
+        return target.search(apiCriteria);
     }
 
     @Override
-    public Set<Api> findByGroups(List<String> groupIds) throws TechnicalException {
-        return target.findByGroups(groupIds);
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+        return target.search(apiCriteria, apiFieldExclusionFilter);
     }
-
 }

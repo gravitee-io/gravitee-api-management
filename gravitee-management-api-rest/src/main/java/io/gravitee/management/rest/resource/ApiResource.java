@@ -17,6 +17,8 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.notification.NotifierEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;

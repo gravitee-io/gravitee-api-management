@@ -16,7 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.InstanceListItem;
 import io.gravitee.management.model.analytics.Analytics;
 import io.gravitee.management.model.analytics.HistogramAnalytics;

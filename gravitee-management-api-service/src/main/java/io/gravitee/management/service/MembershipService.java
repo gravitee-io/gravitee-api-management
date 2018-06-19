@@ -16,10 +16,10 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 

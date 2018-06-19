@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.notification.Hook;
 import io.gravitee.management.service.notifiers.WebhookNotifierService;
 import io.gravitee.repository.management.model.GenericNotificationConfig;

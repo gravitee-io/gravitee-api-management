@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.providers.User;
 import io.gravitee.management.service.*;

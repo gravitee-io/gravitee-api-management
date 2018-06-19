@@ -16,14 +16,13 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.MembershipListItem;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.model.ApiMembership;
-import io.gravitee.management.rest.model.RoleEntity;
 import io.gravitee.management.rest.model.TransferOwnership;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;

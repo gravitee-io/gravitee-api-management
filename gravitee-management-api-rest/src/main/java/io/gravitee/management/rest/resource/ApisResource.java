@@ -17,18 +17,26 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
+import io.gravitee.management.model.RatingSummaryEntity;
+import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.ApiListItem;
+import io.gravitee.management.model.api.ApiQuery;
+import io.gravitee.management.model.api.NewApiEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.resource.param.ApisParam;
 import io.gravitee.management.rest.resource.param.VerifyApiParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.management.service.*;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.RatingService;
+import io.gravitee.management.service.SwaggerService;
+import io.gravitee.management.service.TopApiService;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.Hook;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.View;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -41,11 +49,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
+import static io.gravitee.management.model.Visibility.PUBLIC;
+import static io.gravitee.repository.management.model.View.ALL_ID;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -79,20 +87,33 @@ public class ApisResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<ApiListItem> listApis(@QueryParam("view") final String view, @QueryParam("group") final String group,
-                                      @QueryParam("top") final boolean top) {
-        final Set<ApiEntity> apis;
-        if (isAdmin()) {
-            apis = group != null
-                    ? apiService.findByGroup(group)
-                    : apiService.findAll();
-        } else if (isAuthenticated()) {
-            apis = apiService.findByUser(getAuthenticatedUser());
-        } else {
-            apis = apiService.findByVisibility(Visibility.PUBLIC);
+    public List<ApiListItem> listApis(@BeanParam final ApisParam apisParam) {
+
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setGroup(apisParam.getGroup());
+        apiQuery.setContextPath(apisParam.getContextPath());
+        apiQuery.setLabel(apisParam.getLabel());
+        apiQuery.setVersion(apisParam.getVersion());
+        apiQuery.setName(apisParam.getName());
+        apiQuery.setTag(apisParam.getTag());
+        apiQuery.setState(apisParam.getState());
+        if (!ALL_ID.equals(apisParam.getView())) {
+            apiQuery.setView(apisParam.getView());
         }
 
-        if (top) {
+        final Collection<ApiEntity> apis;
+        if (isAdmin()) {
+            apis = apiService.search(apiQuery);
+        } else {
+            if (isAuthenticated()) {
+                apis = apiService.findByUser(getAuthenticatedUser(), apiQuery);
+            } else {
+                apiQuery.setVisibility(PUBLIC);
+                apis = apiService.search(apiQuery);
+            }
+        }
+
+        if (apisParam.isTop()) {
             final List<String> visibleApis = apis.stream().map(ApiEntity::getId).collect(toList());
             return topApiService.findAll().stream()
                     .filter(topApi -> visibleApis.contains(topApi.getApi()))
@@ -102,8 +123,6 @@ public class ApisResource extends AbstractResource {
         }
 
         return apis.stream()
-                .filter(apiEntity -> view == null || View.ALL_ID.equals(view) || (apiEntity.getViews() != null && apiEntity.getViews().contains(view)))
-                .filter(apiEntity -> group == null || (apiEntity.getGroups() != null && apiEntity.getGroups().contains(group)))
                 .map(this::convert)
                 .map(this::setManageable)
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))

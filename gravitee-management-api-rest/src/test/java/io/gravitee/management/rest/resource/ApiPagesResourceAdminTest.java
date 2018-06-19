@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.Visibility;
 import org.junit.Test;

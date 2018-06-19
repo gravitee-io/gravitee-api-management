@@ -17,6 +17,7 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.ApiMetadataService;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.AuditService;

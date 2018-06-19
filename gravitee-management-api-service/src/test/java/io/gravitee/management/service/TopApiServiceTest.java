@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.NewTopApiEntity;
 import io.gravitee.management.model.TopApiEntity;
 import io.gravitee.management.model.UpdateTopApiEntity;

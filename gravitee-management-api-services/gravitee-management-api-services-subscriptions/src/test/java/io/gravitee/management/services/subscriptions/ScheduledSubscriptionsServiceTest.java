@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.services.subscriptions;
 
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.model.SubscriptionStatus;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
@@ -66,7 +66,7 @@ public class ScheduledSubscriptionsServiceTest {
                 "end_date_in_the_future",
                 SubscriptionStatus.ACCEPTED,
                 new Date(Long.MAX_VALUE));
-        when(apiService.findAll()).thenReturn(Collections.singleton(apiEntity));
+        when(apiService.findAllLight()).thenReturn(Collections.singleton(apiEntity));
 
         SubscriptionQuery query = new SubscriptionQuery();
         query.setApi(apiEntity.getId());
@@ -80,7 +80,7 @@ public class ScheduledSubscriptionsServiceTest {
 
         service.run();
 
-        verify(apiService, times(1)).findAll();
+        verify(apiService, times(1)).findAllLight();
         verify(subscriptionService, times(1)).search(query);
         verify(subscriptionService, times(1)).close("end_date_in_the_past");
         verify(subscriptionService, never()).close("no_end_date");

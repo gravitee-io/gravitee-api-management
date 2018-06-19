@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.Visibility;
 import io.gravitee.management.service.impl.GroupServiceImpl;

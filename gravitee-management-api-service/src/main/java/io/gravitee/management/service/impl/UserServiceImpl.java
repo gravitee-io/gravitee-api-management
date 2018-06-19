@@ -534,7 +534,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     public void delete(String id) {
         try {
             // If the users is PO of apps or apis, throw an exception
-            long apiCount = apiService.findByUser(id)
+            long apiCount = apiService.findByUser(id, null)
                     .stream()
                     .filter(entity -> entity.getPrimaryOwner().getId().equals(id))
                     .count();

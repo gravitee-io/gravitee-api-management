@@ -18,6 +18,7 @@ package io.gravitee.management.service.impl;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.common.Pageable;
 import io.gravitee.management.model.pagedresult.Metadata;
 import io.gravitee.management.model.subscription.SubscriptionQuery;

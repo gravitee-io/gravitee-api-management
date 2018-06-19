@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.rest.enhancer;
 
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.ViewEntity;
 import io.gravitee.repository.management.model.View;
 import org.springframework.stereotype.Component;

@@ -16,11 +16,10 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.documentation.PageQuery;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)

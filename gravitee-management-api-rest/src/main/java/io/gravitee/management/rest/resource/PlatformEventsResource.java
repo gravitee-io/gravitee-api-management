@@ -17,7 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -70,7 +70,7 @@ public class PlatformEventsResource  extends AbstractResource {
         } else if (!isAdmin()) {
             properties.put(
                     Event.EventProperties.API_ID.getValue(),
-                    apiService.findByUser(getAuthenticatedUser())
+                    apiService.findByUser(getAuthenticatedUser(), null)
                             .stream()
                             .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
                             .map(ApiEntity::getId).collect(Collectors.joining(",")));

@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.SubscriptionServiceImpl;
 import io.gravitee.management.service.notification.ApiHook;

@@ -15,13 +15,11 @@
  */
 package io.gravitee.management.rest.resource;
 
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
-import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;

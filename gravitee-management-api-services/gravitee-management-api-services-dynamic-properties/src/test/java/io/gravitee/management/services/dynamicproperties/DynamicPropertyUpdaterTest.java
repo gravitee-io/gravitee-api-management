@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.services.dynamicproperties;
 
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.management.services.dynamicproperties.provider.Provider;
 import org.junit.Before;

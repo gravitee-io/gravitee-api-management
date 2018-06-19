@@ -20,11 +20,9 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Proxy;
-import io.gravitee.management.model.ApiEntity;
-import io.gravitee.management.model.PlanEntity;
+import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.management.model.UpdateApiEntity;
 import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -36,6 +34,7 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,9 +44,9 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Optional;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
@@ -189,14 +188,14 @@ public class ApiService_UpdateTest {
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn(contextPathToCreate);
 
-        when(apiRepository.findAll()).thenReturn(new HashSet<>(Collections.singletonList(api)));
+        when(apiRepository.search(null)).thenReturn(singletonList(api));
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 
         Membership po1 = new Membership("admin", API_ID, MembershipReferenceType.API);
         po1.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(
                 MembershipReferenceType.API,
-                Collections.singletonList(API_ID),
+                singletonList(API_ID),
                 RoleScope.API,
                 SystemRole.PRIMARY_OWNER.name()))
                 .thenReturn(Collections.singleton(po1));
@@ -204,7 +203,7 @@ public class ApiService_UpdateTest {
         po2.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(
                 MembershipReferenceType.API,
-                Collections.singletonList(API_ID2),
+                singletonList(API_ID2),
                 RoleScope.API,
                 SystemRole.PRIMARY_OWNER.name()))
                 .thenReturn(Collections.singleton(po2));

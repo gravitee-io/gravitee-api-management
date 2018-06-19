@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.model.ApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.InstanceListItem;
 import io.gravitee.management.model.PlanEntity;
