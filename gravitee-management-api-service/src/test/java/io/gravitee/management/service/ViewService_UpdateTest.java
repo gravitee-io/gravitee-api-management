@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.UpdateViewEntity;
 import io.gravitee.management.model.ViewEntity;
+import io.gravitee.management.service.exceptions.ViewNotFoundException;
 import io.gravitee.management.service.impl.ViewServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ViewRepository;
@@ -32,7 +33,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_UPDATED;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -40,6 +40,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -55,17 +56,7 @@ public class ViewService_UpdateTest {
     private AuditService mockAuditService;
 
     @Test
-    public void shouldDoNothingWithEmptyList() throws TechnicalException {
-        List<ViewEntity> list = viewService.update(emptyList());
-
-        assertTrue(list.isEmpty());
-        verify(mockViewRepository, never()).findById(any());
-        verify(mockViewRepository, never()).update(any());
-        verify(mockAuditService, never()).createPortalAuditLog(any(), eq(VIEW_UPDATED), any(), any(), any());
-    }
-
-    @Test
-    public void shouldNotUpdateUnknownView() throws TechnicalException {
+    public void shouldNotUpdateUnknownView_multi_mode() throws TechnicalException {
         UpdateViewEntity mockView = mock(UpdateViewEntity.class);
         when(mockView.getId()).thenReturn("unknown");
         when(mockViewRepository.findById("unknown")).thenReturn(Optional.empty());
@@ -78,8 +69,21 @@ public class ViewService_UpdateTest {
         verify(mockAuditService, never()).createPortalAuditLog(any(), eq(VIEW_UPDATED), any(), any(), any());
     }
 
+    @Test(expected = ViewNotFoundException.class)
+    public void shouldNotUpdateUnknownView_single_mode() throws TechnicalException {
+        UpdateViewEntity mockView = mock(UpdateViewEntity.class);
+        when(mockView.getId()).thenReturn("unknown");
+        when(mockViewRepository.findById("unknown")).thenReturn(Optional.empty());
+
+        viewService.update("unknown", mockView);
+
+        verify(mockViewRepository, times(1)).findById(any());
+        verify(mockViewRepository, never()).update(any());
+        verify(mockAuditService, never()).createPortalAuditLog(any(), eq(VIEW_UPDATED), any(), any(), any());
+    }
+
     @Test
-    public void shouldUpdateView() throws TechnicalException {
+    public void shouldUpdateView_multi_mode() throws TechnicalException {
         UpdateViewEntity mockView = mock(UpdateViewEntity.class);
         when(mockView.getId()).thenReturn("known");
         when(mockViewRepository.findById("known")).thenReturn(Optional.of(new View()));
@@ -110,7 +114,39 @@ public class ViewService_UpdateTest {
         verify(mockViewRepository, times(1)).findById(any());
         verify(mockViewRepository, times(1)).update(any());
         verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(VIEW_UPDATED), any(), any(), any());
+    }
 
+    @Test
+    public void shouldUpdateView_single_mode() throws TechnicalException {
+        UpdateViewEntity mockView = mock(UpdateViewEntity.class);
+        when(mockView.getId()).thenReturn("view-id");
+        when(mockViewRepository.findById("view-id")).thenReturn(Optional.of(new View()));
+        View updatedView = mock(View.class);
+        when(updatedView.getId()).thenReturn("view-id");
+        when(updatedView.getName()).thenReturn("view-name");
+        when(updatedView.getDescription()).thenReturn("view-description");
+        when(updatedView.isDefaultView()).thenReturn(true);
+        when(updatedView.getOrder()).thenReturn(1);
+        when(updatedView.isHidden()).thenReturn(true);
+        when(updatedView.getUpdatedAt()).thenReturn(new Date(1234567890L));
+        when(updatedView.getCreatedAt()).thenReturn(new Date(9876543210L));
+        when(mockViewRepository.update(any())).thenReturn(updatedView);
+
+        ViewEntity view = viewService.update("view-id", mockView);
+
+        assertNotNull(view);
+        assertEquals("Id", "view-id", view.getId());
+        assertEquals("Name", "view-name", view.getName());
+        assertEquals("Description", "view-description", view.getDescription());
+        assertEquals("Total APIs", 0, view.getTotalApis());
+        assertEquals("default View", true, view.isDefaultView());
+        assertEquals("Order", 1, view.getOrder());
+        assertEquals("Hidden", true, view.isHidden());
+        assertEquals("UpdatedAt", new Date(1234567890L), view.getUpdatedAt());
+        assertEquals("CreatedAt", new Date(9876543210L), view.getCreatedAt());
+        verify(mockViewRepository, times(1)).findById(any());
+        verify(mockViewRepository, times(1)).update(any());
+        verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(VIEW_UPDATED), any(), any(), any());
     }
 }
 

@@ -13,32 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.NewViewEntity;
-import io.gravitee.management.model.UpdateViewEntity;
-import io.gravitee.management.model.ViewEntity;
-
-import java.util.List;
+package io.gravitee.management.service.exceptions;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ViewService {
+public class ViewNotFoundException extends AbstractNotFoundException {
 
-    List<ViewEntity> findAll();
+    private final String viewId;
 
-    ViewEntity findById(String id);
+    public ViewNotFoundException(String viewId) {
+        this.viewId = viewId;
+    }
 
-    ViewEntity create(NewViewEntity view);
-
-    ViewEntity update(String viewId, UpdateViewEntity view);
-
-    List<ViewEntity> update(List<UpdateViewEntity> views);
-
-    void delete(String viewId);
-
-    void createDefaultView();
+    @Override
+    public String getMessage() {
+        return "View [" + viewId + "] can not be found.";
+    }
 }

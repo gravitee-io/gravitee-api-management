@@ -30,6 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -38,10 +40,14 @@ import java.util.stream.Collectors;
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Views"})
 public class ViewsResource extends AbstractResource  {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Autowired
     private ViewService viewService;
@@ -95,8 +101,8 @@ public class ViewsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.CREATE)
     })
-    public List<ViewEntity> create(@Valid @NotNull final List<NewViewEntity> views) {
-        return viewService.create(views);
+    public ViewEntity create(@Valid @NotNull final NewViewEntity view) {
+        return viewService.create(view);
     }
 
     @PUT
@@ -109,13 +115,8 @@ public class ViewsResource extends AbstractResource  {
         return viewService.update(views);
     }
 
-    @Path("{view}")
-    @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.DELETE)
-    })
-    public void delete(@PathParam("view") String view) {
-        viewService.delete(view);
+    @Path("{id}")
+    public ViewResource getViewResource() {
+        return resourceContext.getResource(ViewResource.class);
     }
 }

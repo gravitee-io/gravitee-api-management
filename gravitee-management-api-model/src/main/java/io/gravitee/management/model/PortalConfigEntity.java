@@ -516,8 +516,12 @@ public class PortalConfigEntity {
         @ParameterKey(Key.PORTAL_APIS_TILESMODE_ENABLED)
         private Enabled tilesMode;
 
+        @ParameterKey(Key.PORTAL_APIS_VIEW_ENABLED)
+        private Enabled viewMode;
+
         public PortalApis() {
             this.tilesMode = TRUE;
+            this.viewMode = FALSE;
         }
 
         public Enabled getTilesMode() {
@@ -526,6 +530,14 @@ public class PortalConfigEntity {
 
         public void setTilesMode(Enabled tilesMode) {
             this.tilesMode = tilesMode;
+        }
+
+        public Enabled getViewMode() {
+            return viewMode;
+        }
+
+        public void setViewMode(Enabled viewMode) {
+            this.viewMode = viewMode;
         }
     }
 

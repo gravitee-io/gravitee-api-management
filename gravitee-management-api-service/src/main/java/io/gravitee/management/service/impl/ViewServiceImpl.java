@@ -24,6 +24,7 @@ import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.ViewService;
 import io.gravitee.management.service.exceptions.DuplicateViewNameException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.ViewNotFoundException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.model.View;
@@ -36,12 +37,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.VIEW;
-import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_CREATED;
-import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_DELETED;
-import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_UPDATED;
+import static io.gravitee.repository.management.model.View.AuditEvent.*;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -61,7 +61,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     @Override
     public List<ViewEntity> findAll() {
         try {
-            LOGGER.debug("Find all APIs");
+            LOGGER.debug("Find all views");
             return viewRepository.findAll()
                     .stream()
                     .map(this::convert).collect(Collectors.toList());
@@ -72,37 +72,74 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     }
 
     @Override
-    public List<ViewEntity> create(final List<NewViewEntity> viewEntities) {
-        // First we prevent the duplicate view name
-        final List<String> viewNames = viewEntities.stream()
-                .map(NewViewEntity::getName)
-                .collect(Collectors.toList());
+    public ViewEntity findById(String id) {
+        try {
+            LOGGER.debug("Find view by id : {}", id);
+            Optional<View> view = viewRepository.findById(id);
 
+            if (view.isPresent()) {
+                return convert(view.get());
+            }
+
+            throw new ViewNotFoundException(id);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find a view using its ID: {}", id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find a view using its ID: " + id, ex);
+        }
+    }
+
+    @Override
+    public ViewEntity create(NewViewEntity viewEntity) {
+        // First we prevent the duplicate view name
         final Optional<ViewEntity> optionalView = findAll().stream()
-                .filter(view -> viewNames.contains(view.getName()))
+                .filter(v -> v.getName().equals((viewEntity.getName())))
                 .findAny();
 
         if (optionalView.isPresent()) {
             throw new DuplicateViewNameException(optionalView.get().getName());
         }
 
-        final List<ViewEntity> savedViews = new ArrayList<>(viewEntities.size());
-        viewEntities.forEach(viewEntity -> {
-            try {
-                View view = convert(viewEntity);
-                savedViews.add(convert(viewRepository.create(view)));
-                auditService.createPortalAuditLog(
-                        Collections.singletonMap(VIEW, view.getId()),
-                        VIEW_CREATED,
-                        new Date(),
-                        null,
-                        view);
-            } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to create view {}", viewEntity.getName(), ex);
-                throw new TechnicalManagementException("An error occurs while trying to create view " + viewEntity.getName(), ex);
+        try {
+            View view = convert(viewEntity);
+            ViewEntity createdView = convert(viewRepository.create(view));
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(VIEW, view.getId()),
+                    VIEW_CREATED,
+                    new Date(),
+                    null,
+                    view);
+
+            return createdView;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to create view {}", viewEntity.getName(), ex);
+            throw new TechnicalManagementException("An error occurs while trying to create view " + viewEntity.getName(), ex);
+        }
+    }
+
+    @Override
+    public ViewEntity update(String viewId, UpdateViewEntity viewEntity) {
+        try {
+            LOGGER.debug("Update View {}", viewId);
+
+            Optional<View> optViewToUpdate = viewRepository.findById(viewId);
+            if (!optViewToUpdate.isPresent()) {
+                throw new ViewNotFoundException(viewId);
             }
-        });
-        return savedViews;
+
+            View view = convert(viewEntity);
+            ViewEntity updatedView = convert(viewRepository.update(view));
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(VIEW, view.getId()),
+                    VIEW_UPDATED,
+                    new Date(),
+                    optViewToUpdate.get(),
+                    view);
+
+            return updatedView;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to update view {}", viewEntity.getName(), ex);
+            throw new TechnicalManagementException("An error occurs while trying to update view " + viewEntity.getName(), ex);
+        }
     }
 
     @Override
@@ -179,6 +216,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         view.setDescription(viewEntity.getDescription());
         view.setOrder(viewEntity.getOrder());
         view.setHidden(viewEntity.isHidden());
+        view.setHighlightApi(viewEntity.getHighlightApi());
         return view;
     }
 
@@ -190,6 +228,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         view.setDefaultView(viewEntity.isDefaultView());
         view.setOrder(viewEntity.getOrder());
         view.setHidden(viewEntity.isHidden());
+        view.setHighlightApi(viewEntity.getHighlightApi());
         return view;
     }
 
@@ -201,6 +240,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         viewEntity.setDefaultView(view.isDefaultView());
         viewEntity.setOrder(view.getOrder());
         viewEntity.setHidden(view.isHidden());
+        viewEntity.setHighlightApi(view.getHighlightApi());
         viewEntity.setUpdatedAt(view.getUpdatedAt());
         viewEntity.setCreatedAt(view.getCreatedAt());
         return viewEntity;

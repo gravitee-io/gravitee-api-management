@@ -31,6 +31,7 @@ public class NewViewEntity {
     private String description;
     private boolean hidden;
     private int order;
+    private String highlightApi;
 
     public String getName() {
         return name;
@@ -62,6 +63,14 @@ public class NewViewEntity {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public String getHighlightApi() {
+        return highlightApi;
+    }
+
+    public void setHighlightApi(String highlightApi) {
+        this.highlightApi = highlightApi;
     }
 
     @Override

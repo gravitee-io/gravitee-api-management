@@ -37,6 +37,7 @@ public class ViewEntity {
     private Date createdAt;
     private Date updatedAt;
     private long totalApis;
+    private String highlightApi;
 
     public String getId() {
         return id;
@@ -92,6 +93,14 @@ public class ViewEntity {
 
     public void setHidden(boolean hidden) {
         this.hidden = hidden;
+    }
+
+    public String getHighlightApi() {
+        return highlightApi;
+    }
+
+    public void setHighlightApi(String highlightApi) {
+        this.highlightApi = highlightApi;
     }
 
     public Date getCreatedAt() {

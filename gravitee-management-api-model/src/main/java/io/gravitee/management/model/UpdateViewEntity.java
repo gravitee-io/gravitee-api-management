@@ -37,6 +37,7 @@ public class UpdateViewEntity {
     private boolean defaultView;
     private boolean hidden;
     private int order;
+    private String highlightApi;
 
     public String getId() {
         return id;
@@ -84,6 +85,14 @@ public class UpdateViewEntity {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public String getHighlightApi() {
+        return highlightApi;
+    }
+
+    public void setHighlightApi(String highlightApi) {
+        this.highlightApi = highlightApi;
     }
 
     @Override

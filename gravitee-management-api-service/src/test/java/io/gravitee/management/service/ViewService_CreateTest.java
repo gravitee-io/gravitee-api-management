@@ -30,18 +30,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_CREATED;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -56,41 +54,20 @@ public class ViewService_CreateTest {
     @Mock
     private AuditService mockAuditService;
 
-
     @Test
-    public void shouldAcceptEmptyList() throws TechnicalException {
-        List<ViewEntity> views = viewService.create(Collections.emptyList());
-
-        assertNotNull("result is null", views);
-        assertTrue("result is not empty", views.isEmpty());
-        verify(mockAuditService, never()).createPortalAuditLog(any(), any(), any(), any(), any());
-        verify(mockViewRepository, never()).create(any());
-    }
-
-    @Test
-    public void shouldCreate2Views() throws TechnicalException {
+    public void shouldCreateView() throws TechnicalException {
         NewViewEntity v1 = new NewViewEntity();
         v1.setName("v1");
-        NewViewEntity v2 = new NewViewEntity();
-        v2.setName("v2");
         when(mockViewRepository.create(any())).thenReturn(new View());
 
-        List<ViewEntity> views = viewService.create(Arrays.asList(v1, v2));
+        ViewEntity view = viewService.create(v1);
 
-        assertNotNull("result is null", views);
-        assertFalse("result is empty", views.isEmpty());
-        assertEquals("result size is 2", 2, views.size());
-        verify(mockAuditService, times(2)).createPortalAuditLog(any(), eq(VIEW_CREATED), any(), isNull(), any());
+        assertNotNull("result is null", view);
+        verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(VIEW_CREATED), any(), isNull(), any());
         verify(mockViewRepository, times(1)).create(argThat(new ArgumentMatcher<View>() {
             @Override
             public boolean matches(Object arg) {
                 return arg instanceof View && ((View)arg).getName().equals("v1");
-            }
-        }));
-        verify(mockViewRepository, times(1)).create(argThat(new ArgumentMatcher<View>() {
-            @Override
-            public boolean matches(Object arg) {
-                return arg instanceof View && ((View)arg).getName().equals("v2");
             }
         }));
     }
@@ -104,7 +81,7 @@ public class ViewService_CreateTest {
         when(mockViewRepository.findAll()).thenReturn(Collections.singleton(v1));
 
         try {
-            viewService.create(singletonList(nv1));
+            viewService.create(nv1);
         } catch(DuplicateViewNameException e) {
             verify(mockViewRepository, never()).create(any());
             throw e;
