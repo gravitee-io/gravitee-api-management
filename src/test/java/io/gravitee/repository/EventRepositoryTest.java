@@ -74,7 +74,7 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
                         .types(EventType.START_API).build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build());
 
-        assertTrue(0L == eventPage.getTotalElements());
+        assertEquals(0, eventPage.getTotalElements());
     }
 
     @Test
@@ -90,14 +90,22 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void searchByMultipleEventType() throws Exception {
-        Page<Event> eventPage = eventRepository.search(
-                new EventCriteria.Builder().from(1451606400000L).to(1470157767000L)
-                        .types(EventType.START_API, EventType.STOP_API).build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build());
+        final EventCriteria eventCriteria = new EventCriteria.Builder().from(1451606400000L).to(1470157767000L)
+                .types(EventType.START_API, EventType.STOP_API).build();
 
-        assertTrue(3L == eventPage.getTotalElements());
+        Page<Event> eventPage = eventRepository.search(eventCriteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+
+        assertEquals(3, eventPage.getTotalElements());
+        assertEquals(2, eventPage.getPageElements());
         Event event = eventPage.getContent().iterator().next();
-        assertTrue("event6".equals(event.getId()));
+        assertEquals("event6", event.getId());
+
+        eventPage = eventRepository.search(eventCriteria, new PageableBuilder().pageNumber(1).pageSize(2).build());
+
+        assertEquals(3, eventPage.getTotalElements());
+        assertEquals(1, eventPage.getPageElements());
+        event = eventPage.getContent().iterator().next();
+        assertEquals("event4", event.getId());
     }
 
     @Test

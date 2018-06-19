@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Subscription;
 import org.junit.Test;
 
@@ -183,5 +185,34 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
         assertFalse(subscriptions.isEmpty());
         assertEquals("Subscriptions size", 1, subscriptions.size());
         assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindBetweenDatesPageable() throws Exception {
+        Page<Subscription> subscriptionPage = subscriptionRepository.search(new SubscriptionCriteria.Builder()
+                .from(1339022010883L)
+                .to(1839022010883L)
+                .build(),
+                new PageableBuilder().pageNumber(0).pageSize(2).build());
+
+        assertEquals(0, subscriptionPage.getPageNumber());
+        assertEquals(2, subscriptionPage.getPageElements());
+        assertEquals(2, subscriptionPage.getTotalElements());
+
+        assertEquals(2, subscriptionPage.getContent().size());
+        assertEquals("sub3", subscriptionPage.getContent().get(0).getId());
+        assertEquals("sub1", subscriptionPage.getContent().get(1).getId());
+
+        subscriptionPage = subscriptionRepository.search(new SubscriptionCriteria.Builder()
+                        .from(1339022010883L)
+                        .to(1839022010883L)
+                        .build(),
+                new PageableBuilder().pageNumber(1).pageSize(2).build());
+
+        assertEquals(1, subscriptionPage.getPageNumber());
+        assertEquals(0, subscriptionPage.getPageElements());
+        assertEquals(2, subscriptionPage.getTotalElements());
+
+        assertEquals(0, subscriptionPage.getContent().size());
     }
 }

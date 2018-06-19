@@ -1,0 +1,22 @@
+[
+  {
+    "userId" : "admin",
+    "referenceId" : "api-to-findById",
+    "referenceType" : "API",
+    "roles" : {
+      "3": "PRIMARY_OWNER"
+    },
+    "createdAt" : "1439022010883",
+    "updatedAt" : "1439022010883"
+  },
+  {
+    "userId" : "user",
+    "referenceId" : "api-to-findById",
+    "referenceType" : "API",
+    "roles" : {
+      "3": "USER"
+    },
+    "createdAt" : "1439022010883",
+    "updatedAt" : "1439022010883"
+  }
+]

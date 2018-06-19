@@ -126,14 +126,20 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().
                 from(1000000000000L).
                 build();
-        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
-        Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
+        Page<Audit> auditPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
 
         assertNotNull(auditPage);
         assertEquals("total elements", 3, auditPage.getTotalElements());
-        assertEquals("page elements", 3, auditPage.getPageElements());
+        assertEquals("page elements", 2, auditPage.getPageElements());
         assertEquals("page number", 0, auditPage.getPageNumber());
+
+        auditPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(1).pageSize(2).build());
+
+        assertNotNull(auditPage);
+        assertEquals("total elements", 3, auditPage.getTotalElements());
+        assertEquals("page elements", 1, auditPage.getPageElements());
+        assertEquals("page number", 1, auditPage.getPageNumber());
     }
 
     @Test

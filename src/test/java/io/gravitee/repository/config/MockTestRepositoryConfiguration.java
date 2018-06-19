@@ -26,6 +26,9 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.*;
 
+import static io.gravitee.repository.management.model.LifecycleState.STARTED;
+import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
@@ -134,7 +137,8 @@ public class MockTestRepositoryConfiguration {
                             }
                         }
                 ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)), 0, 3, 3));
+                thenReturn(new io.gravitee.common.data.domain.Page<>(asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)), 0, 2, 3),
+                        new io.gravitee.common.data.domain.Page<>(asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)), 1, 1, 3));
         //shouldSearchTo
         when(auditRepository.search(
                 argThat(new ArgumentMatcher<AuditCriteria>() {
@@ -218,7 +222,7 @@ public class MockTestRepositoryConfiguration {
         when(apiUpdated.getDefinition()).thenReturn("New definition");
         when(apiUpdated.getDeployedAt()).thenReturn(parse("11/02/2016"));
         when(apiUpdated.getGroups()).thenReturn(singleton("New group"));
-        when(apiUpdated.getLifecycleState()).thenReturn(LifecycleState.STARTED);
+        when(apiUpdated.getLifecycleState()).thenReturn(STARTED);
         when(apiUpdated.getPicture()).thenReturn("New picture");
         when(apiUpdated.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(apiUpdated.getUpdatedAt()).thenReturn(parse("13/11/2016"));
@@ -242,23 +246,25 @@ public class MockTestRepositoryConfiguration {
 
         final Api groupedApi = mock(Api.class);
         when(groupedApi.getGroups()).thenReturn(singleton("api-group"));
+        when(groupedApi.getId()).thenReturn("grouped-api");
         when(apiRepository.findById("grouped-api")).thenReturn(of(groupedApi));
 
         final Api apiToFindById = mock(Api.class);
+        when(apiToFindById.getId()).thenReturn("api-to-findById");
         when(apiToFindById.getVersion()).thenReturn("1");
         when(apiToFindById.getName()).thenReturn("api-to-findById");
         when(apiToFindById.getLifecycleState()).thenReturn(LifecycleState.STOPPED);
-        when(apiToFindById.getVisibility()).thenReturn(Visibility.PUBLIC);
-        when(apiToFindById.getDefinition()).thenReturn("{}");
+        when(apiToFindById.getVisibility()).thenReturn(PUBLIC);
+        when(apiToFindById.getDefinition()).thenReturn(null);
         when(apiToFindById.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(apiToFindById.getUpdatedAt()).thenReturn(parse("12/02/2016"));
         when(apiToFindById.getLabels()).thenReturn(asList("label 1", "label 2"));
         when(apiRepository.findById("api-to-findById")).thenReturn(of(apiToFindById));
 
-        when(apiRepository.findAll()).thenReturn(new HashSet<>(asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class))));
+        when(apiRepository.search(null)).thenReturn(asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class)));
 
-        when(apiRepository.findByIds(asList("api-to-delete", "api-to-update", "unknown"))).
-                thenReturn(new HashSet<>(asList(apiToUpdate, apiToDelete)));
+        when(apiRepository.search(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build())).
+                thenReturn(asList(apiToUpdate, apiToDelete));
 
         when(apiRepository.update(argThat(new ArgumentMatcher<Api>() {
             @Override
@@ -266,6 +272,32 @@ public class MockTestRepositoryConfiguration {
                 return o == null || (o instanceof Api && ((Api) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
+
+        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").build())).thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().view("my-view").build())).thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").version("1").build())).thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").version("1").build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().groups("api-group", "unknown").build())).thenReturn(singletonList(groupedApi));
+        when(apiRepository.search(new ApiCriteria.Builder().version("1").build())).thenReturn(asList(apiToFindById,
+                groupedApi, apiToDelete, apiToUpdate));
+        when(apiRepository.search(new ApiCriteria.Builder().label("label 1").build())).thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build())).thenReturn(asList(apiToFindById,
+                groupedApi, apiToDelete, apiToUpdate));
+        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(asList(apiToFindById,
+                groupedApi));
+
+        when(apiRepository.search(
+                new ApiCriteria.Builder().version("1").build(),
+                new PageableBuilder().pageNumber(0).pageSize(2).build())).thenReturn(
+                new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById), 0, 2, 4));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().version("1").build(),
+                new PageableBuilder().pageNumber(1).pageSize(2).build())).thenReturn(
+                new io.gravitee.common.data.domain.Page<>(asList(apiToUpdate, groupedApi), 1, 2, 4));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().version("1").build(), new PageableBuilder().build())).thenReturn(
+                new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById, apiToUpdate, groupedApi), 0, 4, 4));
 
         return apiRepository;
     }
@@ -376,6 +408,8 @@ public class MockTestRepositoryConfiguration {
         final io.gravitee.common.data.domain.Page<Event> pageEvent5 = mock(io.gravitee.common.data.domain.Page.class);
         final io.gravitee.common.data.domain.Page<Event> pageEvent6 = mock(io.gravitee.common.data.domain.Page.class);
         final io.gravitee.common.data.domain.Page<Event> pageEvent7 = mock(io.gravitee.common.data.domain.Page.class);
+        final io.gravitee.common.data.domain.Page<Event> pageEvent8 = mock(io.gravitee.common.data.domain.Page.class);
+        final io.gravitee.common.data.domain.Page<Event> pageEvent9 = mock(io.gravitee.common.data.domain.Page.class);
 
         Map<String, String> eventProperties = new HashMap<>();
         eventProperties.put("api_id", "api-1");
@@ -467,6 +501,20 @@ public class MockTestRepositoryConfiguration {
                         .build(),
                 null)).thenReturn(pageEvent7);
 
+        when(pageEvent8.getTotalElements()).thenReturn(3L);
+        when(pageEvent8.getPageElements()).thenReturn(2L);
+        when(pageEvent8.getContent()).thenReturn(asList(event6, event2));
+        when(eventRepository.search(
+                new EventCriteria.Builder().from(1451606400000L).to(1470157767000L).types(EventType.START_API, EventType.STOP_API).build(),
+                new PageableBuilder().pageNumber(0).pageSize(2).build())).thenReturn(pageEvent8);
+
+        when(pageEvent9.getTotalElements()).thenReturn(3L);
+        when(pageEvent9.getPageElements()).thenReturn(1L);
+        when(pageEvent9.getContent()).thenReturn(singletonList(event4));
+        when(eventRepository.search(
+                new EventCriteria.Builder().from(1451606400000L).to(1470157767000L).types(EventType.START_API, EventType.STOP_API).build(),
+                new PageableBuilder().pageNumber(1).pageSize(2).build())).thenReturn(pageEvent9);
+
         when(eventRepository.search(
                 new EventCriteria.Builder()
                         .from(1451606400000L).to(1470157767000L)
@@ -481,7 +529,7 @@ public class MockTestRepositoryConfiguration {
         when(eventRepository.search(
                 new EventCriteria.Builder().types(EventType.GATEWAY_STARTED).build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(
-                new io.gravitee.common.data.domain.Page<>(Collections.emptyList(), 0, 0, 0));
+                new io.gravitee.common.data.domain.Page<>(Collections.emptyList(), 0, 2, 0));
 
         when(eventRepository.update(argThat(new ArgumentMatcher<Event>() {
             @Override
@@ -516,8 +564,7 @@ public class MockTestRepositoryConfiguration {
         when(userUpdated.getLastConnectionAt()).thenReturn(new Date(1439052010883L));
 
         io.gravitee.common.data.domain.Page<User> searchResult = new io.gravitee.common.data.domain.Page<>(
-                asList(user, mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class)),
-                0, 0, 8);
+                asList(user, mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class)),0, 0, 8);
 
         when(userRepository.search(any())).thenReturn(searchResult);
         when(userRepository.create(any(User.class))).thenReturn(user);
@@ -1103,6 +1150,11 @@ public class MockTestRepositoryConfiguration {
                         .to(1569022010883L)
                         .build()))
                 .thenReturn(singletonList(sub1));
+
+        when(subscriptionRepository.search(any(), eq(new PageableBuilder().pageNumber(0).pageSize(2).build())))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(sub3, sub1), 0, 2, 2));
+        when(subscriptionRepository.search(any(), eq(new PageableBuilder().pageNumber(1).pageSize(2).build())))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(emptyList(), 1, 0, 2));
 
         return subscriptionRepository;
     }

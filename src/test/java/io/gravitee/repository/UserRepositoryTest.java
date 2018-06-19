@@ -16,7 +16,6 @@
 package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.User;
 import org.junit.Assert;
@@ -50,7 +49,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         user.setEmail(String.format("%s@gravitee.io", username));
         User userCreated = userRepository.create(user);
 
-        Assert.assertNotNull("User created is null", userCreated);
+        assertNotNull("User created is null", userCreated);
 
         Optional<User> optional = userRepository.findByUsername(username);
 

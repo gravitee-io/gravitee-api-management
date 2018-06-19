@@ -15,18 +15,30 @@
  */
 package io.gravitee.repository;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import org.junit.Test;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static io.gravitee.repository.utils.DateUtils.parse;
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 
+/**
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Override
@@ -42,7 +54,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         api.setId(apiName);
         api.setName(apiName);
         api.setVersion("1");
-        api.setLifecycleState(LifecycleState.STOPPED);
+        api.setLifecycleState(STOPPED);
         api.setVisibility(Visibility.PRIVATE);
         api.setDefinition("{}");
         api.setCreatedAt(parse("11/02/2016"));
@@ -71,7 +83,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         final Api api = optional.get();
         api.setName("New API name");
         api.setDescription("New description");
-        api.setViews(new HashSet<>(Arrays.asList("view1", "view2")));
+        api.setViews(new HashSet<>(asList("view1", "view2")));
         api.setDefinition("New definition");
         api.setDeployedAt(parse("11/02/2016"));
         api.setGroups(Collections.singleton("New group"));
@@ -82,9 +94,9 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         api.setVersion("New version");
         api.setVisibility(Visibility.PRIVATE);
 
-        int nbAPIsBeforeUpdate = apiRepository.findAll().size();
+        int nbAPIsBeforeUpdate = apiRepository.search(null).size();
         apiRepository.update(api);
-        int nbAPIsAfterUpdate = apiRepository.findAll().size();
+        int nbAPIsAfterUpdate = apiRepository.search(null).size();
 
         assertEquals(nbAPIsBeforeUpdate, nbAPIsAfterUpdate);
 
@@ -94,7 +106,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         final Api apiUpdated = optionalUpdated.get();
         assertEquals("Invalid saved API name.", "New API name", apiUpdated.getName());
         assertEquals("Invalid API description.", "New description", apiUpdated.getDescription());
-        assertEquals("Invalid API views.", new HashSet<>(Arrays.asList("view1", "view2")), apiUpdated.getViews());
+        assertEquals("Invalid API views.", new HashSet<>(asList("view1", "view2")), apiUpdated.getViews());
         assertEquals("Invalid API definition.", "New definition", apiUpdated.getDefinition());
         assertEquals("Invalid API deployment date.", parse("11/02/2016"), apiUpdated.getDeployedAt());
         assertEquals("Invalid API group.", Collections.singleton("New group"), apiUpdated.getGroups());
@@ -114,8 +126,8 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         Api api = optional.get();
         assertEquals("Invalid api name", "api-to-findById", api.getName());
         assertEquals("Invalid api version", "1", api.getVersion());
-        assertEquals("Invalid api visibility", Visibility.PUBLIC, api.getVisibility());
-        assertEquals("Invalid api lifecycle state", LifecycleState.STOPPED, api.getLifecycleState());
+        assertEquals("Invalid api visibility", PUBLIC, api.getVisibility());
+        assertEquals("Invalid api lifecycle state", STOPPED, api.getLifecycleState());
         assertEquals("Invalid api labels", 2, api.getLabels().size());
         assertEquals("Invalid api label at position 0", "label 1", api.getLabels().iterator().next());
     }
@@ -127,11 +139,11 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void findAllTest() throws Exception {
-        Set<Api> apis = apiRepository.findAll();
+    public void findAllTest() {
+        List<Api> apis = apiRepository.search(null);
 
         assertNotNull(apis);
-        assertFalse("Fail to resolve api in findAll", apis.isEmpty());
+        assertFalse("Api list is empty", apis.isEmpty());
     }
 
     @Test
@@ -152,21 +164,19 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldFindByIds() throws Exception {
-        Set<Api> apis = apiRepository.findByIds(Arrays.asList("api-to-delete", "api-to-update", "unknown"));
-
+    public void shouldFindByIds() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
-        assertTrue(apis.
-                stream().
+        assertTrue(apis.stream().
                 map(Api::getId).
-                collect(Collectors.toList()).
-                containsAll(Arrays.asList("api-to-delete", "api-to-update")));
+                collect(toList()).
+                containsAll(asList("api-to-delete", "api-to-update")));
     }
 
     @Test(expected = IllegalStateException.class)
-    public void shouldNotUpdateUnknownApi() throws Exception {
+    public void shouldNotUpdateUnknownApi() throws TechnicalException {
         Api unknownApi = new Api();
         unknownApi.setId("unknown");
         apiRepository.update(unknownApi);
@@ -174,8 +184,121 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void shouldNotUpdateNull() throws Exception {
+    public void shouldNotUpdateNull() throws TechnicalException {
         apiRepository.update(null);
         fail("A null api should not be updated");
+    }
+
+    @Test
+    public void shouldFindByGroups() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().groups("api-group", "unknown").build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(1, apis.size());
+        assertEquals("grouped-api", apis.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindByName() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(1, apis.size());
+        assertEquals("api-to-findById", apis.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindByLabel() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().label("label 1").build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(1, apis.size());
+        assertEquals("api-to-findById", apis.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindByState() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(4, apis.size());
+        assertTrue(apis.stream().
+                map(Api::getId).
+                collect(toList()).
+                containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api")));
+    }
+
+    @Test
+    public void shouldFindByVersion() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().version("1").build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(4, apis.size());
+        assertTrue(apis.stream().
+                map(Api::getId).
+                collect(toList()).
+                containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api")));
+    }
+
+    @Test
+    public void shouldFindByView() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().view("my-view").build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(1, apis.size());
+        assertEquals("api-to-findById", apis.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindByVisibility() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(2, apis.size());
+        assertTrue(apis.stream().
+                map(Api::getId).
+                collect(toList()).
+                containsAll(asList("api-to-findById", "grouped-api")));
+    }
+
+    @Test
+    public void shouldFindByNameAndVersion() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").version("1").build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(1, apis.size());
+        assertEquals("api-to-findById", apis.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindByNameAndVersionWithoutDefinition() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").version("1").build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(1, apis.size());
+        assertEquals("api-to-findById", apis.iterator().next().getId());
+        assertNull(apis.iterator().next().getDefinition());
+    }
+
+    @Test
+    public void searchByPageable() {
+        Page<Api> apiPage = apiRepository.search(new ApiCriteria.Builder().version("1").build(),
+                new PageableBuilder().pageNumber(0).pageSize(2).build());
+
+        assertEquals(4, apiPage.getTotalElements());
+        assertEquals(2, apiPage.getPageElements());
+        Iterator<Api> apiIterator = apiPage.getContent().iterator();
+        assertEquals("api-to-delete", apiIterator.next().getId());
+        assertEquals("api-to-findById", apiIterator.next().getId());
+
+        apiPage = apiRepository.search(new ApiCriteria.Builder().version("1").build(),
+                new PageableBuilder().pageNumber(1).pageSize(2).build());
+
+        assertEquals(4, apiPage.getTotalElements());
+        assertEquals(2, apiPage.getPageElements());
+        apiIterator = apiPage.getContent().iterator();
+        assertEquals("api-to-update", apiIterator.next().getId());
+        assertEquals("grouped-api", apiIterator.next().getId());
     }
 }
