@@ -15,9 +15,13 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
@@ -26,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,11 +41,12 @@ import java.util.*;
 import static java.lang.String.format;
 
 /**
- *
  * @author njt
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Repository
-public class JdbcApiRepository implements ApiRepository {
+public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> implements ApiRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiRepository.class);
 
@@ -155,7 +162,7 @@ public class JdbcApiRepository implements ApiRepository {
             jdbcTemplate.update("delete from api_labels where api_id = ?", api.getId());
         }
         List<String> filteredLabels = ORM.filterStrings(api.getLabels());
-        if (! filteredLabels.isEmpty()) {
+        if (!filteredLabels.isEmpty()) {
             jdbcTemplate.batchUpdate("insert into api_labels (api_id, label) values ( ?, ? )"
                     , ORM.getBatchStringSetter(api.getId(), filteredLabels));
         }
@@ -170,7 +177,7 @@ public class JdbcApiRepository implements ApiRepository {
             jdbcTemplate.update("delete from api_groups where api_id = ?", api.getId());
         }
         List<String> filteredGroups = ORM.filterStrings(api.getGroups());
-        if (! filteredGroups.isEmpty()) {
+        if (!filteredGroups.isEmpty()) {
             jdbcTemplate.batchUpdate("insert into api_groups ( api_id, group_id ) values ( ?, ? )"
                     , ORM.getBatchStringSetter(api.getId(), filteredGroups));
         }
@@ -181,104 +188,118 @@ public class JdbcApiRepository implements ApiRepository {
             jdbcTemplate.update("delete from api_views where api_id = ?", api.getId());
         }
         List<String> filteredViews = ORM.filterStrings(api.getViews());
-        if (! filteredViews.isEmpty()) {
+        if (!filteredViews.isEmpty()) {
             jdbcTemplate.batchUpdate("insert into api_views ( api_id, View ) values ( ?, ? )"
                     , ORM.getBatchStringSetter(api.getId(), filteredViews));
         }
     }
 
     @Override
-    public Set<Api> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.findAll()");
-        try {
-            JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from apis a left join api_views av on a.id = av.api_id"
-                    , rowMapper
-            );
-            List<Api> apis = rowMapper.getRows();
-            for (Api api : apis) {
-                addLabels(api);
-                addGroups(api);
-            }
-            return new HashSet<>(apis);
-        } catch (final Exception ex) {
-            LOGGER.error("Failed to find all users:", ex);
-            throw new TechnicalException("Failed to find all users", ex);
-        }
-
+    public Page<Api> search(ApiCriteria apiCriteria, Pageable page) {
+        final List<Api> apis = findByCriteria(apiCriteria, null);
+        return getResultAsPage(page, apis);
     }
 
     @Override
-    public Set<Api> findByVisibility(Visibility visibility) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.findByVisibility({})", visibility);
-        try {
-            JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from apis a left join api_views av on a.id = av.api_id where a.visibility = ?"
-                    , rowMapper
-                    , visibility.name()
-            );
-            List<Api> apis = rowMapper.getRows();
-            for (Api api : apis) {
-                addLabels(api);
-                addGroups(api);
-            }
-            return new HashSet<>(apis);
-        } catch (final Exception ex) {
-            LOGGER.error("Failed to find apis by visibility:", ex);
-            throw new TechnicalException("Failed to find apis by visibility", ex);
-        }
+    public List<Api> search(ApiCriteria apiCriteria) {
+        return findByCriteria(apiCriteria, null);
     }
 
     @Override
-    public Set<Api> findByIds(List<String> ids) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.findByIds({})", ids);
-        if ((ids == null) || ids.isEmpty()) {
-            return new HashSet<>();
-        }
-        try {
-            JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from apis a left join api_views av on a.id = av.api_id where a.id in ("
-                    + ORM.buildInClause(ids) + " )"
-                    , (PreparedStatement ps) -> ORM.setArguments(ps, ids, 1)
-                    , rowMapper
-            );
-            List<Api> apis = rowMapper.getRows();
-            for (Api api : apis) {
-                addLabels(api);
-                addGroups(api);
-            }
-            return new HashSet<>(apis);
-        } catch (final Exception ex) {
-            LOGGER.error("Failed to find api by ids:", ex);
-            throw new TechnicalException("Failed to find api by ids", ex);
-        }
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+        return findByCriteria(apiCriteria, apiFieldExclusionFilter);
     }
 
-    @Override
-    public Set<Api> findByGroups(List<String> groupIds) throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.findByGroups({})", groupIds);
-        if ((groupIds == null) || groupIds.isEmpty()) {
-            return new HashSet<>();
+    private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+        LOGGER.debug("JdbcApiRepository.search({})", apiCriteria);
+        final JdbcHelper.CollatingRowMapper<Api> rowMapper =
+                new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
+
+        String projection ="av.*, a.id, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
+                "a.visibility, a.lifecycle_state, a.picture";
+
+        if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isDefinition()) {
+            projection += ", a.definition";
         }
-        try {
-            JdbcHelper.CollatingRowMapper<Api> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select a.*, av.* from apis a "
-                    + "join api_groups ag on a.id = ag.api_id "
-                    + "left join api_views av on a.id = av.api_id "
-                    + "where ag.group_id in ("
-                    + ORM.buildInClause(groupIds) + " )"
-                    , (PreparedStatement ps) -> ORM.setArguments(ps, groupIds, 1)
-                    , rowMapper
-            );
-            List<Api> apis = rowMapper.getRows();
-            for (Api api : apis) {
-                addLabels(api);
-                addGroups(api);
+        if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isPicture()) {
+            projection += ", a.picture";
+        }
+
+        final StringBuilder sbQuery = new StringBuilder("select ").append(projection).append(" from apis a ");
+        sbQuery.append("left join api_views av on a.id = av.api_id ");
+
+        if (apiCriteria != null) {
+            if (!CollectionUtils.isEmpty(apiCriteria.getGroups())) {
+                sbQuery.append("join api_groups ag on a.id = ag.api_id ");
             }
-            return new HashSet<>(apis);
-        } catch (final Exception ex) {
-            LOGGER.error("Failed to find api by groups:", ex);
-            throw new TechnicalException("Failed to find api by groups", ex);
+            if (!StringUtils.isEmpty(apiCriteria.getLabel())) {
+                sbQuery.append("join api_labels al on a.id = al.api_id ");
+            }
+
+            sbQuery.append("where 1 = 1 ");
+            if (!CollectionUtils.isEmpty(apiCriteria.getGroups())) {
+                sbQuery.append("and ag.group_id in (").append(ORM.buildInClause(apiCriteria.getGroups())).append(") ");
+            }
+            if (!CollectionUtils.isEmpty(apiCriteria.getIds())) {
+                sbQuery.append("and a.id in (").append(ORM.buildInClause(apiCriteria.getIds())).append(") ");
+            }
+            if (!StringUtils.isEmpty(apiCriteria.getLabel())) {
+                sbQuery.append("and al.label = ? ");
+            }
+            if (!StringUtils.isEmpty(apiCriteria.getName())) {
+                sbQuery.append("and a.name = ? ");
+            }
+            if (!StringUtils.isEmpty(apiCriteria.getState())) {
+                sbQuery.append("and a.lifecycle_state = ? ");
+            }
+            if (!StringUtils.isEmpty(apiCriteria.getVersion())) {
+                sbQuery.append("and a.version = ? ");
+            }
+            if (!StringUtils.isEmpty(apiCriteria.getView())) {
+                sbQuery.append("and av.view = ? ");
+            }
+            if (!StringUtils.isEmpty(apiCriteria.getVisibility())) {
+                sbQuery.append("and a.visibility = ? ");
+            }
         }
+        sbQuery.append("order by a.name");
+
+        jdbcTemplate.query(sbQuery.toString(), (PreparedStatement ps) -> {
+                    int lastIndex = 1;
+                    if (apiCriteria != null) {
+                        if (!CollectionUtils.isEmpty(apiCriteria.getGroups())) {
+                            lastIndex = ORM.setArguments(ps, apiCriteria.getGroups(), lastIndex);
+                        }
+                        if (!CollectionUtils.isEmpty(apiCriteria.getIds())) {
+                            lastIndex = ORM.setArguments(ps, apiCriteria.getIds(), lastIndex);
+                        }
+                        if (!StringUtils.isEmpty(apiCriteria.getLabel())) {
+                            ps.setString(lastIndex++, apiCriteria.getLabel());
+                        }
+                        if (!StringUtils.isEmpty(apiCriteria.getName())) {
+                            ps.setString(lastIndex++, apiCriteria.getName());
+                        }
+                        if (!StringUtils.isEmpty(apiCriteria.getState())) {
+                            ps.setString(lastIndex++, apiCriteria.getState().name());
+                        }
+                        if (!StringUtils.isEmpty(apiCriteria.getVersion())) {
+                            ps.setString(lastIndex++, apiCriteria.getVersion());
+                        }
+                        if (!StringUtils.isEmpty(apiCriteria.getView())) {
+                            ps.setString(lastIndex++, apiCriteria.getView());
+                        }
+                        if (!StringUtils.isEmpty(apiCriteria.getVisibility())) {
+                            ps.setString(lastIndex, apiCriteria.getVisibility().name());
+                        }
+                    }
+                }
+                , rowMapper
+        );
+        final List<Api> apis = rowMapper.getRows();
+        for (final Api api : apis) {
+            addLabels(api);
+            addGroups(api);
+        }
+        return apis;
     }
 }

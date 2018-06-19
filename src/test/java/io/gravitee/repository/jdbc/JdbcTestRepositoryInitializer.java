@@ -85,7 +85,6 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "tags",
             "tenants",
             "users",
-            "user_roles",
             "views"
     );
 

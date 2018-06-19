@@ -22,8 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static java.util.Collections.emptyList;
-
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
@@ -46,11 +44,7 @@ abstract class JdbcAbstractPageableRepository<T> {
             if (start + rows > items.size()) {
                 rows = items.size() - start;
             }
-            if (rows > 0) {
-                return new Page(items.subList(start, start + rows), start / page.pageSize(), rows, items.size());
-            } else {
-                return new Page(emptyList(), 0, 0, items.size());
-            }
+            return new Page(items.subList(start, start + rows), start / page.pageSize(), rows, items.size());
         }
         return new Page(items, 0, items.size(), items.size());
     }

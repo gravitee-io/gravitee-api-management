@@ -111,7 +111,7 @@ public class JdbcObjectMapper<T> {
 
     private class Rm implements RowMapper<T> {
         @Override
-        public T mapRow(ResultSet rs, int i) throws SQLException {
+        public T mapRow(ResultSet rs, int i) {
             try {
                 T item = constructor.newInstance();
                 setFromResultSet(item, rs);
@@ -255,10 +255,10 @@ public class JdbcObjectMapper<T> {
         return idx;
     }
 
-    public void setFromResultSet(final T item, final ResultSet rs) throws SQLException {
+    public void setFromResultSet(final T item, final ResultSet rs) {
         for (final JdbcColumn column : columns) {
-            Object value = rs.getObject(getDBName(column.name));
             try {
+                Object value = rs.getObject(getDBName(column.name));
                 if (!rs.wasNull()) {
                     if (value instanceof Clob) {
                         Clob clob = (Clob) value;
@@ -274,8 +274,10 @@ public class JdbcObjectMapper<T> {
                     value = checkTypeAndConvert(item, column, value);
                     column.setter.invoke(item, value);
                 }
+            } catch (SQLException ex) {
+                LOGGER.debug("Field {} is not part of the result set; {}", getDBName(column.name), ex.getMessage());
             } catch (Exception ex) {
-                LOGGER.error("Failed to invoke setter {} on {} with {}: ", column.setter, item, value, ex);
+                LOGGER.error("Failed to invoke setter {} on {}; {}", column.setter, item, ex.getMessage());
             }
         }
     }

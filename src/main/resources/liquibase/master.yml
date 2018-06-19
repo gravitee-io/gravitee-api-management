@@ -8,6 +8,8 @@ databaseChangeLog:
   - include:
     - file: liquibase/changelogs/v1_16_0/schema-plans.yml
   - include:
+    - file: liquibase/changelogs/v1_18_0/schema.yml
+  - include:
     - file: liquibase/changelogs/v1_18_0/schema-plans.yml
   - include:
     - file: liquibase/changelogs/v1_18_0/schema-pages.yml
