@@ -48,7 +48,7 @@ public class RedisEventRepository implements EventRepository {
 
         return new Page<>(
                 pagedEvents.getContent().stream().map(this::convert).collect(Collectors.toList()),
-                pagedEvents.getPageNumber(), (int) pagedEvents.getTotalElements(),
+                pagedEvents.getPageNumber(), (int) pagedEvents.getPageElements(),
                 pagedEvents.getTotalElements());
      }
 

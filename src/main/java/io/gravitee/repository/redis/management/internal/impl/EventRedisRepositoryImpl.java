@@ -86,8 +86,12 @@ public class EventRedisRepositoryImpl extends AbstractRedisRepository implements
         redisTemplate.opsForZSet().intersectAndStore(null, filterKeys, tempDestination);
 
         Set<Object> keys;
+        long total;
 
         if (filter.getFrom() != 0 && filter.getTo() != 0) {
+            keys = redisTemplate.opsForZSet().rangeByScore(tempDestination,
+                    filter.getFrom(), filter.getTo(), 0, Long.MAX_VALUE);
+            total = keys.size();
             if (pageable != null) {
                 keys = redisTemplate.opsForZSet().reverseRangeByScore(
                         tempDestination,
@@ -99,6 +103,9 @@ public class EventRedisRepositoryImpl extends AbstractRedisRepository implements
                         filter.getFrom(), filter.getTo());
             }
         } else {
+            keys = redisTemplate.opsForZSet().rangeByScore(tempDestination,
+                    0, Long.MAX_VALUE);
+            total = keys.size();
             if (pageable != null) {
                 keys = redisTemplate.opsForZSet().reverseRangeByScore(
                         tempDestination,
@@ -120,8 +127,8 @@ public class EventRedisRepositoryImpl extends AbstractRedisRepository implements
                         .map(event -> convert(event, RedisEvent.class))
                         .collect(Collectors.toList()),
                 (pageable != null) ? pageable.pageNumber() : 0,
-                (pageable != null) ? pageable.pageSize() : 0,
-                keys.size());
+                keys.size(),
+                total);
     }
 
     @Override

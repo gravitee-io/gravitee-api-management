@@ -47,7 +47,7 @@ public class RedisSubscriptionRepository implements SubscriptionRepository {
 
         return new Page<>(
                 pagedSubscriptions.getContent().stream().map(this::convert).collect(Collectors.toList()),
-                pagedSubscriptions.getPageNumber(), (int) pagedSubscriptions.getTotalElements(),
+                pagedSubscriptions.getPageNumber(), (int) pagedSubscriptions.getPageElements(),
                 pagedSubscriptions.getTotalElements());
     }
 

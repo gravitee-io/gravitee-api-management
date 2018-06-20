@@ -97,7 +97,7 @@ public class RedisUserRepository implements UserRepository {
                         .map(this::convert)
                         .collect(Collectors.toList()),
                 redisUserPage.getPageNumber(),
-                Long.valueOf(redisUserPage.getPageElements()).intValue(),
+                (int) redisUserPage.getPageElements(),
                 redisUserPage.getTotalElements());
     }
 

@@ -15,8 +15,12 @@
  */
 package io.gravitee.repository.redis.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
@@ -28,7 +32,6 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -43,34 +46,30 @@ public class RedisApiRepository implements ApiRepository {
     private ApiRedisRepository apiRedisRepository;
 
     @Override
-    public Set<Api> findAll() throws TechnicalException {
-        Set<RedisApi> apis = apiRedisRepository.findAll();
-
-        return apis.stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+    public Page<Api> search(ApiCriteria apiCriteria, Pageable pageable) {
+        final Page<RedisApi> pagedApis = apiRedisRepository.search(apiCriteria, pageable, null);
+        return new Page<>(
+                pagedApis.getContent().stream().map(this::convert).collect(Collectors.toList()),
+                pagedApis.getPageNumber(), (int) pagedApis.getPageElements(),
+                pagedApis.getTotalElements());
     }
 
     @Override
-    public Set<Api> findByVisibility(Visibility visibility) throws TechnicalException {
-        return apiRedisRepository.findByVisibility(visibility.name()).stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+    public List<Api> search(ApiCriteria apiCriteria) {
+        return findByCriteria(apiCriteria, null);
     }
 
     @Override
-    public Set<Api> findByIds(List<String> ids) throws TechnicalException {
-        return apiRedisRepository.find(ids).stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+        return findByCriteria(apiCriteria, apiFieldExclusionFilter);
     }
 
-    @Override
-    public Set<Api> findByGroups(List<String> groupIds) throws TechnicalException {
-        return apiRedisRepository.findByGroups(groupIds)
+    private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+        Page<RedisApi> pagedApis = apiRedisRepository.search(apiCriteria, null, apiFieldExclusionFilter);
+        return pagedApis.getContent()
                 .stream()
                 .map(this::convert)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     @Override

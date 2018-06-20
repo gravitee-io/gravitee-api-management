@@ -101,14 +101,14 @@ public class AuditRedisRepositoryImpl extends AbstractRedisRepository implements
                 filter.getFrom(),
                 filter.getTo() == 0 ? Long.MAX_VALUE : filter.getTo());
 
-        long count = keys.size();
+        long total = keys.size();
 
         if (pageable != null) {
             keys = redisTemplate.opsForZSet().reverseRangeByScore(
                     tempDestination,
                     filter.getFrom(),
                     filter.getTo() == 0 ? Long.MAX_VALUE : filter.getTo(),
-                    pageable.pageNumber(), pageable.pageSize());
+                    pageable.from(), pageable.pageSize());
         } else {
             keys = redisTemplate.opsForZSet().reverseRangeByScore(
                     tempDestination,
@@ -124,8 +124,8 @@ public class AuditRedisRepositoryImpl extends AbstractRedisRepository implements
                         .map(apiKey -> convert(apiKey, RedisAudit.class))
                         .collect(Collectors.toList()),
                             (pageable != null) ? pageable.pageNumber() : 0,
-                            (pageable != null) ? pageable.pageSize() : 0,
-                count);
+                keys.size(),
+                total);
     }
 
 }

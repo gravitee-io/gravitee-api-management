@@ -102,8 +102,12 @@ public class SubscriptionRedisRepositoryImpl extends AbstractRedisRepository imp
         redisTemplate.opsForZSet().intersectAndStore(null, filterKeys, tempDestination);
 
         Set<Object> keys;
+        long total;
 
         if (criteria.getFrom() != 0 && criteria.getTo() != 0) {
+            keys = redisTemplate.opsForZSet().rangeByScore(tempDestination,
+                    criteria.getFrom(), criteria.getTo(), 0, Long.MAX_VALUE);
+            total = keys.size();
             if (pageable != null) {
                 keys = redisTemplate.opsForZSet().reverseRangeByScore(
                         tempDestination,
@@ -115,6 +119,9 @@ public class SubscriptionRedisRepositoryImpl extends AbstractRedisRepository imp
                         criteria.getFrom(), criteria.getTo());
             }
         } else {
+            keys = redisTemplate.opsForZSet().rangeByScore(tempDestination,
+                    0, Long.MAX_VALUE);
+            total = keys.size();
             if (pageable != null) {
                 keys = redisTemplate.opsForZSet().reverseRangeByScore(
                         tempDestination,
@@ -128,7 +135,6 @@ public class SubscriptionRedisRepositoryImpl extends AbstractRedisRepository imp
         }
 
         redisTemplate.opsForZSet().removeRange(tempDestination, 0, -1);
-//        internalUnionFilter.forEach(dest -> redisTemplate.opsForZSet().removeRange(dest, 0, -1));
         List<Object> subscriptionObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
 
         return new Page<>(
@@ -137,8 +143,8 @@ public class SubscriptionRedisRepositoryImpl extends AbstractRedisRepository imp
                         .sorted(Comparator.comparing(RedisSubscription::getCreatedAt).reversed())
                         .collect(Collectors.toList()),
                 (pageable != null) ? pageable.pageNumber() : 0,
-                (pageable != null) ? pageable.pageSize() : 0,
-                keys.size());
+                keys.size(),
+                total);
     }
 
     @Override

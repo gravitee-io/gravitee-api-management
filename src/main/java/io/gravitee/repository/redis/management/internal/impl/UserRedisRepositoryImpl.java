@@ -21,7 +21,6 @@ import io.gravitee.repository.redis.management.internal.UserRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisUser;
 import org.springframework.stereotype.Component;
 
-import javax.swing.plaf.synth.SynthEditorPaneUI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -82,21 +81,20 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
 
         Set<Object> subKeys = keys.stream()
                 .skip(pageable.from())
-                .limit(pageable.to())
+                .limit(pageable.pageSize())
                 .collect(Collectors.toSet());
 
         List<Object> usersObject = redisTemplate
                 .opsForHash()
                 .multiGet(REDIS_KEY, subKeys);
 
-        Page<RedisUser> page = new Page<>(
+        return new Page<>(
                 usersObject.stream()
                         .map(u -> convert(u, RedisUser.class))
                         .collect(Collectors.toList()),
                 pageable.pageNumber(),
-                pageable.pageSize(),
+                subKeys.size(),
                 keys.size());
-        return page;
     }
 
     @Override

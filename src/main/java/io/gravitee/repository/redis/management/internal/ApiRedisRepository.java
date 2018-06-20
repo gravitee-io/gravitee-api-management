@@ -15,6 +15,10 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.redis.management.model.RedisApi;
 
 import java.util.List;
@@ -31,13 +35,9 @@ public interface ApiRedisRepository {
 
     Set<RedisApi> find(List<String> apis);
 
-    Set<RedisApi> findAll();
-
-    Set<RedisApi> findByVisibility(String visibility);
-
-    Set<RedisApi> findByGroups(List<String> groupIds);
-
     RedisApi saveOrUpdate(RedisApi api);
 
     void delete(String api);
+
+    Page<RedisApi> search(ApiCriteria filter, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
 }
