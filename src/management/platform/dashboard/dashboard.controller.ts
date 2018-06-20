@@ -147,8 +147,9 @@ class DashboardController {
         stacked: true,
         labelPrefix: 'HTTP Status',
         request: {
-          'type': 'date_histo',
-          'aggs': 'field:status'
+          type: 'date_histo',
+          field: 'api',
+          aggs: 'field:status'
         }
       }
     }, {
@@ -162,8 +163,9 @@ class DashboardController {
         type: 'line',
         stacked: false,
         request: {
-          'type': 'date_histo',
-          'aggs': 'avg:response-time;avg:api-response-time'
+          type: 'date_histo',
+          field: 'api',
+          aggs: 'avg:response-time;avg:api-response-time'
         },
         labels: ['Global latency (ms)', 'API latency (ms)']
       }
