@@ -15,15 +15,16 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.model.ApiModelEntity;
-import io.gravitee.management.model.MetadataEntity;
-import io.gravitee.management.model.NewTicketEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.EmailRequiredException;
 import io.gravitee.management.service.exceptions.SupportUnavailableException;
+import io.gravitee.management.service.notification.ApiHook;
+import io.gravitee.management.service.notification.ApplicationHook;
+import io.gravitee.management.service.notification.NotificationParamsBuilder;
+import io.gravitee.management.service.notification.PortalHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -57,6 +58,8 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     private EmailService emailService;
     @Inject
     private ParameterService parameterService;
+    @Inject
+    private NotifierService notifierService;
 
     private boolean isEnabled() {
         return parameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED);
@@ -78,14 +81,17 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         parameters.put("user", user);
 
         final String emailTo;
+        final ApiModelEntity api;
+        final ApplicationEntity applicationEntity;
         if (ticketEntity.getApi() == null) {
+            api = null;
             final MetadataEntity emailMetadata = metadataService.findDefaultByKey(METADATA_EMAIL_SUPPORT_KEY);
             if (emailMetadata == null) {
                 throw new IllegalStateException("The support email metadata has not been found");
             }
             emailTo = emailMetadata.getValue();
         } else {
-            final ApiModelEntity api = apiService.findByIdForTemplates(ticketEntity.getApi());
+            api = apiService.findByIdForTemplates(ticketEntity.getApi());
             final String apiMetadataEmailSupport = api.getMetadata().get(METADATA_EMAIL_SUPPORT_KEY);
             if (apiMetadataEmailSupport == null) {
                 throw new IllegalStateException("The support email API metadata has not been found");
@@ -99,7 +105,10 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         }
 
         if (ticketEntity.getApplication() != null) {
-            parameters.put("application", applicationService.findById(ticketEntity.getApplication()));
+            applicationEntity = applicationService.findById(ticketEntity.getApplication());
+            parameters.put("application", applicationEntity);
+        } else {
+            applicationEntity = null;
         }
 
         parameters.put("content", ticketEntity.getContent().replaceAll("(\r\n|\n)", "<br />"));
@@ -114,5 +123,30 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
                         .template(SUPPORT_TICKET)
                         .params(parameters)
                         .build());
+        sendUserNotification(user, api, applicationEntity);
+    }
+
+    private void sendUserNotification(final UserEntity user, final ApiModelEntity api, final ApplicationEntity application) {
+        notifierService.trigger(PortalHook.NEW_SUPPORT_TICKET, new NotificationParamsBuilder()
+                .user(user)
+                .api(api)
+                .application(application)
+                .build());
+
+        if (api != null) {
+            notifierService.trigger(ApiHook.NEW_SUPPORT_TICKET, api.getId(), new NotificationParamsBuilder()
+                    .user(user)
+                    .api(api)
+                    .application(application)
+                    .build());
+        }
+
+        if (application != null) {
+            notifierService.trigger(ApplicationHook.NEW_SUPPORT_TICKET, application.getId(), new NotificationParamsBuilder()
+                    .user(user)
+                    .api(api)
+                    .application(application)
+                    .build());
+        }
     }
 }

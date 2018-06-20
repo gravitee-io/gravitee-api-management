@@ -22,11 +22,17 @@ package io.gravitee.management.service.notification;
 public enum ApiHook implements Hook {
 
     APIKEY_EXPIRED("API key Expired", "Triggered when an API key is expired.", "API KEY"),
+    APIKEY_RENEWED("API key Renewed", "Triggered when an API key is renewed.", "API KEY"),
     APIKEY_REVOKED("API key Revoked", "Triggered when an API key is revoked.", "API KEY"),
     SUBSCRIPTION_NEW("New Subscription", "Triggered when a Subscription is created.", "SUBSCRIPTION"),
     SUBSCRIPTION_ACCEPTED("Subscription Accepted", "Triggered when a Subscription is accepted.", "SUBSCRIPTION"),
     SUBSCRIPTION_CLOSED("Subscription Closed", "Triggered when a Subscription is closed.", "SUBSCRIPTION"),
-    SUBSCRIPTION_REJECTED("Subscription Rejected", "Triggered when a Subscription is rejected.", "SUBSCRIPTION");
+    SUBSCRIPTION_REJECTED("Subscription Rejected", "Triggered when a Subscription is rejected.", "SUBSCRIPTION"),
+    NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT"),
+    API_STARTED("API Started", "Triggered when an API is started", "LIFECYCLE"),
+    API_STOPPED("API Stopped", "Triggered when an API is stopped", "LIFECYCLE"),
+    NEW_RATING("New Rating", "Triggered when a new rating is submitted", "RATING"),
+    NEW_RATING_ANSWER("New Rating Answer", "Triggered when a new answer is submitted", "RATING");
 
     private String label;
     private String description;

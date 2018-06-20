@@ -38,6 +38,7 @@ import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.HookScope;
+import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -105,6 +106,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private TopApiService topApiService;
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
+    @Autowired
+    private NotifierService notifierService;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String userId) throws ApiAlreadyExistsException {
@@ -471,7 +474,15 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public ApiEntity start(String apiId, String userId) {
         try {
             LOGGER.debug("Start API {}", apiId);
-            return updateLifecycle(apiId, LifecycleState.STARTED, userId);
+            ApiEntity apiEntity = updateLifecycle(apiId, LifecycleState.STARTED, userId);
+            notifierService.trigger(
+                    ApiHook.API_STARTED,
+                    apiId,
+                    new NotificationParamsBuilder()
+                            .api(apiEntity)
+                            .user(userService.findById(userId))
+                            .build());
+            return apiEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to start API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to start API " + apiId, ex);
@@ -482,7 +493,15 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public ApiEntity stop(String apiId, String userId) {
         try {
             LOGGER.debug("Stop API {}", apiId);
-            return updateLifecycle(apiId, LifecycleState.STOPPED, userId);
+            ApiEntity apiEntity = updateLifecycle(apiId, LifecycleState.STOPPED, userId);
+            notifierService.trigger(
+                    ApiHook.API_STOPPED,
+                    apiId,
+                    new NotificationParamsBuilder()
+                            .api(apiEntity)
+                            .user(userService.findById(userId))
+                            .build());
+            return apiEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to stop API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to stop API " + apiId, ex);

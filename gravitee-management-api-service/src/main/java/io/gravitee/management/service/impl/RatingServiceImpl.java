@@ -19,14 +19,13 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.parameters.Key;
-import io.gravitee.management.service.AuditService;
-import io.gravitee.management.service.ParameterService;
-import io.gravitee.management.service.RatingService;
-import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApiRatingUnavailableException;
 import io.gravitee.management.service.exceptions.RatingAlreadyExistsException;
 import io.gravitee.management.service.exceptions.RatingNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.notification.ApiHook;
+import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
@@ -72,6 +71,12 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     @Autowired
     private ParameterService parameterService;
 
+    @Autowired
+    private NotifierService notifierService;
+
+    @Autowired
+    private ApiService apiService;
+
     @Override
     public RatingEntity create(final NewRatingEntity ratingEntity) {
         if (!isEnabled()) {
@@ -84,6 +89,14 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             }
             Rating rating = ratingRepository.create(convert(ratingEntity));
             auditService.createApiAuditLog(rating.getApi(), null, Rating.RatingEvent.RATING_CREATED, rating.getCreatedAt(), null, rating);
+
+            notifierService.trigger(
+                    ApiHook.NEW_RATING,
+                    rating.getApi(),
+                    new NotificationParamsBuilder()
+                            .api(apiService.findById(rating.getApi()))
+                            .build());
+
             return convert(rating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to create rating on api {}", ratingEntity.getApi(), ex);
@@ -107,6 +120,14 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             ratingAnswer.setCreatedAt(new Date());
             ratingAnswerRepository.create(ratingAnswer);
             auditService.createApiAuditLog(rating.getApi(), null, RatingAnswer.RatingAnswerEvent.RATING_ANSWER_CREATED, ratingAnswer.getCreatedAt(), null, ratingAnswer);
+
+            notifierService.trigger(
+                    ApiHook.NEW_RATING_ANSWER,
+                    rating.getApi(),
+                    new NotificationParamsBuilder()
+                            .api(apiService.findById(rating.getApi()))
+                            .build());
+
             return convert(rating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to create a rating answer on rating {}", answerEntity.getRatingId(), ex);

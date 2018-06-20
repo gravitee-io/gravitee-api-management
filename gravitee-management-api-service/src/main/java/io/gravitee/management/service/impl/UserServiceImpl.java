@@ -118,13 +118,18 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             User user = checkUser.get();
             User previousUser = new User(user);
-            // First connection: create default application for user
-            if (defaultApplicationForFirstConnection && user.getLastConnectionAt() == null) {
-                LOGGER.debug("Create a default application for {}", userId);
-                NewApplicationEntity defaultApp = new NewApplicationEntity();
-                defaultApp.setName("Default application");
-                defaultApp.setDescription("My default application");
-                applicationService.create(defaultApp, userId);
+            // First connection: create default application for user & notify
+            if (user.getLastConnectionAt() == null) {
+                notifierService.trigger(PortalHook.USER_FIRST_LOGIN, new NotificationParamsBuilder()
+                        .user(convert(user, false))
+                        .build());
+                if (defaultApplicationForFirstConnection) {
+                    LOGGER.debug("Create a default application for {}", userId);
+                    NewApplicationEntity defaultApp = new NewApplicationEntity();
+                    defaultApp.setName("Default application");
+                    defaultApp.setDescription("My default application");
+                    applicationService.create(defaultApp, userId);
+                }
             }
 
             // Set date fields

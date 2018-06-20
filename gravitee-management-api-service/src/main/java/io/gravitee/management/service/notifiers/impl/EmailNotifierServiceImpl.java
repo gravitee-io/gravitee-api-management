@@ -72,11 +72,29 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         if (hook.equals(ApiHook.APIKEY_REVOKED)) {
             return EmailNotificationBuilder.EmailTemplate.REVOKE_API_KEY;
         }
+        else if (hook.equals(ApiHook.APIKEY_RENEWED)) {
+            return EmailNotificationBuilder.EmailTemplate.RENEWED_API_KEY;
+        }
         else if (hook.equals(ApiHook.APIKEY_EXPIRED)) {
             return EmailNotificationBuilder.EmailTemplate.EXPIRE_API_KEY;
         }
         else if (hook.equals(ApiHook.SUBSCRIPTION_ACCEPTED) || hook.equals(ApiHook.SUBSCRIPTION_NEW)) {
             return EmailNotificationBuilder.EmailTemplate.NEW_SUBSCRIPTION;
+        }
+        else if (hook.equals(ApiHook.NEW_SUPPORT_TICKET)) {
+            return EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET_NOTIFICATION;
+        }
+        else if (hook.equals(ApiHook.API_STOPPED)) {
+            return EmailNotificationBuilder.EmailTemplate.API_STOPPED;
+        }
+        else if (hook.equals(ApiHook.API_STARTED)) {
+            return EmailNotificationBuilder.EmailTemplate.API_STARTED;
+        }
+        else if (hook.equals(ApiHook.NEW_RATING)) {
+            return EmailNotificationBuilder.EmailTemplate.NEW_RATING;
+        }
+        else if (hook.equals(ApiHook.NEW_RATING_ANSWER)) {
+            return EmailNotificationBuilder.EmailTemplate.NEW_RATING_ANSWER;
         }
 
         // Application Hook
@@ -89,6 +107,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         else if (hook.equals(ApplicationHook.SUBSCRIPTION_CLOSED)) {
             return EmailNotificationBuilder.EmailTemplate.CLOSE_SUBSCRIPTION;
         }
+        else if (hook.equals(ApplicationHook.NEW_SUPPORT_TICKET)) {
+            return EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET_NOTIFICATION;
+        }
 
         // Portal Hook
         else if (hook.equals(PortalHook.USER_REGISTERED)) {
@@ -96,6 +117,12 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
         else if (hook.equals(PortalHook.PASSWORD_RESET)) {
             return EmailNotificationBuilder.EmailTemplate.PASSWORD_RESET;
+        }
+        else if (hook.equals(PortalHook.USER_FIRST_LOGIN)) {
+            return EmailNotificationBuilder.EmailTemplate.USER_FIRST_LOGIN;
+        }
+        else if (hook.equals(PortalHook.NEW_SUPPORT_TICKET)) {
+            return EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET_NOTIFICATION;
         }
 
         // Unknown Hook
@@ -114,6 +141,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         else if (hook.equals(ApiHook.APIKEY_EXPIRED)) {
             return "API key expiration!";
         }
+        else if (hook.equals(ApiHook.APIKEY_RENEWED)) {
+            return "API key renewed";
+        }
         else if (hook.equals(ApiHook.SUBSCRIPTION_ACCEPTED) || hook.equals(ApiHook.SUBSCRIPTION_NEW)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
@@ -121,6 +151,21 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
                 return "New subscription for " + apiName + " with plan " + ((PlanEntity)plan).getName();
             }
+        }
+        else if (hook.equals(ApiHook.NEW_SUPPORT_TICKET)) {
+            return "New Support Ticket";
+        }
+        else if (hook.equals(ApiHook.API_STOPPED)) {
+            return "API Stopped";
+        }
+        else if (hook.equals(ApiHook.API_STARTED)) {
+            return "API Started";
+        }
+        else if (hook.equals(ApiHook.NEW_RATING)) {
+            return "New Rating";
+        }
+        else if (hook.equals(ApiHook.NEW_RATING_ANSWER)) {
+            return "New Rating Answer";
         }
 
         // Application Hook
@@ -148,6 +193,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
                 return "Your subscription to " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been closed";
             }
         }
+        else if (hook.equals(ApplicationHook.NEW_SUPPORT_TICKET)) {
+            return "New Support Ticket by " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
+        }
 
         // Portal Hook
         else if (hook.equals(PortalHook.USER_REGISTERED)) {
@@ -155,6 +203,12 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
         else if (hook.equals(PortalHook.PASSWORD_RESET)) {
             return "Password reset - " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
+        }
+        else if (hook.equals(PortalHook.USER_FIRST_LOGIN)) {
+            return "First login - " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
+        }
+        else if (hook.equals(PortalHook.NEW_SUPPORT_TICKET)) {
+            return "New Support Ticket by " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
         }
 
         // Unknown Hook

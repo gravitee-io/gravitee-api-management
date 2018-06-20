@@ -22,6 +22,7 @@ import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.exceptions.RatingAlreadyExistsException;
 import io.gravitee.management.service.exceptions.RatingNotFoundException;
 import io.gravitee.management.service.impl.RatingServiceImpl;
+import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
@@ -92,6 +93,10 @@ public class RatingServiceTest {
     private AuditService auditService;
     @Mock
     private ParameterService mockParameterService;
+    @Mock
+    private ApiService mockApiService;
+    @Mock
+    private NotifierService mockNotifierService;
 
     @Before
     public void init() {
@@ -120,6 +125,7 @@ public class RatingServiceTest {
         when(ratingRepository.findByApiAndUser(API_ID, USER)).thenReturn(of(rating));
 
         ratingService.create(newRatingEntity);
+        verify(mockNotifierService, never()).trigger(eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
     }
 
     @Test
@@ -139,6 +145,8 @@ public class RatingServiceTest {
         assertEquals(COMMENT, ratingEntity.getComment());
         assertEquals(RATE, ratingEntity.getRate(), 0);
         assertEquals(ratingEntity.getCreatedAt(), ratingEntity.getUpdatedAt());
+        verify(mockNotifierService, times(1)).trigger(eq(ApiHook.NEW_RATING), eq(API_ID), any());
+        verify(mockNotifierService, never()).trigger(eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
     }
 
     @Test(expected = RatingNotFoundException.class)
@@ -147,6 +155,8 @@ public class RatingServiceTest {
         when(ratingRepository.findById(UNKNOWN_RATING_ID)).thenReturn(empty());
 
         ratingService.createAnswer(newRatingAnswerEntity);
+        verify(mockNotifierService, times(1)).trigger(eq(ApiHook.NEW_RATING), eq(API_ID), any());
+        verify(mockNotifierService, never()).trigger(eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
     }
 
     @Test
@@ -181,6 +191,7 @@ public class RatingServiceTest {
         assertEquals(ANSWER, ratingEntity.getAnswers().get(0).getComment());
         assertEquals(USER, ratingEntity.getAnswers().get(0).getUser());
         assertNotNull(ratingEntity.getAnswers().get(0).getCreatedAt());
+        verify(mockNotifierService, times(1)).trigger(eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
     }
 
     @Test

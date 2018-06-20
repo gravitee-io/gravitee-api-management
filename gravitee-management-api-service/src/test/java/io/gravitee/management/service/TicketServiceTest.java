@@ -25,6 +25,7 @@ import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.EmailRequiredException;
 import io.gravitee.management.service.exceptions.SupportUnavailableException;
 import io.gravitee.management.service.impl.TicketServiceImpl;
+import io.gravitee.management.service.notification.PortalHook;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -37,8 +38,9 @@ import java.util.Map;
 import static io.gravitee.management.service.builder.EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET;
 import static io.gravitee.management.service.impl.InitializerServiceImpl.DEFAULT_METADATA_EMAIL_SUPPORT;
 import static io.gravitee.management.service.impl.InitializerServiceImpl.METADATA_EMAIL_SUPPORT_KEY;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.anyMap;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -82,11 +84,14 @@ public class TicketServiceTest {
     private ApplicationEntity application;
     @Mock
     private ParameterService mockParameterService;
+    @Mock
+    private NotifierService mockNotifierService;
 
     @Test(expected = SupportUnavailableException.class)
     public void shouldNotCreateIfSupportDisabled() {
         when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.FALSE);
         ticketService.create(USERNAME, newTicketEntity);
+        verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = EmailRequiredException.class)
@@ -95,6 +100,7 @@ public class TicketServiceTest {
         when(userService.findById(USERNAME)).thenReturn(user);
 
         ticketService.create(USERNAME, newTicketEntity);
+        verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -106,6 +112,7 @@ public class TicketServiceTest {
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(api);
 
         ticketService.create(USERNAME, newTicketEntity);
+        verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -125,6 +132,7 @@ public class TicketServiceTest {
         when(api.getMetadata()).thenReturn(metadata);
 
         ticketService.create(USERNAME, newTicketEntity);
+        verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test
@@ -159,5 +167,6 @@ public class TicketServiceTest {
                         .template(SUPPORT_TICKET)
                         .params(ImmutableMap.of("user", user, "api", api, "content", "Email<br />Content", "application", application))
                         .build());
+        verify(mockNotifierService, times(1)).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 }

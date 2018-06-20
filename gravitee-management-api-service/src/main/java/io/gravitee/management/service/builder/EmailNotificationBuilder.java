@@ -74,6 +74,7 @@ public class EmailNotificationBuilder {
     public enum EmailTemplate {
 
         REVOKE_API_KEY("apiKeyRevoked.html"),
+        RENEWED_API_KEY("apiKeyRenewed.html"),
         EXPIRE_API_KEY("apiKeyExpired.html"),
         NEW_SUBSCRIPTION("subscriptionReceived.html"),
         APPROVE_SUBSCRIPTION("subscriptionApproved.html"),
@@ -85,7 +86,13 @@ public class EmailNotificationBuilder {
         API_MEMBER_SUBSCRIPTION("apiMember.html"),
         GROUP_MEMBER_SUBSCRIPTION("groupMember.html"),
         SUPPORT_TICKET("supportTicket.html"),
-        PASSWORD_RESET("passwordReset.html");
+        PASSWORD_RESET("passwordReset.html"),
+        USER_FIRST_LOGIN("userFirstLogin.html"),
+        SUPPORT_TICKET_NOTIFICATION("supportTicketNotification.html"),
+        API_STARTED("apiStarted.html"),
+        API_STOPPED("apiStopped.html"),
+        NEW_RATING("newRating.html"),
+        NEW_RATING_ANSWER("newRatingAnswer.html");
 
         private String template;
 

@@ -24,12 +24,14 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.PlanEntity;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.mixin.ApiMixin;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -80,10 +82,16 @@ public class ApiService_StopTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private NotifierService notifierService;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+        UserEntity u = mock(UserEntity.class);
+        when(u.getUsername()).thenReturn(USER_NAME);
+        when(userService.findById(any())).thenReturn(u);
     }
 
     @Test
@@ -104,6 +112,7 @@ public class ApiService_StopTest {
         verify(api).setLifecycleState(LifecycleState.STOPPED);
         verify(apiRepository).update(api);
         verify(eventService).create(EventType.STOP_API, event.getPayload(), event.getProperties());
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_STOPPED), eq(API_ID), any());
     }
 
     @Test(expected = ApiNotFoundException.class)
@@ -113,6 +122,7 @@ public class ApiService_StopTest {
         apiService.stop(API_ID, USER_NAME);
 
         verify(apiRepository, never()).update(api);
+        verify(notifierService, never()).trigger(eq(ApiHook.API_STOPPED), eq(API_ID), any());
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -120,6 +130,7 @@ public class ApiService_StopTest {
         when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
 
         apiService.stop(API_ID, USER_NAME);
+        verify(notifierService, never()).trigger(eq(ApiHook.API_STOPPED), eq(API_ID), any());
     }
 
     private EventEntity mockEvent(EventType eventType) throws Exception {

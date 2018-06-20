@@ -124,8 +124,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 }
             }
 
-            //TODO: Send a notification to the application owner
-
             // Audit
             final PlanEntity plan = planService.findById(newApiKey.getPlan());
             auditService.createApiAuditLog(
@@ -135,6 +133,20 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                     newApiKey.getCreatedAt(),
                     null,
                     newApiKey);
+
+            // Notification
+            final ApplicationEntity application = applicationService.findById(newApiKey.getApplication());
+            final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
+            final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+            final Map<String, Object> params = new NotificationParamsBuilder()
+                    .application(application)
+                    .plan(plan)
+                    .api(api)
+                    .owner(owner)
+                    .apikey(newApiKey)
+                    .build();
+            notifierService.trigger(ApiHook.APIKEY_RENEWED, plan.getApis().iterator().next(), params);
+
             return convert(newApiKey);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to renew an API Key for {}", subscription, ex);

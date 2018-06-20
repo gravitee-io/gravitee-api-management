@@ -17,7 +17,6 @@ package io.gravitee.management.service.notification;
 
 import io.gravitee.management.model.*;
 import io.gravitee.repository.management.model.ApiKey;
-import io.gravitee.repository.management.model.Subscription;
 
 import java.util.Collections;
 import java.util.Date;
