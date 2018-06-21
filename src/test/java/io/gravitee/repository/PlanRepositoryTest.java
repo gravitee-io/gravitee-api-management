@@ -84,6 +84,8 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertEquals("7c546c6b-2f2f-4487-946c-6b2f2f648784", planOAuth2.get().getExcludedGroups().get(0));
         assertEquals("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
                 planOAuth2.get().getSecurityDefinition());
+        assertEquals("{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}",
+                planOAuth2.get().getDefinition());
     }
 
     @Test

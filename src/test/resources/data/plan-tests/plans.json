@@ -43,6 +43,7 @@
       "validation": "MANUAL",
       "security": "OAUTH2",
       "securityDefinition": "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
+      "definition": "{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}",
       "type": "API",
       "status": "STAGING",
       "apis": [

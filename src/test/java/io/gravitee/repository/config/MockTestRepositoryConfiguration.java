@@ -744,6 +744,7 @@ public class MockTestRepositoryConfiguration {
         when(createdPlanOAuth2.getExcludedGroups()).thenReturn(singletonList("7c546c6b-2f2f-4487-946c-6b2f2f648784"));
         when(createdPlanOAuth2.getSecurity()).thenReturn(Plan.PlanSecurityType.OAUTH2);
         when(createdPlanOAuth2.getSecurityDefinition()).thenReturn("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
+        when(createdPlanOAuth2.getDefinition()).thenReturn("{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}");
 
         final Plan updatedPlan = mock(Plan.class);
         when(updatedPlan.getId()).thenReturn("updated-plan");
