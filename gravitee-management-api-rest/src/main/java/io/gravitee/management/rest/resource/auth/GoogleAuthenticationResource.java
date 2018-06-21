@@ -55,7 +55,7 @@ import java.util.Map;
 public class GoogleAuthenticationResource extends AbstractAuthenticationResource {
 
     private static final String GOOGLE_ACCESS_TOKEN_URL = "https://accounts.google.com/o/oauth2/token";
-    private static final String GOOGLE_USER_INFO_URL = "https://www.googleapis.com/plus/v1/people/me/openIdConnect";
+    private static final String GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
     private static final String GOOGLE_ACCESS_TOKEN_PROPERTY = "access_token";
     private static final String GOOGLE_AUTHORIZATION_HEADER = "Bearer %s";
 
