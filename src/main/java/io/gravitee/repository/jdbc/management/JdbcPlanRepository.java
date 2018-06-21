@@ -52,6 +52,7 @@ public class JdbcPlanRepository implements PlanRepository {
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("validation", Types.NVARCHAR, Plan.PlanValidationType.class)
+            .addColumn("definition", Types.NVARCHAR, String.class)
             .addColumn("security_definition", Types.NVARCHAR, String.class)
             .addColumn("order", Types.INTEGER, int.class)
             .addColumn("status", Types.NVARCHAR, Plan.Status.class)
