@@ -1,0 +1,184 @@
+{
+    "common": {
+      "copyToClipboard": "Copiar para área de trabalho",
+      "NANOSECONDS": "nanosegundos",
+      "MICROSECONDS": "microsegundos",
+      "MILLISECONDS": "millisegundos",
+      "SECONDS": "segundos",
+      "MINUTES": "minutos",
+      "HOURS": "horas",
+      "DAYS": "dias",
+      "close": "Fechar",
+      "create": "Criar",
+      "cancel": "Cancelar",
+      "ok": "OK",
+      "submit": "Enviar",
+      "answer": "Resposta",
+      "ratings.none": "Sem avaliação",
+      "paging": {
+        "first": "Primeiro",
+        "previous": "Anterior",
+        "next": "Próximo",
+        "last": "Último"
+      }
+    },
+    "home": {
+      "subtitle": "Portal do Desenvolvedor",
+      "version": "Versão: {{version}}",
+      "pages": {
+        "title": "Documentação"
+      },
+      "apis": {
+        "search": "Buscar APIs...",
+        "top": "Top APIs",
+        "all": "Ver todas as APIs"
+      }
+    },
+    "menu": {
+      "login": "Login",
+      "gallery": "Galeria de APIs",
+      "documentation": "Documentação",
+      "profile": "Minha conta",
+      "management": "Administração",
+      "applications": "Aplicações",
+      "apis": "APIs",
+      "tasks": "Tarefas",
+      "logout": "Sair",
+      "support": "Suporte"
+    },
+    "apis": {
+      "filter": "Filtrar APIs..."
+    },
+    "api": {
+      "version": "Versão",
+      "endpoint": "Endpoint",
+      "owner": "Dono",
+      "publishedAt": "Publicado",
+      "subscription": {
+        "step1": {
+          "title": "Seleciona um Plano de API",
+          "subtitle": "O plano de API corresponde ao contrato de serviço entre você e a API.",
+          "keyless": "Este plano não utiliza chave de API e não necessita de assinatura."
+        },
+        "step2": {
+          "title": "Seleciona uma aplicação",
+          "subtitle": "Aplicação é um link entre você, o consumidor e a assinatura de um plano de API.",
+          "application": {
+            "placeholder": "Seleciona uma aplicação..."
+          },
+          "clientIdRequired": "É necessário um clientId para assinar este plano. Favor verificar a configuração da sua aplicação.",
+          "action": "Assinar"
+        },
+        "step3": {
+          "apikey": {
+            "key": "Você pode acessar a API utilizando a seguinte Chave de API:",
+            "curl": "Exemplo de requisição utilizando curl:",
+            "clipboard": "Chave de API copiada para a área de trabalho."
+          },
+          "oauth2": {
+            "bearer": "Você deve obter um access_token do servidor de autorização para poder consumir esta API.",
+            "curl": "Exemplo de requisição utilizando curl:"
+          },
+          "jwt": {
+            "bearer": "Você deve obter um access_token do servidor de autorização para poder consumir esta API.",
+            "curl": "Exemplo de requisição utilizando curl:"
+          },
+          "pending": {
+            "title": "Assinatura está aguardando validação",
+            "subtitle": "Sua assinatura está no status pendente, você receberá uma notificação assim que for processada."
+          },
+          "accepted": {
+            "title": "Vamos começar a usar \"{{apiName}}\" com \"{{applicationName}}\"!"
+          },
+          "successful": "Pedido de Assinatura foi enviado."
+        },
+  
+        "planInformation": "com uma cota de {{quotaLimit}} requests por {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
+      },
+      "plan": {
+        "title": "Planos",
+        "subscribe": "Assinar",
+        "manual": "Assinatura sujeita a validação",
+        "empty": {
+          "title": "Nenhum plano para esta API",
+          "message": "Assim que um plano for criado, você pode assinar esta API"
+        }
+      },
+      "documentation": {
+        "title": "Documentação",
+        "empty": {
+          "title": "Nenhuma documentação para esta API",
+          "message": "Volte mais tarde, a API será completada rapidamente"
+        }
+      },
+      "metadata": {
+        "title": "Metadata",
+        "name": "Nome",
+        "value": "Valor"
+      },
+      "rating": {
+        "title": "Título ou sumário do seu comentário",
+        "comment": "Comentário",
+        "by": "Por",
+        "rate": "{{numberOfRatings}} avaliação(ões)",
+        "empty": {
+          "title": "Nenhuma avaliação desta API",
+          "message": "Seja o primeiro a avaliar",
+          "rights.message": "Você não possui as permissões necessárias para avaliar esta API"
+        },
+        "messages": {
+          "1": "Eu detestei esta API",
+          "2": "Eu não gostei desta API",
+          "3": "Eu gostei dessa API",
+          "4": "Eu amei essa API",
+          "5": "Essa API é perfeita"
+        },
+        "successCreation": "Sua avaliação foi enviada com sucesso",
+        "successUpdate": "Sua avaliação foi atualizada com sucesso",
+        "successDeletion": "Essa avaliação foi excuída com sucesso",
+        "deletion": "Tem certeza que deseja excluir essa avaliação?",
+        "list": {
+          "title": "{{numberOfRatings}} avaliação(ões)"
+        },
+        "answer": {
+          "label": "{{numberOfAnswers}} resposta(s)",
+          "successCreation": "Sua resposta foi enviado com sucesso",
+          "successDeletion": "Essa resposta foi excluída com sucesso",
+          "deletion": "Tem certeza que deseja excluir a resposta?",
+          "new": {
+            "label": "Resposta"
+          }
+        },
+        "summary": {
+          "title": "{{averageRate}} estrelas de 5",
+          "link": "Consulte a(s) {{numberOfRatings}} avaliação(ões)"
+        }
+      }
+    },
+    "applications": {
+      "empty": "Você não tem nenhuma aplicação!",
+      "start": "Vamos começar criando sua primeira aplicação."
+    },
+    "application": {
+      "notFound": "Nenhuma aplicação contendo \"{{applicationName}}\" foi encontrada."
+    },
+    "support": {
+      "ticket": {
+        "title": "Criação de ticket de suporte",
+        "subject": "Assunto",
+        "content": "Conteúdo",
+        "api": "Selecione a API",
+        "application": "Selecione uma aplicação",
+        "copyToSender": "Receber uma cópia do email",
+        "successCreation": "Ticket de suporte criado com sucesso",
+        "notAuthenticated": {
+          "title": "Criação de um ticket de suporte",
+          "message": "Para criar um ticket, favor fazer login"
+        },
+        "userWithoutEmail": {
+          "message": "Você não pode enviar um ticket porque você não tem um email configurado na sua conta"
+        }
+      }
+    }
+  }
+  
