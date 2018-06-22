@@ -18,6 +18,11 @@
 <div id="ratings">
   <form name="$ctrl.formRating" ng-submit="$ctrl.save()" novalidate ng-if="$ctrl.isAuthenticated">
     <md-card permission permission-only="'api-rating-c'">
+      <md-card-header ng-if="$ctrl.justCreated">
+        <md-card-header-text layout="row">
+          <label><ng-md-icon icon="check_circle" style="fill: green"></ng-md-icon> {{'api.rating.successCreationMessage' | translate}}</label>
+        </md-card-header-text>
+      </md-card-header>
       <md-card-title>
         <md-card-title-text layout="row" layout-align="center center">
           <md-input-container permission permission-only="'api-rating-u'" ng-if="$ctrl.displayCommentPart()" flex-gt-lg="70" flex="50">

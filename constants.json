@@ -26,7 +26,10 @@
     "enabled": false
   },
   "rating": {
-    "enabled": false
+    "enabled": false,
+    "comment": {
+      "mandatory": false
+    }
   },
   "analytics": {
     "enabled": false,
