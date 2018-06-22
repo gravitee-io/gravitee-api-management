@@ -15,11 +15,14 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
- * @author Azize Elamrani (azize at gravitee.io)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class UpdateUserEntity {
@@ -33,6 +36,23 @@ public class UpdateUserEntity {
 	private String firstname;
 
 	private String lastname;
+
+	@JsonIgnore
+	private String email;
+
+	@NotNull
+	private String picture;
+
+	public UpdateUserEntity() {
+	}
+
+	public UpdateUserEntity(UserEntity userEntity) {
+		this.username = userEntity.getUsername();
+		this.firstname = userEntity.getFirstname();
+		this.lastname = userEntity.getLastname();
+		this.email = userEntity.getEmail();
+		this.picture = userEntity.getPicture();
+	}
 
 	public String getFirstname() {
 		return firstname;
@@ -49,11 +69,14 @@ public class UpdateUserEntity {
 	public void setLastname(String lastname) {
 		this.lastname = lastname;
 	}
-	/**
-	 * The user picture
-	 */
-	@NotNull
-	private String picture;
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
 	public String getPicture() {
 		return picture;
@@ -91,6 +114,7 @@ public class UpdateUserEntity {
 				", picture='" + picture + '\'' +
 				", firstname='" + firstname + '\'' +
 				", lastname='" + lastname + '\'' +
+				", email='" + email + '\'' +
 				'}';
 	}
 }

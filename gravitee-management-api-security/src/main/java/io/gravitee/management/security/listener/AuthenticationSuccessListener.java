@@ -18,6 +18,7 @@ package io.gravitee.management.security.listener;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.NewExternalUserEntity;
 import io.gravitee.management.model.RoleEntity;
+import io.gravitee.management.model.UpdateUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.permissions.RoleScope;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -58,6 +59,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
 
         try {
             UserEntity registeredUser = userService.findByUsername(details.getUsername(), false);
+            updateRegisteredUser(registeredUser, details);
             // Principal username is the technical identifier of the user
             details.setUsername(registeredUser.getId());
         } catch (UserNotFoundException unfe) {
@@ -85,6 +87,19 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
 
 
         userService.connect(details.getUsername());
+    }
+
+    private void updateRegisteredUser(UserEntity registeredUser, UserDetails details) {
+
+        if ((registeredUser.getFirstname() != null && !registeredUser.getFirstname().equals(details.getFirstname()))
+                || (registeredUser.getLastname() != null && !registeredUser.getLastname().equals(details.getLastname()))
+                || (registeredUser.getEmail() != null && !registeredUser.getEmail().equals(details.getEmail()))) {
+            UpdateUserEntity updateUserEntity = new UpdateUserEntity(registeredUser);
+            updateUserEntity.setFirstname(details.getFirstname());
+            updateUserEntity.setLastname(details.getLastname());
+            updateUserEntity.setEmail(details.getEmail());
+            userService.update(updateUserEntity);
+        }
     }
 
     /**

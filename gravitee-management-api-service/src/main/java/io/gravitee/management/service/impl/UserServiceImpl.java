@@ -473,9 +473,18 @@ public class UserServiceImpl extends AbstractService implements UserService {
             user.setUpdatedAt(new Date());
 
             // Set variant fields
-            user.setPicture(updateUserEntity.getPicture());
-            user.setFirstname(updateUserEntity.getFirstname());
-            user.setLastname(updateUserEntity.getLastname());
+            if (updateUserEntity.getPicture() != null) {
+                user.setPicture(updateUserEntity.getPicture());
+            }
+            if (updateUserEntity.getFirstname() != null) {
+                user.setFirstname(updateUserEntity.getFirstname());
+            }
+            if (updateUserEntity.getLastname() != null) {
+                user.setLastname(updateUserEntity.getLastname());
+            }
+            if (updateUserEntity.getEmail() != null) {
+                user.setEmail(updateUserEntity.getEmail());
+            }
 
             User updatedUser = userRepository.update(user);
             auditService.createPortalAuditLog(
