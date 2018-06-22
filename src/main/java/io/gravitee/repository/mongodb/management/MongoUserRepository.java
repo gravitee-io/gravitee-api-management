@@ -117,6 +117,10 @@ public class MongoUserRepository implements UserRepository {
 			throw new IllegalStateException(String.format("No user found with username [%s]", user.getUsername()));
 		}
 
+		userMongo.setSource(user.getSource());
+		userMongo.setSourceId(user.getSourceId());
+		userMongo.setFirstname(user.getFirstname());
+		userMongo.setLastname(user.getLastname());
 		userMongo.setCreatedAt(user.getCreatedAt());
 		userMongo.setUpdatedAt(user.getUpdatedAt());
 		userMongo.setPassword(user.getPassword());
