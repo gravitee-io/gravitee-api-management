@@ -35,6 +35,7 @@ public class ViewMongo extends Auditable{
 	private boolean defaultView;
 	private boolean hidden;
 	private int order;
+	private String highlightApi;
 
 	public String getId() {
 		return id;
@@ -78,6 +79,14 @@ public class ViewMongo extends Auditable{
 		this.order = order;
 	}
 
+	public String getHighlightApi() {
+		return highlightApi;
+	}
+
+	public void setHighlightApi(String highlightApi) {
+		this.highlightApi = highlightApi;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -100,6 +109,7 @@ public class ViewMongo extends Auditable{
 				", defaultView='" + defaultView + '\'' +
 				", hidden='" + hidden + '\'' +
 				", order='" + order + '\'' +
+				", highlightApi='" + highlightApi + '\'' +
 				'}';
 	}
 }
