@@ -29,6 +29,7 @@ public class RedisView {
     private boolean defaultView;
     private boolean hidden;
     private int order;
+    private String highlightApi;
     private long createdAt;
     private long updatedAt;
 
@@ -78,6 +79,14 @@ public class RedisView {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public String getHighlightApi() {
+        return highlightApi;
+    }
+
+    public void setHighlightApi(String highlightApi) {
+        this.highlightApi = highlightApi;
     }
 
     public long getCreatedAt() {

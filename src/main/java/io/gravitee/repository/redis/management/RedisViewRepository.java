@@ -91,6 +91,7 @@ public class RedisViewRepository implements ViewRepository {
         view.setDefaultView(redisView.isDefaultView());
         view.setHidden(redisView.isHidden());
         view.setOrder(redisView.getOrder());
+        view.setHighlightApi(redisView.getHighlightApi());
         if (redisView.getCreatedAt() > 0) {
             view.setCreatedAt(new Date(redisView.getCreatedAt()));
         }
@@ -111,6 +112,7 @@ public class RedisViewRepository implements ViewRepository {
         redisView.setDefaultView(view.isDefaultView());
         redisView.setHidden(view.isHidden());
         redisView.setOrder(view.getOrder());
+        redisView.setHighlightApi(view.getHighlightApi());
         if (view.getCreatedAt() != null) {
             redisView.setCreatedAt(view.getCreatedAt().getTime());
         }
