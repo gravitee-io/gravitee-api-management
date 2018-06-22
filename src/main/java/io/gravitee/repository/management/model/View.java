@@ -35,6 +35,7 @@ public class View {
     private boolean defaultView;
     private boolean hidden;
     private int order;
+    private String highlightApi;
     private Date createdAt;
     private Date updatedAt;
 
@@ -78,6 +79,22 @@ public class View {
         this.order = order;
     }
 
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public String getHighlightApi() {
+        return highlightApi;
+    }
+
+    public void setHighlightApi(String highlightApi) {
+        this.highlightApi = highlightApi;
+    }
+
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -92,14 +109,6 @@ public class View {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public boolean isHidden() {
-        return hidden;
-    }
-
-    public void setHidden(boolean hidden) {
-        this.hidden = hidden;
     }
 
     @Override
@@ -126,6 +135,7 @@ public class View {
                 ", defaultView='" + defaultView + '\'' +
                 ", hidden='" + hidden + '\'' +
                 ", order='" + order + '\'' +
+                ", highlightApi='" + highlightApi + '\'' +
                 ", updatedAt='" + updatedAt + '\'' +
                 ", createdAt='" + createdAt + '\'' +
                 '}';
