@@ -911,7 +911,18 @@ public class MockTestRepositoryConfiguration {
         when(createPage.getOrder()).thenReturn(3);
         when(createPage.getType()).thenReturn(PageType.MARKDOWN);
         when(createPage.isHomepage()).thenReturn(true);
+        when(createPage.getParentId()).thenReturn("2");
         when(pageRepository.findById("new-page")).thenReturn(empty(), of(createPage));
+
+        // shouldCreateApiPageFolder
+        final Page createPageFolder = mock(Page.class);
+        when(createPageFolder.getName()).thenReturn("Folder name");
+        when(createPageFolder.getContent()).thenReturn(null);
+        when(createPageFolder.getOrder()).thenReturn(3);
+        when(createPageFolder.getType()).thenReturn(PageType.FOLDER);
+        when(createPageFolder.isHomepage()).thenReturn(false);
+        when(createPageFolder.getParentId()).thenReturn("");
+        when(pageRepository.findById("new-page-folder")).thenReturn(empty(), of(createPageFolder));
 
         // shouldCreatePortalPage
         final Page createPortalPage = mock(Page.class);
@@ -920,10 +931,43 @@ public class MockTestRepositoryConfiguration {
         when(createPortalPage.getOrder()).thenReturn(3);
         when(createPortalPage.getType()).thenReturn(PageType.MARKDOWN);
         when(createPortalPage.isHomepage()).thenReturn(false);
+        when(createPortalPage.getParentId()).thenReturn("2");
         when(pageRepository.findById("new-portal-page")).thenReturn(empty(), of(createPortalPage));
+
+        // shouldCreatePortalPageFolder
+        final Page createPortalPageFolder = mock(Page.class);
+        when(createPortalPageFolder.getName()).thenReturn("Folder name");
+        when(createPortalPageFolder.getContent()).thenReturn(null);
+        when(createPortalPageFolder.getOrder()).thenReturn(3);
+        when(createPortalPageFolder.getType()).thenReturn(PageType.FOLDER);
+        when(createPortalPageFolder.isHomepage()).thenReturn(false);
+        when(createPortalPageFolder.getParentId()).thenReturn("");
+        when(pageRepository.findById("new-portal-page-folder")).thenReturn(empty(), of(createPortalPageFolder));
+
 
         // shouldDelete
         when(pageRepository.findById("page-to-be-deleted")).thenReturn(of(mock(Page.class)), empty());
+
+        // shouldRemoveFolderParent
+        final Page portalPage1Before = mock(Page.class);
+        when(portalPage1Before.getType()).thenReturn(PageType.MARKDOWN);
+        when(portalPage1Before.getParentId()).thenReturn("page-to-be-removed-parentId");
+
+        final Page portalPage1After = mock(Page.class);
+        when(portalPage1After.getType()).thenReturn(PageType.MARKDOWN);
+        when(portalPage1After.getParentId()).thenReturn("");
+
+
+        final Page portalPage2Before = mock(Page.class);
+        when(portalPage2Before.getType()).thenReturn(PageType.MARKDOWN);
+        when(portalPage2Before.getParentId()).thenReturn("page-to-be-removed-parentId");
+
+        final Page portalPage2After = mock(Page.class);
+        when(portalPage2After.getType()).thenReturn(PageType.MARKDOWN);
+        when(portalPage2After.getParentId()).thenReturn("");
+
+        when(pageRepository.findById("page-to-be-removed-parentId-1")).thenReturn(of(portalPage1Before), of(portalPage1After));
+        when(pageRepository.findById("page-to-be-removed-parentId-2")).thenReturn(of(portalPage2Before), of(portalPage2After));
 
         // should Update
         Page updatePageBefore = mock(Page.class);
@@ -954,6 +998,19 @@ public class MockTestRepositoryConfiguration {
                 return o == null || (o instanceof Page && ((Page) o).getId().equals("unknown"));
             }
         }))).thenThrow(new IllegalStateException());
+
+        // should Update Page folder
+        Page updatePageFolderBefore = mock(Page.class);
+        when(updatePageFolderBefore.getId()).thenReturn("updatePageFolder");
+        when(updatePageFolderBefore.getName()).thenReturn("Update Page Folder");
+        when(updatePageFolderBefore.getContent()).thenReturn("Content of the update page folder");
+        when(updatePageFolderBefore.getParentId()).thenReturn("2");
+        Page updatePageFolderAfter = mock(Page.class);
+        when(updatePageFolderAfter.getId()).thenReturn("updatePageFolder");
+        when(updatePageFolderAfter.getName()).thenReturn("New name page folder");
+        when(updatePageFolderAfter.getContent()).thenReturn("New content page folder");
+        when(updatePageFolderAfter.getParentId()).thenReturn("3");
+        when(pageRepository.findById("updatePageFolder")).thenReturn(of(updatePageFolderBefore), of(updatePageFolderAfter));
 
         //Find api pages
         final Page homepage = mock(Page.class);

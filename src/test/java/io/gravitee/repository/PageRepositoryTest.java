@@ -80,6 +80,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("updated at", new Date(1486771200000L), page.getUpdatedAt());
     }
 
+
     @Test
     public void shouldCreateApiPage() throws Exception {
         final Page page = new Page();
@@ -90,6 +91,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setApi("my-api");
         page.setHomepage(true);
         page.setType(PageType.MARKDOWN);
+        page.setParentId("2");
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
 
@@ -105,6 +107,35 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
         assertEquals("Invalid page type.", page.getType(), pageSaved.getType());
         assertEquals("Invalid homepage flag.", page.isHomepage(), pageSaved.isHomepage());
+        assertEquals("Invalid parentId.", page.getParentId(), pageSaved.getParentId());
+        assertNull("Invalid page source.", page.getSource());
+    }
+
+    @Test
+    public void shouldCreateApiFolderPage() throws Exception {
+        final Page page = new Page();
+        page.setId("new-page-folder");
+        page.setName("Folder name");
+        page.setOrder(3);
+        page.setApi("my-api");
+        page.setHomepage(false);
+        page.setParentId("");
+        page.setType(PageType.FOLDER);
+        page.setCreatedAt(new Date());
+        page.setUpdatedAt(new Date());
+
+        Optional<Page> optionalBefore = pageRepository.findById("new-page-folder");
+        pageRepository.create(page);
+        Optional<Page> optionalAfter = pageRepository.findById("new-page-folder");
+        assertFalse("Page not found before", optionalBefore.isPresent());
+        assertTrue("Page saved not found", optionalAfter.isPresent());
+
+        final Page pageSaved = optionalAfter.get();
+        assertEquals("Invalid saved page name.", page.getName(), pageSaved.getName());
+        assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
+        assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
+        assertEquals("Invalid page type.", page.getType(), pageSaved.getType());
+        assertEquals("Invalid ParentId.", page.getParentId(), pageSaved.getParentId());
         assertNull("Invalid page source.", page.getSource());
     }
 
@@ -116,6 +147,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setContent("Page content");
         page.setOrder(3);
         page.setType(PageType.MARKDOWN);
+        page.setParentId("2");
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
 
@@ -130,7 +162,34 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
         assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
         assertEquals("Invalid page type.", page.getType(), pageSaved.getType());
+        assertEquals("Invalid parentId.", page.getParentId(), pageSaved.getParentId());
         assertEquals("Invalid homepage flag.", page.isHomepage(), pageSaved.isHomepage());
+        assertNull("Invalid page source.", page.getSource());
+    }
+
+    @Test
+    public void shouldCreatePortalFolderPage() throws Exception {
+        final Page page = new Page();
+        page.setId("new-portal-page-folder");
+        page.setName("Folder name");
+        page.setOrder(3);
+        page.setType(PageType.FOLDER);
+        page.setCreatedAt(new Date());
+        page.setUpdatedAt(new Date());
+        page.setParentId("");
+
+        Optional<Page> optionalBefore = pageRepository.findById("new-portal-page-folder");
+        pageRepository.create(page);
+        Optional<Page> optionalAfter = pageRepository.findById("new-portal-page-folder");
+        assertFalse("Page not found before", optionalBefore.isPresent());
+        assertTrue("Page saved not found", optionalAfter.isPresent());
+
+        final Page pageSaved = optionalAfter.get();
+        assertEquals("Invalid saved page name.", page.getName(), pageSaved.getName());
+        assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
+        assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
+        assertEquals("Invalid page type.", page.getType(), pageSaved.getType());
+        assertEquals("Invalid ParentId.", page.getParentId(), pageSaved.getParentId());
         assertNull("Invalid page source.", page.getSource());
     }
 
@@ -172,6 +231,28 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldUpdateFolderPage() throws Exception {
+        Optional<Page> optionalBefore = pageRepository.findById("updatePageFolder");
+        assertTrue("Page to update not found", optionalBefore.isPresent());
+        assertEquals("Invalid page name.", "Update Page Folder", optionalBefore.get().getName());
+        assertEquals("Invalid page content.", "Content of the update page folder", optionalBefore.get().getContent());
+        assertEquals("Invalid page parentId.", "2", optionalBefore.get().getParentId());
+
+        final Page page = optionalBefore.get();
+        page.setName("New name page folder");
+        page.setContent("New content page folder");
+        page.setParentId("3");
+
+        pageRepository.update(page);
+
+        Optional<Page> optionalUpdated = pageRepository.findById("updatePageFolder");
+        assertTrue("Page to update not found", optionalUpdated.isPresent());
+        assertEquals("Invalid saved page name.", "New name page folder", optionalUpdated.get().getName());
+        assertEquals("Invalid page content.", "New content page folder", optionalUpdated.get().getContent());
+        assertEquals("Invalid page parentId.", "3", optionalUpdated.get().getParentId());
+    }
+
+    @Test
     public void shouldDelete() throws Exception {
         Optional<Page> pageShouldExists = pageRepository.findById("page-to-be-deleted");
         pageRepository.delete("page-to-be-deleted");
@@ -179,6 +260,27 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
 
         assertTrue("should exists before delete", pageShouldExists.isPresent());
         assertFalse("should not exists after delete", pageShouldNotExists.isPresent());
+    }
+
+    @Test
+    public void shouldRemoveFolderParent() throws Exception {
+
+        Optional<Page> page1 = pageRepository.findById("page-to-be-removed-parentId-1");
+        Optional<Page> page2 = pageRepository.findById("page-to-be-removed-parentId-2");
+
+        assertTrue("should not exists after delete", page1.isPresent());
+        assertTrue("should not exists after delete", page2.isPresent());
+        assertEquals("the parentId should be page-to-be-removed-parentId", "page-to-be-removed-parentId", page1.get().getParentId());
+        assertEquals("the parentId should be page-to-be-removed-parentId", "page-to-be-removed-parentId", page2.get().getParentId());
+
+
+        pageRepository.removeAllFolderParentWith("page-to-be-removed-parentId", page1.get().getApi());
+
+        page1 = pageRepository.findById("page-to-be-removed-parentId-1");
+        page2 = pageRepository.findById("page-to-be-removed-parentId-2");
+
+        assertEquals("the parentId should be empty", "", page1.get().getParentId());
+        assertEquals("the parentId should be empty", "", page2.get().getParentId());
     }
 
     @Test(expected = IllegalStateException.class)
