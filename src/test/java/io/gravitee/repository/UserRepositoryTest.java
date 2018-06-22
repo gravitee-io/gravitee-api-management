@@ -63,11 +63,21 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldUpdate() throws Exception {
-        Optional<User> optional = userRepository.findById("user0");
+        Optional<User> optional = userRepository.findById("id2update");
         Assert.assertTrue("userRepository to update not found", optional.isPresent());
 
         final User user = optional.get();
-        user.setPassword("New pwd");
+        user.setUsername("usernameUpdated");
+        user.setSource("sourceUpdated");
+        user.setSourceId("sourceIdUpdated");
+        user.setPassword("passwordUpdated");
+        user.setEmail("emailUpdated");
+        user.setFirstname("firstnameUpdated");
+        user.setLastname("lastnameUpdated");
+        user.setPicture("pictureUpdated");
+        user.setCreatedAt(new Date(1439032010883L));
+        user.setUpdatedAt(new Date(1439042010883L));
+        user.setLastConnectionAt(new Date(1439052010883L));
 
         long nbUsersBeforeUpdate = userRepository.search(
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
@@ -79,11 +89,21 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals(nbUsersBeforeUpdate, nbUsersAfterUpdate);
 
-        Optional<User> optionalUpdated = userRepository.findById("user0");
+        Optional<User> optionalUpdated = userRepository.findById("id2update");
         Assert.assertTrue("User to update not found", optionalUpdated.isPresent());
 
         final User userUpdated = optionalUpdated.get();
-        assertEquals("Invalid saved user password.", "New pwd", userUpdated.getPassword());
+        assertEquals("Invalid saved username", "usernameUpdated", userUpdated.getUsername());
+        assertEquals("Invalid saved source", "sourceUpdated", userUpdated.getSource());
+        assertEquals("Invalid saved sourceId", "sourceIdUpdated", userUpdated.getSourceId());
+        assertEquals("Invalid saved password", "passwordUpdated", userUpdated.getPassword());
+        assertEquals("Invalid saved email", "emailUpdated", userUpdated.getEmail());
+        assertEquals("Invalid saved firstname", "firstnameUpdated", userUpdated.getFirstname());
+        assertEquals("Invalid saved lastname", "lastnameUpdated", userUpdated.getLastname());
+        assertEquals("Invalid saved picture", "pictureUpdated", userUpdated.getPicture());
+        assertEquals("Invalid saved createDate", new Date(1439032010883L), userUpdated.getCreatedAt());
+        assertEquals("Invalid saved updateDate", new Date(1439042010883L), userUpdated.getUpdatedAt());
+        assertEquals("Invalid saved lastConnection", new Date(1439052010883L), userUpdated.getLastConnectionAt());
     }
 
     @Test
@@ -93,7 +113,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         ).getContent();
 
         Assert.assertNotNull(users);
-        assertEquals("Invalid user numbers in find all", 7, users.size());
+        assertEquals("Invalid user numbers in find all", 8, users.size());
     }
 
     @Test

@@ -501,13 +501,28 @@ public class MockTestRepositoryConfiguration {
         when(user.getPassword()).thenReturn("New pwd");
         final User user4 = mock(User.class);
 
+        final User userUpdated = mock(User.class);
+        when(userUpdated.getId()).thenReturn("id2update");
+        when(userUpdated.getUsername()).thenReturn("usernameUpdated");
+        when(userUpdated.getSource()).thenReturn("sourceUpdated");
+        when(userUpdated.getSourceId()).thenReturn("sourceIdUpdated");
+        when(userUpdated.getPassword()).thenReturn("passwordUpdated");
+        when(userUpdated.getEmail()).thenReturn("emailUpdated");
+        when(userUpdated.getFirstname()).thenReturn("firstnameUpdated");
+        when(userUpdated.getLastname()).thenReturn("lastnameUpdated");
+        when(userUpdated.getPicture()).thenReturn("pictureUpdated");
+        when(userUpdated.getCreatedAt()).thenReturn(new Date(1439032010883L));
+        when(userUpdated.getUpdatedAt()).thenReturn(new Date(1439042010883L));
+        when(userUpdated.getLastConnectionAt()).thenReturn(new Date(1439052010883L));
+
         io.gravitee.common.data.domain.Page<User> searchResult = new io.gravitee.common.data.domain.Page<>(
-                asList(user, mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class)),
-                0, 0, 7);
+                asList(user, mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class)),
+                0, 0, 8);
 
         when(userRepository.search(any())).thenReturn(searchResult);
         when(userRepository.create(any(User.class))).thenReturn(user);
         when(userRepository.findById("user0")).thenReturn(of(user));
+        when(userRepository.findById("id2update")).thenReturn(of(userUpdated));
         when(userRepository.findByUsername("createuser1")).thenReturn(of(user));
         when(userRepository.findByUsername("user0 name")).thenReturn(of(user));
         when(user.getUsername()).thenReturn("createuser1");
@@ -517,7 +532,13 @@ public class MockTestRepositoryConfiguration {
         when(userRepository.update(argThat(new ArgumentMatcher<User>() {
             @Override
             public boolean matches(Object o) {
-                return o == null || (o instanceof User && ((User) o).getId().equals("unknown"));
+                return o instanceof User && "id2update".equals(((User) o).getId());
+            }
+        }))).thenReturn(userUpdated);
+        when(userRepository.update(argThat(new ArgumentMatcher<User>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof User && "unknown".equals(((User) o).getId()));
             }
         }))).thenThrow(new IllegalStateException());
 

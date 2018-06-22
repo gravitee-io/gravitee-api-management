@@ -47,5 +47,19 @@
       "email":"user2delete@gravitee.io",
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
+   },
+   {
+      "id": "id2update",
+      "username":"username2update",
+      "source":"source2update",
+      "sourceId":"sourceId2update",
+      "password":"password2update",
+      "email":"email2update",
+      "firstname":"firstname2update",
+      "lastname":"lastname2update",
+      "picture":"picture2update",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439032010883,
+      "lastConnectionAt": 1439042010883
    }
 ]
