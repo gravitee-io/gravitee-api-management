@@ -17,6 +17,7 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -48,7 +49,7 @@ public class Page {
 
 	private PageSource source;
 
-	private PageConfiguration configuration;
+	private Map<String, String> configuration;
 
 	private boolean homepage;
 
@@ -154,11 +155,11 @@ public class Page {
 		this.source = source;
 	}
 
-	public PageConfiguration getConfiguration() {
+	public Map<String, String> getConfiguration() {
 		return configuration;
 	}
 
-	public void setConfiguration(PageConfiguration configuration) {
+	public void setConfiguration(Map<String, String> configuration) {
 		this.configuration = configuration;
 	}
 
