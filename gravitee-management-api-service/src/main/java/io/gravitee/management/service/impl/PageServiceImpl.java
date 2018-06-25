@@ -544,7 +544,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		pageItem.setPublished(page.isPublished());
 		pageItem.setHomepage(page.isHomepage());
 		pageItem.setSource(convert(page.getSource()));
-		pageItem.setConfiguration(convert(page.getConfiguration()));
+		pageItem.setConfiguration(page.getConfiguration());
 		pageItem.setExcludedGroups(page.getExcludedGroups());
 
 		return pageItem;
@@ -564,7 +564,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setPublished(newPageEntity.isPublished());
 		page.setHomepage(newPageEntity.isHomepage());
 		page.setSource(convert(newPageEntity.getSource()));
-		page.setConfiguration(convert(newPageEntity.getConfiguration()));
+		page.setConfiguration(newPageEntity.getConfiguration());
 		page.setExcludedGroups(newPageEntity.getExcludedGroups());
 
 		return page;
@@ -597,7 +597,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			pageEntity.setSource(convert(page.getSource()));
 		}
 		if (page.getConfiguration() != null) {
-			pageEntity.setConfiguration(convert(page.getConfiguration()));
+			pageEntity.setConfiguration(page.getConfiguration());
 		}
 		pageEntity.setExcludedGroups(page.getExcludedGroups());
 		return pageEntity;
@@ -612,7 +612,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setOrder(updatePageEntity.getOrder());
 		page.setPublished(updatePageEntity.isPublished());
 		page.setSource(convert(updatePageEntity.getSource()));
-        page.setConfiguration(convert(updatePageEntity.getConfiguration()));
+        page.setConfiguration(updatePageEntity.getConfiguration());
         page.setHomepage(updatePageEntity.isHomepage());
         page.setExcludedGroups(updatePageEntity.getExcludedGroups());
 		return page;
@@ -640,26 +640,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			}
 		}
 		return entity;
-	}
-
-	private static PageConfiguration convert(PageConfigurationEntity pageConfigurationEntity){
-		PageConfiguration configuration = null;
-		if(pageConfigurationEntity != null) {
-			configuration = new PageConfiguration();
-			configuration.setTryIt(pageConfigurationEntity.isTryIt());
-			configuration.setTryItURL(pageConfigurationEntity.getTryItURL());
-		}
-		return configuration;
-	}
-
-	private static PageConfigurationEntity convert(PageConfiguration pageConfiguration){
-		PageConfigurationEntity configurationEntity = null;
-		if(pageConfiguration != null) {
-			configurationEntity = new PageConfigurationEntity();
-			configurationEntity.setTryIt(pageConfiguration.isTryIt());
-			configurationEntity.setTryItURL(pageConfiguration.getTryItURL());
-		}
-		return configurationEntity;
 	}
 
 	@SuppressWarnings("squid:S1166")

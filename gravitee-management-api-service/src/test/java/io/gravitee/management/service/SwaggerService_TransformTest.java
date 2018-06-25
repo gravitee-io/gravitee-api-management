@@ -16,11 +16,9 @@
 package io.gravitee.management.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.PageConfigurationEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.service.impl.SwaggerServiceImpl;
 import io.swagger.util.Json;
@@ -32,6 +30,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -57,9 +57,9 @@ public class SwaggerService_TransformTest {
         PageEntity pageEntity = new PageEntity();
         pageEntity.setContent(descriptor);
         pageEntity.setContentType(contentType);
-        PageConfigurationEntity pageConfigurationEntity = new PageConfigurationEntity();
-        pageConfigurationEntity.setTryIt(true);
-        pageConfigurationEntity.setTryItURL("https://my.domain.com/v1");
+        Map<String, String> pageConfigurationEntity = new HashMap<>();
+        pageConfigurationEntity.put("tryIt", "true");
+        pageConfigurationEntity.put("tryItURL", "https://my.domain.com/v1");
         pageEntity.setConfiguration(pageConfigurationEntity);
         return pageEntity;
     }

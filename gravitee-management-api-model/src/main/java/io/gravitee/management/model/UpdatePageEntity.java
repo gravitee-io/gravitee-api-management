@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Titouan COMPIEGNE
@@ -40,7 +41,7 @@ public class UpdatePageEntity {
 
 	private PageSourceEntity source;
 
-	private PageConfigurationEntity configuration;
+	private Map<String, String> configuration;
 
 	private boolean homepage;
 
@@ -95,11 +96,11 @@ public class UpdatePageEntity {
 		this.source = source;
 	}
 
-	public PageConfigurationEntity getConfiguration() {
+	public Map<String, String> getConfiguration() {
 		return configuration;
 	}
 
-	public void setConfiguration(PageConfigurationEntity configuration) {
+	public void setConfiguration(Map<String, String> configuration) {
 		this.configuration = configuration;
 	}
 

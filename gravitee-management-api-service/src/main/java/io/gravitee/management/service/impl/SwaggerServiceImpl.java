@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.model.NewApiEntity;
-import io.gravitee.management.model.PageConfigurationEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.exceptions.SwaggerDescriptorException;
@@ -45,6 +44,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -136,8 +136,8 @@ public class SwaggerServiceImpl implements SwaggerService {
     public void transform(final PageEntity page) {
         if (page.getContent() != null
                 && page.getConfiguration() != null
-                && page.getConfiguration().getTryItURL() != null
-                && !page.getConfiguration().getTryItURL().isEmpty()) {
+                && page.getConfiguration().get("tryItURL") != null
+                && !page.getConfiguration().get("tryItURL").isEmpty()) {
 
             Object swagger = transformV2(page.getContent(), page.getConfiguration());
 
@@ -201,15 +201,15 @@ public class SwaggerServiceImpl implements SwaggerService {
         return temp;
     }
 
-    private Swagger transformV1(String content, PageConfigurationEntity config) {
+    private Swagger transformV1(String content, Map<String, String> config) {
         // Create temporary file for Swagger parser (only for descriptor version < 2.x)
         File temp = null;
         Swagger swagger = null;
         try {
             temp = createTmpSwagger1File(content);
             swagger = new SwaggerCompatConverter().read(temp.getAbsolutePath());
-            if (swagger != null && config != null && config.getTryItURL() != null) {
-                URI newURI = URI.create(config.getTryItURL());
+            if (swagger != null && config != null && config.get("tryItURL") != null) {
+                URI newURI = URI.create(config.get("tryItURL"));
                 swagger.setSchemes(Collections.singletonList(Scheme.forValue(newURI.getScheme())));
                 swagger.setHost((newURI.getPort() != -1) ? newURI.getHost() + ':' + newURI.getPort() : newURI.getHost());
                 swagger.setBasePath((newURI.getRawPath().isEmpty()) ? "/" : newURI.getRawPath());
@@ -224,10 +224,10 @@ public class SwaggerServiceImpl implements SwaggerService {
         return swagger;
     }
 
-    private Swagger transformV2(String content, PageConfigurationEntity config) {
+    private Swagger transformV2(String content, Map<String, String> config) {
         Swagger swagger = new SwaggerParser().parse(content);
-        if (swagger != null && config != null && config.getTryItURL() != null) {
-            URI newURI = URI.create(config.getTryItURL());
+        if (swagger != null && config != null && config.get("tryItURL") != null) {
+            URI newURI = URI.create(config.get("tryItURL"));
             swagger.setSchemes(Collections.singletonList(Scheme.forValue(newURI.getScheme())));
             swagger.setHost((newURI.getPort() != -1) ? newURI.getHost() + ':' + newURI.getPort() : newURI.getHost());
             swagger.setBasePath((newURI.getRawPath().isEmpty()) ? "/" : newURI.getRawPath());
@@ -235,10 +235,10 @@ public class SwaggerServiceImpl implements SwaggerService {
         return swagger;
     }
 
-    private OpenAPI transformV3(String content, PageConfigurationEntity config) {
+    private OpenAPI transformV3(String content, Map<String, String> config) {
         SwaggerParseResult result = new OpenAPIV3Parser().readContents(content, null, null);
-        if (result != null && config != null && config.getTryItURL() != null) {
-            URI newURI = URI.create(config.getTryItURL());
+        if (result != null && config != null && config.get("tryItURL") != null) {
+            URI newURI = URI.create(config.get("tryItURL"));
             result.getOpenAPI().getServers().forEach(server -> {
                 try {
                     server.setUrl(new URI(newURI.getScheme(),

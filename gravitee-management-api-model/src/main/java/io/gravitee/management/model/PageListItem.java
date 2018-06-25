@@ -18,6 +18,7 @@ package io.gravitee.management.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -39,7 +40,7 @@ public class PageListItem {
 
     private PageSourceEntity source;
 
-    private PageConfigurationEntity configuration;
+    private Map<String, String> configuration;
 
     private boolean homepage;
 
@@ -102,11 +103,11 @@ public class PageListItem {
         this.source = source;
     }
 
-    public PageConfigurationEntity getConfiguration() {
+    public Map<String, String> getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(PageConfigurationEntity configuration) {
+    public void setConfiguration(Map<String, String> configuration) {
         this.configuration = configuration;
     }
 

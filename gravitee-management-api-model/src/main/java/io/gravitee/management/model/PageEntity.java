@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -46,7 +47,7 @@ public class PageEntity {
 
 	private PageSourceEntity source;
 
-	private PageConfigurationEntity configuration;
+	private Map<String, String> configuration;
 
 	private boolean homepage;
 
@@ -133,11 +134,11 @@ public class PageEntity {
 		this.source = source;
 	}
 
-	public PageConfigurationEntity getConfiguration() {
+	public Map<String, String> getConfiguration() {
 		return configuration;
 	}
 
-	public void setConfiguration(PageConfigurationEntity configuration) {
+	public void setConfiguration(Map<String, String> configuration) {
 		this.configuration = configuration;
 	}
 
