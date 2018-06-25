@@ -16,6 +16,7 @@
 package io.gravitee.repository.redis.management.model;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -36,8 +37,7 @@ public class RedisPage {
     private long updatedAt;
     private String sourceType;
     private String sourceConfiguration;
-    private boolean configurationTryIt;
-    private String configurationTryItURL;
+    private Map<String, String> configuration;
     private boolean homepage;
     private List<String> excludedGroups;
 
@@ -137,20 +137,12 @@ public class RedisPage {
         this.sourceConfiguration = sourceConfiguration;
     }
 
-    public boolean isConfigurationTryIt() {
-        return configurationTryIt;
+    public Map<String, String> getConfiguration() {
+        return configuration;
     }
 
-    public void setConfigurationTryIt(boolean configurationTryIt) {
-        this.configurationTryIt = configurationTryIt;
-    }
-
-    public String getConfigurationTryItURL() {
-        return configurationTryItURL;
-    }
-
-    public void setConfigurationTryItURL(String configurationTryItURL) {
-        this.configurationTryItURL = configurationTryItURL;
+    public void setConfiguration(Map<String, String> configuration) {
+        this.configuration = configuration;
     }
 
     public boolean isHomepage() {
