@@ -19,6 +19,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -48,7 +49,7 @@ public class PageMongo extends Auditable {
 
 	private PageSourceMongo source;
 
-	private PageConfigurationMongo configuration;
+	private Map<String, String> configuration;
 
 	private boolean homepage;
 
@@ -134,11 +135,11 @@ public class PageMongo extends Auditable {
 		this.source = source;
 	}
 
-	public PageConfigurationMongo getConfiguration() {
+	public Map<String, String> getConfiguration() {
 		return configuration;
 	}
 
-	public void setConfiguration(PageConfigurationMongo configuration) {
+	public void setConfiguration(Map<String, String> configuration) {
 		this.configuration = configuration;
 	}
 

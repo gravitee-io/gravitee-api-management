@@ -18,9 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageConfiguration;
 import io.gravitee.repository.management.model.PageSource;
-import io.gravitee.repository.mongodb.management.internal.model.PageConfigurationMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageSourceMongo;
 import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
@@ -113,11 +111,7 @@ public class MongoPageRepository implements PageRepository {
             } else {
                 pageMongo.setSource(null);
             }
-            if (page.getConfiguration() != null) {
-                pageMongo.setConfiguration(convert(page.getConfiguration()));
-            } else {
-                pageMongo.setConfiguration(null);
-            }
+            pageMongo.setConfiguration(page.getConfiguration());
 
             PageMongo pageMongoUpdated = internalPageRepo.save(pageMongo);
             return mapper.map(pageMongoUpdated, Page.class);
@@ -164,13 +158,6 @@ public class MongoPageRepository implements PageRepository {
         pageSourceMongo.setType(pageSource.getType());
         pageSourceMongo.setConfiguration(pageSource.getConfiguration());
         return pageSourceMongo;
-    }
-
-    private PageConfigurationMongo convert(PageConfiguration pageConfiguration) {
-        PageConfigurationMongo pageConfigurationMongo = new PageConfigurationMongo();
-        pageConfigurationMongo.setTryIt(pageConfiguration.isTryIt());
-        pageConfigurationMongo.setTryItURL(pageConfiguration.getTryItURL());
-        return pageConfigurationMongo;
     }
 
     @Override
