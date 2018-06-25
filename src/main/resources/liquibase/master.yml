@@ -10,4 +10,6 @@ databaseChangeLog:
   - include:
     - file: liquibase/changelogs/v1_18_0/schema-plans.yml
   - include:
+    - file: liquibase/changelogs/v1_18_0/schema-pages.yml
+  - include:
     - file: liquibase/changelogs/v1_18_0/schema-views.yml

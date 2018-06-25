@@ -20,7 +20,6 @@ import io.gravitee.repository.jdbc.orm.JdbcColumn;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageConfiguration;
 import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.repository.management.model.PageType;
 import org.slf4j.Logger;
@@ -31,9 +30,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
-import java.util.Collection;
+import java.util.*;
 import java.util.Date;
-import java.util.List;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
@@ -42,6 +40,8 @@ import static java.lang.String.format;
 /**
  *
  * @author njt
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Repository
 public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String> implements PageRepository {
@@ -64,6 +64,18 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
 
+    private static final JdbcHelper.ChildAdder<Page> CHILD_ADDER = (Page parent, ResultSet rs) -> {
+        Map<String, String> properties = parent.getConfiguration();
+        if (properties == null) {
+            properties = new HashMap<>();
+            parent.setConfiguration(properties);
+        }
+        if (rs.getString("k") != null) {
+            properties.put(rs.getString("k"), rs.getString("v"));
+        }
+    };
+
+
     private class Rm implements RowMapper<Page> {
         @Override
         public Page mapRow(ResultSet rs, int i) throws SQLException {
@@ -77,10 +89,6 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 pageSource.setConfiguration(sourceConfiguration);
                 page.setSource(pageSource);
             }
-            PageConfiguration pageConfiguration = new PageConfiguration();
-            pageConfiguration.setTryIt(rs.getBoolean("configuration_try_it"));
-            pageConfiguration.setTryItURL(rs.getString("configuration_try_it_url"));
-            page.setConfiguration(pageConfiguration);
             addExcludedGroups(page);
             return page;
         }
@@ -108,8 +116,6 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             int idx = ORM.setStatementValues(stmt, page, 1);
             stmt.setString(idx++, page.getSource() == null ? null : page.getSource().getType());
             stmt.setString(idx++, page.getSource() == null ? null : page.getSource().getConfiguration());
-            stmt.setBoolean(idx++, page.getConfiguration() == null ? false : page.getConfiguration().isTryIt());
-            stmt.setString(idx++, page.getConfiguration() == null ? null : page.getConfiguration().getTryItURL());
 
             for (Object id : ids) {
                 stmt.setObject(idx++, id);
@@ -130,8 +136,6 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         }
         builder.append(", source_type");
         builder.append(", source_configuration");
-        builder.append(", configuration_try_it");
-        builder.append(", configuration_try_it_url");
         builder.append(" ) values ( ");
         first = true;
         for (int i = 0; i < ORM.getColumns().size(); i++) {
@@ -141,8 +145,6 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             first = false;
             builder.append("?");
         }
-        builder.append(", ?");
-        builder.append(", ?");
         builder.append(", ?");
         builder.append(", ?");
         builder.append(" )");
@@ -165,8 +167,6 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         }
         builder.append(", source_type = ?");
         builder.append(", source_configuration = ?");
-        builder.append(", configuration_try_it = ?");
-        builder.append(", configuration_try_it_url = ?");
 
         builder.append(" where id = ?");
         return builder.toString();
@@ -232,6 +232,53 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         }
     }
 
+    private void storeConfiguration(Page page, boolean deleteFirst) {
+        if (deleteFirst) {
+            jdbcTemplate.update("delete from page_configuration where page_id = ?", page.getId());
+        }
+        if (page.getConfiguration() != null && !page.getConfiguration().isEmpty()) {
+            List<Map.Entry<String, String>> entries = new ArrayList<>(page.getConfiguration().entrySet());
+            jdbcTemplate.batchUpdate("insert into page_configuration ( page_id, k, v ) values ( ?, ?, ? )"
+                    , new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, page.getId());
+                            ps.setString(2, entries.get(i).getKey());
+                            ps.setString(3, entries.get(i).getValue());
+                        }
+
+                        @Override
+                        public int getBatchSize() {
+                            return entries.size();
+                        }
+                    });
+        }
+    }
+
+    @Override
+    public Optional<Page> findById(String id) throws TechnicalException {
+        LOGGER.debug("JdbcPageRepository.findById({})", id);
+        try {
+            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            jdbcTemplate.query("select * from pages p left join page_configuration pc on p.id = pc.page_id where p.id = ?"
+                    , rowMapper
+                    , id
+            );
+            Optional<Page> result = rowMapper.getRows().stream().findFirst();
+            LOGGER.debug("JdbcPageRepository.findById({}) = {}", id, result);
+            return result;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find page by id:", ex);
+            throw new TechnicalException("Failed to find page by id", ex);
+        }
+
+    }
+
+    @Override
+    public void delete(String id) throws TechnicalException {
+        jdbcTemplate.update("delete from page_configuration where page_id = ?", id);
+        jdbcTemplate.update(ORM.getDeleteSql(), id);
+    }
 
     @Override
     public Page create(Page item) throws TechnicalException {
@@ -239,6 +286,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         try {
             jdbcTemplate.update(buildInsertPreparedStatementCreator(item));
             storeExcludedGroups(item, false);
+            storeConfiguration(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create page", ex);
@@ -255,6 +303,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         try {
             jdbcTemplate.update(buildUpdatePreparedStatementCreator(page));
             storeExcludedGroups(page, true);
+            storeConfiguration(page, true);
             return findById(page.getId()).orElseThrow(() ->
                     new IllegalStateException(format("No page found with id [%s]", page.getId())));
         } catch (final IllegalStateException ex) {
@@ -268,12 +317,14 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     @Override
     public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean homePage) throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.findApiPageByApiIdAndHomepage({}, {})", apiId, homePage);
-
         try {
-            List<Page> items = jdbcTemplate.query("select * from pages where api = ? and homepage = ? order by " + ESCAPED_ORDER_COLUMN_NAME
-                    , getRowMapper()
+            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            jdbcTemplate.query("select * from pages p left join page_configuration pc on p.id = pc.page_id where p.api = ? and p.homepage = ? order by " + ESCAPED_ORDER_COLUMN_NAME
+                    , rowMapper
                     , apiId, homePage
             );
+
+            List<Page> items = rowMapper.getRows();
             for (Page page : items) {
                 addExcludedGroups(page);
             }
@@ -288,10 +339,12 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     public Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.findApiPageByApiId({})", apiId);
         try {
-            List<Page> items = jdbcTemplate.query("select * from pages where api = ? order by " + ESCAPED_ORDER_COLUMN_NAME
-                    , getRowMapper()
+            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            jdbcTemplate.query("select * from pages p left join page_configuration pc on p.id = pc.page_id where p.api = ? order by " + ESCAPED_ORDER_COLUMN_NAME
+                    , rowMapper
                     , apiId
             );
+            List<Page> items = rowMapper.getRows();
             for (Page page : items) {
                 addExcludedGroups(page);
             }
@@ -323,10 +376,12 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     public Collection<Page> findPortalPageByHomepage(boolean homePage) throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.findPortalPageByHomepage({})", homePage);
         try {
-            List<Page> items = jdbcTemplate.query("select * from pages where api is null and homepage = ? order by " + ESCAPED_ORDER_COLUMN_NAME
-                    , getRowMapper()
+            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            jdbcTemplate.query("select * from pages p left join page_configuration pc on p.id = pc.page_id where p.api is null and p.homepage = ? order by " + ESCAPED_ORDER_COLUMN_NAME
+                    , rowMapper
                     , homePage
             );
+            List<Page> items = rowMapper.getRows();
             for (Page page : items) {
                 addExcludedGroups(page);
             }
@@ -342,9 +397,11 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     public Collection<Page> findPortalPages() throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.findPortalPages()");
         try {
-            List<Page> items = jdbcTemplate.query("select * from pages where api is null order by " + ESCAPED_ORDER_COLUMN_NAME
-                    , getRowMapper()
+            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            jdbcTemplate.query("select * from pages p left join page_configuration pc on p.id = pc.page_id where p.api is null order by " + ESCAPED_ORDER_COLUMN_NAME
+                    , rowMapper
             );
+            List<Page> items = rowMapper.getRows();
             for (Page page : items) {
                 addExcludedGroups(page);
             }
