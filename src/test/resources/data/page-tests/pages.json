@@ -14,7 +14,14 @@
       },
       "configuration": {
          "tryItURL": "http://company.com",
-         "tryIt": true
+         "tryIt": true,
+         "showURL": true,
+         "displayOperationId": true,
+         "docExpansion": "FULL",
+         "enableFiltering": true,
+         "showExtensions": true,
+         "showCommonExtensions": true,
+         "maxDisplayedTags": 1234
       },
       "homepage": true,
       "excludedGroups": [ "grp1", "grp2" ],

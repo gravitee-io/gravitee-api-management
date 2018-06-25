@@ -882,9 +882,16 @@ public class MockTestRepositoryConfiguration {
         pageSource.setType("sourceType");
         pageSource.setConfiguration("sourceConfiguration");
         when(findApiPage.getSource()).thenReturn(pageSource);
-        PageConfiguration pageConfiguration = new PageConfiguration();
-        pageConfiguration.setTryIt(true);
-        pageConfiguration.setTryItURL("http://company.com");
+        Map<String, String> pageConfiguration = new HashMap<>();
+        pageConfiguration.put("tryIt", "true");
+        pageConfiguration.put("tryItURL", "http://company.com");
+        pageConfiguration.put("showURL", "true");
+        pageConfiguration.put("displayOperationId", "true");
+        pageConfiguration.put("docExpansion", "FULL");
+        pageConfiguration.put("enableFiltering", "true");
+        pageConfiguration.put("showExtensions", "true");
+        pageConfiguration.put("showCommonExtensions", "true");
+        pageConfiguration.put("maxDisplayedTags", "1234");
         when(findApiPage.getConfiguration()).thenReturn(pageConfiguration);
         when(findApiPage.isHomepage()).thenReturn(true);
         when(findApiPage.getExcludedGroups()).thenReturn(asList("grp1", "grp2"));
@@ -923,10 +930,22 @@ public class MockTestRepositoryConfiguration {
         when(updatePageBefore.getId()).thenReturn("updatePage");
         when(updatePageBefore.getName()).thenReturn("Update Page");
         when(updatePageBefore.getContent()).thenReturn("Content of the update page");
+        when(updatePageBefore.getConfiguration()).thenReturn(new HashMap<>());
         Page updatePageAfter = mock(Page.class);
         when(updatePageAfter.getId()).thenReturn("updatePage");
         when(updatePageAfter.getName()).thenReturn("New name");
         when(updatePageAfter.getContent()).thenReturn("New content");
+        Map<String, String> pageConfigurationMock = mock(HashMap.class);
+        when(pageConfigurationMock.get("tryIt")).thenReturn("true");
+        when(pageConfigurationMock.get("tryItURL")).thenReturn("http://company.com");
+        when(pageConfigurationMock.get("showURL")).thenReturn("true");
+        when(pageConfigurationMock.get("displayOperationId")).thenReturn("true");
+        when(pageConfigurationMock.get("docExpansion")).thenReturn("FULL");
+        when(pageConfigurationMock.get("enableFiltering")).thenReturn("true");
+        when(pageConfigurationMock.get("showExtensions")).thenReturn("true");
+        when(pageConfigurationMock.get("showCommonExtensions")).thenReturn("true");
+        when(pageConfigurationMock.get("maxDisplayedTags")).thenReturn("1234");
+        when(updatePageAfter.getConfiguration()).thenReturn(pageConfigurationMock);
         when(pageRepository.findById("updatePage")).thenReturn(of(updatePageBefore), of(updatePageAfter));
 
         when(pageRepository.update(argThat(new ArgumentMatcher<Page>() {

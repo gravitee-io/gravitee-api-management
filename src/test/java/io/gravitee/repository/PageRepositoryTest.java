@@ -60,10 +60,20 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("last contributor", "john_doe", page.getLastContributor());
         assertEquals("order", 2, page.getOrder());
         assertTrue("published", page.isPublished());
+
         assertEquals("source type", "sourceType", page.getSource().getType());
         assertEquals("source configuration", "sourceConfiguration", page.getSource().getConfiguration());
-        assertTrue("configuration try it", page.getConfiguration().isTryIt());
-        assertEquals("configuration try it URL", "http://company.com", page.getConfiguration().getTryItURL());
+
+        assertEquals("configuration try it", "true", page.getConfiguration().get("tryIt"));
+        assertEquals("configuration try it URL", "http://company.com", page.getConfiguration().get("tryItURL"));
+        assertEquals("configuration show URL", "true", page.getConfiguration().get("showURL"));
+        assertEquals("configuration display operation id", "true", page.getConfiguration().get("displayOperationId"));
+        assertEquals("configuration doc expansion", "FULL", page.getConfiguration().get("docExpansion"));
+        assertEquals("configuration enable filtering", "true", page.getConfiguration().get("enableFiltering"));
+        assertEquals("configuration show extensions", "true", page.getConfiguration().get("showExtensions"));
+        assertEquals("configuration show common extensions", "true", page.getConfiguration().get("showCommonExtensions"));
+        assertEquals("configuration maxDisplayedTags", "1234", page.getConfiguration().get("maxDisplayedTags"));
+
         assertTrue("homepage", page.isHomepage());
         assertEquals("excludedGroups", Arrays.asList("grp1", "grp2"), page.getExcludedGroups());
         assertEquals("created at", new Date(1486771200000L), page.getCreatedAt());
@@ -133,6 +143,16 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         final Page page = optionalBefore.get();
         page.setName("New name");
         page.setContent("New content");
+        page.setConfiguration(new HashMap<>());
+        page.getConfiguration().put("tryIt", "true");
+        page.getConfiguration().put("tryItURL", "http://company.com");
+        page.getConfiguration().put("showURL", "true");
+        page.getConfiguration().put("displayOperationId", "true");
+        page.getConfiguration().put("docExpansion", "FULL");
+        page.getConfiguration().put("enableFiltering", "true");
+        page.getConfiguration().put("showExtensions", "true");
+        page.getConfiguration().put("showCommonExtensions", "true");
+        page.getConfiguration().put("maxDisplayedTags", "1234");
 
         pageRepository.update(page);
 
@@ -140,6 +160,15 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Page to update not found", optionalUpdated.isPresent());
         assertEquals("Invalid saved page name.", "New name", optionalUpdated.get().getName());
         assertEquals("Invalid page content.", "New content", optionalUpdated.get().getContent());
+        assertEquals("configuration try it", "true", optionalUpdated.get().getConfiguration().get("tryIt"));
+        assertEquals("configuration try it URL", "http://company.com", optionalUpdated.get().getConfiguration().get("tryItURL"));
+        assertEquals("configuration show URL", "true", optionalUpdated.get().getConfiguration().get("showURL"));
+        assertEquals("configuration display operation id", "true", optionalUpdated.get().getConfiguration().get("displayOperationId"));
+        assertEquals("configuration doc expansion", "FULL", optionalUpdated.get().getConfiguration().get("docExpansion"));
+        assertEquals("configuration enable filtering", "true", optionalUpdated.get().getConfiguration().get("enableFiltering"));
+        assertEquals("configuration show extensions", "true", optionalUpdated.get().getConfiguration().get("showExtensions"));
+        assertEquals("configuration show common extensions", "true", optionalUpdated.get().getConfiguration().get("showCommonExtensions"));
+        assertEquals("configuration maxDisplayedTags", "1234", optionalUpdated.get().getConfiguration().get("maxDisplayedTags"));
     }
 
     @Test
