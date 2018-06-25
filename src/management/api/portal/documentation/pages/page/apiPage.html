@@ -125,12 +125,41 @@
   <md-content layout-padding>
     <md-subheader class="md-primary" ng-if="pageCtrl.page.type=='SWAGGER'">Configure your page</md-subheader>
     <div ng-if="pageCtrl.page.type=='SWAGGER'">
-      <md-checkbox ng-model="pageCtrl.page.configuration.tryIt">
+      <md-checkbox ng-model="pageCtrl.page.configuration.tryIt" ng-true-value="'true'" ng-false-value="'false'">
         Enable "Try it!" mode
       </md-checkbox>
       <md-input-container class="md-block">
-        <label>Base URL to try the API</label>
-        <input type="text" ng-model="pageCtrl.page.configuration.tryItURL" ng-disabled="!pageCtrl.page.configuration.tryIt">
+        <label>Base URL</label>
+        <input type="text" ng-model="pageCtrl.page.configuration.tryItURL" ng-disabled="pageCtrl.page.configuration.tryIt === 'false'">
+        <div class="hint">Base URL used to try the API</div>
+      </md-input-container>
+      <md-checkbox ng-model="pageCtrl.page.configuration.showURL" ng-true-value="'true'" ng-false-value="'false'">
+        Show the URL to download the content
+      </md-checkbox>
+      <md-checkbox ng-model="pageCtrl.page.configuration.displayOperationId" ng-true-value="'true'" ng-false-value="'false'">
+        Display the operationId in the operations list
+      </md-checkbox>
+      <md-input-container class="md-block">
+        <label>Default expansion setting for the operations and tags</label>
+        <md-select ng-model="pageCtrl.page.configuration.docExpansion">
+          <md-option ng-value="'list'">Expands only the tags</md-option>
+          <md-option ng-value="'full'">Expands the tags and operations</md-option>
+          <md-option ng-value="'none'">Expands nothing</md-option>
+        </md-select>
+      </md-input-container>
+      <md-checkbox ng-model="pageCtrl.page.configuration.enableFiltering" ng-true-value="'true'" ng-false-value="'false'">
+        Add a top bar to filter content
+      </md-checkbox>
+      <md-checkbox ng-model="pageCtrl.page.configuration.showExtensions" ng-true-value="'true'" ng-false-value="'false'">
+        Display vendor extension (X-) fields and values for Operations, Parameters, and Schema
+      </md-checkbox>
+      <md-checkbox ng-model="pageCtrl.page.configuration.showCommonExtensions" ng-true-value="'true'" ng-false-value="'false'">
+        Display extensions (pattern, maxLength, minLength, maximum, minimum) fields and values for Parameters
+      </md-checkbox>
+      <md-input-container class="md-block">
+        <label>Number of max tagged operations displayed</label>
+        <input type="text" ng-model="pageCtrl.page.configuration.maxDisplayedTags">
+        <div class="hint">Limits the number of tagged operations displayed to at most this many (-1 means show all operations).</div>
       </md-input-container>
     </div>
     <md-subheader class="md-primary">Configure page's source</md-subheader>

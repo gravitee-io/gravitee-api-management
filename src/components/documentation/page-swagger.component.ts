@@ -16,7 +16,7 @@
 import * as jsyaml from 'js-yaml';
 import * as _ from 'lodash';
 import UserService from '../../services/user.service';
-import { SwaggerUIBundle } from 'swagger-ui-dist';
+import {SwaggerUIBundle} from 'swagger-ui-dist';
 
 const DisableTryItOutPlugin = function () {
   return {
@@ -39,7 +39,7 @@ const PageSwaggerComponent: ng.IComponentOptions = {
   controller: function(Constants, UserService: UserService, $state: ng.ui.IStateService) {
     'ngInject';
 
-    this.$onInit = function() {
+    this.$onInit = () => {
       this.pageId = (this.page === undefined) ? $state.params['pageId'] : this.page.id;
       if ($state.params['apiId']) {
         this.url = Constants.baseURL + 'apis/' + $state.params['apiId'] + '/pages/' + this.pageId + '/content';
@@ -47,8 +47,8 @@ const PageSwaggerComponent: ng.IComponentOptions = {
         this.url = Constants.baseURL + 'portal/pages/' + this.pageId + '/content';
       }
 
-      this.tryItEnabled = function () {
-        return !_.isNil(this.page.configuration) && this.page.configuration.tryIt && UserService.isAuthenticated();
+      this.tryItEnabled = () => {
+        return !_.isNil(this.page.configuration) && this.page.configuration.tryIt === 'true' && UserService.isAuthenticated();
       };
 
       const plugins = [];
@@ -62,22 +62,48 @@ const PageSwaggerComponent: ng.IComponentOptions = {
       } catch (e) {
         contentAsJson = jsyaml.safeLoad(this.page.content);
       }
-      SwaggerUIBundle({
-        spec: contentAsJson,
+
+      let cfg = {
         dom_id: '#swagger-container',
         presets: [
           SwaggerUIBundle.presets.apis,
         ],
         layout: 'BaseLayout',
         plugins: plugins,
-        docExpansion: 'none',
         requestInterceptor: (req) => {
           if (req.loadSpec) {
             req.credentials = 'include';
           }
           return req;
+        },
+        spec: contentAsJson
+      };
+
+      if (!_.isNil(this.page.configuration)) {
+        if (this.page.configuration.showURL === "true") {
+          cfg["url"] = this.url;
+          cfg["spec"] = undefined;
         }
-      });
+        cfg["docExpansion"] =
+          _.isNil(this.page.configuration.docExpansion)
+            ? 'none' : this.page.configuration.docExpansion;
+        cfg["displayOperationId"] =
+          _.isNil(this.page.configuration.displayOperationId)
+            ? false : this.page.configuration.displayOperationId === "true";
+        cfg["filter"] =
+          _.isNil(this.page.configuration.enableFiltering)
+            ? false : this.page.configuration.enableFiltering === "true";
+        cfg["showExtensions"] =
+          _.isNil(this.page.configuration.showExtensions)
+            ? false : this.page.configuration.showExtensions === "true";
+        cfg["showCommonExtensions"] =
+          _.isNil(this.page.configuration.showCommonExtensions)
+            ? false : this.page.configuration.showCommonExtensions === "true";
+        cfg["maxDisplayedTags"] =
+          _.isNaN(Number(this.page.configuration.maxDisplayedTags)) || this.page.configuration.maxDisplayedTags === "-1"
+            ? undefined : Number(this.page.configuration.maxDisplayedTags);
+      }
+      SwaggerUIBundle(cfg);
     };
 
   }
