@@ -53,22 +53,16 @@ public class DefaultReactor extends AbstractService implements
 
     @Autowired
     private EventManager eventManager;
-
     @Autowired
     private Environment environment;
-
     @Autowired
     private ReactorHandlerRegistry reactorHandlerRegistry;
-
     @Autowired
     private ReactorHandlerResolver reactorHandlerResolver;
-
     @Autowired
     private ReporterService reporterService;
-
     @Autowired
     private TransactionHandlerFactory transactionHandlerFactory;
-
     @Autowired
     private GatewayConfiguration gatewayConfiguration;
 
@@ -81,7 +75,7 @@ public class DefaultReactor extends AbstractService implements
             ReactorHandler reactorHandler = reactorHandlerResolver.resolve(request);
             if (reactorHandler != null) {
                 // Prepare the handler chain
-                Handler<Response> responseHandlerChain = new ResponseTimeHandler(request,
+                final Handler<Response> responseHandlerChain = new ResponseTimeHandler(request,
                         new ReporterHandler(reporterService, request, handler));
 
                 reactorHandler.handle(request, serverResponse, responseHandlerChain);

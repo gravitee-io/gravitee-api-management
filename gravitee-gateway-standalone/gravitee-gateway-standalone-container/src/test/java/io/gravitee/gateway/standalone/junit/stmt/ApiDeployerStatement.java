@@ -110,13 +110,13 @@ public class ApiDeployerStatement extends Statement {
                     URL target = new URL(edpt.getTarget());
                     URL newTarget = new URL(target.getProtocol(), target.getHost(), port, target.getFile());
                     edpt.setTarget(newTarget.toString());
-                    edpt.setName(UUID.random().toString());
+                    edpt.setName(UUID.toString(UUID.random()));
                 } else {
                     // Use the first defined endpoint as reference
                     HttpEndpoint first = (HttpEndpoint) endpoints.get(0);
                     URL target = new URL(first.getTarget());
                     URL newTarget = new URL(target.getProtocol(), target.getHost(), port, target.getFile());
-                    HttpEndpoint edpt = new HttpEndpoint(UUID.random().toString(), newTarget.toString());
+                    HttpEndpoint edpt = new HttpEndpoint(UUID.toString(UUID.random()), newTarget.toString());
                     edpt.setHttpClientOptions(first.getHttpClientOptions());
                     group.getEndpoints().add(edpt);
                 }

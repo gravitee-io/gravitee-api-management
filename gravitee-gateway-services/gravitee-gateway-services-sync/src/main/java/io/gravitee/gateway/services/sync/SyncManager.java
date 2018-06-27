@@ -42,6 +42,9 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -84,7 +87,7 @@ public class SyncManager {
             // Extract all registered APIs
             Map<String, io.gravitee.repository.management.model.Api> apis = apiRepository.findAll()
                     .stream()
-                    .collect(Collectors.toMap(io.gravitee.repository.management.model.Api::getId, api -> api));
+                    .collect(toMap(io.gravitee.repository.management.model.Api::getId, api -> api));
 
             long nextLastRefreshAt = System.currentTimeMillis();
             // Get last event by API
@@ -104,10 +107,12 @@ public class SyncManager {
                         try {
                             // Read API definition from event
                             io.gravitee.repository.management.model.Api eventPayload = objectMapper.readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class);
-                            Api definition = objectMapper.readValue(eventPayload.getDefinition(), Api.class);
-                            io.gravitee.repository.management.model.Api api = apis.get(definition.getId());
+                            io.gravitee.definition.model.Api eventApiDefinition =
+                                    objectMapper.readValue(eventPayload.getDefinition(), io.gravitee.definition.model.Api.class);
+                            io.gravitee.repository.management.model.Api api = apis.get(eventApiDefinition.getId());
 
                             // Update definition with required information for deployment phase
+                            final Api definition = new Api(eventApiDefinition);
                             definition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
                             definition.setDeployedAt(eventPayload.getDeployedAt());
                             definitions.put(definition.getId(), definition);
@@ -121,7 +126,7 @@ public class SyncManager {
                     .stream()
                     .filter(api -> !hasMatchingTags(api))
                     .map(Api::getId)
-                    .collect(Collectors.toSet());
+                    .collect(toSet());
 
             // Undeploy APIs not relative to this gateway instance (different deployment tags)
             apisToRemove.forEach(apiId -> {

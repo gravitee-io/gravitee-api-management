@@ -34,8 +34,9 @@ import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
  * @author Guillaume GILLON (guillaume.gillon at outlook.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 class VertxHttpServerRequest implements Request {
 
@@ -61,6 +62,7 @@ class VertxHttpServerRequest implements Request {
         this.metrics.setLocalAddress(localAddress());
         this.metrics.setRemoteAddress(remoteAddress());
         this.metrics.setUri(uri());
+        this.metrics.setPath(path());
     }
 
     @Override
