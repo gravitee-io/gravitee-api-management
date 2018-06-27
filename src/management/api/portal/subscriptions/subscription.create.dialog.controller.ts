@@ -47,7 +47,6 @@ function DialogSubscriptionCreateController(
 
   this.selectedItemChange = function () {
     this.plansWithSubscriptions = [];
-    this.selectedPlan = null;
     if (this.selectedApp) {
       ApiService.getSubscriptions(
         this.api.id,
@@ -55,6 +54,9 @@ function DialogSubscriptionCreateController(
         this.plansWithSubscriptions = _.map(response.data.data, function(subscription) {
           return subscription.plan;
         });
+        if (this.selectedPlan && this.planAlreadyHaveSubscriptions(this.selectedPlan)) {
+          this.selectedPlan = null;
+        }
       });
     }
   };
