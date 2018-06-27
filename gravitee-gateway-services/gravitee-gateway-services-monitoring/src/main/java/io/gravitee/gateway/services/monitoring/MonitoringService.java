@@ -143,7 +143,7 @@ public class MonitoringService extends AbstractService {
 
     private Event prepareEvent() {
         Event event = new Event();
-        event.setId(UUID.random().toString());
+        event.setId(UUID.toString(UUID.random()));
         event.setType(EventType.GATEWAY_STARTED);
         event.setCreatedAt(new Date());
         event.setUpdatedAt(event.getCreatedAt());

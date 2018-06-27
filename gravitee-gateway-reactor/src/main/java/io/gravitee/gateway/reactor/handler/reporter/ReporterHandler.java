@@ -34,7 +34,8 @@ public class ReporterHandler implements Handler<Response> {
     private final Request serverRequest;
     private final ReporterService reporterService;
 
-    public ReporterHandler(final ReporterService reporterService, final Request serverRequest, final Handler<Response> next) {
+    public ReporterHandler(final ReporterService reporterService, final Request serverRequest,
+                           final Handler<Response> next) {
         this.reporterService = reporterService;
         this.serverRequest = serverRequest;
         this.next = next;

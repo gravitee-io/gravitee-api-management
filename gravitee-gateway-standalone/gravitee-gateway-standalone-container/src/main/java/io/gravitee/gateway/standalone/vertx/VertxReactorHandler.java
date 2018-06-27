@@ -20,7 +20,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class VertxReactorHandler implements Handler<HttpServerRequest> {
 
@@ -32,10 +34,6 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
 
     @Override
     public void handle(HttpServerRequest httpServerRequest) {
-        handleRequest(httpServerRequest);
-    }
-
-    private void handleRequest(HttpServerRequest httpServerRequest) {
         reactor.route(
                 new VertxHttpServerRequest(httpServerRequest),
                 new VertxHttpServerResponse(httpServerRequest.response()), result -> {

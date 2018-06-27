@@ -40,6 +40,7 @@ import io.gravitee.gateway.handlers.api.cors.CorsHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.logging.LoggableClientRequest;
 import io.gravitee.gateway.handlers.api.logging.LoggableClientResponse;
+import io.gravitee.gateway.handlers.api.metrics.PathMappingMetricsHandler;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
 import io.gravitee.gateway.policy.PolicyChainResolver;
@@ -92,6 +93,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
 
     @Override
     protected void doHandle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
+        if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
+            handler = new PathMappingMetricsHandler(handler, api.getPathMappings(), serverRequest);
+        }
+
         // Prepare request execution context
         ExecutionContext executionContext = executionContextFactory.create(serverRequest);
         executionContext.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, serverRequest.contextPath());
@@ -113,9 +118,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
             if (cors != null && cors.isEnabled()) {
                 Request finalServerRequest = serverRequest;
                 Response finalServerResponse = serverResponse;
+                Handler<Response> finalHandler = handler;
 
                 new CorsHandler(cors)
-                        .responseHandler(response -> handleClientRequest(finalServerRequest, finalServerResponse, executionContext, handler))
+                        .responseHandler(response -> handleClientRequest(finalServerRequest, finalServerResponse, executionContext, finalHandler))
                         .handle(serverRequest, serverResponse, handler);
             } else {
                 handleClientRequest(serverRequest, serverResponse, executionContext, handler);

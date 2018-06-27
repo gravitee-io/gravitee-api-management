@@ -22,7 +22,6 @@ import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.Reactable;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -32,10 +31,25 @@ import java.util.stream.Collectors;
 public class Api extends io.gravitee.definition.model.Api implements Reactable<Api> {
 
     private boolean enabled = true;
-
     private Date deployedAt;
-
     private final Map<String, Plan> plans = new HashMap<>();
+
+    public Api() {
+    }
+
+    public Api(final io.gravitee.definition.model.Api definition) {
+        this.setId(definition.getId());
+        this.setName(definition.getName());
+        this.setPathMappings(definition.getPathMappings());
+        this.setPaths(definition.getPaths());
+        this.setProperties(definition.getProperties());
+        this.setProxy(definition.getProxy());
+        this.setPathMappings(definition.getPathMappings());
+        this.setResources(definition.getResources());
+        this.setServices(definition.getServices());
+        this.setTags(definition.getTags());
+        this.setVersion(definition.getVersion());
+    }
 
     public boolean isEnabled() {
         return enabled;
