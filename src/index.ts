@@ -45,7 +45,7 @@ function fetchData() {
       return $http.get(`${ConstantsJSON.baseURL}portal`);
     })
     .then( (response: any) => {
-      let constants = _.assign(response.data, ConstantsJSON);
+      let constants = _.merge(response.data, ConstantsJSON);
       angular.module('gravitee-management').constant('Constants', constants);
       angular.module('gravitee-portal').constant('Constants', constants);
 
