@@ -85,7 +85,7 @@ class ApiService {
       {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private,
         'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
         'picture': api.picture, 'resources': api.resources, 'views': api.views, 'groups': api.groups,
-        'labels': api.labels
+        'labels': api.labels, 'path_mappings': api.path_mappings
       }, {headers: {'If-Match': api.etag}}
     );
   }
@@ -124,6 +124,10 @@ class ApiService {
 
   verify(criteria) {
     return this.$http.post(this.apisURL + 'verify', criteria);
+  }
+
+  importPathMappings(apiId, page) {
+    return this.$http.post(this.apisURL + apiId + '/import-path-mappings?page=' + page);
   }
 
   /*

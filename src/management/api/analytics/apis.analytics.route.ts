@@ -96,4 +96,18 @@ function apisAnalyticsRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       }
     })
+    .state('management.apis.detail.analytics.pathMappings', {
+      url: '/path-mappings',
+      template: require('./pathMappings/pathMappings.html'),
+      controller: 'ApiPathMappingsController',
+      controllerAs: 'apiPathMappingCtrl',
+      data: {
+        perms: {
+          only: ['api-definition-r']
+        },
+        docs: {
+          page: 'management-api-pathMappings'
+        }
+      }
+    });
 }

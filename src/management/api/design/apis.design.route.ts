@@ -75,5 +75,5 @@ function apisDesignRouterConfig($stateProvider: ng.ui.IStateProvider) {
           page: 'management-api-properties'
         }
       }
-    })
+    });
 }

@@ -30,10 +30,10 @@ class ApiAnalyticsController {
     this.api = resolvedApi.data;
 
     this.$scope.apiDashboard = [{
-      col: 0,
       row: 0,
+      col: 0,
       sizeY: 1,
-      sizeX: 3,
+      sizeX: 2,
       title: 'Top applications',
       subhead: 'Ordered by application calls',
       chart: {
@@ -48,27 +48,27 @@ class ApiAnalyticsController {
         }
       }
     }, {
-      col: 3,
       row: 0,
+      col: 5,
       sizeY: 1,
-      sizeX: 3,
+      sizeX: 2,
       title: 'Status',
       chart: {
         type: 'pie',
         request: {
           type: 'group_by',
           field: 'status',
-          ranges: '100:199;200:299;300:399;400:499;500:599'
+          ranges: '100:199%3B200:299%3B300:399%3B400:499%3B500:599'
         },
         labels: ['1xx', '2xx', '3xx', '4xx', '5xx'],
         colors: ['#42a5f5', '#66bb6a', '#ffee58', '#ef5350', '#8d6e63']
       }
     }, {
-      col: 0,
       row: 1,
+      col: 0,
       sizeY: 1,
-      sizeX: 3,
-      title: 'Top plan',
+      sizeX: 2,
+      title: 'Top plans',
       subhead: 'Hits repartition by API plan',
       chart: {
         type: 'table',
@@ -82,8 +82,44 @@ class ApiAnalyticsController {
         }
       }
     }, {
+      row: 1,
+      col: 2,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Top paths',
+      subhead: 'Hits repartition by path',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Mapped path', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'path',
+          size: 1000
+        }
+      }
+    }, {
+      row: 1,
+      col: 4,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Top mapped paths',
+      subhead: 'Hits repartition by mapped path',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Mapped path', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'mapped-path',
+          size: 1000
+        }
+      }
+    }, {
+      row: 3,
       col: 0,
-      row: 2,
       sizeY: 1,
       sizeX: 6,
       title: 'Response Status',
@@ -98,8 +134,8 @@ class ApiAnalyticsController {
         }
       }
     }, {
+      row: 4,
       col: 0,
-      row: 3,
       sizeY: 1,
       sizeX: 6,
       title: 'Response times',
@@ -109,13 +145,13 @@ class ApiAnalyticsController {
         stacked: false,
         request: {
           'type': 'date_histo',
-          'aggs': 'avg:response-time;avg:api-response-time'
+          'aggs': 'avg:response-time%3Bavg:api-response-time'
         },
         labels: ['Global latency (ms)', 'API latency (ms)']
       }
     }, {
+      row: 5,
       col: 0,
-      row: 4,
       sizeY: 1,
       sizeX: 6,
       title: 'Hits by application',
@@ -138,8 +174,8 @@ class ApiAnalyticsController {
         switch (Constants.portal.dashboard.widgets[i]) {
           case 'geo_country':
             this.$scope.apiDashboard.push({
-              col: i * 3,
               row: 5,
+              col: i * 3,
               sizeY: 1,
               sizeX: 3,
               title: 'Geolocation by country',
@@ -161,8 +197,8 @@ class ApiAnalyticsController {
             break;
           case 'geo_city':
             this.$scope.apiDashboard.push({
-              col: i * 3,
               row: 5,
+              col: i * 3,
               sizeY: 1,
               sizeX: 3,
               title: 'Geolocation by city',
@@ -189,10 +225,10 @@ class ApiAnalyticsController {
     let hasTenants = _.find(this.api.proxy.endpoints, endpoint => _.has(endpoint, 'tenants'));
     if (hasTenants === undefined) {
       this.$scope.apiDashboard.push({
-        col: 3,
-        row: 1,
+        row: 0,
+        col: 2,
         sizeY: 1,
-        sizeX: 3,
+        sizeX: 2,
         title: 'Top slow applications',
         subhead: 'Applications ordered by the latency',
         chart: {
@@ -209,10 +245,10 @@ class ApiAnalyticsController {
       });
     } else {
       this.$scope.apiDashboard.push({
-        col: 3,
-        row: 1,
+        row: 0,
+        col: 2,
         sizeY: 1,
-        sizeX: 3,
+        sizeX: 2,
         title: 'Tenant repartition',
         subhead: 'Hits repartition by tenant',
         chart: {

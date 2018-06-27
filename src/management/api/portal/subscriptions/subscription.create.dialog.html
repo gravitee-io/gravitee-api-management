@@ -37,7 +37,7 @@
             <span> {{app.name}} </span><span ng-if="app.type">({{app.type}}) </span>
           </span>
           <span class="item-metadata">
-            By {{app.owner.username}} on {{app.created_at | humanDateFilter}}
+            By {{app.owner.displayName}} on {{app.created_at | humanDateFilter}}
           </span>
         </md-item-template>
         <md-not-found>

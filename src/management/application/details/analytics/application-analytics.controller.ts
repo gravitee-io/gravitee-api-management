@@ -58,7 +58,7 @@ class ApplicationAnalyticsController {
         request: {
           type: "group_by",
           field: "status",
-          ranges: "100:199;200:299;300:399;400:499;500:599"
+          ranges: "100:199%3B200:299%3B300:399%3B400:499%3B500:599"
         },
         labels: ["1xx", "2xx", "3xx", "4xx", "5xx"],
         colors: ['#42a5f5', '#66bb6a', '#ffee58', '#ef5350', '#8d6e63']
@@ -66,6 +66,42 @@ class ApplicationAnalyticsController {
     }, {
       col: 0,
       row: 1,
+      sizeY: 1,
+      sizeX: 3,
+      title: 'Top paths',
+      subhead: 'Hits repartition by path',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Mapped path', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'path',
+          size: 1000
+        }
+      }
+    }, {
+      col: 3,
+      row: 1,
+      sizeY: 1,
+      sizeX: 3,
+      title: 'Top mapped paths',
+      subhead: 'Hits repartition by mapped path',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Mapped path', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'mapped-path',
+          size: 1000
+        }
+      }
+    }, {
+      col: 0,
+      row: 2,
       sizeY: 1,
       sizeX: 6,
       title: "Response Status",
@@ -81,7 +117,7 @@ class ApplicationAnalyticsController {
       }
     }, {
       col: 0,
-      row: 2,
+      row: 3,
       sizeY: 1,
       sizeX: 6,
       title: "Response times",
@@ -97,7 +133,7 @@ class ApplicationAnalyticsController {
       }
     }, {
       col: 0,
-      row: 3,
+      row: 4,
       sizeY: 1,
       sizeX: 6,
       title: "Hits by API",
@@ -114,7 +150,7 @@ class ApplicationAnalyticsController {
     }];
 
     if (Constants.portal.dashboard && Constants.portal.dashboard.widgets) {
-      
+
       for (let i = 0; i < Constants.portal.dashboard.widgets.length; i++) {
 
         switch (Constants.portal.dashboard.widgets[i]) {
@@ -136,7 +172,7 @@ class ApplicationAnalyticsController {
                   field: 'geoip.country_iso_code',
                   fieldLabel: 'country',
                   ize: 20
-        
+
                 }
               }
             });
@@ -159,14 +195,14 @@ class ApplicationAnalyticsController {
                   field: 'geoip.city_name',
                   fieldLabel: 'city',
                   size: 20
-        
+
                 }
               }
             });
           break;
         }
       };
-    } 
+    }
 
   }
 

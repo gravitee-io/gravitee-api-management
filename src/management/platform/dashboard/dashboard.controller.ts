@@ -165,7 +165,7 @@ class DashboardController {
         request: {
           type: 'date_histo',
           field: 'api',
-          aggs: 'avg:response-time;avg:api-response-time'
+          aggs: 'avg:response-time%3Bavg:api-response-time'
         },
         labels: ['Global latency (ms)', 'API latency (ms)']
       }

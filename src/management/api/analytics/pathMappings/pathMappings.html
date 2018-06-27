@@ -1,0 +1,71 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div layout="column">
+  <h4>Path Mappings</h4>
+  <section layout="row" flex>
+    <md-content flex>
+      <md-table-container ng-show="$parent.apiCtrl.api.path_mappings.length">
+        <table md-table>
+          <thead md-head>
+          <tr md-row>
+            <th width="80%" md-column>Path</th>
+            <th md-column permission permission-only="'api-definition-u'"></th>
+          </tr>
+          </thead>
+          <tbody md-body>
+          <tr md-row ng-repeat="pathMapping in $parent.apiCtrl.api.path_mappings">
+            <td md-cell><span><b>{{pathMapping}}</b></span></td>
+            <td md-cell permission permission-only="'api-definition-u'">
+              <div layout="row">
+                <ng-md-icon ng-click="apiPathMappingCtrl.showSavePathMappingDialog($index)" icon="edit" size="24" style="margin-right: 20px;"></ng-md-icon>
+                <ng-md-icon ng-click="apiPathMappingCtrl.delete($index)" icon="delete" size="24"></ng-md-icon>
+              </div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+    </md-content>
+  </section>
+</div>
+
+<gravitee-empty-state ng-if="!$parent.apiCtrl.api.path_mappings.length"
+                      icon="map"
+                      model="pathMapping"
+                      message="Path mappings will appear here"
+                      sub-message="Start creating a path mapping"
+                      create-mode="true"></gravitee-empty-state>
+
+<md-fab-speed-dial permission permission-only="'api-definition-c'" ng-style="!$parent.apiCtrl.api.path_mappings.length && {'text-align':'center'}"
+                   md-direction="{{$parent.apiCtrl.api.path_mappings.length?'left':'down'}}" md-open="false"
+                   ng-class="{'md-fab-bottom-right gravitee-add-button': $parent.apiCtrl.api.path_mappings.length}" class="md-scale">
+  <md-fab-trigger>
+    <md-button class="md-fab">
+      <ng-md-icon icon="add"></ng-md-icon>
+    </md-button>
+  </md-fab-trigger>
+
+  <md-fab-actions>
+    <md-button class="md-fab md-raised md-mini" aria-label="Add path mapping" ng-click="apiPathMappingCtrl.showSavePathMappingDialog()">
+      <ng-md-icon icon="create" style="fill: #333"></ng-md-icon>
+    </md-button>
+    <md-button class="md-fab md-raised md-mini"aria-label="Add path mapping by swagger" ng-click="apiPathMappingCtrl.showImportPathMappingDialog()">
+      <md-icon md-svg-src="assets/logo_swagger.svg"></md-icon>
+    </md-button>
+  </md-fab-actions>
+</md-fab-speed-dial>

@@ -40,10 +40,10 @@ class DashboardFilterController {
     let field = this.fields[filter.field] || {filters: {}};
     field.filters[filter.key] = filter.name;
 
-    let label = (filter.fieldLabel ? filter.fieldLabel : filter.field) 
+    let label = (filter.fieldLabel ? filter.fieldLabel : filter.field)
       + " = '" + filter.name + "'";
-    
-    let query = '(' + _.map(_.keys(field.filters), (key) => filter.field + ":" + key).join(' OR ') + ')';
+
+    let query = '(' + _.map(_.keys(field.filters), (key) => filter.field + ":\\\"" + key + "\\\"").join(' OR ') + ')';
 
     this.filters.push({
       key: filter.field + '_' + filter.key,

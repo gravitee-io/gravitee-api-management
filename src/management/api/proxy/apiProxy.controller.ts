@@ -149,7 +149,7 @@ class ApiProxyController {
     this.failoverEnabled = (this.api.proxy.failover !== undefined);
 
     // Context-path editable
-    this.contextPathEditable =this.UserService.currentUser.username === this.api.owner.username;
+    this.contextPathEditable =this.UserService.currentUser.id === this.api.owner.id;
 
     this.api.proxy.cors = this.api.proxy.cors || {allowOrigin: ['*'], allowHeaders: [], allowMethods: [], exposeHeaders: [], maxAge: -1, allowCredentials: false};
   }
