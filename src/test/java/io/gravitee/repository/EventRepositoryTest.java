@@ -16,6 +16,7 @@
 package io.gravitee.repository;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -37,7 +38,7 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void createEventTest() throws Exception {
         Event event = new Event();
-        event.setId(io.gravitee.common.utils.UUID.random().toString());
+        event.setId(UUID.toString(UUID.random()));
         event.setType(EventType.PUBLISH_API);
         event.setPayload("{}");
         event.setParentId(null);
