@@ -234,6 +234,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     private void checkContextPath(String newContextPath, final String apiId) throws TechnicalException {
+        if (newContextPath.charAt(0) != '/') {
+            newContextPath = '/' + newContextPath;
+        }
         if (newContextPath.charAt(newContextPath.length() - 1) == '/') {
             newContextPath = newContextPath.substring(0, newContextPath.length() - 1);
         }
