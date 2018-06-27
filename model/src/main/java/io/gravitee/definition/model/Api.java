@@ -19,30 +19,25 @@ import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Api {
 
     private String id;
-
     private String name;
-
     private String version;
-
     private Proxy proxy;
-
     private Services services = new Services();
-
     private List<Resource> resources = new ArrayList<>();
-
     private Map<String, Path> paths;
-
     private Properties properties;
-
     private Set<String> tags = new HashSet<>();
+    private Map<String, Pattern> pathMappings = new HashMap<>();
 
     public String getId() {
         return id;
@@ -118,6 +113,14 @@ public class Api {
 
     public void setResources(List<Resource> resources) {
         this.resources = resources;
+    }
+
+    public Map<String, Pattern> getPathMappings() {
+        return pathMappings;
+    }
+
+    public void setPathMappings(Map<String, Pattern> pathMappings) {
+        this.pathMappings = pathMappings;
     }
 
     @Override

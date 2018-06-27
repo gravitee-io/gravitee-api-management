@@ -29,12 +29,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
+
+import static java.util.Comparator.reverseOrder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiDeserializer extends StdScalarDeserializer<Api> {
@@ -106,7 +109,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
 
         JsonNode pathsNode = node.get("paths");
         if (pathsNode != null) {
-            final Map<String, Path> paths = new TreeMap<>((Comparator<String>) (path1, path2) -> path2.compareTo(path1));
+            final Map<String, Path> paths = new TreeMap<>(reverseOrder());
             pathsNode.fields().forEachRemaining(jsonNode -> {
                 try {
                     Path path = jsonNode.getValue().traverse(jp.getCodec()).readValueAs(Path.class);
@@ -130,6 +133,15 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
 
         if (tagsNode != null && tagsNode.isArray()) {
             tagsNode.elements().forEachRemaining(jsonNode -> api.getTags().add(jsonNode.asText()));
+        }
+
+        JsonNode pathMappingsNode = node.get("pathMappings");
+        if (pathMappingsNode != null) {
+            pathMappingsNode.elements().forEachRemaining(jsonNode -> {
+                final String pathMapping = jsonNode.asText();
+                api.getPathMappings().put(pathMapping,
+                        Pattern.compile(pathMapping.replaceAll(":\\w*", "[^\\/]*")));
+            });
         }
 
         return api;
