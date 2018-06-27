@@ -47,7 +47,7 @@ function interceptorConfig(
               }, 2000);
             } else {
               let state = ($injector.get('$state') as ng.ui.IStateService);
-              if (!_.startsWith('portal.', state.current.name)) {
+              if (!state.current.name || !_.startsWith('portal.', state.current.name)) {
                 state.go('portal.home');
               }
             }
