@@ -178,8 +178,16 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
             // Set the status
             serverResponse.status(proxyResponse.status());
 
+            // Get gateways cross domain rules
+            List<String> corsDomain = serverResponse.headers().get(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
+
             // Copy HTTP headers
             proxyResponse.headers().forEach((headerName, headerValues) -> serverResponse.headers().put(headerName, headerValues));
+
+            // Set gateways cross domain rules(Cross domain rules, gateways are more important than the backends)
+            if (corsDomain != null && corsDomain.size() > 0) {
+                serverResponse.headers().put(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, corsDomain);
+            }
 
             // Calculate response policies
             PolicyChain responsePolicyChain = apiPolicyResolver.resolve(StreamType.ON_RESPONSE, serverRequest, serverResponse, executionContext);
