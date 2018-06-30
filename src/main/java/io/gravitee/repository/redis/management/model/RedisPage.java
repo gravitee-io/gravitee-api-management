@@ -40,6 +40,7 @@ public class RedisPage {
     private Map<String, String> configuration;
     private boolean homepage;
     private List<String> excludedGroups;
+    private String parentId;
 
     public String getApi() {
         return api;
@@ -160,6 +161,10 @@ public class RedisPage {
     public void setExcludedGroups(List<String> excludedGroups) {
         this.excludedGroups = excludedGroups;
     }
+
+    public String getParentId() { return parentId; }
+
+    public void setParentId(String parentId) { this.parentId = parentId; }
 
     @Override
     public boolean equals(Object o) {

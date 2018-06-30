@@ -86,4 +86,27 @@ public class PageRedisRepositoryImpl extends AbstractRedisRepository implements 
                 .map(event -> convert(event, RedisPage.class))
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public void removeAllFolderParentWith(String pageFolderId, String api) {
+        System.out.println("pageFolderId " +pageFolderId + " api " + api);
+        Set<Object> keys = null;
+
+        if (api != null) {
+            keys = redisTemplate.opsForSet().members(REDIS_KEY_API + ":" + api);
+        } else {
+            keys = redisTemplate.opsForSet().members(REDIS_KEY_PORTAL);
+        }
+        List<Object> pageObjects = redisTemplate.opsForHash().multiGet(REDIS_KEY, keys);
+
+        Set<RedisPage> redisPages = pageObjects.stream()
+                .map(event -> convert(event, RedisPage.class))
+                .filter(page -> pageFolderId.equals(page.getParentId()))
+                .map(page -> {
+                    page.setParentId("");
+                    return page;
+                })
+                .peek(page -> this.saveOrUpdate(page))
+                .collect(Collectors.toSet());
+    }
 }

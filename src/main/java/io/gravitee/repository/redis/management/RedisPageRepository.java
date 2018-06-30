@@ -132,6 +132,7 @@ public class RedisPageRepository implements PageRepository {
         page.setType(PageType.valueOf(redisPage.getType()));
         page.setHomepage(redisPage.isHomepage());
         page.setExcludedGroups(redisPage.getExcludedGroups());
+        page.setParentId(redisPage.getParentId());
 
         if (redisPage.getSourceType() != null) {
             PageSource pageSource = new PageSource();
@@ -159,6 +160,7 @@ public class RedisPageRepository implements PageRepository {
         redisPage.setType(page.getType().name());
         redisPage.setHomepage(page.isHomepage());
         redisPage.setExcludedGroups(page.getExcludedGroups());
+        redisPage.setParentId(page.getParentId());
 
         if (page.getSource() != null) {
             redisPage.setSourceType(page.getSource().getType());
@@ -167,5 +169,10 @@ public class RedisPageRepository implements PageRepository {
 
         redisPage.setConfiguration(page.getConfiguration());
         return redisPage;
+    }
+
+    @Override
+    public void removeAllFolderParentWith(String pageId, String apiId) throws TechnicalException {
+        pageRedisRepository.removeAllFolderParentWith(pageId, apiId);
     }
 }
