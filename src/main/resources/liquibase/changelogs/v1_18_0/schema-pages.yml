@@ -3,6 +3,10 @@ databaseChangeLog:
         id: 1.18.0-pageconfiguration
         author: GraviteeSource Team
         changes:
+        - addColumn:
+            tableName: pages
+            columns:
+                - column: {name: parent_id, type: nvarchar(64), constraints: { nullable: true } }
         - createTable:
             tableName: page_configuration
             columns:

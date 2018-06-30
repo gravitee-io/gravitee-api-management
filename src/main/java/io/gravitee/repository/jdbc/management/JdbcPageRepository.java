@@ -62,6 +62,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             .addColumn("homepage", Types.BOOLEAN, boolean.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("parent_id", Types.NVARCHAR, String.class)
             .build();
 
     private static final JdbcHelper.ChildAdder<Page> CHILD_ADDER = (Page parent, ResultSet rs) -> {
@@ -426,4 +427,18 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             throw new TechnicalException(message, ex);
         }
     }
+
+    @Override
+    public void removeAllFolderParentWith(String pageId, String apiId) throws TechnicalException {
+        LOGGER.debug("JdbcPageRepository.removeAllFolderParentWith()");
+
+        try {
+            jdbcTemplate.update("update pages set parent_id = ''  where parent_id = ? and api = ?", pageId, apiId);
+        } catch (final Exception ex) {
+            final String message = "Failed to remove ParentId of the folder id " + pageId;
+            LOGGER.error(message, ex);
+            throw new TechnicalException(message, ex);
+        }
+    }
+
 }
