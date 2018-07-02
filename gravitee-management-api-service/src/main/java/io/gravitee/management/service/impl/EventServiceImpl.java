@@ -79,7 +79,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             LOGGER.debug("Create {} for server {}", newEventEntity, hostAddress);
 
             Event event = convert(newEventEntity);
-            event.setId(io.gravitee.common.utils.UUID.random().toString());
+            event.setId(io.gravitee.common.utils.UUID.toString(io.gravitee.common.utils.UUID.random()));
 
             // Set origin
             event.getProperties().put(Event.EventProperties.ORIGIN.getValue(), hostAddress);
