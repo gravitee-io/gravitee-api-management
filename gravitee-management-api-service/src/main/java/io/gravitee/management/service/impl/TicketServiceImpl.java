@@ -103,10 +103,11 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         }
 
         parameters.put("content", ticketEntity.getContent().replaceAll("(\r\n|\n)", "<br />"));
+        final String fromName = user.getFirstname() == null ? user.getEmail() : user.getFirstname() + ' ' + user.getLastname();
         emailService.sendEmailNotification(
                 new EmailNotificationBuilder()
                         .from(user.getEmail())
-                        .fromName(user.getFirstname() + ' ' + user.getLastname())
+                        .fromName(fromName)
                         .to(emailTo)
                         .subject(ticketEntity.getSubject())
                         .copyToSender(ticketEntity.isCopyToSender())
