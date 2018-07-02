@@ -84,7 +84,7 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         view.setHidden(true);
         view.setCreatedAt(new Date(1486771200000L));
         view.setUpdatedAt(new Date(1486771200000L));
-
+        view.setHighlightApi("new Highlighted API");
 
         int nbViewsBeforeUpdate = viewRepository.findAll().size();
         viewRepository.update(view);
@@ -103,6 +103,7 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid view hidden.", view.isHidden(), viewUpdated.isHidden());
         Assert.assertEquals("Invalid view order.", view.getOrder(), viewUpdated.getOrder());
         Assert.assertEquals("Invalid view defaultView.", view.isDefaultView(), viewUpdated.isDefaultView());
+        Assert.assertEquals("Invalid view highlight API.", view.getHighlightApi(), viewUpdated.getHighlightApi());
     }
 
     @Test

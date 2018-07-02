@@ -565,6 +565,7 @@ public class MockTestRepositoryConfiguration {
         when(viewProductsUpdated.isHidden()).thenReturn(true);
         when(viewProductsUpdated.getOrder()).thenReturn(10);
         when(viewProductsUpdated.isDefaultView()).thenReturn(true);
+        when(viewProductsUpdated.getHighlightApi()).thenReturn("new Highlighted API");
 
         final Set<View> views = newSet(newView, viewProducts, mock(View.class));
         final Set<View> viewsAfterDelete = newSet(newView, viewProducts);
