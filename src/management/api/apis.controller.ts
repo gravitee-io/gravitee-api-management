@@ -47,6 +47,10 @@ export class ApisController {
     this.graviteeUIVersion = Build.version;
     this.portalTitle = Constants.portal.title;
     this.apisProvider = _.filter(resolvedApis.data, 'manageable');
+    if (!this.apisProvider.length) {
+      // if no APIs, maybe the auth token has been expired
+      UserService.current(true);
+    }
 
     this.apisScrollAreaHeight = this.$state.current.name === 'apis.list' ? 195 : 90;
     this.isAPIsHome = this.$state.includes('apis');
