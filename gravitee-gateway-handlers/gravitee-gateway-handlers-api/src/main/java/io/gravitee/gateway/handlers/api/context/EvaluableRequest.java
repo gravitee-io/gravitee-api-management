@@ -43,8 +43,24 @@ public class EvaluableRequest {
         return request.parameters();
     }
 
+    public String getScheme() {
+        return request.scheme();
+    }
+
+    public String getMethod() {
+        return request.rawMethod();
+    }
+
+    public String getLocalAddress() {
+        return request.localAddress();
+    }
+
     public String[] getPaths() {
         return request.path().split("/");
+    }
+
+    public String getPath() {
+        return request.path();
     }
 
     public String getContextPath() {
@@ -53,5 +69,9 @@ public class EvaluableRequest {
 
     public String [] getPathInfos() {
         return request.pathInfo().split("/");
+    }
+
+    public String getPathInfo() {
+        return request.pathInfo();
     }
 }

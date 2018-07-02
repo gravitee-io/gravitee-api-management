@@ -87,6 +87,11 @@ public class TransactionRequest implements Request {
     }
 
     @Override
+    public String scheme() {
+        return request.scheme();
+    }
+
+    @Override
     public String rawMethod() {
         return request.rawMethod();
     }
