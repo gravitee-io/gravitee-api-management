@@ -90,8 +90,15 @@ public class HttpServer extends AbstractService {
         mainRouter.route().handler(ctx -> ctx.fail(HttpStatusCode.NOT_FOUND_404));
 
         // Add request handler
-        httpServer.requestHandler(mainRouter::accept).listen(event ->
-                LOGGER.info("HTTP server for node management listening on port {}", event.result().actualPort()));
+        httpServer
+                .requestHandler(mainRouter::accept)
+                .listen(event -> {
+                    if (event.failed()) {
+                        LOGGER.error("HTTP server for node management can not be started properly", event.cause());
+                    } else {
+                        LOGGER.info("HTTP server for node management listening on port {}", event.result().actualPort());
+                    }
+                });
 
         // Set node handler
         NodeHandler nodeHandler = new NodeHandler();
