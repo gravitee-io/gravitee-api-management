@@ -27,7 +27,7 @@
     </div>
   </div>
 
-  <form name="formTicket" ng-submit="supportTicketCtrl.create()" novalidate ng-if="supportTicketCtrl.isAuthenticated"
+  <form name="supportTicketCtrl.formTicket" ng-submit="supportTicketCtrl.create()" novalidate ng-if="supportTicketCtrl.isAuthenticated"
     style="width: 70%; margin: 0 auto;">
     <h5 ng-if="!supportTicketCtrl.userHasAnEmail" style="color: red;margin-left: 10px;">
       <ng-md-icon icon="warning" style="fill: red"></ng-md-icon>
@@ -68,7 +68,8 @@
         </md-input-container>
       </md-card-content>
       <md-card-actions layout="row" layout-align="end center">
-        <md-button type="submit" ng-disabled="formTicket.$invalid || !supportTicketCtrl.userHasAnEmail" translate="common.create" aria-label="create-ticket"></md-button>
+        <md-button type="submit" ng-disabled="supportTicketCtrl.formTicket.$pristine || supportTicketCtrl.formTicket.$invalid ||
+         !supportTicketCtrl.userHasAnEmail" translate="common.create" aria-label="create-ticket"></md-button>
       </md-card-actions>
     </md-card>
   </form>

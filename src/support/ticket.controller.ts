@@ -28,6 +28,7 @@ class SupportTicketController {
   private isAuthenticated: boolean;
   private userHasAnEmail: boolean;
   private stateParams: any;
+  private formTicket: any;
 
   constructor(
     private TicketService: TicketService,
@@ -57,9 +58,9 @@ class SupportTicketController {
   }
 
   create() {
-    let that = this;
     this.TicketService.create(this.ticket).then(() => {
-      that.NotificationService.show('support.ticket.successCreation');
+      this.NotificationService.show('support.ticket.successCreation');
+      this.formTicket.$setPristine();
     });
   }
 }
