@@ -21,6 +21,8 @@ import io.gravitee.gateway.services.http.configuration.HttpServerConfiguration;
 import io.gravitee.gateway.services.http.handler.NodeHandler;
 import io.gravitee.gateway.services.http.handler.apis.ApiHandler;
 import io.gravitee.gateway.services.http.handler.apis.ApisHandler;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.Router;
@@ -92,8 +94,16 @@ public class HttpServer extends AbstractService {
         mainRouter.route().handler(ctx -> ctx.fail(HttpStatusCode.NOT_FOUND_404));
 
         // Add request handler
-        httpServer.requestHandler(mainRouter::accept).listen(event ->
-                LOGGER.info("HTTP server for node management listening on port {}", event.result().actualPort()));
+        httpServer
+                .requestHandler(mainRouter::accept)
+                .listen(event -> {
+                    if (event.failed()) {
+                        LOGGER.error("HTTP server for node management can not be started properly", event.cause());
+                    } else {
+                        LOGGER.info("HTTP server for node management listening on port {}", event.result().actualPort());
+                    }
+                });
+
 
         // Set node handler
         NodeHandler nodeHandler = new NodeHandler();
