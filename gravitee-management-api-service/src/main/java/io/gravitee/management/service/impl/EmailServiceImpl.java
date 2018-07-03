@@ -57,19 +57,14 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
     @Autowired
     private JavaMailSender mailSender;
-
     @Autowired
     private Configuration freemarkerConfiguration;
-
     @Value("${templates.path:${gravitee.home}/templates}")
     private String templatesPath;
-
     @Value("${email.subject:[Gravitee.io] %s}")
     private String subject;
-
     @Value("${email.enabled:false}")
     private boolean enabled;
-
     @Value("${email.from}")
     private String defaultFrom;
 
@@ -135,9 +130,18 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
         for (final String res : resources) {
             final FileSystemResource templateResource = new FileSystemResource(new File(templatesPath, res));
-            mailMessage.addInline(res, templateResource, MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(res));
+            mailMessage.addInline(res, templateResource, getContentTypeByFileName(res));
         }
 
         return html;
+    }
+
+    private String getContentTypeByFileName(final String fileName) {
+        if (fileName == null) {
+            return "";
+        } else if (fileName.endsWith(".png")) {
+            return "image/png";
+        }
+        return MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(fileName);
     }
 }
