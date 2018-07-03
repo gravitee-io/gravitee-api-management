@@ -15,7 +15,6 @@
  */
 package io.gravitee.management.service.notifiers.impl;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.utils.UUID;
@@ -105,47 +104,57 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
         //api
         if (params.containsKey(PARAM_API)) {
             Object api = params.get(PARAM_API);
-            JsonObject jsonApi = new JsonObject();
-            jsonApi.put("id", api instanceof ApiModelEntity ? ((ApiModelEntity) api).getId() : ((ApiEntity) api).getId());
-            jsonApi.put("name", api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName());
-            jsonApi.put("version", api instanceof ApiModelEntity ? ((ApiModelEntity) api).getVersion() : ((ApiEntity) api).getVersion());
-            content.put("api", jsonApi);
+            if (api != null) {
+                JsonObject jsonApi = new JsonObject();
+                jsonApi.put("id", api instanceof ApiModelEntity ? ((ApiModelEntity) api).getId() : ((ApiEntity) api).getId());
+                jsonApi.put("name", api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName());
+                jsonApi.put("version", api instanceof ApiModelEntity ? ((ApiModelEntity) api).getVersion() : ((ApiEntity) api).getVersion());
+                content.put("api", jsonApi);
+            }
         }
         // application
         if (params.containsKey(PARAM_APPLICATION)) {
-            ApplicationEntity application = (ApplicationEntity)params.get(PARAM_APPLICATION);
-            JsonObject jsonApplication = new JsonObject();
-            jsonApplication.put("id", application.getId());
-            jsonApplication.put("name", application.getName());
-            if (application.getType() != null) {
-                jsonApplication.put("type", application.getType());
+            ApplicationEntity application = (ApplicationEntity )params.get(PARAM_APPLICATION);
+            if (application != null) {
+                JsonObject jsonApplication = new JsonObject();
+                jsonApplication.put("id", application.getId());
+                jsonApplication.put("name", application.getName());
+                if (application.getType() != null) {
+                    jsonApplication.put("type", application.getType());
+                }
+                content.put("application", jsonApplication);
             }
-            content.put("application", jsonApplication);
         }
         // owner
         if (params.containsKey(PARAM_OWNER)) {
-            PrimaryOwnerEntity owner = (PrimaryOwnerEntity)params.get(PARAM_OWNER);
-            JsonObject jsonOwner = new JsonObject();
-            jsonOwner.put("id", owner.getId());
-            jsonOwner.put("username", owner.getDisplayName());
-            content.put("owner", jsonOwner);
+            PrimaryOwnerEntity owner = (PrimaryOwnerEntity) params.get(PARAM_OWNER);
+            if (owner != null) {
+                JsonObject jsonOwner = new JsonObject();
+                jsonOwner.put("id", owner.getId());
+                jsonOwner.put("username", owner.getDisplayName());
+                content.put("owner", jsonOwner);
+            }
         }
         // plan
         if (params.containsKey(PARAM_PLAN)) {
             PlanEntity plan = (PlanEntity)params.get(PARAM_PLAN);
-            JsonObject jsonPlan = new JsonObject();
-            jsonPlan.put("id", plan.getId());
-            jsonPlan.put("name", plan.getName());
-            jsonPlan.put("security", plan.getSecurity());
-            content.put("plan", jsonPlan);
+            if (plan != null) {
+                JsonObject jsonPlan = new JsonObject();
+                jsonPlan.put("id", plan.getId());
+                jsonPlan.put("name", plan.getName());
+                jsonPlan.put("security", plan.getSecurity());
+                content.put("plan", jsonPlan);
+            }
         }
         // subscription
         if (params.containsKey(PARAM_SUBSCRIPTION)) {
             SubscriptionEntity subscription = (SubscriptionEntity) params.get(PARAM_SUBSCRIPTION);
-            JsonObject jsonSubscription = new JsonObject();
-            jsonSubscription.put("id", subscription.getId());
-            jsonSubscription.put("status", subscription.getStatus());
-            content.put("subscription", jsonSubscription);
+            if (subscription != null) {
+                JsonObject jsonSubscription = new JsonObject();
+                jsonSubscription.put("id", subscription.getId());
+                jsonSubscription.put("status", subscription.getStatus());
+                content.put("subscription", jsonSubscription);
+            }
         }
 
         return content.encode();
