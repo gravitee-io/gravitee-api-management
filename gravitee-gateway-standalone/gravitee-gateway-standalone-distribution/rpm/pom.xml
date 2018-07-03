@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee.gateway.standalone</groupId>
 		<artifactId>gravitee-gateway-standalone-distribution</artifactId>
-		<version>1.15.5-SNAPSHOT</version>
+		<version>1.15.5</version>
 	</parent>
 
 	<artifactId>gravitee-gateway-standalone-distribution-rpm</artifactId>
