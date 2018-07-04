@@ -82,29 +82,22 @@ public class JdbcPortalNotificationConfigRepository implements PortalNotificatio
     public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcPortalNotificationConfigRepository.findByReferenceAndHook({}, {}, {})", hook, referenceType, referenceId);
         try {
-            List<String> users = new ArrayList<>();
-            jdbcTemplate.query(
-                    "select " + escapeReservedWord("user") +
-                            " from portal_notification_config_hooks" +
-                            " where hook = ?" +
-                            " and reference_id = ?" +
-                            " and reference_type = ?"
-                    , rs -> { users.add(rs.getString(1)); }
-                    , hook
-                    , referenceId
-                    , referenceType.name());
-
-            StringBuilder q = new StringBuilder("select " + escapeReservedWord("user") + ", reference_type, reference_id, created_at, updated_at " +
-                    " from portal_notification_configs" +
-                    " where reference_type = ?" +
-                    " and reference_id = ?");
-            ORM.buildInCondition(false, q, escapeReservedWord("user"), users);
+            StringBuilder q = new StringBuilder("select distinct pnc." + escapeReservedWord("user") + ", pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at " +
+                    " from portal_notification_configs pnc" +
+                    " left join portal_notification_config_hooks pnch" +
+                    " on pnc.reference_type = pnch.reference_type" +
+                    " and pnc.reference_id = pnch.reference_id" +
+                    " and pnc."+ escapeReservedWord("user") +" = pnch."+ escapeReservedWord("user") +
+                    " where pnc.reference_type = ?" +
+                    " and pnc.reference_id = ?" +
+                    " and pnch.hook = ?"
+            );
             final List<PortalNotificationConfig> items = jdbcTemplate.query(
                     q.toString()
                     , (PreparedStatement ps) -> {
                             ps.setString(1, referenceType.name());
                             ps.setString(2, referenceId);
-                            ORM.setArguments(ps, users, 3);
+                            ps.setString(3, hook);
                     }
                     , ORM.getRowMapper()
             );
