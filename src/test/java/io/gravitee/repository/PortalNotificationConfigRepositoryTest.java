@@ -146,4 +146,14 @@ public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTe
         assertTrue("userA", userIds.contains("userA"));
         assertTrue("userB", userIds.contains("userB"));
     }
+
+    @Test
+    public void shouldNotFindByHookAndReference() throws Exception {
+        List<PortalNotificationConfig> configs = portalNotificationConfigRepository.findByReferenceAndHook(
+                "D",
+                NotificationReferenceType.APPLICATION,
+                "search");
+
+        assertTrue("size", configs.isEmpty());
+    }
 }

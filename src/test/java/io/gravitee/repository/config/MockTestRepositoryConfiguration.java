@@ -1354,6 +1354,10 @@ public class MockTestRepositoryConfiguration {
                 "B",
                 NotificationReferenceType.APPLICATION,
                 "search")).thenReturn(Arrays.asList(n1, n2));
+        when(portalNotificationConfigRepository.findByReferenceAndHook(
+                "D",
+                NotificationReferenceType.APPLICATION,
+                "search")).thenReturn(emptyList());
 
         return portalNotificationConfigRepository;
     }
