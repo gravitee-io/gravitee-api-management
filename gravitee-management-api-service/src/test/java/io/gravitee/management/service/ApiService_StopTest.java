@@ -21,10 +21,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.management.model.EventEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.PlanEntity;
-import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.mixin.ApiMixin;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -46,6 +44,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
 
+import static io.gravitee.management.model.EventType.PUBLISH_API;
+import static java.util.Collections.singleton;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -99,12 +99,15 @@ public class ApiService_StopTest {
         objectMapper.addMixIn(Api.class, ApiMixin.class);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(api)).thenReturn(api);
-        final EventEntity event = mockEvent(EventType.PUBLISH_API);
-        when(eventService.findByApi(API_ID)).thenReturn(Collections.singleton(event));
+        final EventEntity event = mockEvent(PUBLISH_API);
+        final EventQuery query = new EventQuery();
+        query.setApi(API_ID);
+        query.setTypes(singleton(PUBLISH_API));
+        when(eventService.search(query)).thenReturn(singleton(event));
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
-                .thenReturn(Collections.singleton(po));
+                .thenReturn(singleton(po));
 
         apiService.stop(API_ID, USER_NAME);
 

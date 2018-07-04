@@ -60,13 +60,13 @@ public class InstanceServiceImpl implements InstanceService {
 
     @Override
     public Collection<InstanceListItem> findInstances(boolean includeStopped) {
-        Set<EventEntity> events;
-
+        final EventQuery query = new EventQuery();
         if (includeStopped) {
-            events = eventService.findByType(instancesAllState);
+            query.setTypes(instancesAllState);
         } else {
-            events = eventService.findByType(instancesRunningOnly);
+            query.setTypes(instancesRunningOnly);
         }
+        final Collection<EventEntity> events = eventService.search(query);
 
         Instant nowMinusXMinutes = Instant.now().minus(5, ChronoUnit.MINUTES);
         return events.stream().map(

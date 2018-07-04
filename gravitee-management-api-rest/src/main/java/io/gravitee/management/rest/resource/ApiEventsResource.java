@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.EventEntity;
+import io.gravitee.management.model.EventQuery;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.EventTypeListParam;
@@ -54,7 +55,9 @@ public class ApiEventsResource extends AbstractResource {
     public List<EventEntity> events(
             @PathParam("api") String api,
             @ApiParam @DefaultValue("all") @QueryParam("type") EventTypeListParam eventTypeListParam) {
-        return eventService.findByApi(api).stream()
+        final EventQuery query = new EventQuery();
+        query.setApi(api);
+        return eventService.search(query).stream()
                 .filter(event -> eventTypeListParam.getEventTypes().contains(event.getType()))
                 .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
                 .collect(Collectors.toList());

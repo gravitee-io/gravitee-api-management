@@ -63,6 +63,9 @@ import java.util.stream.Stream;
 import static io.gravitee.management.model.PageType.SWAGGER;
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
 import static java.util.stream.Collectors.toMap;
+import static io.gravitee.management.model.EventType.PUBLISH_API;
+import static java.util.Collections.singleton;
+import static java.util.Comparator.comparing;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -134,8 +137,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         Proxy proxy = new Proxy();
         proxy.setContextPath(newApiEntity.getContextPath());
         EndpointGroup group = new EndpointGroup();
-        group.setEndpoints(Collections.singleton(new HttpEndpoint("default", newApiEntity.getEndpoint())));
-        proxy.setGroups(Collections.singleton(group));
+        group.setEndpoints(singleton(new HttpEndpoint("default", newApiEntity.getEndpoint())));
+        proxy.setGroups(singleton(group));
         apiEntity.setProxy(proxy);
 
         List<String> declaredPaths = (newApiEntity.getPaths() != null) ? newApiEntity.getPaths() : new ArrayList<>();
@@ -410,7 +413,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                         apiToUpdate,
                         updatedApi);
 
-                return convert(Collections.singleton(updatedApi), true).iterator().next();
+                return convert(singleton(updatedApi), true).iterator().next();
             } else {
                 LOGGER.error("Unable to update API {} because of previous error.", api.getId());
                 throw new TechnicalManagementException("Unable to update API " + apiId);
@@ -454,7 +457,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 }
 
                 // Delete events
-                eventService.findByApi(apiId)
+                final EventQuery query = new EventQuery();
+                query.setApi(apiId);
+                eventService.search(query)
                         .forEach(event -> eventService.delete(event.getId()));
 
                 // Delete API
@@ -524,7 +529,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             properties.put(Event.EventProperties.API_ID.getValue(), apiId);
 
             io.gravitee.common.data.domain.Page<EventEntity> events =
-                    eventService.search(Arrays.asList(EventType.PUBLISH_API, EventType.UNPUBLISH_API),
+                    eventService.search(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API),
                             properties, 0, 0, 0, 1);
 
             if (!events.getContent().isEmpty()) {
@@ -616,7 +621,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             // And create event
             eventService.create(eventType, objectMapper.writeValueAsString(apiValue), properties);
 
-            return convert(Collections.singleton(apiValue), true).iterator().next();
+            return convert(singleton(apiValue), true).iterator().next();
         } else {
             throw new ApiNotFoundException(apiId);
         }
@@ -631,10 +636,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
      * @throws TechnicalException if an exception occurs while saving the API
      */
     private ApiEntity deployLastPublishedAPI(String apiId, String userId, EventType eventType) throws TechnicalException {
-        Set<EventEntity> events = eventService.findByApi(apiId);
-        Optional<EventEntity> optEvent = events.stream()
-                .filter(event -> EventType.PUBLISH_API.equals(event.getType()))
-                .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt())).findFirst();
+        final EventQuery query = new EventQuery();
+        query.setApi(apiId);
+        query.setTypes(singleton(PUBLISH_API));
+
+        final Optional<EventEntity> optEvent =
+                eventService.search(query).stream().max(comparing(EventEntity::getCreatedAt));
         try {
             if (optEvent.isPresent()) {
                 EventEntity event = optEvent.get();
@@ -654,12 +661,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 eventService.create(eventType, objectMapper.writeValueAsString(lastPublishedAPI), properties);
                 return null;
             } else {
-                if (events.size() == 0) {
-                    // this is the first time we start the api without previously deployed id.
-                    // let's do it.
-                    return this.deploy(apiId, userId, EventType.PUBLISH_API);
-                }
-                throw new TechnicalException("No event found for API " + apiId);
+                // this is the first time we start the api without previously deployed id.
+                // let's do it.
+                return this.deploy(apiId, userId, PUBLISH_API);
             }
         } catch (Exception e) {
             LOGGER.error("An error occurs while trying to deploy last published API {}", apiId, e);

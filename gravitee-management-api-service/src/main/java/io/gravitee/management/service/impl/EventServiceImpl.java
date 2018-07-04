@@ -17,10 +17,7 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.management.model.EventEntity;
-import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.NewEventEntity;
-import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.EventService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.exceptions.EventNotFoundException;
@@ -40,6 +37,10 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * @author Titouan COMPIEGNE
@@ -120,30 +121,6 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         }
     }
 
-    @Override
-    public Set<EventEntity> findByType(List<EventType> eventTypes) {
-        io.gravitee.repository.management.model.EventType[] eventTypesArr =  eventTypes.stream()
-                .map(eventType -> io.gravitee.repository.management.model.EventType.valueOf(eventType.toString()))
-                .toArray(io.gravitee.repository.management.model.EventType[]::new);
-
-        return convert(eventRepository.search(new EventCriteria.Builder().types(eventTypesArr).build()));
-    }
-
-    @Override
-    public Set<EventEntity> findByApi(String apiId) {
-        return findByProperty(Event.EventProperties.API_ID.getValue(), apiId);
-    }
-
-    @Override
-    public Set<EventEntity> findByUser(String username) {
-        return findByProperty(Event.EventProperties.USER.getValue(), username);
-    }
-
-    @Override
-    public Set<EventEntity> findByOrigin(String origin) {
-        return findByProperty(Event.EventProperties.ORIGIN.getValue(), origin);
-    }
-
     private Set<EventEntity> findByProperty(String property, String value) {
         return convert(eventRepository.search(new EventCriteria.Builder().property(property, value).build()));
     }
@@ -172,6 +149,36 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         List<EventEntity> content = pageEvent.getContent().stream().map(this::convert).collect(Collectors.toList());
 
         return new Page<>(content, page, size, pageEvent.getTotalElements());
+    }
+
+    @Override
+    public Collection<EventEntity> search(final EventQuery query) {
+        LOGGER.debug("Search APIs by {}", query);
+        return convert(eventRepository.search(queryToCriteria(query).build()));
+    }
+
+    private EventCriteria.Builder queryToCriteria(EventQuery query) {
+        final EventCriteria.Builder builder = new EventCriteria.Builder();
+        if (query == null) {
+            return builder;
+        }
+        builder
+                .from(query.getFrom())
+                .to(query.getTo());
+
+        if (!isEmpty(query.getTypes())) {
+            query.getTypes().forEach(eventType ->
+                    builder.types(io.gravitee.repository.management.model.EventType.valueOf(eventType.name())));
+        }
+
+        if (!isEmpty(query.getProperties())) {
+            query.getProperties().forEach(builder::property);
+        }
+
+        if (!isBlank(query.getApi())) {
+            builder.property(API_ID.getValue(), query.getApi());
+        }
+        return builder;
     }
 
     private Set<EventEntity> convert(List<Event> events) {

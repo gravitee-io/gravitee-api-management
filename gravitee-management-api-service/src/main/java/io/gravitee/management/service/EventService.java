@@ -17,12 +17,13 @@ package io.gravitee.management.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.model.EventEntity;
+import io.gravitee.management.model.EventQuery;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.NewEventEntity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE
@@ -37,14 +38,8 @@ public interface EventService {
     
     void delete(String eventId);
 
-    Set<EventEntity> findByType(List<EventType> eventTypes);
-    
-    Set<EventEntity> findByApi(String apiId);
-
-    Set<EventEntity> findByUser(String username);
-
-    Set<EventEntity> findByOrigin(String origin);
-
     Page<EventEntity> search(
             List<EventType> eventTypes, Map<String, Object> properties, long from, long to, int page, int size);
+
+    Collection<EventEntity> search(EventQuery query);
 }
