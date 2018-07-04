@@ -41,8 +41,8 @@ class ApiPortalRatingController {
       $state.go('portal.home');
     }
 
-    if (Constants.rating && Constants.rating.comment) {
-      this.commentMandatory = Constants.rating.comment.mandatory;
+    if (Constants.portal.rating && Constants.portal.rating.comment) {
+      this.commentMandatory = Constants.portal.rating.comment.mandatory;
     }
   }
 

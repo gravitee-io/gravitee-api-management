@@ -94,9 +94,14 @@
     </md-checkbox>
 </md-input-container>
 <md-input-container class="md-block" flex-gt-xs>
-    <md-checkbox ng-model="$ctrl.Constants.portal.rating.enabled" aria-label="Rating">
-        Activate Rating
-    </md-checkbox>
+  <md-checkbox ng-model="$ctrl.Constants.portal.rating.enabled" aria-label="Rating">
+    Activate Rating
+  </md-checkbox>
+</md-input-container>
+<md-input-container class="md-block" flex-gt-xs>
+  <md-checkbox ng-model="$ctrl.Constants.portal.rating.comment.mandatory" aria-label="Rating comment mandatory">
+    Force user to fill comment before to save a rating
+  </md-checkbox>
 </md-input-container>
 <md-input-container class="md-block" flex-gt-xs>
     <md-checkbox ng-model="$ctrl.Constants.portal.devMode.enabled" aria-label="Developer Portal Only">
