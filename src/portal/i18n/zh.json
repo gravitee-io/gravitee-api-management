@@ -137,6 +137,7 @@
         "5": "太棒了"
       },
       "successCreation": "您的评级已成功提交",
+      "successCreationMessage": "您的评分已被考虑在内，您现在可以添加评论来完成评分",
       "successUpdate": "您的评级已成功更新",
       "successDeletion": "此评级已成功删除",
       "deletion": "您确定要删除此评级吗?",

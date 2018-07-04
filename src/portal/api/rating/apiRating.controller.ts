@@ -25,18 +25,24 @@ class ApiPortalRatingController {
   private ratings;
   private rating;
   private ratingAnswer;
+  private commentMandatory: boolean = false;
+  private justCreated: boolean = false;
 
   constructor(private NotificationService: NotificationService,
               private ApiService: ApiService,
               private $scope,
               private $mdDialog,
               private $state,
-              private Constants,
-              private UserService: UserService) {
+              private UserService: UserService,
+              Constants) {
     'ngInject';
 
     if (!this.ApiService.isRatingEnabled()) {
       $state.go('portal.home');
+    }
+
+    if (Constants.rating && Constants.rating.comment) {
+      this.commentMandatory = Constants.rating.comment.mandatory;
     }
   }
 
@@ -61,11 +67,15 @@ class ApiPortalRatingController {
       this.ApiService.updateRating(this.api.id, this.rating).then(() => {
         this.onModification();
         this.NotificationService.show('api.rating.successUpdate');
+        this.justCreated = false;
       });
     } else {
       this.ApiService.createRating(this.api.id, this.rating).then(() => {
         this.onModification();
         this.NotificationService.show('api.rating.successCreation');
+        if (!this.commentMandatory) {
+          this.justCreated = true;
+        }
       }, () => delete this.rating);
     }
     this.formRating.$setPristine();
@@ -73,7 +83,7 @@ class ApiPortalRatingController {
 
   saveRate() {
     // do not save if modifications on form, wait for submission
-    if (this.formRating.$pristine) {
+    if (this.formRating.$pristine && (!this.commentMandatory || this.rating.id)) {
       this.save();
     }
   }
@@ -92,7 +102,8 @@ class ApiPortalRatingController {
   }
 
   displayCommentPart() {
-    return (this.rating && this.rating.id && !this.rating.title) || this.formRating.$dirty;
+    return (this.commentMandatory && this.rating && !this.rating.id) ||
+      (this.rating && this.rating.id && !this.rating.title) || this.formRating.$dirty;
   }
 
   createAnswer(ratingId) {
@@ -143,6 +154,8 @@ class ApiPortalRatingController {
         this.ApiService.deleteRating(this.api.id, ratingId).then(() => {
           this.onModification();
           this.NotificationService.show('api.rating.successDeletion');
+          this.justCreated = false;
+          this.formRating.$setPristine();
         });
       }
     }, () => {
