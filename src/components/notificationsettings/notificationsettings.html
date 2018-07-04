@@ -36,6 +36,7 @@
     </div>
 
     <md-content flex layout-padding ui-view>
+      <form name="$ctrl.formNotification" novalidate>
       <div layout="column">
         <h4>{{$ctrl.selectedNotificationSetting.name}}</h4>
           <div ng-if="$ctrl.selectedNotificationSetting.config_type==='generic'">
@@ -53,8 +54,8 @@
             </div>
           </div>
         <h5>Which events would you like to subscribe for ?</h5>
-        <div layout="column" layout-wrap>
-          <div flex ng-repeat="category in $ctrl.hooksCategories">
+        <div layout="column">
+          <div flex ng-repeat="category in $ctrl.hooksCategories" style="margin-top: 18px;">
             <h6>{{category}}</h6>
             <div layout="row" layout-wrap>
               <div flex="35" ng-repeat="hook in $ctrl.hooksByCategory[category]">
@@ -69,12 +70,13 @@
           </div>
         </div>
       </div>
+      </form>
 
       <div class="md-actions gravitee-api-save-button" layout="row">
         <md-button class="md-raised"
                    type="submit"
                    permission permission-only="['api-notification-u', 'application-notification-u', 'management-notification-u']"
-                   ng-disabled="!$ctrl.validate()"
+                   ng-disabled="!$ctrl.validate() || $ctrl.formNotification.$pristine"
                    ng-click="$ctrl.save()">
           Save
         </md-button>
