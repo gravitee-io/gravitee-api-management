@@ -29,6 +29,7 @@ public enum Key {
     PORTAL_APIKEY_HEADER("portal.apikey.header", "X-Gravitee-Api-Key"),
     PORTAL_SUPPORT_ENABLED("portal.support.enabled", "false"),
     PORTAL_RATING_ENABLED("portal.rating.enabled", "false"),
+    PORTAL_RATING_COMMENT_MANDATORY("portal.rating.comment.mandatory", "false"),
     PORTAL_DEVMODE_ENABLED("portal.devMode.enabled", "false"),
     PORTAL_USERCREATION_ENABLED("portal.userCreation.enabled", "true"),
     PORTAL_ANALYTICS_ENABLED("portal.analytics.enabled", "false"),

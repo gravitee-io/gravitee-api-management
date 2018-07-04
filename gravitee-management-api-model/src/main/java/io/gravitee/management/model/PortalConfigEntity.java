@@ -15,7 +15,6 @@
  */
 package io.gravitee.management.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.management.model.annotations.ParameterKey;
@@ -130,8 +129,6 @@ public class PortalConfigEntity {
         private String apikeyHeader;
         @ParameterKey(Key.PORTAL_SUPPORT_ENABLED)
         private Enabled support;
-        @ParameterKey(Key.PORTAL_RATING_ENABLED)
-        private Enabled rating;
         @ParameterKey(Key.PORTAL_DEVMODE_ENABLED)
         private Enabled devMode;
         @ParameterKey(Key.PORTAL_USERCREATION_ENABLED)
@@ -140,11 +137,13 @@ public class PortalConfigEntity {
         private PortalApis apis;
         private PortalAnalytics analytics;
         private PortalDashboard dashboard;
+        private PortalRating rating;
 
         public Portal() {
             apis = new PortalApis();
             analytics = new PortalAnalytics();
             dashboard = new PortalDashboard();
+            rating = new PortalRating();
         }
 
         public Enabled isDevMode() {
@@ -203,14 +202,6 @@ public class PortalConfigEntity {
             this.support = support;
         }
 
-        public Enabled getRating() {
-            return rating;
-        }
-
-        public void setRating(Enabled rating) {
-            this.rating = rating;
-        }
-
         public Enabled getDevMode() {
             return devMode;
         }
@@ -235,6 +226,53 @@ public class PortalConfigEntity {
             this.dashboard = dashboard;
         }
 
+        public PortalRating getRating() {
+            return rating;
+        }
+
+        public void setRating(PortalRating rating) {
+            this.rating = rating;
+        }
+
+        public class PortalRating {
+            @ParameterKey(Key.PORTAL_RATING_ENABLED)
+            private Boolean enabled;
+
+            private RatingComment comment;
+
+            public PortalRating() {
+                comment = new RatingComment();
+            }
+
+            public Boolean isEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(Boolean enabled) {
+                this.enabled = enabled;
+            }
+
+            public RatingComment getComment() {
+                return comment;
+            }
+
+            public void setComment(RatingComment comment) {
+                this.comment = comment;
+            }
+
+            public class RatingComment {
+                @ParameterKey(Key.PORTAL_RATING_COMMENT_MANDATORY)
+                private Boolean mandatory;
+
+                public Boolean isMandatory() {
+                    return mandatory;
+                }
+
+                public void setMandatory(Boolean mandatory) {
+                    this.mandatory = mandatory;
+                }
+            }
+        }
     }
 
     public class Management {
@@ -439,16 +477,11 @@ public class PortalConfigEntity {
         }
     }
 
-    @JsonIgnore
-    public static Enabled TRUE = new Enabled(true);
-    @JsonIgnore
-    public static Enabled FALSE = new Enabled(false);
-
     public static class Enabled {
         private boolean enabled;
 
         Enabled() {}
-        Enabled(boolean enabled) {
+        public Enabled(boolean enabled) {
             this.enabled = enabled;
         }
 
@@ -518,11 +551,6 @@ public class PortalConfigEntity {
 
         @ParameterKey(Key.PORTAL_APIS_VIEW_ENABLED)
         private Enabled viewMode;
-
-        public PortalApis() {
-            this.tilesMode = TRUE;
-            this.viewMode = FALSE;
-        }
 
         public Enabled getTilesMode() {
             return tilesMode;

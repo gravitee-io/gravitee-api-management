@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.PortalConfigEntity;
+import io.gravitee.management.model.PortalConfigEntity.Enabled;
 import io.gravitee.management.model.annotations.ParameterKey;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.ConfigService;
@@ -73,10 +74,10 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     f.setAccessible(true);
                     try {
                         final List<String> values = parameterMap.get(parameterKey.value().key());
-                        if (PortalConfigEntity.Enabled.class.isAssignableFrom(f.getType())) {
+                        if (Enabled.class.isAssignableFrom(f.getType())) {
                             f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, parameterKey.value().defaultValue()))
-                                    ? PortalConfigEntity.TRUE
-                                    : PortalConfigEntity.FALSE
+                                    ? new Enabled(true)
+                                    : new Enabled(false)
                             );
                         } else if (Boolean.class.isAssignableFrom(f.getType())) {
                             f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, parameterKey.value().defaultValue())));
@@ -146,8 +147,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     f.setAccessible(true);
                     try {
                         Object value;
-                        if (f.get(o) != null && PortalConfigEntity.Enabled.class.isAssignableFrom(f.getType())) {
-                            value = Boolean.toString(((PortalConfigEntity.Enabled) f.get(o)).isEnabled());
+                        if (f.get(o) != null && Enabled.class.isAssignableFrom(f.getType())) {
+                            value = Boolean.toString(((Enabled) f.get(o)).isEnabled());
                         } else if (f.get(o) != null && !Collection.class.isAssignableFrom(f.getType())) {
                             value = f.get(o).toString();
                         } else {
@@ -182,6 +183,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                 portalConfigEntity.getPortal().getApis(),
                 portalConfigEntity.getPortal().getAnalytics(),
                 portalConfigEntity.getPortal().getDashboard(),
+                portalConfigEntity.getPortal().getRating(),
+                portalConfigEntity.getPortal().getRating().getComment(),
                 portalConfigEntity.getScheduler(),
                 portalConfigEntity.getTheme(),
                 portalConfigEntity.getPlan(),
