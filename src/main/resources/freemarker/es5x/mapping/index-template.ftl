@@ -92,6 +92,12 @@
                 },
                 "uri": {
                     "type": "keyword"
+                },
+                "path": {
+                    "type": "keyword"
+                },
+                "mapped-path": {
+                    "type": "keyword"
                 }
             }
         },
