@@ -300,6 +300,14 @@
             "user": {
                "type": "string",
                "index": "not_analyzed"
+            },
+            "path": {
+               "type": "string",
+               "index": "not_analyzed"
+            },
+            "mapped-path": {
+               "type": "string",
+               "index": "not_analyzed"
             }
          }
       },
