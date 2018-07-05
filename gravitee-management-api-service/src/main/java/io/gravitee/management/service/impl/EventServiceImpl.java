@@ -16,6 +16,7 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.EventEntity;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.NewEventEntity;
@@ -79,7 +80,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             LOGGER.debug("Create {} for server {}", newEventEntity, hostAddress);
 
             Event event = convert(newEventEntity);
-            event.setId(io.gravitee.common.utils.UUID.toString(io.gravitee.common.utils.UUID.random()));
+            event.setId(UUID.toString(UUID.random()));
 
             // Set origin
             event.getProperties().put(Event.EventProperties.ORIGIN.getValue(), hostAddress);

@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -163,6 +164,9 @@ public class SyncManager {
                 apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
+                if (apiDefinition.getPathMappings() != null) {
+                    apiEntity.setPathMappings(new HashSet<>(apiDefinition.getPathMappings().keySet()));
+                }
             } catch (IOException ioe) {
                 logger.error("Unexpected error while generating API definition", ioe);
             }

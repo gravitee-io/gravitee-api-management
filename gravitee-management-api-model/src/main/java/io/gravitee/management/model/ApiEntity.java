@@ -95,6 +95,10 @@ public class ApiEntity {
 
     private List<String> labels;
 
+    @DeploymentRequired
+    @JsonProperty(value = "path_mappings")
+    private Set<String> pathMappings = new HashSet<>();
+
     public String getId() {
         return id;
     }
@@ -279,6 +283,14 @@ public class ApiEntity {
         this.contextPath = contextPath;
     }
 
+    public Set<String> getPathMappings() {
+        return pathMappings;
+    }
+
+    public void setPathMappings(Set<String> pathMappings) {
+        this.pathMappings = pathMappings;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -310,6 +322,7 @@ public class ApiEntity {
             ", tags=" + tags +
             ", view=" + views +
             ", groups=" + groups +
+            ", pathMappings=" + pathMappings +
             '}';
     }
 }

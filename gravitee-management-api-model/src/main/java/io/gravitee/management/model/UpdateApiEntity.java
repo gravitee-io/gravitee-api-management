@@ -66,6 +66,9 @@ public class UpdateApiEntity {
 
     private Set<String> groups;
 
+    @JsonProperty(value = "path_mappings")
+    private Set<String> pathMappings;
+
     public Visibility getVisibility() {
         return visibility;
     }
@@ -176,5 +179,13 @@ public class UpdateApiEntity {
 
     public void setGroups(Set<String> groups) {
         this.groups = groups;
+    }
+
+    public Set<String> getPathMappings() {
+        return pathMappings;
+    }
+
+    public void setPathMappings(Set<String> pathMappings) {
+        this.pathMappings = pathMappings;
     }
 }

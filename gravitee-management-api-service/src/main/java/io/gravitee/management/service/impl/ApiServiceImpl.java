@@ -56,10 +56,13 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.gravitee.management.model.PageType.SWAGGER;
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -108,6 +111,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private GenericNotificationConfigService genericNotificationConfigService;
     @Autowired
     private NotifierService notifierService;
+    @Autowired
+    private SwaggerService swaggerService;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String userId) throws ApiAlreadyExistsException {
@@ -143,9 +148,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             Path path = new Path();
             path.setPath(sPath);
             return path;
-        }).collect(Collectors.toMap(Path::getPath, path -> path));
+        }).collect(toMap(Path::getPath, path -> path));
 
         apiEntity.setPaths(paths);
+        apiEntity.setPathMappings(new HashSet<>(declaredPaths));
 
         return create0(apiEntity, userId);
     }
@@ -989,6 +995,19 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
+    @Override
+    public ApiEntity importPathMappingsFromPage(final ApiEntity apiEntity, final String page) {
+        final PageEntity pageEntity = pageService.findById(page);
+        if (SWAGGER.name().equals(pageEntity.getType())) {
+            final ImportSwaggerDescriptorEntity importSwaggerDescriptorEntity = new ImportSwaggerDescriptorEntity();
+            importSwaggerDescriptorEntity.setPayload(pageEntity.getContent());
+            final NewApiEntity newApiEntity = swaggerService.prepare(importSwaggerDescriptorEntity);
+            apiEntity.getPathMappings().addAll(newApiEntity.getPaths());
+        }
+
+        return update(apiEntity.getId(), ApiService.convert(apiEntity));
+    }
+
     private void removeTag(String apiId, String tagId) throws TechnicalManagementException {
         try {
             ApiEntity apiEntity = this.findById(apiId);
@@ -1102,6 +1121,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
+                if (apiDefinition.getPathMappings() != null) {
+                    apiEntity.setPathMappings(new HashSet<>(apiDefinition.getPathMappings().keySet()));
+                }
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while generating API definition", ioe);
             }
@@ -1159,6 +1181,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             apiDefinition.setResources(updateApiEntity.getResources());
             apiDefinition.setProperties(updateApiEntity.getProperties());
             apiDefinition.setTags(updateApiEntity.getTags());
+            if (updateApiEntity.getPathMappings() != null) {
+                apiDefinition.setPathMappings(updateApiEntity.getPathMappings().stream()
+                        .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(""))));
+            }
 
             String definition = objectMapper.writeValueAsString(apiDefinition);
             api.setDefinition(definition);

@@ -78,6 +78,8 @@ public interface ApiService {
 
     boolean exists(String apiId);
 
+    ApiEntity importPathMappingsFromPage(ApiEntity apiEntity, String page);
+
     static UpdateApiEntity convert(ApiEntity apiEntity) {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
 
@@ -94,8 +96,8 @@ public interface ApiService {
         updateApiEntity.setServices(apiEntity.getServices());
         updateApiEntity.setVisibility(apiEntity.getVisibility());
         updateApiEntity.setLabels(apiEntity.getLabels());
+        updateApiEntity.setPathMappings(apiEntity.getPathMappings());
 
         return updateApiEntity;
     }
-
 }

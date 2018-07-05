@@ -404,6 +404,27 @@ public class ApiResource extends AbstractResource {
         return notifierService.list(NotificationReferenceType.API, api);
     }
 
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("import-path-mappings")
+    @ApiOperation(value = "Import path mappings from a page",
+            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Path mappings successfully imported", response = ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
+    })
+    public Response importPathMappingsFromPage(@PathParam("api") String api, @QueryParam("page") @NotNull String page) {
+        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
+        ApiEntity updatedApi = apiService.importPathMappingsFromPage(apiEntity, page);
+        return Response
+                .ok(updatedApi)
+                .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+                .lastModified(updatedApi.getUpdatedAt())
+                .build();
+    }
+
     @Path("keys")
     public ApiKeysResource getApiKeyResource() {
         return resourceContext.getResource(ApiKeysResource.class);
@@ -518,6 +539,7 @@ public class ApiResource extends AbstractResource {
             entity.setProperties(null);
             entity.setServices(null);
             entity.setResources(null);
+            entity.setPathMappings(null);
         }
     }
 }
