@@ -79,4 +79,9 @@ public class HttpPageRepository extends AbstractRepository implements PageReposi
     public Integer findMaxPortalPageOrder() throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public void removeAllFolderParentWith(String parentId, String apiId) throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }
