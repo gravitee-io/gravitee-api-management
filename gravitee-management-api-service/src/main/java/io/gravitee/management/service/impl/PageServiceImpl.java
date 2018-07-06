@@ -612,7 +612,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
         pageItem.setPublished(page.isPublished());
         pageItem.setHomepage(page.isHomepage());
         pageItem.setSource(convert(page.getSource()));
-        pageItem.setConfiguration(convert(page.getConfiguration()));
+        pageItem.setConfiguration(page.getConfiguration());
         pageItem.setExcludedGroups(page.getExcludedGroups());
 
         if(groupedParent != null && groupedParent.containsKey(page.getId())) {
