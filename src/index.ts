@@ -21,6 +21,9 @@ import './portal/portal.module';
 import './management/management.module';
 import _ = require('lodash');
 
+let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
+let $http: ng.IHttpService = initInjector.get('$http');
+let $q: ng.IQService = initInjector.get('$q');
 let configNoCache = {headers: {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'}};
 let ConstantsJSON: any;
 
@@ -30,9 +33,6 @@ fetchData()
   .then(bootstrapApplication);
 
 function fetchData() {
-  let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
-  let $http: ng.IHttpService = initInjector.get('$http');
-  let $q: ng.IQService = initInjector.get('$q');
 
   return $q.all(
     [$http.get('constants.json', configNoCache),
@@ -57,13 +57,14 @@ function fetchData() {
         document.head.appendChild(link);
       }
       return constants;
+    })
+    .catch((error) => {
+      document.getElementById('gravitee-error').innerText = 'Management API unreachable or error occurs, please check logs';
+      throw error;
     });
 }
 
 function initLoader(constants:any) {
-  let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
-  let $q: ng.IQService = initInjector.get('$q');
-
   const img = document.createElement('img');
   img.classList.add('gravitee-splash-screen');
   img.setAttribute('src', constants.theme.loader);
@@ -74,9 +75,6 @@ function initLoader(constants:any) {
 }
 
 function initTheme(constants:any) {
-  let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
-  let $http: ng.IHttpService = initInjector.get('$http');
-
   return $http.get(`./themes/${constants.theme.name}-theme.json`, configNoCache)
     .then((response: any) => {
       angular.module('gravitee-portal').constant('Theme', response.data);

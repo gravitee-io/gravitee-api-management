@@ -57,6 +57,16 @@
     .animate-show-hide.ng-hide-remove {
       transition: all linear 0.5s;
     }
+
+    #gravitee-error {
+      color: red;
+      font-size: 20px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 999999;
+    }
   </style>
   <script language="JavaScript">
     /**
@@ -95,6 +105,8 @@
 
 <body layout="column">
   <p id="BrowserNotSupportedBanner" class="browsehappy" style="display: none">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+
+  <div id="gravitee-error"></div>
 
   <div id="loader" ng-show="displayLoader" class="gravitee-splash-screen animate-show-hide"></div>
 
