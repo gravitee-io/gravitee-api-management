@@ -104,7 +104,7 @@ public class BridgeService  extends AbstractService {
             // APIs handler
             ApisHandler apisHandler = new ApisHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(apisHandler);
-            bridgeRouter.get("/apis").handler(apisHandler::findAll);
+            bridgeRouter.get("/apis").handler(apisHandler::search);
             bridgeRouter.get("/apis/:apiId").handler(apisHandler::findById);
 
             // API Plans handler

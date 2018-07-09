@@ -22,6 +22,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
@@ -44,23 +45,29 @@ public class ApisHandler {
     @Autowired
     private ApiRepository apiRepository;
 
-    public void findAll(RoutingContext ctx) {
+    public void search(RoutingContext ctx) {
         HttpServerResponse response = ctx.response();
         response.setStatusCode(HttpStatusCode.OK_200);
         response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         response.setChunked(true);
 
+        Boolean excludeDefinition = Boolean.parseBoolean(ctx.request().getParam("excludeDefinition"));
+        Boolean excludePicture = Boolean.parseBoolean(ctx.request().getParam("excludePicture"));
         try {
-            Collection<Api> apis = apiRepository.findAll();
+            final ApiFieldExclusionFilter.Builder builder = new ApiFieldExclusionFilter.Builder();
+            if (excludeDefinition) {
+                builder.excludeDefinition();
+            }
+            if (excludePicture) {
+                builder.excludePicture();
+            }
+            Collection<Api> apis = apiRepository.search(null, builder.build());
 
             Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
             response.write(Json.prettyMapper.writeValueAsString(apis));
         } catch (JsonProcessingException jpe) {
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
             LOGGER.error("Unable to transform data object to JSON", jpe);
-        } catch (TechnicalException te) {
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to search for events", te);
         }
 
         response.end();
