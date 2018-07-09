@@ -43,7 +43,9 @@
   <#if metrics.getMessage()??>
   ,"message":"${metrics.getMessage()}"
   </#if>
+  <#if metrics.getPath()??>
   ,"path":"${metrics.getPath()}"
+  </#if>
   <#if metrics.getMappedPath()??>
   ,"mapped-path":"${metrics.getMappedPath()}"
   </#if>

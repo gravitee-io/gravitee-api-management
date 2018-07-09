@@ -1,11 +1,7 @@
 {
     "settings": {
-        "index.number_of_shards": $ {
-            numberOfShards
-        },
-        "index.number_of_replicas": $ {
-            numberOfReplicas
-        },
+        "index.number_of_shards":${numberOfShards},
+        "index.number_of_replicas":${numberOfReplicas},
         "index.refresh_interval": "${refreshInterval}"
     },
     "template": "${indexName}-*",
