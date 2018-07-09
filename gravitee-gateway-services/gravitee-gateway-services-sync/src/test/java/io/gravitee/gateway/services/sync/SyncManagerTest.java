@@ -44,7 +44,6 @@ import java.util.*;
 
 import static java.util.Collections.emptySet;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 
 /**
@@ -97,7 +96,7 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
         
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(
@@ -109,7 +108,7 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(mockApi);
+        verify(apiManager).deploy(new Api(mockApi));
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
@@ -119,7 +118,7 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
 
         when(eventRepository.search(
@@ -132,11 +131,14 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        when(apiManager.get(api.getId())).thenReturn(mockApi);
+        final Api apiDefinition = new Api(mockApi);
+        apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
+        apiDefinition.setDeployedAt(api.getDeployedAt());
+        when(apiManager.get(api.getId())).thenReturn(apiDefinition);
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(mockApi);
+        verify(apiManager).deploy(new Api(mockApi));
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
@@ -146,7 +148,7 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
 
@@ -162,13 +164,13 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api2 =
                 new RepositoryApiBuilder().id("api-test-2").updatedAt(new Date()).definition("test2").build();
 
-        final Api mockApi2 = mockApi(api2);
+        final io.gravitee.definition.model.Api mockApi2 = mockApi(api2);
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
         Set<io.gravitee.repository.management.model.Api> apis = new HashSet<>();
         apis.add(api);
         apis.add(api2);
-        
+
         List<Event> events = new ArrayList<>();
         events.add(mockEvent);
         events.add(mockEvent2);
@@ -198,7 +200,7 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
 
@@ -213,11 +215,11 @@ public class SyncManagerTest {
 
         io.gravitee.repository.management.model.Api api2 =
                 new RepositoryApiBuilder().id("api-test-2").updatedAt(new Date()).definition("test2").build();
-        final Api mockApi2 = mockApi(api2);
+        final io.gravitee.definition.model.Api mockApi2 = mockApi(api2);
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api2));
-        when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
+        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         syncManager.refresh();
 
@@ -242,13 +244,13 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api2 =
                 new RepositoryApiBuilder().id("api-test").updatedAt(Date.from(updateDateInst)).definition("test2").build();
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
         mockApi(api2);
-        
+
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
-        List<Event> events = new ArrayList<Event>();
+        List<Event> events = new ArrayList<>();
         events.add(mockEvent);
         events.add(mockEvent2);
 
@@ -262,12 +264,16 @@ public class SyncManagerTest {
         syncManager.refresh();
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api2));
-        when(apiManager.get(api.getId())).thenReturn(mockApi);
+
+        final Api apiDefinition = new Api(mockApi);
+        apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
+        apiDefinition.setDeployedAt(api.getDeployedAt());
+        when(apiManager.get(api.getId())).thenReturn(apiDefinition);
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(mockApi);
-        verify(apiManager).update(mockApi);
+        verify(apiManager).deploy(apiDefinition);
+        verify(apiManager).update(apiDefinition);
         verify(apiManager, never()).undeploy(any(String.class));
     }
 
@@ -278,10 +284,10 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api2 =
                 new RepositoryApiBuilder().id("api-test").updatedAt(api.getUpdatedAt()).definition("test").build();
 
-        final Api mockApi = mockApi(api);
-        
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
+
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        
+
         final Event mockEvent2 = mockEvent(api2, EventType.PUBLISH_API);
 
         List<Event> events = new ArrayList<Event>();
@@ -301,7 +307,7 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, times(2)).deploy(mockApi);
+        verify(apiManager, times(2)).deploy(new Api(mockApi));
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
@@ -361,11 +367,11 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
-        final Api mockApi = mockApi(api, apiTags);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api, apiTags);
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList(tags.split(","))));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
-        when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
+        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(any(EventCriteria.class), any(Pageable.class)))
@@ -373,7 +379,7 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(mockApi);
+        verify(apiManager).deploy(new Api(mockApi));
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
@@ -383,7 +389,7 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
         mockApi.setTags(new HashSet<>(Arrays.asList(new String[]{"test"})));
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Collections.singletonList("!test")));
@@ -397,7 +403,7 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, never()).deploy(mockApi);
+        verify(apiManager, never()).deploy(new Api(mockApi));
         verify(apiManager, never()).update(any(Api.class));
     }
 
@@ -407,11 +413,11 @@ public class SyncManagerTest {
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 //        api.setTags(new HashSet<>(Arrays.asList(new String[]{"test", "toto"})));
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("!test", "toto")));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
-        when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
+        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(
@@ -421,7 +427,7 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(mockApi);
+        verify(apiManager).deploy(new Api(mockApi));
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
@@ -431,7 +437,7 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test", "toto")));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
@@ -444,7 +450,7 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, never()).deploy(mockApi);
+        verify(apiManager, never()).deploy(new Api(mockApi));
         verify(apiManager, never()).update(any(Api.class));
     }
 
@@ -453,11 +459,11 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api =
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test", "!test")));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
-        when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
+        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(
@@ -469,12 +475,12 @@ public class SyncManagerTest {
 
         syncManager.refresh();
     }
-    
+
     @Test
     public void test_not_deployApiWithoutEvent() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
         when(eventRepository.search(
                 any(EventCriteria.class),
@@ -485,7 +491,7 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, never()).deploy(mockApi);
+        verify(apiManager, never()).deploy(new Api(mockApi));
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
@@ -495,7 +501,7 @@ public class SyncManagerTest {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
         io.gravitee.repository.management.model.Api api2 = new RepositoryApiBuilder().id("api-test-2").updatedAt(new Date()).definition("test2").build();
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
         Set<io.gravitee.repository.management.model.Api> apis = new HashSet<>();
         apis.add(api);
@@ -528,7 +534,7 @@ public class SyncManagerTest {
     public void test_shouldUndeployIfLastEventIsUnpublishAPI() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
-        final Api mockApi = mockApi(api);
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         final Event mockEvent2 = mockEvent(api, EventType.UNPUBLISH_API);
@@ -542,17 +548,17 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
+        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(mockApi);
+        verify(apiManager).deploy(new Api(mockApi));
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager).undeploy(mockApi.getId());
 
     }
-    
+
     @Test
     public void test_shouldUpdateIfLastEventIsStartAPI() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
@@ -561,7 +567,7 @@ public class SyncManagerTest {
                                                             .definition("test")
                                                             .lifecycleState(LifecycleState.STOPPED)
                                                             .build();
-        
+
         Instant updateDateInst = api.getUpdatedAt().toInstant().plus(Duration.ofHours(1));
         io.gravitee.repository.management.model.Api api2 = new RepositoryApiBuilder()
                                                             .id("api-test")
@@ -569,12 +575,12 @@ public class SyncManagerTest {
                                                             .definition("test")
                                                             .lifecycleState(LifecycleState.STARTED)
                                                             .build();
-        
-        final Api mockApi = mockApi(api);
+
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
         mockApi(api2);
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         final Event mockEvent2 = mockEvent(api2, EventType.START_API);
-        
+
         List<Event> events = new ArrayList<Event>();
         events.add(mockEvent);
         events.add(mockEvent2);
@@ -594,16 +600,20 @@ public class SyncManagerTest {
         )).thenReturn(new Page<>(events, 0, 0, 2));
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api2));
-        when(apiManager.get(api.getId())).thenReturn(mockApi);
+
+        final Api apiDefinition = new Api(mockApi);
+        apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
+        apiDefinition.setDeployedAt(api.getDeployedAt());
+        when(apiManager.get(api.getId())).thenReturn(apiDefinition);
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(mockApi);
-        verify(apiManager).update(mockApi);
+        verify(apiManager).deploy(new Api(mockApi));
+        verify(apiManager).update(new Api(mockApi));
         verify(apiManager, never()).undeploy(any(String.class));
 
     }
-    
+
     @Test
     public void test_shouldUpdateIfLastEventIsStopAPI() throws Exception {
         io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
@@ -612,7 +622,7 @@ public class SyncManagerTest {
                                                             .definition("test")
                                                             .lifecycleState(LifecycleState.STARTED)
                                                             .build();
-        
+
         Instant updateDateInst = api.getUpdatedAt().toInstant().plus(Duration.ofHours(1));
         io.gravitee.repository.management.model.Api api2 = new RepositoryApiBuilder()
                                                             .id("api-test")
@@ -620,12 +630,12 @@ public class SyncManagerTest {
                                                             .definition("test")
                                                             .lifecycleState(LifecycleState.STOPPED)
                                                             .build();
-        
-        final Api mockApi = mockApi(api);
+
+        final io.gravitee.definition.model.Api mockApi = mockApi(api);
         mockApi(api2);
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         final Event mockEvent2 = mockEvent(api2, EventType.STOP_API);
-        
+
         List<Event> events = new ArrayList<Event>();
         events.add(mockEvent);
         events.add(mockEvent2);
@@ -636,7 +646,7 @@ public class SyncManagerTest {
         )).thenReturn(new Page<>(Collections.singletonList(mockEvent), 0, 0, 1));
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api));
-        when(apiManager.apis()).thenReturn(Collections.singleton(mockApi));
+        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         syncManager.refresh();
 
@@ -646,25 +656,28 @@ public class SyncManagerTest {
         )).thenReturn(new Page<>(events, 0, 0, 2));
 
         when(apiRepository.findAll()).thenReturn(Collections.singleton(api2));
-        when(apiManager.get(api.getId())).thenReturn(mockApi);
+
+        final Api apiDefinition = new Api(mockApi);
+        apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
+        apiDefinition.setDeployedAt(api.getDeployedAt());
+        when(apiManager.get(api.getId())).thenReturn(apiDefinition);
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(mockApi);
-        verify(apiManager).update(mockApi);
+        verify(apiManager).deploy(new Api(mockApi));
+        verify(apiManager).update(new Api(mockApi));
         verify(apiManager, never()).undeploy(any(String.class));
     }
 
-    private Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {
+    private io.gravitee.definition.model.Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {
         return mockApi(api, new String[]{});
     }
 
-    private Api mockApi(final io.gravitee.repository.management.model.Api api, final String[] tags) throws Exception {
-        final Api mockApi = new Api();
+    private io.gravitee.definition.model.Api mockApi(final io.gravitee.repository.management.model.Api api, final String[] tags) throws Exception {
+        final io.gravitee.definition.model.Api mockApi = new io.gravitee.definition.model.Api();
         mockApi.setId(api.getId());
-        mockApi.setDeployedAt(api.getUpdatedAt());
         mockApi.setTags(new HashSet<>(Arrays.asList(tags)));
-        when(objectMapper.readValue(api.getDefinition(), Api.class)).thenReturn(mockApi);
+        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(mockApi);
         return mockApi;
     }
     

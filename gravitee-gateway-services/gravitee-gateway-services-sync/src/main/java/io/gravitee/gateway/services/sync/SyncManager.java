@@ -156,10 +156,11 @@ public class SyncManager {
                         // Read API definition from event
                         Api definition = definitions.get(apiEvent.getKey());
 
-                        // API to deploy
-                        enhanceWithData(definition);
 
                         if (definition != null) {
+                            // API to deploy
+                            enhanceWithData(definition);
+
                             // Get deployed API
                             Api deployedApi = apiManager.get(definition.getId());
 
