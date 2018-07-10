@@ -64,7 +64,7 @@ const GroupsComponent: ng.IComponentOptions = {
       }).then( (newGroup) => {
         if (newGroup && newGroup.name) {
           GroupService.create(newGroup).then(() => {
-            NotificationService.show('Group ' + newGroup.name + ' has been removed.');
+            NotificationService.show('Group ' + newGroup.name + ' has been added.');
             GroupService.list().then( (response) => {
               this.groups = _.filter(response.data, 'manageable');
                 this.initEventRules();
