@@ -221,28 +221,28 @@
                             <!--</systemPropertyVariables>-->
                         <!--</configuration>-->
                     <!--</execution>-->
-                    <execution>
-                        <id>postgresql</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <systemPropertyVariables>
-                                <jdbcType>postgresql</jdbcType>
-                            </systemPropertyVariables>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>mariadb</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <systemPropertyVariables>
-                                <jdbcType>mariadb</jdbcType>
-                            </systemPropertyVariables>
-                        </configuration>
-                    </execution>
+                    <!--<execution>-->
+                        <!--<id>postgresql</id>-->
+                        <!--<goals>-->
+                            <!--<goal>test</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<systemPropertyVariables>-->
+                                <!--<jdbcType>postgresql</jdbcType>-->
+                            <!--</systemPropertyVariables>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                    <!--<execution>-->
+                        <!--<id>mariadb</id>-->
+                        <!--<goals>-->
+                            <!--<goal>test</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<systemPropertyVariables>-->
+                                <!--<jdbcType>mariadb</jdbcType>-->
+                            <!--</systemPropertyVariables>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
                 </executions>
             </plugin>
         </plugins>
