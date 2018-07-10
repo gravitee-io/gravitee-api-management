@@ -64,8 +64,7 @@ class ApiCreationController {
               private $state: ng.ui.IStateService,
               private Constants: any) {
     'ngInject';
-
-    this.api = _.clone(this.$stateParams.api) !== null ? _.clone(this.$stateParams.api) : {};
+    this.api = {};
     this.contextPathInvalid = true;
     this.api.proxy = {};
     this.api.proxy.endpoints = [];
