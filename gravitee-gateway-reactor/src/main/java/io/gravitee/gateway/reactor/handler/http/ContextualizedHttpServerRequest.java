@@ -41,8 +41,13 @@ public class ContextualizedHttpServerRequest implements Request {
         this.contextPath = contextPath;
         this.request = request;
 
-        this.pathInfo = new StringBuilder(request.path())
-                .delete(0, contextPath.length()).toString();
+        StringBuilder sb = new StringBuilder(request.path())
+                .delete(0, contextPath.length());
+        if (sb.charAt(sb.length()-1) != '/') {
+            sb.append('/');
+        }
+
+        this.pathInfo = sb.toString();
     }
 
     @Override
