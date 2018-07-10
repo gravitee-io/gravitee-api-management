@@ -93,6 +93,9 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
 
     @Override
     protected void doHandle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
+        // Set the path without the context-path
+        serverRequest.metrics().setPath(serverRequest.pathInfo());
+
         if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
             handler = new PathMappingMetricsHandler(handler, api.getPathMappings(), serverRequest);
         }
