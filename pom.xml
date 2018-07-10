@@ -61,6 +61,19 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Gravitee.io -->
+            <dependency>
+                <groupId>io.gravitee.repository</groupId>
+                <artifactId>gravitee-repository</artifactId>
+                <version>${gravitee-repository.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.common</groupId>
+                <artifactId>gravitee-common</artifactId>
+                <version>${gravitee-common.version}</version>
+            </dependency>
+
             <!-- Vert.x -->
             <dependency>
                 <groupId>io.vertx</groupId>
