@@ -64,9 +64,6 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
             if (enabled) {
                 super.doStart();
                 logger.info("Sync service has been initialized with cron [{}]", cronTrigger);
-                // Sync must start only when doStart() is invoked, that's the reason why we are not
-                // using @Scheduled annotation on doSync() method.
-                scheduler.schedule(this, new CronTrigger(cronTrigger));
 
                 logger.info("Associate a new HTTP handler on {}", PATH);
 
@@ -74,6 +71,13 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
                 SyncHandler syncHandler = new SyncHandler();
                 applicationContext.getAutowireCapableBeanFactory().autowireBean(syncHandler);
                 router.get(PATH).produces(MediaType.APPLICATION_JSON).handler(syncHandler);
+
+                // Sync must start only when doStart() is invoked, that's the reason why we are not
+                // using @Scheduled annotation on doSync() method.
+                syncStateManager.refresh();
+
+                // Star cron
+                scheduler.schedule(this, new CronTrigger(cronTrigger));
             } else {
                 logger.warn("Sync service has been disabled");
             }
@@ -84,14 +88,6 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
 
     @Override
     public void run() {
-        doSync();
-    }
-
-    /**
-     * Synchronization done when Gravitee node is starting.
-     * This sync phase must be done by all node before starting.
-     */
-    private void doSync() {
         syncStateManager.refresh();
     }
 
