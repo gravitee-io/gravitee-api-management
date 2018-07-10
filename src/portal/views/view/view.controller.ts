@@ -32,7 +32,12 @@ export default class PortalViewController {
     if (this.apis && this.apis.length > 0) {
       if (this.view.highlightApi) {
         this.highlightApi = _.find(this.apis, api => api.id === this.view.highlightApi);
-        _.remove(this.apis, api => api.id === this.view.highlightApi);
+        if (this.highlightApi) {
+          _.remove(this.apis, api => api.id === this.view.highlightApi);
+        } else {
+          this.highlightApi = this.apis[0];
+          this.apis.shift();
+        }
       } else {
         this.highlightApi = this.apis[0];
         this.apis.shift();
