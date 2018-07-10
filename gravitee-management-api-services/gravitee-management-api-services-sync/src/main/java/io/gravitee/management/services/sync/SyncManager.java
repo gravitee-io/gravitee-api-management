@@ -18,8 +18,9 @@ package io.gravitee.management.services.sync;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.service.ApiService;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
@@ -31,11 +32,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BinaryOperator;
+
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,8 +51,11 @@ public class SyncManager {
 
     private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
 
+    private static final int TIMEFRAME_BEFORE_DELAY = 10 * 60 * 1000;
+    private static final int TIMEFRAME_AFTER_DELAY = 1 * 60 * 1000;
+
     @Autowired
-    private ApiService apiService;
+    private ApiRepository apiRepository;
     @Autowired
     private EventRepository eventRepository;
     @Autowired
@@ -54,46 +63,71 @@ public class SyncManager {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private final AtomicLong counter = new AtomicLong(0);
+
     private long lastRefreshAt = -1;
 
     public void refresh() {
+        logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
         logger.debug("Refreshing state...");
 
-        // Extract all registered APIs
-        Map<String, ApiEntity> apis = apiService.findAllLight()
-                .stream()
-                .collect(Collectors.toMap(ApiEntity::getId, api -> api));
+        long nextLastRefreshAt = System.currentTimeMillis();
 
-        // Get last event for each API
-        Map<String, Event> events = new HashMap<>();
-        apis.keySet().forEach(api -> {
-            Event event = getLastEvent(api);
-            events.put(api, event);
-        });
+        Map<String, Event> apiEvents;
 
-        // Determine API which must be stopped and stop them
-        events.entrySet()
-                .stream()
-                .filter(apiEvent -> {
-                    Event event = apiEvent.getValue();
-                    return event != null &&
-                            (event.getType() == EventType.STOP_API || event.getType() == EventType.UNPUBLISH_API);
-                })
-                .forEach(apiEvent -> apiManager.undeploy(apiEvent.getKey()));
+        // Initial synchronization
+        if (lastRefreshAt == -1) {
+            // Extract all registered APIs
+            List<io.gravitee.repository.management.model.Api> apis =
+                    apiRepository.search(null, new ApiFieldExclusionFilter.Builder()
+                            .excludeDefinition()
+                            .excludePicture().build());
 
-        // Determine API which must be deployed
-        events.entrySet()
-                .stream()
-                .filter(apiEvent -> {
-                    Event event = apiEvent.getValue();
-                    return event != null && (
-                            event.getType() == EventType.START_API || event.getType() == EventType.PUBLISH_API);
-                })
-                .forEach(apiEvent -> {
+            // Get last event by API
+            apiEvents = apis
+                    .stream()
+                    .map(api -> getLastApiEvent(api.getId()))
+                    .filter(Objects::nonNull)
+                    .collect(
+                            toMap(
+                                    event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()),
+                                    event -> event
+                            )
+                    );
+        } else {
+            // Get latest API events
+            List<Event> events = getLatestApiEvents(nextLastRefreshAt);
+
+            // Extract only the latest event by API
+            apiEvents = events
+                    .stream()
+                    .collect(
+                            toMap(
+                                    event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()),
+                                    event -> event,
+                                    BinaryOperator.maxBy(comparing(Event::getCreatedAt))));
+        }
+
+        // Then, compute events
+        computeEvents(apiEvents);
+
+        lastRefreshAt = nextLastRefreshAt;
+        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
+    }
+
+    private void computeEvents(Map<String, Event> apiEvents) {
+        apiEvents.forEach((apiId, apiEvent) -> {
+            switch (apiEvent.getType()) {
+                case UNPUBLISH_API:
+                case STOP_API:
+                    apiManager.undeploy(apiId);
+                    break;
+                case START_API:
+                case PUBLISH_API:
                     try {
                         // Read API definition from event
-                        io.gravitee.repository.management.model.Api payloadApi = objectMapper.readValue(
-                                apiEvent.getValue().getPayload(), io.gravitee.repository.management.model.Api.class);
+                        io.gravitee.repository.management.model.Api payloadApi =
+                                objectMapper.readValue(apiEvent.getPayload(), io.gravitee.repository.management.model.Api.class);
 
                         // API to deploy
                         ApiEntity apiToDeploy = convert(payloadApi);
@@ -114,26 +148,29 @@ public class SyncManager {
                     } catch (IOException ioe) {
                         logger.error("Error while determining deployed APIs store into events payload", ioe);
                     }
-                });
-
-        lastRefreshAt = System.currentTimeMillis();
+                    break;
+            }
+        });
     }
 
-    private Event getLastEvent(String api) {
-        EventCriteria eventCriteria;
-        if (lastRefreshAt == -1) {
-            eventCriteria = new EventCriteria.Builder()
-                    .property(Event.EventProperties.API_ID.getValue(), api)
-                    .build();
-        } else {
-            eventCriteria = new EventCriteria.Builder()
-                    .property(Event.EventProperties.API_ID.getValue(), api)
-                    .from(lastRefreshAt).to(System.currentTimeMillis())
-                    .build();
-        }
+    private List<Event> getLatestApiEvents(long nextLastRefreshAt) {
+        final EventCriteria.Builder builder = new EventCriteria.Builder()
+                .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+                .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
 
-        List<Event> events = eventRepository.search(eventCriteria,
+        return eventRepository.search(builder.build());
+    }
+
+    private Event getLastApiEvent(final String api) {
+        final EventCriteria.Builder eventCriteriaBuilder =
+                new EventCriteria.Builder()
+                        .property(Event.EventProperties.API_ID.getValue(), api);
+
+        List<Event> events = eventRepository.search(eventCriteriaBuilder
+                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API).build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()).getContent();
+
         return (!events.isEmpty()) ? events.get(0) : null;
     }
 
