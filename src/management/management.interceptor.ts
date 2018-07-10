@@ -27,7 +27,7 @@ function interceptorConfig(
 
   let sessionExpired;
 
-  const interceptorUnauthorized = ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor => ({
+  const interceptorUnauthorized = ($q: angular.IQService, $injector: angular.auto.IInjectorService, $state): angular.IHttpInterceptor => ({
     responseError: function (error) {
       if (error.config && !error.config.tryItMode) {
         const unauthorizedError = !error || error.status === 401;
@@ -39,18 +39,20 @@ function interceptorConfig(
             sessionExpired = false;
             errorMessage = 'Wrong user or password';
           } else {
+            const $timeout = $injector.get('$timeout');
             if (error.config.forceSessionExpired || (!sessionExpired && !error.config.silentCall)) {
               sessionExpired = true;
               // session expired
               notificationService.showError(error, 'Session expired, redirecting to home...');
-              $injector.get('$timeout')(function () {
+              $timeout(function () {
                 $injector.get('$rootScope').$broadcast('graviteeLogout');
               }, 2000);
             } else {
-              let state = ($injector.get('$state') as ng.ui.IStateService);
-              if (!state.current.name || !_.startsWith('portal.', state.current.name)) {
-                state.go('portal.home');
-              }
+              $timeout(function () {
+                if (!_.startsWith($state.current.name, 'portal.')) {
+                  $state.go('portal.home');
+                }
+              }, 100);
             }
           }
         } else {
