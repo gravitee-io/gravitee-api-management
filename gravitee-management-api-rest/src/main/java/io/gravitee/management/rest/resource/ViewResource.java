@@ -23,6 +23,7 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ViewService;
+import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,18 +38,22 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
  * @author GraviteeSource Team
  */
 @Api(tags = {"View"})
-public class ViewResource {
+public class ViewResource extends AbstractResource {
 
     @Autowired
     private ViewService viewService;
 
     @GET
     @Produces(APPLICATION_JSON)
-    @Permissions(
-            @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.READ)
-    )
-    public ViewEntity getUser(@PathParam("id") String viewId) {
-        return viewService.findById(viewId);
+    public ViewEntity get(@PathParam("id") String viewId) {
+        boolean canShowView = hasPermission(RolePermission.PORTAL_VIEW, RolePermissionAction.READ);
+        ViewEntity view = viewService.findById(viewId);
+
+        if (canShowView || !view.isHidden()) {
+            return view;
+        }
+
+        throw new UnauthorizedAccessException();
     }
 
     @PUT
