@@ -40,8 +40,14 @@ public class PathMappingMetricsHandler implements Handler<Response> {
 
     @Override
     public void handle(Response result) {
+        String path = request.pathInfo();
+        if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
+            path += '/';
+        }
+
+        String finalPath = path;
         mapping.entrySet().stream()
-                .filter(regexMappedPath -> regexMappedPath.getValue().matcher(request.pathInfo()).matches())
+                .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
                 .map(Map.Entry::getKey)
                 .findFirst()
                 .ifPresent(resolvedMappedPath -> request.metrics().setMappedPath(resolvedMappedPath));
