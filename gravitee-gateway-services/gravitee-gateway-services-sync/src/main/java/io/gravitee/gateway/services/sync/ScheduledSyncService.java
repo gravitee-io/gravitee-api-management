@@ -72,10 +72,6 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
                 applicationContext.getAutowireCapableBeanFactory().autowireBean(syncHandler);
                 router.get(PATH).produces(MediaType.APPLICATION_JSON).handler(syncHandler);
 
-                // Sync must start only when doStart() is invoked, that's the reason why we are not
-                // using @Scheduled annotation on doSync() method.
-                syncStateManager.refresh();
-
                 // Star cron
                 scheduler.schedule(this, new CronTrigger(cronTrigger));
             } else {
