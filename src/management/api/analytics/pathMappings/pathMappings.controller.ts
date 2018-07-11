@@ -42,6 +42,10 @@ class ApiPathMappingsController {
     DocumentationService.list(this.api.id).then((response) => {
       this.swaggerDocs = _.filter(response.data, {type: 'swagger'});
     });
+
+    this.$scope.$on('apiChangeSuccess', (event, args) => {
+      this.api = args.api;
+    });
   }
 
   update() {
