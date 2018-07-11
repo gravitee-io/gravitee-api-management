@@ -24,7 +24,6 @@ import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.netty.channel.ConnectTimeoutException;
@@ -240,6 +239,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                     .setSsl(sslOptions.isEnabled())
                     .setVerifyHost(sslOptions.isHostnameVerifier())
                     .setTrustAll(sslOptions.isTrustAll());
+            enableCipherSuite();
 
             if (sslOptions.getPem() != null && ! sslOptions.getPem().isEmpty()) {
                 httpClientOptions.setPemTrustOptions(
@@ -249,7 +249,10 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         } else if(HTTPS_SCHEME.equalsIgnoreCase(target.getScheme())) {
             // SSL is not configured but the endpoint scheme is HTTPS so let's enable the SSL on Vert.x HTTP client
             // automatically
-            httpClientOptions.setSsl(true).setTrustAll(true);
+            httpClientOptions
+                    .setSsl(true)
+                    .setTrustAll(true);
+            enableCipherSuite();
         }
 
         printHttpClientConfiguration(httpClientOptions);
@@ -301,5 +304,21 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                     ", Username='" + httpClientOptions.getProxyOptions().getUsername() + '\'' +
                     '}');
         }
+    }
+
+    private void enableCipherSuite() {
+        httpClientOptions
+                .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384")
+                .addEnabledCipherSuite("TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384")
+                .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
+                .addEnabledCipherSuite("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384")
+                .addEnabledCipherSuite("TLS_DHE_DSS_WITH_AES_256_GCM_SHA384")
+                .addEnabledCipherSuite("TLS_DHE_RSA_WITH_AES_256_GCM_SHA384")
+                .addEnabledCipherSuite("TLS_DHE_RSA_WITH_AES_256_CBC_SHA256")
+                .addEnabledCipherSuite("TLS_DHE_DSS_WITH_AES_256_CBC_SHA256")
+                .addEnabledCipherSuite("TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384")
+                .addEnabledCipherSuite("TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384")
+                .addEnabledCipherSuite("TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384")
+                .addEnabledCipherSuite("TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384");
     }
 }
