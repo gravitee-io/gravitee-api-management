@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.gateway.services</groupId>
         <artifactId>gravitee-gateway-services</artifactId>
-        <version>1.18.0</version>
+        <version>1.18.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-gateway-services-node-healthcheck</artifactId>
