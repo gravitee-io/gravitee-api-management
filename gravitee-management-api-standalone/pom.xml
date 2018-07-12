@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee.management</groupId>
 		<artifactId>gravitee-management-api</artifactId>
-		<version>1.18.0</version>
+		<version>1.18.1-SNAPSHOT</version>
 	</parent>
 
 	<groupId>io.gravitee.management.standalone</groupId>
