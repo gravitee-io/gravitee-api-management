@@ -18,13 +18,12 @@ package io.gravitee.management.idp.ldap.authentication;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.encoding.PasswordEncoder;
-import org.springframework.security.authentication.encoding.PlaintextPasswordEncoder;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.authentication.ProviderManagerBuilder;
 import org.springframework.security.config.annotation.web.configurers.ChannelSecurityConfigurer;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.*;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
@@ -60,7 +59,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
     private BaseLdapPathContextSource contextSource;
     private ContextSourceBuilder contextSourceBuilder = new ContextSourceBuilder();
     private UserDetailsContextMapper userDetailsContextMapper;
-    private Object passwordEncoder;
+    private PasswordEncoder passwordEncoder;
     private String passwordAttribute;
     private LdapAuthoritiesPopulator ldapAuthoritiesPopulator;
 
@@ -209,22 +208,6 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
     }
 
     /**
-     * Specifies the {@link PasswordEncoder} to be used when authenticating with password
-     * comparison.
-     *
-     * @param passwordEncoder the {@link PasswordEncoder} to use
-     * @return the {@link LdapAuthenticationProviderConfigurer} for further customization
-     * @deprecated Use
-     * {@link #passwordEncoder(org.springframework.security.crypto.password.PasswordEncoder)}
-     * instead
-     */
-    public LdapAuthenticationProviderConfigurer<B> passwordEncoder(
-            PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-        return this;
-    }
-
-    /**
      * Specifies the {@link org.springframework.security.crypto.password.PasswordEncoder}
      * to be used when authenticating with password comparison.
      *
@@ -232,8 +215,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * {@link org.springframework.security.crypto.password.PasswordEncoder} to use
      * @return the {@link LdapAuthenticationProviderConfigurer} for further customization
      */
-    public LdapAuthenticationProviderConfigurer<B> passwordEncoder(
-            final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
+    public LdapAuthenticationProviderConfigurer<B> passwordEncoder(final PasswordEncoder passwordEncoder) {
         Assert.notNull(passwordEncoder, "passwordEncoder must not be null.");
         this.passwordEncoder = passwordEncoder;
         return this;
@@ -361,7 +343,6 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
 
         /**
          * Allows specifying the {@link PasswordEncoder} to use. The default is
-         * {@link PlaintextPasswordEncoder}.
          * @param passwordEncoder the {@link PasswordEncoder} to use
          * @return the {@link PasswordEncoder} to use
          */
@@ -567,13 +548,5 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
             contextSource = contextSourceBuilder.build();
         }
         return contextSource;
-    }
-
-    /**
-     * @return
-     */
-    public PasswordCompareConfigurer passwordCompare() {
-        return new PasswordCompareConfigurer().passwordAttribute("password")
-                .passwordEncoder(new PlaintextPasswordEncoder());
     }
 }
