@@ -60,7 +60,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     @Override
     public Optional<Subscription> findById(String subscription) throws TechnicalException {
-        SubscriptionMongo planMongo = internalSubscriptionRepository.findOne(subscription);
+        SubscriptionMongo planMongo = internalSubscriptionRepository.findById(subscription).orElse(null);
         return Optional.ofNullable(map(planMongo));
     }
 
@@ -77,7 +77,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
             throw new IllegalStateException("Subscription to update must have an id");
         }
 
-        SubscriptionMongo subscriptionMongo = internalSubscriptionRepository.findOne(subscription.getId());
+        SubscriptionMongo subscriptionMongo = internalSubscriptionRepository.findById(subscription.getId()).orElse(null);
 
         if (subscriptionMongo == null) {
             throw new IllegalStateException(String.format("No subscription found with id [%s]", subscription.getId()));
@@ -90,7 +90,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     @Override
     public void delete(String plan) throws TechnicalException {
-        internalSubscriptionRepository.delete(plan);
+        internalSubscriptionRepository.deleteById(plan);
     }
 
     private SubscriptionMongo map(Subscription subscription){

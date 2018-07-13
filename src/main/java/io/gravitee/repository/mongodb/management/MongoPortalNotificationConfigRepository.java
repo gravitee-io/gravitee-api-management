@@ -62,7 +62,7 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
     @Override
     public void delete(PortalNotificationConfig pnc) throws TechnicalException {
         LOGGER.debug("Delete PortalNotificationConfig [{}, {}, {}]", pnc.getUser(), pnc.getReferenceType(), pnc.getReferenceId());
-        internalRepo.delete(map(pnc).getId());
+        internalRepo.deleteById(map(pnc).getId());
         LOGGER.debug("Delete PortalNotificationConfig [{}, {}, {}] - Done", pnc.getUser(), pnc.getReferenceType(), pnc.getReferenceId());
     }
 
@@ -73,7 +73,7 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
         pk.setReferenceType(referenceType);
         pk.setReferenceId(referenceId);
         pk.setUser(userId);
-        PortalNotificationConfigMongo one = internalRepo.findOne(pk);
+        PortalNotificationConfigMongo one = internalRepo.findById(pk).orElse(null);
         if (one == null) {
             return Optional.empty();
         }

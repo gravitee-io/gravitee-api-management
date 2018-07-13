@@ -49,7 +49,7 @@ public class MongoParameterRepository implements ParameterRepository {
     @Override
     public Optional<Parameter> findById(String parameterKey) throws TechnicalException {
         LOGGER.debug("Find parameter by key [{}]", parameterKey);
-        final ParameterMongo parameter = internalParameterRepo.findOne(parameterKey);
+        final ParameterMongo parameter = internalParameterRepo.findById(parameterKey).orElse(null);
         LOGGER.debug("Find parameter by key [{}] - Done", parameterKey);
         return Optional.ofNullable(mapper.map(parameter, Parameter.class));
     }
@@ -57,7 +57,7 @@ public class MongoParameterRepository implements ParameterRepository {
     @Override
     public List<Parameter> findAll(List<String> keys) throws TechnicalException  {
         LOGGER.debug("Find parameters by keys [{}]", keys);
-        Iterable<ParameterMongo> all = internalParameterRepo.findAll(keys);
+        Iterable<ParameterMongo> all = internalParameterRepo.findAllById(keys);
         LOGGER.debug("Find parameters by keys [{}] - Done", keys);
         return StreamSupport.stream(all.spliterator(), false)
                 .map(parameter -> mapper.map(parameter, Parameter.class))
@@ -79,7 +79,7 @@ public class MongoParameterRepository implements ParameterRepository {
         if (parameter == null || parameter.getKey() == null) {
             throw new IllegalStateException("Parameter to update must have a key");
         }
-        final ParameterMongo parameterMongo = internalParameterRepo.findOne(parameter.getKey());
+        final ParameterMongo parameterMongo = internalParameterRepo.findById(parameter.getKey()).orElse(null);
         if (parameterMongo == null) {
             throw new IllegalStateException(String.format("No parameter found with name [%s]", parameter.getKey()));
         }
@@ -96,7 +96,7 @@ public class MongoParameterRepository implements ParameterRepository {
     @Override
     public void delete(String parameterKey) throws TechnicalException {
         try {
-            internalParameterRepo.delete(parameterKey);
+            internalParameterRepo.deleteById(parameterKey);
         } catch (Exception e) {
             LOGGER.error("An error occured when deleting parameter [{}]", parameterKey, e);
             throw new TechnicalException("An error occured when deleting parameter");

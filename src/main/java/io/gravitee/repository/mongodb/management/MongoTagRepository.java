@@ -50,7 +50,7 @@ public class MongoTagRepository implements TagRepository {
     public Optional<Tag> findById(String tagId) throws TechnicalException {
         LOGGER.debug("Find tag by ID [{}]", tagId);
 
-        final TagMongo tag = internalTagRepo.findOne(tagId);
+        final TagMongo tag = internalTagRepo.findById(tagId).orElse(null);
 
         LOGGER.debug("Find tag by ID [{}] - Done", tagId);
         return Optional.ofNullable(mapper.map(tag, Tag.class));
@@ -76,7 +76,7 @@ public class MongoTagRepository implements TagRepository {
             throw new IllegalStateException("Tag to update must have a name");
         }
 
-        final TagMongo tagMongo = internalTagRepo.findOne(tag.getId());
+        final TagMongo tagMongo = internalTagRepo.findById(tag.getId()).orElse(null);
 
         if (tagMongo == null) {
             throw new IllegalStateException(String.format("No tag found with name [%s]", tag.getId()));
@@ -100,7 +100,7 @@ public class MongoTagRepository implements TagRepository {
     @Override
     public void delete(String tagId) throws TechnicalException {
         try {
-            internalTagRepo.delete(tagId);
+            internalTagRepo.deleteById(tagId);
         } catch (Exception e) {
             LOGGER.error("An error occured when deleting tag [{}]", tagId, e);
             throw new TechnicalException("An error occured when deleting tag");

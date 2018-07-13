@@ -69,7 +69,7 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
     @Override
     public void delete(String id) throws TechnicalException {
         LOGGER.debug("Delete notification : {}", id);
-        internalRepo.delete(id);
+        internalRepo.deleteById(id);
     }
 
 

@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import com.mongodb.WriteResult;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
@@ -27,10 +26,6 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -70,7 +65,7 @@ public class MongoPageRepository implements PageRepository {
     public Optional<Page> findById(String pageId) throws TechnicalException {
         logger.debug("Find page by ID [{}]", pageId);
 
-        PageMongo page = internalPageRepo.findOne(pageId);
+        PageMongo page = internalPageRepo.findById(pageId).orElse(null);
         Page res = mapper.map(page, Page.class);
 
         logger.debug("Find page by ID [{}] - Done", pageId);
@@ -97,7 +92,7 @@ public class MongoPageRepository implements PageRepository {
             throw new IllegalStateException("Page must not be null");
         }
 
-        PageMongo pageMongo = internalPageRepo.findOne(page.getId());
+        PageMongo pageMongo = internalPageRepo.findById(page.getId()).orElse(null);
         if (pageMongo == null) {
             throw new IllegalStateException(String.format("No page found with id [%s]", page.getId()));
         }
@@ -133,7 +128,7 @@ public class MongoPageRepository implements PageRepository {
     @Override
     public void delete(String pageId) throws TechnicalException {
         try {
-            internalPageRepo.delete(pageId);
+            internalPageRepo.deleteById(pageId);
         } catch (Exception e) {
             logger.error("An error occured when deleting page [{}]", pageId, e);
             throw new TechnicalException("An error occured when deleting page");

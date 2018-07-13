@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.mongodb.ratelimit;
 
-import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import io.gravitee.repository.Scope;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
@@ -41,7 +41,7 @@ public class RateLimitRepositoryConfiguration {
 
 	@Autowired
 	@Qualifier("rateLimitMongo")
-	private Mongo mongo;
+	private MongoFactory mongoFactory;
 
 	protected String getDatabaseName() {
 		String uri = environment.getProperty("ratelimit.mongodb.uri");
@@ -59,7 +59,11 @@ public class RateLimitRepositoryConfiguration {
 
 	@Bean(name = "rateLimitMongoTemplate")
 	public MongoOperations mongoOperations() {
-		return new MongoTemplate(mongo, getDatabaseName());
+		try {
+			return new MongoTemplate((MongoClient) mongoFactory.getObject(), getDatabaseName());
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Bean

@@ -52,7 +52,7 @@ public class MongoEventRepository implements EventRepository {
     public Optional<Event> findById(String id) throws TechnicalException {
         logger.debug("Find event by ID [{}]", id);
 
-        EventMongo event = internalEventRepo.findOne(id);
+        EventMongo event = internalEventRepo.findById(id).orElse(null);
         Event res = mapEvent(event);
 
         logger.debug("Find event by ID [{}] - Done", id);
@@ -79,7 +79,7 @@ public class MongoEventRepository implements EventRepository {
             throw new IllegalStateException("Event to update must have an id");
         }
 
-        final EventMongo eventMongo = internalEventRepo.findOne(event.getId());
+        final EventMongo eventMongo = internalEventRepo.findById(event.getId()).orElse(null);
         if (eventMongo == null) {
             throw new IllegalStateException(String.format("No event found with id [%s]", event.getId()));
         }
@@ -102,7 +102,7 @@ public class MongoEventRepository implements EventRepository {
     @Override
     public void delete(String id) throws TechnicalException {
         try {
-            internalEventRepo.delete(id);
+            internalEventRepo.deleteById(id);
         } catch (Exception e) {
             logger.error("An error occured when deleting event [{}]", id, e);
             throw new TechnicalException("An error occured when deleting event");

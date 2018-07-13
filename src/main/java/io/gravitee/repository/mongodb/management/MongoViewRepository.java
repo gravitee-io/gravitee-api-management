@@ -50,7 +50,7 @@ public class MongoViewRepository implements ViewRepository {
     public Optional<View> findById(String viewId) throws TechnicalException {
         LOGGER.debug("Find view by ID [{}]", viewId);
 
-        final ViewMongo view = internalViewRepo.findOne(viewId);
+        final ViewMongo view = internalViewRepo.findById(viewId).orElse(null);
 
         LOGGER.debug("Find view by ID [{}] - Done", viewId);
         return Optional.ofNullable(mapper.map(view, View.class));
@@ -76,7 +76,7 @@ public class MongoViewRepository implements ViewRepository {
             throw new IllegalStateException("View to update must have a name");
         }
 
-        final ViewMongo viewMongo = internalViewRepo.findOne(view.getId());
+        final ViewMongo viewMongo = internalViewRepo.findById(view.getId()).orElse(null);
 
         if (viewMongo == null) {
             throw new IllegalStateException(String.format("No view found with name [%s]", view.getId()));
@@ -95,7 +95,7 @@ public class MongoViewRepository implements ViewRepository {
     @Override
     public void delete(String viewId) throws TechnicalException {
         try {
-            internalViewRepo.delete(viewId);
+            internalViewRepo.deleteById(viewId);
         } catch (Exception e) {
             LOGGER.error("An error occured when deleting view [{}]", viewId, e);
             throw new TechnicalException("An error occured when deleting view");

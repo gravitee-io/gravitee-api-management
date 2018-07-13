@@ -50,7 +50,7 @@ public class MongoRatingRepository implements RatingRepository {
     @Override
     public Optional<Rating> findById(String id) throws TechnicalException {
         LOGGER.debug("Find rating by ID [{}]", id);
-        final RatingMongo rating = internalRatingRepository.findOne(id);
+        final RatingMongo rating = internalRatingRepository.findById(id).orElse(null);
         LOGGER.debug("Find rating by ID [{}] - Done", id);
         return ofNullable(map(rating));
     }
@@ -95,7 +95,7 @@ public class MongoRatingRepository implements RatingRepository {
         if (rating == null || rating.getId() == null) {
             throw new IllegalStateException("Rating to update must specify an id");
         }
-        final RatingMongo ratingMongo = internalRatingRepository.findOne(rating.getId());
+        final RatingMongo ratingMongo = internalRatingRepository.findById(rating.getId()).orElse(null);
         if (ratingMongo == null) {
             throw new IllegalStateException(String.format("No rating found with id [%s]", rating.getId()));
         }
@@ -117,7 +117,7 @@ public class MongoRatingRepository implements RatingRepository {
     @Override
     public void delete(final String id) throws TechnicalException {
         try {
-            internalRatingRepository.delete(id);
+            internalRatingRepository.deleteById(id);
         } catch (Exception e) {
             LOGGER.error("An error occurred while deleting rating [{}]", id, e);
             throw new TechnicalException("An error occurred while deleting rating");

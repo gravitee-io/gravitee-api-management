@@ -84,7 +84,7 @@ public class MongoUserRepository implements UserRepository {
 	public Optional<User> findById(String id) throws TechnicalException {
 		logger.debug("Find user by ID [{}]", id);
 
-		UserMongo user = internalUserRepo.findOne(id);
+		UserMongo user = internalUserRepo.findById(id).orElse(null);
 		User res = mapper.map(user, User.class);
 
 		logger.debug("Find user by ID [{}] - Done", id);
@@ -111,7 +111,7 @@ public class MongoUserRepository implements UserRepository {
 			throw new IllegalStateException("User to update must have an identifier");
 		}
 
-		final UserMongo userMongo = internalUserRepo.findOne(user.getId());
+		final UserMongo userMongo = internalUserRepo.findById(user.getId()).orElse(null);
 
 		if (userMongo == null) {
 			throw new IllegalStateException(String.format("No user found with username [%s]", user.getUsername()));
@@ -136,6 +136,6 @@ public class MongoUserRepository implements UserRepository {
 	@Override
 	public void delete(String id) throws TechnicalException {
 		logger.debug("Delete user [{}]", id);
-		internalUserRepo.delete(id);
+		internalUserRepo.deleteById(id);
 	}
 }

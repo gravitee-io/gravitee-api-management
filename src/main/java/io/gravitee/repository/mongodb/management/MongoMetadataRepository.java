@@ -48,7 +48,7 @@ public class MongoMetadataRepository implements MetadataRepository {
     public Optional<Metadata> findById(final String key, final String referenceId,
                                        final MetadataReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("Find metadata by key '{}' ref type '{}' ref id '{}'", key, referenceType, referenceId);
-        final MetadataMongo metadata = internalMetadataRepository.findOne(new MetadataPkMongo(key, referenceId, referenceType.name()));
+        final MetadataMongo metadata = internalMetadataRepository.findById(new MetadataPkMongo(key, referenceId, referenceType.name())).orElse(null);
         LOGGER.debug("Find metadata by key '{}' ref type '{}' ref id '{}' done", key, referenceType, referenceId);
         return Optional.ofNullable(map(metadata));
     }
@@ -69,7 +69,7 @@ public class MongoMetadataRepository implements MetadataRepository {
 
         final MetadataPkMongo metadataId =
                 new MetadataPkMongo(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType().name());
-        MetadataMongo metadataMongo = internalMetadataRepository.findOne(metadataId);
+        MetadataMongo metadataMongo = internalMetadataRepository.findById(metadataId).orElse(null);
 
         if (metadataMongo == null) {
             throw new IllegalStateException(String.format("No metadata found with id [%s]", metadataId));
@@ -92,7 +92,7 @@ public class MongoMetadataRepository implements MetadataRepository {
     public void delete(final String key, final String referenceId, final MetadataReferenceType referenceType) throws TechnicalException {
         final MetadataPkMongo id = new MetadataPkMongo(key, referenceId, referenceType.name());
         try {
-            internalMetadataRepository.delete(id);
+            internalMetadataRepository.deleteById(id);
         } catch (Exception e) {
             LOGGER.error("An error occurred while deleting metadata [{}]", id, e);
             throw new TechnicalException("An error occurred while deleting metadata");

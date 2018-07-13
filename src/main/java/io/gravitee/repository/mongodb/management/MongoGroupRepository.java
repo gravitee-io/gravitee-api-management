@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -49,7 +48,7 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public Optional<Group> findById(String s) throws TechnicalException {
         logger.debug("Find group by id [{}]", s);
-        Group group = map(internalRepository.findOne(s));
+        Group group = map(internalRepository.findById(s).orElse(null));
         logger.debug("Find group by id [{}] - DONE", s);
         return Optional.ofNullable(group);
     }
@@ -76,7 +75,7 @@ public class MongoGroupRepository implements GroupRepository {
             throw new IllegalStateException("Group must not be null");
         }
 
-        final GroupMongo groupMongo = internalRepository.findOne(group.getId());
+        final GroupMongo groupMongo = internalRepository.findById(group.getId()).orElse(null);
         if (groupMongo == null) {
             throw new IllegalStateException(String.format("No group found with id [%s]", group.getId()));
         }
@@ -90,7 +89,7 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public void delete(String id) throws TechnicalException {
         logger.debug("Delete group [{}]", id);
-        internalRepository.delete(id);
+        internalRepository.deleteById(id);
         logger.debug("Delete group [{}] - Done", id);
     }
 

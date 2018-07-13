@@ -51,7 +51,7 @@ public class MongoPlanRepository implements PlanRepository {
 
     @Override
     public Optional<Plan> findById(String plan) throws TechnicalException {
-        PlanMongo planMongo = internalPlanRepository.findOne(plan);
+        PlanMongo planMongo = internalPlanRepository.findById(plan).orElse(null);
         return Optional.ofNullable(map(planMongo));
     }
 
@@ -68,7 +68,7 @@ public class MongoPlanRepository implements PlanRepository {
             throw new IllegalStateException("Plan to update must have an id");
         }
 
-        PlanMongo planMongo = internalPlanRepository.findOne(plan.getId());
+        PlanMongo planMongo = internalPlanRepository.findById(plan.getId()).orElse(null);
 
         if (planMongo == null) {
             throw new IllegalStateException(String.format("No plan found with id [%s]", plan.getId()));
@@ -81,7 +81,7 @@ public class MongoPlanRepository implements PlanRepository {
 
     @Override
     public void delete(String plan) throws TechnicalException {
-        internalPlanRepository.delete(plan);
+        internalPlanRepository.deleteById(plan);
     }
 
     private PlanMongo map(Plan plan){

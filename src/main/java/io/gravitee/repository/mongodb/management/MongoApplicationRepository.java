@@ -66,7 +66,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 			throw new IllegalStateException("Application to update must have an id");
 		}
 
-		final ApplicationMongo applicationMongo = internalApplicationRepo.findOne(application.getId());
+		final ApplicationMongo applicationMongo = internalApplicationRepo.findById(application.getId()).orElse(null);
 		if (applicationMongo == null) {
 			throw new IllegalStateException(String.format("No application found with id [%s]", application.getId()));
 		}
@@ -86,7 +86,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
 	@Override
 	public Optional<Application> findById(String applicationId) throws TechnicalException {
-		ApplicationMongo application = internalApplicationRepo.findOne(applicationId);
+		ApplicationMongo application = internalApplicationRepo.findById(applicationId).orElse(null);
 		return Optional.ofNullable(mapApplication(application));
 	}
 
@@ -117,7 +117,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
 	@Override
 	public void delete(String applicationId) throws TechnicalException {
-		internalApplicationRepo.delete(applicationId);
+		internalApplicationRepo.deleteById(applicationId);
 	}
 
 	private Set<Application> mapApplications(Collection<ApplicationMongo> applications){

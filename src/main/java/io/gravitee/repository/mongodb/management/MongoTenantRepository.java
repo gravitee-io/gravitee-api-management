@@ -50,7 +50,7 @@ public class MongoTenantRepository implements TenantRepository {
     public Optional<Tenant> findById(String tenantId) throws TechnicalException {
         LOGGER.debug("Find tenant by ID [{}]", tenantId);
 
-        final TenantMongo tenant = internalTenantRepo.findOne(tenantId);
+        final TenantMongo tenant = internalTenantRepo.findById(tenantId).orElse(null);
 
         LOGGER.debug("Find tenant by ID [{}] - Done", tenantId);
         return Optional.ofNullable(mapper.map(tenant, Tenant.class));
@@ -76,7 +76,7 @@ public class MongoTenantRepository implements TenantRepository {
             throw new IllegalStateException("Tenant to update must have a name");
         }
 
-        final TenantMongo tenantMongo = internalTenantRepo.findOne(tenant.getId());
+        final TenantMongo tenantMongo = internalTenantRepo.findById(tenant.getId()).orElse(null);
 
         if (tenantMongo == null) {
             throw new IllegalStateException(String.format("No tenant found with name [%s]", tenant.getId()));
@@ -100,7 +100,7 @@ public class MongoTenantRepository implements TenantRepository {
     @Override
     public void delete(String tenantId) throws TechnicalException {
         try {
-            internalTenantRepo.delete(tenantId);
+            internalTenantRepo.deleteById(tenantId);
         } catch (Exception e) {
             LOGGER.error("An error occured when deleting tenant [{}]", tenantId, e);
             throw new TechnicalException("An error occured when deleting tenant");

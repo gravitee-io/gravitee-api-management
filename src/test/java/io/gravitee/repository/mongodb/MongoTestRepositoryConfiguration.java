@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb;
 
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
@@ -38,12 +39,16 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     }
 
     @Bean
-    public Mongo mongo() throws Exception {
-        return factory().newMongo();
+    public MongoTemplate mongoTemplate(Mongo mongo) {
+        return new MongoTemplate(mongoClient(), "gravitee");
     }
 
-    @Bean
-    public MongoTemplate mongoTemplate(Mongo mongo) {
-        return new MongoTemplate(mongo, "gravitee");
+    @Override
+    public MongoClient mongoClient() {
+        try {
+            return factory().newMongo();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

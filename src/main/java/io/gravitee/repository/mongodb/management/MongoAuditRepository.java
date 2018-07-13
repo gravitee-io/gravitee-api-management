@@ -18,15 +18,11 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AuditRepository;
-import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.View;
-import io.gravitee.repository.mongodb.management.internal.api.ViewMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.audit.AuditMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
-import io.gravitee.repository.mongodb.management.internal.model.ViewMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +31,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -65,7 +59,7 @@ public class MongoAuditRepository implements AuditRepository {
     public Optional<Audit> findById(String id) throws TechnicalException {
         LOGGER.debug("Find view by ID [{}]", id);
 
-        final AuditMongo audit = internalAuditRepo.findOne(id);
+        final AuditMongo audit = internalAuditRepo.findById(id).orElse(null);
 
         LOGGER.debug("Find view by ID [{}] - Done", id);
         return Optional.ofNullable(mapper.map(audit, Audit.class));

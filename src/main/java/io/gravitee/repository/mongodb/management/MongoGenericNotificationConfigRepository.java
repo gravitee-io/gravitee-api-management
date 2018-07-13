@@ -61,14 +61,14 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
     @Override
     public void delete(String id) throws TechnicalException {
         LOGGER.debug("Delete GenericNotificationConfig [{}]", id);
-        internalRepo.delete(id);
+        internalRepo.deleteById(id);
         LOGGER.debug("Delete GenericNotificationConfig [{}] - Done", id);
     }
 
     @Override
     public Optional<GenericNotificationConfig> findById(String id) throws TechnicalException {
         LOGGER.debug("Find GenericNotificationConfig [{}]", id);
-        GenericNotificationConfigMongo one = internalRepo.findOne(id);
+        GenericNotificationConfigMongo one = internalRepo.findById(id).orElse(null);
         if (one == null) {
             return Optional.empty();
         }

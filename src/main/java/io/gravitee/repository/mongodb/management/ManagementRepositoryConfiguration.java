@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import io.gravitee.repository.Scope;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
@@ -39,7 +39,7 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
 
 	@Autowired
 	@Qualifier("managementMongo")
-	private Mongo mongo;
+	private MongoFactory mongoFactory;
 
 	@Bean(name = "managementMongo")
 	public static MongoFactory mongoFactory() {
@@ -47,7 +47,11 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
 	}
 
 	@Override
-	public Mongo mongo() throws Exception {
-		return mongo;
+	public MongoClient mongoClient() {
+		try {
+			return (MongoClient) mongoFactory.getObject();
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
 	}
 }

@@ -155,11 +155,10 @@ public class MongoFactory implements FactoryBean<Mongo> {
             String username = readPropertyValue(propertyPrefix + "username");
             String password = readPropertyValue(propertyPrefix + "password");
 
-            List<MongoCredential> credentials = null;
+            MongoCredential credential = null;
             if (username != null || password != null) {
                 String authSource = readPropertyValue(propertyPrefix + "authSource", String.class, "gravitee");
-                credentials = Collections.singletonList(MongoCredential.createCredential(
-                        username, authSource, password.toCharArray()));
+                credential = MongoCredential.createCredential(username, authSource, password.toCharArray());
             }
 
 
@@ -178,12 +177,11 @@ public class MongoFactory implements FactoryBean<Mongo> {
             }
 
             MongoClientOptions options = builder.build();
-            if (credentials == null) {
+            if (credential == null) {
                 return new MongoClient(seeds, options);
             }
 
-            return new MongoClient(seeds,
-                    credentials, options);
+            return new MongoClient(seeds, credential, options);
         }
     }
 

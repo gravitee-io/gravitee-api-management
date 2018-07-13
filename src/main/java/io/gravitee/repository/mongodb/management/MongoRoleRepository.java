@@ -48,7 +48,7 @@ public class MongoRoleRepository implements RoleRepository {
     public Optional<Role> findById(RoleScope scope, String name) throws TechnicalException {
         LOGGER.debug("Find role by ID [{}, {}]", scope, name);
 
-        final RoleMongo role = internalRoleRepo.findOne(new RolePkMongo(scope.getId(), name));
+        final RoleMongo role = internalRoleRepo.findById(new RolePkMongo(scope.getId(), name)).orElse(null);
 
         LOGGER.debug("Find role by ID [{}, {}] - Done", scope, name);
         return Optional.ofNullable(map(role));
@@ -71,7 +71,7 @@ public class MongoRoleRepository implements RoleRepository {
     @Override
     public Role update(Role role) throws TechnicalException {
         final RolePkMongo id = convert(role);
-        final RoleMongo roleMongo = internalRoleRepo.findOne(id);
+        final RoleMongo roleMongo = internalRoleRepo.findById(id).orElse(null);
 
         if (roleMongo == null) {
             throw new IllegalStateException(String.format("No role found with id [%s]", id));
@@ -95,7 +95,7 @@ public class MongoRoleRepository implements RoleRepository {
     @Override
     public void delete(RoleScope scope, String name) throws TechnicalException {
         try {
-            internalRoleRepo.delete(new RolePkMongo(scope.getId(), name));
+            internalRoleRepo.deleteById(new RolePkMongo(scope.getId(), name));
         } catch (Exception e) {
             LOGGER.error("An error occured when deleting role [{}, {}]", scope, name, e);
             throw new TechnicalException("An error occured when deleting role");

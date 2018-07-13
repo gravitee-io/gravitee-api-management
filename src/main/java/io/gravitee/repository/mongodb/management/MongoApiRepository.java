@@ -48,7 +48,7 @@ public class MongoApiRepository implements ApiRepository {
 	
 	@Override
 	public Optional<Api> findById(String apiId) throws TechnicalException {
-		ApiMongo apiMongo =  internalApiRepo.findOne(apiId);
+		ApiMongo apiMongo =  internalApiRepo.findById(apiId).orElse(null);
 		return Optional.ofNullable(mapApi(apiMongo));
 	}
 	
@@ -65,7 +65,7 @@ public class MongoApiRepository implements ApiRepository {
 			throw new IllegalStateException("Api to update must have an id");
 		}
 
-		final ApiMongo apiMongo = internalApiRepo.findOne(api.getId());
+		final ApiMongo apiMongo = internalApiRepo.findById(api.getId()).orElse(null);
 		if (apiMongo == null) {
 			throw new IllegalStateException(String.format("No api found with id [%s]", api.getId()));
 		}
@@ -90,7 +90,7 @@ public class MongoApiRepository implements ApiRepository {
 
 	@Override
 	public void delete(String apiId) throws TechnicalException {
-		internalApiRepo.delete(apiId);
+		internalApiRepo.deleteById(apiId);
 	}
 
 	@Override

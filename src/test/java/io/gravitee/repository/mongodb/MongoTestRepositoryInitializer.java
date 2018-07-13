@@ -38,6 +38,6 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
 
     public void tearDown() {
         LOG.info("Dropping database...");
-        mongoTemplate.getDb().dropDatabase();
+        mongoTemplate.getDb().drop();
     }
 }

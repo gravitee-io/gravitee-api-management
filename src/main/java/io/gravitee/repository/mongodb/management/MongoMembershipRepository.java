@@ -59,7 +59,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         }
 
         final MembershipPkMongo id = mapPk(membership);
-        MembershipMongo membershipMongo = internalMembershipRepo.findOne(id);
+        MembershipMongo membershipMongo = internalMembershipRepo.findById(id).orElse(null);
 
         if (membershipMongo == null) {
             throw new IllegalStateException(String.format("No membership found with id [%s]", id));
@@ -74,7 +74,7 @@ public class MongoMembershipRepository implements MembershipRepository {
     @Override
     public void delete(Membership membership) throws TechnicalException {
         logger.debug("Delete membership [{}, {}, {}]", membership.getUserId(), membership.getReferenceType(), membership.getReferenceId());
-        internalMembershipRepo.delete(mapPk(membership));
+        internalMembershipRepo.deleteById(mapPk(membership));
         logger.debug("Delete membership [{}, {}, {}] - Done", membership.getUserId(), membership.getReferenceType(), membership.getReferenceId());
     }
 
@@ -86,7 +86,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         membershipPkMongo.setUserId(userId);
         membershipPkMongo.setReferenceType(referenceType.name());
         membershipPkMongo.setReferenceId(referenceId);
-        MembershipMongo membershipMongo = internalMembershipRepo.findOne(membershipPkMongo);
+        MembershipMongo membershipMongo = internalMembershipRepo.findById(membershipPkMongo).orElse(null);
 
         logger.debug("Find membership by ID [{}, {}, {}]", userId, referenceType, referenceId);
         return Optional.ofNullable(map(membershipMongo));

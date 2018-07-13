@@ -15,15 +15,17 @@
  */
 package io.gravitee.repository.mongodb.ratelimit;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.index.IndexDefinition;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -55,36 +57,22 @@ public class MongoRateLimitRepository implements RateLimitRepository {
     public void ensureTTLIndex() {
         mongoOperations.indexOps(RATE_LIMIT_COLLECTION).ensureIndex(new IndexDefinition() {
             @Override
-            public DBObject getIndexKeys() {
-                return new BasicDBObject(FIELD_RESET_TIME, 1);
+            public Document getIndexKeys() {
+                return new Document(FIELD_RESET_TIME, 1);
             }
 
             @Override
-            public DBObject getIndexOptions() {
+            public Document getIndexOptions() {
                 // To expire Documents at a Specific Clock Time we have to specify an expireAfterSeconds value of 0.
-                return new BasicDBObject("expireAfterSeconds", 0);
+                return new Document("expireAfterSeconds", 0);
             }
         });
     }
 
     @Override
     public RateLimit get(String rateLimitKey) {
-        DBObject result = mongoOperations
-                .getCollection(RATE_LIMIT_COLLECTION)
-                .findOne(rateLimitKey);
-
-        RateLimit rateLimit = new RateLimit(rateLimitKey);
-
-        if (result != null) {
-            rateLimit.setCounter((long) result.get(FIELD_COUNTER));
-            rateLimit.setLastRequest((long) result.get(FIELD_LAST_REQUEST));
-            rateLimit.setResetTime(((Date) result.get(FIELD_RESET_TIME)).getTime());
-            rateLimit.setUpdatedAt((long) result.get(FIELD_UPDATED_AT));
-            rateLimit.setCreatedAt((long) result.get(FIELD_CREATED_AT));
-            rateLimit.setAsync((boolean) result.get(FIELD_ASYNC));
-        }
-
-        return rateLimit;
+        return mongoOperations
+                .findOne(Query.query(Criteria.where("_id").is(rateLimitKey)), RateLimit.class, RATE_LIMIT_COLLECTION);
     }
 
     @Override
@@ -99,41 +87,12 @@ public class MongoRateLimitRepository implements RateLimitRepository {
                 .add(FIELD_ASYNC, rateLimit.isAsync())
                 .get();
 
-        mongoOperations
-                .getCollection(RATE_LIMIT_COLLECTION)
-                .save(doc);
+        mongoOperations.save(doc, RATE_LIMIT_COLLECTION);
     }
 
     @Override
     public Iterator<RateLimit> findAsyncAfter(long timestamp) {
-        DBObject query = BasicDBObjectBuilder
-                .start(FIELD_ASYNC, true)
-                .add(FIELD_UPDATED_AT, BasicDBObjectBuilder.start("$gte", timestamp).get())
-                .get();
-
-        final Iterator<DBObject> dbObjects = mongoOperations
-                .getCollection(RATE_LIMIT_COLLECTION)
-                .find(query).iterator();
-
-        return new Iterator<RateLimit>() {
-
-            @Override
-            public boolean hasNext() {
-                return dbObjects.hasNext();
-            }
-
-            @Override
-            public RateLimit next() {
-                DBObject dbObject = dbObjects.next();
-                RateLimit rateLimit = new RateLimit((String) dbObject.get(FIELD_KEY));
-                rateLimit.setCounter((long) dbObject.get(FIELD_COUNTER));
-                rateLimit.setLastRequest((long) dbObject.get(FIELD_LAST_REQUEST));
-                rateLimit.setResetTime(((Date) dbObject.get(FIELD_RESET_TIME)).getTime());
-                rateLimit.setUpdatedAt((long) dbObject.get(FIELD_UPDATED_AT));
-                rateLimit.setCreatedAt((long) dbObject.get(FIELD_CREATED_AT));
-                rateLimit.setAsync((boolean) dbObject.get(FIELD_ASYNC));
-                return rateLimit;
-            }
-        };
+        final Query query = Query.query(Criteria.where(FIELD_ASYNC).is(true).and(FIELD_UPDATED_AT).gte(timestamp));
+        return mongoOperations.find(query, RateLimit.class, RATE_LIMIT_COLLECTION).iterator();
     }
 }

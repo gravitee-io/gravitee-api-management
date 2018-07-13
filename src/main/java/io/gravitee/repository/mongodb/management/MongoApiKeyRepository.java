@@ -20,10 +20,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
-import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
-import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -60,7 +58,7 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 			throw new IllegalStateException("ApiKey to update must have an key");
 		}
 
-		ApiKeyMongo apiKeyMongo = internalApiKeyRepo.findOne(apiKey.getKey());
+		ApiKeyMongo apiKeyMongo = internalApiKeyRepo.findById(apiKey.getKey()).orElse(null);
 
 		if (apiKeyMongo == null) {
 			throw new IllegalStateException(String.format("No apiKey found with key [%s]", apiKey.getKey()));
@@ -95,7 +93,7 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
 	@Override
 	public Optional<ApiKey> findById(String key) throws TechnicalException {
-		ApiKeyMongo apiKey = internalApiKeyRepo.findOne(key);
+		ApiKeyMongo apiKey = internalApiKeyRepo.findById(key).orElse(null);
 
 		return (apiKey != null) ?
 				Optional.of(mapper.map(apiKey, ApiKey.class)):

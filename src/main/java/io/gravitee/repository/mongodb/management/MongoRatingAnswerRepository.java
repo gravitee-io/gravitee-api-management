@@ -64,7 +64,7 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
         if (ratingAnswer == null || ratingAnswer.getId() == null) {
             throw new IllegalStateException("Rating answer to update must specify an id");
         }
-        final RatingAnswerMongo ratingAnswerMongo = internalRatingAnswerRepository.findOne(ratingAnswer.getId());
+        final RatingAnswerMongo ratingAnswerMongo = internalRatingAnswerRepository.findById(ratingAnswer.getId()).orElse(null);
         if (ratingAnswerMongo == null) {
             throw new IllegalStateException(String.format("No rating answer found with id [%s]", ratingAnswer.getId()));
         }
@@ -84,7 +84,7 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
     @Override
     public Optional<RatingAnswer> findById(String id) throws TechnicalException {
         LOGGER.debug("Find rating answer by ID [{}]", id);
-        final RatingAnswerMongo ratingAnswerMongo = internalRatingAnswerRepository.findOne(id);
+        final RatingAnswerMongo ratingAnswerMongo = internalRatingAnswerRepository.findById(id).orElse(null);
         LOGGER.debug("Find rating answer by ID [{}] - internalRatingAnswerRepository", id);
         return ofNullable(map(ratingAnswerMongo));
     }
@@ -92,7 +92,7 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
     @Override
     public void delete(final String id) throws TechnicalException {
         try {
-            internalRatingAnswerRepository.delete(id);
+            internalRatingAnswerRepository.deleteById(id);
         } catch (Exception e) {
             LOGGER.error("An error occurred while deleting rating answer [{}]", id, e);
             throw new TechnicalException("An error occurred while deleting rating answer");
