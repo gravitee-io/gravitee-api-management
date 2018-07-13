@@ -76,8 +76,6 @@ public class ApiEntity {
     @JsonProperty(value = "properties")
     private io.gravitee.definition.model.Properties properties;
 
-    private String role;
-
     @DeploymentRequired
     @JsonProperty(value = "services")
     private Services services;
@@ -180,14 +178,6 @@ public class ApiEntity {
 
     public void setPaths(Map<String, Path> paths) {
         this.paths = paths;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
     }
 
     public PrimaryOwnerEntity getPrimaryOwner() {
@@ -321,7 +311,6 @@ public class ApiEntity {
             ", visibility=" + visibility +
             ", state=" + state +
             ", primaryOwner=" + primaryOwner +
-            ", role=" + role +
             ", tags=" + tags +
             ", view=" + views +
             ", groups=" + groups +

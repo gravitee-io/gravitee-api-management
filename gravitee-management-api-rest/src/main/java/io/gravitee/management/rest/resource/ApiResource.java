@@ -399,7 +399,7 @@ public class ApiResource extends AbstractResource {
         final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
         filterSensitiveData(apiEntity);
         return Response
-                .ok(apiService.exportAsJson(api, apiEntity.getRole(), exclude.split(",")))
+                .ok(apiService.exportAsJson(api, exclude.split(",")))
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity)))
                 .build();
     }

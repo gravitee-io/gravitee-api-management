@@ -695,7 +695,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public String exportAsJson(final String apiId, String role, String... filteredFields) {
+    public String exportAsJson(final String apiId, String... filteredFields) {
         final ApiEntity apiEntity = findById(apiId);
         List<String> filteredFiedsList = Arrays.asList(filteredFields);
 
@@ -998,9 +998,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiModelEntity.setTags(apiEntity.getTags());
         apiModelEntity.setServices(apiEntity.getServices());
         apiModelEntity.setPaths(apiEntity.getPaths());
-        apiModelEntity.setRole(apiEntity.getRole());
         apiModelEntity.setPicture(apiEntity.getPicture());
-        apiModelEntity.setPictureUrl(apiEntity.getPictureUrl());
         apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
         apiModelEntity.setProperties(apiEntity.getProperties());
         apiModelEntity.setProxy(apiEntity.getProxy());

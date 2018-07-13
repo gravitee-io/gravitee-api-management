@@ -45,11 +45,9 @@ public class ApiModelEntity {
     private Lifecycle.State state;
     private PrimaryOwnerEntity primaryOwner;
     private Properties properties;
-    private String role;
     private Services services;
     private Set<String> tags;
     private String picture;
-    private String pictureUrl;
     private List<Resource> resources = new ArrayList<>();
     private Set<String> views;
     private Map<String, String> metadata;
@@ -134,14 +132,6 @@ public class ApiModelEntity {
         this.paths = paths;
     }
 
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
     public PrimaryOwnerEntity getPrimaryOwner() {
         return primaryOwner;
     }
@@ -188,14 +178,6 @@ public class ApiModelEntity {
 
     public void setPicture(String picture) {
         this.picture = picture;
-    }
-
-    public String getPictureUrl() {
-        return pictureUrl;
-    }
-
-    public void setPictureUrl(String pictureUrl) {
-        this.pictureUrl = pictureUrl;
     }
 
     public List<Resource> getResources() {
@@ -257,7 +239,6 @@ public class ApiModelEntity {
             ", visibility=" + visibility +
             ", state=" + state +
             ", primaryOwner=" + primaryOwner +
-            ", role=" + role +
             ", tags=" + tags +
             ", view=" + views +
             ", groups=" + groups +
