@@ -29,7 +29,7 @@
   <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>7</version>
+        <version>13-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.management</groupId>
