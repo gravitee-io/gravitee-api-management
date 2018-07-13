@@ -175,7 +175,7 @@
         <jetty.version>9.3.3.v20150827</jetty.version>
         <httpclient.version>4.5.2</httpclient.version>
         <reflections.version>0.9.10</reflections.version>
-        <snakeyaml.version>1.17</snakeyaml.version>
+        <snakeyaml.version>1.21</snakeyaml.version>
         <commons-io.version>2.5</commons-io.version>
         <commons-validator.version>1.4.1</commons-validator.version>
         <json-path.version>2.2.0</json-path.version>
