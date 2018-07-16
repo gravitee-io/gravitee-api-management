@@ -26,31 +26,63 @@
          <ul class="aui-nav">
             <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.portal.general'><a class="execute">Details</a></li>
          </ul>
-         <div class="aui-nav-heading">
+         <div class="aui-nav-heading"
+              ng-if='apiCtrl.menu.plans.perm
+                  || apiCtrl.menu.subscriptions.perm'>
             <strong>Plans</strong>
          </div>
          <ul class="aui-nav">
             <li class="iterable-item"
+                ng-if='apiCtrl.menu.plans.perm'
                 ng-class='{"aui-nav-selected": apiCtrl.$state.includes("management.apis.detail.portal.plans.list") || apiCtrl.$state.includes("management.apis.detail.portal.plans.new") || apiCtrl.$state.includes("management.apis.detail.portal.plans.plan") }'
-                ui-sref='management.apis.detail.portal.plans.list'><a class="execute">Plans</a></li>
+                ui-sref='{{apiCtrl.menu.plans.goTo}}'>
+               <a class="execute">Plans</a>
+            </li>
             <li class="iterable-item"
+                ng-if='apiCtrl.menu.subscriptions.perm'
                 ng-class='{"aui-nav-selected": apiCtrl.$state.includes("management.apis.detail.portal.subscriptions.list") || apiCtrl.$state.includes("management.apis.detail.portal.subscriptions.subscription") }'
-                ui-sref='management.apis.detail.portal.subscriptions.list'><a class="execute">Subscriptions</a></li>
+                ui-sref='{{apiCtrl.menu.subscriptions.goTo}}'>
+               <a class="execute">Subscriptions</a>
+            </li>
          </ul>
-         <div class="aui-nav-heading">
+         <div class="aui-nav-heading"
+              ng-if="apiCtrl.menu.documentation.perm
+                  || apiCtrl.menu.metadata.perm">
             <strong>Documentation</strong>
          </div>
          <ul class="aui-nav">
-            <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.portal.documentation'><a class="execute">Pages</a></li>
-            <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.portal.metadata'><a class="execute">Metadata</a></li>
+            <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                ng-if='apiCtrl.menu.documentation.perm'
+                ui-sref='{{apiCtrl.menu.documentation.goTo}}'>
+               <a class="execute">Pages</a>
+            </li>
+            <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                ng-if='apiCtrl.menu.metadata.perm'
+                ui-sref='{{apiCtrl.menu.metadata.goTo}}'>
+               <a class="execute">Metadata</a>
+            </li>
          </ul>
-         <div class="aui-nav-heading">
+         <div class="aui-nav-heading"
+              ng-if="apiCtrl.menu.members.perm
+                  || apiCtrl.menu.groups.perm">
             <strong>User and group access</strong>
          </div>
          <ul class="aui-nav">
-            <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.portal.members'><a class="execute">Members</a></li>
-            <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.portal.groups'><a class="execute">Groups</a></li>
-            <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.portal.transferownership'><a class="execute">Transfer ownership</a></li>
+            <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                ng-if='apiCtrl.menu.members.perm'
+                ui-sref='{{apiCtrl.menu.members.goTo}}'>
+               <a class="execute">Members</a>
+            </li>
+            <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                ng-if='apiCtrl.menu.groups.perm'
+                ui-sref='{{apiCtrl.menu.groups.goTo}}'>
+               <a class="execute">Groups</a>
+            </li>
+            <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                ng-if='apiCtrl.menu.members.perm'
+                ui-sref='management.apis.detail.portal.transferownership'>
+               <a class="execute">Transfer ownership</a>
+            </li>
          </ul>
       </div>
 
