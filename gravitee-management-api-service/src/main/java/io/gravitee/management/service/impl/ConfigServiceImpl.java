@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +86,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                             f.set(o, Integer.valueOf(getFirstValueOrDefault(values, parameterKey.value().defaultValue())));
                         } else if (List.class.isAssignableFrom(f.getType())) {
                             if (values == null || values.isEmpty()) {
-                                f.set(o, parameterKey.value().defaultValue());
+                                f.set(o, Collections.emptyList());
                             } else {
                                 f.set(o, values);
                             }
