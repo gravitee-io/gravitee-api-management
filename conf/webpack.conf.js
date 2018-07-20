@@ -18,20 +18,14 @@ const conf = require('./gulp.conf');
 const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const FailPlugin = require('webpack-fail-plugin');
 const autoprefixer = require('autoprefixer');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
+  mode: 'development',
   module: {
-    loaders: [
-      {
-        test: /\.json$/,
-        loaders: [
-          'json-loader'
-        ]
-      },
+    rules: [
       {
         test: /.ts$/,
         exclude: /node_modules/,
@@ -40,11 +34,9 @@ module.exports = {
       },
       {
         test: /\.(css|scss)$/,
-        loaders: [
-          'style-loader',
-          'css-loader?importLoaders=1',
-          'sass-loader',
-          'postcss-loader'
+        loaders: ['style-loader', 'css-loader', 'sass-loader'],
+        include: [
+          path.resolve(__dirname, '..') + '/src/index.scss'
         ]
       },
       {
@@ -80,8 +72,7 @@ module.exports = {
   plugins: [
     new ForkTsCheckerWebpackPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.NoErrorsPlugin(),
-    FailPlugin,
+    new webpack.NoEmitOnErrorsPlugin(),
     new HtmlWebpackPlugin({
       template: conf.path.src('index.html')
     }),
@@ -117,7 +108,7 @@ module.exports = {
       copyUnmodified: true
     })
   ],
-  devtool: 'source-map',
+  devtool: 'inline-source-map',
   output: {
     path: path.join(process.cwd(), conf.paths.tmp),
     filename: '[name].js'
@@ -136,6 +127,7 @@ module.exports = {
   },
   entry: `./${conf.path.src('index')}`,
   node: {
-    fs: 'empty'
+    fs: 'empty',
+    module: 'empty'
   }
 };

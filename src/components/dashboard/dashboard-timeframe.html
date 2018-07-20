@@ -28,8 +28,8 @@
   </md-card-title>
   <md-card-content>
     <div layout="row" layout-align="center center" style="margin-bottom: 10px">
-      <div class="btn-group pull-right">
-        <button class="btn btn-default" ng-repeat="timeframe in $ctrl.timeframes track by timeframe.id"
+      <div class="btn-group float-right">
+        <button class="btn btn-secondary" ng-repeat="timeframe in $ctrl.timeframes track by timeframe.id"
                 ng-click="$ctrl.updateTimeframe(timeframe.id)"
                 ng-class="{'gravitee-analytics-timeframe-active' : timeframe === $ctrl.timeframe}">
           {{timeframe.title}}

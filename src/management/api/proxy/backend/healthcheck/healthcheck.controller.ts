@@ -16,6 +16,7 @@
 import ApiService, { LogsQuery } from '../../../../../services/api.service';
 import * as moment from 'moment';
 import * as _ from 'lodash';
+import { StateService } from '@uirouter/core';
 
 class ApiHealthCheckController {
   private api: any;
@@ -29,7 +30,7 @@ class ApiHealthCheckController {
   constructor (
     private ApiService: ApiService,
     private $scope,
-    private $state: ng.ui.IStateService,
+    private $state: StateService,
     private ChartService,
     private $q
   ) {

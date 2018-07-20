@@ -16,13 +16,14 @@
 import RoleService from '../../../../services/role.service';
 import NotificationService from '../../../../services/notification.service';
 import _ = require('lodash');
+import { StateService } from '@uirouter/core';
 
 const RoleComponent: ng.IComponentOptions = {
   bindings: {},
   template: require('./role.html'),
   controller: function ( RoleService: RoleService,
                          NotificationService: NotificationService,
-                         $state: ng.ui.IStateService) {
+                         $state: StateService) {
     'ngInject';
     this.$onInit = () => {
       let that = this;

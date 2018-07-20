@@ -54,7 +54,7 @@
   </md-fab-trigger>
 
   <md-fab-actions>
-    <md-button ng-repeat="type in ['MARKDOWN', 'SWAGGER', 'RAML', 'FOLDER']" class="md-fab md-raised md-mini"  ng-click="documentationCtrl.showNewPageDialog(type)">
+    <md-button ng-repeat="type in ['MARKDOWN', 'SWAGGER', 'FOLDER']" class="md-fab md-raised md-mini"  ng-click="documentationCtrl.showNewPageDialog(type)">
       <md-tooltip md-direction="{{documentationCtrl.pages.length > 0 ? 'top' : 'right'}}">{{type}}</md-tooltip>
       <md-icon md-svg-src="assets/logo_{{type | lowercase}}.svg"></md-icon>
     </md-button>

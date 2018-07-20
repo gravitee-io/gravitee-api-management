@@ -16,8 +16,10 @@
 import UserService from './services/user.service';
 import { User } from './entities/user';
 import {IScope} from 'angular';
+import { StateService } from '@uirouter/core';
+import {StateProvider, UrlService} from "@uirouter/angularjs";
 
-function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: ng.ui.IUrlRouterProvider) {
+function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
   'ngInject';
   $stateProvider
     .state(
@@ -50,8 +52,8 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
           }
         },
         resolve: {
-          allMenuItems: ($state: ng.ui.IStateService) => $state.get(),
-          menuItems: ($state: ng.ui.IStateService, graviteeUser: User, Constants: any) => {
+          allMenuItems: ($state: StateService) => $state.get(),
+          menuItems: ($state: StateService, graviteeUser: User, Constants: any) => {
             'ngInject';
             return $state.get()
                   .filter((state: any) => !state.abstract && state.data && state.data.menu)
@@ -129,7 +131,7 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
     })
     .state('logout', {
       template: '<div class="gravitee-no-sidenav-container"></div>',
-      controller: (UserService: UserService, $state: ng.ui.IStateService, $rootScope: IScope, $window: ng.IWindowService, Constants: any) => {
+      controller: (UserService: UserService, $state: StateService, $rootScope: IScope, $window: ng.IWindowService, Constants: any) => {
         UserService.logout().then(
           () => {
             $state.go('portal.home');
@@ -150,7 +152,7 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
       controllerAs: 'supportTicketCtrl'
     });
 
-  $urlRouterProvider.otherwise('/');
+  $urlServiceProvider.rules.otherwise('/');
 }
 
 export default routerConfig;

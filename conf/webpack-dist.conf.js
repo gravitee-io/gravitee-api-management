@@ -20,7 +20,6 @@ const conf = require('./gulp.conf');
 const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const FailPlugin = require('webpack-fail-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const pkg = require('../package.json');
 const autoprefixer = require('autoprefixer');
@@ -30,22 +29,9 @@ let packages = Object.keys(pkg.dependencies);
 packages.splice(packages.indexOf('swagger-ui-dist'), 1);
 
 module.exports = {
+  mode: 'production',
   module: {
-    loaders: [
-      {
-        test: /\.json$/,
-        exclude: /constants\.json/,
-        loaders: [
-          'json-loader'
-        ]
-      },
-      {
-        test: /constants\.json$/,
-        exclude: /constants\.json/,
-        loaders: [
-          'url-loader'
-        ]
-      },
+    rules: [
       {
         test: /\.ts$/,
         exclude: /node_modules/,
@@ -57,23 +43,28 @@ module.exports = {
         loaders: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: 'css-loader!sass-loader!postcss-loader'
-        })
+        }),
+        include: [
+          path.resolve(__dirname, '..') + '/src/index.scss'
+        ]
       },
       {
         test: /\.ts$/,
         exclude: /node_modules/,
         loaders: [
           'ng-annotate-loader',
-          'ts-loader'
+          'ts-loader?transpileOnly=true'
         ]
       },
       {
         test: /\.html$/,
-        use: 'html-loader',
+        exclude: /node_modules/,
+        loader: 'html-loader',
         options: {
           minimize: true,
           removeComments: true,
-          collapseWhitespace: false
+          collapseWhitespace: true,
+          removeAttributeQuotes: true
         }
       },
       {
@@ -98,30 +89,23 @@ module.exports = {
       jQuery: 'jquery'
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.NoErrorsPlugin(),
-    FailPlugin,
+    new webpack.NoEmitOnErrorsPlugin(),
     new HtmlWebpackPlugin({
       template: conf.path.src('index.html')
     }),
-    new webpack.optimize.UglifyJsPlugin({
-      mangle: {except: ['$window', '$scope', 'ramlParser']},
-      output: {comments: false},
-      compress: {unused: true, dead_code: true, warnings: false, drop_console: true} // eslint-disable-line camelcase
-    }),
-    new ExtractTextPlugin('index-[contenthash].css'),
-    new webpack.optimize.CommonsChunkPlugin({name: 'vendor'}),
+    new ExtractTextPlugin('index-[hash].css'),
     new webpack.LoaderOptionsPlugin({
-      options: {
-        postcss: () => [autoprefixer],
-        resolve: {},
-        ts: {
-          configFileName: 'tsconfig.json'
-        },
-        tslint: {
-          configuration: require('../tslint.json')
+        options: {
+          postcss: () => [autoprefixer],
+          resolve: {},
+          ts: {
+            configFileName: 'tsconfig.json'
+          },
+          tslint: {
+            configuration: require('../tslint.json')
+          }
         }
-      }
-    }),
+      }),
     new CopyWebpackPlugin([
       {
         from: './constants.json',
@@ -163,7 +147,14 @@ module.exports = {
     app: `./${conf.path.src('index')}`
   },
   node: {
-    fs: 'empty'
+    fs: 'empty',
+    module: 'empty'
   },
-  externals: [{'api-console': {}, 'unicode': {}}]
+  externals: [{'api-console': {}, 'unicode': {}}],
+  optimization: {
+    minimize: true,
+    splitChunks: {
+      chunks: 'all'
+    }
+  }
 };

@@ -20,7 +20,7 @@ const WidgetComponent: ng.IComponentOptions = {
   bindings: {
     widget: '<'
   },
-  controller: function($scope: ng.IScope) {
+  controller: function($scope) {
     'ngInject';
 
     $scope.$on('gridster-resized', function () {

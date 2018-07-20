@@ -18,7 +18,7 @@ import {HookScope} from '../../../entities/hookScope';
 
 export default apisNotificationsRouterConfig;
 
-function apisNotificationsRouterConfig($stateProvider: ng.ui.IStateProvider) {
+function apisNotificationsRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.notifications', {
@@ -44,12 +44,12 @@ function apisNotificationsRouterConfig($stateProvider: ng.ui.IStateProvider) {
               response.data
             ),
         resolvedNotifiers:
-          (NotificationSettingsService: NotificationSettingsService, $stateParams: ng.ui.IStateParamsService) =>
+          (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
             NotificationSettingsService.getNotifiers(HookScope.API, $stateParams.apiId).then((response) =>
               response.data
             ),
         resolvedNotificationSettings:
-          (NotificationSettingsService: NotificationSettingsService, $stateParams: ng.ui.IStateParamsService) =>
+          (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
             NotificationSettingsService.getNotificationSettings(HookScope.API, $stateParams.apiId).then((response) =>
               response.data
             ),

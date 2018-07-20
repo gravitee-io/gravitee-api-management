@@ -17,6 +17,7 @@ import NotificationService from '../services/notification.service';
 import { User } from "../entities/user";
 import {IScope} from 'angular';
 import UserService from "../services/user.service";
+import { StateService } from '@uirouter/core';
 
 interface IUserScope extends ng.IScope {
   formUser: any;
@@ -29,7 +30,7 @@ class UserController {
   constructor(
     private UserService: UserService,
     private NotificationService: NotificationService,
-    private $state: ng.ui.IStateService,
+    private $state: StateService,
     private $scope: IUserScope,
     private $rootScope: IScope) {
     'ngInject';

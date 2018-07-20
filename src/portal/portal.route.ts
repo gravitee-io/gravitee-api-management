@@ -20,9 +20,8 @@ import PortalPagesService from "../services/portalPages.service";
 import ApplicationService from "../services/applications.service";
 import UserService from '../services/user.service';
 import _ = require('lodash');
-import PortalViewsController from "./views/views.controller";
 
-function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
+function portalRouterConfig($stateProvider) {
   'ngInject';
 
   $stateProvider
@@ -104,17 +103,17 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       controller: 'PortalViewController',
       controllerAs: 'viewCtrl',
       resolve: {
-        resolvedView: ($stateParams: ng.ui.IStateParamsService, ViewService: ViewService) => ViewService.get($stateParams.viewId),
-        resolvedApis: ($stateParams: ng.ui.IStateParamsService, ApiService:ApiService) => ApiService.list($stateParams.viewId)
+        resolvedView: ($stateParams, ViewService: ViewService) => ViewService.get($stateParams.viewId),
+        resolvedApis: ($stateParams, ApiService:ApiService) => ApiService.list($stateParams.viewId)
       }
     })
     .state('portal.api', {
       abstract: true,
       url: '/apis/:apiId',
       resolve: {
-        api: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        api: ($stateParams, ApiService: ApiService) =>
           ApiService.get($stateParams['apiId']).then(response => response.data),
-        apiRatingSummary: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) => {
+        apiRatingSummary: ($stateParams, ApiService: ApiService) => {
           return ApiService.isRatingEnabled()
             ? ApiService.getApiRatingSummaryByApi($stateParams['apiId']).then(response => response.data)
             : null;
@@ -143,11 +142,11 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
         'subContent': {component: 'apiPlans'}
       },
       resolve: {
-        plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        plans: ($stateParams, ApiService: ApiService) =>
           ApiService.getPublishedApiPlans($stateParams['apiId']).then(response => response.data),
-        homepage: ($stateParams: ng.ui.IStateParamsService, DocumentationService: DocumentationService) =>
+        homepage: ($stateParams, DocumentationService: DocumentationService) =>
           DocumentationService.getApiHomepage($stateParams['apiId']).then(response => response.data),
-        isAuthenticated: ($stateParams: ng.ui.IStateParamsService, UserService: UserService) =>
+        isAuthenticated: ($stateParams, UserService: UserService) =>
           UserService.isAuthenticated()
       }
     })
@@ -158,7 +157,7 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
         'content': {component: 'apiPages'}
       },
       resolve: {
-        pages: ($stateParams: ng.ui.IStateParamsService, DocumentationService: DocumentationService) =>
+        pages: ($stateParams, DocumentationService: DocumentationService) =>
           DocumentationService.listApiPages($stateParams['apiId']).then(response => response.data)
       },
     })
@@ -166,7 +165,7 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/:pageId',
       component: 'apiPage',
       resolve: {
-        page: ($stateParams: ng.ui.IStateParamsService, DocumentationService: DocumentationService) =>
+        page: ($stateParams, DocumentationService: DocumentationService) =>
           DocumentationService.get($stateParams['apiId'], $stateParams['pageId'], true).then(response => response.data)
       },
       params: {
@@ -188,7 +187,7 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/pages',
       component: 'pages',
       resolve: {
-        pages: ($stateParams: ng.ui.IStateParamsService, PortalPagesService: PortalPagesService) =>
+        pages: ($stateParams, PortalPagesService: PortalPagesService) =>
           PortalPagesService.listPortalDocumentation().then(response => response.data)
       },
     })
@@ -196,7 +195,7 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/:pageId',
       component: 'page',
       resolve: {
-        page: ($stateParams: ng.ui.IStateParamsService, PortalPagesService: PortalPagesService) =>
+        page: ($stateParams, PortalPagesService: PortalPagesService) =>
           PortalPagesService.get($stateParams['pageId']).then(response => response.data)
       },
       params: {
@@ -214,15 +213,15 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
         'content': {component: 'apiSubscribe'}
       },
       resolve: {
-        plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        plans: ($stateParams, ApiService: ApiService) =>
           ApiService.getPublishedApiPlans($stateParams['apiId']).then(response => response.data),
         applications: (ApplicationService: ApplicationService) =>
           ApplicationService.list().then(response => response.data),
         /*
-        plan: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        plan: ($stateParams, ApiService: ApiService) =>
           ApiService.getApiPlan($stateParams['apiId'], $stateParams['planId']).then(response => response.data),
 
-        subscriptions: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        subscriptions: ($stateParams, ApiService: ApiService) =>
           ApiService.getPlanSubscriptions($stateParams['apiId'], $stateParams['planId']).then(response => response.data)
         */
       }
@@ -240,11 +239,11 @@ function portalRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       },
       resolve: {
-        isAuthenticated: ($stateParams: ng.ui.IStateParamsService, UserService: UserService) =>
+        isAuthenticated: ($stateParams, UserService: UserService) =>
           UserService.isAuthenticated(),
-        rating: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        rating: ($stateParams, ApiService: ApiService) =>
           ApiService.getApiRatingForConnectedUser($stateParams['apiId']).then(response => response.data),
-        ratings: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        ratings: ($stateParams, ApiService: ApiService) =>
           ApiService.getApiRatings($stateParams['apiId'], $stateParams['pageNumber']).then(response => response.data)
       }
     });

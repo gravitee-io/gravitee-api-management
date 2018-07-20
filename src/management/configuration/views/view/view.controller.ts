@@ -17,6 +17,7 @@ import ViewService from '../../../../services/view.service';
 import NotificationService from '../../../../services/notification.service';
 import ApiService from "../../../../services/api.service";
 import * as _ from 'lodash';
+import { StateService } from '@uirouter/core';
 
 class ViewController {
   private createMode: boolean = false;
@@ -35,7 +36,7 @@ class ViewController {
     private NotificationService: NotificationService,
     private $q: ng.IQService,
     private $filter: ng.IFilterService,
-    private $state: ng.ui.IStateService,
+    private $state: StateService,
     private $location: ng.ILocationService,
     private $mdDialog: angular.material.IDialogService) {
     'ngInject';

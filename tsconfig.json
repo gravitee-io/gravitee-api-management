@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "typeRoots": ["node_modules/@types/"],
     "types": [
-      "angular-ui-router",
+      "@uirouter/angularjs",
       "angular",
       "angular-mocks",
       "angular-material",
@@ -19,9 +19,10 @@
     ]
   },
   "compileOnSave": false,
-  "filesGlob": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "!node_modules/**"
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

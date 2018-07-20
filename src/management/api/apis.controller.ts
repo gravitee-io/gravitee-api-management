@@ -16,6 +16,7 @@
 import * as _ from 'lodash';
 
 import UserService from '../../services/user.service';
+import { StateService } from '@uirouter/core';
 
 export class ApisController {
 
@@ -34,7 +35,7 @@ export class ApisController {
   constructor(private ApiService,
               private $mdDialog,
               private $scope,
-              private $state: ng.ui.IStateService,
+              private $state: StateService,
               private Constants,
               private Build,
               private resolvedApis,

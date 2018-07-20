@@ -19,7 +19,7 @@ import GroupService from '../../../services/group.service';
 
 export default apisPortalRouterConfig;
 
-function apisPortalRouterConfig($stateProvider: ng.ui.IStateProvider) {
+function apisPortalRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.portal', {
@@ -48,7 +48,7 @@ function apisPortalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/plans',
       template: '<div layout="column"><div ui-view></div></div>',
       resolve: {
-        api: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        api: ($stateParams, ApiService: ApiService) =>
           ApiService.get($stateParams.apiId).then(response => response.data)
       }
     })
@@ -56,7 +56,7 @@ function apisPortalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '?state',
       component: 'listPlans',
       resolve: {
-        plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        plans: ($stateParams, ApiService: ApiService) =>
           ApiService.getApiPlans($stateParams.apiId).then(response => response.data)
       },
       data: {
@@ -93,7 +93,7 @@ function apisPortalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/:planId/edit',
       component: 'editPlan',
       resolve: {
-        plan: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        plan: ($stateParams, ApiService: ApiService) =>
           ApiService.getApiPlan($stateParams.apiId, $stateParams.planId).then(response => response.data),
         groups: (GroupService: GroupService) => GroupService.list().then(response => response.data)
       },
@@ -111,7 +111,7 @@ function apisPortalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/subscriptions',
       template: '<div layout="column"><div ui-view></div></div>',
       resolve: {
-        api: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        api: ($stateParams, ApiService: ApiService) =>
           ApiService.get($stateParams.apiId).then(response => response.data)
       }
     })
@@ -119,13 +119,13 @@ function apisPortalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '',
       component: 'apiSubscriptions',
       resolve: {
-        subscriptions: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        subscriptions: ($stateParams, ApiService: ApiService) =>
           ApiService.getSubscriptions($stateParams.apiId).then(response => response.data),
 
-        subscribers: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        subscribers: ($stateParams, ApiService: ApiService) =>
           ApiService.getSubscribers($stateParams.apiId).then(response => response.data),
 
-        plans: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        plans: ($stateParams, ApiService: ApiService) =>
           ApiService.getApiPlans($stateParams.apiId).then(response => response.data)
       },
       data: {
@@ -141,7 +141,7 @@ function apisPortalRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/:subscriptionId',
       component: 'apiSubscription',
       resolve: {
-        subscription: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        subscription: ($stateParams, ApiService: ApiService) =>
           ApiService.getSubscription($stateParams.apiId, $stateParams.subscriptionId).then(response => response.data)
       },
       data: {

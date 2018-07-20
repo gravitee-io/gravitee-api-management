@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import * as _ from "lodash";
-import {instanceOfPatchedReference} from "raml-1-parser/dist/raml1/ast.core/referencePatcher";
 
 export class AuditQuery {
   from: Date;
   to: Date;
   page: number;
-
   mgmt: boolean = false;
   api: string = null;
   application: string = null;

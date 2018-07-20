@@ -23,7 +23,7 @@ import {HookScope} from '../../entities/hookScope';
 
 export default apisRouterConfig;
 
-function apisRouterConfig($stateProvider: ng.ui.IStateProvider) {
+function apisRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis', {

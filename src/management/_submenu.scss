@@ -1,5 +1,5 @@
 .aui-nav-heading {
-  color: #707070;
+  color: #707070 !important;
   font-size: 12px;
   font-weight: 700;
   line-height: 1.66666666666667;
@@ -17,11 +17,11 @@
 
 .aui-nav .aui-nav-selected>a {
   font-weight: 700;
-  color: #172B4D;
+  color: #172B4D !important;
 }
 
 .aui-nav>li>a {
-  color: #3572b0;
+  color: #3572b0 !important;
   display: block;
   line-height: 1.14285714285714;
   padding: 7px 10px;
@@ -31,7 +31,7 @@
 }
 
 .aui-nav>li>a:hover {
-  color: #0052CC;
+  color: #0052CC !important;
   background: rgba(9,30,66,.04);
 }
 

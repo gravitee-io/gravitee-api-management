@@ -16,6 +16,7 @@
 import * as _ from 'lodash';
 
 import ApplicationService from '../../../../services/applications.service';
+import { StateService } from '@uirouter/core';
 
 class ApplicationAnalyticsController {
 
@@ -24,7 +25,7 @@ class ApplicationAnalyticsController {
 
   constructor(
     private ApplicationService: ApplicationService,
-    private $state: ng.ui.IStateService,
+    private $state: StateService,
     private Constants: any
   ) {
     'ngInject';

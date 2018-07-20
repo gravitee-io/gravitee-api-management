@@ -22,7 +22,7 @@ import NotificationSettingsService from "../../services/notificationSettings.ser
 
 export default applicationsConfig;
 
-function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
+function applicationsConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.applications', {
@@ -69,7 +69,7 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/:applicationId',
       component: 'application',
       resolve: {
-        application: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
+        application: ($stateParams, ApplicationService: ApplicationService) =>
           ApplicationService.get($stateParams.applicationId).then(response => response.data),
         resolvedApplicationPermissions: (ApplicationService, $stateParams) => ApplicationService.getPermissions($stateParams.applicationId),
         onEnter: function (UserService, resolvedApplicationPermissions) {
@@ -123,7 +123,7 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       url: '',
       component: 'applicationSubscriptions',
       resolve: {
-        subscriptions: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
+        subscriptions: ($stateParams, ApplicationService: ApplicationService) =>
           ApplicationService.listSubscriptions($stateParams.applicationId).then(response => response.data)
       },
       data: {
@@ -144,7 +144,7 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/:subscriptionId',
       component: 'applicationSubscription',
       resolve: {
-        subscription: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
+        subscription: ($stateParams, ApplicationService: ApplicationService) =>
           ApplicationService.getSubscription($stateParams.applicationId, $stateParams.subscriptionId).then(response => response.data)
       },
       data: {
@@ -160,7 +160,7 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/members',
       component: 'applicationMembers',
       resolve: {
-        members: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
+        members: ($stateParams, ApplicationService: ApplicationService) =>
           ApplicationService.getMembers($stateParams.applicationId).then(response => response.data),
         resolvedGroups: (GroupService: GroupService) => {
           return GroupService.list().then(response => {
@@ -248,7 +248,7 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/logs/:logId',
       component: 'applicationLog',
       resolve: {
-        log: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
+        log: ($stateParams, ApplicationService: ApplicationService) =>
           ApplicationService.getLog($stateParams.applicationId, $stateParams.logId).then(response => response.data)
       },
       data: {
@@ -281,12 +281,12 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
               response.data
             ),
         resolvedNotifiers:
-          (NotificationSettingsService: NotificationSettingsService, $stateParams: ng.ui.IStateParamsService) =>
+          (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
             NotificationSettingsService.getNotifiers(HookScope.APPLICATION, $stateParams.applicationId).then( (response) =>
               response.data
             ),
         resolvedNotificationSettings:
-          (NotificationSettingsService: NotificationSettingsService, $stateParams: ng.ui.IStateParamsService) =>
+          (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
             NotificationSettingsService.getNotificationSettings(HookScope.APPLICATION, $stateParams.applicationId).then( (response) =>
               response.data
             )

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import {IScope, IWindowService} from "angular";
+import { StateService } from '@uirouter/core';
 
 export const SidenavComponent: ng.IComponentOptions = {
   template: require('./sidenav.html'),
@@ -25,7 +26,7 @@ export const SidenavComponent: ng.IComponentOptions = {
   controller: function(
     $window: IWindowService,
     $scope: IScope,
-    $state: ng.ui.IStateService,
+    $state: StateService,
     $rootScope: IScope) {
     'ngInject';
     const reduceModeKey = 'gv-sidenav-reduce-mode';

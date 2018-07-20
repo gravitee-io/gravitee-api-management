@@ -16,6 +16,7 @@
 import * as _ from 'lodash';
 import ApiService from "../../../../services/api.service";
 import NotificationService from "../../../../services/notification.service";
+import { StateService } from '@uirouter/core';
 
 class ApiCreationController {
 
@@ -61,7 +62,7 @@ class ApiCreationController {
               private $window,
               private ApiService: ApiService,
               private NotificationService: NotificationService,
-              private $state: ng.ui.IStateService,
+              private $state: StateService,
               private Constants: any) {
     'ngInject';
     this.api = {};
@@ -463,9 +464,6 @@ class ApiCreationController {
           case "MD" :
             file.type = 'MARKDOWN';
             break;
-          case "RAML" :
-            file.type = 'RAML';
-            break;
           case "YAML" :
           case "YML" :
           case "JSON" :
@@ -475,7 +473,7 @@ class ApiCreationController {
         if (file.type) {
           that.selectFile(file);
         } else {
-          that.NotificationService.showError("Only Markdown, Swagger and Raml file are supported");
+          that.NotificationService.showError("Only Markdown and OpenAPI file are supported");
         }
       }
     });

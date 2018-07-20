@@ -431,7 +431,7 @@ class ApiPoliciesController {
     switch (ev.keyCode) {
       case 13: //enter
         if (!el.$invalid) {
-          const oldPath = this.sortedPaths()[index];
+          const oldPath: any = this.sortedPaths()[index];
           this.apiPoliciesByPath[newPath] = this.apiPoliciesByPath[oldPath];
           delete this.apiPoliciesByPath[oldPath];
           this.savePaths();

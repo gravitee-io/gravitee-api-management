@@ -21,6 +21,7 @@ import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
 import GroupService from "../../../../services/group.service";
 import UserService from "../../../../services/user.service";
+import { StateService } from '@uirouter/core';
 
 class ApplicationMembersController {
   private application: any;
@@ -39,7 +40,7 @@ class ApplicationMembersController {
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
     private $mdDialog: angular.material.IDialogService,
-    private $state: ng.ui.IStateService,
+    private $state: StateService,
     private RoleService: RoleService,
     private GroupService: GroupService,
     private UserService: UserService

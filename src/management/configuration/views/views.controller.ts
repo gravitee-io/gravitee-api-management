@@ -16,6 +16,7 @@
 import * as _ from 'lodash';
 import ViewService from '../../../services/view.service';
 import NotificationService from '../../../services/notification.service';
+import { StateService } from '@uirouter/core';
 
 class ViewsController {
   private viewsToUpdate: any[];
@@ -27,7 +28,7 @@ class ViewsController {
     private $q: ng.IQService,
     private $mdEditDialog,
     private $mdDialog: angular.material.IDialogService,
-    private $state: ng.ui.IStateService) {
+    private $state: StateService) {
     'ngInject';
 
     this.viewsToUpdate = [];

@@ -17,6 +17,7 @@ import _ = require('lodash');
 import GroupService from "../../../services/group.service";
 import NotificationService from "../../../services/notification.service";
 import UserService from "../../../services/user.service";
+import { StateService } from '@uirouter/core';
 
 const GroupsComponent: ng.IComponentOptions = {
   bindings: {
@@ -28,7 +29,7 @@ const GroupsComponent: ng.IComponentOptions = {
     UserService: UserService,
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
-    $state: ng.ui.IStateService
+    $state: StateService
   ) {
     'ngInject';
 

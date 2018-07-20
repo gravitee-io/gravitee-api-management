@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import GroupService from "../../../services/group.service";
 import NotificationService from "../../../services/notification.service";
 import UserService from "../../../services/user.service";
-import {IScope} from "angular";
 import RoleService from "../../../services/role.service";
 
 const UserDetailComponent: ng.IComponentOptions = {
@@ -36,7 +34,7 @@ const UserDetailComponent: ng.IComponentOptions = {
     GroupService: GroupService,
     UserService: UserService,
     RoleService: RoleService,
-    $scope: IScope
+    $scope
   ) {
     'ngInject';
     this.$onInit = () => {

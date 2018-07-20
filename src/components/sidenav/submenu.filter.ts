@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import UserService from '../../services/user.service';
+import { StateService } from '@uirouter/core';
 
-export const submenuFilter = function ($state: ng.ui.IStateService, UserService: UserService) {
+export const submenuFilter = function ($state: StateService, UserService: UserService) {
   'ngInject';
-  return function (menuItems: ng.ui.IState[]) {
+  return function (menuItems) {
     let universeLevels: string[] = $state.current.name.split('.').splice(0, 2);
     let hasId = 'apiId' in $state.params || 'applicationId' in $state.params || 'instanceId' in $state.params;
 

@@ -15,14 +15,18 @@
  */
 import * as _ from 'lodash';
 import UserService from "../../../services/user.service";
-import {IScope} from "angular";
+
+export class Role {
+  default: boolean;
+  name: string;
+}
 
 function DialogAddGroupMemberController(
   $mdDialog: angular.material.IDialogService,
   UserService: UserService,
   group: any,
-  apiRoles: any[],
-  applicationRoles: any[]
+  apiRoles: Role[],
+  applicationRoles: Role[]
   ) {
   'ngInject';
 

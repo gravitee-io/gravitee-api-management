@@ -86,14 +86,14 @@ class PageController {
     FetcherService.list().then(response => {
       this.fetchers = response.data;
       if ( $state.current.name === 'management.apis.detail.portal.documentation.new' ) {
-        if (['SWAGGER', 'RAML', 'MARKDOWN', 'FOLDER'].indexOf($state.params.type) === -1) {
+        if (['SWAGGER', 'MARKDOWN', 'FOLDER'].indexOf($state.params.type) === -1) {
           $state.go('apis.admin.documentation');
         }
         this.createMode = true;
         this.page = { type: this.$state.params.type };
         this.initialPage = _.clone(this.page);
         this.edit();
-        
+
         this.loadFolders();
       } else {
         this.preview();
@@ -125,7 +125,7 @@ class PageController {
       (folderMap: Map<string, string>) => {
         this.folderName = folderMap.get(this.page.parentId);
         this.folderMap = folderMap;
-        
+
         this.folderEntries = [];
         folderMap.forEach((value, key, map) => {
           this.folderEntries.push({id: key, name: value});
@@ -220,8 +220,6 @@ class PageController {
       this.codeMirrorOptions.mode = 'gfm';
     } else if (this.page.type === 'SWAGGER') {
       this.codeMirrorOptions.mode = 'javascript';
-    } else if (this.page.type === 'RAML') {
-      this.codeMirrorOptions.mode = 'yaml';
     }
     this.editMode = true;
     this.$scope.$parent.listPagesDisplayed = false;

@@ -15,8 +15,9 @@
  */
 const webpack = require('webpack');
 module.exports = {
+  mode: 'development',
   module: {
-    loaders: [
+    rules: [
       {
         test: /.json$/,
         loaders: [

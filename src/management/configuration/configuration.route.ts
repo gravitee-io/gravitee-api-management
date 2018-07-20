@@ -29,7 +29,7 @@ import _ = require('lodash');
 
 export default configurationRouterConfig;
 
-function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
+function configurationRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.settings', {
@@ -86,8 +86,8 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/views/:viewId',
       component: 'view',
       resolve: {
-        view: (ViewService: ViewService, $stateParams: ng.ui.IStateParamsService) => ViewService.get($stateParams.viewId).then(response => response.data),
-        viewApis: (ApiService: ApiService, $stateParams: ng.ui.IStateParamsService) => ApiService.list($stateParams.viewId).then(response => response.data)
+        view: (ViewService: ViewService, $stateParams) => ViewService.get($stateParams.viewId).then(response => response.data),
+        viewApis: (ApiService: ApiService, $stateParams) => ApiService.list($stateParams.viewId).then(response => response.data)
       },
       data: {
         menu: null,
@@ -153,11 +153,11 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/groups/:groupId',
       component: 'group',
       resolve: {
-        group: (GroupService: GroupService, $stateParams: ng.ui.IStateParamsService) =>
+        group: (GroupService: GroupService, $stateParams) =>
           GroupService.get($stateParams.groupId).then(response =>
             response.data
           ),
-        members: (GroupService: GroupService, $stateParams: ng.ui.IStateParamsService) =>
+        members: (GroupService: GroupService, $stateParams) =>
           GroupService.getMembers($stateParams.groupId).then(response =>
             response.data
           ),
@@ -309,7 +309,7 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       },
       resolve: {
-        members: (RoleService: RoleService, $stateParams: ng.ui.IStateParamsService) =>
+        members: (RoleService: RoleService, $stateParams) =>
           RoleService.listUsers($stateParams.roleScope, $stateParams.role).then( (response) =>
             response
         )
@@ -382,11 +382,11 @@ function configurationRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/users/:userId',
       component: 'userDetail',
       resolve: {
-        selectedUser: (UserService: UserService, $stateParams: ng.ui.IStateParamsService) =>
+        selectedUser: (UserService: UserService, $stateParams) =>
           UserService.get($stateParams.userId).then(response =>
             response
           ),
-        groups: (UserService: UserService, $stateParams: ng.ui.IStateParamsService) =>
+        groups: (UserService: UserService, $stateParams) =>
           UserService.getUserGroups($stateParams.userId).then(response =>
             response.data
           ),

@@ -18,6 +18,7 @@ import angular = require('angular');
 import UserService from '../../../../services/user.service';
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
+import { StateService } from '@uirouter/core';
 
 class ApiListPlansController {
   private api: any;
@@ -29,10 +30,10 @@ class ApiListPlansController {
   private filteredPlans: any;
 
   constructor(
-    private $scope: ng.IScope,
+    private $scope,
     private $rootScope: ng.IRootScopeService,
-    private $state: ng.ui.IStateService,
-    private $stateParams: ng.ui.IStateParamsService,
+    private $state: StateService,
+    private $stateParams,
     private $mdDialog: angular.material.IDialogService,
     private dragularService,
     private NotificationService: NotificationService,

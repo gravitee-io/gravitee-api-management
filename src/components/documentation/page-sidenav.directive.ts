@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import * as _ from 'lodash';
 import * as angular from 'angular';
 
@@ -88,7 +87,7 @@ const PageSidenavDirective: ng.IDirective = ({
         };
 
         angular.element(ctr.$window).bind("scroll", function () {
-          if (this.pageYOffset > 280) {
+          if (ctr.$window.pageYOffset > 280) {
             sidenav.addClass('sidenav-fixed');
           } else {
             sidenav.removeClass('sidenav-fixed');

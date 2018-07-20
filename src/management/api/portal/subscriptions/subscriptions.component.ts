@@ -17,6 +17,7 @@ import _ = require('lodash');
 import ApiService from "../../../../services/api.service";
 import NotificationService from "../../../../services/notification.service";
 import { PagedResult } from "../../../../entities/pagedResult";
+import { StateService } from '@uirouter/core';
 
 export class SubscriptionQuery {
   status?: string[] = ['ACCEPTED', 'PENDING'];
@@ -54,7 +55,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       private ApiService: ApiService,
       private NotificationService: NotificationService,
       private $mdDialog: angular.material.IDialogService,
-      private $state: ng.ui.IStateService
+      private $state: StateService
     ) {
       'ngInject';
 
@@ -94,8 +95,8 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
         parameters['plan'] = this.query.plans.join(',');
       }
 
-      _.mapKeys(parameters, function( value, key ) {
-        query += key + '=' + value + '&';
+      _.mapKeys(parameters, (value, key ) => {
+        return query += key + '=' + value + '&';
       });
 
       return query;

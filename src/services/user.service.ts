@@ -19,6 +19,7 @@ import ApplicationService from './applications.service';
 import ApiService from './api.service';
 import _ = require('lodash');
 import StringService from './string.service';
+import {UrlService} from "@uirouter/angularjs";
 
 class UserService {
   private baseURL: string;
@@ -38,7 +39,7 @@ class UserService {
               Constants,
               private RoleService: RoleService,
               private PermPermissionStore,
-              private $urlRouter: ng.ui.IUrlRouterService,
+              private $urlService: UrlService,
               private ApplicationService: ApplicationService,
               private ApiService: ApiService,
               private $location,
@@ -141,8 +142,8 @@ class UserService {
           return that.currentUser;
         }).finally(() => {
           if (!that.routerInitialized) {
-            that.$urlRouter.sync();
-            that.$urlRouter.listen();
+            that.$urlService.sync();
+            that.$urlService.listen();
             that.routerInitialized = true;
           }
         });

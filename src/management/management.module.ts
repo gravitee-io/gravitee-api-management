@@ -28,10 +28,6 @@ import * as traverse from 'traverse';
 
 (<any>window).traverse = traverse;
 
-import * as RAML from 'raml-1-parser';
-
-(<any>window).RAML = {Parser: RAML};
-
 import * as marked from 'marked';
 
 (<any>window).marked = marked;
@@ -69,8 +65,6 @@ require('codemirror/addon/display/placeholder.js');
   return url.startsWith('http') ? url : (<any>window).location.origin + url;
 };
 
-require('api-console/dist/scripts/api-console.js');
-
 require('angular-material-icons');
 require('angular-material-data-table');
 require('angular-cookies');
@@ -104,7 +98,6 @@ require('angular-gridster');
 require('angular-scroll');
 require('diff/dist/diff.min.js');
 require('angular-loading-bar');
-require('angular-loading-bar/build/loading-bar.css');
 
 // Highcharts
 
@@ -337,7 +330,6 @@ import NotificationSettingsService from "../services/notificationSettings.servic
 // Documentation
 import PageComponent from '../components/documentation/page.component';
 import PageSwaggerComponent from '../components/documentation/page-swagger.component';
-import PageRamlComponent from '../components/documentation/page-raml.component';
 import PageMarkdownComponent from '../components/documentation/page-markdown.component';
 import PageSidenavDirective from '../components/documentation/page-sidenav.directive';
 
@@ -383,7 +375,7 @@ import interceptorConfig from './management.interceptor';
 import delegatorConfig from './management.delegator';
 import runBlock from './management.run';
 
-import uiRouter from 'angular-ui-router';
+import uiRouter from '@uirouter/angularjs';
 import {permission, uiPermission} from 'angular-permission';
 import ApiHeaderController from './api/header/api-header.controller';
 
@@ -402,7 +394,7 @@ import PortalSettingsComponent from "./configuration/portal/portal.component";
 import DialogAddPathMappingController from "./api/analytics/pathMappings/modal/add-pathMapping.dialog.controller";
 import DialogImportPathMappingController from "./api/analytics/pathMappings/modal/import-pathMapping.dialog.controller";
 
-angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown',
+angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
   'utf8-base64', 'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
@@ -645,7 +637,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvPage', PageComponent)
   .component('gvPageMarkdown', PageMarkdownComponent)
   .component('gvPageSwagger', PageSwaggerComponent)
-  .component('gvPageRaml', PageRamlComponent)
   .directive('gvPageSidenav', () => PageSidenavDirective)
 
   .component('gvSidenav', SidenavComponent)

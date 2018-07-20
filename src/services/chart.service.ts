@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 class ChartService {
-  private colorByBucket: [string];
-  private bgColorByBucket: [string];
+  private colorByBucket: string[];
+  private bgColorByBucket: string[];
 
   constructor() {
     'ngInject';

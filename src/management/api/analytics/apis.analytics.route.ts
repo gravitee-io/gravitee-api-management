@@ -17,7 +17,7 @@ import ApiService from '../../../services/api.service';
 
 export default apisAnalyticsRouterConfig;
 
-function apisAnalyticsRouterConfig($stateProvider: ng.ui.IStateProvider) {
+function apisAnalyticsRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.analytics', {
@@ -87,7 +87,7 @@ function apisAnalyticsRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/logs/:logId',
       component: 'log',
       resolve: {
-        log: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        log: ($stateParams, ApiService: ApiService) =>
           ApiService.getLog($stateParams['apiId'], $stateParams['logId']).then(response => response.data)
       },
       data: {

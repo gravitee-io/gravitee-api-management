@@ -15,6 +15,17 @@
  */
 import _ = require('lodash');
 
+export interface IStarRatingScope extends ng.IScope {
+  summary: any;
+  value: any;
+  initialValue: any;
+  starsValue: any;
+  lightStarsStyle: any;
+  isReadonly: boolean;
+  setValue: any;
+  selectValue: any;
+}
+
 const StarRatingDirective: ng.IDirective = ({
   restrict: 'EA',
   scope: {
@@ -25,7 +36,7 @@ const StarRatingDirective: ng.IDirective = ({
     'displayNoneMessage': '=displayNoneMessage',
     'isReadonly': '=isReadonly'
   },
-  link: function (scope) {
+  link: function (scope: IStarRatingScope) {
     if (scope.summary) {
       scope.value = scope.summary.averageRate;
     }

@@ -16,7 +16,8 @@
 import AuthenticationService from '../../services/authentication.service';
 import UserService from '../../services/user.service';
 import {IScope} from 'angular';
-import _ = require('lodash');
+import { StateService } from '@uirouter/core';
+
 
 class LoginController {
   user: any = {};
@@ -31,7 +32,7 @@ class LoginController {
 
   constructor(
     private UserService: UserService,
-    private $state: ng.ui.IStateService,
+    private $state: StateService,
     Constants,
     private $rootScope: IScope,
     private AuthenticationService: AuthenticationService
@@ -56,7 +57,7 @@ class LoginController {
   };
 
   login() {
-    this.UserService.login(this.user).then((response) => {
+    this.UserService.login(this.user).then(() => {
       this.UserService.current().then( () => {
         this.$rootScope.$broadcast('graviteeUserRefresh');
         this.$state.go('portal.home');

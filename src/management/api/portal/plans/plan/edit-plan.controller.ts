@@ -16,6 +16,7 @@
 import _ = require('lodash');
 import ApiService from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
+import { StateService } from '@uirouter/core';
 
 class ApiEditPlanController {
 
@@ -38,9 +39,9 @@ class ApiEditPlanController {
   };
 
   constructor(
-    private $scope: ng.IScope,
-    private $state: ng.ui.IStateService,
-    private $stateParams: ng.ui.IStateParamsService,
+    private $scope,
+    private $state: StateService,
+    private $stateParams,
     private $timeout: ng.ITimeoutService,
     private ApiService: ApiService,
     private NotificationService: NotificationService

@@ -2,10 +2,6 @@
   font-size: 14px;
 }
 
-.raml-console-show-more-less {
-  display: none;
-}
-
 .sidenav-fixed {
   position:fixed;
   top: 60px;
@@ -179,7 +175,7 @@
     border: initial;
   }
 
-  @import '~swagger-ui-dist/swagger-ui';
+  @import '~swagger-ui-dist/swagger-ui.css';
 
   a.tablelinks {
     color: #3b4151;
@@ -196,7 +192,7 @@
   div.response-content-type.controls-accept-header small {
     font-size: 0.8em;
   }
-  
+
   td.col.parameters-col_description {
     font-size: 0.8em;
   }

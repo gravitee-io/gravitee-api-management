@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import { StateService } from '@uirouter/core';
 
 class DashboardFilterController {
   private fields: any;
   private filters: any[];
   private onFilterChange: any;
 
-  constructor(private $rootScope, private $state: ng.ui.IStateService) {
+  constructor(private $rootScope, private $state: StateService) {
     'ngInject';
 
     this.fields = {};

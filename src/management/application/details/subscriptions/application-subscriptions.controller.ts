@@ -84,8 +84,8 @@ class ApplicationSubscriptionsController {
       parameters['api'] = this.query.apis.join(',');
     }
 
-    _.mapKeys(parameters, function( value, key ) {
-      query += key + '=' + value + '&';
+    _.mapKeys(parameters, (value, key ) => {
+      return query += key + '=' + value + '&';
     });
 
     return query;

@@ -19,7 +19,7 @@ import ApiService from "../services/api.service";
 import ApplicationService from "../services/applications.service";
 import {User} from "../entities/user";
 
-function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
+function managementRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management', {
@@ -61,7 +61,7 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
       url: '/:instanceId',
       component: 'instance',
       resolve: {
-        instance: ($stateParams: ng.ui.IStateParamsService, InstancesService: InstancesService) =>
+        instance: ($stateParams, InstancesService: InstancesService) =>
           InstancesService.get($stateParams['instanceId']).then(response => response.data)
       }
     })
@@ -91,7 +91,7 @@ function managementRouterConfig($stateProvider: ng.ui.IStateProvider) {
         }
       },
       resolve: {
-        monitoringData: ($stateParams: ng.ui.IStateParamsService, InstancesService: InstancesService, instance: any) =>
+        monitoringData: ($stateParams, InstancesService: InstancesService, instance: any) =>
           InstancesService.getMonitoringData($stateParams['instanceId'], instance.id).then(response => response.data)
       }
     })

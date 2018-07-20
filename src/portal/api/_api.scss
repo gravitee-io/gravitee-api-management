@@ -213,6 +213,12 @@ a.ui.label:focus, a.ui.label:hover {
  */
 .api-nav {
   background: #2c3943;
+  height: 47px;
+  position: relative;
+
+  ul {
+    display: initial;
+  }
 }
 
 .api-nav ul li:first-child {
@@ -333,7 +339,7 @@ a.ui.label:focus, a.ui.label:hover {
   width: 75px;
   height: 75px;
   text-align: center;
-  padding: 14px 0;
+  padding: 14px 22px;
   font-size: 28px;
   border-radius: 50%;
   box-shadow: inset 0px 0px 0px 3px #fff !important;

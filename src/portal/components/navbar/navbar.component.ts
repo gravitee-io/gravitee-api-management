@@ -19,6 +19,8 @@ import {IIntervalService, IScope} from "angular";
 import {PagedResult} from "../../../entities/pagedResult";
 import UserNotificationService from "../../../services/userNotification.service";
 import AuthenticationService from '../../../services/authentication.service';
+import { StateService } from '@uirouter/core';
+
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),
   controller: function(
@@ -28,7 +30,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     $scope: IScope,
     Constants,
     $rootScope: IScope,
-    $state: ng.ui.IStateService,
+    $state: StateService,
     $transitions,
     $interval: IIntervalService,
     AuthenticationService: AuthenticationService

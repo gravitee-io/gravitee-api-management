@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import moment = require('moment');
+import { StateService } from '@uirouter/core';
 
 interface Timeframe {
   id: string,
@@ -33,9 +34,9 @@ class LogsTimeframeController {
   private onTimeframeChange: any;
 
   constructor(
-    private $scope: ng.IScope,
+    private $scope,
     private $rootScope,
-    private $state: ng.ui.IStateService,
+    private $state: StateService,
     private $timeout: ng.ITimeoutService) {
     'ngInject';
 

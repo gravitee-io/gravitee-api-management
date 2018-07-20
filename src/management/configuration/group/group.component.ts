@@ -15,6 +15,7 @@
  */
 import GroupService from "../../../services/group.service";
 import NotificationService from "../../../services/notification.service";
+import { StateService } from '@uirouter/core';
 
 const GroupComponent: ng.IComponentOptions = {
   bindings: {
@@ -28,7 +29,7 @@ const GroupComponent: ng.IComponentOptions = {
     GroupService: GroupService,
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
-    $state: ng.ui.IStateService
+    $state: StateService
   ) {
     'ngInject';
 

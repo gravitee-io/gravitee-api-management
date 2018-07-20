@@ -15,6 +15,7 @@
  */
 import _ = require('lodash');
 import moment = require("moment");
+import { StateService } from '@uirouter/core';
 
 import ApplicationService, { LogsQuery } from "../../../../services/applications.service";
 
@@ -26,7 +27,7 @@ class ApplicationLogsController {
 
   constructor(
     private ApplicationService: ApplicationService,
-    private $state: ng.ui.IStateService
+    private $state: StateService
   ) {
   'ngInject';
     this.ApplicationService = ApplicationService;

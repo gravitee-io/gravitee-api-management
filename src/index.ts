@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 import angular = require('angular');
+import _ = require('lodash');
+
+// fix angular-schema-form angular<1.7
+angular.uppercase = _.toUpper;
+angular.lowercase = _.toLower;
 
 import './index.scss';
 
 import './portal/portal.module';
 import './management/management.module';
-import _ = require('lodash');
 
 let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
 let $http: ng.IHttpService = initInjector.get('$http');

@@ -18,7 +18,7 @@ import ApiService from '../../../services/api.service';
 
 export default apisProxyRouterConfig;
 
-function apisProxyRouterConfig($stateProvider: ng.ui.IStateProvider) {
+function apisProxyRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.proxy', {
@@ -190,7 +190,7 @@ function apisProxyRouterConfig($stateProvider: ng.ui.IStateProvider) {
       controller: 'ApiHealthCheckLogController',
       controllerAs: 'healthCheckLogCtrl',
       resolve: {
-        resolvedLog: ($stateParams: ng.ui.IStateParamsService, ApiService: ApiService) =>
+        resolvedLog: ($stateParams, ApiService: ApiService) =>
           ApiService.getHealthLog($stateParams['apiId'], $stateParams['log'])
       },
       data: {

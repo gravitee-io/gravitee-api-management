@@ -76,7 +76,7 @@ class NewPageController {
     FetcherService.list().then(response => {
       this.fetchers = response.data;
       if ( $state.current.name === 'management.settings.pages.new' ) {
-        if (['SWAGGER', 'RAML', 'MARKDOWN', 'FOLDER'].indexOf($state.params.type) === -1) {
+        if (['SWAGGER', 'MARKDOWN', 'FOLDER'].indexOf($state.params.type) === -1) {
           $state.go('management.settings.pages');
         }
         this.createMode = true;
@@ -116,7 +116,7 @@ class NewPageController {
       (folderMap: Map<string, string>) => {
         this.folderName = folderMap.get(this.page.parentId);
         this.folderMap = folderMap;
-        
+
         this.folderEntries = [];
         folderMap.forEach((value, key, map) => {
           this.folderEntries.push({id: key, name: value});
@@ -206,8 +206,6 @@ class NewPageController {
       this.codeMirrorOptions.mode = 'gfm';
     } else if (this.page.type === 'SWAGGER') {
       this.codeMirrorOptions.mode = 'javascript';
-    } else if (this.page.type === 'RAML') {
-      this.codeMirrorOptions.mode = 'yaml';
     }
     this.editMode = true;
     this.$scope.$parent.listPagesDisplayed = false;

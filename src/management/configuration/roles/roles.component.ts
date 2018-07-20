@@ -16,6 +16,7 @@
 import _ = require('lodash');
 import RoleService from "../../../services/role.service";
 import NotificationService from "../../../services/notification.service";
+import { StateService } from '@uirouter/core';
 
 const RolesComponent: ng.IComponentOptions = {
   bindings: {
@@ -30,7 +31,7 @@ const RolesComponent: ng.IComponentOptions = {
     RoleService: RoleService,
     $mdDialog: angular.material.IDialogService,
     NotificationService: NotificationService,
-    $state: ng.ui.IStateService
+    $state: StateService
   ) {
     'ngInject';
     this.rolesByScope = {};

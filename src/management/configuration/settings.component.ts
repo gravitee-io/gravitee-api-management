@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import SidenavService from "../../components/sidenav/sidenav.service";
 import {IScope} from "angular";
 import UserService from "../../services/user.service";
 import _ = require('lodash');
+import { StateService } from '@uirouter/core';
 
 const SettingsComponent: ng.IComponentOptions = {
 
@@ -25,7 +25,7 @@ const SettingsComponent: ng.IComponentOptions = {
   controller: function (
     $rootScope: IScope,
     SidenavService: SidenavService,
-    $state: ng.ui.IStateService,
+    $state: StateService,
     UserService: UserService
   ) {
     'ngInject';

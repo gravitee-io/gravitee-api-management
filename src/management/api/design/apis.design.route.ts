@@ -18,7 +18,7 @@ import ResourceService from '../../../services/resource.service';
 
 export default apisDesignRouterConfig;
 
-function apisDesignRouterConfig($stateProvider: ng.ui.IStateProvider) {
+function apisDesignRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.design', {

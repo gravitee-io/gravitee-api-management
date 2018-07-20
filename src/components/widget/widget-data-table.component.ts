@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import { StateService } from '@uirouter/core';
 
 const WidgetDataTableComponent: ng.IComponentOptions = {
   template: require('./widget-data-table.html'),
@@ -23,7 +24,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget'
   },
-  controller: function($scope: ng.IScope, $state: ng.ui.IStateService) {
+  controller: function($scope, $state: StateService) {
     'ngInject';
 
     this.$scope = $scope;

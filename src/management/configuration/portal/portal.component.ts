@@ -15,6 +15,7 @@
  */
 import NotificationService from "../../../services/notification.service";
 import PortalConfigService from "../../../services/portalConfig.service";
+import { StateService } from '@uirouter/core';
 
 const PortalSettingsComponent: ng.IComponentOptions = {
   bindings: {
@@ -23,7 +24,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
   controller: function(
     NotificationService: NotificationService,
     PortalConfigService: PortalConfigService,
-    $state: ng.ui.IStateService,
+    $state: StateService,
     Constants: any
   ) {
     'ngInject';

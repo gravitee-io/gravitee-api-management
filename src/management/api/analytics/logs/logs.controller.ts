@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import ApiService, { LogsQuery } from '../../../../services/api.service';
+import { StateService } from '@uirouter/core';
 
 class ApiLogsController {
 
@@ -25,7 +26,7 @@ class ApiLogsController {
     private ApiService: ApiService,
     private resolvedApi,
     private $scope,
-    private $state: ng.ui.IStateService
+    private $state: StateService
   ) {
   'ngInject';
     this.ApiService = ApiService;

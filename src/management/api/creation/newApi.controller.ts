@@ -443,9 +443,6 @@ class NewApiController {
           case "MD" :
             file.type = 'MARKDOWN';
             break;
-          case "RAML" :
-            file.type = 'RAML';
-            break;
           case "YAML" :
           case "YML" :
           case "JSON" :
@@ -455,7 +452,7 @@ class NewApiController {
         if (file.type) {
           that.selectFile(file);
         } else {
-          that.NotificationService.showError("Only Markdown, Swagger and Raml file are supported");
+          that.NotificationService.showError("Only Markdown and OpenAPI file are supported");
         }
       }
     });

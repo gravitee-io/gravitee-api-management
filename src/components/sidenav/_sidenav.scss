@@ -107,6 +107,7 @@ md-sidenav:not(._md-locked-open) {
     &.sidenav-active {
       border-left: $sidenavItemBorderSize solid $fontColor;
       padding-left: calc(#{$sidenavItemLeftWidth} - #{$sidenavItemBorderSize});
+      padding-top: 3px;
     }
   }
 
@@ -119,6 +120,7 @@ md-sidenav:not(._md-locked-open) {
   }
 
   hr {
+    background-color: white;
     width: 90%;
   }
 

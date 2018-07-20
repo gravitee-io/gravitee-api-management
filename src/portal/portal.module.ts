@@ -51,7 +51,7 @@ import PageComponent from './pages/page.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import ThemeElementDirective from './components/theme/theme-element.directive';
 
-import uiRouter from 'angular-ui-router';
+import uiRouter from '@uirouter/angularjs';
 import {permission, uiPermission} from 'angular-permission';
 import StarRatingDirective from "./components/starRating/star.rating.directive";
 

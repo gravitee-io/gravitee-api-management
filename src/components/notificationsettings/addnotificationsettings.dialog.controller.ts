@@ -16,7 +16,7 @@
 import {Notifier} from "../../entities/notifier";
 
 function DialogAddNotificationSettingsController(
-  $scope: ng.IScope,
+  $scope,
   $mdDialog: angular.material.IDialogService,
   notifiers: Notifier[]) {
 

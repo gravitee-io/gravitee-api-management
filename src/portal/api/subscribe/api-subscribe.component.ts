@@ -40,12 +40,11 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
     private requestMessage: string;
 
     constructor(
-      private $stateParams: ng.ui.IStateParamsService,
+      private $stateParams,
       private NotificationService: NotificationService,
       private ApplicationService: ApplicationService,
       private ApiService: ApiService,
-      private Constants,
-      private $scope: ng.IScope) {
+      private Constants) {
       'ngInject';
     }
 

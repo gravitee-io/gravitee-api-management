@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import * as angular from 'angular';
+import { StateService } from '@uirouter/core';
 
 class ApiHistoryController {
   private api: any;
@@ -36,7 +37,7 @@ class ApiHistoryController {
     private $mdDialog: ng.material.IDialogService,
     private $scope: any,
     private $rootScope: ng.IRootScopeService,
-    private $state: ng.ui.IStateService,
+    private $state: StateService,
     private ApiService,
     private NotificationService,
     private resolvedEvents,

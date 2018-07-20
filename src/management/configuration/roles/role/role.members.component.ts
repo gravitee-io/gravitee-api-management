@@ -15,6 +15,7 @@
  */
 import RoleService from "../../../../services/role.service";
 import NotificationService from "../../../../services/notification.service";
+import { StateService } from '@uirouter/core';
 
 const RoleMembersComponent: ng.IComponentOptions = {
   bindings: {
@@ -24,8 +25,8 @@ const RoleMembersComponent: ng.IComponentOptions = {
   controller: function ( RoleService: RoleService,
                          $mdDialog: angular.material.IDialogService,
                          NotificationService: NotificationService,
-                         $state: ng.ui.IStateService,
-                         $stateParams: ng.ui.IStateParamsService) {
+                         $state: StateService,
+                         $stateParams) {
     'ngInject';
     this.roleScope = $stateParams.roleScope;
     this.role = $stateParams.role;

@@ -13,25 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-const PageRamlComponent: ng.IComponentOptions = {
-  template: require('./page-raml.html'),
-  bindings: {
-    page: '<'
-  },
-  controller: function(Constants, $state: ng.ui.IStateService) {
-    'ngInject';
-
-    this.$onInit = function() {
-      if (this.page === undefined) {
-        this.url = Constants.baseURL + 'apis/' + $state.params['apiId'] + '/pages/' + $state.params['pageId'] + '/content';
-      } else {
-        if (this.page.id) {
-          this.url = Constants.baseURL + 'apis/' + $state.params['apiId'] + '/pages/' + this.page.id + '/content';
-        }
-      }
-    };
-  }
+module.exports = {
+  plugins: [
+  ]
 };
-
-export default PageRamlComponent;

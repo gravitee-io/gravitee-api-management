@@ -18,6 +18,7 @@ import * as _ from 'lodash';
 import ApplicationService from '../../../../services/applications.service';
 import NotificationService from '../../../../services/notification.service';
 import SidenavService from '../../../../components/sidenav/sidenav.service';
+import { StateService } from '@uirouter/core';
 
 interface IApplicationScope extends ng.IScope {
   formApplication: any;
@@ -31,7 +32,7 @@ class ApplicationGeneralController {
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
-    private $state: ng.ui.IStateService,
+    private $state: StateService,
     private $scope: IApplicationScope,
     private $mdDialog: angular.material.IDialogService,
     private SidenavService: SidenavService

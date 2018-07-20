@@ -17,7 +17,7 @@ import AuditService from '../../../services/audit.service';
 
 export default apisAuditRouterConfig;
 
-function apisAuditRouterConfig($stateProvider: ng.ui.IStateProvider) {
+function apisAuditRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.audit', {

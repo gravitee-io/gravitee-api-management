@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function config ($logProvider, $urlRouterProvider: ng.ui.IUrlRouterProvider, $permissionProvider, $qProvider) {
+import {UrlService} from "@uirouter/angularjs";
+function config ($logProvider, $urlServiceProvider: UrlService, $permissionProvider, $qProvider) {
   'ngInject';
   // Enable log
   $logProvider.debugEnabled(false);
 
   // Prevent router from automatic state resolving
-  $urlRouterProvider.deferIntercept();
+  $urlServiceProvider.deferIntercept();
 
   $permissionProvider.suppressUndefinedPermissionWarning(true);
 

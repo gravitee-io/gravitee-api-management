@@ -19,7 +19,7 @@
   <div>
     <h4>Plans</h4>
     <div class="btn-group">
-      <button class="btn btn-default" ng-class="{'active': $ctrl.selectedStatus.indexOf(statusFilter) !== -1}"
+      <button class="btn btn-secondary" ng-class="{'active': $ctrl.selectedStatus.indexOf(statusFilter) !== -1}"
               ng-click="$ctrl.changeFilter(statusFilter)" type="button"
               ng-repeat="statusFilter in $ctrl.statusFilters" style="text-transform: capitalize;">
         {{statusFilter}} <span ng-if="$ctrl.countByStatus[statusFilter]">({{$ctrl.countByStatus[statusFilter]}})</span>

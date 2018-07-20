@@ -16,6 +16,7 @@
 import UserService from "../../../services/user.service";
 import NotificationService from "../../../services/notification.service";
 import {User} from "../../../entities/user";
+import { StateService } from '@uirouter/core';
 
 const UsersComponent: ng.IComponentOptions = {
   bindings: {
@@ -26,7 +27,7 @@ const UsersComponent: ng.IComponentOptions = {
     UserService: UserService,
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
-    $state: ng.ui.IStateService
+    $state: StateService
   ) {
     'ngInject';
     this.$onInit = () => {

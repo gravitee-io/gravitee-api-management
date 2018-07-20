@@ -17,6 +17,7 @@ import * as jsyaml from 'js-yaml';
 import * as _ from 'lodash';
 import UserService from '../../services/user.service';
 import {SwaggerUIBundle} from 'swagger-ui-dist';
+import { StateService } from '@uirouter/core';
 
 const DisableTryItOutPlugin = function () {
   return {
@@ -36,7 +37,7 @@ const PageSwaggerComponent: ng.IComponentOptions = {
     page: '<',
     edit: '<'
   },
-  controller: function(Constants, UserService: UserService, $state: ng.ui.IStateService) {
+  controller: function(Constants, UserService: UserService, $state: StateService) {
     'ngInject';
 
     this.$onInit = () => {

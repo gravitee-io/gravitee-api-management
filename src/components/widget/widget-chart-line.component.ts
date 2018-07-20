@@ -23,7 +23,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget'
   },
-  controller: function($scope: ng.IScope, $rootScope, ChartService) {
+  controller: function($scope, $rootScope, ChartService) {
     'ngInject';
 
     this.$scope = $scope;

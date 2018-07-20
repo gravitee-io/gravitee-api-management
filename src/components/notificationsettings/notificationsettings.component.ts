@@ -19,6 +19,7 @@ import {NotificationConfig} from '../../entities/notificationConfig';
 import NotificationSettingsService from '../../services/notificationSettings.service';
 import NotificationService from '../../services/notification.service';
 import {HookScope} from '../../entities/hookScope';
+import { StateService } from '@uirouter/core';
 
 const NotificationSettingsComponent: ng.IComponentOptions = {
   bindings: {
@@ -30,7 +31,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
   },
   template: require('./notificationsettings.html'),
   controller: function(
-    $state: ng.ui.IStateService,
+    $state: StateService,
     NotificationSettingsService: NotificationSettingsService,
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,

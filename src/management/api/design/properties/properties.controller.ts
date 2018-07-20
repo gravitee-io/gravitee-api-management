@@ -22,6 +22,7 @@ import NotificationService from '../../../../services/notification.service';
 interface IApiPropertiesScope extends ng.IScope {
   dynamicPropertyEnabled: boolean;
   apiCtrl: any;
+  $parent: any;
 }
 
 class ApiPropertiesController {

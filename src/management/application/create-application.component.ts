@@ -15,6 +15,7 @@
  */
 import ApplicationService from "../../services/applications.service";
 import NotificationService from "../../services/notification.service";
+import { StateService } from '@uirouter/core';
 
 interface IApplicationScope extends ng.IScope {
   formApplication: any;
@@ -30,7 +31,7 @@ const CreateApplicationComponent: ng.IComponentOptions = {
       private ApplicationService: ApplicationService,
       private NotificationService: NotificationService,
       private $scope: IApplicationScope,
-      private $state: ng.ui.IStateService
+      private $state: StateService
     ) {
       'ngInject';
 

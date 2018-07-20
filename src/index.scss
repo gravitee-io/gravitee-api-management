@@ -1,17 +1,17 @@
 $backgroundColor: rgb(45, 50, 62);
 
-@import '~angular-material/angular-material';
-@import '~angular-material-data-table/dist/md-data-table.min';
+@import '~angular-loading-bar/build/loading-bar.css';
+@import '~angular-material/modules/scss/angular-material.scss';
+@import '~angular-material-data-table/dist/md-data-table.css';
 @import '~bootstrap/dist/css/bootstrap.min.css';
-@import '~angular-gridster/dist/angular-gridster.min.css';
-@import '~dragular/dist/dragular';
-@import '~v-accordion/dist/v-accordion.min.css';
-@import '~codemirror/lib/codemirror';
-@import '~codemirror/addon/dialog/dialog';
-@import '~codemirror/addon/lint/lint';
+@import '~angular-gridster/dist/angular-gridster.css';
+@import '~dragular/dist/dragular.css';
+@import '~v-accordion/dist/v-accordion.css';
+@import '~codemirror/lib/codemirror.css';
+@import '~codemirror/addon/dialog/dialog.css';
+@import '~codemirror/addon/lint/lint.css';
 @import '~angular-timeline/dist/angular-timeline.css';
 @import '~md-steppers/dist/md-steppers.min.css';
-@import '~api-console/dist/styles/api-console-light-theme.css';
 @import 'constants.scss';
 @import 'portal/portal.scss';
 @import 'user/_user.scss';
@@ -142,7 +142,6 @@ md-toolbar:not(.md-hue-1),
 
 ng-md-icon {
   position: relative;
-  top: 7px;
 
   &[icon=delete] {
     svg {
@@ -154,7 +153,6 @@ ng-md-icon {
 table {
   ng-md-icon {
     position: relative;
-    top: 0px;
   }
   code {
     position: relative;
@@ -481,6 +479,10 @@ md-card.no-box-shadow {
   opacity: 0.7;
 }
 
+[role=button] {
+  cursor: pointer;
+}
+
 .readonly > [role=button] {
   cursor: inherit;
 }
@@ -521,4 +523,16 @@ md-card.no-box-shadow {
 
 *:focus {
   outline: none;
+}
+
+h1 {
+  font-size: 26px;
+}
+
+h4 {
+  font-size: 18px;
+}
+
+h5 {
+  font-size: 14px;
 }

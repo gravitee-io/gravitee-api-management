@@ -15,13 +15,14 @@
  */
 import _ = require('lodash');
 import UserService from "../../services/user.service";
+import { StateService } from '@uirouter/core';
 
 const TasksComponent: ng.IComponentOptions = {
   bindings: {
     tasks: '<'
   },
   template: require('./tasks.html'),
-  controller: function($state: ng.ui.IStateService, UserService: UserService) {
+  controller: function($state: StateService, UserService: UserService) {
     'ngInject';
     const vm = this;
 
