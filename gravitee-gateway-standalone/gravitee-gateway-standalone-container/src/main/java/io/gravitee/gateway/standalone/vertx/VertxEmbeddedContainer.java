@@ -16,6 +16,7 @@
 package io.gravitee.gateway.standalone.vertx;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.node.vertx.verticle.factory.SpringVerticleFactory;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -25,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbeddedContainer> {
@@ -49,7 +50,7 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
         logger.info("Starting Vertx container and deploy Gateway Verticles [{} instance(s)]", instances);
 
         DeploymentOptions options = new DeploymentOptions().setInstances(instances);
-        vertx.deployVerticle(GraviteeVerticleFactory.GRAVITEE_VERTICLE_PREFIX + ':' + GraviteeVerticle.class.getName(), options, event -> {
+        vertx.deployVerticle(SpringVerticleFactory.VERTICLE_PREFIX + ':' + ReactorVerticle.class.getName(), options, event -> {
             if (event.failed()) {
                 logger.error("Unable to start HTTP server", event.cause());
 

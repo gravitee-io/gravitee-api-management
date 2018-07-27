@@ -13,15 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.report;
-
-import io.gravitee.reporter.api.Reportable;
+package io.gravitee.gateway.handlers.api.manager.endpoint.model;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReporterService {
+public class ListApiEntity {
 
-    void report(Reportable reportable);
+    private String id;
+
+    private String name;
+
+    private String version;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
 }

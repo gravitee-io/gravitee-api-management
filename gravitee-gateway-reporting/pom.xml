@@ -32,7 +32,13 @@
     <name>Gravitee.io APIM - Gateway - Reporting</name>
 
     <dependencies>
-        <!-- Gravitee.io dependencies -->
+        <!-- Gravitee.io -->
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-reporter</artifactId>
+            <version>${gravitee-node.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.reporter</groupId>
             <artifactId>gravitee-reporter-api</artifactId>
@@ -41,17 +47,6 @@
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.plugin</groupId>
-            <artifactId>gravitee-plugin-core</artifactId>
-        </dependency>
-
-        <!-- Vert.x -->
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-core</artifactId>
         </dependency>
 
         <!-- Logging -->

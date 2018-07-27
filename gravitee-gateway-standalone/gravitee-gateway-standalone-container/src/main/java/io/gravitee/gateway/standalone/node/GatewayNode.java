@@ -16,36 +16,54 @@
 package io.gravitee.gateway.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.common.node.AbstractNode;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactor.Reactor;
-import io.gravitee.gateway.report.ReporterService;
-import io.gravitee.gateway.services.ServiceManager;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
-import io.gravitee.plugin.core.api.PluginRegistry;
-import io.gravitee.plugin.core.internal.PluginEventListener;
+import io.gravitee.node.container.AbstractNode;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class GatewayNode extends AbstractNode {
 
+    @Autowired
+    private GatewayConfiguration configuration;
+
     @Override
     public String name() {
-        return "Gravitee.io - Gateway";
+        return "Gravitee.io - API Gateway";
     }
 
     @Override
-    protected List<Class<? extends LifecycleComponent>> getLifecycleComponents() {
-        List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
+    public String application() {
+        return "gio-apim-gateway";
+    }
 
-        components.add(PluginEventListener.class);
-        components.add(PluginRegistry.class);
+    @Override
+    public Map<String, Object> metadata() {
+        Map<String, Object> metadata = new HashMap<>();
+
+        if (configuration.tenant().isPresent()) {
+            metadata.put("tenant", configuration.tenant().get());
+        }
+        if (configuration.shardingTags().isPresent()) {
+            metadata.put("tags", configuration.shardingTags().get());
+        }
+
+        return metadata;
+    }
+
+    @Override
+    public List<Class<? extends LifecycleComponent>> components() {
+        List<Class<? extends LifecycleComponent>> components = super.components();
+
         components.add(Reactor.class);
-        components.add(ServiceManager.class);
-        components.add(ReporterService.class);
         components.add(VertxEmbeddedContainer.class);
 
         return components;

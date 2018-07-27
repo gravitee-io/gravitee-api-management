@@ -23,7 +23,7 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
-import io.gravitee.gateway.standalone.Container;
+import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyRegister;
 import io.gravitee.gateway.standalone.utils.SocketUtils;
@@ -45,7 +45,7 @@ public class ApiDeployerStatement extends Statement {
     private final Statement base;
     private final Object target;
 
-    private Container container;
+    private GatewayContainer container;
 
     public ApiDeployerStatement(Statement base, Object target) {
         this.base = base;
@@ -57,17 +57,17 @@ public class ApiDeployerStatement extends Statement {
         URL home = ApiDeployerStatement.class.getResource("/gravitee-01/");
         System.setProperty("gravitee.home", URLDecoder.decode(home.getPath(), "UTF-8"));
 
-        container = new Container();
+        container = new GatewayContainer();
 
         if (target instanceof PolicyRegister) {
-            ((PolicyRegister) target).register(container.getApplicationContext().getBean(PolicyPluginManager.class));
+            ((PolicyRegister) target).register(container.applicationContext().getBean(PolicyPluginManager.class));
         }
 
         container.start();
 
         Thread.sleep(1000);
 
-        ApiManager apiManager = container.getApplicationContext().getBean(ApiManager.class);
+        ApiManager apiManager = container.applicationContext().getBean(ApiManager.class);
         Api api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
 
         try {

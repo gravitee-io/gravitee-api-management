@@ -40,7 +40,22 @@
     </build>
 
     <dependencies>
-        <!-- Gravitee Dependencies -->
+        <!-- Gravitee.io -->
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-container</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-vertx</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-reactor</artifactId>
@@ -78,12 +93,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.services</groupId>
-            <artifactId>gravitee-gateway-services-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>io.gravitee.definition</groupId>
             <artifactId>gravitee-definition-jackson</artifactId>
         </dependency>
@@ -107,23 +116,6 @@
             <version>${jackson.version}</version>
             <scope>compile</scope>
         </dependency>
-        
-        <!-- Vert.x -->
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-micrometer-metrics</artifactId>
-            <version>${vertx.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>1.0.0</version>
-        </dependency>
 
         <!-- Logging -->
         <dependency>
@@ -145,7 +137,7 @@
             <version>${guava.version}</version>
         </dependency>
 
-        <!-- Spring dependencies -->
+        <!-- Spring -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
