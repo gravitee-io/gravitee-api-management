@@ -16,7 +16,7 @@
 package io.gravitee.gateway.report.spring;
 
 import io.gravitee.gateway.report.ReporterService;
-import io.gravitee.gateway.report.impl.bus.VertxReporterServiceImpl;
+import io.gravitee.gateway.report.impl.ReporterServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,6 +29,6 @@ public class ReporterConfiguration {
 
     @Bean
     public ReporterService reporterService() {
-        return new VertxReporterServiceImpl();
+        return new ReporterServiceImpl();
     }
 }

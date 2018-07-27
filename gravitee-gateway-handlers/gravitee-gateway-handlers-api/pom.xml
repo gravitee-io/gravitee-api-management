@@ -102,5 +102,12 @@
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
         </dependency>
+
+        <!-- Vert.x -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web</artifactId>
+            <version>${vertx.version}</version>
+        </dependency>
     </dependencies>
 </project>

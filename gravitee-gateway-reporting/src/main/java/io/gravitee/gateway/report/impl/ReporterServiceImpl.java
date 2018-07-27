@@ -15,75 +15,21 @@
  */
 package io.gravitee.gateway.report.impl;
 
-import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.Reportable;
-import io.gravitee.reporter.api.Reporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ReporterServiceImpl extends AbstractService implements ReporterService {
+public class ReporterServiceImpl implements ReporterService {
 
-    private final Logger logger = LoggerFactory.getLogger(ReporterServiceImpl.class);
-
-    private final Collection<Reporter> reporters = new ArrayList<>();
-
-    @Override
-    public void register(Reporter reporter) {
-        reporters.add(reporter);
-    }
+    @Autowired
+    private io.gravitee.node.reporter.ReporterService reporterService;
 
     @Override
     public void report(Reportable reportable) {
-        doReport(reportable);
-    }
-
-    @Override
-    protected void doStart() throws Exception {
-        super.doStart();
-
-        if (! reporters.isEmpty()) {
-            for (Reporter reporter : reporters) {
-                try {
-                    reporter.start();
-                } catch (Exception ex) {
-                    logger.error("Unexpected error while starting reporter", ex);
-                }
-            }
-        } else {
-            logger.info("\tThere is no reporter to start");
-        }
-    }
-
-    @Override
-    protected void doStop() throws Exception {
-        super.doStop();
-
-        for(Reporter reporter: reporters) {
-            try {
-                reporter.stop();
-            } catch (Exception ex) {
-                logger.error("Unexpected error while stopping reporter", ex);
-            }
-        }
-    }
-
-    protected Collection<Reporter> getReporters() {
-        return reporters;
-    }
-
-    protected void doReport(Reportable reportable) {
-        for (Reporter reporter : reporters) {
-            if (reporter.canHandle(reportable)) {
-                reporter.report(reportable);
-            }
-        }
+        reporterService.report(reportable);
     }
 }
