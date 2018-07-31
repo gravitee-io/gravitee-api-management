@@ -77,7 +77,8 @@ public class ApiLogsResource extends AbstractResource {
     @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
     public ApiRequest apiLog(
             @PathParam("api") String api,
-            @PathParam("log") String logId) {
-        return logsService.findApiLog(logId);
+            @PathParam("log") String logId,
+            @QueryParam("timestamp") Long timestamp) {
+        return logsService.findApiLog(logId, timestamp);
     }
 }

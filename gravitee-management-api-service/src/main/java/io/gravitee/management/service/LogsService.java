@@ -30,7 +30,7 @@ public interface LogsService {
 
     SearchLogResponse findByApplication(String application, LogQuery query);
 
-    ApiRequest findApiLog(String id);
+    ApiRequest findApiLog(String id, Long timestamp);
 
-    ApplicationRequest findApplicationLog(String id);
+    ApplicationRequest findApplicationLog(String id, Long timestamp);
 }

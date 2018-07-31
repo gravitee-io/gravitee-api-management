@@ -35,7 +35,7 @@ public class LogRepositoryProxy extends AbstractProxy<LogRepository> implements 
     }
 
     @Override
-    public ExtendedLog findById(String requestId) throws AnalyticsException {
-        return target.findById(requestId);
+    public ExtendedLog findById(String requestId, Long timestamp) throws AnalyticsException {
+        return target.findById(requestId, timestamp);
     }
 }
