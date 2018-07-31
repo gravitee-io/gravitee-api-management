@@ -174,8 +174,8 @@ class ApplicationService {
     return this.$http.get(url, {timeout: 30000});
   }
 
-  getLog(api, logId) {
-    return this.$http.get(this.applicationsURL + api + '/logs/' + logId);
+  getLog(api, logId, timestamp) {
+    return this.$http.get(this.applicationsURL + api + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
   }
 
   getPermissions(application) {
