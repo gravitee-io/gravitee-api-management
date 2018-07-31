@@ -28,7 +28,7 @@
 
 	<groupId>io.gravitee.elasticsearch</groupId>
 	<artifactId>gravitee-elasticsearch</artifactId>
-	<version>1.16.0</version>
+	<version>1.16.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Gravitee.io APIM - Elasticsearch Connector</name>
@@ -39,7 +39,7 @@
 		<gravitee-common.version>1.9.0</gravitee-common.version>
 		<gravitee-reporter-api.version>1.9.0</gravitee-reporter-api.version>
 		<gravitee-policy-api.version>1.2.0</gravitee-policy-api.version>
-		<gravitee-repository.version>1.13.0</gravitee-repository.version>
+		<gravitee-repository.version>1.16.1</gravitee-repository.version>
 
 		<freemarker.version>2.3.26-incubating</freemarker.version>
 	</properties>
