@@ -19,6 +19,7 @@ class PagesComponentCtrl implements ng.IComponentController {
 
   public pages: any;
   private selectedPage;
+  private icon: string;
 
   constructor(
     private $state,
@@ -28,12 +29,13 @@ class PagesComponentCtrl implements ng.IComponentController {
   }
 
   $onInit() {
+    this.icon = "icon-angle-up";
 
     if (this.pages.length && !this.$stateParams.pageId) {
       this.selectPage(this.pages[0]);
     } else {
       const page = this.pages.find(p => p.id === this.$stateParams.pageId);
-      
+
       if (page && this.isFolder(page) && page.pages && page.pages.length > 0) {
         page.pages[0].selected = true;
         this.selectedPage = page.pages[0];
@@ -60,6 +62,10 @@ class PagesComponentCtrl implements ng.IComponentController {
     return page.type === 'folder';
   }
 
+  toggleFolder(page:any) {
+    page.isFolderOpen = !page.isFolderOpen;
+    page.icon = page.isFolderOpen ? "icon-angle-down" : "icon-angle-up";
+  }
 
 }
 

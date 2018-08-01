@@ -63,6 +63,11 @@ class ApiPagesComponentCtrl implements ng.IComponentController {
   isFolder(page: any) {
     return page.type === 'folder';
   }
+
+  toggleFolder(page:any) {
+    page.isFolderOpen = !page.isFolderOpen;
+    page.icon = page.isFolderOpen ? "icon-angle-down" : "icon-angle-up";
+  }
 }
 
 const ApiPagesComponent: ng.IComponentOptions = {

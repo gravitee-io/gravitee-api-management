@@ -29,8 +29,8 @@
       <li class="sidenav_item" ng-class="{'active': page.selected}" ng-repeat="page in $ctrl.pages">
         <span ng-if="!$ctrl.isFolder(page)" ng-click="$ctrl.selectPage(page)">{{::page.name}}</span>
       
-        <p ng-if="$ctrl.isFolder(page)">{{::page.name}} <i></i></p>
-        <ul ng-if="page.pages">
+        <p ng-if="$ctrl.isFolder(page)" ng-click="$ctrl.toggleFolder(page)">{{::page.name}} <i ng-class="page.icon" class="icon-angle-up"></i></p>
+        <ul ng-if="page.pages" ng-show="page.isFolderOpen" class="slideDown">
           <li class="sidenav_item l2" ng-class="{'active': pageLevel2.selected}" ng-repeat="pageLevel2 in page.pages" ng-click="$ctrl.selectPage(pageLevel2)">
             <span>{{::pageLevel2.name}}</span>
           </li>
