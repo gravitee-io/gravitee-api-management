@@ -35,6 +35,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static io.gravitee.management.model.permissions.RolePermission.API_ANALYTICS;
+import static io.gravitee.management.model.permissions.RolePermissionAction.READ;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -42,7 +46,7 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 @Api(tags = {"Gateway"})
-public class PlatformEventsResource {
+public class PlatformEventsResource  extends AbstractResource {
     
     @Inject
     private EventService eventService;
@@ -63,6 +67,13 @@ public class PlatformEventsResource {
                 eventSearchParam.getApiIdsParam().getIds() != null &&
                 !eventSearchParam.getApiIdsParam().getIds().isEmpty()) {
             properties.put(Event.EventProperties.API_ID.getValue(), eventSearchParam.getApiIdsParam().getIds());
+        } else if (!isAdmin()) {
+            properties.put(
+                    Event.EventProperties.API_ID.getValue(),
+                    apiService.findByUser(getAuthenticatedUser())
+                            .stream()
+                            .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
+                            .map(ApiEntity::getId).collect(Collectors.joining(",")));
         }
 
         Page<EventEntity> events = eventService.search(

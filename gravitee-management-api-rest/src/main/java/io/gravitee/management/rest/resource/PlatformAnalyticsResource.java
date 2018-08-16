@@ -81,9 +81,9 @@ public class PlatformAnalyticsResource extends AbstractResource  {
         // add filter by Apis or Applications
         String extraFilter = null;
         if (!isAdmin()) {
-            if ("api".equals(analyticsParam.getField())) {
+            if ("api".equals(analyticsParam.getField()) || "tenant".equals(analyticsParam.getField())) {
                 extraFilter = getExtraFilter(
-                        analyticsParam.getField(),
+                        "api",
                         apiService.findByUser(getAuthenticatedUser())
                                 .stream()
                                 .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
