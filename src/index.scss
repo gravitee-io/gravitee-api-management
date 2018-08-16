@@ -12,6 +12,7 @@ $backgroundColor: rgb(45, 50, 62);
 @import '~codemirror/addon/lint/lint.css';
 @import '~angular-timeline/dist/angular-timeline.css';
 @import '~md-steppers/dist/md-steppers.min.css';
+@import '~tui-editor/dist/tui-editor.css';
 @import 'constants.scss';
 @import 'portal/portal.scss';
 @import 'user/_user.scss';
@@ -28,7 +29,7 @@ $backgroundColor: rgb(45, 50, 62);
 @import 'management/tasks/_tasks.scss';
 @import 'management/portalnotifications/_portalnotifications.scss';
 @import 'management/submenu';
-@import 'management/_highlightjs';
+@import '~highlight.js/styles/tomorrow.css';
 @import 'management/configuration/views/view/view';
 
 $backgroundColor: rgb(45, 50, 62);

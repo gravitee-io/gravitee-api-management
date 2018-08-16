@@ -331,6 +331,8 @@ import NotificationSettingsService from "../services/notificationSettings.servic
 import PageComponent from '../components/documentation/page.component';
 import PageSwaggerComponent from '../components/documentation/page-swagger.component';
 import PageMarkdownComponent from '../components/documentation/page-markdown.component';
+import PageEditorMarkdownComponent from '../components/documentation/page-editormarkdown.component';
+import PageEditorMarkdownViewerComponent from '../components/documentation/page-editormarkdown-viewer.component';
 import PageSidenavDirective from '../components/documentation/page-sidenav.directive';
 
 // Healthcheck
@@ -637,6 +639,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   .component('gvPage', PageComponent)
   .component('gvPageMarkdown', PageMarkdownComponent)
+  .component('gvPageEditorMarkdown', PageEditorMarkdownComponent)
+  .component('gvPageEditorMarkdownViewer', PageEditorMarkdownViewerComponent)
   .component('gvPageSwagger', PageSwaggerComponent)
   .directive('gvPageSidenav', () => PageSidenavDirective)
 

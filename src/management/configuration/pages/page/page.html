@@ -97,32 +97,45 @@
 
 
   <!-- Edit Mode -->
-  <div ng-show="pageCtrl.editMode">
+  <div ng-if="pageCtrl.editMode">
 
-    <md-card-content style="border: 1px solid #e7eaec; padding-top: 0" layout="row" >
-      <dix layout="column" flex="50" ng-show="pageCtrl.page.type !== 'FOLDER'">
-        <div>
+      <md-card-content style="border: 1px solid #e7eaec; padding-top: 0" layout="row" ng-if="pageCtrl.page.type !== 'MARKDOWN'">
+          <dix layout="column" flex="50" ng-show="pageCtrl.page.type !== 'FOLDER'">
+            <div>
+              <h4>Edit your page</h4>
+              <md-input-container class="md-block" ng-show="pageCtrl.editMode">
+                <textarea
+                  ui-codemirror
+                  ui-codemirror-opts="pageCtrl.codeMirrorOptions"
+                  ng-model="pageCtrl.page.content"
+                  aria-label="page content"
+                  rows="20" style="overflow-y: scroll;"
+                  ng-disabled="pageCtrl.useFetcher"
+                  md-autofocus></textarea>
+              </md-input-container>
+            </div>
+            <div>
+              <h5>Or you could also import a file :</h5>
+              <input type="file" ng-disabled="pageCtrl.useFetcher" filecontent="pageContentFile.content" filename="pageContentFile.name" >
+            </div>
+          </dix>
+          <div flex="50" class="md-padding">
+            <gv-page flex page="pageCtrl.page" enable-try-it="false"></gv-page>
+          </div>
+     </md-card-content>
+
+      <!--Markdown editor-->
+      <md-card-content style="border: 1px solid #e7eaec; padding-top: 0" ng-if="pageCtrl.page.type === 'MARKDOWN'">
+      <div>
           <h4>Edit your page</h4>
-          <md-input-container class="md-block" ng-show="pageCtrl.editMode">
-            <textarea
-              ui-codemirror
-              ui-codemirror-opts="pageCtrl.codeMirrorOptions"
-              ng-model="pageCtrl.page.content"
-              aria-label="page content"
-              rows="20" style="overflow-y: scroll;"
-              ng-disabled="pageCtrl.useFetcher"
-              md-autofocus></textarea>
-          </md-input-container>
-        </div>
-        <div>
+          <gv-page-editor-markdown page="pageCtrl.page"></gv-page-editor-markdown>
+      </div>
+      <div>
           <h5>Or you could also import a file :</h5>
           <input type="file" ng-disabled="pageCtrl.useFetcher" filecontent="pageContentFile.content" filename="pageContentFile.name" >
-        </div>
-      </dix>
-      <div flex="50" class="md-padding">
-        <gv-page flex page="pageCtrl.page" enable-try-it="false"></gv-page>
       </div>
-    </md-card-content>
+      </md-card-content>
+     
     <div class="md-actions gravitee-api-save-button" layout="row" layout-align="end center">
       <md-button class="md-raised" type="submit" ng-click="pageCtrl.upsert()" ng-disabled="pageCtrl.hasNoTitle()">
         Save

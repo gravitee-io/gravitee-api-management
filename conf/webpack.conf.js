@@ -92,7 +92,8 @@ module.exports = {
       {
         from: './constants.json',
         to: ''
-      }, {
+      },
+      {
         from: './build.json',
         to: ''
       },

@@ -95,7 +95,7 @@
 
   <!-- Edit Mode -->
   <div ng-show="pageCtrl.editMode">
-    <md-card-content style="border: 1px solid #e7eaec; padding-top: 0" layout="row">
+    <md-card-content style="border: 1px solid #e7eaec; padding-top: 0" layout="row" ng-if="pageCtrl.page.type !== 'MARKDOWN'">
       <dix layout="column" flex="50" ng-show="pageCtrl.page.type !== 'FOLDER'">
         <div>
           <h4>Edit your page</h4>
@@ -119,6 +119,19 @@
         <gv-page flex page="pageCtrl.page" enable-try-it="false" edit="true"></gv-page>
       </div>
     </md-card-content>
+
+    <!--Markdown editor-->
+    <md-card-content style="border: 1px solid #e7eaec; padding-top: 0" ng-if="pageCtrl.page.type === 'MARKDOWN'">
+      <div>
+          <h4>Edit your page</h4>
+          <gv-page-editor-markdown page="pageCtrl.page"></gv-page-editor-markdown>
+      </div>
+      <div>
+          <h5>Or you could also import a file :</h5>
+          <input type="file" ng-disabled="pageCtrl.useFetcher" filecontent="pageContentFile.content" filename="pageContentFile.name" >
+      </div>
+      </md-card-content>
+
     <div class="md-actions gravitee-api-save-button" layout="row" layout-align="end center">
       <md-button class="md-raised" type="submit" ng-click="pageCtrl.upsert()" ng-disabled="pageCtrl.hasNoTitle()">
         Save
