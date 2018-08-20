@@ -35,7 +35,7 @@
       </md-input-container>
       <md-input-container flex="30">
         <label>Target</label>
-        <input ng-model="endpointCtrl.endpoint.target" type="url" required>
+        <input ng-model="endpointCtrl.endpoint.target" type="text" required>
       </md-input-container>
     </div>
 
@@ -202,7 +202,7 @@
       <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
           <label>Host</label>
-          <input ng-model="endpointCtrl.endpoint.proxy.host" type="string" ng-required="endpointCtrl.endpoint.proxy.enabled" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
+          <input ng-model="endpointCtrl.endpoint.proxy.host" type="text" ng-required="endpointCtrl.endpoint.proxy.enabled" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
           <div class="hint">Proxy host to connect to</div>
         </md-input-container>
       </div>
@@ -216,7 +216,7 @@
       <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
           <label>Username</label>
-          <input ng-model="endpointCtrl.endpoint.proxy.username" type="string" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
+          <input ng-model="endpointCtrl.endpoint.proxy.username" type="text" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
           <div class="hint">Optional proxy username</div>
         </md-input-container>
       </div>
