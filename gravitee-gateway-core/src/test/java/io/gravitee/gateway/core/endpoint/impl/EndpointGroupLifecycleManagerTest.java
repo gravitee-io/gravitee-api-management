@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
 import io.gravitee.gateway.core.endpoint.lifecycle.impl.EndpointGroupLifecycleManager;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
+import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -66,6 +67,7 @@ public class EndpointGroupLifecycleManagerTest {
         MockitoAnnotations.initMocks(this);
         endpointLifecycleManager.setEndpointFactory(endpointFactory);
         endpointLifecycleManager.setReferenceRegister(referenceRegister);
+        endpointLifecycleManager.setApi(api);
 
         when(api.getProxy()).thenReturn(proxy);
         when(proxy.getGroups()).thenReturn(Collections.singleton(group));
@@ -75,7 +77,7 @@ public class EndpointGroupLifecycleManagerTest {
     public void shouldNotStartEndpoint_noEndpoint() throws Exception {
         endpointLifecycleManager.start();
 
-        verify(endpointFactory, never()).create(any(io.gravitee.definition.model.Endpoint.class));
+        verify(endpointFactory, never()).create(any(io.gravitee.definition.model.Endpoint.class), any(EndpointContext.class));
 
         assertTrue(endpointLifecycleManager.endpoints().isEmpty());
     }
@@ -89,7 +91,7 @@ public class EndpointGroupLifecycleManagerTest {
 
         endpointLifecycleManager.start();
 
-        verify(endpointFactory, never()).create(any(io.gravitee.definition.model.Endpoint.class));
+        verify(endpointFactory, never()).create(any(io.gravitee.definition.model.Endpoint.class), any(EndpointContext.class));
 
         assertTrue(endpointLifecycleManager.endpoints().isEmpty());
     }
@@ -109,7 +111,7 @@ public class EndpointGroupLifecycleManagerTest {
         when(registeredEndpoint.name()).thenReturn("endpoint");
 
         when(endpointFactory.support(any())).thenReturn(true);
-        when(endpointFactory.create(any())).thenReturn(registeredEndpoint);
+        when(endpointFactory.create(any(), any(EndpointContext.class))).thenReturn(registeredEndpoint);
 
         endpointLifecycleManager.start();
 
@@ -117,7 +119,7 @@ public class EndpointGroupLifecycleManagerTest {
 
         assertNotNull(httpClientEndpoint);
 
-        verify(endpointFactory, times(1)).create(eq(endpoint));
+        verify(endpointFactory, times(1)).create(eq(endpoint), any(EndpointContext.class));
         verify(httpClientEndpoint.connector(), times(1)).start();
 
         assertEquals(httpClientEndpoint, endpointLifecycleManager.get("endpoint"));
@@ -141,7 +143,7 @@ public class EndpointGroupLifecycleManagerTest {
         when(registeredEndpoint.name()).thenReturn("endpoint");
 
         when(endpointFactory.support(any())).thenReturn(true);
-        when(endpointFactory.create(any())).thenReturn(registeredEndpoint);
+        when(endpointFactory.create(any(), any(EndpointContext.class))).thenReturn(registeredEndpoint);
 
         endpointLifecycleManager.start();
 

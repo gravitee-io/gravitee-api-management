@@ -15,10 +15,9 @@
  */
 package io.gravitee.gateway.http.endpoint;
 
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointType;
-import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
-import io.gravitee.gateway.http.client.vertx.VertxHttpClient;
+import io.gravitee.gateway.core.endpoint.factory.template.TemplateAwareEndpointFactory;
+import io.gravitee.gateway.http.connector.VertxHttpClient;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -27,23 +26,47 @@ import org.springframework.context.ApplicationContextAware;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public final class HttpEndpointFactory implements EndpointFactory, ApplicationContextAware {
+public final class HttpEndpointFactory extends TemplateAwareEndpointFactory<io.gravitee.definition.model.endpoint.HttpEndpoint, HttpEndpoint>
+        implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
 
     @Override
-    public boolean support(Endpoint endpoint) {
-        return EndpointType.HTTP == endpoint.getType();
+    public boolean support(EndpointType endpointType) {
+        return EndpointType.HTTP == endpointType;
     }
 
     @Override
-    public io.gravitee.gateway.api.endpoint.Endpoint create(Endpoint endpoint) {
-        io.gravitee.definition.model.endpoint.HttpEndpoint httpEndpoint = (io.gravitee.definition.model.endpoint.HttpEndpoint) endpoint;
-        VertxHttpClient httpClient = new VertxHttpClient(httpEndpoint);
+    protected io.gravitee.definition.model.endpoint.HttpEndpoint resolve(io.gravitee.definition.model.endpoint.HttpEndpoint endpoint) {
+        // HTTP endpoint configuration
+        endpoint.setTarget(convert(endpoint.getTarget()));
+        endpoint.setHostHeader(convert(endpoint.getHostHeader()));
+
+        // HTTP Proxy configuration
+        if (endpoint.getHttpProxy() != null) {
+            endpoint.getHttpProxy().setHost(convert(endpoint.getHttpProxy().getHost()));
+            endpoint.getHttpProxy().setUsername(convert(endpoint.getHttpProxy().getUsername()));
+            endpoint.getHttpProxy().setPassword(convert(endpoint.getHttpProxy().getPassword()));
+        }
+
+        return endpoint;
+    }
+
+    @Override
+    protected HttpEndpoint create0(io.gravitee.definition.model.endpoint.HttpEndpoint endpoint) {
+        VertxHttpClient httpClient = new VertxHttpClient(endpoint);
 
         applicationContext.getAutowireCapableBeanFactory().autowireBean(httpClient);
 
-        return new HttpEndpoint((io.gravitee.definition.model.endpoint.HttpEndpoint) endpoint, httpClient);
+        return new HttpEndpoint(endpoint, httpClient);
+    }
+
+    private String convert(String value) {
+        if (value != null && ! value.isEmpty()) {
+            return templateEngine.convert(value);
+        }
+
+        return value;
     }
 
     @Override

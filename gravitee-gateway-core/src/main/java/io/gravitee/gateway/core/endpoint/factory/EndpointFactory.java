@@ -15,15 +15,23 @@
  */
 package io.gravitee.gateway.core.endpoint.factory;
 
+import io.gravitee.definition.model.EndpointType;
 import io.gravitee.gateway.api.endpoint.Endpoint;
+import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EndpointFactory {
+public interface EndpointFactory<T extends io.gravitee.definition.model.Endpoint, S extends Endpoint> {
 
-    boolean support(io.gravitee.definition.model.Endpoint endpoint);
+    /**
+     * Does the current factory supports the endpoint type.
+     *
+     * @param endpointType The endpoint type.
+     * @return <code>True</code> if the factory supports the endpoint type.
+     */
+    boolean support(EndpointType endpointType);
 
-    Endpoint create(io.gravitee.definition.model.Endpoint endpoint);
+    S create(T endpoint, EndpointContext context);
 }
