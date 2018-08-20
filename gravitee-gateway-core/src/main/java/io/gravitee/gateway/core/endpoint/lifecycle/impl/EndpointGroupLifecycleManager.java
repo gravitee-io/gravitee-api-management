@@ -19,11 +19,13 @@ import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.util.ChangeListener;
 import io.gravitee.common.util.ObservableCollection;
 import io.gravitee.common.util.ObservableSet;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.LoadBalancer;
 import io.gravitee.gateway.api.lb.LoadBalancerStrategy;
 import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
+import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
 import io.gravitee.gateway.core.endpoint.lifecycle.EndpointLifecycleManager;
 import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
 import io.gravitee.gateway.core.endpoint.ref.EndpointReference;
@@ -47,6 +49,9 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
         implements EndpointLifecycleManager, ChangeListener<Endpoint> {
 
     private final Logger logger = LoggerFactory.getLogger(EndpointGroupLifecycleManager.class);
+
+    @Autowired
+    private Api api;
 
     @Autowired
     private EndpointFactory endpointFactory;
@@ -120,7 +125,11 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
             logger.info("Create new endpoint: name[{}] type[{}] target[{}]",
                     model.getName(), model.getType(), model.getTarget());
 
-            io.gravitee.gateway.api.endpoint.Endpoint endpoint = endpointFactory.create(model);
+            EndpointContext context = new EndpointContext();
+            if (api.getProperties() != null) {
+                context.setProperties(api.getProperties().getValues());
+            }
+            io.gravitee.gateway.api.endpoint.Endpoint endpoint = endpointFactory.create(model, context);
             if (endpoint != null) {
                 endpoint.connector().start();
 
@@ -197,5 +206,9 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
 
     public void setReferenceRegister(ReferenceRegister referenceRegister) {
         this.referenceRegister = referenceRegister;
+    }
+
+    public void setApi(Api api) {
+        this.api = api;
     }
 }

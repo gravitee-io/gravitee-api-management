@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.client.vertx.spring;
+package io.gravitee.gateway.core.endpoint.factory.template;
 
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.gateway.api.Connector;
-import io.gravitee.gateway.http.client.vertx.VertxHttpClient;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-public class VertxHttpClientConfiguration {
+public class EndpointContext {
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public Connector connector(HttpEndpoint endpoint) {
-        return new VertxHttpClient(endpoint);
+    private Map<String, ?> properties;
+
+    public Map<String, ?> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, ?> properties) {
+        this.properties = properties;
     }
 }
