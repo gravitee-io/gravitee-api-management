@@ -188,5 +188,10 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public JWTCookieGenerator jwtCookieGenerator() {
     	    return mock(JWTCookieGenerator.class);
         }
+
+        @Bean
+        public TaskService taskService() {
+            return mock(TaskService.class);
+        }
     }
 }

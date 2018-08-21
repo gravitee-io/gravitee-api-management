@@ -91,6 +91,7 @@ public class CurrentUserResource extends AbstractResource {
         if (isAuthenticated()) {
             final UserDetails details = getAuthenticatedUserDetails();
             final String userId = details.getUsername();
+            final String password = details.getPassword() != null ? details.getPassword() : "";
             UserEntity userEntity;
             try {
                 userEntity = userService.findByIdWithRoles(userId);
@@ -107,7 +108,7 @@ public class CurrentUserResource extends AbstractResource {
 
             List<GrantedAuthority> authorities = new ArrayList<>(details.getAuthorities());
 
-            UserDetails userDetails = new UserDetails(userEntity.getId(), details.getPassword(), authorities);
+            UserDetails userDetails = new UserDetails(userEntity.getId(), password, authorities);
             userDetails.setId(userEntity.getId());
             userDetails.setFirstname(details.getFirstname());
             userDetails.setLastname(details.getLastname());
