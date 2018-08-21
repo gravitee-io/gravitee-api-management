@@ -40,6 +40,7 @@
                 <th md-column md-order-by="state" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)">State</th>
                 <th md-column>Synchronize state</th>
                 <th md-column>Visibility</th>
+                <th md-column ng-if="$ctrl.isQualityDisplayed">Quality</th>
                 <th md-column>Owner</th>
               </tr>
               </thead>
@@ -65,6 +66,11 @@
                   <ng-md-icon icon="{{$ctrl.getVisibilityIcon(api)}}" size="20" style="fill: #cdcdcd;">
                     <md-tooltip>{{$ctrl.getVisibility(api)}}</md-tooltip>
                   </ng-md-icon>
+                </td>
+                <td md-cell ng-if="$ctrl.isQualityDisplayed">
+                  <span class="gravitee-qm-score-small" ng-class="$ctrl.getQualityMetricCssClass($ctrl.qualityScores[api.id])">
+                  {{$ctrl.qualityScores[api.id] === undefined ? "-" : $ctrl.qualityScores[api.id]}}%
+                  </span>
                 </td>
                 <td md-cell>
                   <ng-md-icon icon="person" size="20" style="fill: #cdcdcd;">

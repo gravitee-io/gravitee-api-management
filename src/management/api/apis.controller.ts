@@ -27,10 +27,12 @@ export class ApisController {
   private isAPIsHome: boolean;
   private createMode: boolean;
   private devMode: boolean;
-  private syncStatus: any;
+  private syncStatus: any[];
+  private qualityScores: any[];
   private NotificationService: any;
   private portalTitle: string;
   private selectedApis: any[];
+  private isQualityDisplayed: boolean;
 
   constructor(private ApiService,
               private $mdDialog,
@@ -59,6 +61,8 @@ export class ApisController {
     this.createMode = !Constants.portal.devMode.enabled; // && Object.keys($rootScope.graviteeUser).length > 0;
     this.selectedApis = [];
     this.syncStatus = [];
+    this.qualityScores = [];
+    this.isQualityDisplayed = Constants.apiQualityMetrics && Constants.apiQualityMetrics.enabled;
 
     $scope.$on('$stateChangeStart', function () {
       $scope.hideApis = true;
@@ -139,8 +143,19 @@ export class ApisController {
               this.syncStatus[api.id] = sync.data.is_synchronized;
             });
         }
+        if (this.isQualityDisplayed && _.isUndefined(this.qualityScores[api.id])) {
+          this.ApiService.getQualityMetrics(api.id)
+            .then((response) => {
+              this.qualityScores[api.id] = _.floor(response.data.score * 100);
+            });
+        }
       });
     }
+  };
+
+  getQualityMetricCssClass(score) {
+
+    return this.ApiService.getQualityMetricCssClass(score);
   }
 }
 

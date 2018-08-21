@@ -17,6 +17,7 @@ import _ = require('lodash');
 import angular = require('angular');
 import SidenavService from '../../../../components/sidenav/sidenav.service';
 import UserService from '../../../../services/user.service';
+import {QualityMetrics} from "../../../../entities/qualityMetrics";
 
 class ApiPortalController {
   private initialApi: any;
@@ -30,6 +31,9 @@ class ApiPortalController {
   private formApi: any;
   private apiPublic: boolean;
   private headers: string[];
+  private qualityMetrics: QualityMetrics;
+  private qualityMetricsDescription: Map<string, string>;
+  private isQualityEnabled: boolean;
 
   constructor(
     private ApiService,
@@ -45,7 +49,8 @@ class ApiPortalController {
     private resolvedViews,
     private resolvedGroups,
     private resolvedTags,
-    private resolvedTenants
+    private resolvedTenants,
+    private Constants
   ) {
     'ngInject';
 
@@ -124,6 +129,29 @@ class ApiPortalController {
     this.$scope.$on('apiChangeSuccess', (event, args) => {
       this.api = args.api;
     });
+
+    this.isQualityEnabled = Constants.apiQualityMetrics && Constants.apiQualityMetrics.enabled;
+    this.qualityMetricsDescription = new Map<string, string>();
+    this.qualityMetricsDescription.set("api.quality.metrics.functional.documentation.weight", "A functional page must be published");
+    this.qualityMetricsDescription.set("api.quality.metrics.technical.documentation.weight", "A swagger page must be published");
+    this.qualityMetricsDescription.set("api.quality.metrics.healthcheck.weight", "An healthcheck must be configured");
+    this.qualityMetricsDescription.set("api.quality.metrics.description.weight", "The API description must be filled");
+    this.qualityMetricsDescription.set("api.quality.metrics.logo.weight", "Put your own logo");
+    this.qualityMetricsDescription.set("api.quality.metrics.views.weight", "Link your API to views");
+    this.qualityMetricsDescription.set("api.quality.metrics.labels.weight", "Add labels to your API");
+  }
+
+  $onInit() {
+    this.computeQualityMetrics();
+  }
+
+  computeQualityMetrics() {
+    //quality metrics
+    if (this.isQualityEnabled) {
+      this.ApiService.getQualityMetrics(this.api.id).then(response => {
+        this.qualityMetrics = response.data;
+      });
+    }
   }
 
   toggleVisibility() {
@@ -245,6 +273,7 @@ class ApiPortalController {
     this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
     this.SidenavService.setCurrentResource(this.api.name);
     this.initState();
+    this.computeQualityMetrics();
   }
 
   update(api) {
@@ -318,6 +347,15 @@ class ApiPortalController {
     return function filterFn(header) {
       return angular.lowercase(header).indexOf(lowercaseQuery) === 0;
     };
+  }
+
+  toggleMetricsVisibility() {
+    let visibility = (<HTMLElement>document.getElementsByClassName("gravitee-qm-metrics-list")[0]).style["visibility"];
+    (<HTMLElement>document.getElementsByClassName("gravitee-qm-metrics-list")[0]).style["visibility"] = "hidden" === visibility ? "visible" : "hidden";
+  }
+
+  getQualityMetricCssClass() {
+    return this.ApiService.getQualityMetricCssClass(this.qualityMetrics.score * 100);
   }
 }
 

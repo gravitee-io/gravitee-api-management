@@ -424,6 +424,26 @@ class ApiService {
   deleteRatingAnswer(api, ratingId, answerId) {
     return this.$http.delete(this.apisURL + api + '/ratings/' + ratingId + '/answers/' + answerId);
   }
+
+  /*
+   * Quality Metrics
+   */
+  getQualityMetrics(api) {
+    return this.$http.get(this.apisURL + api + '/quality');
+  }
+
+  getQualityMetricCssClass(score) {
+    if (score !== undefined) {
+      if ( score < 50 ) {
+        return 'gravitee-qm-score-bad';
+      } else if (score >= 50 && score < 80) {
+        return 'gravitee-qm-score-medium'
+      } else {
+        return  'gravitee-qm-score-good';
+      }
+    }
+    return;
+  }
 }
 
 export default ApiService;

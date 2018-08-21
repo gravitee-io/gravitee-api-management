@@ -53,6 +53,31 @@
       <textarea permission permission-only="'api-definition-u'" permission-on-unauthorized="PermissionStrategies.disableElement"
                 ng-model="portalCtrl.api.description" required></textarea>
     </md-input-container>
+    <div ng-if="portalCtrl.isQualityEnabled">
+      <div ng-if="portalCtrl.qualityMetrics === undefined" layout="column" layout-align="center center" flex>
+        <md-progress-circular md-mode="indeterminate" class="md-accent md-hue-1" md-diameter="50"></md-progress-circular>
+      </div>
+      <div ng-if="portalCtrl.qualityMetrics !== undefined"
+           id="qualityMetrics"
+           layout="row">
+        <div layout="column">
+          <h5>Quality Metrics:</h5>
+          <div class="gravitee-qm-score-large"
+               ng-class="portalCtrl.getQualityMetricCssClass()"
+               ng-mouseover="portalCtrl.toggleMetricsVisibility()"
+               ng-mouseleave="portalCtrl.toggleMetricsVisibility()">
+            {{ portalCtrl.qualityMetrics.score * 100 | number:0 }}%
+          </div>
+        </div>
+        <div layout="column" layout-align="start start" class="gravitee-qm-metrics-list" style="visibility: hidden;">
+          <div ng-repeat="(k,v) in portalCtrl.qualityMetrics.metrics_passed"
+               class="gravitee-qm-metrics"
+               ng-class="{'gravitee-qm-metrics-passed': v, 'gravitee-qm-metrics-failed': !v }">
+            {{portalCtrl.qualityMetricsDescription.get(k)}}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <md-subheader class="md-primary" style="background-color: #fafafa">Portal</md-subheader>
