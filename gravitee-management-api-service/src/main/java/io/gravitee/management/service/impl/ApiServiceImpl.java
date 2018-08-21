@@ -910,12 +910,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         InlinePictureEntity imageEntity = new InlinePictureEntity();
         if (apiEntity.getPicture() == null) {
             imageEntity.setType("image/png");
-            try {
-                imageEntity.setContent(IOUtils.toByteArray(new FileInputStream(defaultIcon)));
-            } catch (IOException ioe) {
-                LOGGER.error("Default icon for API does not exist", ioe);
-            }
-
+            imageEntity.setContent(getDefaultPicture());
         } else {
             String[] parts = apiEntity.getPicture().split(";", 2);
             imageEntity.setType(parts[0].split(":")[1]);
@@ -924,6 +919,16 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
 
         return imageEntity;
+    }
+
+    @Override
+    public byte[] getDefaultPicture() {
+        try {
+            return IOUtils.toByteArray(new FileInputStream(defaultIcon));
+        } catch (IOException ioe) {
+            LOGGER.error("Default icon for API does not exist", ioe);
+        }
+        return null;
     }
 
     @Override

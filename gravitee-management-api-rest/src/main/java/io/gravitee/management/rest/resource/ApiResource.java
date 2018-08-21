@@ -27,6 +27,7 @@ import io.gravitee.management.rest.resource.param.LifecycleActionParam.Lifecycle
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.NotifierService;
+import io.gravitee.management.service.QualityMetricsService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -67,6 +68,9 @@ public class ApiResource extends AbstractResource {
 
     @Autowired
     private NotifierService notifierService;
+
+    @Autowired
+    private QualityMetricsService qualityMetricsService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -426,6 +430,19 @@ public class ApiResource extends AbstractResource {
                 .lastModified(updatedApi.getUpdatedAt())
                 .build();
     }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("quality")
+    @ApiOperation(value = "Get the quality metrics of the API")
+    @Permissions({
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)
+    })
+    public ApiQualityMetricsEntity getQualityMetrics(@PathParam("api") String api) {
+        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
+        return qualityMetricsService.getMetrics(apiEntity);
+    }
+
 
     @Path("keys")
     public ApiKeysResource getApiKeyResource() {

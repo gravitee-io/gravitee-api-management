@@ -64,7 +64,17 @@ public enum Key {
     PLAN_SECURITY_JWT_ENABLED("plan.security.jwt.enabled", "true"),
     PLAN_SECURITY_OAUTH2_ENABLED("plan.security.oauth2.enabled", "true"),
     PLAN_SECURITY_APIKEY_ENABLED("plan.security.apikey.enabled", "true"),
-    PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled", "true");
+    PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled", "true"),
+
+    API_QUALITY_METRICS_ENABLED("api.quality.metrics.enabled", "false"),
+    API_QUALITY_METRICS_FUNCTIONAL_DOCUMENTATION_WEIGHT("api.quality.metrics.functional.documentation.weight", "0"),
+    API_QUALITY_METRICS_TECHNICAL_DOCUMENTATION_WEIGHT("api.quality.metrics.technical.documentation.weight", "0"),
+    API_QUALITY_METRICS_HEALTHCHECK_WEIGHT("api.quality.metrics.healthcheck.weight", "0"),
+    API_QUALITY_METRICS_DESCRIPTION_WEIGHT("api.quality.metrics.description.weight", "0"),
+    API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH("api.quality.metrics.description.min.length", "100"),
+    API_QUALITY_METRICS_LOGO_WEIGHT("api.quality.metrics.logo.weight", "0"),
+    API_QUALITY_METRICS_VIEWS_WEIGHT("api.quality.metrics.views.weight", "0"),
+    API_QUALITY_METRICS_LABELS_WEIGHT("api.quality.metrics.labels.weight", "0");
 
     String key;
     String defaultValue;

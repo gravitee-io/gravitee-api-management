@@ -1,0 +1,8 @@
+io.gravitee.management.service.quality.ApiQualityMetric=\
+    io.gravitee.management.service.quality.ApiQualityMetricDescription,\
+    io.gravitee.management.service.quality.ApiQualityMetricFunctionalDocumentation,\
+    io.gravitee.management.service.quality.ApiQualityMetricHealthcheck,\
+    io.gravitee.management.service.quality.ApiQualityMetricLabels,\
+    io.gravitee.management.service.quality.ApiQualityMetricLogo,\
+    io.gravitee.management.service.quality.ApiQualityMetricTechnicalDocumentation,\
+    io.gravitee.management.service.quality.ApiQualityMetricViews

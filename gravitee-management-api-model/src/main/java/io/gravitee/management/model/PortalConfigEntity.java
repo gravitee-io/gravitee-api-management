@@ -37,6 +37,7 @@ public class PortalConfigEntity {
     private Documentation documentation;
     private Theme theme;
     private Plan plan;
+    private ApiQualityMetrics apiQualityMetrics;
 
     public PortalConfigEntity() {
         company = new Company();
@@ -47,6 +48,7 @@ public class PortalConfigEntity {
         documentation = new Documentation();
         theme = new Theme();
         plan = new Plan();
+        apiQualityMetrics = new ApiQualityMetrics();
     }
 
     public Company getCompany() {
@@ -101,9 +103,15 @@ public class PortalConfigEntity {
     public Plan getPlan() {
         return plan;
     }
-
     public void setPlan(Plan plan) {
         this.plan = plan;
+    }
+
+    public ApiQualityMetrics getApiQualityMetrics() {
+        return apiQualityMetrics;
+    }
+    public void setApiQualityMetrics(ApiQualityMetrics apiQualityMetrics) {
+        this.apiQualityMetrics = apiQualityMetrics;
     }
 
     public class Company {
@@ -653,6 +661,108 @@ public class PortalConfigEntity {
 
         public void setJwt(Enabled jwt) {
             this.jwt = jwt;
+        }
+    }
+
+    public class ApiQualityMetrics {
+
+        @ParameterKey(Key.API_QUALITY_METRICS_ENABLED)
+        private Boolean enabled;
+
+        @ParameterKey(Key.API_QUALITY_METRICS_FUNCTIONAL_DOCUMENTATION_WEIGHT)
+        private Integer functionalDocumentationWeight;
+
+        @ParameterKey(Key.API_QUALITY_METRICS_TECHNICAL_DOCUMENTATION_WEIGHT)
+        private Integer technicalDocumentationWeight;
+
+        @ParameterKey(Key.API_QUALITY_METRICS_HEALTHCHECK_WEIGHT)
+        private Integer HealthcheckWeight;
+
+        @ParameterKey(Key.API_QUALITY_METRICS_DESCRIPTION_WEIGHT)
+        private Integer descriptionWeight;
+
+        @ParameterKey(Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH)
+        private Integer descriptionMinLength;
+
+        @ParameterKey(Key.API_QUALITY_METRICS_LOGO_WEIGHT)
+        private Integer logoWeight;
+
+        @ParameterKey(Key.API_QUALITY_METRICS_VIEWS_WEIGHT)
+        private Integer viewsWeight;
+
+        @ParameterKey(Key.API_QUALITY_METRICS_LABELS_WEIGHT)
+        private Integer labelsWeight;
+
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public Integer getFunctionalDocumentationWeight() {
+            return functionalDocumentationWeight;
+        }
+
+        public void setFunctionalDocumentationWeight(Integer functionalDocumentationWeight) {
+            this.functionalDocumentationWeight = functionalDocumentationWeight;
+        }
+
+        public Integer getTechnicalDocumentationWeight() {
+            return technicalDocumentationWeight;
+        }
+
+        public void setTechnicalDocumentationWeight(Integer technicalDocumentationWeight) {
+            this.technicalDocumentationWeight = technicalDocumentationWeight;
+        }
+
+        public Integer getHealthcheckWeight() {
+            return HealthcheckWeight;
+        }
+
+        public void setHealthcheckWeight(Integer healthcheckWeight) {
+            HealthcheckWeight = healthcheckWeight;
+        }
+
+        public Integer getDescriptionWeight() {
+            return descriptionWeight;
+        }
+
+        public void setDescriptionWeight(Integer descriptionWeight) {
+            this.descriptionWeight = descriptionWeight;
+        }
+
+        public Integer getDescriptionMinLength() {
+            return descriptionMinLength;
+        }
+
+        public void setDescriptionMinLength(Integer descriptionMinLength) {
+            this.descriptionMinLength = descriptionMinLength;
+        }
+
+        public Integer getLogoWeight() {
+            return logoWeight;
+        }
+
+        public void setLogoWeight(Integer logoWeight) {
+            this.logoWeight = logoWeight;
+        }
+
+        public Integer getViewsWeight() {
+            return viewsWeight;
+        }
+
+        public void setViewsWeight(Integer viewsWeight) {
+            this.viewsWeight = viewsWeight;
+        }
+
+        public Integer getLabelsWeight() {
+            return labelsWeight;
+        }
+
+        public void setLabelsWeight(Integer labelsWeight) {
+            this.labelsWeight = labelsWeight;
         }
     }
 }
