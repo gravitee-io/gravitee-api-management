@@ -135,6 +135,27 @@ public class ApiPageResource extends AbstractResource {
         return pageService.fetch(page, contributor);
     }
 
+    @PATCH
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update a page",
+            notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+    })
+    public PageEntity partialUpdatePage(
+            @PathParam("api") String api,
+            @PathParam("page") String page,
+            @ApiParam(name = "page") UpdatePageEntity updatePageEntity) {
+        pageService.findById(page);
+
+        updatePageEntity.setLastContributor(getAuthenticatedUser());
+        return pageService.update(page, updatePageEntity, true);
+    }
+
     @DELETE
     @ApiOperation(value = "Delete a page",
             notes = "User must have the MANAGE_PAGES permission to use this service")

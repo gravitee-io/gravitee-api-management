@@ -151,6 +151,27 @@ public class PortalPagesResource extends AbstractResource {
         return pageService.update(page, updatePageEntity);
     }
 
+    @PATCH
+    @Path("/{page}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update a page",
+            notes = "User must be ADMIN to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+    })
+    public PageEntity partialUpdatePage(
+            @PathParam("page") String page,
+            @ApiParam(name = "page", required = true) @NotNull UpdatePageEntity updatePageEntity) {
+        pageService.findById(page);
+
+        updatePageEntity.setLastContributor(getAuthenticatedUser());
+        return pageService.update(page, updatePageEntity, true);
+    }
+
     @POST
     @Path("/{page}/_fetch")
     @Produces(MediaType.APPLICATION_JSON)
@@ -163,11 +184,11 @@ public class PortalPagesResource extends AbstractResource {
             @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
     public PageEntity fetchPage(
-            @PathParam("page") String page) {
-        pageService.findById(page);
-        String contributor = getAuthenticatedUser();
+    @PathParam("page") String page) {
+            pageService.findById(page);
+            String contributor = getAuthenticatedUser();
 
-        return pageService.fetch(page, contributor);
+            return pageService.fetch(page, contributor);
     }
 
     @POST
@@ -185,8 +206,8 @@ public class PortalPagesResource extends AbstractResource {
         List<PageListItem> pages = pageService.findPortalPagesByHomepage(false, false);
         String contributor = getAuthenticatedUser();
         pages.stream()
-                .filter(pageListItem -> pageListItem.getSource() != null)
-                .forEach(pageListItem -> pageService.fetch(pageListItem.getId(), contributor));
+            .filter(pageListItem -> pageListItem.getSource() != null)
+            .forEach(pageListItem -> pageService.fetch(pageListItem.getId(), contributor));
 
         return Response.noContent().build();
     }

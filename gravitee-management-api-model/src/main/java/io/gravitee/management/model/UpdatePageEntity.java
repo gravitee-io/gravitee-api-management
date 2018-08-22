@@ -36,15 +36,15 @@ public class UpdatePageEntity {
 
 	private String lastContributor;
 
-	private int order;
+	private Integer order;
 
-	private boolean published;
+	private Boolean published;
 
 	private PageSourceEntity source;
 
 	private Map<String, String> configuration;
 
-	private boolean homepage;
+	private Boolean homepage;
 
 	@JsonProperty("excluded_groups")
 	private List<String> excludedGroups;
@@ -75,19 +75,19 @@ public class UpdatePageEntity {
 		this.lastContributor = lastContributor;
 	}
 
-	public int getOrder() {
+	public Integer getOrder() {
 		return order;
 	}
 
-	public void setOrder(int order) {
+	public void setOrder(Integer order) {
 		this.order = order;
 	}
 
-	public boolean isPublished() {
+	public Boolean isPublished() {
 		return published;
 	}
 
-	public void setPublished(boolean published) {
+	public void setPublished(Boolean published) {
 		this.published = published;
 	}
 
@@ -107,11 +107,11 @@ public class UpdatePageEntity {
 		this.configuration = configuration;
 	}
 
-	public boolean isHomepage() {
+	public Boolean isHomepage() {
 		return homepage;
 	}
 
-	public void setHomepage(boolean homepage) {
+	public void setHomepage(Boolean homepage) {
 		this.homepage = homepage;
 	}
 

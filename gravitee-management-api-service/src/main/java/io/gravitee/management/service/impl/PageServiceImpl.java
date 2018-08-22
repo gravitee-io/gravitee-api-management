@@ -397,9 +397,14 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 	}
 
-	@Override
-	public PageEntity update(String pageId, UpdatePageEntity updatePageEntity) {
-		try {
+    @Override
+    public PageEntity update(String pageId, UpdatePageEntity updatePageEntity) {
+        return this.update(pageId, updatePageEntity, false);
+    }
+
+    @Override
+    public PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial) {
+        try {
 			logger.debug("Update Page {}", pageId);
 
 			Optional<Page> optPageToUpdate = pageRepository.findById(pageId);
@@ -408,9 +413,15 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			}
 
 			Page pageToUpdate = optPageToUpdate.get();
-			Page page = convert(updatePageEntity);
+			Page page = null;
 
-			if (page.getSource() != null) {
+            if(partial) {
+                page = merge(updatePageEntity, pageToUpdate);
+            } else {
+                page = convert(updatePageEntity);
+			}
+
+            if (page.getSource() != null) {
 				try {
 					String fetchedContent = this.getContentFromFetcher(page.getSource());
                     if (fetchedContent != null && !fetchedContent.isEmpty()) {
@@ -742,7 +753,48 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return pageEntity;
 	}
 
-	private static Page convert(UpdatePageEntity updatePageEntity) {
+    private static Page merge(UpdatePageEntity updatePageEntity, Page withUpdatePage) {
+
+        Page page = new Page();
+
+        page.setName(
+                updatePageEntity.getName() != null ? updatePageEntity.getName() : withUpdatePage.getName()
+        );
+        page.setContent(
+                updatePageEntity.getContent() != null ? updatePageEntity.getContent() : withUpdatePage.getContent()
+        );
+        page.setLastContributor(
+                updatePageEntity.getLastContributor() != null ? updatePageEntity.getLastContributor() : withUpdatePage.getLastContributor()
+        );
+        page.setOrder(
+                updatePageEntity.getOrder() != null ? updatePageEntity.getOrder() : withUpdatePage.getOrder()
+        );
+        page.setPublished(
+                updatePageEntity.isPublished() != null ? updatePageEntity.isPublished() : withUpdatePage.isPublished()
+        );
+
+        PageSource pageSource = convert(updatePageEntity.getSource());
+        page.setSource(
+                pageSource != null ? pageSource : withUpdatePage.getSource()
+        );
+        page.setConfiguration(
+                updatePageEntity.getConfiguration() != null ? updatePageEntity.getConfiguration() : withUpdatePage.getConfiguration()
+        );
+        page.setHomepage(
+                updatePageEntity.isHomepage() != null ? updatePageEntity.isHomepage() : withUpdatePage.isHomepage()
+        );
+        page.setExcludedGroups(
+                updatePageEntity.getExcludedGroups() != null ? updatePageEntity.getExcludedGroups() : withUpdatePage.getExcludedGroups()
+        );
+        page.setParentId(
+                updatePageEntity.getParentId() != null ? updatePageEntity.getParentId() : withUpdatePage.getParentId()
+
+        );
+
+        return page;
+    }
+
+    private static Page convert(UpdatePageEntity updatePageEntity) {
 		Page page = new Page();
 
 		page.setName(updatePageEntity.getName());

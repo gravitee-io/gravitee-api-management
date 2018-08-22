@@ -45,7 +45,9 @@ public interface PageService {
 	PageEntity createPortalPage(NewPageEntity page);
 	
 	PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
-	
+
+	PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial);
+
 	void delete(String pageId);
 	
 	int findMaxApiPageOrderByApi(String apiId);
