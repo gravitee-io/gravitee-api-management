@@ -16,7 +16,7 @@
 package io.gravitee.reporter.elasticsearch.node;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.common.node.Node;
+import io.gravitee.node.api.Node;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -27,6 +27,11 @@ public class DummyNode implements Node {
     @Override
     public String name() {
         return this.name();
+    }
+
+    @Override
+    public String application() {
+        return "dummy-application";
     }
 
     @Override

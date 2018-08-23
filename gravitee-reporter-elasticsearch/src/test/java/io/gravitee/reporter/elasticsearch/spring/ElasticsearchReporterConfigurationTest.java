@@ -15,8 +15,8 @@
  */
 package io.gravitee.reporter.elasticsearch.spring;
 
-import io.gravitee.common.node.Node;
 import io.gravitee.elasticsearch.config.Endpoint;
+import io.gravitee.node.api.Node;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.embedded.ElasticsearchNode;
 import io.gravitee.reporter.elasticsearch.node.DummyNode;
@@ -25,7 +25,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 /**

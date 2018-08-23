@@ -15,10 +15,10 @@
  */
 package io.gravitee.reporter.elasticsearch.indexer;
 
-import io.gravitee.common.node.Node;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.http.Metrics;
