@@ -56,7 +56,7 @@ class VertxHttpServerResponse implements Response {
 
     @Override
     public Response write(Buffer chunk) {
-        if (!httpServerResponse.closed() && !httpServerResponse.ended()) {
+        if (valid()) {
             if (!httpServerResponse.headWritten()) {
                 writeHeaders();
 
@@ -87,18 +87,22 @@ class VertxHttpServerResponse implements Response {
 
     @Override
     public boolean writeQueueFull() {
-        return httpServerResponse.writeQueueFull();
+        return valid() && httpServerResponse.writeQueueFull();
     }
 
     @Override
     public void end() {
-        if (!httpServerResponse.closed() && !httpServerResponse.ended()) {
+        if (valid()) {
             if (!httpServerResponse.headWritten()) {
                 writeHeaders();
             }
 
             httpServerResponse.end();
         }
+    }
+
+    private boolean valid() {
+        return !httpServerResponse.closed() && !httpServerResponse.ended();
     }
 
     private void writeHeaders() {
