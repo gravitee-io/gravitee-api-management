@@ -28,5 +28,5 @@ public interface LogRepository {
 
     TabularResponse query(TabularQuery query) throws AnalyticsException;
 
-    ExtendedLog findById(String logId) throws AnalyticsException;
+    ExtendedLog findById(String logId, Long timestamp) throws AnalyticsException;
 }
