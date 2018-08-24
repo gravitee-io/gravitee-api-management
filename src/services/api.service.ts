@@ -160,8 +160,8 @@ class ApiService {
     return this.$http.get(url, {timeout: 30000});
   }
 
-  getLog(api, logId) {
-    return this.$http.get(this.apisURL + api + '/logs/' + logId);
+  getLog(api, logId, timestamp) {
+    return this.$http.get(this.apisURL + api + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
   }
 
   /*

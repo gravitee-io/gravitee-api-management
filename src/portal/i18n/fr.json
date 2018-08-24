@@ -134,6 +134,7 @@
         "5": "Cette API est parfaite"
       },
       "successCreation": "Votre note a été soumise avec succès",
+      "successCreationMessage": "Votre note a bien été prise en compte, vous pouvez maintenant y ajouter un commentaire pour compléter votre note",
       "successUpdate": "Votre note a été mise à jour avec succès",
       "successDeletion": "Cette note a été supprimée avec succès",
       "deletion": "Êtes-vous sûr de vouloir supprimer cette note ?",

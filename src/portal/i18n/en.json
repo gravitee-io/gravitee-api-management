@@ -134,6 +134,7 @@
         "5": "This API is perfect"
       },
       "successCreation": "Your rating has been submitted successfully",
+      "successCreationMessage": "Your rating has been taken into account, you can now add a comment to complete your rating",
       "successUpdate": "Your rating has been successfully updated",
       "successDeletion": "This rating has been successfully deleted",
       "deletion": "Are you sure you want to delete this rating?",
