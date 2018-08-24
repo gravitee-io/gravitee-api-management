@@ -31,6 +31,7 @@ import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -92,7 +93,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 	}
 
 	@Override
-	public ExtendedLog findById(final String requestId) throws AnalyticsException {
+	public ExtendedLog findById(final String requestId, final Long timestamp) throws AnalyticsException {
 		final Map<String, Object> data = new HashMap<>();
 		data.put("requestId", requestId);
 
@@ -100,7 +101,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
 		try {
 			Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getWildcardIndexName(Type.REQUEST),
+					(timestamp == null) ? this.indexNameGenerator.getWildcardIndexName(Type.REQUEST) : this.indexNameGenerator.getIndexName(Type.REQUEST, Instant.ofEpochMilli(timestamp)),
 					Type.REQUEST.getType(),
 					sQuery);
 

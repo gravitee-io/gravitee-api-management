@@ -37,7 +37,8 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
 
     @Test
     public void testFindById() throws Exception {
-        ExtendedLog log = logRepository.findById("29381bce-df59-47b2-b81b-cedf59c7b23e");
+        // 29381bce-df59-47b2-b81b-cedf59c7b23e request is stored in the yesterday index
+        ExtendedLog log = logRepository.findById("29381bce-df59-47b2-b81b-cedf59c7b23e", System.currentTimeMillis() - 24*60*60*1000);
 
         Assert.assertNotNull(log);
     }
