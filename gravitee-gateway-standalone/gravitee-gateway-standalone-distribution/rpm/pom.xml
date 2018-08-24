@@ -54,7 +54,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
-				
+
 					<!-- Filters some files and uses packaging.properties when building the .rpm package -->
 					<execution>
 						<id>copy-resources-rpm</id>
@@ -212,7 +212,7 @@
 								<scriptFile>${project.build.directory}/generated-packaging/rpm/scripts/prerm</scriptFile>
 								<fileEncoding>utf-8</fileEncoding>
 							</preremoveScriptlet>
-							
+
 							<postremoveScriptlet>
 								<scriptFile>${project.build.directory}/generated-packaging/rpm/scripts/postrm</scriptFile>
 								<fileEncoding>utf-8</fileEncoding>
