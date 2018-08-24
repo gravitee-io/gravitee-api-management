@@ -81,22 +81,29 @@ public class PlatformAnalyticsResource extends AbstractResource  {
         // add filter by Apis or Applications
         String extraFilter = null;
         if (!isAdmin()) {
+            String fieldName = null;
+            List<String> ids = null;
             if ("api".equals(analyticsParam.getField()) || "tenant".equals(analyticsParam.getField())) {
-                extraFilter = getExtraFilter(
-                        "api",
-                        apiService.findByUser(getAuthenticatedUser())
-                                .stream()
-                                .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
-                                .map(ApiEntity::getId)
-                                .collect(Collectors.toList()));
+                fieldName = "api";
+                ids = apiService.findByUser(getAuthenticatedUser())
+                        .stream()
+                        .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
+                        .map(ApiEntity::getId)
+                        .collect(Collectors.toList());
             } else if ("application".equals(analyticsParam.getField())) {
-                extraFilter = getExtraFilter(
-                        analyticsParam.getField(),
-                        applicationService.findByUser(getAuthenticatedUser())
-                                .stream()
-                                .filter(app -> permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ))
-                                .map(ApplicationEntity::getId)
-                                .collect(Collectors.toList()));
+                fieldName = analyticsParam.getField();
+                ids = applicationService.findByUser(getAuthenticatedUser())
+                        .stream()
+                        .filter(app -> permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ))
+                        .map(ApplicationEntity::getId)
+                        .collect(Collectors.toList());
+            }
+
+            if (fieldName != null) {
+                if (ids.isEmpty()) {
+                    return Response.noContent().build();
+                }
+                extraFilter = getExtraFilter(fieldName, ids);
             }
         }
 
