@@ -24,7 +24,7 @@
       <div flex></div>
       <md-list>
         <md-list-item class="eventType" ng-class="{eventTypeSelected: selection}" ng-repeat="eventType in dashboardCtrl.eventTypes">
-          <a href="javascript:void(0);" ng-click="selection= !selection; dashboardCtrl.selectEvent(eventType)">
+          <a ng-click="selection= !selection; dashboardCtrl.selectEvent(eventType)">
             <span><strong>{{dashboardCtrl.getEventLabel(eventType.toLowerCase())}}</strong></span>
           </a>
         </md-list-item>

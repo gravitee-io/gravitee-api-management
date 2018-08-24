@@ -23,7 +23,7 @@
           <timeline-badge class="{{eventTimeline.badgeClass}}">
             <i class="glyphicon {{eventTimeline.badgeIconClass}}"></i>
           </timeline-badge>
-          <a class="timeline-link" href="javascript:void(0);" ng-click="apiHistoryCtrl.selectEvent(eventTimeline)">
+          <a class="timeline-link" ng-click="apiHistoryCtrl.selectEvent(eventTimeline)">
             <timeline-panel ng-class="{active : apiHistoryCtrl.isEventSelected(eventTimeline)}" class="{{eventTimeline.badgeClass}}">
               <timeline-heading>
                 <h5>{{eventTimeline.title | uppercase}}
