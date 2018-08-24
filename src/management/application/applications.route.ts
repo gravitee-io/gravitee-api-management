@@ -245,11 +245,11 @@ function applicationsConfig($stateProvider: ng.ui.IStateProvider) {
       }
     })
     .state('management.applications.application.log', {
-      url: '/logs/:logId',
+      url: '/logs/:logId?timestamp',
       component: 'applicationLog',
       resolve: {
         log: ($stateParams: ng.ui.IStateParamsService, ApplicationService: ApplicationService) =>
-          ApplicationService.getLog($stateParams.applicationId, $stateParams.logId).then(response => response.data)
+          ApplicationService.getLog($stateParams.applicationId, $stateParams.logId, $stateParams.timestamp).then(response => response.data)
       },
       data: {
         devMode: true,
