@@ -122,6 +122,9 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                     .collect(Collectors.toSet()));
 
             // 6. search for PENDING subscriptions
+            if (apiIds.isEmpty()) {
+                return Collections.emptyList();
+            }
             SubscriptionQuery query = new SubscriptionQuery();
             query.setStatuses(Collections.singleton(PENDING));
             query.setApis(apiIds);
