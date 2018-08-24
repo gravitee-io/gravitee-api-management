@@ -85,8 +85,8 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldFindByUser() throws TechnicalException {
-        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).ids(USER_NAME).build()))
-                .thenReturn(singletonList(api));
+        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(singletonList(api));
+        when(apiRepository.search(new ApiCriteria.Builder().ids(api.getId()).build())).thenReturn(singletonList(api));
 
         Membership membership = new Membership(USER_NAME, api.getId(), MembershipReferenceType.API);
         membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), "USER"));

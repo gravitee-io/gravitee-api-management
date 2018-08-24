@@ -31,6 +31,7 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.DateRangeBuilder;
 import io.gravitee.repository.analytics.query.IntervalBuilder;
+import io.gravitee.repository.analytics.query.QueryBuilder;
 import io.gravitee.repository.analytics.query.QueryBuilders;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.log.api.LogRepository;
@@ -125,9 +126,9 @@ public class LogsServiceImpl implements LogsService {
     }
 
     @Override
-    public ApiRequest findApiLog(String id) {
+    public ApiRequest findApiLog(String id, Long timestamp) {
         try {
-            return toApiRequest(logRepository.findById(id));
+            return toApiRequest(logRepository.findById(id, timestamp));
         } catch (AnalyticsException ae) {
             logger.error("Unable to retrieve log: " + id, ae);
             throw new TechnicalManagementException("Unable to retrieve log: " + id, ae);
@@ -183,9 +184,9 @@ public class LogsServiceImpl implements LogsService {
     }
 
     @Override
-    public ApplicationRequest findApplicationLog(String id) {
+    public ApplicationRequest findApplicationLog(String id, Long timestamp) {
         try {
-            return toApplicationRequest(logRepository.findById(id));
+            return toApplicationRequest(logRepository.findById(id, timestamp));
         } catch (AnalyticsException ae) {
             logger.error("Unable to retrieve log: " + id, ae);
             throw new TechnicalManagementException("Unable to retrieve log: " + id, ae);

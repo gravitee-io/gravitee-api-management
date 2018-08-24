@@ -68,6 +68,7 @@ import java.util.stream.Stream;
 
 import static io.gravitee.management.model.PageType.SWAGGER;
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 import static io.gravitee.management.model.EventType.PUBLISH_API;
 import static java.util.Collections.singleton;
@@ -350,16 +351,34 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public Set<ApiEntity> findByUser(String userId, ApiQuery apiQuery) {
         try {
             LOGGER.debug("Find APIs by user {}", userId);
+
+            //get all public apis
+            List<Api> publicApis = apiRepository.search(queryToCriteria(apiQuery).visibility(PUBLIC).build());
+
+            // get user apis
+            final String[] userApiIds = membershipRepository
+                    .findByUserAndReferenceType(userId, MembershipReferenceType.API).stream()
+                    .map(Membership::getReferenceId)
+                    .toArray(String[]::new);
+            List<Api> userApis = apiRepository.search(queryToCriteria(apiQuery).ids(userApiIds).build());
+
+            // get user groups apis
+            List<Api> groupApis = emptyList();
             final String[] groupIds = membershipRepository
                     .findByUserAndReferenceType(userId, MembershipReferenceType.GROUP).stream()
                     .filter(m -> m.getRoles().keySet().contains(RoleScope.API.getId()))
                     .map(Membership::getReferenceId)
                     .toArray(String[]::new);
-            final ApiCriteria.Builder criteria = queryToCriteria(apiQuery).visibility(PUBLIC).ids(userId);
             if (groupIds != null && groupIds.length > 0 && groupIds[0] != null) {
-                criteria.groups(groupIds);
+                groupApis = apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
             }
-            return convert(apiRepository.search(criteria.build()));
+
+            // merge all apis
+            final Set<ApiEntity> apis = new HashSet<>(publicApis.size() + userApis.size() + groupApis.size());
+            apis.addAll(convert(publicApis));
+            apis.addAll(convert(userApis));
+            apis.addAll(convert(groupApis));
+            return apis;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + userId, ex);
