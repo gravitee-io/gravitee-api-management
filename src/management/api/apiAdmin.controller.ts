@@ -15,22 +15,27 @@
  */
 import SidenavService from '../../components/sidenav/sidenav.service';
 import UserService from '../../services/user.service';
+import NotificationService from "../../services/notification.service";
+import ApiService from "../../services/api.service";
+import {IScope} from "angular";
 
 class ApiAdminController {
   private api: any;
   private apiJustDeployed: boolean;
   private apiIsSynchronized: boolean;
+  private menu: any;
 
   constructor (
-    private resolvedApi,
-    private $state,
-    private $scope,
-    private $rootScope,
-    private $mdDialog,
-    private ApiService,
-    private NotificationService,
-    private resolvedApiState,
-    private SidenavService: SidenavService) {
+    private resolvedApi: any,
+    private $state: ng.ui.IStateService,
+    private $scope: IScope,
+    private $rootScope: IScope,
+    private $mdDialog: angular.material.IDialogService,
+    private ApiService: ApiService,
+    private NotificationService: NotificationService,
+    private resolvedApiState: any,
+    private SidenavService: SidenavService,
+    private UserService: UserService) {
     'ngInject';
 
     this.$scope = $scope;
@@ -45,8 +50,10 @@ class ApiAdminController {
 
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
+    this.UserService = UserService;
     this.apiJustDeployed = false;
     this.apiIsSynchronized = resolvedApiState.data.is_synchronized;
+    this.menu = {};
     this.init();
   }
 
@@ -60,6 +67,39 @@ class ApiAdminController {
       self.api = args.api;
       self.checkAPISynchronization(self.api);
     });
+
+    this.menu = {
+      plans: {
+        perm: this.UserService.isUserHasPermissions(
+          ['api-plan-r']),
+        goTo: 'management.apis.detail.portal.plans.list'
+      },
+      subscriptions: {
+        perm: this.UserService.isUserHasPermissions(
+          ['api-subscription-r']),
+        goTo: 'management.apis.detail.portal.subscriptions.list'
+      },
+      documentation: {
+        perm: this.UserService.isUserHasPermissions(
+          ['api-documentation-r']),
+        goTo: 'management.apis.detail.portal.documentation'
+      },
+      metadata: {
+        perm: this.UserService.isUserHasPermissions(
+          ['api-metadata-r']),
+        goTo: 'management.apis.detail.portal.metadata'
+      },
+      members: {
+        perm: this.UserService.isUserHasPermissions(
+          ['api-member-r']),
+        goTo: 'management.apis.detail.portal.members'
+      },
+      groups: {
+        perm: this.UserService.isUserHasPermissions(
+          ['api-member-r']),
+        goTo: 'management.apis.detail.portal.groups'
+      }
+    };
   }
 
   checkAPISynchronization(api) {

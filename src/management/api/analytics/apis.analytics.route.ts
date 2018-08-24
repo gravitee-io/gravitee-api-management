@@ -84,11 +84,11 @@ function apisAnalyticsRouterConfig($stateProvider) {
       }
     })
     .state('management.apis.detail.analytics.log', {
-      url: '/logs/:logId',
+      url: '/logs/:logId?timestamp',
       component: 'log',
       resolve: {
         log: ($stateParams, ApiService: ApiService) =>
-          ApiService.getLog($stateParams['apiId'], $stateParams['logId']).then(response => response.data)
+          ApiService.getLog($stateParams['apiId'], $stateParams['logId'], $stateParams['timestamp']).then(response => response.data)
       },
       data: {
         perms: {
