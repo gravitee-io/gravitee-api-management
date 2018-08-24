@@ -15,15 +15,14 @@
  */
 package io.gravitee.management.standalone.spring;
 
-import io.gravitee.common.node.Node;
 import io.gravitee.management.repository.spring.RepositoryConfiguration;
 import io.gravitee.management.rest.spring.RestConfiguration;
-import io.gravitee.management.services.spring.ServiceConfiguration;
 import io.gravitee.management.standalone.jetty.JettyConfiguration;
 import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.management.standalone.jetty.JettyServerFactory;
 import io.gravitee.management.standalone.node.ManagementNode;
-import io.vertx.core.Vertx;
+import io.gravitee.node.api.Node;
+import io.gravitee.node.vertx.spring.VertxConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -33,17 +32,16 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({RepositoryConfiguration.class, ServiceConfiguration.class, RestConfiguration.class})
+@Import({
+        VertxConfiguration.class,
+        RepositoryConfiguration.class,
+        RestConfiguration.class
+})
 public class StandaloneConfiguration {
 
     @Bean
     public Node node() {
         return new ManagementNode();
-    }
-
-    @Bean
-    public Vertx vertx() {
-        return Vertx.vertx();
     }
 
     @Bean

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.services.healthcheck.probe;
+package io.gravitee.management.repository.healthcheck;
 
-import io.gravitee.management.services.healthcheck.Probe;
-import io.gravitee.management.services.healthcheck.Result;
+import io.gravitee.management.repository.vertx.VertxCompletableFuture;
+import io.gravitee.node.api.healthcheck.Probe;
+import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.count.CountQuery;
 import io.vertx.core.AsyncResult;
@@ -24,6 +25,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -43,7 +46,7 @@ public class AnalyticsRepositoryProbe implements Probe {
     }
 
     @Override
-    public Future<Result> check() {
+    public CompletableFuture<Result> check() {
         Future<Result> future = Future.future();
 
         vertx.executeBlocking(new Handler<Future<Result>>() {
@@ -63,6 +66,6 @@ public class AnalyticsRepositoryProbe implements Probe {
             }
         });
 
-        return future;
+        return VertxCompletableFuture.from(vertx, future);
     }
 }

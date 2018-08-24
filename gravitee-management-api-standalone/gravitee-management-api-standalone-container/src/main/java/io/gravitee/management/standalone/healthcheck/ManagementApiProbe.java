@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.services.healthcheck.probe;
+package io.gravitee.management.standalone.healthcheck;
 
-import io.gravitee.management.services.healthcheck.Probe;
-import io.gravitee.management.services.healthcheck.Result;
+import io.gravitee.management.standalone.vertx.VertxCompletableFuture;
+import io.gravitee.node.api.healthcheck.Probe;
+import io.gravitee.node.api.healthcheck.Result;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * HTTP Probe used to check the Management API itself.
@@ -47,7 +50,7 @@ public class ManagementApiProbe implements Probe {
     }
 
     @Override
-    public Future<Result> check() {
+    public CompletableFuture<Result> check() {
         Future<Result> future = Future.future();
 
         NetClientOptions options = new NetClientOptions().setConnectTimeout(500);
@@ -63,6 +66,6 @@ public class ManagementApiProbe implements Probe {
             client.close();
         });
 
-        return future;
+        return VertxCompletableFuture.from(vertx, future);
     }
 }

@@ -16,14 +16,10 @@
 package io.gravitee.management.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.common.node.AbstractNode;
 import io.gravitee.management.service.InitializerService;
-import io.gravitee.management.services.ServiceManager;
 import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
-import io.gravitee.plugin.core.api.PluginRegistry;
-import io.gravitee.plugin.core.internal.PluginEventListener;
+import io.gravitee.node.container.AbstractNode;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,12 +35,14 @@ public class ManagementNode extends AbstractNode {
     }
 
     @Override
-    protected List<Class<? extends LifecycleComponent>> getLifecycleComponents() {
-        List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
+    public String application() {
+        return "gio-apim-management";
+    }
 
-        components.add(PluginEventListener.class);
-        components.add(PluginRegistry.class);
-        components.add(ServiceManager.class);
+    @Override
+    public List<Class<? extends LifecycleComponent>> components() {
+        List<Class<? extends LifecycleComponent>> components = super.components();
+
         components.add(JettyEmbeddedContainer.class);
         components.add(InitializerService.class);
 

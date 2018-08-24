@@ -34,6 +34,7 @@
     <name>Gravitee.io APIM - Management</name>
 
     <properties>
+        <gravitee-node.version>1.0.0-SNAPSHOT</gravitee-node.version>
         <gravitee-definition.version>1.12.0</gravitee-definition.version>
         <gravitee-common.version>1.12.0</gravitee-common.version>
         <gravitee-plugin.version>1.4.0</gravitee-plugin.version>
@@ -70,6 +71,24 @@
     <dependencyManagement>
         <dependencies>
             <!-- Gravitee.io -->
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-container</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-api</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-vertx</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+            
             <dependency>
                 <groupId>io.gravitee.repository</groupId>
                 <artifactId>gravitee-repository</artifactId>

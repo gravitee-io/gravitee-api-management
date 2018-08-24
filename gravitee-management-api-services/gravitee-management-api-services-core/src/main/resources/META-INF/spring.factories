@@ -1,2 +1,0 @@
-io.gravitee.plugin.core.api.PluginHandler=\
-    io.gravitee.management.services.plugins.ServicePluginHandler

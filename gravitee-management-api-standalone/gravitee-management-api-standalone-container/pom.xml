@@ -31,7 +31,22 @@
     <name>Gravitee.io APIM - Management - Standalone - Container</name>
 
     <dependencies>
-        <!-- Gravitee Management dependencies -->
+        <!-- Gravitee.io -->
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-container</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-vertx</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.management</groupId>
             <artifactId>gravitee-management-api-rest</artifactId>
@@ -41,12 +56,6 @@
         <dependency>
             <groupId>io.gravitee.management</groupId>
             <artifactId>gravitee-management-api-repository</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.management.services</groupId>
-            <artifactId>gravitee-management-api-services-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -133,7 +142,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>io.gravitee.management.standalone.Container</mainClass>
+                                    <mainClass>io.gravitee.management.standalone.ManagementContainer</mainClass>
                                 </transformer>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
@@ -286,7 +295,7 @@
                         </executions>
                         <configuration>
                             <includeProjectDependencies>true</includeProjectDependencies>
-                            <mainClass>io.gravitee.management.standalone.Container</mainClass>
+                            <mainClass>io.gravitee.management.standalone.ManagementContainer</mainClass>
                             <systemProperties>
                                 <systemProperty>
                                     <key>gravitee.home</key>

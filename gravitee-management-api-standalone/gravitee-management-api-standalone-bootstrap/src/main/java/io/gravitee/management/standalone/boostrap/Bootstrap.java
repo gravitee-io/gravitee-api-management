@@ -29,15 +29,21 @@ import java.util.List;
 public class Bootstrap {
 
     private static final String GRAVITEE_HOME_PROP = "gravitee.home";
+    private static final String CONTAINER_CLASS = "io.gravitee.management.standalone.ManagementContainer";
 
-    private final static String CONTAINER_CLASS = "io.gravitee.management.standalone.Container";
+    private static final String LIB_DIRECTORY = "lib";
+    private static final String LIB_EXT_DIRECTORY = LIB_DIRECTORY + File.separatorChar + "ext";
 
-    private ClassLoader graviteeClassLoader, extensionClassLoader;
+    private ClassLoader graviteeClassLoader;
+    private ClassLoader extensionClassLoader;
 
     /**
      * Daemon reference
      */
     private Object graviteeDaemon = null;
+
+    private Bootstrap() {
+    }
 
     public void init() throws Exception {
         setGraviteeHome();
@@ -59,7 +65,7 @@ public class Bootstrap {
         ArrayList<URL> cpList = new ArrayList<>();
         URL[] cpURLs = new URL[0];
         File libDir = new File(
-                System.getProperty(GRAVITEE_HOME_PROP), "lib");
+                System.getProperty(GRAVITEE_HOME_PROP), LIB_DIRECTORY);
 
         // Everything in the lib directory goes into the classpath
         for (File lib : libDir.listFiles()) {
@@ -79,7 +85,7 @@ public class Bootstrap {
         List<URL> cpList = new ArrayList<>();
         URL[] cpURLs = new URL[0];
         File libDir = new File(
-                System.getProperty(GRAVITEE_HOME_PROP), "lib/ext");
+                System.getProperty(GRAVITEE_HOME_PROP), LIB_EXT_DIRECTORY);
 
         if (libDir.exists() || libDir.isDirectory()) {
             try {
@@ -110,7 +116,7 @@ public class Bootstrap {
         if (installPath == null) {
             File installDir = new File(System.getProperty("user.dir"));
 
-            if (installDir.getName().equals("lib")) {
+            if (LIB_DIRECTORY.equals(installDir.getName())) {
                 installDir = installDir.getParentFile();
             }
 
@@ -128,25 +134,24 @@ public class Bootstrap {
     private void checkInstallRoot(File graviteeHomeDir) {
         // quick sanity check on the install root
         if (!graviteeHomeDir.isDirectory()) {
-            throw new RuntimeException("Invalid Gravitee Management Standalone Home. Not a directory: "
+            throw new RuntimeException("Invalid Gravitee.io Node home directory. Not a directory: "
                     + graviteeHomeDir.getAbsolutePath());
         }
 
 
-        File graviteeLibDir = new File(graviteeHomeDir, "lib");
+        File graviteeLibDir = new File(graviteeHomeDir, LIB_DIRECTORY);
 
-        File [] files = graviteeLibDir.listFiles(pathname -> {
-            return pathname.getName().startsWith("gravitee-management-api-standalone-bootstrap");
-        });
+        File [] files = graviteeLibDir.listFiles(pathname ->
+                pathname.getName().startsWith("gravitee-management-api-standalone-bootstrap"));
 
         if (files == null || files.length == 0 || files.length > 1) {
-            throw new RuntimeException("Invalid Gravitee Management Standalone Home. No bootstrapable jar can be " +
-                    "found in " + graviteeLibDir.getAbsolutePath());
+            throw new RuntimeException("Invalid Gravitee.io Node home directory. No bootstrapable jar can be found in "
+                    + graviteeLibDir.getAbsolutePath());
         }
     }
 
     /**
-     * Start the Gravitee Management Standalone daemon.
+     * Start the Gravitee Standalone daemon.
      */
     public void start() throws Exception {
         if (graviteeDaemon == null) {
@@ -157,19 +162,16 @@ public class Bootstrap {
         method.invoke(graviteeDaemon, (Object[]) null);
     }
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
         Thread mainThread = Thread.currentThread();
-        mainThread.setName("gravitee");
+        mainThread.setName("graviteeio-node");
 
         try {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.start();
-        } catch (Throwable t) {
+        } catch (Exception t) {
             t.printStackTrace();
             System.exit(1);
         }
-	}
-
-	private Bootstrap() {
-	}
+    }
 }
