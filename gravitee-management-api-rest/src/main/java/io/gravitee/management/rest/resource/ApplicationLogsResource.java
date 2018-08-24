@@ -81,7 +81,8 @@ public class ApplicationLogsResource extends AbstractResource {
     })
     public ApplicationRequest applicationLog(
             @PathParam("application") String application,
-            @PathParam("log") String logId) {
-        return logsService.findApplicationLog(logId);
+            @PathParam("log") String logId,
+            @QueryParam("timestamp") Long timestamp) {
+        return logsService.findApplicationLog(logId, timestamp);
     }
 }
