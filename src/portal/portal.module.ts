@@ -99,7 +99,7 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
 
     $mdThemingProvider.theme('toast-success');
     $mdThemingProvider.theme('toast-error');
-  }).run(function(Constants, $window, $rootScope, $location) {
+  }).run(function(Constants, $window, $transitions, $location) {
     if ((Constants.analytics && Constants.analytics.enabled)) {
       const script = document.createElement('script');
       script.async = true;
@@ -111,7 +111,7 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
 
       $window.ga('create', Constants.analytics.trackingId, { 'cookieDomain': 'none' });
 
-      $rootScope.$on('$stateChangeSuccess', function () {
+      $transitions.onSuccess({}, function() {
         $window.ga('send', 'pageview', $location.path());
       });
     }
