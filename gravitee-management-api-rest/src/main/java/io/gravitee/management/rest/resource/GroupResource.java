@@ -17,10 +17,13 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.UpdateGroupEntity;
+import io.gravitee.management.model.api.ApiQuery;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.GroupService;
 import io.swagger.annotations.*;
 
@@ -32,6 +35,10 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import java.util.Collections;
+
+import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -47,9 +54,15 @@ public class GroupResource extends AbstractResource {
     @Inject
     private GroupService groupService;
 
+    @Inject
+    private ApiService apiService;
+
+    @Inject
+    ApplicationService applicationService;
+
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a group of Apis or Applications")
+    @Produces(APPLICATION_JSON)
+    @ApiOperation(value = "Get a group")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Group definition", response = GroupEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")
@@ -75,8 +88,8 @@ public class GroupResource extends AbstractResource {
     }
 
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @ApiOperation(value = "Update a group")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Group successfully updated", response = GroupEntity.class),
@@ -89,6 +102,27 @@ public class GroupResource extends AbstractResource {
             @PathParam("group")String group,
             @ApiParam(name = "group", required = true)@Valid @NotNull final UpdateGroupEntity updateGroupEntity) {
         return groupService.update(group, updateGroupEntity);
+    }
+
+    @GET
+    @Path("/memberships")
+    @Produces(APPLICATION_JSON)
+    @ApiOperation(value = "get apis or applications linked to this group")
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.READ)
+    })
+    public Response getMemberships(
+            @PathParam("group")String group,
+            @QueryParam("type") String type
+            ) {
+        if ("api".equalsIgnoreCase(type)) {
+            return Response.ok(groupService.getApis(group)).build();
+
+        } else if ("application".equalsIgnoreCase(type)) {
+            return Response.ok(groupService.getApplications(group)).build();
+        }
+
+        return Response.noContent().build();
     }
 
     @Path("members")

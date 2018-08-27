@@ -17,9 +17,11 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.pagedresult.Metadata;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -58,6 +60,9 @@ public interface MembershipService {
     void removeRoleUsage(RoleScope roleScope, String roleName, String newName);
 
     void removeUser(String userId);
+
+    List<UserMembership> findUserMembership(String userId, MembershipReferenceType type);
+    Metadata findUserMembershipMetadata(List<UserMembership> memberships, MembershipReferenceType type);
 
     class MembershipReference {
         private final MembershipReferenceType type;

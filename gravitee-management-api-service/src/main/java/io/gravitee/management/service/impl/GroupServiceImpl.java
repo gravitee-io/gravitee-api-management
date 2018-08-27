@@ -35,6 +35,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -406,6 +407,42 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find all user groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all user groups", ex);
+        }
+    }
+
+    @Override
+    public List<ApiEntity> getApis(String groupId) {
+        return apiRepository.search(
+                new ApiCriteria.Builder().groups(groupId).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())
+                .stream()
+                .map( api -> {
+                    ApiEntity apiEntity = new ApiEntity();
+                    apiEntity.setId(api.getId());
+                    apiEntity.setName(api.getName());
+                    apiEntity.setVersion(api.getVersion());
+                    apiEntity.setVisibility(Visibility.valueOf(api.getVisibility().name()));
+                    return apiEntity;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ApplicationEntity> getApplications(String groupId) {
+        try {
+            return applicationRepository.findByGroups(Collections.singletonList(groupId), ApplicationStatus.ACTIVE)
+                    .stream()
+                    .map(application -> {
+                        ApplicationEntity applicationEntity = new ApplicationEntity();
+                        applicationEntity.setId(application.getId());
+                        applicationEntity.setName(application.getName());
+                        applicationEntity.setType(application.getType());
+                        return applicationEntity;
+                    })
+                    .collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to find all application of group {}",groupId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all application of group " + groupId, ex);
         }
     }
 

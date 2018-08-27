@@ -16,6 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.pagedresult.Metadata;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
@@ -107,6 +108,25 @@ public class UserResource extends AbstractResource {
         });
 
         return groups;
+    }
+
+    @GET
+    @Path("/memberships")
+    @Produces(APPLICATION_JSON)
+    @Permissions(
+            @Permission(value = RolePermission.MANAGEMENT_USERS, acls = RolePermissionAction.READ)
+    )
+    public UserMembershipList getMemberships(@PathParam("id") String userId, @QueryParam("type") String sType) {
+        MembershipReferenceType type = null;
+        if (sType != null) {
+            type = MembershipReferenceType.valueOf(sType.toUpperCase());
+        }
+        List<UserMembership> userMemberships = membershipService.findUserMembership(userId, type);
+        Metadata metadata = membershipService.findUserMembershipMetadata(userMemberships, type);
+        UserMembershipList userMembershipList = new UserMembershipList();
+        userMembershipList.setMemberships(userMemberships);
+        userMembershipList.setMetadata(metadata.getMetadata());
+        return userMembershipList;
     }
 
     @POST

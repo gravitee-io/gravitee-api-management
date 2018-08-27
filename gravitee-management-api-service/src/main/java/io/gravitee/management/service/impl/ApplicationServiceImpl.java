@@ -158,13 +158,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationEntity> findByGroup(String groupId) {
-        LOGGER.debug("Find applications by group {}", groupId);
+    public Set<ApplicationEntity> findByGroups(List<String> groupIds) {
+        LOGGER.debug("Find applications by groups {}", groupIds);
         try {
-            return convert(applicationRepository.findByGroups(Collections.singletonList(groupId), ApplicationStatus.ACTIVE));
+            return convert(applicationRepository.findByGroups(groupIds, ApplicationStatus.ACTIVE));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find applications for group {}", groupId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find applications for group " + groupId, ex);
+            LOGGER.error("An error occurs while trying to find applications for groups {}", groupIds, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find applications for groups " + groupIds, ex);
         }
     }
 

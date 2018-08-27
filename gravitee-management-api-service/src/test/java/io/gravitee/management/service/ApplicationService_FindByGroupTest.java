@@ -50,7 +50,7 @@ public class ApplicationService_FindByGroupTest {
 
     @Test
     public void shouldTryFindByGroup() throws Exception {
-        Set<ApplicationEntity> set = applicationService.findByGroup(GROUP_ID);
+        Set<ApplicationEntity> set = applicationService.findByGroups(Collections.singletonList(GROUP_ID));
         assertNotNull(set);
         assertTrue("result is empty", set.isEmpty());
         verify(applicationRepository, times(1)).findByGroups(Collections.singletonList(GROUP_ID), ApplicationStatus.ACTIVE);

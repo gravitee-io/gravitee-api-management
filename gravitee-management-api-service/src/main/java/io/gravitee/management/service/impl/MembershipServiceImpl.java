@@ -17,6 +17,8 @@ package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.ApiQuery;
+import io.gravitee.management.model.pagedresult.Metadata;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.providers.User;
 import io.gravitee.management.service.*;
@@ -24,7 +26,12 @@ import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +45,7 @@ import static io.gravitee.management.model.permissions.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.repository.management.model.Membership.AuditEvent.*;
 import static io.gravitee.repository.management.model.MembershipReferenceType.API;
 import static io.gravitee.repository.management.model.MembershipReferenceType.APPLICATION;
+import static io.gravitee.repository.management.model.MembershipReferenceType.GROUP;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -77,6 +85,15 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Autowired
     private NotifierService notifierService;
+
+    @Autowired
+    private GroupRepository groupRepository;
+
+    @Autowired
+    private ApiRepository apiRepository;
+
+    @Autowired
+    private ApplicationRepository applicationRepository;
 
     @Override
     public Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope) {
@@ -378,6 +395,95 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to remove user {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to remove user " + userId, ex);
+        }
+    }
+
+    @Override
+    public List<UserMembership> findUserMembership(String userId, MembershipReferenceType type) {
+
+        // TODO only API, APPLICATION and GROUP are implemented
+        if (type == null || (!type.equals(API) && !type.equals(APPLICATION) && !type.equals(GROUP))) {
+            return Collections.emptyList();
+        }
+
+        try {
+            Set<UserMembership> userMemberships = membershipRepository
+                    .findByUserAndReferenceType(userId, type)
+                    .stream()
+                    .map(membership -> {
+                        UserMembership userMembership = new UserMembership();
+                        userMembership.setType(type.name());
+                        userMembership.setReference(membership.getReferenceId());
+                        return userMembership;
+                    })
+                    .collect(Collectors.toSet());
+
+            if (type.equals(APPLICATION) || type.equals(API)) {
+                //get memberships by the user group
+                final List<String> groupIds = membershipRepository
+                        .findByUserAndReferenceType(userId, MembershipReferenceType.GROUP).stream()
+                        .filter(m -> m.getRoles().keySet().contains(type.equals(API) ? RoleScope.API.getId() : RoleScope.APPLICATION.getId()))
+                        .map(Membership::getReferenceId)
+                        .collect(Collectors.toList());
+                if (!groupIds.isEmpty() && type.equals(API)) {
+                    ApiQuery apiQuery = new ApiQuery();
+                    apiQuery.setGroups(groupIds);
+                    userMemberships.addAll(apiService.search(apiQuery)
+                            .stream()
+                            .map(apiEntity -> {
+                                UserMembership userMembership = new UserMembership();
+                                userMembership.setReference(apiEntity.getId());
+                                userMembership.setType(type.name());
+                                return userMembership;
+                            })
+                            .collect(Collectors.toSet()));
+                } else if (!groupIds.isEmpty() && type.equals(APPLICATION)) {
+                    userMemberships.addAll(applicationService.findByGroups(groupIds).stream()
+                            .map(applicationEntity -> {
+                                UserMembership userMembership = new UserMembership();
+                                userMembership.setReference(applicationEntity.getId());
+                                userMembership.setType(type.name());
+                                return userMembership;
+                            })
+                            .collect(Collectors.toSet()));
+                }
+            }
+
+            return new ArrayList<>(userMemberships);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to remove user {}", userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to remove user " + userId, ex);
+        }
+    }
+
+    @Override
+    public Metadata findUserMembershipMetadata(List<UserMembership> memberships, MembershipReferenceType type) {
+        // TODO only API, APPLICATION and GROUP are implemented
+        if (memberships == null || memberships.isEmpty() ||
+                type == null || (!type.equals(API) && !type.equals(APPLICATION) && !type.equals(GROUP)) ) {
+            return new Metadata();
+        }
+        try {
+            Metadata metadata = new Metadata();
+            if (type.equals(API)) {
+                ApiCriteria.Builder criteria = new ApiCriteria.Builder();
+                ApiFieldExclusionFilter filter = (new ApiFieldExclusionFilter.Builder()).excludeDefinition().excludePicture().build();
+                criteria.ids(memberships.stream().map(UserMembership::getReference).toArray(String[]::new));
+                apiRepository.search(criteria.build(), filter).forEach(api -> {
+                    metadata.put(api.getId(), "name", api.getName());
+                    metadata.put(api.getId(), "version", api.getVersion());
+                    metadata.put(api.getId(), "visibility", api.getVisibility());
+                });
+            } else if (type.equals(APPLICATION)) {
+                applicationRepository.findByIds(memberships.stream().map(UserMembership::getReference).collect(Collectors.toList())).forEach(application -> {
+                    metadata.put(application.getId(), "name", application.getName());
+                    metadata.put(application.getId(), "type", application.getType());
+                });
+            }
+            return metadata;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to get user membership metadata", ex);
+            throw new TechnicalManagementException("An error occurs while trying to get user membership metadata", ex);
         }
     }
 

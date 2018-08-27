@@ -17,6 +17,8 @@ package io.gravitee.management.model.api;
 
 import io.gravitee.management.model.Visibility;
 
+import java.util.List;
+
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
@@ -24,7 +26,7 @@ import io.gravitee.management.model.Visibility;
 public class ApiQuery {
 
     private String view;
-    private String group;
+    private List<String> groups;
     private String contextPath;
     private String label;
     private String state;
@@ -41,12 +43,12 @@ public class ApiQuery {
         this.view = view;
     }
 
-    public String getGroup() {
-        return group;
+    public List<String> getGroups() {
+        return groups;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGroups(List<String> groups) {
+        this.groups = groups;
     }
 
     public String getContextPath() {
@@ -109,7 +111,7 @@ public class ApiQuery {
     public String toString() {
         return "ApiQuery{" +
                 "view='" + view + '\'' +
-                ", group='" + group + '\'' +
+                ", groups='" + groups + '\'' +
                 ", contextPath='" + contextPath + '\'' +
                 ", label='" + label + '\'' +
                 ", state='" + state + '\'' +

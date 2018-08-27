@@ -35,6 +35,7 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -73,7 +74,7 @@ public class ApplicationsResource extends AbstractResource {
             applications = applicationService.findByName(query);
         } else if (isAdmin()) {
             applications = group != null
-                    ? applicationService.findByGroup(group)
+                    ? applicationService.findByGroups(Collections.singletonList(group))
                     : applicationService.findAll();
         } else {
             applications = applicationService.findByUser(getAuthenticatedUser());

@@ -1064,8 +1064,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 .version(query.getVersion())
                 .view(query.getView());
 
-        if (!isBlank(query.getGroup())) {
-            builder.groups(query.getGroup());
+        if (query.getGroups() != null && !query.getGroups().isEmpty()) {
+            builder.groups(query.getGroups().toArray(new String[0]));
         }
         if (!isBlank(query.getState())) {
             builder.state(LifecycleState.valueOf(query.getState()));

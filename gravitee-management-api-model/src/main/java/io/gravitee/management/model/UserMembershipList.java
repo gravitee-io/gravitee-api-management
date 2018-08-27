@@ -13,33 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.*;
+package io.gravitee.management.model;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApplicationService {
+public class UserMembershipList {
 
-    ApplicationEntity findById(String applicationId);
+    List<UserMembership> memberships;
+    Map<String, Map<String, Object>> metadata;
 
-    Set<ApplicationEntity> findByUser(String username);
+    public List<UserMembership> getMemberships() {
+        return memberships;
+    }
 
-    Set<ApplicationEntity> findByName(String name);
+    public void setMemberships(List<UserMembership> memberships) {
+        this.memberships = memberships;
+    }
 
-    Set<ApplicationEntity> findByGroups(List<String> groupId);
+    public Map<String, Map<String, Object>> getMetadata() {
+        return metadata;
+    }
 
-    Set<ApplicationEntity> findAll();
-
-    ApplicationEntity create(NewApplicationEntity application, String username);
-
-    ApplicationEntity update(String applicationId, UpdateApplicationEntity application);
-
-    void archive(String applicationId);
+    public void setMetadata(Map<String, Map<String, Object>> metadata) {
+        this.metadata = metadata;
+    }
 }

@@ -49,7 +49,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static io.gravitee.management.model.Visibility.PUBLIC;
@@ -90,7 +92,9 @@ public class ApisResource extends AbstractResource {
     public List<ApiListItem> listApis(@BeanParam final ApisParam apisParam) {
 
         final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setGroup(apisParam.getGroup());
+        if (apisParam.getGroup() != null) {
+            apiQuery.setGroups(Collections.singletonList(apisParam.getGroup()));
+        }
         apiQuery.setContextPath(apisParam.getContextPath());
         apiQuery.setLabel(apisParam.getLabel());
         apiQuery.setVersion(apisParam.getVersion());

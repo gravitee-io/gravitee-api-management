@@ -49,4 +49,8 @@ public interface GroupService {
     boolean isUserAuthorizedToAccessApiData(ApiEntity api, List<String> excludedGroups, String username);
 
     boolean isUserAuthorizedToAccessPortalData(List<String> excludedGroups, String username);
+
+    List<ApiEntity> getApis(String groupId);
+
+    List<ApplicationEntity> getApplications(String groupId);
 }
