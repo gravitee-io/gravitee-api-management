@@ -27,6 +27,7 @@ import io.gravitee.management.rest.model.TokenEntity;
 import io.gravitee.management.rest.resource.AbstractResourceTest;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
+import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import org.apache.commons.io.IOUtils;
@@ -422,6 +423,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         //mock environment
         mockDefaultEnvironment();
         mockGroupsMapping();
+        mockRolesMapping();
 
         //mock oauth2 exchange authorisation code for access token
         mockExchangeAuthorizationCodeForAccessToken();
@@ -443,6 +445,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         when(groupService.findByName("Others")).thenReturn(Collections.singletonList(mockGroupEntity("group_id_3","Others")));
         when(groupService.findByName("Api consumer")).thenReturn(Collections.singletonList(mockGroupEntity("group_id_4","Api consumer")));
 
+        // mock role search
+        when(roleService.findById(RoleScope.PORTAL, "USER")).thenReturn(mockRoleEntity(io.gravitee.management.model.permissions.RoleScope.PORTAL,"USER"));
+        when(roleService.findById(RoleScope.MANAGEMENT, "ADMIN")).thenReturn(mockRoleEntity(io.gravitee.management.model.permissions.RoleScope.MANAGEMENT,"ADMIN"));
 
         RoleEntity roleApiUser = mockRoleEntity(io.gravitee.management.model.permissions.RoleScope.API,"USER");
         RoleEntity roleApplicationAdmin = mockRoleEntity(io.gravitee.management.model.permissions.RoleScope.APPLICATION,"ADMIN");
@@ -474,6 +479,15 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))).thenReturn(mockMemberEntity());
 
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "ADMIN"))).thenReturn(mockMemberEntity());
+
+        when(membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.PORTAL, "USER"))).thenReturn(mockMemberEntity());
 
         //mock DB update user picture
         UpdateUserEntity updateUserEntity = mockUpdateUserPicture(createdUser);
@@ -535,6 +549,16 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
                 new MembershipService.MembershipUser("janedoe@example.com", null),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.MANAGEMENT, MembershipDefaultReferenceId.DEFAULT.name()),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.MANAGEMENT, "ADMIN"));
+
+        verify(membershipService, times(1)).addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.PORTAL, MembershipDefaultReferenceId.DEFAULT.name()),
+                new MembershipService.MembershipUser("janedoe@example.com", null),
+                new MembershipService.MembershipRole(RoleScope.PORTAL, "USER"));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -702,14 +726,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verifyJwtTokenIsNotPresent(response);
     }
 
-
-
     private RoleEntity mockRoleEntity(io.gravitee.management.model.permissions.RoleScope scope, String name) {
-
-        RoleEntity role = mock(RoleEntity.class);
-        when(role.getScope()).thenReturn(scope);
-        when(role.getName()).thenReturn(name);
-
+        RoleEntity role = new RoleEntity();
+        role.setScope(scope);
+        role.setName(name);
         return role;
     }
 
@@ -735,6 +755,19 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         getConfiguration().put(EnvironmentUtils.encodedKey("groups[2].mapping.condition"), "{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
         getConfiguration().put(EnvironmentUtils.encodedKey("groups[2].mapping.values[0]"), "Api consumer");
+    }
+
+    private void mockRolesMapping() {
+
+        getConfiguration().put(EnvironmentUtils.encodedKey("roles[0].mapping.condition"), "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        getConfiguration().put(EnvironmentUtils.encodedKey("roles[0].mapping.values[0]"), "PORTAL:USER");
+        getConfiguration().put(EnvironmentUtils.encodedKey("roles[0].mapping.values[1]"), "MANAGEMENT:admin");
+
+        getConfiguration().put(EnvironmentUtils.encodedKey("roles[1].mapping.condition"), "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_6'}");
+        getConfiguration().put(EnvironmentUtils.encodedKey("roles[1].mapping.values[0]"), "PORTAL:USER");
+
+        getConfiguration().put(EnvironmentUtils.encodedKey("roles[2].mapping.condition"), "{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        getConfiguration().put(EnvironmentUtils.encodedKey("roles[2].mapping.values[0]"), "PORTAL:USER");
     }
 
     private void mockWrongELGroupsMapping() {

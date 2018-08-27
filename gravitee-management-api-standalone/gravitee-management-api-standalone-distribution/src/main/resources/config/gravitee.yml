@@ -240,6 +240,10 @@ security:
 #       - mapping:
 #           condition: "{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
 #           values: ["Api consumer"]
+#     roles:
+#       - mapping:
+#           condition: "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
+#           values: ["portal:user", "management:admin"]
 
 # SMTP configuration used to send mails
 email:

@@ -20,6 +20,7 @@ import java.util.List;
 
 /**
  * @author Christophe LANNOY (chrislannoy.java at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  */
 public class ServerConfiguration {
 
@@ -32,6 +33,7 @@ public class ServerConfiguration {
     private String authorizationHeader;
     private UserMapping userMapping = new UserMapping();
     private List<ExpressionMapping> groupsMapping = Collections.emptyList();
+    private List<ExpressionMapping> rolesMapping = Collections.emptyList();
 
     public String getClientId() {
         return clientId;
@@ -103,5 +105,13 @@ public class ServerConfiguration {
 
     public void setTokenIntrospectionEndpoint(String tokenIntrospectionEndpoint) {
         this.tokenIntrospectionEndpoint = tokenIntrospectionEndpoint;
+    }
+
+    public List<ExpressionMapping> getRolesMapping() {
+        return rolesMapping;
+    }
+
+    public void setRolesMapping(List<ExpressionMapping> rolesMapping) {
+        this.rolesMapping = rolesMapping;
     }
 }

@@ -31,7 +31,9 @@ import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.RoleService;
+import io.gravitee.management.service.exceptions.RoleNotFoundException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
+import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.Api;
@@ -191,7 +193,6 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
     private Response processUser(String userInfo, final HttpServletResponse servletResponse) {
         HashMap<String, String> attrs = getUserProfileAttrs(userInfo);
-        List<ExpressionMapping> mappings = serverConfiguration.getGroupsMapping();
 
         String username = attrs.get(UserProfile.EMAIL);
         if (username == null) {
@@ -225,9 +226,12 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 newUser.setPicture(attrs.get(UserProfile.PICTURE));
             }
 
-            if (!mappings.isEmpty()) {
-                //can fail if a group in config does not exist in gravitee --> HTTP 500
-                Set<GroupEntity> groupsToAdd = getGroupsToAddUser(username, mappings, userInfo);
+            List<ExpressionMapping> groupsMapping = serverConfiguration.getGroupsMapping();
+            List<ExpressionMapping> rolesMapping = serverConfiguration.getRolesMapping();
+
+            if (!groupsMapping.isEmpty()) {
+                // Can fail if a group in config does not exist in gravitee --> HTTP 500
+                Set<GroupEntity> groupsToAdd = getGroupsToAddUser(username, groupsMapping, userInfo);
 
                 UserEntity createdUser = userService.create(newUser, true);
                 userDetails.setUsername(createdUser.getId());
@@ -236,6 +240,11 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             } else {
                 UserEntity createdUser = userService.create(newUser, true);
                 userDetails.setUsername(createdUser.getId());
+            }
+
+            if (!rolesMapping.isEmpty()) {
+                Set<RoleEntity> rolesToAdd = getRolesToAddUser(username, rolesMapping, userInfo);
+                addRolesToUser(userDetails.getUsername(), rolesToAdd);
             }
         }
 
@@ -318,11 +327,25 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         }
     }
 
+    private void addRolesToUser(String userId, Collection<RoleEntity> rolesToAdd) {
+        // add roles to user
+        for (RoleEntity roleEntity : rolesToAdd) {
+            membershipService.addOrUpdateMember(
+                    new MembershipService.MembershipReference(
+                            io.gravitee.management.model.permissions.RoleScope.MANAGEMENT == roleEntity.getScope() ?
+                                    MembershipReferenceType.MANAGEMENT : MembershipReferenceType.PORTAL,
+                            MembershipDefaultReferenceId.DEFAULT.name()),
+                    new MembershipService.MembershipUser(userId, null),
+                    new MembershipService.MembershipRole(
+                            RoleScope.valueOf(roleEntity.getScope().name()),
+                            roleEntity.getName()));
+        }
+    }
+
     private Set<GroupEntity> getGroupsToAddUser(String username, List<ExpressionMapping> mappings, String userInfo) {
         Set<GroupEntity> groupsToAdd = new HashSet<>();
 
         for (ExpressionMapping mapping : mappings) {
-
             TemplateEngine templateEngine = TemplateEngine.templateEngine();
             templateEngine.getTemplateContext().setVariable("profile", userInfo);
 
@@ -332,7 +355,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
             //get groups
             if (match) {
-                for (String groupName : mapping.getGroupNames()) {
+                for (String groupName : mapping.getValues()) {
                     List<GroupEntity> groupEntities = groupService.findByName(groupName);
 
                     if (groupEntities.isEmpty()) {
@@ -348,6 +371,36 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             }
         }
         return groupsToAdd;
+    }
+
+    private Set<RoleEntity> getRolesToAddUser(String username, List<ExpressionMapping> mappings, String userInfo) {
+        Set<RoleEntity> rolesToAdd = new HashSet<>();
+
+        for (ExpressionMapping mapping : mappings) {
+            TemplateEngine templateEngine = TemplateEngine.templateEngine();
+            templateEngine.getTemplateContext().setVariable("profile", userInfo);
+
+            boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
+
+            trace(username, match, mapping);
+
+            // Get roles
+            if (match) {
+                for (String roleName : mapping.getValues()) {
+                    String [] roleAttributes = roleName.split(":");
+
+                    try {
+                        RoleEntity roleEntity = roleService.findById(
+                                RoleScope.valueOf(roleAttributes[0].toUpperCase()),
+                                roleAttributes[1].toUpperCase());
+                        rolesToAdd.add(roleEntity);
+                    } catch (RoleNotFoundException rnfe) {
+                        LOGGER.error("Unable to create user, missing role in repository : {}", roleName);
+                    }
+                }
+            }
+        }
+        return rolesToAdd;
     }
 
     private void trace(String username, boolean match, ExpressionMapping mapping) {

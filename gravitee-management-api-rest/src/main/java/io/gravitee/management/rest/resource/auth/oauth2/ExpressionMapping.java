@@ -19,23 +19,24 @@ import java.util.List;
 
 /**
  * @author Christophe LANNOY (chrislannoy.java at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  */
 public class ExpressionMapping {
 
     private String condition;
-    private List<String> groupNames;
+    private List<String> values;
 
-    public ExpressionMapping(String condition, List<String> groupNames) {
+    public ExpressionMapping(String condition, List<String> values) {
         this.condition = condition;
-        this.groupNames = groupNames;
+        this.values = values;
     }
 
     public String getCondition() {
         return condition;
     }
 
-    public List<String> getGroupNames() {
-        return groupNames;
+    public List<String> getValues() {
+        return values;
     }
 
 }

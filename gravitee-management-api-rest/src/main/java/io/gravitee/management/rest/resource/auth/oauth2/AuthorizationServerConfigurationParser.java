@@ -26,23 +26,22 @@ import java.util.Map;
 
 /**
  * @author Christophe LANNOY (chrislannoy.java at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  */
 public class AuthorizationServerConfigurationParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationServerConfigurationParser.class);
 
-
     public ServerConfiguration parseConfiguration(Map<String, Object> configuration) {
-
         ServerConfiguration serverConfiguration = parseServerConfiguration(configuration);
-        serverConfiguration.setGroupsMapping(getGroupsMappings(configuration));
+        serverConfiguration.setGroupsMapping(getMappings(configuration, "groups"));
+        serverConfiguration.setRolesMapping(getMappings(configuration, "roles"));
         serverConfiguration.setUserMapping(parseUserMapping(configuration));
 
         return serverConfiguration;
     }
 
     private ServerConfiguration parseServerConfiguration(Map<String, Object> configuration) {
-
         ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setClientId((String)EnvironmentUtils.get("clientId", configuration));
         serverConfiguration.setClientSecret((String)EnvironmentUtils.get("clientSecret", configuration));
@@ -57,7 +56,6 @@ public class AuthorizationServerConfigurationParser {
 
 
     private UserMapping parseUserMapping(Map<String, Object> configuration) {
-
         UserMapping userMapping = new UserMapping();
         userMapping.setEmail((String)EnvironmentUtils.get("mapping.email", configuration));
         userMapping.setId((String)EnvironmentUtils.get("mapping.id", configuration));
@@ -68,9 +66,7 @@ public class AuthorizationServerConfigurationParser {
         return userMapping;
     }
 
-
-    private List<ExpressionMapping> getGroupsMappings(Map<String, Object> configuration) {
-
+    private List<ExpressionMapping> getMappings(Map<String, Object> configuration, String prefix) {
         List<ExpressionMapping> result = new ArrayList<>();
 
         int idx = 0;
@@ -78,17 +74,16 @@ public class AuthorizationServerConfigurationParser {
 
         while(found) {
 
-            String path = "groups[" + idx + "].mapping";
+            String path = prefix + "[" + idx + "].mapping";
             String condition = (String) EnvironmentUtils.get(path +".condition", configuration);
 
             if(!StringUtils.isEmpty(condition)) {
+                List<String> rolesName = parseMappingValues(configuration, path);
 
-                List<String> groupNames = parseGroupNames(configuration, path);
-
-                ExpressionMapping mapping = new ExpressionMapping(condition.trim(),groupNames);
+                ExpressionMapping mapping = new ExpressionMapping(condition.trim(), rolesName);
 
                 if(LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Expression {} give groups {}", mapping.getCondition(), mapping.getGroupNames().toString());
+                    LOGGER.debug("Expression {} give roles {}", mapping.getCondition(), mapping.getValues().toString());
                 }
 
                 result.add(mapping);
@@ -101,7 +96,7 @@ public class AuthorizationServerConfigurationParser {
         return result;
     }
 
-    private List<String> parseGroupNames(Map<String, Object> configuration, String path) {
+    private List<String> parseMappingValues(Map<String, Object> configuration, String path) {
 
         List<String> result = new ArrayList<>();
 
@@ -109,9 +104,9 @@ public class AuthorizationServerConfigurationParser {
         boolean found = true;
 
         while(found) {
-            String groupName = (String)EnvironmentUtils.get(path + ".values[" + idx + "]", configuration);
-            if(!StringUtils.isEmpty(groupName)) {
-                result.add(groupName.trim());
+            String valueName = (String)EnvironmentUtils.get(path + ".values[" + idx + "]", configuration);
+            if(!StringUtils.isEmpty(valueName)) {
+                result.add(valueName.trim());
                 idx++;
             } else {
                 found = false;
