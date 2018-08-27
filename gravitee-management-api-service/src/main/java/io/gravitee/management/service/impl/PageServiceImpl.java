@@ -27,22 +27,20 @@ import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.management.fetcher.FetcherConfigurationFactory;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.PageType;
-import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.service.*;
-import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
-import io.gravitee.management.service.exceptions.PageFolderActionException;
-import io.gravitee.management.service.exceptions.PageNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.plugin.fetcher.FetcherPluginManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -563,6 +561,42 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			}
 		}
 		return isDisplayable;
+	}
+
+	@Override
+	public PageEntity fetch(String pageId, String contributor) {
+		try {
+			logger.debug("Fetch page {}", pageId);
+
+			Optional<Page> optPageToUpdate = pageRepository.findById(pageId);
+			if (!optPageToUpdate.isPresent()) {
+				throw new PageNotFoundException(pageId);
+			}
+
+			Page page = optPageToUpdate.get();
+
+			if (page.getSource() == null) {
+				throw new NoFetcherDefinedException(pageId);
+			}
+
+			try {
+				String fetchedContent = this.getContentFromFetcher(page.getSource());
+				if (fetchedContent != null && !fetchedContent.isEmpty()) {
+					page.setContent(fetchedContent);
+				}
+			} catch (FetcherException e) {
+				throw onUpdateFail(pageId, e);
+			}
+
+			page.setUpdatedAt(new Date());
+			page.setLastContributor(contributor);
+
+			Page updatedPage = pageRepository.update(page);
+			createAuditLog(page.getApi(), PAGE_UPDATED, page.getUpdatedAt(), page, page);
+			return convert(updatedPage);
+		} catch (TechnicalException ex) {
+			throw onUpdateFail(pageId, ex);
+		}
 	}
 
 	private boolean isDisplayableForMember(MemberEntity member, boolean pageIsPublished) {

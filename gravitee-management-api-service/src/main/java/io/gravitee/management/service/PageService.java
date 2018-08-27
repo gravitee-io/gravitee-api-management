@@ -53,4 +53,6 @@ public interface PageService {
 	int findMaxPortalPageOrder();
 
 	boolean isDisplayable(ApiEntity api, boolean isPagePublished, String username);
+
+	PageEntity fetch(String pageId, String contributor);
 }

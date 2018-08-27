@@ -16,7 +16,9 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.UpdatePageEntity;
+import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -34,9 +36,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -113,6 +113,26 @@ public class ApiPageResource extends AbstractResource {
 
         updatePageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.update(page, updatePageEntity);
+    }
+
+    @POST
+    @Path("/_fetch")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Refresh page by calling the associated fetcher",
+            notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Page successfully refreshed", response = PageEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+    })
+    public PageEntity fetchPage(
+            @PathParam("api") String api,
+            @PathParam("page") String page) {
+        pageService.findById(page);
+        String contributor = getAuthenticatedUser();
+
+        return pageService.fetch(page, contributor);
     }
 
     @DELETE

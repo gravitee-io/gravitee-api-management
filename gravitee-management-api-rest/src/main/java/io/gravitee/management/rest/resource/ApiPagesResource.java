@@ -16,7 +16,10 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.NewPageEntity;
+import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.PageListItem;
+import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -26,7 +29,6 @@ import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
-import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -110,6 +112,30 @@ public class ApiPagesResource extends AbstractResource {
         }
 
         return Response.serverError().build();
+    }
+
+    @POST
+    @Path("/_fetch")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Refresh all pages by calling their associated fetcher",
+            notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Pages successfully refreshed", response = PageEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+    })
+    public Response fetchAllPages(
+            @PathParam("api") String api
+    ) {
+        List<PageListItem> pages = pageService.findApiPagesByApi(api);
+        String contributor = getAuthenticatedUser();
+
+        pages.stream()
+                .filter(pageListItem -> pageListItem.getSource() != null)
+                .forEach(pageListItem -> pageService.fetch(pageListItem.getId(), contributor));
+
+        return Response.noContent().build();
     }
 
     @Path("{page}")
