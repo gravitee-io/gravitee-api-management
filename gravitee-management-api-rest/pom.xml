@@ -151,10 +151,10 @@
 						<doctype>book</doctype>
 						<toc>left</toc>
 						<toclevels>3</toclevels>
-						<numbered></numbered>
-						<hardbreaks></hardbreaks>
-						<sectlinks></sectlinks>
-						<sectanchors></sectanchors>
+						<numbered/>
+						<hardbreaks/>
+						<sectlinks/>
+						<sectanchors/>
 						<generated>${generated.asciidoc.directory}</generated>
 					</attributes>
 				</configuration>
@@ -260,7 +260,7 @@
 		<dependency>
 			<groupId>io.swagger</groupId>
 			<artifactId>swagger-jersey2-jaxrs</artifactId>
-			<version>1.5.10</version>
+			<version>1.5.11</version>
 		</dependency>
 
 		<dependency>
