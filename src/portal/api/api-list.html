@@ -49,7 +49,7 @@
 
           <md-card ng-if="apisCtrl.tilesMode" class="api-box gravitee-card gravitee-api-card"
                    ng-repeat="api in apisCtrl.apis | filter:apisCtrl.apiFilter track by api.id"
-                   ng-click="apisCtrl.goToApi(api)"
+                   ng-click="apisCtrl.goToApi(api)" ng-class="apisCtrl.getViewClass(api)"
                    layout-wrap>
             <md-card-title style="padding-top: 15px; padding-bottom: 0px;">
               <md-card-title-text>

@@ -98,6 +98,14 @@ export class PortalApiListController {
       });
     }
   }
+
+  getViewClass(api) {
+    if (!api.views || api.views.length === 0) {
+      return "";
+    }
+
+    return _.map(api.views, (view) => "api-card-view-" + view).join(' ');
+  }
 }
 
 export default PortalApiListController;
