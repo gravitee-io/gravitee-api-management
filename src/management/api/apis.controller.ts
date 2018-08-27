@@ -80,8 +80,6 @@ export class ApisController {
     switch (api.visibility) {
       case 'public':
         return 'public';
-      case 'restricted':
-        return 'vpn_lock';
       case 'private':
         return 'lock';
     }
@@ -91,8 +89,6 @@ export class ApisController {
     switch (api.visibility) {
       case 'public':
         return 'Public';
-      case 'restricted':
-        return 'Restricted';
       case 'private':
         return 'Private';
     }

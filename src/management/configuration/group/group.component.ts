@@ -16,7 +16,13 @@
 import GroupService from "../../../services/group.service";
 import NotificationService from "../../../services/notification.service";
 import { StateService } from '@uirouter/core';
+import _ = require('lodash');
 
+interface IGroupDetailComponentScope extends ng.IScope {
+  groupApis: any[],
+  groupApplications: any[],
+  currentTab: string;
+}
 const GroupComponent: ng.IComponentOptions = {
   bindings: {
     group: '<',
@@ -29,11 +35,15 @@ const GroupComponent: ng.IComponentOptions = {
     GroupService: GroupService,
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
-    $state: StateService
+    $state: StateService,
+    $scope: IGroupDetailComponentScope
   ) {
     'ngInject';
 
     this.$onInit = () => {
+      $scope.groupApis = [];
+      $scope.groupApplications = [];
+      $scope.currentTab= 'users';
     };
 
     this.updateRole = (member: any) => {
@@ -88,6 +98,20 @@ const GroupComponent: ng.IComponentOptions = {
       }, () => {
         // you cancelled the dialog
       });
+    };
+
+    this.loadGroupApis = () => {
+      GroupService.getMemberships(this.group.id, "api").then( (response) => {
+          $scope.groupApis = _.sortBy(response.data, "name");
+        }
+      );
+    };
+
+    this.loadGroupApplications = () => {
+      GroupService.getMemberships(this.group.id, "application").then( (response) => {
+          $scope.groupApplications = _.sortBy(response.data, "name");
+        }
+      );
     };
   }
 };

@@ -17,7 +17,14 @@ import GroupService from "../../../services/group.service";
 import NotificationService from "../../../services/notification.service";
 import UserService from "../../../services/user.service";
 import RoleService from "../../../services/role.service";
+import _ = require('lodash');
 
+interface IUserDetailComponentScope extends ng.IScope {
+  selectedMgmtRole: string,
+  selectedPortalRole: string,
+  userApis: any[],
+  userApplications: any[];
+}
 const UserDetailComponent: ng.IComponentOptions = {
   bindings: {
     selectedUser: '<',
@@ -34,7 +41,7 @@ const UserDetailComponent: ng.IComponentOptions = {
     GroupService: GroupService,
     UserService: UserService,
     RoleService: RoleService,
-    $scope
+    $scope: IUserDetailComponentScope
   ) {
     'ngInject';
     this.$onInit = () => {
@@ -42,6 +49,8 @@ const UserDetailComponent: ng.IComponentOptions = {
       let idxMgmtRole =   this.selectedUser.roles[0].scope === 'portal' ? 1:0;
       $scope.selectedMgmtRole = this.selectedUser.roles[idxMgmtRole].name;
       $scope.selectedPortalRole = this.selectedUser.roles[idxPortalRole].name;
+      $scope.userApis = [];
+      $scope.userApplications = [];
     };
 
     this.remove = (ev: Event, group: any) => {
@@ -108,7 +117,7 @@ const UserDetailComponent: ng.IComponentOptions = {
           that.updateGroupRole(groupWithRole);
         });
       });
-    }
+    };
 
     this.resetPasswordDialog = () => {
       $mdDialog.show({
@@ -128,7 +137,38 @@ const UserDetailComponent: ng.IComponentOptions = {
           });
         }
       });
-    }
+    };
+
+    this.loadUserApis = () => {
+      UserService.getMemberships(this.selectedUser.id, "api").then( (response) => {
+          let newApiList = [];
+          _.forEach(response.data.metadata, (apiMetadata: any, apiId: string) => {
+            newApiList.push( {
+              id: apiId,
+              name: apiMetadata.name,
+              version: apiMetadata.version,
+              visibility: apiMetadata.visibility
+            });
+          });
+          $scope.userApis = _.sortBy(newApiList, "name");
+        }
+      );
+    };
+
+    this.loadUserApplications = () => {
+      UserService.getMemberships(this.selectedUser.id, "application").then( (response) => {
+          let newAppList = [];
+          _.forEach(response.data.metadata, (appMetadata: any, appId: string) => {
+            newAppList.push( {
+              id: appId,
+              name: appMetadata.name,
+              type: appMetadata.type
+            });
+          });
+          $scope.userApplications = _.sortBy(newAppList, "name");
+        }
+      );
+    };
   }
 };
 

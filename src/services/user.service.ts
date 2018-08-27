@@ -224,6 +224,10 @@ class UserService {
   resetPassword(id: string): ng.IPromise<any> {
     return this.$http.post(`${this.usersURL}${id}/resetPassword`, {});
   }
+
+  getMemberships(id: string, type: string): ng.IPromise<any> {
+    return this.$http.get(`${this.usersURL}${id}/memberships?type=${type}`)
+  }
 }
 
 export default UserService;

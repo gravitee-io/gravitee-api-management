@@ -34,8 +34,8 @@
         </tr>
         </thead>
         <tbody md-body>
-        <tr md-row ng-repeat="user in $ctrl.usersPage.data | orderBy: orderUser" ng-click="$ctrl.selectUser(user)">
-            <td md-cell>{{user.username}}</td>
+        <tr md-row ng-repeat="user in $ctrl.usersPage.data | orderBy: orderUser">
+            <td md-cell><a  ng-click="$ctrl.selectUser(user)">{{user.username}}</a></td>
             <td md-cell>{{user.displayName}}</td>
             <td md-cell>{{user.email}}</td>
             <td md-cell>{{user.source}}</td>

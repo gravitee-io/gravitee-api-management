@@ -22,55 +22,123 @@
     </div>
 </md-toolbar>
 
-<md-table-container>
-    <table md-table ng-init="orderGrp = 'name'">
-        <thead md-head md-order="orderGrp">
-        <tr md-row>
-            <th md-column width="22%" md-order-by="name">Name</th>
-            <th md-column width="22%">Group Admin</th>
-            <th md-column width="22%">API Role</th>
-            <th md-column width="22%">Application Role</th>
-            <th md-column width="12%"></th>
-        </tr>
-        </thead>
-        <tbody md-body>
-        <tr md-row
-            ng-repeat="member in $ctrl.members | orderBy: orderGrp">
-            <td md-cell>{{member.displayName}}</td>
-            <td md-cell>
-                <md-checkbox ng-model="member.roles['GROUP']"
-                             ng-true-value="'ADMIN'"
-                             ng-false-value="''"
-                             ng-change="$ctrl.updateRole(member)"
-                             aria-label="Administrator of this group">
-                </md-checkbox>
-            </td>
-            <td md-cell>
-                <md-select ng-model="member.roles['API']"
-                           aria-label="API Role"
-                           ng-change="$ctrl.updateRole(member)">
-                    <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="role.system">{{role.name}}</md-option>
-                </md-select>
-            </td>
-            <td md-cell>
-                <md-select ng-model="member.roles['APPLICATION']"
-                           aria-label="Application Role"
-                           ng-change="$ctrl.updateRole(member)">
-                    <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system">{{role.name}}</md-option>
-                </md-select>
-            </td>
-            <td md-cell ng-click="$event.stopPropagation()">
-                <div layout="row" layout-align="end center">
+<p ng-if="currentTab==='users'">You can manage all members of this group.</p>
+<p ng-if="currentTab==='apis'">Here is the list of all APIs of this group.</p>
+<p ng-if="currentTab==='applications'">Here is the list of all applications of this group.</p>
+
+<md-tabs md-dynamic-height>
+    <md-tab md-on-select="currentTab='users'">
+        <md-tab-label>Users</md-tab-label>
+        <md-tab-body>
+            <md-table-container>
+                <table md-table ng-init="orderGrp = 'name'">
+                    <thead md-head md-order="orderGrp">
+                    <tr md-row>
+                        <th md-column width="22%" md-order-by="name">Name</th>
+                        <th md-column width="22%">Group Admin</th>
+                        <th md-column width="22%">API Role</th>
+                        <th md-column width="22%">Application Role</th>
+                        <th md-column width="12%"></th>
+                    </tr>
+                    </thead>
+                    <tbody md-body>
+                    <tr style="height: 30px;" ng-if="$ctrl.members.length === 0">
+                        <td md-cell style="text-align: center;" colspan="5">None.</td>
+                    </tr>
+                    <tr md-row
+                        ng-repeat="member in $ctrl.members | orderBy: orderGrp">
+                        <td md-cell>{{member.displayName}}</td>
+                        <td md-cell>
+                            <md-checkbox ng-model="member.roles['GROUP']"
+                                         ng-true-value="'ADMIN'"
+                                         ng-false-value="''"
+                                         ng-change="$ctrl.updateRole(member)"
+                                         aria-label="Administrator of this group">
+                            </md-checkbox>
+                        </td>
+                        <td md-cell>
+                            <md-select ng-model="member.roles['API']"
+                                       aria-label="API Role"
+                                       ng-change="$ctrl.updateRole(member)">
+                                <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="role.system">{{role.name}}</md-option>
+                            </md-select>
+                        </td>
+                        <td md-cell>
+                            <md-select ng-model="member.roles['APPLICATION']"
+                                       aria-label="Application Role"
+                                       ng-change="$ctrl.updateRole(member)">
+                                <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system">{{role.name}}</md-option>
+                            </md-select>
+                        </td>
+                        <td md-cell ng-click="$event.stopPropagation()">
+                            <div layout="row" layout-align="end center">
                     <span ng-if="$ctrl.group.manageable">
                         <md-tooltip md-direction="top">delete</md-tooltip>
                         <ng-md-icon icon="delete" ng-click="$ctrl.removeUser($event, member)" aria-label="delete-user"></ng-md-icon>
                     </span>
-                </div>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</md-table-container>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </md-table-container>
+        </md-tab-body>
+    </md-tab>
+    <md-tab md-on-select="currentTab='apis'; $ctrl.loadGroupApis();">
+        <md-tab-label>APIs</md-tab-label>
+        <md-tab-body>
+            <md-table-container>
+                <table md-table>
+                    <thead md-head>
+                    <tr md-row>
+                        <th md-column>Name</th>
+                        <th md-column>Version</th>
+                        <th md-column>Visibility</th>
+                    </tr>
+                    </thead>
+                    <tbody md-body>
+                    <tr style="height: 30px;" ng-if="groupApis.length === 0">
+                        <td md-cell style="text-align: center;" colspan="3">None.</td>
+                    </tr>
+                    <tr ng-repeat="api in groupApis" md-row >
+                        <td md-cell>{{api.name}}</td>
+                        <td md-cell>{{api.version}}</td>
+                        <td md-cell>
+                            <ng-md-icon icon="{{api.visibility==='public' ? 'public' : 'lock'}}" size="20" style="fill: #cdcdcd;">
+                                <md-tooltip>{{api.visibility}}</md-tooltip>
+                            </ng-md-icon>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </md-table-container>
+        </md-tab-body>
+    </md-tab>
+    <md-tab md-on-select="currentTab='applications'; $ctrl.loadGroupApplications();">
+        <md-tab-label>Applications</md-tab-label>
+        <md-tab-body>
+            <md-table-container>
+                <table md-table>
+                    <thead md-head>
+                    <tr md-row>
+                        <th md-column>Name</th>
+                        <th md-column>Type</th>
+                    </tr>
+                    </thead>
+                    <tbody md-body>
+                    <tr style="height: 30px;" ng-if="groupApplications.length === 0">
+                        <td md-cell style="text-align: center;" colspan="2">None.</td>
+                    </tr>
+                    <tr ng-repeat="application in groupApplications" md-row >
+                        <td md-cell>{{application.name}}</td>
+                        <td md-cell>{{application.type}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </md-table-container>
+        </md-tab-body>
+    </md-tab>
+</md-tabs>
 <section>
     <md-button class="md-button" aria-label="Back to endpoints configuration" ui-sref="management.settings.groups">
         <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>

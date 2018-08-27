@@ -35,7 +35,7 @@
         <tbody md-body>
         <tr md-row
             ng-repeat="group in $ctrl.groups | orderBy: orderGrp">
-            <td md-cell ng-click="$ctrl.selectGroup(group)">{{group.name}}</td>
+            <td md-cell><a ng-click="$ctrl.selectGroup(group)">{{group.name}}</a></td>
             <td md-cell style="text-align: center;">
                 <md-checkbox ng-model="$ctrl.apiByDefault[group.id]"
                              ng-change="$ctrl.saveEventRules(group)"

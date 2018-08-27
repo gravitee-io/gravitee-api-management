@@ -102,6 +102,11 @@ class GroupService {
   deleteMember(group, memberUsername): ng.IPromise<any> {
     return this.$http.delete([this.groupsURL, group, 'members', memberUsername].join("/"));
   }
+
+  getMemberships(group: string, type: string): ng.IPromise<any> {
+    return this.$http.get(`${this.groupsURL}/${group}/memberships?type=${type}`)
+  }
+
 }
 
 export default GroupService;
