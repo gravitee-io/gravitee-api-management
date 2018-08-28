@@ -21,6 +21,8 @@ import _ = require('lodash');
 interface IGroupDetailComponentScope extends ng.IScope {
   groupApis: any[],
   groupApplications: any[],
+  selectedApiRole: string,
+  selectedApplicationRole: string,
   currentTab: string;
 }
 const GroupComponent: ng.IComponentOptions = {
@@ -44,12 +46,42 @@ const GroupComponent: ng.IComponentOptions = {
       $scope.groupApis = [];
       $scope.groupApplications = [];
       $scope.currentTab= 'users';
+
+      if (this.group.roles) {
+        $scope.selectedApiRole = this.group.roles['API'];
+        $scope.selectedApplicationRole = this.group.roles['APPLICATION'];
+      }
     };
 
     this.updateRole = (member: any) => {
       GroupService.addOrUpdateMember(this.group.id, [member]).then((response) => {
         NotificationService.show('User updated.');
         $state.reload();
+      });
+    };
+
+    this.updateDefaultRole = () => {
+      let roles = {};
+
+      if ($scope.selectedApiRole) {
+        roles['API'] = $scope.selectedApiRole;
+      } else {
+        delete roles['API'];
+      }
+
+      if ($scope.selectedApplicationRole) {
+        roles['APPLICATION'] = $scope.selectedApplicationRole;
+      } else {
+        delete roles['APPLICATION'];
+      }
+
+      GroupService.update(this.group.id, {
+        name: this.group.name,
+        roles: roles,
+        defaultApi: 'defaultApi',
+        defaultApplication: 'defaultApplication',
+      }).then(() => {
+        NotificationService.show('Default roles for group ' + this.group.name + ' have been updated.');
       });
     };
 
@@ -84,6 +116,8 @@ const GroupComponent: ng.IComponentOptions = {
         template: require('./addMember.dialog.html'),
         clickOutsideToClose: true,
         locals: {
+          defaultApiRole: $scope.selectedApiRole,
+          defaultApplicationRole: $scope.selectedApplicationRole,
           group: this.group,
           apiRoles: this.apiRoles,
           applicationRoles: this.applicationRoles

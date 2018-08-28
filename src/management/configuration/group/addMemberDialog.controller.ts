@@ -25,6 +25,8 @@ function DialogAddGroupMemberController(
   $mdDialog: angular.material.IDialogService,
   UserService: UserService,
   group: any,
+  defaultApiRole: string,
+  defaultApplicationRole: string,
   apiRoles: Role[],
   applicationRoles: Role[]
   ) {
@@ -33,10 +35,13 @@ function DialogAddGroupMemberController(
   this.group = group;
   this.apiRoles = apiRoles;
   this.applicationRoles = applicationRoles;
+  
+  this.defaultApiRole = defaultApiRole;
+  this.defaultApplicationRole = defaultApplicationRole;
   this.usersSelected = [];
   this.searchText = "";
-  this.defaultApiRole = _.find(apiRoles, {default: true}).name;
-  this.defaultApplicationRole = _.find(applicationRoles, {default: true}).name;
+  this.defaultApiRole = (defaultApiRole) ? defaultApiRole : _.find(apiRoles, {default: true}).name;
+  this.defaultApplicationRole = (defaultApplicationRole) ? defaultApplicationRole : _.find(applicationRoles, {default: true}).name;
 
   this.hide = () => {
     $mdDialog.cancel();

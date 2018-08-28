@@ -51,7 +51,8 @@ class GroupService {
 
   static _mapToEntity(grp) {
     let grpEntity = {
-      name: grp.name
+      name: grp.name,
+      roles: grp.roles
     };
     let eventRules = [];
     if (grp.defaultApi) {
@@ -63,6 +64,7 @@ class GroupService {
     if (eventRules.length > 0) {
       grpEntity["event_rules"] = eventRules;
     }
+    
     return grpEntity;
   }
 
