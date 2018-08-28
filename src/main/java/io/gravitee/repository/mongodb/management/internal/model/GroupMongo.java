@@ -31,6 +31,7 @@ public class GroupMongo extends Auditable {
     private String name;
     private List<String> administrators;
     private List<GroupEventRuleMongo> eventRules;
+    private List<String> roles;
 
     public String getId() {
         return id;
@@ -62,5 +63,13 @@ public class GroupMongo extends Auditable {
 
     public void setAdministrators(List<String> administrators) {
         this.administrators = administrators;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 }

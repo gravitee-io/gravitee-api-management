@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.mongodb.management.internal.group.GroupMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.GroupMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -26,9 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -96,17 +96,64 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public Set<Group> findAll() throws TechnicalException {
         logger.debug("Find all groups");
-        Set<Group> all = collection2set(internalRepository.findAll());
+        Set<Group> all = internalRepository.findAll().
+                stream().
+                map(this::map).
+                collect(Collectors.toSet());
         logger.debug("Find all groups - Found {}", all);
         return all;
     }
 
     private GroupMongo map(Group group) {
-        return mapper.map(group, GroupMongo.class);
+        GroupMongo mongoGroup =  mapper.map(group, GroupMongo.class);
+
+        if (group != null && group.getRoles() != null) {
+            List<String> roles = new ArrayList<>(group.getRoles().size());
+            for (Map.Entry<Integer, String> roleEntry : group.getRoles().entrySet()) {
+                roles.add(convertRoleToType(roleEntry.getKey(), roleEntry.getValue()));
+            }
+
+            mongoGroup.setRoles(roles);
+        }
+
+        return mongoGroup;
     }
 
     private Group map(GroupMongo groupMongo) {
-        return mapper.map(groupMongo, Group.class);
+        Group group = mapper.map(groupMongo, Group.class);
+
+        if (groupMongo != null && groupMongo.getRoles() != null) {
+            Map<Integer, String> roles = new HashMap<>(groupMongo.getRoles().size());
+            for (String roleAsString : groupMongo.getRoles()) {
+                String[] role = convertTypeToRole(roleAsString);
+                roles.put(Integer.valueOf(role[0]), role[1]);
+            }
+            group.setRoles(roles);
+        }
+
+        return group;
+    }
+
+    private String convertRoleToType(RoleScope roleScope, String roleName) {
+        if (roleName == null) {
+            return null;
+        }
+        return convertRoleToType(roleScope.getId(), roleName);
+    }
+
+    private String convertRoleToType(int roleScope, String roleName) {
+        return roleScope + ":" + roleName;
+    }
+
+    private String[] convertTypeToRole(String type) {
+        if (type == null) {
+            return null;
+        }
+        String[] role = type.split(":");
+        if (role.length != 2) {
+            return null;
+        }
+        return role;
     }
 
     private Set<Group> collection2set(Collection<GroupMongo> groups) {
