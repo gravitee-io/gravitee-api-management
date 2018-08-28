@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import * as angular from 'angular';
 import moment = require('moment');
 import { StateService } from '@uirouter/core';
 
@@ -24,9 +25,17 @@ interface Timeframe {
   interval: number
 }
 
+interface AutoRefreshInterval {
+  interval: number,
+  label: string
+}
+
 class DashboardTimeframeController {
   private now: Date;
   private timeframes: Timeframe[];
+  private arIntervals: AutoRefreshInterval[];
+  private autoRefreshInterval: number;
+  private currentInterval: any;
   private timeframe: Timeframe;
   private pickerStartDate: Date;
   private pickerEndDate: Date;
@@ -37,12 +46,31 @@ class DashboardTimeframeController {
     private $scope,
     private $rootScope,
     private $state: StateService,
-    private $timeout: ng.ITimeoutService) {
+    private $timeout: ng.ITimeoutService,
+    private $interval: ng.IIntervalService) {
+
     'ngInject';
 
     this.now = moment().toDate();
 
     let that = this;
+
+    this.arIntervals = [
+      {
+        interval: -1,
+        label: 'Auto-refresh disabled'
+      }, {
+        interval: 5000,
+        label: 'Each 5 seconds'
+      }, {
+        interval: 10000,
+        label: 'Each 10 seconds'
+      }, {
+        interval: 30000,
+        label: 'Each 30 seconds'
+      }];
+
+    this.autoRefreshInterval = this.arIntervals[0].interval;
 
     this.timeframes = [
       {
@@ -126,6 +154,11 @@ class DashboardTimeframeController {
         to: zoom.to
       });
     });
+
+    this.$scope.$on('$destroy', function() {
+      // Make sure that the interval is destroyed too
+      that.stopAutoRefresh();
+    });
   }
 
   $onInit() {
@@ -176,13 +209,38 @@ class DashboardTimeframeController {
     });
 
     if (update) {
-      var now = Date.now();
+      let now = Date.now();
 
       this.update({
         interval: that.timeframe.interval,
         from: now - that.timeframe.range,
         to: now
       });
+    }
+  }
+
+  refresh() {
+    let now = Date.now();
+
+    this.update({
+      interval: this.timeframe.interval,
+      from: now - this.timeframe.range,
+      to: now
+    });
+  }
+
+  autoRefreshChange() {
+    this.stopAutoRefresh();
+
+    if (this.autoRefreshInterval !== -1) {
+      this.currentInterval = this.$interval(() => this.refresh(), this.autoRefreshInterval);
+    }
+  }
+
+  stopAutoRefresh() {
+    if (angular.isDefined(this.currentInterval)) {
+      this.$interval.cancel(this.currentInterval);
+      this.currentInterval = undefined;
     }
   }
 

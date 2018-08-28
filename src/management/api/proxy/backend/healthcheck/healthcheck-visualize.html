@@ -15,11 +15,12 @@
     limitations under the License.
 
 -->
-<md-button class="md-primary" style="position: absolute;top: 10px;right: 50px;margin-top: 0;"
-           permission permission-only="'api-health-r'" ng-click="healthCheckCtrl.updateChart()">
-  <ng-md-icon icon="refresh" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-  Refresh data
-</md-button>
+<div layout="row" layout-align="end center">
+  <md-button class="md-primary" permission permission-only="'api-health-r'" ng-click="healthCheckCtrl.updateChart()">
+    <ng-md-icon icon="refresh" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+    Refresh data
+  </md-button>
+</div>
 <md-content flex>
   <div layout="column" flex>
     <div layout="row" flex>

@@ -18,18 +18,40 @@
 <div class="widget-card" flex>
   <md-card-title>
     <md-card-title-text>
-      <span class="md-title"><strong>Timeframe</strong></span>
+      <span class="md-title">
+        <div layout="row" layout-align="start center">
+          <strong flex="30">Timeframe</strong>
+
+          <div flex layout="row" layout-align="end center">
+            <md-button class="md-primary" ng-click="$ctrl.refresh()">
+              <ng-md-icon icon="refresh" style="fill: rgba(0, 0, 0, 0.54);" size="20"></ng-md-icon>
+              Refresh
+            </md-button>
+
+            <div>
+              <ng-md-icon icon="autorenew" style="fill: rgba(0, 0, 0, 0.54);" size="20"></ng-md-icon>
+              <md-input-container>
+                <md-select ng-model="$ctrl.autoRefreshInterval" ng-change="$ctrl.autoRefreshChange()">
+                  <md-option ng-repeat="interval in $ctrl.arIntervals" ng-value="interval.interval">
+                    {{interval.label}}
+                  </md-option>
+                </md-select>
+              </md-input-container>
+            </div>
+          </div>
+        </div>
+      </span>
       <span class="md-subhead">
-          <span>Data from <code>{{$ctrl.current.from | date:'medium'}}</code> to <code>{{$ctrl.current.to | date:'medium'}}</code></span>
-          <span
-            ng-if="$ctrl.$state.params.interval">with an interval of <code>{{$ctrl.current.intervalLabel}}</code>.</span>
-        </span>
+        <span>Data from <code>{{$ctrl.current.from | date:'medium'}}</code> to <code>{{$ctrl.current.to | date:'medium'}}</code></span>
+        <span ng-if="$ctrl.$state.params.interval">with an interval of <code>{{$ctrl.current.intervalLabel}}</code>.</span>
+      </span>
     </md-card-title-text>
   </md-card-title>
   <md-card-content>
     <div layout="row" layout-align="center center" style="margin-bottom: 10px">
       <div class="btn-group float-right">
-        <button class="btn btn-secondary" ng-repeat="timeframe in $ctrl.timeframes track by timeframe.id"
+        <button class="btn btn-default"
+                ng-repeat="timeframe in $ctrl.timeframes track by timeframe.id"
                 ng-click="$ctrl.updateTimeframe(timeframe.id)"
                 ng-class="{'gravitee-analytics-timeframe-active' : timeframe === $ctrl.timeframe}">
           {{timeframe.title}}
@@ -41,7 +63,7 @@
                        md-max-date="$ctrl.pickerEndDate"></md-datepicker>
         <md-datepicker ng-model="$ctrl.pickerEndDate" md-placeholder="Select end date"
                        md-min-date="$ctrl.pickerStartDate" md-max-date="$ctrl.now"></md-datepicker>
-        <md-button class="md-raised" ng-click="$ctrl.updateRangeDate()">Apply</md-button>
+        <md-button class="md-primary" ng-click="$ctrl.updateRangeDate()">Apply</md-button>
       </div>
     </div>
   </md-card-content>
