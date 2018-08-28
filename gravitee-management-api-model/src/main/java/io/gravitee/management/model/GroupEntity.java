@@ -16,9 +16,11 @@
 package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.management.model.permissions.RoleScope;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -33,6 +35,11 @@ public class GroupEntity {
     private List<GroupEventRuleEntity> eventRules;
 
     boolean manageable;
+
+    /**
+     * Roles
+     */
+    private Map<RoleScope, String> roles;
 
     @JsonProperty("created_at")
     private Date createdAt;
@@ -86,6 +93,14 @@ public class GroupEntity {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Map<RoleScope, String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Map<RoleScope, String> roles) {
+        this.roles = roles;
     }
 
     @Override

@@ -46,7 +46,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.management.model.permissions.RolePermissionAction.*;
-import static io.gravitee.management.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.GROUP;
 import static io.gravitee.repository.management.model.Group.AuditEvent.*;
 
@@ -166,6 +165,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             updatedGroupEntity.setName(group.getName());
             updatedGroupEntity.setUpdatedAt(new Date());
             updatedGroupEntity.setEventRules(group.getEventRules());
+            updatedGroupEntity.setRoles(group.getRoles());
+
             Group updatedGroup = this.map(updatedGroupEntity);
             GroupEntity grp = this.map(groupRepository.update(updatedGroup));
             logger.debug("update {} - DONE", grp);
@@ -454,6 +455,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         Group group = new Group();
         group.setId(entity.getId());
         group.setName(entity.getName());
+
         if(entity.getEventRules() != null && !entity.getEventRules().isEmpty()) {
             List<GroupEventRule> groupEventRules = new ArrayList<>();
             for (GroupEventRuleEntity groupEventRuleEntity : entity.getEventRules()) {
@@ -463,6 +465,15 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             group.setEventRules(groupEventRules);
         }
+
+        if(entity.getRoles() != null && !entity.getRoles().isEmpty()) {
+            Map<Integer, String> roles = new HashMap<>();
+            for (Map.Entry<io.gravitee.management.model.permissions.RoleScope, String> role : entity.getRoles().entrySet()) {
+                roles.put(RoleScope.valueOf(role.getKey().name()).getId(), role.getValue());
+            }
+            group.setRoles(roles);
+        }
+
         group.setCreatedAt(entity.getCreatedAt());
         group.setUpdatedAt(entity.getUpdatedAt());
 
@@ -496,6 +507,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         GroupEntity entity = new GroupEntity();
         entity.setId(group.getId());
         entity.setName(group.getName());
+
         if(group.getEventRules() != null && !group.getEventRules().isEmpty()) {
             List<GroupEventRuleEntity> groupEventRules = new ArrayList<>();
             for (GroupEventRule groupEventRule : group.getEventRules()) {
@@ -505,6 +517,18 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             entity.setEventRules(groupEventRules);
         }
+
+        if (group.getRoles() != null && !group.getRoles().isEmpty()) {
+            Map<io.gravitee.management.model.permissions.RoleScope, String> groupRoles = new HashMap<>();
+            for (Map.Entry<Integer, String> roleEntry : group.getRoles().entrySet()) {
+                groupRoles.put(
+                        io.gravitee.management.model.permissions.RoleScope.valueOf(RoleScope.valueOf(roleEntry.getKey()).name()),
+                        roleEntry.getValue());
+            }
+
+            entity.setRoles(groupRoles);
+        }
+
         entity.setCreatedAt(group.getCreatedAt());
         entity.setUpdatedAt(group.getUpdatedAt());
 

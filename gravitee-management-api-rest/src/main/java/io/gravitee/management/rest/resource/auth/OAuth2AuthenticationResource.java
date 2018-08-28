@@ -294,15 +294,26 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     }
 
     private void addUserToApiAndAppGroupsWithDefaultRole(String userId, Collection<GroupEntity> groupsToAdd) {
+        // Get the default role from system
         List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION);
 
-        //add groups to user
+        // Add groups to user
         for (GroupEntity groupEntity : groupsToAdd) {
             for (RoleEntity roleEntity : roleEntities) {
+                String defaultRole = roleEntity.getName();
+
+                // If defined, get the override default role at the group level
+                if (groupEntity.getRoles() != null) {
+                    String groupDefaultRole = groupEntity.getRoles().get(io.gravitee.management.model.permissions.RoleScope.valueOf(roleEntity.getScope().name()));
+                    if (groupDefaultRole != null) {
+                        defaultRole = groupDefaultRole;
+                    }
+                }
+
                 membershipService.addOrUpdateMember(
                         new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupEntity.getId()),
                         new MembershipService.MembershipUser(userId, null),
-                        new MembershipService.MembershipRole(mapScope(roleEntity.getScope()), roleEntity.getName()));
+                        new MembershipService.MembershipRole(mapScope(roleEntity.getScope()), defaultRole));
             }
         }
     }

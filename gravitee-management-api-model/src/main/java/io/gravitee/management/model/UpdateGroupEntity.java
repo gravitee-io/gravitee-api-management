@@ -16,9 +16,11 @@
 package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.management.model.permissions.RoleScope;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -31,6 +33,11 @@ public class UpdateGroupEntity {
 
     @JsonProperty("event_rules")
     private List<GroupEventRuleEntity> eventRules;
+
+    /**
+     * Roles
+     */
+    private Map<RoleScope, String> roles;
 
     public String getName() {
         return name;
@@ -46,6 +53,14 @@ public class UpdateGroupEntity {
 
     public void setEventRules(List<GroupEventRuleEntity> eventRules) {
         this.eventRules = eventRules;
+    }
+
+    public Map<RoleScope, String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Map<RoleScope, String> roles) {
+        this.roles = roles;
     }
 
     @Override
