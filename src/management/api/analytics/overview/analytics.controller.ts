@@ -93,7 +93,7 @@ class ApiAnalyticsController {
       chart: {
         type: 'table',
         selectable: true,
-        columns: ['Mapped path', 'Hits'],
+        columns: ['Path', 'Hits'],
         paging: 5,
         request: {
           type: 'group_by',
