@@ -51,6 +51,8 @@ class DashboardFilterController {
       label: label
     });
 
+    this.filters = _.uniqBy(this.filters, 'key');
+
     field.query = query;
 
     this.fields[filter.field] = field;
