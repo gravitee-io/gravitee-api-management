@@ -32,7 +32,7 @@ public class ApiQualityMetricLoader extends SpringFactoriesLoader<ApiQualityMetr
         return ApiQualityMetric.class;
         }
 
-    public List<ApiQualityMetric> getApiQualityMetrics() {
+    public synchronized List<ApiQualityMetric> getApiQualityMetrics() {
         if (metrics == null) {
             metrics = new ArrayList<>(getFactoriesInstances());
         }
