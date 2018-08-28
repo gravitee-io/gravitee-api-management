@@ -32,9 +32,9 @@ class ApplicationAnalyticsController {
 
     this.applicationDashboard = [{
       col: 0,
-      row: 0,
+      row: 1,
       sizeY: 1,
-      sizeX: 3,
+      sizeX: 2,
       title: "Top API",
       subhead: 'Ordered by API calls',
       chart: {
@@ -49,10 +49,48 @@ class ApplicationAnalyticsController {
         }
       }
     }, {
-      col: 3,
+      col: 2,
+      row: 1,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Top failed APIs',
+      subhead: 'Order by API 5xx status calls',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['API', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'api',
+          query: 'status:[500 TO 599]',
+          size: 20
+        }
+      }
+    }, {
+      col: 4,
+      row: 1,
+      sizeY: 1,
+      sizeX: 2,
+      title: "Top slow API",
+      subhead: 'Order by API response time calls',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['API', 'Latency (in ms)'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'api',
+          order: '-avg:response-time',
+          size: 20
+        }
+      }
+    }, {
+      col: 0,
       row: 0,
       sizeY: 1,
-      sizeX: 3,
+      sizeX: 2,
       title: "Status",
       chart: {
         type: 'pie',
@@ -66,7 +104,7 @@ class ApplicationAnalyticsController {
       }
     }, {
       col: 0,
-      row: 1,
+      row: 2,
       sizeY: 1,
       sizeX: 3,
       title: 'Top paths',
@@ -84,7 +122,7 @@ class ApplicationAnalyticsController {
       }
     }, {
       col: 3,
-      row: 1,
+      row: 2,
       sizeY: 1,
       sizeX: 3,
       title: 'Top mapped paths',
@@ -101,10 +139,10 @@ class ApplicationAnalyticsController {
         }
       }
     }, {
-      col: 0,
-      row: 2,
+      col: 2,
+      row: 0,
       sizeY: 1,
-      sizeX: 6,
+      sizeX: 4,
       title: "Response Status",
       subhead: "Hits repartition by HTTP Status",
       chart: {
@@ -118,7 +156,7 @@ class ApplicationAnalyticsController {
       }
     }, {
       col: 0,
-      row: 3,
+      row: 4,
       sizeY: 1,
       sizeX: 6,
       title: "Response times",
@@ -134,7 +172,7 @@ class ApplicationAnalyticsController {
       }
     }, {
       col: 0,
-      row: 4,
+      row: 5,
       sizeY: 1,
       sizeX: 6,
       title: "Hits by API",
