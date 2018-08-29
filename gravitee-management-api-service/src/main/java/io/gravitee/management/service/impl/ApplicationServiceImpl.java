@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_ARCHIVED;
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_UPDATED;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonMap;
 
@@ -304,7 +305,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             auditService.createApplicationAuditLog(
                     updatedApplication.getId(),
                     Collections.emptyMap(),
-                    APPLICATION_CREATED,
+                    APPLICATION_UPDATED,
                     updatedApplication.getUpdatedAt(),
                     optApplicationToUpdate.get(),
                     updatedApplication);

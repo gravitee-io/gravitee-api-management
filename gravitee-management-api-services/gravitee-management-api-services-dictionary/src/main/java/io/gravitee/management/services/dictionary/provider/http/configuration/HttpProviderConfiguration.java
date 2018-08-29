@@ -13,24 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.services.dictionary.provider.http.configuration;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum EventType {
+public class HttpProviderConfiguration {
 
-    PUBLISH_API,
-    PUBLISH_API_RESULT,
-    UNPUBLISH_API,
-    UNPUBLISH_API_RESULT,
-    START_API,
-    STOP_API,
-    GATEWAY_STARTED,
-    GATEWAY_STOPPED,
-    PUBLISH_DICTIONARY,
-    UNPUBLISH_DICTIONARY,
-    START_DICTIONARY,
-    STOP_DICTIONARY
+    private String url;
+    private String specification;
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getSpecification() {
+        return specification;
+    }
+
+    public void setSpecification(String specification) {
+        this.specification = specification;
+    }
 }

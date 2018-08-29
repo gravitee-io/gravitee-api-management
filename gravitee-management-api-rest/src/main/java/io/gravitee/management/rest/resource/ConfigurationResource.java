@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.notification.NotifierEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.resource.configuration.DictionariesResource;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.NotifierService;
@@ -114,5 +115,10 @@ public class ConfigurationResource {
     @Path("plans")
     public PlansResource getPlansResource() {
         return resourceContext.getResource(PlansResource.class);
+    }
+
+    @Path("dictionaries")
+    public DictionariesResource getDictionariesResource() {
+        return resourceContext.getResource(DictionariesResource.class);
     }
 }

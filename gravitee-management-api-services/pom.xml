@@ -37,7 +37,8 @@
         <module>gravitee-management-api-services-sync</module>
         <module>gravitee-management-api-services-dynamic-properties</module>
         <module>gravitee-management-api-services-subscriptions</module>
-	<module>gravitee-management-api-services-healthcheck</module>
+	    <module>gravitee-management-api-services-healthcheck</module>
+        <module>gravitee-management-api-services-dictionary</module>
     </modules>
 
     <dependencyManagement>

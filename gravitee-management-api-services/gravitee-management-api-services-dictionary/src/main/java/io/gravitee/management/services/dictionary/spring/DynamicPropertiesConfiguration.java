@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.services.dictionary.spring;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum EventType {
+@Configuration
+public class DynamicPropertiesConfiguration {
 
-    PUBLISH_API,
-    PUBLISH_API_RESULT,
-    UNPUBLISH_API,
-    UNPUBLISH_API_RESULT,
-    START_API,
-    STOP_API,
-    GATEWAY_STARTED,
-    GATEWAY_STOPPED,
-    PUBLISH_DICTIONARY,
-    UNPUBLISH_DICTIONARY,
-    START_DICTIONARY,
-    STOP_DICTIONARY
+    @Bean
+    public TaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setThreadNamePrefix("dictionary-refresher-");
+        return scheduler;
+    }
 }

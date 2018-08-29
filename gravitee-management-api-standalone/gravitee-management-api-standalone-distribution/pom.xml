@@ -114,6 +114,14 @@
 			<scope>runtime</scope>
 			<type>zip</type>
 		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.management.services</groupId>
+			<artifactId>gravitee-management-api-services-dictionary</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>zip</type>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -172,6 +180,12 @@
 								<artifactItem>
 									<groupId>io.gravitee.management.services</groupId>
 									<artifactId>gravitee-management-api-services-healthcheck</artifactId>
+									<version>${project.version}</version>
+									<type>zip</type>
+								</artifactItem>
+								<artifactItem>
+									<groupId>io.gravitee.management.services</groupId>
+									<artifactId>gravitee-management-api-services-dictionary</artifactId>
 									<version>${project.version}</version>
 									<type>zip</type>
 								</artifactItem>
