@@ -63,7 +63,7 @@
       <div layout="row" layout-align="start" flex>
         <md-input-container class="md-block" flex="50">
           <label>Client ID</label>
-          <input ng-model="$ctrl.application.clientId" type="text" name="clientId" minlength="4" md-maxlength="50">
+          <input ng-model="$ctrl.application.clientId" type="text" name="clientId" minlength="4" md-maxlength="100">
           <div class="hint" ng-if="formApplication.clientId.$valid || formApplication.clientId.$pristine">
             The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API
             Plan (OAuth2, JWT).
