@@ -307,7 +307,21 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
     }
 
     private void enableCipherSuite() {
+        // Cipher suite supported as per https://wiki.mozilla.org/Security/Server_Side_TLS
+        // Modern and intermediate compatibility
+        // Correspondence table from https://wiki.mozilla.org/Security/Server_Side_TLS#Cipher_names_correspondence_table
         httpClientOptions
+                .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256")
+                .addEnabledCipherSuite("TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256")
+                .addEnabledCipherSuite("TLS_DHE_RSA_WITH_AES_128_GCM_SHA256")
+                .addEnabledCipherSuite("TLS_DHE_DSS_WITH_AES_128_GCM_SHA256")
+                .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256")
+                .addEnabledCipherSuite("TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256")
+                .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA")
+                .addEnabledCipherSuite("TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA")
+                .addEnabledCipherSuite("TLS_DHE_RSA_WITH_AES_128_CBC_SHA256")
+                .addEnabledCipherSuite("TLS_DHE_RSA_WITH_AES_128_CBC_SHA")
+                .addEnabledCipherSuite("TLS_DHE_DSS_WITH_AES_128_CBC_SHA256")
                 .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384")
                 .addEnabledCipherSuite("TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384")
                 .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
@@ -319,6 +333,11 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                 .addEnabledCipherSuite("TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384")
                 .addEnabledCipherSuite("TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384")
                 .addEnabledCipherSuite("TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384")
-                .addEnabledCipherSuite("TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384");
+                .addEnabledCipherSuite("TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384")
+                .addEnabledCipherSuite("TLS_RSA_WITH_AES_256_GCM_SHA384")
+                .addEnabledCipherSuite("TLS_RSA_WITH_AES_256_CBC_SHA256")
+                .addEnabledCipherSuite("TLS_RSA_WITH_AES_128_CBC_SHA")
+                .addEnabledCipherSuite("TLS_RSA_WITH_AES_256_CBC_SHA")
+                .addEnabledCipherSuite("TLS_RSA_WITH_AES_128_CBC_SHA256");
     }
 }
