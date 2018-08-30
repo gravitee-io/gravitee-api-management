@@ -260,7 +260,7 @@
 		<dependency>
 			<groupId>io.swagger</groupId>
 			<artifactId>swagger-jersey2-jaxrs</artifactId>
-			<version>1.5.11</version>
+			<version>1.5.21</version>
 		</dependency>
 
 		<dependency>
