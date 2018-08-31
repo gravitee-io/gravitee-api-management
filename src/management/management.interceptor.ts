@@ -49,7 +49,7 @@ function interceptorConfig(
               }, 2000);
             } else {
               $timeout(function () {
-                if (!_.startsWith($state.current.name, 'portal.')) {
+                if (_.startsWith($state.current.name, 'management.') || $state.current.name === '') {
                   $state.go('portal.home');
                 }
               }, 100);
