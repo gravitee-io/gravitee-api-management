@@ -67,6 +67,11 @@ public class EmailNotificationBuilder {
         return this;
     }
 
+    public EmailNotificationBuilder bcc(String[] bcc) {
+        this.emailNotification.setBcc(bcc);
+        return this;
+    }
+
     public EmailNotification build() {
         return this.emailNotification;
     }
@@ -92,7 +97,8 @@ public class EmailNotificationBuilder {
         API_STARTED("apiStarted.html"),
         API_STOPPED("apiStopped.html"),
         NEW_RATING("newRating.html"),
-        NEW_RATING_ANSWER("newRatingAnswer.html");
+        NEW_RATING_ANSWER("newRatingAnswer.html"),
+        GENERIC_MESSAGE("genericMessage.html");
 
         private String template;
 

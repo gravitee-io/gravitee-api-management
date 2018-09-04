@@ -26,6 +26,7 @@ import io.gravitee.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam.LifecycleAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.service.MessageService;
 import io.gravitee.management.service.NotifierService;
 import io.gravitee.management.service.QualityMetricsService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -71,6 +72,9 @@ public class ApiResource extends AbstractResource {
 
     @Autowired
     private QualityMetricsService qualityMetricsService;
+
+    @Autowired
+    private MessageService messageService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -443,6 +447,17 @@ public class ApiResource extends AbstractResource {
         return qualityMetricsService.getMetrics(apiEntity);
     }
 
+
+    @POST
+    @Path("/messages")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.API_MESSAGE, acls = RolePermissionAction.CREATE)
+    })
+    public Response create(@PathParam("api") String api, final MessageEntity message) {
+        return Response.ok(messageService.create(api, message)).build();
+    }
 
     @Path("keys")
     public ApiKeysResource getApiKeyResource() {

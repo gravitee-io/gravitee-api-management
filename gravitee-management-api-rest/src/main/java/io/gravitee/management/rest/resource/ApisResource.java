@@ -223,7 +223,7 @@ public class ApisResource extends AbstractResource {
     @ApiOperation("Get the list of available hooks")
     @Produces(MediaType.APPLICATION_JSON)
     public Hook[] getHooks() {
-        return ApiHook.values();
+        return Arrays.stream(ApiHook.values()).filter(h -> !h.isHidden()).toArray(Hook[]::new);
     }
 
     @Path("{api}")

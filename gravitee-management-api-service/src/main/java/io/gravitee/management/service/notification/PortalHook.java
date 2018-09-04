@@ -24,16 +24,23 @@ public enum PortalHook implements Hook {
     USER_REGISTERED("User Registered", "Triggered when a User is registered for the first time.", "USER"),
     USER_FIRST_LOGIN("First Login", "Triggered when a user log in for the first time.", "USER"),
     PASSWORD_RESET("Password Reset", "Triggered when a password is reset.", "USER"),
-    NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT");
+    NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT"),
+    MESSAGE(null, null, null, true);
 
     private String label;
     private String description;
     private String category;
+    private boolean hidden;
 
     PortalHook(String label, String description, String category) {
+        this(label, description, category, false);
+    }
+
+    PortalHook(String label, String description, String category, boolean hidden) {
         this.label = label;
         this.description = description;
         this.category = category;
+        this.hidden = hidden;
     }
 
     @Override
@@ -55,4 +62,11 @@ public enum PortalHook implements Hook {
     public HookScope getScope() {
         return HookScope.PORTAL;
     }
+
+    @Override
+    public boolean isHidden() {
+        return hidden;
+    }
+
+
 }

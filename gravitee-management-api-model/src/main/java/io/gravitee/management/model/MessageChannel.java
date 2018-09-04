@@ -13,25 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.notification.NewPortalNotificationEntity;
-import io.gravitee.management.model.notification.PortalNotificationEntity;
-import io.gravitee.management.service.notification.Hook;
-
-import java.util.List;
+package io.gravitee.management.model;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PortalNotificationService {
-
-    List<PortalNotificationEntity> findByUser(String user);
-
-    void create(Hook hook, List<String> users, Object param);
-
-    void delete(String notificationId);
-
-    void deleteAll(String user);
+public enum MessageChannel {
+    MAIL, PORTAL
 }

@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.model;
 
-import io.gravitee.management.model.notification.NewPortalNotificationEntity;
-import io.gravitee.management.model.notification.PortalNotificationEntity;
-import io.gravitee.management.service.notification.Hook;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -25,13 +23,27 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PortalNotificationService {
+public class MessageRecipientEntity {
 
-    List<PortalNotificationEntity> findByUser(String user);
+    @JsonProperty("role_scope")
+    String roleScope;
 
-    void create(Hook hook, List<String> users, Object param);
+    @JsonProperty("role_value")
+    List<String> roleValues;
 
-    void delete(String notificationId);
+    public String getRoleScope() {
+        return roleScope;
+    }
 
-    void deleteAll(String user);
+    public void setRoleScope(String roleScope) {
+        this.roleScope = roleScope;
+    }
+
+    public List<String> getRoleValues() {
+        return roleValues;
+    }
+
+    public void setRoleValues(List<String> roleValues) {
+        this.roleValues = roleValues;
+    }
 }

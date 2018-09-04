@@ -30,7 +30,8 @@ public enum ManagementPermission implements Permission {
     PLATFORM(    "PLATFORM",     1800),
     AUDIT(       "AUDIT",        1900),
     NOTIFICATION("NOTIFICATION", 2000),
-    USER        ("USER",         2100);
+    USER        ("USER",         2100),
+    MESSAGE     ("MESSAGE",      2200);
 
     String name;
     int mask;

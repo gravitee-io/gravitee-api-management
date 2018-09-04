@@ -108,6 +108,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected QualityMetricsService qualityMetricsService;
 
+    @Autowired
+    protected MessageService messageService;
+
     @Configuration
     @PropertySource("classpath:/io/gravitee/management/rest/resource/jwt.properties")
     static class ContextConfiguration {
@@ -200,6 +203,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public QualityMetricsService qualityMetricsService() {
             return mock(QualityMetricsService.class);
-    	}
+        }
+
+        @Bean
+        public MessageService messageService() {
+            return mock(MessageService.class);
+        }
     }
 }

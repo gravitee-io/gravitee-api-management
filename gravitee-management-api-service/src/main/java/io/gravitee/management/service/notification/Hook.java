@@ -29,4 +29,7 @@ public interface Hook {
     String getDescription();
     String getCategory();
     HookScope getScope();
+    default boolean isHidden() {
+        return false;
+    }
 }

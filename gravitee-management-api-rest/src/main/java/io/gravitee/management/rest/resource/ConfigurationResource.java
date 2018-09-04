@@ -35,6 +35,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -57,7 +58,7 @@ public class ConfigurationResource {
     @ApiOperation("Get the list of available hooks")
     @Produces(MediaType.APPLICATION_JSON)
     public Hook[] getHooks() {
-        return PortalHook.values();
+        return Arrays.stream(PortalHook.values()).filter(h -> !h.isHidden()).toArray(Hook[]::new);
     }
 
     @GET

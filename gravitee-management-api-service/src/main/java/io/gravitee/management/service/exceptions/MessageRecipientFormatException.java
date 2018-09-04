@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.notification.NewPortalNotificationEntity;
-import io.gravitee.management.model.notification.PortalNotificationEntity;
-import io.gravitee.management.service.notification.Hook;
-
-import java.util.List;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PortalNotificationService {
+public class MessageRecipientFormatException extends AbstractManagementException {
 
-    List<PortalNotificationEntity> findByUser(String user);
 
-    void create(Hook hook, List<String> users, Object param);
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 
-    void delete(String notificationId);
-
-    void deleteAll(String user);
+    @Override
+    public String getMessage() {
+        return "Message recipients selection is missing or wrong.";
+    }
 }

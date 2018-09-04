@@ -32,16 +32,23 @@ public enum ApiHook implements Hook {
     API_STARTED("API Started", "Triggered when an API is started", "LIFECYCLE"),
     API_STOPPED("API Stopped", "Triggered when an API is stopped", "LIFECYCLE"),
     NEW_RATING("New Rating", "Triggered when a new rating is submitted", "RATING"),
-    NEW_RATING_ANSWER("New Rating Answer", "Triggered when a new answer is submitted", "RATING");
+    NEW_RATING_ANSWER("New Rating Answer", "Triggered when a new answer is submitted", "RATING"),
+    MESSAGE(null, null, null, true);
 
     private String label;
     private String description;
     private String category;
+    private boolean hidden;
 
     ApiHook(String label, String description, String category) {
+        this(label, description, category, false);
+    }
+
+    ApiHook(String label, String description, String category, boolean hidden) {
         this.label = label;
         this.description = description;
         this.category = category;
+        this.hidden = hidden;
     }
 
     @Override
@@ -65,5 +72,8 @@ public enum ApiHook implements Hook {
         return HookScope.API;
     }
 
-
+    @Override
+    public boolean isHidden() {
+        return hidden;
+    }
 }

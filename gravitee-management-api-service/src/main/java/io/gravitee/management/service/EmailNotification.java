@@ -29,6 +29,7 @@ public class EmailNotification {
     private String from;
     private String fromName;
     private String[] to;
+    private String[] bcc;
     private String subject;
     private String template;
     private Map<String, Object> params = new HashMap<>();
@@ -90,6 +91,14 @@ public class EmailNotification {
         this.copyToSender = copyToSender;
     }
 
+    public String[] getBcc() {
+        return bcc;
+    }
+
+    public void setBcc(String[] bcc) {
+        this.bcc = bcc;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -101,12 +110,13 @@ public class EmailNotification {
                 Objects.equals(subject, that.subject) &&
                 Objects.equals(template, that.template) &&
                 Objects.equals(params, that.params) &&
+                Objects.equals(bcc, that.bcc) &&
                 Objects.equals(copyToSender, that.copyToSender);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(from, fromName, to, subject, template, params, copyToSender);
+        return Objects.hash(from, fromName, to, subject, template, params, copyToSender, bcc);
     }
 
     @Override
@@ -119,6 +129,7 @@ public class EmailNotification {
                 ", template='" + template + '\'' +
                 ", params=" + params +
                 ", copyToSender=" + copyToSender +
+                ", bcc=" + Arrays.toString(bcc) +
                 '}';
     }
 }
