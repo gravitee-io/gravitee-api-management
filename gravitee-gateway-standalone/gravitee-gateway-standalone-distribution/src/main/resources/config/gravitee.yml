@@ -214,3 +214,11 @@ ds:
 #  api-key:
 #    header: X-Gravitee-Api-Key
 #    param: api-key
+
+# Gravitee Alert Engine is only available with support
+alerts:
+  default:
+    enabled: false
+    hazelcast:
+      config:
+        path: ${gravitee.home}/config/hazelcast.xml

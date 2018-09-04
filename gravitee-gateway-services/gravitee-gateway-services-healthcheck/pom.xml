@@ -66,6 +66,16 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.alert</groupId>
+            <artifactId>gravitee-alert-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.plugin</groupId>
+            <artifactId>gravitee-plugin-alert</artifactId>
+        </dependency>
+
         <!-- Jackson dependencies -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

@@ -39,7 +39,7 @@ public class EndpointHealthcheckService extends AbstractService {
     protected void doStart() throws Exception {
         super.doStart();
 
-        EndpointHealthcheckVerticle healthcheckVerticle = new EndpointHealthcheckVerticle();
+        final EndpointHealthcheckVerticle healthcheckVerticle = new EndpointHealthcheckVerticle();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(healthcheckVerticle);
 
         vertx.deployVerticle(healthcheckVerticle, event -> {

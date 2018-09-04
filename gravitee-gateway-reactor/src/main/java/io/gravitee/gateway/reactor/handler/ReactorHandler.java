@@ -26,12 +26,8 @@ import io.gravitee.gateway.reactor.Reactable;
  * @author GraviteeSource Team
  */
 public interface ReactorHandler extends LifecycleComponent<ReactorHandler> {
-
     void handle(Request request, Response response, Handler<Response> handler);
-
     String contextPath();
-
     ClassLoader classloader();
-
     Reactable reactable();
 }
