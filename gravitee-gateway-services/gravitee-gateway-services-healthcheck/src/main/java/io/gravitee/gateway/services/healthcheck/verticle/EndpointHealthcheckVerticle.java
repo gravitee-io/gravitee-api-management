@@ -21,7 +21,6 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.ChangeListener;
 import io.gravitee.common.util.ObservableSet;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.schedule.Trigger;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -31,6 +30,7 @@ import io.gravitee.gateway.services.healthcheck.EndpointHealthcheckResolver;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRuleHandler;
 import io.gravitee.gateway.services.healthcheck.reporter.StatusReporter;
+import io.gravitee.plugin.alert.AlertEngineService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import org.slf4j.Logger;
@@ -38,13 +38,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EndpointHealthcheckVerticle extends AbstractVerticle implements EventListener<ReactorEvent, Reactable> {
@@ -53,12 +51,12 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     @Autowired
     private EventManager eventManager;
-
     @Autowired
     private StatusReporter statusReporter;
-
     @Autowired
     private EndpointHealthcheckResolver endpointResolver;
+    @Autowired
+    private AlertEngineService alertEngineService;
 
     private final Map<Api, List<EndpointRuleTrigger>> apiTimers = new HashMap<>();
 
@@ -92,6 +90,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             Set<Endpoint> endpoints = api.getProxy()
                     .getGroups()
                     .stream()
+                    .filter(group -> group.getEndpoints() != null)
                     .flatMap(group -> group.getEndpoints().stream())
                     .collect(Collectors.toSet());
 
@@ -128,6 +127,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     private void addTrigger(Api api, EndpointRule rule) {
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
         runner.setStatusHandler(statusReporter);
+        runner.setAlertEngineService(alertEngineService);
 
         long timerId = vertx.setPeriodic(getDelayMillis(rule.trigger()), runner);
         apiTimers.get(api).add(new EndpointRuleTrigger(timerId, rule.endpoint()));

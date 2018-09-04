@@ -51,6 +51,7 @@ public class EndpointHealthcheckResolver {
         // Filter to check only HTTP endpoints
         Stream<HttpEndpoint> httpEndpoints = api.getProxy().getGroups()
                 .stream()
+                .filter(group -> group.getEndpoints() != null)
                 .flatMap(group -> group.getEndpoints().stream())
                 .filter(endpoint -> endpoint.getType() == EndpointType.HTTP)
                 .map(endpoint -> (HttpEndpoint) endpoint);
