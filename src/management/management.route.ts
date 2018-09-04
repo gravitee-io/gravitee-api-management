@@ -18,6 +18,7 @@ import AuditService from "../services/audit.service";
 import ApiService from "../services/api.service";
 import ApplicationService from "../services/applications.service";
 import {User} from "../entities/user";
+import RoleService from "../services/role.service";
 
 function managementRouterConfig($stateProvider) {
   'ngInject';
@@ -126,7 +127,7 @@ function managementRouterConfig($stateProvider) {
       }
     })
     .state('management.audit', {
-    url: '/audit',
+      url: '/audit',
       template: require('./audit/audit.html'),
       controller: 'AuditController',
       controllerAs: 'auditCtrl',
@@ -152,7 +153,29 @@ function managementRouterConfig($stateProvider) {
         resolvedEvents:
           (AuditService: AuditService) => AuditService.listEvents().then(response => response.data)
       }
-  })
+    })
+    .state('management.messages', {
+      url: '/messages',
+      component: 'messages',
+      data: {
+        menu: {
+          label: 'Messages',
+          icon: 'message',
+          firstLevel: true,
+          order: 50
+        },
+        perms: {
+          only: ['management-message-c']
+        },
+        docs: {
+          page: 'management-messages'
+        }
+      },
+      resolve: {
+        resolvedScope: () => "MANAGEMENT",
+        resolvedRoles: (RoleService: RoleService) => RoleService.list("MANAGEMENT")
+      }
+    })
   .state('management.tasks', {
   url: '/tasks',
     component: 'tasks',

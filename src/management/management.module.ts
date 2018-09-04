@@ -395,7 +395,13 @@ import ApiProxyController from "./api/proxy/apiProxy.controller";
 import PortalSettingsComponent from "./configuration/portal/portal.component";
 import DialogAddPathMappingController from "./api/analytics/pathMappings/modal/add-pathMapping.dialog.controller";
 import DialogImportPathMappingController from "./api/analytics/pathMappings/modal/import-pathMapping.dialog.controller";
+
 import RouterService from "../services/router.service";
+
+import MessageService from "../services/message.service";
+import MessagesComponent from "../components/messages/messages.component";
+import apisMessagesRouterConfig from "./api/messages/apis.messages.route";
+
 
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -420,6 +426,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .config(apisAnalyticsRouterConfig)
   .config(apisAuditRouterConfig)
   .config(apisNotificationsRouterConfig)
+  .config(apisMessagesRouterConfig)
   .config(configurationRouterConfig)
   .config(interceptorConfig)
   .config(delegatorConfig)
@@ -544,6 +551,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('AuditService', AuditService)
   .service('ChartService', ChartService)
   .service('TopApiService', TopApiService)
+  .service('MessageService', MessageService)
   .directive('filecontent', () => DocumentationDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())
@@ -677,6 +685,9 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   // Router
   .service("RouterService", RouterService)
+
+  .component('messages', MessagesComponent)
+
 
   .filter('humanDateFilter', function () {
     return function (input) {
