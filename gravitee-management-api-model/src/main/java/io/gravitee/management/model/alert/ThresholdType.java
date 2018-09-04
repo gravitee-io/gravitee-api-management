@@ -13,29 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
+package io.gravitee.management.model.alert;
 
-import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+public enum ThresholdType {
+    COUNT("Count"), PERCENT_RATE("Percent rate");
 
-/**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class EmailRequiredException extends AbstractManagementException {
+    private String description;
 
-    private final String username;
-
-    public EmailRequiredException(String username) {
-        this.username = username;
+    ThresholdType(String description) {
+        this.description = description;
     }
 
-    @Override
-    public int getHttpStatusCode() {
-        return BAD_REQUEST_400;
-    }
-
-    @Override
-    public String getMessage() {
-        return "User [" + username + "] must have a configured email";
+    public String description() {
+        return description;
     }
 }

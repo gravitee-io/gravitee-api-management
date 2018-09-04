@@ -15,27 +15,21 @@
  */
 package io.gravitee.management.service.exceptions;
 
-import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EmailRequiredException extends AbstractManagementException {
-
-    private final String username;
-
-    public EmailRequiredException(String username) {
-        this.username = username;
-    }
+public class AlertUnavailableException extends AbstractManagementException {
 
     @Override
     public int getHttpStatusCode() {
-        return BAD_REQUEST_400;
+        return SERVICE_UNAVAILABLE_503;
     }
 
     @Override
     public String getMessage() {
-        return "User [" + username + "] must have a configured email";
+        return "Alert is unavailable.";
     }
 }

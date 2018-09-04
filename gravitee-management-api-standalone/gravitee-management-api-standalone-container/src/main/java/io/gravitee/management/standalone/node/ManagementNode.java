@@ -19,6 +19,7 @@ import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.management.service.InitializerService;
 import io.gravitee.management.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.node.container.AbstractNode;
+import io.gravitee.plugin.alert.AlertEngineService;
 
 import java.util.List;
 
@@ -41,11 +42,10 @@ public class ManagementNode extends AbstractNode {
 
     @Override
     public List<Class<? extends LifecycleComponent>> components() {
-        List<Class<? extends LifecycleComponent>> components = super.components();
-
+        final List<Class<? extends LifecycleComponent>> components = super.components();
         components.add(JettyEmbeddedContainer.class);
         components.add(InitializerService.class);
-
+        components.add(AlertEngineService.class);
         return components;
     }
 }

@@ -389,6 +389,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         Optional<Endpoint> endpointOpt = api.getProxy()
                 .getGroups()
                 .stream()
+                .filter(group -> group.getEndpoints() != null)
                 .flatMap(group -> group.getEndpoints().stream())
                 .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
                 .findFirst();

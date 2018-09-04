@@ -18,15 +18,17 @@ package io.gravitee.management.service.exceptions;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EmailRequiredException extends AbstractManagementException {
+public class AlertInvalidException extends AbstractManagementException {
 
-    private final String username;
+    private final String type;
+    private final String referenceType;
 
-    public EmailRequiredException(String username) {
-        this.username = username;
+    public AlertInvalidException(String type, String referenceType) {
+        this.type = type;
+        this.referenceType = referenceType;
     }
 
     @Override
@@ -36,6 +38,6 @@ public class EmailRequiredException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "User [" + username + "] must have a configured email";
+        return referenceType + " alert is invalid for type [" + type + "]";
     }
 }

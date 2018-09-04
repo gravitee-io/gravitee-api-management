@@ -217,7 +217,7 @@ email:
   enabled: false
   host: smtp.my.domain
   subject: "[Gravitee.io] %s"
-#  port: 465
+  port: 587
   from: noreply@my.domain
   username: user@my.domain
   password: password
@@ -292,3 +292,27 @@ search:
 #      port: 3128
 #      username: user
 #      password: secret
+
+notifiers:
+  email:
+    enabled: true
+    host: ${email.host}
+    subject: ${email.subject}
+    port: ${email.port}
+    from: ${email.from}
+    username: ${email.username}
+    password: ${email.password}
+#    starttls.enabled: false
+#    ssl:
+#      trustAll: false
+#      keyStore:
+#      keyStorePassword:
+
+# Gravitee Alert Engine is only available with support
+alerts:
+  enabled: true
+  default:
+    enabled: false
+    hazelcast:
+      config:
+        path: ${gravitee.home}/config/hazelcast.xml

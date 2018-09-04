@@ -16,8 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.permissions.RolePermission;
-import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.model.permissions.*;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.repository.management.model.RoleScope;
@@ -28,9 +27,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -47,8 +49,13 @@ public class RoleScopesResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.READ)
     })
-    public List<String> list()  {
-        return Arrays.stream(RoleScope.values()).map(Enum::name).collect(Collectors.toList());
+    public Map<String, List<String>> list()  {
+        final Map<String, List<String>> roles = new HashMap<>(4);
+        roles.put(RoleScope.MANAGEMENT.name(), stream(ManagementPermission.values()).map(ManagementPermission::getName).collect(toList()));
+        roles.put(RoleScope.PORTAL.name(), stream(PortalPermission.values()).map(PortalPermission::getName).collect(toList()));
+        roles.put(RoleScope.API.name(), stream(ApiPermission.values()).map(ApiPermission::getName).collect(toList()));
+        roles.put(RoleScope.APPLICATION.name(), stream(ApplicationPermission.values()).map(ApplicationPermission::getName).collect(toList()));
+        return roles;
     }
 
     @Path("{scope}/roles")

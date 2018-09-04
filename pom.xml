@@ -34,14 +34,16 @@
     <name>Gravitee.io APIM - Management</name>
 
     <properties>
-        <gravitee-node.version>1.1.0</gravitee-node.version>
+        <gravitee-node.version>1.2.0-SNAPSHOT</gravitee-node.version>
         <gravitee-definition.version>1.13.2</gravitee-definition.version>
         <gravitee-common.version>1.13.0</gravitee-common.version>
-        <gravitee-plugin.version>1.4.0</gravitee-plugin.version>
+        <gravitee-plugin.version>1.5.0-SNAPSHOT</gravitee-plugin.version>
         <gravitee-repository.version>1.21.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-gateway-api.version>1.11.0</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.0.0</gravitee-fetcher-api.version>
         <gravitee-expression-language.version>1.0.0</gravitee-expression-language.version>
+        <gravitee-alert-api.version>1.0.0-SNAPSHOT</gravitee-alert-api.version>
+        <gravitee-notifier-api.version>1.0.0-SNAPSHOT</gravitee-notifier-api.version>
         <apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
         <jersey.version>2.27</jersey.version>
@@ -89,7 +91,11 @@
                 <artifactId>gravitee-node-vertx</artifactId>
                 <version>${gravitee-node.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-notifier</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
             <dependency>
                 <groupId>io.gravitee.repository</groupId>
                 <artifactId>gravitee-repository</artifactId>
@@ -136,6 +142,11 @@
                 <version>${gravitee-plugin.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-alert</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.gravitee.gateway</groupId>
                 <artifactId>gravitee-gateway-api</artifactId>
                 <version>${gravitee-gateway-api.version}</version>
@@ -144,6 +155,16 @@
                 <groupId>io.gravitee.fetcher</groupId>
                 <artifactId>gravitee-fetcher-api</artifactId>
                 <version>${gravitee-fetcher-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.notifier</groupId>
+                <artifactId>gravitee-notifier-api</artifactId>
+                <version>${gravitee-notifier-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.alert</groupId>
+                <artifactId>gravitee-alert-api</artifactId>
+                <version>${gravitee-alert-api.version}</version>
             </dependency>
 
             <!-- Spring -->

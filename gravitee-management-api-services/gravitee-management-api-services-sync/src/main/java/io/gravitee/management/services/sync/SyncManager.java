@@ -22,23 +22,27 @@ import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.management.service.configuration.dictionary.DictionaryService;
 import io.gravitee.management.service.event.DictionaryEvent;
+import io.gravitee.management.model.PrimaryOwnerEntity;
+import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.management.service.UserService;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Dictionary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
@@ -71,6 +75,10 @@ public class SyncManager {
     private ObjectMapper objectMapper;
     @Autowired
     private EventManager eventManager;
+    @Autowired
+    private MembershipRepository membershipRepository;
+    @Autowired
+    private UserService userService;
 
     private final AtomicLong counter = new AtomicLong(0);
 
@@ -314,6 +322,21 @@ public class SyncManager {
             apiEntity.setVisibility(io.gravitee.management.model.Visibility.valueOf(api.getVisibility().toString()));
         }
 
+        try {
+            final Optional<Membership> primaryOwnerMembership = membershipRepository.findByReferenceAndRole(
+                    MembershipReferenceType.API,
+                    api.getId(),
+                    RoleScope.API,
+                    SystemRole.PRIMARY_OWNER.name())
+                    .stream()
+                    .findFirst();
+            if (primaryOwnerMembership.isPresent()) {
+                final UserEntity user = userService.findById(primaryOwnerMembership.get().getUserId());
+                apiEntity.setPrimaryOwner(new PrimaryOwnerEntity(user));
+            }
+        } catch (final TechnicalException e) {
+            logger.error("Error while trying to get primary owner of api " + api.getId(), e);
+        }
         return apiEntity;
     }
 }

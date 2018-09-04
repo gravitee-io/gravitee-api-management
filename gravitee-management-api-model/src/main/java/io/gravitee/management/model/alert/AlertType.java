@@ -13,29 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
+package io.gravitee.management.model.alert;
 
-import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import java.util.List;
+
+import static io.gravitee.management.model.alert.AlertReferenceType.API;
+import static io.gravitee.management.model.alert.AlertReferenceType.APPLICATION;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EmailRequiredException extends AbstractManagementException {
+public enum AlertType {
+    HEALTH_CHECK(singletonList(API)), REQUEST(asList(API, APPLICATION));
 
-    private final String username;
+    private List<AlertReferenceType> referenceTypes;
 
-    public EmailRequiredException(String username) {
-        this.username = username;
+    AlertType(List<AlertReferenceType> referenceTypes) {
+        this.referenceTypes = referenceTypes;
     }
 
-    @Override
-    public int getHttpStatusCode() {
-        return BAD_REQUEST_400;
-    }
-
-    @Override
-    public String getMessage() {
-        return "User [" + username + "] must have a configured email";
+    public List<AlertReferenceType> getReferenceTypes() {
+        return referenceTypes;
     }
 }

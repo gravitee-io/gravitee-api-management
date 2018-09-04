@@ -29,6 +29,8 @@ import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.management.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.management.service.quality.ApiQualityMetricLoader;
+import io.gravitee.node.notifier.spring.NotifierPluginConfiguration;
+import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.fetcher.spring.FetcherPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
@@ -51,7 +53,7 @@ import java.util.Collections;
 @Import({
 		PolicyPluginConfiguration.class, ResourcePluginConfiguration.class,
 		FetcherPluginConfiguration.class, FetcherConfigurationConfiguration.class,
-		SearchEngineConfiguration.class})
+		SearchEngineConfiguration.class, NotifierPluginConfiguration.class, AlertPluginConfiguration.class})
 public class ServiceConfiguration {
 
 	@Bean
