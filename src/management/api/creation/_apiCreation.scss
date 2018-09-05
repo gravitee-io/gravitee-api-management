@@ -62,6 +62,12 @@ md-steppers-canvas.md-paginated {
   }
 }
 
+.md-button.create-api-button {
+  ng-md-icon {
+    top: 8px;
+  }
+}
+
 .md-button.import-api-button {
   background-color: rgb(68,138,255);
   color: white;

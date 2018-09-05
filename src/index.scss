@@ -142,6 +142,7 @@ md-toolbar:not(.md-hue-1),
 
 ng-md-icon {
   position: relative;
+  top: 7px;
 
   &[icon=delete] {
     svg {
@@ -153,6 +154,7 @@ ng-md-icon {
 table {
   ng-md-icon {
     position: relative;
+    top: 0;
   }
   code {
     position: relative;
@@ -525,29 +527,7 @@ md-card.no-box-shadow {
   outline: none;
 }
 
-h1 {
-  font-size: 26px;
-}
-
-h3 {
-  margin-top: 20px;
-  margin-bottom: 10px;
-}
-
-h4 {
-  font-size: 18px;
-}
-
-h5 {
-  font-size: 14px;
-}
 .icon-angle-left:before { content: '\f104'; } /* '' */
 .icon-angle-right:before { content: '\f105'; } /* '' */
 .icon-angle-up:before { content: '\f106'; } /* '' */
 .icon-angle-down:before { content: '\f107'; } /* '' */
-
-.badge {
-  color: white;
-  background-color: #777;
-  font-size: 12px;
-}
