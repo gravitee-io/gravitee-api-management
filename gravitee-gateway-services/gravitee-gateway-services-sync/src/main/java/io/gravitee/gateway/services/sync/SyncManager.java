@@ -18,12 +18,15 @@ package io.gravitee.gateway.services.sync;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Path;
+import io.gravitee.gateway.dictionary.DictionaryManager;
+import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
@@ -42,7 +45,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BinaryOperator;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
@@ -64,6 +66,9 @@ public class SyncManager {
     private ApiRepository apiRepository;
 
     @Autowired
+    private DictionaryRepository dictionaryRepository;
+
+    @Autowired
     private PlanRepository planRepository;
 
     @Autowired
@@ -71,6 +76,9 @@ public class SyncManager {
 
     @Autowired
     private ApiManager apiManager;
+
+    @Autowired
+    private DictionaryManager dictionaryManager;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -88,6 +96,23 @@ public class SyncManager {
 
         long nextLastRefreshAt = System.currentTimeMillis();
 
+        try {
+            synchronizeApis(nextLastRefreshAt);
+        } catch (Exception ex) {
+            logger.error("An error occurs while synchronizing APIs", ex);
+        }
+
+        try {
+            synchronizeDictionaries(nextLastRefreshAt);
+        } catch (Exception ex) {
+            logger.error("An error occurs while synchronizing dictionaries", ex);
+        }
+
+        lastRefreshAt = nextLastRefreshAt;
+        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
+    }
+
+    private void synchronizeApis(long nextLastRefreshAt) {//} throws Exception {
         Map<String, Event> apiEvents;
 
         // Initial synchronization
@@ -124,13 +149,65 @@ public class SyncManager {
         }
 
         // Then, compute events
-        computeEvents(apiEvents);
-
-        lastRefreshAt = nextLastRefreshAt;
-        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
+        computeApiEvents(apiEvents);
     }
 
-    private void computeEvents(Map<String, Event> apiEvents) {
+    private void synchronizeDictionaries(long nextLastRefreshAt) throws Exception {
+        Map<String, Event> dictionaryEvents;
+
+        // Initial synchronization
+        if (lastRefreshAt == -1) {
+            Set<io.gravitee.repository.management.model.Dictionary> dictionaries = dictionaryRepository.findAll();
+
+            // Get last event by dictionary
+            dictionaryEvents = dictionaries
+                    .stream()
+                    .map(api -> getLastDictionaryEvent(api.getId()))
+                    .filter(Objects::nonNull)
+                    .collect(
+                            toMap(
+                                    event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()),
+                                    event -> event
+                            )
+                    );
+        } else {
+            // Get latest dictionary events
+            List<Event> events = getLatestDictionaryEvents(nextLastRefreshAt);
+
+            // Extract only the latest event by API
+            dictionaryEvents = events
+                    .stream()
+                    .collect(
+                            toMap(
+                                    event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()),
+                                    event -> event,
+                                    BinaryOperator.maxBy(comparing(Event::getCreatedAt))));
+        }
+
+        // Then, compute events
+        computeDictionaryEvents(dictionaryEvents);
+    }
+
+    private void computeDictionaryEvents(Map<String, Event> dictionaryEvents) {
+        dictionaryEvents.forEach((dictionaryId, event) -> {
+            switch (event.getType()) {
+                case UNPUBLISH_DICTIONARY:
+                    dictionaryManager.undeploy(dictionaryId);
+                    break;
+                case PUBLISH_DICTIONARY:
+                    try {
+                        // Read dictionary definition from event
+                        Dictionary dictionary = objectMapper.readValue(event.getPayload(), Dictionary.class);
+                        dictionaryManager.deploy(dictionary);
+                    } catch (IOException ioe) {
+                        logger.error("Error while determining deployed dictionaries into events payload", ioe);
+                    }
+                    break;
+            }
+        });
+    }
+
+    private void computeApiEvents(Map<String, Event> apiEvents) {
         apiEvents.forEach((apiId, apiEvent) -> {
             switch (apiEvent.getType()) {
                 case UNPUBLISH_API:
@@ -232,6 +309,27 @@ public class SyncManager {
         }
         // no tags configured on this gateway instance
         return true;
+    }
+
+    private Event getLastDictionaryEvent(final String dictionary) {
+        final EventCriteria.Builder eventCriteriaBuilder =
+                new EventCriteria.Builder()
+                        .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary);
+
+        List<Event> events = eventRepository.search(eventCriteriaBuilder
+                        .types(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY).build(),
+                new PageableBuilder().pageNumber(0).pageSize(1).build()).getContent();
+
+        return (!events.isEmpty()) ? events.get(0) : null;
+    }
+
+    private List<Event> getLatestDictionaryEvents(long nextLastRefreshAt) {
+        final EventCriteria.Builder builder = new EventCriteria.Builder()
+                .types(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
+                .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
+
+        return eventRepository.search(builder.build());
     }
 
     private List<Event> getLatestApiEvents(long nextLastRefreshAt) {
