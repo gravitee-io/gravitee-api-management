@@ -18,40 +18,35 @@
 
 <gv-logs-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)"></gv-logs-timeframe>
 
-<md-table-container>
+<md-table-container layout-padding>
   <table md-table class="gravitee-analytics-top-hits-table">
     <thead md-head>
     <tr md-row>
-      <th md-column>ID</th>
-      <th md-column>API</th>
-      <th md-column>Method</th>
+      <th md-column md-numeric width="1%" nowrap>Status</th>
+      <th md-column width="1%" nowrap>Method</th>
+      <th md-column width="1%" nowrap>API</th>
       <th md-column>Path</th>
-      <th md-column md-numeric>Status</th>
-      <th md-column>Response time</th>
-      <th md-column>Plan</th>
-      <th md-column>Date</th>
-      <th md-column></th>
+      <th md-column width="1%" nowrap>Response time</th>
+      <th md-column width="1%" nowrap>Plan</th>
+      <th md-column width="1%" nowrap>Date</th>
     </tr>
     </thead>
     <tbody md-body>
     <tr ng-if="$ctrl.logs.logs.length > 0" md-row
         ng-repeat="log in $ctrl.logs.logs | limitTo: $ctrl.query.size"
-        md-auto-select md-select="log" md-select-id="key" ng-class="{'log-error': log.status >= 400}">
-      <td md-cell>{{log.id}}</td>
-      <td md-cell>{{$ctrl.logs.metadata[log.api].name}}</td>
-      <td md-cell>
+        md-auto-select md-select="log" md-select-id="key" ng-class="{'log-error': log.status >= 400}"
+        ui-sref="management.applications.application.log({logId: log.id, timestamp: log.timestamp})">
+      <td md-cell nowrap>{{log.status | number}}</td>
+      <td md-cell nowrap>
         <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{log.method | uppercase}}-selected">
           {{log.method | uppercase}}
         </span>
       </td>
+      <td md-cell nowrap>{{$ctrl.logs.metadata[log.api].name}}</td>
       <td md-cell>{{log.path}}</td>
-      <td md-cell>{{log.status | number}}</td>
-      <td md-cell>{{log.responseTime}} ms</td>
-      <td md-cell>{{$ctrl.logs.metadata[log.plan].name}}</td>
-      <td md-cell>{{log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
-      <td md-cell>
-        <ng-md-icon icon="remove_red_eye" size="16px" ui-sref="management.applications.application.log({logId: log.id, timestamp: log.timestamp})"></ng-md-icon>
-      </td>
+      <td md-cell nowrap>{{log.responseTime}} ms</td>
+      <td md-cell nowrap>{{$ctrl.logs.metadata[log.plan].name}}</td>
+      <td md-cell nowrap>{{log.timestamp | date:'yyyy-MM-dd hh:mm:ss.sss'}}</td>
     </tr>
     <tr ng-if="$ctrl.logs.total === 0">
       <td md-cell colspan="7">No log</td>
