@@ -84,10 +84,10 @@ class UserService {
     return this.currentUser && this.currentUser.allowedTo(permissions);
   }
 
-  current(forceRefresh?) {
+  current(forceRefresh?): ng.IPromise<User> {
     let that = this;
 
-    if (forceRefresh || !this.currentUser || !this.currentUser.username) {
+    if (forceRefresh || !this.currentUser || !this.currentUser.authenticated) {
       const promises = [this.$http.get(this.userURL, {silentCall: true, forceSessionExpired: forceRefresh} as ng.IRequestShortcutConfig)];
 
       const applicationRegex = /applications\/([\w|\-]+)/;
@@ -138,7 +138,13 @@ class UserService {
 
           that.reloadPermissions();
 
-          return that.currentUser;
+          that.currentUser.authenticated = true;
+          return this.$q.resolve<User>(that.currentUser);
+        }).catch((error) => {
+          // Returns an unauthenticated user
+          this.currentUser = new User();
+          this.currentUser.authenticated = false;
+          return this.$q.resolve<User>(this.currentUser);
         }).finally(() => {
           if (!that.routerInitialized) {
             that.$urlRouter.sync();
@@ -189,6 +195,7 @@ class UserService {
   logout(): ng.IPromise<any> {
     return this.$http.post(`${this.userURL}logout`, {}).then(() => {
       this.currentUser = new User();
+      this.currentUser.authenticated = false;
       this.isLogout = true;
       this.$window.localStorage.removeItem('satellizer_token');
       this.$cookies.remove('Authorization');

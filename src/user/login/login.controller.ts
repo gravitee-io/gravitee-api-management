@@ -16,7 +16,9 @@
 import AuthenticationService from '../../services/authentication.service';
 import UserService from '../../services/user.service';
 import {IScope} from 'angular';
-import _ = require('lodash');
+import { StateService } from '@uirouter/core';
+import { User } from "../../entities/user";
+import RouterService from "../../services/router.service";
 
 class LoginController {
   user: any = {};
@@ -34,7 +36,8 @@ class LoginController {
     private $state: ng.ui.IStateService,
     Constants,
     private $rootScope: IScope,
-    private AuthenticationService: AuthenticationService
+    private AuthenticationService: AuthenticationService,
+    private RouterService: RouterService
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.portal.userCreation.enabled;
@@ -46,25 +49,34 @@ class LoginController {
 
   authenticate(provider: string) {
     this.AuthenticationService.authenticate(provider)
-      .then( (response) => {
-        this.UserService.current().then( () => {
-          this.$rootScope.$broadcast('graviteeUserRefresh');
-          this.$state.go('portal.home');
+      .then( () => {
+        this.UserService.current().then( (user) => {
+          this.loginSuccess(user);
         });
       })
       .catch( () => {});
   };
 
   login() {
-    this.UserService.login(this.user).then((response) => {
-      this.UserService.current().then( () => {
-        this.$rootScope.$broadcast('graviteeUserRefresh');
-        this.$state.go('portal.home');
+    this.UserService.login(this.user).then(() => {
+      this.UserService.current().then( (user) => {
+        this.loginSuccess(user);
       });
     }).catch(() => {
       this.user.username = '';
       this.user.password = '';
     });
+  }
+
+  loginSuccess(user: User) {
+    this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : user});
+
+    let route = this.RouterService.getLastRoute();
+    if (route.from) {
+      this.$state.go(route.from.name, route.fromParams);
+    } else {
+      this.$state.go('portal.home');
+    }
   }
 }
 

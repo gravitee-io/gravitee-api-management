@@ -402,6 +402,8 @@ import PortalSettingsComponent from "./configuration/portal/portal.component";
 import DialogAddPathMappingController from "./api/analytics/pathMappings/modal/add-pathMapping.dialog.controller";
 import DialogImportPathMappingController from "./api/analytics/pathMappings/modal/import-pathMapping.dialog.controller";
 
+import RouterService from "../services/router.service";
+
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ramlConsoleApp', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
@@ -678,6 +680,9 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('users', UsersComponent)
   .component('userDetail', UserDetailComponent)
   .controller('DialogAddUserGroupController', DialogAddUserGroupController)
+
+  // Router
+  .service("RouterService", RouterService)
 
   .filter('humanDateFilter', function () {
     return function (input) {

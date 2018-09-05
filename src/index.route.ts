@@ -133,7 +133,7 @@ function routerConfig($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: 
         UserService.logout().then(
           () => {
             $state.go('portal.home');
-            $rootScope.$broadcast('graviteeUserRefresh');
+            $rootScope.$broadcast('graviteeUserRefresh', {});
             $rootScope.$broadcast('graviteeUserCancelScheduledServices');
             if (Constants.authentication && Constants.authentication.oauth2 && Constants.authentication.oauth2.userLogoutEndpoint) {
               var redirectUri = encodeURIComponent(window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname));

@@ -43,8 +43,20 @@ export const NavbarComponent: ng.IComponentOptions = {
     vm.providers = AuthenticationService.getProviders();
     vm.localLoginDisabled = (!Constants.authentication.localLogin.enabled) || false;
 
-    $scope.$on('graviteeUserRefresh', function () {
-      UserService.current().then(function (user) {
+    $scope.$on('graviteeUserRefresh', (event, {user, refresh}) => {
+      if (refresh) {
+        UserService.current()
+          .then((user) => vm.startTasks(user))
+          .catch(() => delete vm.graviteeUser);
+      } else if (user && user.authenticated) {
+        vm.startTasks(user);
+      } else {
+        delete vm.graviteeUser;
+      }
+    });
+
+    vm.startTasks = function(user) {
+      if (user.authenticated) {
         vm.graviteeUser = user;
         // schedule an automatic refresh of the user tasks
         if (!vm.tasksScheduler) {
@@ -53,12 +65,8 @@ export const NavbarComponent: ng.IComponentOptions = {
             vm.refreshUserTasks();
           }, TaskService.getTaskSchedulerInSeconds() * 1000);
         }
-      }).catch(function () {
-        delete vm.graviteeUser;
-      });
-
-      vm.supportEnabled = Constants.portal.support.enabled;
-    });
+      }
+    };
 
     $scope.$on("graviteeUserTaskRefresh", function () {
       vm.refreshUserTasks();
@@ -82,7 +90,8 @@ export const NavbarComponent: ng.IComponentOptions = {
     });
 
     vm.$onInit = function () {
-      $scope.$emit('graviteeUserRefresh');
+      vm.supportEnabled = Constants.portal.support.enabled;
+      $scope.$emit('graviteeUserRefresh', {user: undefined, refresh: true});
     };
 
     vm.isUserManagement = function () {
@@ -132,8 +141,8 @@ export const NavbarComponent: ng.IComponentOptions = {
     vm.authenticate = function(provider: string) {
       AuthenticationService.authenticate(provider)
         .then( () => {
-          UserService.current().then( () => {
-            vm.$rootScope.$broadcast('graviteeUserRefresh');
+          UserService.current().then( (user) => {
+            vm.$rootScope.$broadcast('graviteeUserRefresh', {user: user});
           });
         })
         .catch( () => {});
