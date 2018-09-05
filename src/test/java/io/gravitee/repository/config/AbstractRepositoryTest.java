@@ -102,6 +102,8 @@ public abstract class AbstractRepositoryTest {
     protected GenericNotificationConfigRepository genericNotificationConfigRepository;
     @Inject
     protected ParameterRepository parameterRepository;
+    @Inject
+    protected DictionaryRepository dictionaryRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -197,6 +199,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Parameter) {
             parameterRepository.create((Parameter) object);
+        }
+        else if (object instanceof Dictionary) {
+            dictionaryRepository.create((Dictionary) object);
         }
     }
 

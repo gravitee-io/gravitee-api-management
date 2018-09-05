@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Dictionary;
 import org.mockito.ArgumentMatcher;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.context.annotation.Bean;
@@ -1564,5 +1565,52 @@ public class MockTestRepositoryConfiguration {
 
         when(parameterRepository.findAll(any())).thenReturn(Arrays.asList(mock(Parameter.class), mock(Parameter.class)));
         return parameterRepository;
+    }
+
+    @Bean
+    public DictionaryRepository dictionaryRepository() throws Exception {
+        final DictionaryRepository dictionaryRepository = mock(DictionaryRepository.class);
+
+        final Dictionary newDictionary = mock(Dictionary.class);
+        when(newDictionary.getName()).thenReturn("My dic 1");
+        when(newDictionary.getDescription()).thenReturn("Description for my dic 1");
+        when(newDictionary.getCreatedAt()).thenReturn(new Date(1000000000000L));
+        when(newDictionary.getUpdatedAt()).thenReturn(new Date(1111111111111L));
+        when(newDictionary.getType()).thenReturn(DictionaryType.MANUAL);
+
+        final Dictionary dic1 = new Dictionary();
+        dic1.setId("dic-1");
+        dic1.setName("My dic 1");
+        dic1.setDescription("Description for my dic 1");
+        dic1.setCreatedAt(new Date(1000000000000L));
+        dic1.setUpdatedAt(new Date(1111111111111L));
+
+        final Dictionary dictionaryUpdated = mock(Dictionary.class);
+        when(dictionaryUpdated.getName()).thenReturn("My dic 1");
+        when(dictionaryUpdated.getDescription()).thenReturn("Description for my dic 1");
+        when(dictionaryUpdated.getCreatedAt()).thenReturn(new Date(1000000000000L));
+        when(dictionaryUpdated.getUpdatedAt()).thenReturn(new Date(1486771200000L));
+        when(dictionaryUpdated.getType()).thenReturn(DictionaryType.DYNAMIC);
+
+        final Set<Dictionary> dictionaries = newSet(newDictionary, dic1, mock(Dictionary.class));
+        final Set<Dictionary> dictionariesAfterDelete = newSet(newDictionary, dic1);
+        final Set<Dictionary> dictionariesAfterAdd = newSet(newDictionary, dic1, mock(Dictionary.class), mock(Dictionary.class));
+
+        when(dictionaryRepository.findAll()).thenReturn(dictionaries, dictionariesAfterAdd, dictionaries, dictionariesAfterDelete, dictionaries);
+
+        when(dictionaryRepository.create(any(Dictionary.class))).thenReturn(newDictionary);
+
+        when(dictionaryRepository.findById("new-dictionary")).thenReturn(of(newDictionary));
+        when(dictionaryRepository.findById("unknown")).thenReturn(empty());
+        when(dictionaryRepository.findById("dic-1")).thenReturn(of(dic1), of(dictionaryUpdated));
+
+        when(dictionaryRepository.update(argThat(new ArgumentMatcher<Dictionary>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Dictionary && ((Dictionary) o).getId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
+
+        return dictionaryRepository;
     }
 }
