@@ -20,7 +20,7 @@ class RoleService {
 
   private permissionsByScope: any = {
     MANAGEMENT: {
-      permissions: ['INSTANCE', 'VIEW', 'GROUP', 'TAG', 'TENANT', 'API', 'ROLE', 'APPLICATION', 'PLATFORM', 'AUDIT', 'NOTIFICATION', 'USER'],
+      permissions: ['INSTANCE', 'GROUP', 'TAG', 'TENANT', 'API', 'ROLE', 'APPLICATION', 'PLATFORM', 'AUDIT', 'NOTIFICATION', 'USER'],
       userRoleManagement: true
     },
     PORTAL: {

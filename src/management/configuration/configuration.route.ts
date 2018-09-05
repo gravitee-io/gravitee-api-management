@@ -95,7 +95,7 @@ function configurationRouterConfig($stateProvider) {
           page: 'management-configuration-views'
         },
         perms: {
-          only: ['management-view-u']
+          only: ['portal-view-u', 'portal-view-d']
         }
       }
     })
