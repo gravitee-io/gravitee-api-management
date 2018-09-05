@@ -47,13 +47,13 @@ function interceptorConfig(
               $timeout(function () {
                 $injector.get('$rootScope').$broadcast('graviteeLogout');
               }, 2000);
-            } else {
+            } /*else {
               $timeout(function () {
                 if (_.startsWith($state.current.name, 'management.') || $state.current.name === '') {
                   $state.go('portal.home');
                 }
               }, 100);
-            }
+            }*/
           }
         } else {
           if (error.status === 500) {

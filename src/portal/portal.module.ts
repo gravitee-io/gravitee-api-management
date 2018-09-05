@@ -61,6 +61,8 @@ import ApiSupport from './api/support/api-support.component';
 import PortalViewsController from './views/views.controller';
 import PortalViewController from './views/view/view.controller';
 
+import RouterService from '../services/router.service';
+
 require('angulartics');
 
 angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMaterial', 'pascalprecht.translate',
@@ -110,7 +112,11 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
 
     $mdThemingProvider.theme('toast-success');
     $mdThemingProvider.theme('toast-error');
-  }).run(function(Constants, $window, $transitions, $location) {
+  }).run(function(Constants, $window, $transitions, $location, RouterService: RouterService) {
+    $transitions.onStart({to: 'login'}, function(trans) {
+      RouterService.setLastRoute(trans.from(), trans.params('from'));
+    });
+
     if ((Constants.portal.analytics && Constants.portal.analytics.enabled)) {
       const script = document.createElement('script');
       script.async = true;
