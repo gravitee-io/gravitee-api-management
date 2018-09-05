@@ -108,12 +108,24 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     };
 
     vm.delete = () => {
-      NotificationSettingsService.delete(vm.resolvedHookScope, vm.selectedNotificationSetting.referenceId, vm.selectedNotificationSetting.id).then((response) => {
-        vm.notificationSettings = _.filter(vm.notificationSettings, (n: any) => {
-          return vm.selectedNotificationSetting.id !== n.id;
-        });
-        vm.selectNotificationSetting(vm.notificationSettings[0]);
+      let alert = this.$mdDialog.confirm({
+        title: 'Warning',
+        content: 'Are you sure you want to remove this notification ?',
+        ok: 'OK',
+        cancel: 'Cancel'
       });
+      this.$mdDialog
+        .show(alert)
+        .then( () => {
+          NotificationSettingsService.delete(vm.resolvedHookScope, vm.selectedNotificationSetting.referenceId, vm.selectedNotificationSetting.id)
+            .then((response) => {
+              NotificationService.show('Notification deleted with success');
+              vm.notificationSettings = _.filter(vm.notificationSettings, (n: any) => {
+                return vm.selectedNotificationSetting.id !== n.id;
+              });
+              vm.selectNotificationSetting(vm.notificationSettings[0]);
+          })
+        });
     };
 
     vm.addDialog = () => {
