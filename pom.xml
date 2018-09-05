@@ -43,6 +43,7 @@
         <module>gravitee-gateway-resource</module>
         <module>gravitee-gateway-el</module>
         <module>gravitee-gateway-core</module>
+        <module>gravitee-gateway-dictionary</module>
         <module>gravitee-gateway-http</module>
         <module>gravitee-gateway-standalone</module>
         <module>gravitee-gateway-handlers</module>

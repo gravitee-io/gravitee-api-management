@@ -21,6 +21,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.node.Node;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
 import io.gravitee.gateway.env.EnvironmentConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
 import io.gravitee.gateway.reactor.spring.ReactorConfiguration;
@@ -48,7 +49,8 @@ import org.springframework.context.annotation.Import;
         PolicyPluginConfiguration.class,
         ResourcePluginConfiguration.class,
         ReporterConfiguration.class,
-        ApiHandlerConfiguration.class
+        ApiHandlerConfiguration.class,
+        DictionaryConfiguration.class
 })
 public class StandaloneConfiguration {
 
