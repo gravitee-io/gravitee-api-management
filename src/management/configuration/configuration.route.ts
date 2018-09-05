@@ -25,6 +25,7 @@ import NotificationSettingsService from "../../services/notificationSettings.ser
 import TopApiService from "../../services/top-api.service";
 import UserService from "../../services/user.service";
 import ApiService from "../../services/api.service";
+import DictionaryService from "../../services/dictionary.service";
 import _ = require('lodash');
 
 export default configurationRouterConfig;
@@ -429,6 +430,57 @@ function configurationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['portal-settings-r']
+        }
+      }
+    })
+    .state('management.settings.dictionaries', {
+      abstract: true,
+      url: '/dictionaries'
+    })
+    .state('management.settings.dictionaries.list', {
+      url: '/',
+      component: 'dictionaries',
+      resolve: {
+        dictionaries: (DictionaryService: DictionaryService) =>
+          DictionaryService.list().then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-dictionaries'
+        },
+        perms: {
+          only: ['management-dictionary-r']
+        }
+      }
+    })
+    .state('management.settings.dictionaries.new', {
+      url: '/new',
+      component: 'dictionary',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-dictionary'
+        },
+        perms: {
+          only: ['management-dictionary-c']
+        }
+      }
+    })
+    .state('management.settings.dictionaries.dictionary', {
+      url: '/:dictionaryId',
+      component: 'dictionary',
+      resolve: {
+        dictionary: (DictionaryService: DictionaryService, $stateParams) =>
+          DictionaryService.get($stateParams.dictionaryId).then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-dictionary'
+        },
+        perms: {
+          only: ['management-dictionary-c', 'management-dictionary-r', 'management-dictionary-u', 'management-dictionary-d']
         }
       }
     });

@@ -366,6 +366,14 @@ import GroupsComponent from '../management/configuration/groups/groups.component
 import GroupComponent from '../management/configuration/group/group.component';
 import GroupService from '../services/group.service';
 
+// Dictionaries
+import DictionaryService from '../services/dictionary.service';
+import DictionariesComponent from '../management/configuration/dictionaries/dictionaries.component';
+import DictionariesController from '../management/configuration/dictionaries/dictionaries.controller';
+import DictionaryComponent from '../management/configuration/dictionaries/dictionary.component';
+import DictionaryController from '../management/configuration/dictionaries/dictionary.controller';
+import DialogDictionaryAddPropertyController from '../management/configuration/dictionaries/add-property.dialog.controller';
+
 // Others
 import StringService from '../services/string.service';
 import AuthenticationService from '../services/authentication.service';
@@ -688,6 +696,13 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   .component('messages', MessagesComponent)
 
+  // Dictionaries
+  .service('DictionaryService', DictionaryService)
+  .component('dictionaries', DictionariesComponent)
+  .component('dictionary', DictionaryComponent)
+  .controller('DictionariesController', DictionariesController)
+  .controller('DictionaryController', DictionaryController)
+  .controller('DialogDictionaryAddPropertyController', DialogDictionaryAddPropertyController)
 
   .filter('humanDateFilter', function () {
     return function (input) {

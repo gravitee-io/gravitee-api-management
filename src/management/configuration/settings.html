@@ -54,7 +54,8 @@
 
             <div class="aui-nav-heading"
                  ng-if="$ctrl.settingsMenu.tags.perm
-                 || $ctrl.settingsMenu.tenants.perm">
+                 || $ctrl.settingsMenu.tenants.perm
+                 || $ctrl.settingsMenu.dictionaries.perm">
                 <strong>Gateway</strong>
             </div>
             <ul class="aui-nav">
@@ -66,6 +67,10 @@
                     ng-if="$ctrl.settingsMenu.tenants.perm">
                     <a class="execute" ui-sref="{{$ctrl.settingsMenu.tenants.goTo}}">Tenants</a>
                 </li>
+              <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                  ng-if="$ctrl.settingsMenu.dictionaries.perm">
+                <a class="execute" ui-sref="{{$ctrl.settingsMenu.dictionaries.goTo}}">Dictionaries</a>
+              </li>
             </ul>
 
             <div class="aui-nav-heading"

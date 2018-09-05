@@ -69,6 +69,11 @@ const SettingsComponent: ng.IComponentOptions = {
           ['management-tenant-c', 'management-tenant-u', 'management-tenant-d']),
         goTo: 'management.settings.tenants'
       },
+      dictionaries: {
+        perm: UserService.isUserHasPermissions(
+          ['management-dictionary-c', 'management-dictionary-r', 'management-dictionary-u', 'management-dictionary-d']),
+        goTo: 'management.settings.dictionaries.list'
+      },
 
       // USER MANAGEMENT
       users: {
