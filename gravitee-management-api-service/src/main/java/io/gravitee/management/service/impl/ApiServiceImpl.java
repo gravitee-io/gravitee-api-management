@@ -356,11 +356,14 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             List<Api> publicApis = apiRepository.search(queryToCriteria(apiQuery).visibility(PUBLIC).build());
 
             // get user apis
+            List<Api> userApis = emptyList();
             final String[] userApiIds = membershipRepository
                     .findByUserAndReferenceType(userId, MembershipReferenceType.API).stream()
                     .map(Membership::getReferenceId)
                     .toArray(String[]::new);
-            List<Api> userApis = apiRepository.search(queryToCriteria(apiQuery).ids(userApiIds).build());
+            if (userApiIds.length > 0) {
+                userApis = apiRepository.search(queryToCriteria(apiQuery).ids(userApiIds).build());
+            }
 
             // get user groups apis
             List<Api> groupApis = emptyList();
@@ -369,7 +372,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     .filter(m -> m.getRoles().keySet().contains(RoleScope.API.getId()))
                     .map(Membership::getReferenceId)
                     .toArray(String[]::new);
-            if (groupIds != null && groupIds.length > 0 && groupIds[0] != null) {
+            if (groupIds.length > 0 && groupIds[0] != null) {
                 groupApis = apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
             }
 
