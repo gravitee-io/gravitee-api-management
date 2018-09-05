@@ -17,3 +17,5 @@ databaseChangeLog:
     - file: liquibase/changelogs/v1_18_0/schema-views.yml
   - include:
     - file: liquibase/changelogs/v1_18_0/schema-notification_config.yml
+  - include:
+    - file: liquibase/changelogs/v1_19_0/schema.yml
