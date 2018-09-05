@@ -117,6 +117,7 @@ public class Event {
 
     public enum EventProperties {
         API_ID("api_id"),
+        DICTIONARY_ID("dictionary_id"),
         ORIGIN("origin"),
         USER("user");
 

@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.repository.management.api;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.Dictionary;
+
+import java.util.Set;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum EventType {
+public interface DictionaryRepository extends CrudRepository<Dictionary, String> {
 
-    PUBLISH_API,
-    PUBLISH_API_RESULT,
-    UNPUBLISH_API,
-    UNPUBLISH_API_RESULT,
-    START_API,
-    STOP_API,
-    GATEWAY_STARTED,
-    GATEWAY_STOPPED,
-    PUBLISH_DICTIONARY,
-    UNPUBLISH_DICTIONARY,
-    START_DICTIONARY,
-    STOP_DICTIONARY
+    /**
+     * List all dictionaries
+     * @return all dictionaries
+     * @throws TechnicalException if something goes wrong
+     */
+    Set<Dictionary> findAll() throws TechnicalException;
 }

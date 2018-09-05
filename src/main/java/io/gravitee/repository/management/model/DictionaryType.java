@@ -16,22 +16,11 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum EventType {
+public enum DictionaryType {
 
-    PUBLISH_API,
-    PUBLISH_API_RESULT,
-    UNPUBLISH_API,
-    UNPUBLISH_API_RESULT,
-    START_API,
-    STOP_API,
-    GATEWAY_STARTED,
-    GATEWAY_STOPPED,
-    PUBLISH_DICTIONARY,
-    UNPUBLISH_DICTIONARY,
-    START_DICTIONARY,
-    STOP_DICTIONARY
+	MANUAL,
+	DYNAMIC
 }
