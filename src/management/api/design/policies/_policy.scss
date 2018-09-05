@@ -87,19 +87,19 @@
 }
 
 .gravitee-policy-method-badge-GET-selected {
-  background-color: #43a047;
+  background-color: #43a047 !important;
 }
 
 .gravitee-policy-method-badge-POST-selected {
-  background-color: #fb8c00;
+  background-color: #fb8c00 !important;
 }
 
 .gravitee-policy-method-badge-PUT-selected {
-  background-color: #039be5;
+  background-color: #039be5 !important;
 }
 
 .gravitee-policy-method-badge-DELETE-selected {
-  background-color: #e53935;
+  background-color: #e53935 !important;
 }
 
 .gravitee-policy-method-badge-HEAD-selected,
@@ -107,7 +107,7 @@
 .gravitee-policy-method-badge-OPTIONS-selected,
 .gravitee-policy-method-badge-TRACE-selected,
 .gravitee-policy-method-badge-CONNECT-selected {
-  background-color: #757575;
+  background-color: #757575 !important;
 }
 
 .gravitee-policy-method-badge-GET-unselected,
@@ -119,7 +119,7 @@
 .gravitee-policy-method-badge-OPTIONS-unselected,
 .gravitee-policy-method-badge-TRACE-unselected,
 .gravitee-policy-method-badge-CONNECT-unselected {
-  background-color: #e0e0e0;
+  background-color: #e0e0e0 !important;
   color: #757575;
 }
 
