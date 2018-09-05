@@ -21,7 +21,6 @@ package io.gravitee.management.model.permissions;
  */
 public enum ManagementPermission implements Permission {
     INSTANCE(    "INSTANCE",     1000),
-    VIEW(        "VIEW",         1100),
     GROUP(       "GROUP",        1200),
     TAG(         "TAG",          1300),
     TENANT(      "TENANT",       1400),

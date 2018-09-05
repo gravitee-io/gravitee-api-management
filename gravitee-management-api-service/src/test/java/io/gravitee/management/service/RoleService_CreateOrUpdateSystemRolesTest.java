@@ -52,7 +52,6 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
     private static int[] mgmtAdminPermissions = new int[]{
             1015,
-            1115,
             1215,
             1315,
             1415,

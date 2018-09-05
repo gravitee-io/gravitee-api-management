@@ -91,7 +91,6 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
             perms.put(ManagementPermission.TAG.getName(), new char[]{READ.getId()});
             perms.put(ManagementPermission.GROUP.getName(), new char[]{READ.getId()});
             perms.put(ManagementPermission.TENANT.getName(), new char[]{READ.getId()});
-            perms.put(ManagementPermission.VIEW.getName(), new char[]{READ.getId()});
             perms.put(ManagementPermission.ROLE.getName(), new char[]{READ.getId()});
             roleService.create(new NewRoleEntity(
                     "API_PUBLISHER",
