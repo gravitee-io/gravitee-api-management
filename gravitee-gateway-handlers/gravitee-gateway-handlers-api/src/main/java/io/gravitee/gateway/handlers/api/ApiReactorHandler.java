@@ -101,7 +101,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
         }
 
         // Prepare request execution context
-        ExecutionContext executionContext = executionContextFactory.create(serverRequest);
+        ExecutionContext executionContext = executionContextFactory.create(serverRequest, serverResponse);
         executionContext.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, serverRequest.contextPath());
 
         try {

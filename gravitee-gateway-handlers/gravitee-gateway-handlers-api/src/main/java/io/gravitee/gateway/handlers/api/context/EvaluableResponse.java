@@ -15,21 +15,26 @@
  */
 package io.gravitee.gateway.handlers.api.context;
 
-import java.util.Map;
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.gateway.api.Response;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EvaluableExecutionContext {
+public class EvaluableResponse {
 
-    private final DefaultExecutionContext executionContext;
+    private final Response response;
 
-    EvaluableExecutionContext(DefaultExecutionContext executionContext) {
-        this.executionContext = executionContext;
+    EvaluableResponse(final Response response) {
+        this.response = response;
     }
 
-    public Map<String, Object> getAttributes() {
-        return executionContext.getAttributes();
+    public int getStatus() {
+        return response.status();
+    }
+
+    public HttpHeaders getHeaders() {
+        return response.headers();
     }
 }
