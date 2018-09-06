@@ -18,6 +18,7 @@ import UserService from '../../services/user.service';
 import NotificationService from "../../services/notification.service";
 import ApiService from "../../services/api.service";
 import {IScope} from "angular";
+import { StateService } from '@uirouter/core';
 
 class ApiAdminController {
   private api: any;
@@ -27,7 +28,7 @@ class ApiAdminController {
 
   constructor (
     private resolvedApi: any,
-    private $state: ng.ui.IStateService,
+    private $state: StateService,
     private $scope: IScope,
     private $rootScope: IScope,
     private $mdDialog: angular.material.IDialogService,

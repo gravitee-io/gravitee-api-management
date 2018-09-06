@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
-
 class PagesComponentCtrl implements ng.IComponentController {
 
   public pages: any;

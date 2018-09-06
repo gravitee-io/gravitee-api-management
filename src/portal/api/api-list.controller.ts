@@ -28,6 +28,7 @@ export class PortalApiListController {
   private selectedView: string;
   private tilesMode: boolean;
   private tilesModeKey = 'gv-tiles-mode';
+  private hideApis: boolean;
 
   constructor (private $scope: IScope,
                private $state,
@@ -37,7 +38,8 @@ export class PortalApiListController {
                private ApiService: ApiService,
                private $window,
                private resolvedApis,
-               private resolvedViews) {
+               private resolvedViews,
+               private $transitions) {
     'ngInject';
 
     if ($window.sessionStorage.getItem(this.tilesModeKey) === null) {
@@ -67,7 +69,7 @@ export class PortalApiListController {
       })
     }
 
-    $scope.$on('$stateChangeStart', function() {
+    $transitions.onStart({to: $state.current.name}, () => {
       this.hideApis = true;
     });
   }

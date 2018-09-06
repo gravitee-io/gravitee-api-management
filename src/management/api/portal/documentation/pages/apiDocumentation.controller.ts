@@ -25,7 +25,8 @@ class DocumentationController {
     private $scope,
     private $state,
     private dragularService,
-    private NotificationService) {
+    private NotificationService,
+    private $transitions) {
     'ngInject';
 
     this.DocumentationService = DocumentationService;
@@ -35,6 +36,10 @@ class DocumentationController {
 
     $scope.$on('onGraviteePageDeleted', () => {
       this.$state.go('management.apis.detail.portal.documentation', {}, {reload: true});
+    });
+
+    $transitions.onStart({to: $state.current.name}, () => {
+      $scope.listPagesDisplayed = true;
     });
   }
 

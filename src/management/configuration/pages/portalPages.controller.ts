@@ -25,7 +25,8 @@ class PortalPagesController {
     private PortalPagesService: PortalPagesService,
     private $scope: any,
     private $state: any,
-    private dragularService: any) {
+    private dragularService: any,
+    private $transitions) {
     'ngInject';
 
     this.editMode = false;
@@ -33,6 +34,10 @@ class PortalPagesController {
 
     $scope.$on('onGraviteePageDeleted', () => {
       this.$state.go('management.settings.pages', {}, {reload: true});
+    });
+
+    $transitions.onStart({to: $state.current.name}, () => {
+      $scope.listPagesDisplayed = true;
     });
   }
 

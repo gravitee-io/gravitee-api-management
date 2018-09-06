@@ -43,7 +43,8 @@ export class ApisController {
               private resolvedApis,
               private UserService: UserService,
               private graviteeUser,
-              private $filter) {
+              private $filter,
+              private $transitions) {
     'ngInject';
 
     this.graviteeUser = graviteeUser;
@@ -64,7 +65,7 @@ export class ApisController {
     this.qualityScores = [];
     this.isQualityDisplayed = Constants.apiQualityMetrics && Constants.apiQualityMetrics.enabled;
 
-    $scope.$on('$stateChangeStart', function () {
+    $transitions.onStart({to: $state.current.name}, () => {
       $scope.hideApis = true;
     });
   }
