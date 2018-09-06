@@ -19,6 +19,7 @@ import io.gravitee.management.idp.api.IdentityProvider;
 import io.gravitee.management.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.management.idp.core.plugin.IdentityProviderManager;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
+import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.security.filter.JWTAuthenticationFilter;
 import io.gravitee.management.security.listener.AuthenticationSuccessListener;
 import org.slf4j.Logger;
@@ -65,6 +66,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     private IdentityProviderManager identityProviderManager;
     @Autowired
     private AuthenticationProviderManager authenticationProviderManager;
+    @Autowired
+    private JWTCookieGenerator jwtCookieGenerator;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -234,6 +237,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                     .disable()
                 .cors()
             .and()
-                .addFilterBefore(new JWTAuthenticationFilter(jwtSecret), BasicAuthenticationFilter.class);
+                .addFilterBefore(new JWTAuthenticationFilter(jwtSecret, jwtCookieGenerator), BasicAuthenticationFilter.class);
     }
 }
