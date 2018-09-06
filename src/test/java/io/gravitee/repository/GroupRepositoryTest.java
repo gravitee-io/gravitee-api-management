@@ -59,6 +59,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertEquals("group-application-1", group.get().getId());
         assertEquals("group-application-1", group.get().getName());
         assertEquals(2, group.get().getEventRules().size());
+        assertEquals(2, group.get().getRoles().size());
     }
 
     @Test

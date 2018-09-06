@@ -9,10 +9,17 @@
       {
         "event": "APPLICATION_CREATE"
       }
-    ]
+    ],
+    "roles" : {
+      "3": "OWNER",
+      "4": "USER"
+    }
   },
   {
     "id": "group-api-to-delete",
-    "name": "group-api-to-delete"
+    "name": "group-api-to-delete",
+    "roles" : {
+      "3": "OWNER"
+    }
   }
 ]

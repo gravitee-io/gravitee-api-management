@@ -712,6 +712,12 @@ public class MockTestRepositoryConfiguration {
         GroupEventRule eventRule2 = new GroupEventRule();
         eventRule2.setEvent(GroupEvent.APPLICATION_CREATE);
         group_application_1.setEventRules(asList(eventRule1, eventRule2));
+
+        Map<Integer, String> roles = new HashMap<>();
+        roles.put(RoleScope.API.getId(), "OWNER");
+        roles.put(RoleScope.APPLICATION.getId(), "USER");
+        group_application_1.setRoles(roles);
+
         final Group group_api_to_delete = new Group();
         group_api_to_delete.setId("group-api-to-delete");
         group_api_to_delete.setName("group-api-to-delete");
