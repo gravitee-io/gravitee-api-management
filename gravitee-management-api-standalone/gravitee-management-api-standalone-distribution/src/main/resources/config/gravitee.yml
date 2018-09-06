@@ -49,6 +49,10 @@ http:
     #allow-methods: 'OPTIONS, GET, POST, PUT, DELETE'
     # Which headers to allow (default values: Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match)
     #allow-headers: 'X-Requested-With'
+  hsts:
+    enabled: true
+    include-sub-domains: true
+    max-age: 31536000
 
 # Plugins repository
 #plugins:

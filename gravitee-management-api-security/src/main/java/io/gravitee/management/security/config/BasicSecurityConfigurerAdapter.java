@@ -35,6 +35,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -45,6 +46,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import static java.util.Arrays.asList;
 
 
@@ -160,83 +162,115 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
             LOGGER.warn("");
         }
 
+        authentication(http);
+        session(http);
+        authorizations(http);
+        hsts(http);
+        csrf(http);
+        cors(http);
+
         http
-            .httpBasic()
-                .realmName("Gravitee.io Management API")
-            .and()
-            .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-                .authorizeRequests()
-                    .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
-                    .antMatchers(HttpMethod.POST, "/user/login").permitAll()
-                    .antMatchers(HttpMethod.GET, "/user/**").authenticated()
-                    .antMatchers(HttpMethod.POST, "/auth/**").permitAll()
-
-                    // API requests
-                    .antMatchers(HttpMethod.GET, "/apis/hooks").authenticated()
-                    .antMatchers(HttpMethod.GET, "/apis/**").permitAll()
-                    .antMatchers(HttpMethod.POST, "/apis").authenticated()
-                    .antMatchers(HttpMethod.POST, "/apis/**").authenticated()
-                    .antMatchers(HttpMethod.PUT, "/apis/**").authenticated()
-                    .antMatchers(HttpMethod.DELETE, "/apis/**").authenticated()
-
-                    // Application requests
-                    .antMatchers(HttpMethod.POST, "/applications").authenticated()
-                    .antMatchers(HttpMethod.POST, "/applications/**").authenticated()
-                    .antMatchers(HttpMethod.PUT, "/applications/**").authenticated()
-                    .antMatchers(HttpMethod.DELETE, "/applications/**").authenticated()
-
-                    // Subscriptions
-                    .antMatchers(HttpMethod.GET, "/subscriptions/**").authenticated()
-
-                    // Instance requests
-                    .antMatchers(HttpMethod.GET, "/instances/**").authenticated()
-
-                    // Platform requests
-                    .antMatchers(HttpMethod.GET, "/platform/**").authenticated()
-
-                    // User management
-                    .antMatchers(HttpMethod.POST, "/users").permitAll()
-                    .antMatchers(HttpMethod.POST, "/users/register").permitAll()
-                    .antMatchers(HttpMethod.GET, "/users").authenticated()
-                    .antMatchers(HttpMethod.GET, "/users/**").authenticated()
-                    .antMatchers(HttpMethod.PUT, "/users/**").authenticated()
-                    .antMatchers(HttpMethod.DELETE, "/users/**").authenticated()
-
-                    // Swagger
-                    .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
-
-                    // Configuration Groups
-                    .antMatchers(HttpMethod.GET, "/configuration/groups/**").permitAll()
-
-                    // Configuration Views
-                    .antMatchers(HttpMethod.GET, "/configuration/views/**").permitAll()
-
-                    // Configuration Tags
-                    .antMatchers(HttpMethod.GET, "/configuration/tags/**").permitAll()
-
-                    // Configuration Tenants
-                    .antMatchers(HttpMethod.GET, "/configuration/tenants/**").permitAll()
-
-                    // Configuration
-                    .antMatchers("/configuration/**").authenticated()
-
-                    // Portal
-                    .antMatchers(HttpMethod.GET, "/portal/**").permitAll()
-                    .antMatchers(HttpMethod.POST, "/portal/**").authenticated()
-                    .antMatchers(HttpMethod.PUT, "/portal/**").authenticated()
-                    .antMatchers(HttpMethod.DELETE, "/portal/**").authenticated()
-
-                    // Search
-                    .antMatchers(HttpMethod.GET, "/search/users").authenticated()
-
-                    .anyRequest().authenticated()
-            .and()
-                .csrf()
-                    .disable()
-                .cors()
-            .and()
                 .addFilterBefore(new JWTAuthenticationFilter(jwtSecret, jwtCookieGenerator), BasicAuthenticationFilter.class);
+    }
+
+    private HttpSecurity authentication(HttpSecurity security) throws Exception {
+        return security.httpBasic()
+                .realmName("Gravitee.io Management API").and();
+    }
+
+    private HttpSecurity session(HttpSecurity security) throws Exception {
+        return security.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
+    }
+
+    private HttpSecurity authorizations(HttpSecurity security) throws Exception {
+        return security.authorizeRequests()
+                .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
+                .antMatchers(HttpMethod.POST, "/user/login").permitAll()
+                .antMatchers(HttpMethod.GET, "/user/**").authenticated()
+                .antMatchers(HttpMethod.POST, "/auth/**").permitAll()
+
+                // API requests
+                .antMatchers(HttpMethod.GET, "/apis/hooks").authenticated()
+                .antMatchers(HttpMethod.GET, "/apis/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/apis").authenticated()
+                .antMatchers(HttpMethod.POST, "/apis/**").authenticated()
+                .antMatchers(HttpMethod.PUT, "/apis/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/apis/**").authenticated()
+
+                // Application requests
+                .antMatchers(HttpMethod.POST, "/applications").authenticated()
+                .antMatchers(HttpMethod.POST, "/applications/**").authenticated()
+                .antMatchers(HttpMethod.PUT, "/applications/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/applications/**").authenticated()
+
+                // Subscriptions
+                .antMatchers(HttpMethod.GET, "/subscriptions/**").authenticated()
+
+                // Instance requests
+                .antMatchers(HttpMethod.GET, "/instances/**").authenticated()
+
+                // Platform requests
+                .antMatchers(HttpMethod.GET, "/platform/**").authenticated()
+
+                // User management
+                .antMatchers(HttpMethod.POST, "/users").permitAll()
+                .antMatchers(HttpMethod.POST, "/users/register").permitAll()
+                .antMatchers(HttpMethod.GET, "/users").authenticated()
+                .antMatchers(HttpMethod.GET, "/users/**").authenticated()
+                .antMatchers(HttpMethod.PUT, "/users/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/users/**").authenticated()
+
+                // Swagger
+                .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
+
+                // Configuration Groups
+                .antMatchers(HttpMethod.GET, "/configuration/groups/**").permitAll()
+
+                // Configuration Views
+                .antMatchers(HttpMethod.GET, "/configuration/views/**").permitAll()
+
+                // Configuration Tags
+                .antMatchers(HttpMethod.GET, "/configuration/tags/**").permitAll()
+
+                // Configuration Tenants
+                .antMatchers(HttpMethod.GET, "/configuration/tenants/**").permitAll()
+
+                // Configuration
+                .antMatchers("/configuration/**").authenticated()
+
+                // Portal
+                .antMatchers(HttpMethod.GET, "/portal/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/portal/**").authenticated()
+                .antMatchers(HttpMethod.PUT, "/portal/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/portal/**").authenticated()
+
+                // Search
+                .antMatchers(HttpMethod.GET, "/search/users").authenticated()
+
+                .anyRequest().authenticated().and();
+    }
+
+    private HttpSecurity hsts(HttpSecurity security) throws Exception {
+        HeadersConfigurer<HttpSecurity>.HstsConfig hstsConfig = security.headers().httpStrictTransportSecurity();
+
+        Boolean hstsEnabled = environment.getProperty("http.hsts.enabled", Boolean.class, true);
+        if (hstsEnabled) {
+            return hstsConfig
+                    .includeSubDomains(environment.getProperty("http.hsts.include-sub-domains", Boolean.class, true))
+                    .maxAgeInSeconds(environment.getProperty("http.hsts.max-age", Long.class, 31536000L))
+                    .and().and();
+        }
+
+        return hstsConfig.disable().and();
+
+    }
+
+    private HttpSecurity csrf(HttpSecurity security) throws Exception {
+        return security.csrf().disable();
+    }
+
+    private HttpSecurity cors(HttpSecurity security) throws Exception {
+        return security.cors().and();
     }
 }
