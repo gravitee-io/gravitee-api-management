@@ -65,10 +65,34 @@ public class VertxHttpServerRequestTest {
     }
 
     @Test
+    public void test_with_one_X_Forward_for_in_Header_with_port() {
+        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
+        when(httpServerRequest.remoteAddress()).thenReturn(SocketAddress.inetSocketAddress(8080,"192.168.0.1"));
+        when(httpServerRequest.getHeader(HttpHeaders.X_FORWARDED_FOR)).thenReturn("197.225.30.74:51234");
+
+
+        VertxHttpServerRequest vertxRequest = new VertxHttpServerRequest(httpServerRequest);
+
+        Assert.assertEquals("197.225.30.74", vertxRequest.metrics().getRemoteAddress());
+    }
+
+    @Test
     public void test_with_many_X_Forward_for_in_Header() {
         when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
         when(httpServerRequest.remoteAddress()).thenReturn(SocketAddress.inetSocketAddress(8080,"192.168.0.1"));
         when(httpServerRequest.getHeader(HttpHeaders.X_FORWARDED_FOR)).thenReturn("197.225.30.74, 10.0.0.1, 10.0.0.2");
+
+
+        VertxHttpServerRequest vertxRequest = new VertxHttpServerRequest(httpServerRequest);
+
+        Assert.assertEquals("197.225.30.74", vertxRequest.metrics().getRemoteAddress());
+    }
+
+    @Test
+    public void test_with_many_X_Forward_for_in_Header_with_port() {
+        when(httpServerRequest.method()).thenReturn(HttpMethod.GET);
+        when(httpServerRequest.remoteAddress()).thenReturn(SocketAddress.inetSocketAddress(8080,"192.168.0.1"));
+        when(httpServerRequest.getHeader(HttpHeaders.X_FORWARDED_FOR)).thenReturn("197.225.30.74:1234, 10.0.0.1:2345, 10.0.0.2:3456");
 
 
         VertxHttpServerRequest vertxRequest = new VertxHttpServerRequest(httpServerRequest);
