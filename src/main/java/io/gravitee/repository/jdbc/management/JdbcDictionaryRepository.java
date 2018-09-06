@@ -119,7 +119,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
             int idx = ORM.setStatementValues(stmt, dictionary, 1);
             stmt.setString(idx++, dictionary.getProvider() == null ? null : dictionary.getProvider().getType());
             stmt.setString(idx++, dictionary.getProvider() == null ? null : dictionary.getProvider().getConfiguration());
-            stmt.setInt(idx++, dictionary.getTrigger() == null ? null : (int) dictionary.getTrigger().getRate());
+            stmt.setInt(idx++, dictionary.getTrigger() == null ? 0 : (int) dictionary.getTrigger().getRate());
             stmt.setString(idx++, dictionary.getTrigger() == null ? null : dictionary.getTrigger().getUnit().name());
 
             for (Object id : ids) {
@@ -154,6 +154,8 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         }
         builder.append(", ?");
         builder.append(", ?");
+        builder.append(", ?");
+        builder.append(", ?");
         builder.append(" )");
         return builder.toString();
     }
@@ -172,8 +174,8 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
             builder.append(escapeReservedWord(getDBName(column.name)));
             builder.append(" = ?");
         }
-        builder.append(", source_type = ?");
-        builder.append(", source_configuration = ?");
+        builder.append(", provider_type = ?");
+        builder.append(", provider_configuration = ?");
         builder.append(", trigger_rate = ?");
         builder.append(", trigger_unit = ?");
 

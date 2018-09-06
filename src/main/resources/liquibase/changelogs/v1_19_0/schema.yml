@@ -4,6 +4,18 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - createTable:
+            tableName: group_roles
+            columns:
+                - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: role_scope, type: int, constraints: { nullable: false } }
+                - column: {name: role_name, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_group_roles
+            columnNames: group_id, role_scope
+            tableName: group_roles
+
+        - createTable:
             tableName: dictionaries
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
@@ -33,5 +45,5 @@ databaseChangeLog:
 
         - addPrimaryKey:
             constraintName: pk_dictionary_property
-            columnNames: dictionary_id, k, v
+            columnNames: dictionary_id, k
             tableName: dictionary_property

@@ -16,7 +16,6 @@
 package io.gravitee.repository.jdbc.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.management.JdbcHelper.CollatingRowMapper;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
@@ -25,11 +24,14 @@ import io.gravitee.repository.management.model.GroupEventRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
 
@@ -79,6 +81,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
                     .findFirst();
             if (group.isPresent()) {
                 addGroupEvents(group.get());
+                addRoles(group.get());
             }
             return group;
         } catch (final Exception ex) {
@@ -92,6 +95,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         try {
             jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(group));
             storeGroupEvents(group, false);
+            storeGroupRoles(group, false);
             return findById(group.getId()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create group", ex);
@@ -107,6 +111,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         try {
             jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(group, group.getId()));
             storeGroupEvents(group, true);
+            storeGroupRoles(group, true);
             return findById(group.getId()).orElseThrow(() -> new IllegalStateException(format("No group found with id [%s]", group.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
@@ -124,6 +129,46 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
     private void addGroupEvents(Group parent) {
         List<GroupEventRule> groupEvents = getEvents(parent.getId());
         parent.setEventRules(groupEvents);
+    }
+
+    private void addRoles(Group parent) {
+        Map<Integer, String> roles = getRoles(parent.getId());
+        parent.setRoles(roles);
+    }
+
+    private Map<Integer, String> getRoles(String groupId) {
+        Map<Integer, String> roles = new HashMap<>();
+        jdbcTemplate.query("select role_scope, role_name from group_roles where group_id = ?"
+                , new RowCallbackHandler() {
+                    @Override
+                    public void processRow(ResultSet rs) throws SQLException {
+                        roles.put(rs.getInt(1), rs.getString(2));
+                    }
+                }, groupId);
+        return roles;
+    }
+
+    private void storeGroupRoles(Group parent, boolean deleteFirst) {
+        if (deleteFirst) {
+            jdbcTemplate.update("delete from group_roles where group_id = ?", parent.getId());
+        }
+        if (parent.getRoles() != null) {
+            List<Integer> scopes = new ArrayList<>(parent.getRoles().keySet());
+            jdbcTemplate.batchUpdate("insert into group_roles ( group_id, role_scope, role_name ) values ( ?, ?, ? )"
+                    , new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, parent.getId());
+                            ps.setInt(2, scopes.get(i));
+                            ps.setString(3, parent.getRoles().get(scopes.get(i)));
+                        }
+
+                        @Override
+                        public int getBatchSize() {
+                            return scopes.size();
+                        }
+                    });
+        }
     }
 
     private List<GroupEventRule> getEvents(String groupId) {
