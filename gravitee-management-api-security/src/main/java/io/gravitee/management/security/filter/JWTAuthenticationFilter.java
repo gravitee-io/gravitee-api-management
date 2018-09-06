@@ -35,8 +35,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,8 +66,9 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
         String stringToken = req.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (isEmpty(stringToken) && req.getCookies() != null) {
+            final String authCookieName = "Auth-Graviteeio-APIM";
             final Optional<Cookie> optionalStringToken = Arrays.stream(req.getCookies())
-                    .filter(cookie -> HttpHeaders.AUTHORIZATION.equals(cookie.getName()))
+                    .filter(cookie -> authCookieName.equals(cookie.getName()))
                     .findAny();
             if (optionalStringToken.isPresent()) {
                 stringToken = decode(optionalStringToken.get().getValue(), defaultCharset().name());
