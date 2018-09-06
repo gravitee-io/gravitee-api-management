@@ -202,7 +202,7 @@ function configurationRouterConfig($stateProvider) {
       }
     })
     .state('management.settings.pages.new', {
-      url: '/new',
+      url: '/new?:type',
       template: require('./pages/page/page.html'),
       controller: 'NewPageController',
       controllerAs: 'pageCtrl',

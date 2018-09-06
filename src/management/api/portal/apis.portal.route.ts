@@ -242,7 +242,7 @@ function apisPortalRouterConfig($stateProvider) {
       }
     })
     .state('management.apis.detail.portal.documentation.new', {
-      url: '/new',
+      url: '/new?:type',
       template: require('./documentation/pages/page/apiPage.html'),
       controller: 'PageController',
       controllerAs: 'pageCtrl',
