@@ -25,10 +25,7 @@ import io.gravitee.repository.redis.management.model.RedisGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -102,6 +99,14 @@ public class RedisGroupRepository implements GroupRepository{
         }
         group.setCreatedAt(redisGroup.getCreatedAt());
         group.setUpdatedAt(redisGroup.getUpdatedAt());
+        if (redisGroup.getRoles() != null) {
+            Map<Integer, String> roles = new HashMap<>(redisGroup.getRoles().size());
+            for (String roleAsString : redisGroup.getRoles()) {
+                String[] role = convertTypeToRole(roleAsString);
+                roles.put(Integer.valueOf(role[0]), role[1]);
+            }
+            group.setRoles(roles);
+        }
         return group;
     }
 
@@ -120,6 +125,29 @@ public class RedisGroupRepository implements GroupRepository{
         }
         redisGroup.setCreatedAt(group.getCreatedAt());
         redisGroup.setUpdatedAt(group.getUpdatedAt());
+
+        if (group.getRoles() != null) {
+            List<String> roles = new ArrayList<>(group.getRoles().size());
+            for (Map.Entry<Integer, String> roleEntry : group.getRoles().entrySet()) {
+                roles.add(convertRoleToType(roleEntry.getKey(), roleEntry.getValue()));
+            }
+            redisGroup.setRoles(roles);
+        }
         return redisGroup;
+    }
+
+    private String convertRoleToType(int roleScope, String roleName) {
+        return roleScope + ":" + roleName;
+    }
+
+    private String[] convertTypeToRole(String type) {
+        if(type == null) {
+            return null;
+        }
+        String[] role = type.split(":");
+        if (role .length != 2) {
+            return null;
+        }
+        return role;
     }
 }

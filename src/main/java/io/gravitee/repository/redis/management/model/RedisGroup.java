@@ -29,6 +29,7 @@ public class RedisGroup {
     private String name;
     private Date createdAt;
     private Date updatedAt;
+    private List<String> roles;
     private List<String> adminstrators;
     private List<String> groupEventRules;
 
@@ -86,6 +87,14 @@ public class RedisGroup {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 
     @Override
