@@ -22,6 +22,13 @@
       This page is not published yet and will not be visible to other users
     </div>
 
+    <div ng-switch-when="RAML">
+      <div class="gv-page-draft-banner">
+        <ng-md-icon icon="warning" style="fill: #ce4844"></ng-md-icon>
+        The RAML format is no longer supported and will be completely removed in a future version
+      </div>
+      {{$ctrl.page.content}}
+    </div>
     <gv-page-swagger page="$ctrl.page" edit="$ctrl.edit" ng-switch-when="SWAGGER"></gv-page-swagger>
     <gv-page-editor-markdown-viewer page="$ctrl.page" ng-switch-when="MARKDOWN"></gv-page-editor-markdown-viewer>
   </div>
