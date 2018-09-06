@@ -73,7 +73,7 @@ public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
 
     @Override
     public List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException {
-        String key = criteria.getPlans().iterator().next() + '-' + criteria.getClientId();
+        String key = criteria.getApis().iterator().next() + '-' + criteria.getClientId();
         Element element = this.cache.get(key);
         return (element != null) ?
                 Collections.singletonList((Subscription) element.getObjectValue()):

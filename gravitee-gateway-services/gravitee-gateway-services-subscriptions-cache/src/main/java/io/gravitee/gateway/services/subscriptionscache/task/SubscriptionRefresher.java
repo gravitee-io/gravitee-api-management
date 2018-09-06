@@ -134,7 +134,7 @@ public class SubscriptionRefresher implements Runnable {
     }
 
     private void saveOrUpdate(Subscription subscription) {
-        String key = subscription.getPlan() + '-' + subscription.getClientId();
+        String key = subscription.getApi() + '-' + subscription.getClientId();
 
         Element element = cache.get(subscription.getId());
 
