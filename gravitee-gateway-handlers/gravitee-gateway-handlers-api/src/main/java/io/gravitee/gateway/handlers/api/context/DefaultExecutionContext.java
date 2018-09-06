@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.context;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.expression.TemplateContext;
 import io.gravitee.gateway.api.expression.TemplateEngine;
 import io.gravitee.gateway.api.expression.TemplateVariableProvider;
@@ -29,11 +30,13 @@ import java.util.*;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RequestExecutionContext implements ExecutionContext {
+public class DefaultExecutionContext implements ExecutionContext {
 
     private final Map<String, Object> attributes = new AttributeMap();
 
     private final Request request;
+
+    private final Response response;
 
     private final ApplicationContext applicationContext;
 
@@ -41,8 +44,9 @@ public class RequestExecutionContext implements ExecutionContext {
 
     private SpelTemplateEngine spelTemplateEngine;
 
-    RequestExecutionContext(Request request, ApplicationContext applicationContext) {
+    DefaultExecutionContext(final Request request, final Response response, ApplicationContext applicationContext) {
         this.request = request;
+        this.response = response;
         this.applicationContext = applicationContext;
     }
 
@@ -78,6 +82,7 @@ public class RequestExecutionContext implements ExecutionContext {
 
             TemplateContext templateContext = spelTemplateEngine.getTemplateContext();
             templateContext.setVariable("request", new EvaluableRequest(request));
+            templateContext.setVariable("response", new EvaluableResponse(response));
             templateContext.setVariable("context", new EvaluableExecutionContext(this));
 
             if (providers != null) {
