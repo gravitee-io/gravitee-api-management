@@ -56,14 +56,14 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
             return;
         }
 
-        String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
+        String api = (String) executionContext.getAttribute(ExecutionContext.ATTR_API);
 
         try {
             List<Subscription> subscriptions = subscriptionRepository.search(
                     new SubscriptionCriteria.Builder()
-                    .plans(Collections.singleton(plan))
-                    .clientId(clientId)
-                    .status(Subscription.Status.ACCEPTED)
+                            .apis(Collections.singleton(api))
+                            .clientId(clientId)
+                            .status(Subscription.Status.ACCEPTED)
                             .build());
 
             if (subscriptions != null && !subscriptions.isEmpty()) {
@@ -75,6 +75,7 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
 
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                     executionContext.setAttribute(ExecutionContext.ATTR_USER_ID, subscription.getId());
+                    executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
 
                     policyChain.doNext(request, response);
                     return;
