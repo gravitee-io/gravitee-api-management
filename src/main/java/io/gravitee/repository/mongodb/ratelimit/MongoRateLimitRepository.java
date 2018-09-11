@@ -71,8 +71,20 @@ public class MongoRateLimitRepository implements RateLimitRepository {
 
     @Override
     public RateLimit get(String rateLimitKey) {
-        return mongoOperations
-                .findOne(Query.query(Criteria.where("_id").is(rateLimitKey)), RateLimit.class, RATE_LIMIT_COLLECTION);
+        //because RateLimit has no default constructor, we have to manually map values
+        Document result = mongoOperations.findById(rateLimitKey, Document.class, RATE_LIMIT_COLLECTION);
+
+        RateLimit rateLimit = new RateLimit(rateLimitKey);
+
+        if (result != null) {
+            rateLimit.setCounter((long) result.get(FIELD_COUNTER));
+            rateLimit.setLastRequest((long) result.get(FIELD_LAST_REQUEST));
+            rateLimit.setResetTime(((Date) result.get(FIELD_RESET_TIME)).getTime());
+            rateLimit.setUpdatedAt((long) result.get(FIELD_UPDATED_AT));
+            rateLimit.setCreatedAt((long) result.get(FIELD_CREATED_AT));
+            rateLimit.setAsync((boolean) result.get(FIELD_ASYNC));
+        }
+        return rateLimit;
     }
 
     @Override
