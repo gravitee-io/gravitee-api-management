@@ -67,6 +67,7 @@ public class HttpEndpointFactoryTest {
 
     @Test
     public void shouldResolveHttpEndpoint_nullContext() {
+        when(endpoint.getTarget()).thenReturn("http://mydomain");
         when(endpoint.getType()).thenReturn(EndpointType.HTTP);
 
         io.gravitee.gateway.http.endpoint.HttpEndpoint endpoint = factory.create(this.endpoint, null);
@@ -75,6 +76,7 @@ public class HttpEndpointFactoryTest {
 
     @Test
     public void shouldResolveHttpEndpoint_emptyContext() {
+        when(endpoint.getTarget()).thenReturn("http://mydomain");
         when(endpoint.getType()).thenReturn(EndpointType.HTTP);
 
         EndpointContext context = new EndpointContext();
@@ -95,6 +97,6 @@ public class HttpEndpointFactoryTest {
 
         io.gravitee.gateway.http.endpoint.HttpEndpoint endpoint = factory.create(endpointDef, context);
         Assert.assertNotNull(endpoint);
-        Assert.assertEquals(properties.get("my_property"), endpoint.target());
+        Assert.assertEquals(properties.get("my_property") + "/", endpoint.target());
     }
 }
