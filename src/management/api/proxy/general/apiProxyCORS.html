@@ -33,12 +33,14 @@
   <div layout="column" layout-wrap layout-gt-sm="row">
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
-      <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowOrigin" readonly="false"
-                md-removable="true" placeholder="Access-Control-Allow-Origin">
-        <md-chip-template>
-          <strong>{{$chip}}</strong>
-        </md-chip-template>
-      </md-chips>
+        <label>Access-Control-Allow-Origin *</label>
+        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowOrigin" readonly="false"
+                  ng-required="apiProxyCtrl.api.proxy.cors.enabled"
+                  md-removable="true" placeholder="*, mydomain.com, ...">
+          <md-chip-template>
+            <strong>{{$chip}}</strong>
+          </md-chip-template>
+        </md-chips>
         <div class="hint">The origin parameter specifies a URI that may access the resource.</div>
       </md-input-container>
     </div>
@@ -68,14 +70,14 @@
 
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
+          <label>Access-Control-Allow-Headers</label>
         <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowHeaders" md-autocomplete-snap
-                  md-require-match="false"
-                  ng-required="apiProxyCtrl.api.proxy.cors.enabled">
+                  md-require-match="false">
           <md-autocomplete
             md-search-text="searchHeaders"
             md-items="item in apiProxyCtrl.querySearchHeaders(searchHeaders)"
             md-item-text="item"
-            placeholder="Access-Control-Allow-Headers">
+            placeholder="Content-Type, ...">
             <span md-highlight-text="searchHeaders">{{item}}</span>
           </md-autocomplete>
           <md-chip-template>
@@ -110,13 +112,10 @@
       </md-input-container>
     </div>
 
-
-
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
         <md-chips ng-model="apiProxyCtrl.api.proxy.cors.exposeHeaders" md-autocomplete-snap
-                  md-require-match="false"
-                  ng-required="apiProxyCtrl.api.proxy.cors.enabled">
+                  md-require-match="false">
           <md-autocomplete
             md-search-text="searchHeaders"
             md-items="item in apiProxyCtrl.querySearchHeaders(searchHeaders)"
