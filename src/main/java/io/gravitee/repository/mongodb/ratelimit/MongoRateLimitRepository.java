@@ -58,13 +58,13 @@ public class MongoRateLimitRepository implements RateLimitRepository {
         mongoOperations.indexOps(RATE_LIMIT_COLLECTION).ensureIndex(new IndexDefinition() {
             @Override
             public Document getIndexKeys() {
-                return new Document(FIELD_RESET_TIME, 1);
+                return new Document(FIELD_RESET_TIME, 1L);
             }
 
             @Override
             public Document getIndexOptions() {
                 // To expire Documents at a Specific Clock Time we have to specify an expireAfterSeconds value of 0.
-                return new Document("expireAfterSeconds", 0);
+                return new Document("expireAfterSeconds", 0L);
             }
         });
     }
