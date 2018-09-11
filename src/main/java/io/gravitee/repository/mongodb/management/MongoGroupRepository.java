@@ -56,7 +56,10 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public Set<Group> findByIds(Set<String> ids) throws TechnicalException {
         logger.debug("Find groups by ids");
-        Set<Group> groups = collection2set(internalRepository.findByIds(ids));
+        Set<Group> groups = internalRepository.findByIds(ids)
+                .stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
         logger.debug("Find groups by ids - Found {}", groups);
         return groups;
     }
