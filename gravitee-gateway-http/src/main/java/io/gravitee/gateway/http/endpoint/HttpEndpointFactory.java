@@ -18,9 +18,14 @@ package io.gravitee.gateway.http.endpoint;
 import io.gravitee.definition.model.EndpointType;
 import io.gravitee.gateway.core.endpoint.factory.template.TemplateAwareEndpointFactory;
 import io.gravitee.gateway.http.connector.VertxHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,6 +33,8 @@ import org.springframework.context.ApplicationContextAware;
  */
 public final class HttpEndpointFactory extends TemplateAwareEndpointFactory<io.gravitee.definition.model.endpoint.HttpEndpoint, HttpEndpoint>
         implements ApplicationContextAware {
+
+    private final Logger logger = LoggerFactory.getLogger(HttpEndpointFactory.class);
 
     private ApplicationContext applicationContext;
 
@@ -54,11 +61,24 @@ public final class HttpEndpointFactory extends TemplateAwareEndpointFactory<io.g
 
     @Override
     protected HttpEndpoint create0(io.gravitee.definition.model.endpoint.HttpEndpoint endpoint) {
-        VertxHttpClient httpClient = new VertxHttpClient(endpoint);
 
-        applicationContext.getAutowireCapableBeanFactory().autowireBean(httpClient);
+        try {
+            URL url = new URL(endpoint.getTarget());
+            if (url.getPath().isEmpty()) {
+                logger.warn("HTTP endpoint target URL is malformed for endpoint [{} - {}]. Set default path to '/'",
+                        endpoint.getName(), endpoint.getTarget());
+                endpoint.setTarget(endpoint.getTarget() + '/');
+            }
 
-        return new HttpEndpoint(endpoint, httpClient);
+            VertxHttpClient httpClient = new VertxHttpClient(endpoint);
+
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(httpClient);
+
+            return new HttpEndpoint(endpoint, httpClient);
+        } catch (MalformedURLException murle) {
+            logger.error("HTTP endpoint target URL is malformed", murle);
+            throw new IllegalStateException("HTTP endpoint target URL is malformed: " + endpoint.getTarget());
+        }
     }
 
     private String convert(String value) {
