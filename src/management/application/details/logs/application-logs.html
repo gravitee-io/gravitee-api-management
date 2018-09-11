@@ -46,7 +46,7 @@
       <td md-cell>{{log.path}}</td>
       <td md-cell nowrap>{{log.responseTime}} ms</td>
       <td md-cell nowrap>{{$ctrl.logs.metadata[log.plan].name}}</td>
-      <td md-cell nowrap>{{log.timestamp | date:'yyyy-MM-dd hh:mm:ss.sss'}}</td>
+      <td md-cell nowrap>{{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}}</td>
     </tr>
     <tr ng-if="$ctrl.logs.total === 0">
       <td md-cell colspan="7">No log</td>
