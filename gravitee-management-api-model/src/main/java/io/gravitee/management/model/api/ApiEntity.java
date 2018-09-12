@@ -27,6 +27,7 @@ import io.gravitee.definition.model.services.Services;
 import io.gravitee.management.model.DeploymentRequired;
 import io.gravitee.management.model.PrimaryOwnerEntity;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.search.Indexable;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
@@ -44,7 +45,7 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 @JsonFilter("apiMembershipTypeFilter")
-public class ApiEntity {
+public class ApiEntity implements Indexable {
 
     private String id;
     private String name;

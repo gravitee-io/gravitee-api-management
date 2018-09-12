@@ -18,6 +18,7 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.PortalConfigEntity;
 import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.rest.resource.portal.PortalApisResource;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ConfigService;
@@ -45,11 +46,10 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.*;
 public class PortalResource {
 
     @Inject
-    ConfigService configService;
+    private ConfigService configService;
 
     @Context
     private ResourceContext resourceContext;
-
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -76,5 +76,10 @@ public class PortalResource {
     @Path("pages")
     public PortalPagesResource getPortalPagesResource() {
         return resourceContext.getResource(PortalPagesResource.class);
+    }
+
+    @Path("apis")
+    public PortalApisResource getPortalApisResource() {
+        return resourceContext.getResource(PortalApisResource.class);
     }
 }

@@ -49,10 +49,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.gravitee.management.model.Visibility.PUBLIC;
 import static io.gravitee.repository.management.model.View.ALL_ID;
@@ -226,6 +224,43 @@ public class ApisResource extends AbstractResource {
         return Arrays.stream(ApiHook.values()).filter(h -> !h.isHidden()).toArray(Hook[]::new);
     }
 
+    @POST
+    @Path("_search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Search for API using the search engine")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response searchApis(
+            @ApiParam(name = "q", required = true)
+            @NotNull @QueryParam("q") String query) {
+        try {
+            final Collection<ApiEntity> apis;
+            if (isAdmin()) {
+                apis = apiService.search(new ApiQuery());
+            } else {
+                if (isAuthenticated()) {
+                    apis = apiService.findByUser(getAuthenticatedUser(), new ApiQuery());
+                } else {
+                    ApiQuery apiQuery = new ApiQuery();
+                    apiQuery.setVisibility(PUBLIC);
+                    apis = apiService.search(apiQuery);
+                }
+            }
+
+            Map<String, Object> filters = new HashMap<>();
+            filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
+
+            return Response.ok().entity(apiService.search(query, filters)
+                    .stream()
+                    .map(this::convert)
+                    .map(this::setManageable)
+                    .collect(toList())).build();
+        } catch (TechnicalException te) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
+        }
+    }
+
     @Path("{api}")
     public ApiResource getApiResource() {
         return resourceContext.getResource(ApiResource.class);
@@ -239,8 +274,8 @@ public class ApisResource extends AbstractResource {
         apiItem.setVersion(api.getVersion());
         apiItem.setDescription(api.getDescription());
 
-        final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-        final UriBuilder uriBuilder = ub.path(api.getId()).path("picture");
+        final UriBuilder ub = uriInfo.getBaseUriBuilder();
+        final UriBuilder uriBuilder = ub.path("apis").path(api.getId()).path("picture");
         if (api.getPicture() != null) {
             // force browser to get if updated
             uriBuilder.queryParam("hash", api.getPicture().hashCode());

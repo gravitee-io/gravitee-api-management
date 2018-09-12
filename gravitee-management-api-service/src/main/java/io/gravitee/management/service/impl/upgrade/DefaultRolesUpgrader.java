@@ -13,72 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.impl;
+package io.gravitee.management.service.impl.upgrade;
 
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.NewRoleEntity;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.ApplicationPermission;
 import io.gravitee.management.model.permissions.ManagementPermission;
 import io.gravitee.management.model.permissions.PortalPermission;
-import io.gravitee.management.service.*;
-import io.gravitee.repository.management.model.View;
+import io.gravitee.management.service.RoleService;
+import io.gravitee.management.service.Upgrader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static io.gravitee.management.model.permissions.RolePermissionAction.*;
 import static io.gravitee.management.model.permissions.RoleScope.*;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class InitializerServiceImpl extends io.gravitee.common.service.AbstractService<InitializerServiceImpl> implements InitializerService<InitializerServiceImpl> {
+public class DefaultRolesUpgrader implements Upgrader, Ordered {
 
-    private final Logger logger = LoggerFactory.getLogger(InitializerServiceImpl.class);
-
-    public static final String METADATA_EMAIL_SUPPORT_KEY = "email-support";
-    public static final String DEFAULT_METADATA_EMAIL_SUPPORT = "support@change.me";
+    /**
+     * Logger.
+     */
+    private final Logger logger = LoggerFactory.getLogger(DefaultRolesUpgrader.class);
 
     @Autowired
     private RoleService roleService;
-    @Autowired
-    private MetadataService metadataService;
-    @Autowired
-    private ViewService viewService;
-    @Autowired
-    private ParameterService parameterService;
-    @Autowired
-    private ConfigService configService;
 
     @Override
-    protected String name() {
-        return "Initializer Service";
-    }
-
-    @Override
-    protected void doStart() throws Exception {
-        super.doStart();
-
-        // initialize default metadata
-        final MetadataEntity defaultEmailSupportMetadata = metadataService.findDefaultByKey(METADATA_EMAIL_SUPPORT_KEY);
-
-        if (defaultEmailSupportMetadata == null) {
-            logger.info("    No default metadata for email support found. Add default one.");
-            final NewMetadataEntity metadata = new NewMetadataEntity();
-            metadata.setFormat(MetadataFormat.MAIL);
-            metadata.setName("Email support");
-            metadata.setValue(DEFAULT_METADATA_EMAIL_SUPPORT);
-            final MetadataEntity metadataEntity = metadataService.create(metadata);
-            logger.info("    Added default metadata for email support with success: {}", metadataEntity);
-        }
-
+    public boolean upgrade() {
         // initialize roles.
         if(roleService.findAll().isEmpty()) {
             logger.info("    No role found. Add default ones.");
@@ -203,15 +176,11 @@ public class InitializerServiceImpl extends io.gravitee.common.service.AbstractS
         }
         roleService.createOrUpdateSystemRoles();
 
-        // Initialize default view
-        Optional<ViewEntity> optionalAllView = viewService.findAll().
-                stream().
-                filter(v -> v.getId().equals(View.ALL_ID)).
-                findFirst();
-        if(!optionalAllView.isPresent()) {
-            logger.info("Create default View");
-            viewService.createDefaultView();
-        }
+        return true;
+    }
+
+    @Override
+    public int getOrder() {
+        return 150;
     }
 }
-

@@ -24,6 +24,7 @@ import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.fetcher.spring.FetcherConfigurationConfiguration;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.service.impl.search.configuration.SearchEngineConfiguration;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.management.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
@@ -35,7 +36,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.annotation.Order;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.Collections;
@@ -48,7 +48,10 @@ import java.util.Collections;
 @Configuration
 @ComponentScan("io.gravitee.management.service")
 @EnableTransactionManagement
-@Import({PolicyPluginConfiguration.class, ResourcePluginConfiguration.class, FetcherPluginConfiguration.class, FetcherConfigurationConfiguration.class})
+@Import({
+		PolicyPluginConfiguration.class, ResourcePluginConfiguration.class,
+		FetcherPluginConfiguration.class, FetcherConfigurationConfiguration.class,
+		SearchEngineConfiguration.class})
 public class ServiceConfiguration {
 
 	@Bean

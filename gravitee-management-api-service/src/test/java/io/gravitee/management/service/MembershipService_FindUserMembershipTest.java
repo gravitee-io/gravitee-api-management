@@ -18,6 +18,7 @@ package io.gravitee.management.service;
 import io.gravitee.management.model.UserMembership;
 import io.gravitee.management.model.UserMembershipList;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.ApiQuery;
 import io.gravitee.management.service.impl.MembershipServiceImpl;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
@@ -82,7 +83,7 @@ public class MembershipService_FindUserMembershipTest {
         List<UserMembership> references = membershipService.findUserMembership(USER_ID, MembershipReferenceType.API);
 
         assertTrue(references.isEmpty());
-        verify(mockApiService, never()).search(any());
+        verify(mockApiService, never()).search(any(ApiQuery.class));
         verify(mockApplicationService, never()).findByGroups(any());
     }
 
@@ -100,7 +101,7 @@ public class MembershipService_FindUserMembershipTest {
         assertEquals(1, references.size());
         assertEquals("api-id", references.get(0).getReference());
         assertEquals("API", references.get(0).getType());
-        verify(mockApiService, never()).search(any());
+        verify(mockApiService, never()).search(any(ApiQuery.class));
         verify(mockApplicationService, never()).findByGroups(any());
     }
 
@@ -118,7 +119,7 @@ public class MembershipService_FindUserMembershipTest {
                 .thenReturn(Collections.singleton(m));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn("api-id");
-        when(mockApiService.search(any()))
+        when(mockApiService.search(any(ApiQuery.class)))
                 .thenReturn(Collections.singleton(api));
 
         List<UserMembership> references = membershipService.findUserMembership(USER_ID, MembershipReferenceType.API);
@@ -127,7 +128,7 @@ public class MembershipService_FindUserMembershipTest {
         assertEquals(1, references.size());
         assertEquals("api-id", references.get(0).getReference());
         assertEquals("API", references.get(0).getType());
-        verify(mockApiService, times(1)).search(any());
+        verify(mockApiService, times(1)).search(any(ApiQuery.class));
         verify(mockApplicationService, never()).findByGroups(any());
     }
 
@@ -147,7 +148,7 @@ public class MembershipService_FindUserMembershipTest {
                 .thenReturn(Collections.singleton(mGroup));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn("api-id2");
-        when(mockApiService.search(any()))
+        when(mockApiService.search(any(ApiQuery.class)))
                 .thenReturn(Collections.singleton(api));
 
         List<UserMembership> references = membershipService.findUserMembership(USER_ID, MembershipReferenceType.API);
@@ -158,7 +159,7 @@ public class MembershipService_FindUserMembershipTest {
         assertTrue(references.get(0).getReference().equals("api-id1") || references.get(0).getReference().equals("api-id2"));
         assertTrue(references.get(1).getReference().equals("api-id1") || references.get(1).getReference().equals("api-id2"));
         assertEquals("API", references.get(0).getType());
-        verify(mockApiService, times(1)).search(any());
+        verify(mockApiService, times(1)).search(any(ApiQuery.class));
         verify(mockApplicationService, never()).findByGroups(any());
     }
 }

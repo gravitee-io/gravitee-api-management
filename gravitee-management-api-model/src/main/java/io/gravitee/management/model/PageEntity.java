@@ -16,6 +16,7 @@
 package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.management.model.search.Indexable;
 
 import java.util.Date;
 import java.util.List;
@@ -26,7 +27,7 @@ import java.util.Objects;
  * @author Titouan COMPIEGNE
  * @author Guillaume GILLON 
  */
-public class PageEntity {
+public class PageEntity implements Indexable {
 
 	private String id;
 

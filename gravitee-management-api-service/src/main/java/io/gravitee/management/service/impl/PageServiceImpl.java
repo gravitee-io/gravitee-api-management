@@ -33,6 +33,7 @@ import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.plugin.fetcher.FetcherPluginManager;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -103,6 +104,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Autowired
 	private AuditService auditService;
+
+	@Autowired
+	private SearchEngineService searchEngineService;
 
 	@Override
 	public List<PageListItem> findApiPagesByApi(String apiId) {
@@ -307,7 +311,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			//only one homepage is allowed
 			onlyOneHomepage(page);
 			createAuditLog(apiId, PAGE_CREATED, page.getCreatedAt(), null, page);
-			return convert(createdPage);
+			PageEntity pageEntity = convert(createdPage);
+
+			// add document in search engine
+			searchEngineService.index(pageEntity);
+
+			return pageEntity;
 		} catch (TechnicalException | FetcherException ex) {
 			logger.error("An error occurs while trying to create {}", newPageEntity, ex);
 			throw new TechnicalManagementException("An error occurs while trying create " + newPageEntity, ex);
@@ -356,7 +365,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			//only one homepage is allowed
 			onlyOneHomepage(page);
 			createAuditLog(null, PAGE_CREATED, page.getCreatedAt(), null, page);
-			return convert(createdPage);
+
+			PageEntity pageEntity = convert(createdPage);
+
+			// add document in search engine
+			searchEngineService.index(pageEntity);
+
+			return pageEntity;
 		} catch (TechnicalException | FetcherException ex) {
 			logger.error("An error occurs while trying to create {}", newPageEntity, ex);
 			throw new TechnicalManagementException("An error occurs while trying create " + newPageEntity, ex);
@@ -422,7 +437,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			} else {
 				Page updatedPage = pageRepository.update(page);
 				createAuditLog(page.getApi(), PAGE_UPDATED, page.getUpdatedAt(), pageToUpdate, page);
-				return convert(updatedPage);
+
+				PageEntity pageEntity = convert(updatedPage);
+
+				// update document in search engine
+				searchEngineService.index(pageEntity);
+
+				return pageEntity;
 			}
 		} catch (TechnicalException ex) {
             throw onUpdateFail(pageId, ex);
@@ -512,6 +533,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 pageRepository.removeAllFolderParentWith(pageId, optPage.get().getApi());
             }
 
+            // remove from search engine
+			searchEngineService.delete(convert(optPage.get()));
 		} catch (TechnicalException ex) {
 			logger.error("An error occurs while trying to delete Page {}", pageId, ex);
 			throw new TechnicalManagementException("An error occurs while trying to delete Page " + pageId, ex);
@@ -679,7 +702,14 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	}
 
 	private static PageEntity convert(Page page) {
-		PageEntity pageEntity = new PageEntity();
+		PageEntity pageEntity;
+
+		if (page.getApi() != null) {
+			pageEntity = new ApiPageEntity();
+			((ApiPageEntity) pageEntity).setApi(page.getApi());
+		} else {
+			pageEntity = new PageEntity();
+		}
 
 		pageEntity.setId(page.getId());
 		pageEntity.setName(page.getName());

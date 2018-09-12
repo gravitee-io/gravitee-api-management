@@ -242,6 +242,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 // Portal
                 .antMatchers(HttpMethod.GET, "/portal/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/portal/**").authenticated()
+                .antMatchers(HttpMethod.POST, "/portal/apis/_search").permitAll()
                 .antMatchers(HttpMethod.PUT, "/portal/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/portal/**").authenticated()
 

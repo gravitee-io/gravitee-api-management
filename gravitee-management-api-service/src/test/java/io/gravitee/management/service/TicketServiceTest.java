@@ -25,6 +25,7 @@ import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.EmailRequiredException;
 import io.gravitee.management.service.exceptions.SupportUnavailableException;
 import io.gravitee.management.service.impl.TicketServiceImpl;
+import io.gravitee.management.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.management.service.notification.PortalHook;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,8 +37,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static io.gravitee.management.service.builder.EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET;
-import static io.gravitee.management.service.impl.InitializerServiceImpl.DEFAULT_METADATA_EMAIL_SUPPORT;
-import static io.gravitee.management.service.impl.InitializerServiceImpl.METADATA_EMAIL_SUPPORT_KEY;
 import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -128,7 +127,7 @@ public class TicketServiceTest {
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(api);
 
         final Map<String, String> metadata = new HashMap<>();
-        metadata.put(METADATA_EMAIL_SUPPORT_KEY, DEFAULT_METADATA_EMAIL_SUPPORT);
+        metadata.put(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY, DefaultMetadataUpgrader.DEFAULT_METADATA_EMAIL_SUPPORT);
         when(api.getMetadata()).thenReturn(metadata);
 
         ticketService.create(USERNAME, newTicketEntity);
@@ -152,7 +151,7 @@ public class TicketServiceTest {
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
 
         final Map<String, String> metadata = new HashMap<>();
-        metadata.put(METADATA_EMAIL_SUPPORT_KEY, EMAIL_SUPPORT);
+        metadata.put(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY, EMAIL_SUPPORT);
         when(api.getMetadata()).thenReturn(metadata);
 
         ticketService.create(USERNAME, newTicketEntity);

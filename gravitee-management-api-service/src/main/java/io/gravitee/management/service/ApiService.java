@@ -26,6 +26,8 @@ import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -112,4 +114,6 @@ public interface ApiService {
     }
 
     Collection<ApiEntity> search(ApiQuery query);
+
+    Collection<ApiEntity> search(String query, Map<String, Object> filters) throws TechnicalException;
 }

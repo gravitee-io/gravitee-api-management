@@ -54,6 +54,7 @@
         <guava.version>18.0</guava.version>
         <assertj-core.version>3.5.2</assertj-core.version>
         <jsonpath.version>2.3.0</jsonpath.version>
+        <lucene.version>7.4.0</lucene.version>
     </properties>
 
     <modules>

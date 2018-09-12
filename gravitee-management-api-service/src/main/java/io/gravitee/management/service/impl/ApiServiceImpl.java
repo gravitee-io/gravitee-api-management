@@ -44,6 +44,9 @@ import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.HookScope;
 import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.management.service.processor.ApiSynchronizationProcessor;
+import io.gravitee.management.service.search.SearchEngineService;
+import io.gravitee.management.service.search.query.Query;
+import io.gravitee.management.service.search.query.QueryBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -125,6 +128,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private NotifierService notifierService;
     @Autowired
     private SwaggerService swaggerService;
+
+    @Autowired
+    private SearchEngineService searchEngineService;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String userId) throws ApiAlreadyExistsException {
@@ -239,7 +245,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 }
 
                 //TODO add membership log
-                return convert(createdApi, primaryOwner);
+                ApiEntity apiEntity = convert(createdApi, primaryOwner);
+                searchEngineService.index(apiEntity);
+                return apiEntity;
             } else {
                 LOGGER.error("Unable to create API {} because of previous error.", api.getName());
                 throw new TechnicalManagementException("Unable to create API " + api.getName());
@@ -434,7 +442,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                         apiToUpdate,
                         updatedApi);
 
-                return convert(singletonList(updatedApi)).iterator().next();
+                ApiEntity apiEntity = convert(singletonList(updatedApi)).iterator().next();
+                searchEngineService.index(apiEntity);
+                return apiEntity;
             } else {
                 LOGGER.error("Unable to update API {} because of previous error.", api.getId());
                 throw new TechnicalManagementException("Unable to update API " + apiId);
@@ -989,6 +999,17 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             LOGGER.error(errorMessage, ex);
             throw new TechnicalManagementException(errorMessage, ex);
         }
+    }
+
+    @Override
+    public Collection<ApiEntity> search(String query, Map<String, Object> filters) {
+        Query<ApiEntity> apiQuery = QueryBuilder.create(ApiEntity.class)
+                .setQuery(query)
+                .setFilters(filters)
+                .build();
+
+        Collection<String> matchApis = searchEngineService.search(apiQuery);
+        return matchApis.stream().map(this::findById).collect(toList());
     }
 
     private ApiCriteria.Builder queryToCriteria(ApiQuery query) {

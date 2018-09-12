@@ -306,3 +306,6 @@ user:
 
 # The portal URL used in emails
 #portalURL: http://portal-url.net
+
+search:
+  data: ${gravitee.home}/data
