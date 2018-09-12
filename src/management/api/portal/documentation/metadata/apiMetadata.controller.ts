@@ -16,12 +16,19 @@
 import * as _ from 'lodash';
 import NotificationService from '../../../../../services/notification.service';
 import ApiService from '../../../../../services/api.service';
+import UserService from "../../../../../services/user.service";
 
 class ApiMetadataController {
   private api: any;
 
-  constructor(private NotificationService: NotificationService, private $mdDialog: angular.material.IDialogService,
-              private resolvedApi, private ApiService: ApiService, private metadataFormats, private metadata) {
+  constructor(
+    private NotificationService: NotificationService,
+    private $mdDialog: angular.material.IDialogService,
+    private resolvedApi: any,
+    private ApiService: ApiService,
+    private UserService: UserService,
+    private metadataFormats: any,
+    private metadata: any) {
     'ngInject';
     this.api = resolvedApi.data;
   }
@@ -43,21 +50,24 @@ class ApiMetadataController {
   }
 
   updateMetadata(metadata) {
-    const that = this;
-    this.$mdDialog.show({
-      controller: 'UpdateApiMetadataDialogController',
-      controllerAs: '$ctrl',
-      template: require('./dialog/save.api.metadata.dialog.html'),
-      locals: {
-        api: this.api,
-        apiMetadata: _.clone(metadata),
-        metadataFormats: this.metadataFormats
-      }
-    }).then(function (metadata) {
-      _.remove(that.metadata, {key: metadata.key});
-      that.metadata.push(metadata);
-      that.NotificationService.show(`API's Metadata '${metadata.name}' updated with success`);
-    }).catch(function () {});
+    if (this.UserService.isUserHasPermissions(["api-metadata-u"])) {
+      const that = this;
+      this.$mdDialog.show({
+        controller: 'UpdateApiMetadataDialogController',
+        controllerAs: '$ctrl',
+        template: require('./dialog/save.api.metadata.dialog.html'),
+        locals: {
+          api: this.api,
+          apiMetadata: _.clone(metadata),
+          metadataFormats: this.metadataFormats
+        }
+      }).then(function (metadata) {
+        _.remove(that.metadata, {key: metadata.key});
+        that.metadata.push(metadata);
+        that.NotificationService.show(`API's Metadata '${metadata.name}' updated with success`);
+      }).catch(function () {
+      });
+    }
   }
 
   deleteMetadata(metadata) {

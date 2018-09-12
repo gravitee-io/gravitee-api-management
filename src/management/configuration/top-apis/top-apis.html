@@ -15,19 +15,17 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-  <div class="md-toolbar-tools">
-    <span>Top APIs</span>
-    <div flex></div>
-  </div>
-</md-toolbar>
+<div class="gv-forms" layout="column">
+  <h1>Top APIs</h1>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content" layout="column">
 <md-table-container>
-  <table md-table>
+  <table md-table class="gv-table-dense">
     <thead md-head>
     <tr md-row>
-      <th></th>
-      <th md-column>Name</th>
-      <th md-column>Version</th>
+      <th md-column width="1%" nowrap>Name</th>
+      <th md-column width="1%" nowrap>Version</th>
       <th md-column>Description</th>
       <th></th>
       <th></th>
@@ -35,9 +33,11 @@
     </thead>
     <tbody md-body>
     <tr md-row ng-repeat="topApi in $ctrl.topApis | orderBy:'order'">
-      <td md-cell class="text-center"><img height="40" ng-src="{{::topApi.picture_url}}"/></td>
-      <td md-cell>{{::topApi.name}}</td>
-      <td md-cell>{{::topApi.version}}</td>
+      <td md-cell width="1%" nowrap>
+        <img height="40" ng-src="{{::topApi.picture_url}}"/>
+        {{::topApi.name}}
+      </td>
+      <td md-cell width="1%" nowrap>{{::topApi.version}}</td>
       <td md-cell>{{::topApi.description}}</td>
       <td md-cell layout="row" layout-align="center center">
         <div permission permission-only="'portal-top_apis-u'">
@@ -52,6 +52,9 @@
     </tbody>
   </table>
 </md-table-container>
+    </div>
+  </div>
+</div>
 
 <md-button permission permission-only="'portal-top_apis-c'"
            aria-label="Add top API"

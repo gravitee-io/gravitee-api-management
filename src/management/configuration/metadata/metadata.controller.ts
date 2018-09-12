@@ -16,6 +16,7 @@
 import * as _ from 'lodash';
 import MetadataService from '../../../services/metadata.service';
 import NotificationService from '../../../services/notification.service';
+import UserService from "../../../services/user.service";
 
 class MetadataController {
   private metadata: any;
@@ -24,7 +25,8 @@ class MetadataController {
   constructor(
     private MetadataService: MetadataService,
     private NotificationService: NotificationService,
-    private $mdDialog: angular.material.IDialogService) {
+    private $mdDialog: angular.material.IDialogService,
+    private UserService: UserService) {
     'ngInject';
   }
 
@@ -44,20 +46,23 @@ class MetadataController {
   }
 
   updateMetadata(metadata) {
-    const that = this;
-    this.$mdDialog.show({
-      controller: 'UpdateMetadataDialogController',
-      controllerAs: '$ctrl',
-      template: require('./dialog/save.metadata.dialog.html'),
-      locals: {
-        metadata: _.clone(metadata),
-        metadataFormats: this.metadataFormats
-      }
-    }).then(function (savedMetadata) {
-      _.remove(that.metadata, metadata);
-      that.metadata.push(savedMetadata);
-      that.NotificationService.show(`Metadata '${savedMetadata.name}' updated with success`);
-    }).catch(function () {});
+    if (this.UserService.isUserHasPermissions(["portal-metadata-u"])) {
+      const that = this;
+      this.$mdDialog.show({
+        controller: 'UpdateMetadataDialogController',
+        controllerAs: '$ctrl',
+        template: require('./dialog/save.metadata.dialog.html'),
+        locals: {
+          metadata: _.clone(metadata),
+          metadataFormats: this.metadataFormats
+        }
+      }).then(function (savedMetadata) {
+        _.remove(that.metadata, metadata);
+        that.metadata.push(savedMetadata);
+        that.NotificationService.show(`Metadata '${savedMetadata.name}' updated with success`);
+      }).catch(function () {
+      });
+    }
   }
 
   deleteMetadata(metadata) {

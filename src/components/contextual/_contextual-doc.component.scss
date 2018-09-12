@@ -1,6 +1,10 @@
+gv-contextual-doc {
+  border-left: 1px solid #e2e5e7;
+  background-color: rgba(45, 50, 62, .03);
+}
 .contextual-doc-container {
   display: none;
-  margin-top: 114px;
+  margin-top: 38px;
   width: 300px;
   right: 0;
   overflow: auto;
@@ -8,7 +12,6 @@
     display: block;
   }
   div.contextual-doc-content {
-    border-left: 1px solid #e2e5e7;
     padding: 20px;
     position: fixed;
     height: calc(100vh - 150px);

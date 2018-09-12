@@ -15,32 +15,30 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-    <div class="md-toolbar-tools">
-        <span>Users</span>
-        <div flex></div>
-    </div>
-</md-toolbar>
+<div class="gv-forms" layout="column">
+    <h1>Users</h1>
+
+    <div class="gv-form">
+        <h2></h2>
+        <div class="gv-form-content gv-form-content-fluid" layout="column">
 <md-table-container>
-    <table md-table>
+    <table md-table class="gv-table-dense">
         <thead md-head>
         <tr md-row>
-          <th md-column>Username</th>
+          <th md-column width="1%" nowrap>Username</th>
           <th md-column>Full name</th>
-          <th md-column>Email</th>
-          <th md-column>Source</th>
-          <th md-column>Last connection</th>
-          <th md-column>Action</th>
+          <th md-column width="1%" nowrap>Email</th>
+          <th md-column width="1%" nowrap>Source</th>
+          <th md-column width="1%" nowrap></th>
         </tr>
         </thead>
         <tbody md-body>
         <tr md-row ng-repeat="user in $ctrl.usersPage.data | orderBy: orderUser">
-            <td md-cell><a  ng-click="$ctrl.selectUser(user)">{{user.username}}</a></td>
+            <td md-cell width="1%" nowrap><a  ng-click="$ctrl.selectUser(user)">{{user.username}}</a></td>
             <td md-cell>{{user.displayName}}</td>
-            <td md-cell>{{user.email}}</td>
-            <td md-cell>{{user.source}}</td>
-            <td md-cell>{{user.lastConnectionAt | date:'MMM d, y h:mm:ss a'}}</td>
-            <td md-cell ng-click="$event.stopPropagation()">
+            <td md-cell width="1%" nowrap>{{user.email}}</td>
+            <td md-cell width="1%" nowrap>{{user.source}}</td>
+            <td md-cell  width="1%" nowrapng-click="$event.stopPropagation()">
                 <span permission permission-only="['management-user-d']">
                     <md-tooltip md-direction="top">delete</md-tooltip>
                     <ng-md-icon icon="delete" ng-click="$ctrl.remove($event, user)" aria-label="delete-user"></ng-md-icon>
@@ -57,3 +55,6 @@
         md-total="{{$ctrl.usersPage.page.total_elements}}"
         md-on-paginate="$ctrl.onPaginate">
 </md-table-pagination>
+        </div>
+    </div>
+</div>

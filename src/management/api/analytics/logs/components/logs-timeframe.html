@@ -15,15 +15,15 @@
     limitations under the License.
 
 -->
-<md-card flex>
-  <div class="widget-card" flex>
-    <md-card-title>
-      <md-card-title-text>
-        <span class="md-title"><strong>Timeframe</strong></span>
-      </md-card-title-text>
-    </md-card-title>
-    <md-card-content>
-      <div layout="row" layout-align="space-around center" style="margin-bottom: 10px">
+<!--<md-card flex>-->
+  <!--<div class="widget-card" flex>-->
+    <!--<md-card-title>-->
+      <!--<md-card-title-text>-->
+        <!--<span class="md-title"><strong>Timeframe</strong></span>-->
+      <!--</md-card-title-text>-->
+    <!--</md-card-title>-->
+    <!--<md-card-content>-->
+      <div layout="row" layout-align="start center" style="margin-bottom: 10px">
         <div class="btn-group float-right">
           <button class="btn btn-default" ng-repeat="timeframe in $ctrl.timeframes track by timeframe.id"
                   ng-click="$ctrl.updateTimeframe(timeframe.id)"
@@ -55,6 +55,6 @@
         </div>
         <md-button class="md-raised" ng-click="$ctrl.updateRangeDate()">Apply</md-button>
       </div>
-    </md-card-content>
-  </div>
-</md-card>
+    <!--</md-card-content>-->
+  <!--</div>-->
+<!--</md-card>-->

@@ -15,12 +15,8 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-  <div class="md-toolbar-tools">
-    <span>Tenants</span>
-    <div flex></div>
-  </div>
-</md-toolbar>
+<div class="gv-forms" layout="column">
+  <h1>Tenants</h1>
 
 <blockquote>
   <p style="font-size: 12px">
@@ -28,7 +24,9 @@
     Copy/paste the ID to the API gateway configuration file in order to resolve API endpoints according to the configured tenant.
   </p>
 </blockquote>
-
+  <div class="gv-form">
+    <h2>Details</h2>
+    <div class="gv-form-content" layout="column">
 <md-table-container>
   <table md-table ng-init="order = 'name'">
     <thead md-head md-order="order">
@@ -79,10 +77,14 @@
     </tbody>
   </table>
 </md-table-container>
-<md-card-actions layout="row" layout-align="end center" permission permission-only="['management-tenant-c', 'management-tenant-u']">
+<div permission permission-only="['management-tenant-c', 'management-tenant-u']">
   <md-button ng-click="$ctrl.saveTenants()"
-             ng-disabled="!$ctrl.tenantsToCreate.length && !$ctrl.tenantsToUpdate.length">Save</md-button>
+             ng-disabled="!$ctrl.tenantsToCreate.length && !$ctrl.tenantsToUpdate.length"
+             class="md-raised md-primary">Save</md-button>
   <md-button ng-click="$ctrl.reset()"
-             ng-disabled="!$ctrl.tenantsToCreate.length && !$ctrl.tenantsToUpdate.length">Reset
-  </md-button>
-</md-card-actions>
+             ng-disabled="!$ctrl.tenantsToCreate.length && !$ctrl.tenantsToUpdate.length"
+             class="md-raised">Reset</md-button>
+</div>
+    </div>
+  </div>
+</div>

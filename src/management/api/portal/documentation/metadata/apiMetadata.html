@@ -15,9 +15,13 @@
     limitations under the License.
 
 -->
-<h4>API metadata</h4>
+<div class="gv-forms" layout="column">
+  <h1>Metadata</h1>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content gv-form-content-fluid" layout="column">
 <md-table-container>
-  <table md-table ng-init="metadataOrder = 'key'">
+  <table md-table class="gv-table-dense" ng-init="metadataOrder = 'key'">
     <thead md-head md-order="metadataOrder">
     <tr md-row>
       <th md-column md-order-by="key">Key</th>
@@ -29,8 +33,9 @@
     </tr>
     </thead>
     <tbody md-body>
-    <tr md-row ng-repeat="metadata in apiMetadataCtrl.metadata | orderBy: metadataOrder">
-      <td md-cell><b>{{metadata.key}}</b></td>
+    <tr md-row
+        ng-repeat="metadata in apiMetadataCtrl.metadata | orderBy: metadataOrder">
+      <td md-cell><a ng-click="apiMetadataCtrl.updateMetadata(metadata)">{{metadata.key}}</a></td>
       <td md-cell>{{metadata.name}}</td>
       <td md-cell>{{metadata.format}}</td>
       <td md-cell>
@@ -40,9 +45,6 @@
       <td md-cell>{{metadata.defaultValue}}</td>
       <td md-cell>
         <div layout="row" layout-align="end end">
-          <ng-md-icon permission permission-only="'api-metadata-u'" icon="edit" ng-click="apiMetadataCtrl.updateMetadata(metadata)" style="padding: 0 10px;">
-            <md-tooltip md-direction="top" md-visible="false">Edit API metadata</md-tooltip>
-          </ng-md-icon>
           <ng-md-icon permission permission-only="'api-metadata-d'" ng-if="metadata.apiId" icon="delete" ng-click="apiMetadataCtrl.deleteMetadata(metadata)" style="padding: 0 10px;">
             <md-tooltip md-direction="top" md-visible="false">Delete API metadata</md-tooltip>
           </ng-md-icon>
@@ -52,6 +54,9 @@
     </tbody>
   </table>
 </md-table-container>
+    </div>
+  </div>
+</div>
 
 <md-fab-speed-dial permission permission-only="'api-metadata-c'" md-open="false" class="md-scale md-fab-bottom-right">
   <md-fab-trigger>

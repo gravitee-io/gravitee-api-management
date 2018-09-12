@@ -15,10 +15,15 @@
     limitations under the License.
 
 -->
-<md-content flex layout-padding class="properties">
-  <span class="md-headline" style="padding: 24px 16px 16px;">Subscription</span>
+<div class="gv-forms" layout="column">
+  <div layout="row" layout-align="start end" class="gv-forms-header">
+  <h1>Subscription</h1>
+  <a ui-sref="management.apis.detail.portal.subscriptions.list">Back to subscriptions</a>
+</div>
 
-  <div layout-padding>
+  <div class="gv-form">
+    <h2>Details</h2>
+    <div class="gv-form-content" layout="column">
     <md-table-container>
       <table md-table>
         <tbody md-body>
@@ -97,18 +102,14 @@
       </md-button>
 
     </div>
+  </div>
+  </div>
 
-    <div class="md-actions gravitee-api-save-button" layout="row">
-      <md-button class="md-raised" ui-sref="management.apis.detail.portal.subscriptions.list">
-        <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-        <span style="color: rgba(0, 0, 0, 0.54);">Back to subscriptions</span>
-      </md-button>
-    </div>
 
-    <div ng-if="$ctrl.subscription.status !== 'pending' && $ctrl.subscription.status !== 'rejected'">
-      <div ng-if="$ctrl.subscription.plan.security === 'api_key'">
-        <md-subheader>Api Keys</md-subheader>
-
+  <div class="gv-form"
+       ng-if="$ctrl.subscription.status !== 'pending' && $ctrl.subscription.status !== 'rejected' && $ctrl.subscription.plan.security === 'api_key'">
+    <h2>Api Keys</h2>
+    <div class="gv-form-content" layout="column">
         <md-table-container>
           <table md-table>
             <thead md-head>
@@ -153,10 +154,9 @@
              permission permission-only="'api-subscription-u'" ng-if="$ctrl.subscription.status === 'accepted'">
           <md-button class="md-raised md-primary" ng-click="$ctrl.renewApiKey()">
             <ng-md-icon icon="autorenew" style="fill: white"></ng-md-icon>
-            Renew API Key
+            Renew
           </md-button>
         </div>
       </div>
     </div>
   </div>
-</md-content>

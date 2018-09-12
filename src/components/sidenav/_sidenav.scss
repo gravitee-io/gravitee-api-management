@@ -116,7 +116,10 @@ md-sidenav:not(._md-locked-open) {
     color: #6B7682;
     font-weight: 400;
     letter-spacing: .5px;
-    padding: 15px 0 8px $sidenavItemLeftWidth;
+    padding: 15px $sidenavItemLeftWidth/2 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   hr {

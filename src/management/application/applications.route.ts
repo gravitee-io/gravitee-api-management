@@ -117,7 +117,7 @@ function applicationsConfig($stateProvider) {
     .state('management.applications.application.subscriptions', {
       abstract: true,
       url: '/subscriptions',
-      template: '<div layout="column"><div ui-view></div></div>'
+      template: '<div ui-view></div>'
     })
     .state('management.applications.application.subscriptions.list', {
       url: '',

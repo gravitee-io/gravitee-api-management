@@ -15,10 +15,15 @@
     limitations under the License.
 
 -->
-<div layout-padding layout="row" layout-align="center start">
-    <form name="$ctrl.formMsg" ng-submit="$ctrl.send()"
-          novalidate layout="column" flex="100" flex-gt-sm="90" flex-gt-md="60">
-        <h3 style="margin-bottom: 70px">Message</h3>
+<div class="gv-sub-content">
+<form name="$ctrl.formMsg" ng-submit="$ctrl.send()" novalidate>
+<div class="gv-forms" layout="column">
+    <h1>Message</h1>
+
+    <div class="gv-form">
+        <h2></h2>
+        <div class="gv-form-content" layout="column">
+
         <div layout="row" layout-align="space-around start">
             <div layout="column">
                 <label>Choose the channel you want to use</label>
@@ -50,5 +55,8 @@
         <div class="md-actions" layout="row">
             <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formMsg.$pristine || $ctrl.formMsg.$invalid" aria-label="send-message">Send</md-button>
         </div>
-    </form>
+        </div>
+    </div>
 </div>
+    </form>
+    </div>

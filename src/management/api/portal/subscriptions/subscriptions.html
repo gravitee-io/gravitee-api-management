@@ -15,16 +15,12 @@
     limitations under the License.
 
 -->
-<md-content flex class="properties">
-  <h4>Subscriptions</h4>
-  <md-card flex>
-    <div class="widget-card logs-filters-container" flex>
-      <md-card-title>
-        <md-card-title-text>
-          <span class="md-title"><strong>Filters</strong></span>
-        </md-card-title-text>
-      </md-card-title>
-      <md-card-content>
+<div class="gv-forms" layout="column">
+  <h1>Subscriptions</h1>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content gv-form-content-fluid" layout="column">
+    <div class="gv-filters" flex>
         <form ng-submit="$ctrl.doSearch()" name="$ctrl.subscriptionsFiltersForm">
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex-gt-sm flex="30">
@@ -46,23 +42,19 @@
               </md-select>
             </md-input-container>
             <div>
-              <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="$ctrl.subscriptionsFiltersForm.$pristine">
-                Clear
-              </md-button>
               <md-button type="submit" class="md-raised md-primary">
                 Search
+              </md-button>
+              <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="$ctrl.subscriptionsFiltersForm.$pristine">
+                Clear
               </md-button>
             </div>
           </div>
         </form>
-      </md-card-content>
     </div>
-  </md-card>
-
-  <br />
 
   <md-table-container ng-if="$ctrl.subscriptions.data.length > 0">
-    <table md-table>
+    <table md-table class="gv-table-dense">
       <thead md-head>
       <tr md-row>
         <th md-column>Plan</th>
@@ -102,9 +94,12 @@
     md-page="$ctrl.query.page"
     md-total="{{$ctrl.subscriptions.page.total_elements}}"
     md-on-paginate="$ctrl.onPaginate"
-    md-page-select>
+    md-page-select
+    class="gv-table-dense">
   </md-table-pagination>
-</md-content>
+    </div>
+  </div>
+</div>
 
 <gravitee-empty-state ng-if="$ctrl.subscriptions.data.length === 0"
                       icon="vpn_key"

@@ -15,18 +15,13 @@
     limitations under the License.
 
 -->
-<section>
-  <div ng-show="$ctrl.apisProvider.length > 0">
-    <md-card class="no-box-shadow">
-      <md-card-header>
-        <md-card-header-text layout="row" layout-align="center">
-          <div class="input-group apis-header-filter" flex="60" flex-xs="100">
-            <input class="form-control" type="text" ng-model="searchAPIs" placeholder="Search APIs ..."
+<div class="gv-forms" layout="column">
+  <div class="gv-form" ng-show="$ctrl.apisProvider.length > 0">
+    <div class="apis-header-filter">
+      <input class="form-control" type="text" ng-model="searchAPIs" placeholder="Search APIs ..."
                    ng-change="$ctrl.loadMore(query.order, searchAPIs, false)" autofocus/>
-          </div>
-        </md-card-header-text>
-      </md-card-header>
-      <md-card-content id="apis-container" style="height: calc(100vh - 200px); overflow-y: auto" ng-if="!hideApis">
+    </div>
+    <div class="gv-form-content"  id="apis-container" ng-if="!hideApis">
         <div layout="row" layout-wrap class="inset" infinite-scroll="$ctrl.loadMore(query.order, searchAPIs, true)"
              infinite-scroll-distance="1" infinite-scroll-container="'#apis-container'">
           <md-table-container style="width: 100%">
@@ -85,8 +80,6 @@
             </table>
           </md-table-container>
         </div>
-      </md-card-content>
-    </md-card>
   </div>
 
   <gravitee-empty-state ng-if="$ctrl.apisProvider.length == 0"
@@ -107,4 +100,5 @@
       <ng-md-icon icon="add" style="fill: #fff;"></ng-md-icon>
     </md-button>
   </div>
-</section>
+</div>
+</div>

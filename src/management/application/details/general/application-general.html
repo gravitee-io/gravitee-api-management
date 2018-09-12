@@ -15,12 +15,14 @@
     limitations under the License.
 
 -->
-<div layout-padding>
   <form name="formApplication" ng-submit="$ctrl.update()" novalidate>
-    <div permission permission-only="'application-definition-u'">
-      <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
+    <div class="gv-forms" layout="column" permission permission-only="'application-definition-u'">
+      <h1>{{$ctrl.application.name}} ({{$ctrl.application.type}})</h1>
+      <div class="gv-form">
+        <h2>General</h2>
+        <div class="gv-form-content" layout="column">
 
-      <md-input-container class="md-block">
+      <md-input-container flex>
         <label>Name</label>
         <input ng-model="$ctrl.application.name" type="text" name="name" minlength="4" md-maxlength="50" required>
         <div class="hint" ng-if="formApplication.name.$valid || formApplication.name.$pristine">Application name</div>
@@ -31,7 +33,8 @@
         </div>
       </md-input-container>
 
-      <md-input-container class="md-block">
+
+      <md-input-container>
         <label>Description</label>
         <input ng-model="$ctrl.application.description" type="text" name="description" required>
         <div class="hint" ng-if="formApplication.description.$valid || formApplication.description.$pristine">
@@ -42,20 +45,32 @@
         </div>
       </md-input-container>
 
-      <div layout="row" layout-align="start" flex>
-        <md-input-container class="md-block" flex="50">
-          <label>Type</label>
-          <input ng-model="$ctrl.application.type" type="text" name="type">
-          <div class="hint" ng-if="formApplication.type.$valid || formApplication.type.$pristine">
-            Type of the application (mobile, web, ...).
-          </div>
-        </md-input-container>
+          <md-input-container>
+            <label>Type</label>
+            <input ng-model="$ctrl.application.type" type="text" name="type">
+            <div class="hint" ng-if="formApplication.type.$valid || formApplication.type.$pristine">
+              Type of the application (mobile, web, ...).
+            </div>
+          </md-input-container>
+
+        <div layout="row">
+          <md-input-container class="md-block" flex>
+            <label>Owner</label>
+            <input type="text" disabled value="{{$ctrl.application.owner.displayName}}">
+          </md-input-container>
+          <md-input-container class="md-block" flex>
+            <label>Created at</label>
+            <input type="text" disabled value="{{$ctrl.application.created_at | humanDateFilter}}">
+          </md-input-container>
+        </div>
+      </div>
       </div>
 
-      <md-subheader class="md-primary" style="background-color: #fafafa">Security</md-subheader>
+      <div class="gv-form">
+        <h2>Security</h2>
+        <div class="gv-form-content" layout="column">
 
-      <div layout="row" layout-align="start" flex>
-        <md-input-container class="md-block" flex="50">
+        <md-input-container>
           <label>Client ID</label>
           <input ng-model="$ctrl.application.clientId" type="text" name="clientId" minlength="4" md-maxlength="100">
           <div class="hint" ng-if="formApplication.clientId.$valid || formApplication.clientId.$pristine">
@@ -66,12 +81,13 @@
             <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
           </div>
         </md-input-container>
+        </div>
       </div>
 
-      <md-subheader class="md-primary" style="background-color: #fafafa">Access-Control</md-subheader>
-
-      <div layout="row" layout-align="start" flex>
-        <md-input-container class="md-block" flex="50">
+      <div class="gv-form">
+        <h2>Access-Control</h2>
+        <div class="gv-form-content" layout="column">
+        <md-input-container>
           <label>Groups</label>
           <md-select aria-label="group"
                      ng-model="$ctrl.application.groups"
@@ -79,34 +95,21 @@
             <md-option ng-value="group.id" ng-repeat="group in $ctrl.groups">{{group.name}}</md-option>
           </md-select>
         </md-input-container>
+        </div>
       </div>
 
-      <br />
-
-      <md-divider></md-divider>
-
       <div class="md-actions gravitee-api-save-button" layout="row">
-        <md-button class="md-raised" type="submit" ng-disabled="formApplication.$invalid || formApplication.$pristine">
+        <md-button class="md-raised md-primary" type="submit" ng-disabled="formApplication.$invalid || formApplication.$pristine">
           Save
         </md-button>
-        <md-button class="md-raised md-primary" type="button" ng-click="$ctrl.reset()"
+        <md-button class="md-raised" type="button" ng-click="$ctrl.reset()"
                    ng-disabled="formApplication.$invalid || formApplication.$pristine">
           Reset
         </md-button>
-        <md-button class="md-raised md-warn float-right" type="button"
+        <md-button class="md-raised md-warn" type="button"
                    ng-click="$ctrl.showDeleteApplicationConfirm($event)">
           Delete
         </md-button>
       </div>
     </div>
   </form>
-
-  <div permission permission-except="'application-definition-u'">
-    <md-subheader>Name</md-subheader>
-    <p class="inset">{{$ctrl.application.name}}</p>
-    <md-subheader>Type</md-subheader>
-    <p class="inset">{{$ctrl.application.type}}</p>
-    <md-subheader>Description</md-subheader>
-    <p class="inset">{{$ctrl.application.description}}</p>
-  </div>
-</div>

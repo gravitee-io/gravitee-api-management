@@ -15,15 +15,16 @@
     limitations under the License.
 
 -->
-<h4>Deployments</h4>
 <form name="apiProxyCtrl.formApi" ng-submit="apiProxyCtrl.update(apiProxyCtrl.api)" novalidate>
-  <section>
-    <md-subheader class="md-primary" style="background-color: #fafafa">
-      <span>Deployment</span>
-      <div class="hints">Use sharding tags to control where the API must be deployed.</div>
-    </md-subheader>
-    <div layout="column">
-      <md-input-container class="flex">
+  <div class="gv-forms" layout="column">
+    <h1>Deployments</h1>
+    <div class="gv-form">
+      <div layout="row" layout-align="start end" class="gv-forms-header">
+      <h2>Deployment</h2>
+        <div class="ipsum">Use sharding tags to control where the API must be deployed.</div>
+      </div>
+      <div class="gv-form-content">
+      <md-input-container class="md-block">
         <label>Sharding tags</label>
         <md-select ng-model="apiProxyCtrl.api.tags" multiple>
           <md-option ng-repeat="tag in apiProxyCtrl.tags" ng-value="tag.id">
@@ -31,8 +32,6 @@
           </md-option>
         </md-select>
       </md-input-container>
-    </div>
-  </section>
 
   <div class="md-actions gravitee-api-save-button" layout="row">
     <md-button permission permission-only="'api-definition-u'" class="md-raised" type="submit" ng-disabled="apiProxyCtrl.formApi.$invalid || apiProxyCtrl.formApi.$pristine">
@@ -41,5 +40,8 @@
     <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="button" ng-click="apiProxyCtrl.reset()" ng-disabled="apiProxyCtrl.formApi.$pristine">
       Reset
     </md-button>
+  </div>
+      </div>
+    </div>
   </div>
 </form>

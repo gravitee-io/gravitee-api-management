@@ -15,34 +15,37 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-  <div class="md-toolbar-tools">
-    <span ng-if="!$ctrl.editMode">New custom role [{{$ctrl.role.scope}}]</span>
-    <span ng-if="$ctrl.editMode">Update custom role [{{$ctrl.role.scope}}]: {{::$ctrl.role.name}}</span>
+<div class="gv-forms" layout="column">
+  <div layout="row" layout-align="start end" class="gv-forms-header">
+    <h1 ng-if="!$ctrl.editMode">New role [{{$ctrl.role.scope}}]</h1>
+    <h1 ng-if="$ctrl.editMode">Update [{{$ctrl.role.scope}}]: {{::$ctrl.role.name}}</h1>
+    <a ui-sref="management.settings.roles">Back to roles</a>
   </div>
-</md-toolbar>
 
-<form name="$ctrl.formRole" ng-submit="$ctrl.save()" novalidate>
-  <div class="layout-padding" layout="row">
+
+  <form name="$ctrl.formRole" ng-submit="$ctrl.save()" novalidate>
+  <div class="gv-form">
+    <h2>Details</h2>
+    <div class="gv-form-content" layout="column">
+
     <md-input-container ng-if="!$ctrl.editMode">
       <label>Role name</label>
       <input ng-model="$ctrl.role.name" required autofocus>
     </md-input-container>
 
-    <md-input-container flex>
+    <md-input-container>
       <label>Role description</label>
       <input ng-model="$ctrl.role.description">
     </md-input-container>
 
-    <md-input-container flex="10">
+    <md-input-container>
       <md-checkbox ng-model="$ctrl.role.default">
         Default role
       </md-checkbox>
     </md-input-container>
-  </div>
 
   <md-table-container>
-    <table md-table>
+    <table md-table class="gv-table-dense">
       <thead md-head>
       <tr md-row>
         <th md-column></th>
@@ -72,10 +75,14 @@
     </table>
   </md-table-container>
 
-  <md-card-actions layout="row" layout-align="end end">
-    <md-button class="md-raised" ng-class="{'md-warn': $ctrl.formRole.$dirty}" type="button" ui-sref="management.settings.roles({roleScope: $ctrl.role.scope})">
-      Back
-    </md-button>
-    <md-button type="submit" ng-if="!$ctrl.role.system" ng-disabled="$ctrl.formRole.$invalid || $ctrl.formRole.$pristine">Save</md-button>
+  <md-card-actions layout="row">
+    <md-button type="submit"
+               ng-if="!$ctrl.role.system"
+               ng-disabled="$ctrl.formRole.$invalid || $ctrl.formRole.$pristine"
+               class="md-raised md-primary">
+      Save</md-button>
   </md-card-actions>
-</form>
+    </div>
+  </div>
+  </form>
+</div>

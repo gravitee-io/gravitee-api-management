@@ -15,14 +15,10 @@
     limitations under the License.
 
 -->
-
-
-<div class="gv-sub-menu" flex>
-  <div layout="row" flex>
-    <div class="menu" flex="15">
-
+  <div layout="row">
+    <div class="gv-sub-menu menu"  ng-style="$ctrl.api || $ctrl.application ? '' : {'margin': '0 0 0 -32px', 'padding-top': '70px'}">
       <div ng-if="$ctrl.api" class="md-headline">{{$ctrl.api.name}} ({{$ctrl.api.version}})</div>
-      <div ng-if="$ctrl.api" class="aui-nav-heading">
+      <div class="aui-nav-heading">
         <strong>Settings</strong>
       </div>
 
@@ -34,11 +30,13 @@
         </li>
       </ul>
     </div>
-
-    <md-content flex layout-padding ui-view>
-      <form name="$ctrl.formNotification" novalidate>
-      <div layout="column">
-        <h4>{{$ctrl.selectedNotificationSetting.name}}</h4>
+<div class="gv-sub-content" ui-view>
+    <div class="gv-forms" layout="column">
+        <h1>{{$ctrl.selectedNotificationSetting.name}}</h1>
+    <form name="$ctrl.formNotification" novalidate>
+      <div class="gv-form">
+        <h2>Settings</h2>
+        <div class="gv-form-content" layout="column">
           <div ng-if="$ctrl.selectedNotificationSetting.config_type==='generic'">
             <h5>Configure the notifier you want to use:</h5>
             <div layout="row" layout-wrap>
@@ -69,8 +67,6 @@
             </div>
           </div>
         </div>
-      </div>
-      </form>
 
       <div class="md-actions gravitee-api-save-button" layout="row">
         <md-button class="md-raised"
@@ -88,12 +84,16 @@
           Delete
         </md-button>
       </div>
-    </md-content>
+      </div>
+      </div>
+    </form>
+
     <md-button permission permission-only="['api-notification-c', 'application-notification-c', 'management-notification-c']"
                class="md-fab md-fab-bottom-right gravitee-add-button"
                aria-label="Add"
                ng-click="$ctrl.addDialog()">
       <ng-md-icon icon="add"></ng-md-icon>
     </md-button>
+    </div>
   </div>
-</div>
+  </div>

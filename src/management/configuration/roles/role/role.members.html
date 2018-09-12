@@ -15,15 +15,18 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-    <div class="md-toolbar-tools">
-        <span>Members of role [{{$ctrl.roleScope}}]: {{::$ctrl.role}}</span>
-        <div flex></div>
+<div class="gv-forms" layout="column">
+    <div layout="row" layout-align="start end" class="gv-forms-header">
+        <h1>role [{{$ctrl.roleScope}}]: {{::$ctrl.role}}</h1>
+        <a ui-sref="management.settings.roles">Back to roles</a>
     </div>
-</md-toolbar>
+
+    <div class="gv-form">
+        <h2>Members</h2>
+        <div class="gv-form-content" layout="column">
 <md-table-container>
     <table md-table>
-        <thead md-head >
+        <thead md-head class="gv-table-dense">
         <tr md-row>
             <th md-column>Full name</th>
             <th md-column>Username</th>
@@ -47,6 +50,9 @@
         </tbody>
     </table>
 </md-table-container>
+        </div>
+    </div>
+</div>
 <md-button permission permission-only="['management-role-u']"
            class="md-fab md-fab-bottom-right gravitee-add-button"
            aria-label="Add"

@@ -15,45 +15,15 @@
     limitations under the License.
 
 -->
-<section layout="column" flex>
-  <md-content flex layout-padding>
-    <div layout="column" ng-repeat="grp in $ctrl.groupIdsWithMembers">
-      <div layout="row" layout-align="start end">
-        <h4>{{$ctrl.groupMembers[grp].length}} members inherited from "{{$ctrl.groupById[grp].name}}"</h4>
-        <div style="margin-bottom: 5px;" ng-model="$ctrl.displayGroups[grp]"
-             ng-if="!$ctrl.displayGroups[grp]" ng-click="$ctrl.displayGroups[grp]=true">
-          <a>Show</a>
-        </div>
-        <div style="margin-bottom: 5px;" ng-model="$ctrl.displayGroups[grp]"
-             ng-if="$ctrl.displayGroups[grp]" ng-click="$ctrl.displayGroups[grp]=false">
-          <a>Hide</a>
-        </div>
-      </div>
-      <md-content style="background: none" ng-if="$ctrl.displayGroups[grp]">
-        <md-table-container ng-show="$ctrl.groupMembers[grp].length">
-          <table md-table>
-            <thead md-head md-order="order">
-            <tr md-row>
-              <th md-column order-by="username">Member</th>
-              <th md-column order-by="type">Role</th>
-            </tr>
-            </thead>
-            <tbody md-body>
-            <tr md-row ng-repeat="member in $ctrl.groupMembers[grp] | orderBy: order">
-              <td md-cell>{{$ctrl.getMembershipDisplay(member)}}</td>
-              <td md-cell>{{member.roles["APPLICATION"]}}</td>
-            </tr>
-            </tbody>
-          </table>
-        </md-table-container>
-      </md-content>
-    </div>
-    <div layout="column">
-      <h4>Members</h4>
-      <span flex></span>
-      <md-content style="background: none">
+<div class="gv-forms" layout="column">
+  <h1>{{$ctrl.application.name}} ({{$ctrl.application.type}})</h1>
+
+  <div class="gv-form">
+    <h2>Members</h2>
+    <div class="gv-form-content" layout="column">
+
         <md-table-container ng-show="$ctrl.members.length">
-          <table md-table>
+          <table md-table class="gv-table-dense">
             <thead md-head md-order="order">
             <tr md-row>
               <th md-column order-by="lastname">Member</th>
@@ -98,21 +68,17 @@
             <ng-md-icon icon="add"></ng-md-icon>
           </md-button>
         </div>
-      </md-content>
     </div>
-    <div ng-if="$ctrl.isAllowedToTransferOwnership()">
-      <hr />
-      <h4>
-        Transfer ownership
-      </h4>
-      <md-card>
-        <md-card-content>
+  </div>
+
+  <div class="gv-form" ng-if="$ctrl.isAllowedToTransferOwnership()">
+    <h2>Transfer ownership</h2>
+    <div class="gv-form-content" layout="column">
+
           <p>
             Give full access to this application to an other user.
           </p>
-          <div layout="row" layout-align="space-around center">
             <md-autocomplete
-                    flex="55"
                     md-selected-item="selectedItem"
                     md-search-text="searchText"
                     md-search-text-change="searchTextChange(searchText)"
@@ -134,20 +100,51 @@
                 No user matching "{{searchText}}" were found.
               </md-not-found>
             </md-autocomplete>
-            <md-input-container flex="40">
+
+            <md-input-container>
               <label>New Role for the current Primary Owner</label>
               <md-select ng-model="$ctrl.newPORole">
                 <md-option ng-value="role" ng-repeat="role in $ctrl.newPORoles">{{role.name}}</md-option>
               </md-select>
             </md-input-container>
-          </div>
-        </md-card-content>
-        <label></label>
-        <md-card-actions layout="row" layout-align="end center">
-          <md-button ng-disabled="$ctrl.newPrimaryOwner == null" class="md-primary" ng-click="$ctrl.showTransferOwnershipConfirm($event)">Transfer</md-button>
-        </md-card-actions>
-      </md-card>
+      <div class="md-actions gravitee-api-save-button" layout="row">
+          <md-button ng-disabled="$ctrl.newPrimaryOwner == null" class="md-raised md-primary" ng-click="$ctrl.showTransferOwnershipConfirm($event)">Transfer</md-button>
+      </div>
     </div>
-  </md-content>
-</section>
+  </div>
+
+  <div class="gv-form" ng-repeat="grp in $ctrl.groupIdsWithMembers">
+    <h2>{{$ctrl.groupMembers[grp].length}} members inherited from "{{$ctrl.groupById[grp].name}}"</h2>
+    <div class="gv-form-content" layout="column">
+      <div layout="row" layout-align="start end">
+        <div style="margin-bottom: 5px;" ng-model="$ctrl.displayGroups[grp]"
+             ng-if="!$ctrl.displayGroups[grp]" ng-click="$ctrl.displayGroups[grp]=true">
+          <a>Show</a>
+        </div>
+        <div style="margin-bottom: 5px;" ng-model="$ctrl.displayGroups[grp]"
+             ng-if="$ctrl.displayGroups[grp]" ng-click="$ctrl.displayGroups[grp]=false">
+          <a>Hide</a>
+        </div>
+      </div>
+      <md-content style="background: none" ng-if="$ctrl.displayGroups[grp]">
+        <md-table-container ng-show="$ctrl.groupMembers[grp].length">
+          <table md-table class="gv-table-dense">
+            <thead md-head md-order="order">
+            <tr md-row>
+              <th md-column order-by="username">Member</th>
+              <th md-column order-by="type">Role</th>
+            </tr>
+            </thead>
+            <tbody md-body>
+            <tr md-row ng-repeat="member in $ctrl.groupMembers[grp] | orderBy: order">
+              <td md-cell>{{$ctrl.getMembershipDisplay(member)}}</td>
+              <td md-cell>{{member.roles["APPLICATION"]}}</td>
+            </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+      </md-content>
+    </div>
+  </div>
+</div>
 

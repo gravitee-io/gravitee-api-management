@@ -15,20 +15,18 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-  <div class="md-toolbar-tools">
-    <span>Sharding tags</span>
-    <div flex></div>
-  </div>
-</md-toolbar>
+<div class="gv-forms" layout="column">
+  <h1>Sharding Tags</h1>
+  <blockquote>
+    <p style="font-size: 12px">
+      <ng-md-icon icon="info"  style="fill:grey;"></ng-md-icon>
+      Copy/paste the ID to the API gateway configuration file in order to manage API deployments.
+    </p>
+  </blockquote>
 
-<blockquote>
-  <p style="font-size: 12px">
-    <ng-md-icon icon="info"  style="fill:grey;"></ng-md-icon>
-    Copy/paste the ID to the API gateway configuration file in order to manage API deployments.
-  </p>
-</blockquote>
-
+  <div class="gv-form">
+    <h2>Details</h2>
+    <div class="gv-form-content" layout="column">
 <md-table-container>
   <table md-table ng-init="order = 'name'">
     <thead md-head md-order="order">
@@ -80,10 +78,14 @@
   </table>
 </md-table-container>
 
-<md-card-actions layout="row" layout-align="end center" permission permission-only="['management-tag-c', 'management-tag-u']">
+<div permission permission-only="['management-tag-c', 'management-tag-u']">
   <md-button ng-click="$ctrl.saveTags()"
-             ng-disabled="!$ctrl.tagsToCreate.length && !$ctrl.tagsToUpdate.length">Save</md-button>
+             ng-disabled="!$ctrl.tagsToCreate.length && !$ctrl.tagsToUpdate.length"
+             class="md-raised md-primary">Save</md-button>
   <md-button ng-click="$ctrl.reset()"
-             ng-disabled="!$ctrl.tagsToCreate.length && !$ctrl.tagsToUpdate.length">Reset
-  </md-button>
-</md-card-actions>
+             ng-disabled="!$ctrl.tagsToCreate.length && !$ctrl.tagsToUpdate.length"
+             class="md-raised">Reset</md-button>
+</div>
+    </div>
+  </div>
+</div>

@@ -15,14 +15,13 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-  <div class="md-toolbar-tools">
-    <span>Metadata</span>
-  </div>
-</md-toolbar>
-
+<div class="gv-forms" layout="column">
+  <h1>Metadata</h1>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content gv-form-content-fluid" layout="column">
 <md-table-container>
-  <table md-table ng-init="metadataOrder = 'key'">
+  <table md-table class="gv-table-dense" ng-init="metadataOrder = 'key'">
     <thead md-head md-order="metadataOrder">
     <tr md-row>
       <th md-column md-order-by="key">Key</th>
@@ -34,16 +33,12 @@
     </thead>
     <tbody md-body>
     <tr md-row ng-repeat="metadata in $ctrl.metadata | orderBy: metadataOrder">
-      <td md-cell><b>{{metadata.key}}</b></td>
+      <td md-cell><a ng-click="$ctrl.updateMetadata(metadata)">{{metadata.key}}</a></td>
       <td md-cell>{{metadata.name}}</td>
       <td md-cell>{{metadata.format}}</td>
       <td md-cell>{{metadata.value}}</td>
       <td md-cell>
         <div layout="row" layout-align="end end">
-          <ng-md-icon permission permission-only="'portal-metadata-u'"
-                      icon="edit" ng-click="$ctrl.updateMetadata(metadata)" style="padding: 0 10px;">
-            <md-tooltip md-direction="top" md-visible="false">Edit metadata</md-tooltip>
-          </ng-md-icon>
           <ng-md-icon permission permission-only="'portal-metadata-d'"
                       icon="delete" ng-click="$ctrl.deleteMetadata(metadata)" style="padding: 0 10px;">
             <md-tooltip md-direction="top" md-visible="false">Delete metadata</md-tooltip>
@@ -54,6 +49,9 @@
     </tbody>
   </table>
 </md-table-container>
+    </div>
+  </div>
+</div>
 
 <md-button permission permission-only="'portal-metadata-c'"
            aria-label="Add metadata"

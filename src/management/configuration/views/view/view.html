@@ -15,15 +15,14 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-  <div class="md-toolbar-tools">
-    <span>{{$ctrl.createMode ? 'New' : 'Edit'}} view</span>
-    <div flex></div>
+<div class="gv-forms" layout="column">
+  <div layout="row" layout-align="start end" class="gv-forms-header">
+  <h1>{{$ctrl.createMode ? 'New' : 'Edit'}} view</h1>
+    <a ui-sref="management.settings.views">Back to views</a>
   </div>
-</md-toolbar>
-
-<md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
-
+  <div class="gv-form">
+    <h2>General</h2>
+    <div class="gv-form-content" layout="column">
 <form name="$ctrl.viewForm">
   <div layout-gt-sm="row">
     <md-input-container class="md-block" flex-gt-sm>
@@ -55,8 +54,13 @@
     </md-input-container>
   </div>
 </form>
+    </div>
+  </div>
 
-<md-subheader class="md-primary" style="background-color: #fafafa">APIs</md-subheader>
+  <div class="gv-form">
+    <h2>APIs</h2>
+    <div class="gv-form-content" layout="column">
+
 
 <blockquote style="border-left: none;">
   <p style="font-size: 12px">
@@ -65,8 +69,6 @@
   </p>
 </blockquote>
 
-<md-card>
-  <md-card-content>
     <div layout="row" layout-align="space-around center">
       <md-autocomplete md-input-id="new-view-apis-autocomplete-id"
         flex="70"
@@ -120,10 +122,15 @@
         </tbody>
       </table>
     </md-table-container>
-  </md-card-content>
-</md-card>
 
-<div layout="row" layout-align="end center">
-  <md-button ng-disabled="$ctrl.viewForm.$invalid || $ctrl.viewForm.$pristine" ng-click="$ctrl.save()" permission permission-only="['portal-view-c', 'portal-view-u']">Save</md-button>
+<div layout="row">
+  <md-button ng-disabled="$ctrl.viewForm.$invalid || $ctrl.viewForm.$pristine"
+             ng-click="$ctrl.save()"
+             permission permission-only="['portal-view-c', 'portal-view-u']"
+             class="md-raised md-primary">
+    Save
+  </md-button>
 </div>
-
+    </div>
+  </div>
+</div>

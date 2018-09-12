@@ -15,14 +15,18 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-    <div class="md-toolbar-tools">
-      <span flex>{{$ctrl.selectedUser.displayName}}</span>
+<div class="gv-forms" layout="column">
+    <div layout="row" layout-align="start end" class="gv-forms-header">
+        <h1>{{$ctrl.selectedUser.displayName}}</h1>
+        <a ui-sref="management.settings.users">Back to users</a>
     </div>
-</md-toolbar>
 
+
+    <div class="gv-form">
+        <h2></h2>
+        <div class="gv-form-content" layout="column">
 <md-table-container layout="row" layout-align="center center">
-    <table md-table flex="80">
+    <table md-table>
         <tbody md-body>
         <tr md-row style="height: 30px;">
             <td md-cell width="15%"><span style="font-weight: bold">Email</span></td>
@@ -64,17 +68,22 @@
         <ng-md-icon icon="autorenew"></ng-md-icon>Reset user password
     </md-button>
 </div>
+</div>
+    </div>
 
-<p ng-if="currentTab==='groups'">You can manage all groups of this user.</p>
-<p ng-if="currentTab==='apis'">Here is the list of all APIs of this user.</p>
-<p ng-if="currentTab==='applications'">Here is the list of all applications of this user.</p>
+
+    <div class="gv-form">
+        <h2></h2>
+        <div class="gv-form-content" layout="column">
+
 
 <md-tabs md-dynamic-height>
     <md-tab md-on-select="currentTab='groups'">
         <md-tab-label>Groups</md-tab-label>
         <md-tab-body>
+            <div style="margin: 16px 0 8px;">You can manage all groups of this user.</div>
             <md-table-container>
-                <table md-table>
+                <table md-table class="gv-table-dense">
                     <thead md-head>
                     <tr md-row>
                         <th md-column>Name</th>
@@ -125,8 +134,9 @@
     <md-tab md-on-select="currentTab='apis'; $ctrl.loadUserApis();">
         <md-tab-label>APIs</md-tab-label>
         <md-tab-body>
+            <div style="margin: 16px 0 8px;">Here is the list of all APIs of this user.</div>
             <md-table-container>
-                <table md-table>
+                <table md-table class="gv-table-dense">
                     <thead md-head>
                     <tr md-row>
                         <th md-column>Name</th>
@@ -155,8 +165,9 @@
     <md-tab md-on-select="currentTab='applications'; $ctrl.loadUserApplications();">
         <md-tab-label>Applications</md-tab-label>
         <md-tab-body>
+            <div style="margin: 16px 0 8px;">Here is the list of all applications of this user.</div>
             <md-table-container>
-                <table md-table>
+                <table md-table class="gv-table-dense">
                     <thead md-head>
                     <tr md-row>
                         <th md-column>Name</th>
@@ -177,14 +188,10 @@
         </md-tab-body>
     </md-tab>
 </md-tabs>
+        </div>
+    </div>
+</div>
 
-
-<section>
-    <md-button class="md-button" aria-label="Back to endpoints configuration" ui-sref="management.settings.users">
-        <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-        <span style="color: rgba(0, 0, 0, 0.54);">Back to users</span>
-    </md-button>
-</section>
 <md-button permission permission-only="['management-user-c']"
            class="md-fab md-fab-bottom-right gravitee-add-button"
            aria-label="Add"

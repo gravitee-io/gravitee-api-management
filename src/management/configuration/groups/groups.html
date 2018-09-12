@@ -15,15 +15,15 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-    <div class="md-toolbar-tools">
-        <span>Groups</span>
-        <div flex></div>
-    </div>
-</md-toolbar>
+<div class="gv-forms" layout="column">
+    <h1>Groups</h1>
 
-<md-table-container style="margin-bottom: 72px;" ng-if="$ctrl.groups.length > 0">
-    <table md-table ng-init="orderGrp = 'name'">
+    <div class="gv-form">
+        <h2></h2>
+        <div class="gv-form-content" layout="column">
+
+<md-table-container ng-if="$ctrl.groups.length > 0">
+    <table md-table ng-init="orderGrp = 'name'" class="gv-table-dense">
         <thead md-head md-order="orderGrp">
         <tr md-row>
             <th md-column width="30%" md-order-by="name">Name</th>
@@ -71,6 +71,9 @@
                       model="GROUPS"
                       message="There is no group to manage"
                       ></gravitee-empty-state>
+        </div>
+    </div>
+</div>
 <div ng-style="{'text-align': $ctrl.groups.length == 0 ? 'center' : 'none' }">
     <md-button permission permission-only="['management-group-c']"
                ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.groups.length > 0}" class="md-fab"

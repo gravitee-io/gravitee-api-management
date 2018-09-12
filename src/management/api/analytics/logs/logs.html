@@ -15,7 +15,11 @@
     limitations under the License.
 
 -->
-
+<div class="gv-forms" layout="column">
+  <h1>Logs</h1>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content gv-form-content-fluid" layout="column">
 <gv-logs-timeframe on-timeframe-change="logsCtrl.timeframeChange(timeframe)"></gv-logs-timeframe>
 
 <gv-logs-filters on-filters-change="logsCtrl.filtersChange(filters)" metadata="logsCtrl.metadata"></gv-logs-filters>
@@ -70,3 +74,6 @@
   md-total="{{logsCtrl.logs.total}}"
   md-on-paginate="logsCtrl.onPaginate">
 </md-table-pagination>
+    </div>
+  </div>
+</div>

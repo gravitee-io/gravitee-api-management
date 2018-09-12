@@ -357,6 +357,37 @@ class ApiPortalController {
   getQualityMetricCssClass() {
     return this.ApiService.getQualityMetricCssClass(this.qualityMetrics.score * 100);
   }
+
+  changeLifecycle() {
+    let started = this.api.state === 'started';
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        title: `Are you sure you want to ${started ? 'stop' : 'start'} the API ?`,
+        msg: '',
+        confirmButton: (started ? 'stop' : 'start')
+      }
+    }).then((response: boolean) => {
+      if (response) {
+        if (started) {
+          this.ApiService.stop(this.api).then((response) => {
+            this.api.state = 'stopped';
+            this.api.etag = response.headers('etag');
+            this.NotificationService.show(`API ${this.api.name} has been stopped!`);
+          });
+        } else {
+          this.ApiService.start(this.api).then((response) => {
+            this.api.state = 'started';
+            this.api.etag = response.headers('etag');
+            this.NotificationService.show(`API ${this.api.name} has been started!`);
+          });
+        }
+      }
+    })
+  }
 }
 
 export default ApiPortalController;

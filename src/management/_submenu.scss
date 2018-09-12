@@ -1,52 +1,65 @@
-.aui-nav-heading {
-  color: #707070 !important;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.66666666666667;
-  text-transform: uppercase;
-  border-top: 1px solid #ccc;
-  margin-top: 5px;
-  padding: 10px 10px 4px;
-}
-
-.aui-nav, .aui-nav>li {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.aui-nav .aui-nav-selected>a {
-  font-weight: 700;
-  color: #172B4D !important;
-}
-
-.aui-nav>li>a {
-  color: #3572b0 !important;
-  display: block;
-  line-height: 1.14285714285714;
-  padding: 7px 10px;
-  word-wrap: break-word;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.aui-nav>li>a:hover {
-  color: #0052CC !important;
-  background: rgba(9,30,66,.04);
-}
-
 .gv-sub-menu {
-  padding: 6px 0 0;
+  padding: 6px;
+  background-color: rgba(45, 50, 62, .03);
+  height: calc(100vh - 54px);
+  border-right: 1px solid #e2e5e7;
+  width: 218px;
+
+  .aui-nav-heading {
+    color: #707070 !important;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.66666666666667;
+    text-transform: uppercase;
+    //border-top: 1px solid #ccc;
+    margin-top: 5px;
+    padding: 10px 10px 4px;
+  }
+
+  .aui-nav, .aui-nav>li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .aui-nav .aui-nav-selected>a {
+    font-weight: 700;
+    color: #172B4D !important;
+  }
+
+  .aui-nav>li>a {
+    color: #3572b0 !important;
+    display: block;
+    line-height: 1.14285714285714;
+    padding: 3px 0 3px 10px ;
+    word-wrap: break-word;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .aui-nav>li>a:hover {
+    color: #0052CC !important;
+    background: rgba(9,30,66,.04);
+  }
   .md-headline {
-    padding: 0 16px 16px 0;
+    padding: 16px 4px;
+    font-size: 1.2em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid #e2e5e7;
   }
   .menu {
-    border-right: 1px solid #ccc;
-    padding: 0px 16px 0 0;
+    padding: 0 16px 0 0;
     height: 100vh;
   }
-  .gv-sub-content {
-    height: calc(100vh - 54px);
-    padding-left: 16px;
+}
+
+.gv-sub-content {
+  //background-color: rgba(45, 50, 62, .03);
+  height: calc(100vh - 54px);
+  padding: 0 32px;
+  @media screen and (max-width: 1000px) {
+    padding: 0 8px;
   }
 }

@@ -15,14 +15,19 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-    <div class="md-toolbar-tools">
-        <span flex>{{$ctrl.group.name}}</span>
+<div class="gv-forms" layout="column">
+    <div layout="row" layout-align="start end" class="gv-forms-header">
+        <h1>{{$ctrl.group.name}}</h1>
+        <a ui-sref="management.settings.groups">Back to groups</a>
     </div>
-</md-toolbar>
 
-<md-table-container layout="row" layout-align="center center">
-  <table md-table flex="80">
+    <div class="gv-form">
+        <h2>Details</h2>
+        <div class="gv-form-content" layout="column">
+
+
+<md-table-container>
+  <table md-table class="gv-table-dense">
     <tbody md-body>
     <tr md-row style="background-color: white; height: 30px;">
       <td md-cell nowrap><span style="font-weight: bold">Default API Role</span></td>
@@ -47,15 +52,18 @@
     </tbody>
   </table>
 </md-table-container>
+        </div>
+    </div>
 
-<p ng-if="currentTab==='users'">You can manage all members of this group.</p>
-<p ng-if="currentTab==='apis'">Here is the list of all APIs of this group.</p>
-<p ng-if="currentTab==='applications'">Here is the list of all applications of this group.</p>
 
+    <div class="gv-form">
+        <h2></h2>
+        <div class="gv-form-content" layout="column">
 <md-tabs md-dynamic-height>
     <md-tab md-on-select="currentTab='users'">
         <md-tab-label>Users</md-tab-label>
         <md-tab-body>
+            <div style="margin: 16px 0 8px;">You can manage all members of this group.</div>
             <md-table-container>
                 <table md-table ng-init="orderGrp = 'name'">
                     <thead md-head md-order="orderGrp">
@@ -113,6 +121,7 @@
     <md-tab md-on-select="currentTab='apis'; $ctrl.loadGroupApis();">
         <md-tab-label>APIs</md-tab-label>
         <md-tab-body>
+            <div style="margin: 16px 0 8px;">Here is the list of all APIs of this group.</div>
             <md-table-container>
                 <table md-table>
                     <thead md-head>
@@ -143,6 +152,7 @@
     <md-tab md-on-select="currentTab='applications'; $ctrl.loadGroupApplications();">
         <md-tab-label>Applications</md-tab-label>
         <md-tab-body>
+            <div style="margin: 16px 0 8px;">Here is the list of all applications of this group.</div>
             <md-table-container>
                 <table md-table>
                     <thead md-head>
@@ -165,12 +175,10 @@
         </md-tab-body>
     </md-tab>
 </md-tabs>
-<section>
-    <md-button class="md-button" aria-label="Back to endpoints configuration" ui-sref="management.settings.groups">
-        <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-        <span style="color: rgba(0, 0, 0, 0.54);">Back to groups</span>
-    </md-button>
-</section>
+        </div>
+    </div>
+</div>
+
 <md-button ng-if="$ctrl.group.manageable"
            class="md-fab md-fab-bottom-right gravitee-add-button"
            aria-label="Add"

@@ -15,51 +15,50 @@
     limitations under the License.
 
 -->
-<section layout="column" flex>
-  <md-content flex>
-    <div ng-if="apiTransferOwnershipCtrl.isAllowedToTransferOwnership()">
-      <h4>Transfer ownership</h4>
-      <md-card>
-        <md-card-content>
-          <p>
-            Give full access to this API to an other user.
-          </p>
-          <div layout="row" layout-align="space-around center">
-            <md-autocomplete
-                    flex="55"
-                    md-search-text="searchText"
-                    md-selected-item-change="apiTransferOwnershipCtrl.selectedUserChange(user)"
-                    md-items="user in apiTransferOwnershipCtrl.searchUser(searchText)"
-                    md-item-text="user.displayName"
-                    placeholder="Select a user"
-                    md-autofocus="false"
-                    md-delay="500"
-                    md-min-length="0"
-                    md-menu-class="autocomplete-custom-template">
-              <md-item-template>
-                <md-list-item class="md-2-line contact-item">
-                  <div class="md-list-item-text compact">
-                    <h3>{{user.displayName}}</h3>
-                  </div>
-                </md-list-item>
-              </md-item-template>
-              <md-not-found>
-                No user matching "{{searchText}}" were found.
-              </md-not-found>
-            </md-autocomplete>
-            <md-input-container flex="40">
-              <label>New role for current Primary Owner</label>
-              <md-select ng-model="apiTransferOwnershipCtrl.newPORole">
-                <md-option ng-value="role" ng-repeat="role in apiTransferOwnershipCtrl.newPORoles">{{role.name}}</md-option>
-              </md-select>
-            </md-input-container>
-          </div>
-        </md-card-content>
-        <label></label>
-        <md-card-actions layout="row" layout-align="end center">
-          <md-button ng-disabled="apiTransferOwnershipCtrl.newPrimaryOwner == null" class="md-primary" ng-click="apiTransferOwnershipCtrl.showTransferOwnershipConfirm($event)">Transfer</md-button>
-        </md-card-actions>
-      </md-card>
+<div class="gv-forms" layout="column">
+  <h1>Transfer ownership</h1>
+
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content" layout="column"  layout-align="start stretch">
+      <div ng-if="apiTransferOwnershipCtrl.isAllowedToTransferOwnership()">
+        <p>
+          Give full access to this API to an other user.
+        </p>
+        <md-autocomplete
+                md-search-text="searchText"
+                md-selected-item-change="apiTransferOwnershipCtrl.selectedUserChange(user)"
+                md-items="user in apiTransferOwnershipCtrl.searchUser(searchText)"
+                md-item-text="user.displayName"
+                placeholder="Select a user"
+                md-autofocus="false"
+                md-delay="500"
+                md-min-length="0"
+                md-menu-class="autocomplete-custom-template">
+          <md-item-template>
+            <md-list-item class="md-2-line contact-item">
+              <div class="md-list-item-text compact">
+                <h3>{{user.displayName}}</h3>
+              </div>
+            </md-list-item>
+          </md-item-template>
+          <md-not-found>
+            No user matching "{{searchText}}" were found.
+          </md-not-found>
+        </md-autocomplete>
+        <br/>
+        <md-input-container class="md-block">
+          <label>New role for current Primary Owner</label>
+          <md-select ng-model="apiTransferOwnershipCtrl.newPORole">
+            <md-option ng-value="role" ng-repeat="role in apiTransferOwnershipCtrl.newPORoles">{{role.name}}</md-option>
+          </md-select>
+        </md-input-container>
+
+        <div class="md-actions gravitee-api-save-button" layout="row">
+          <md-button ng-disabled="apiTransferOwnershipCtrl.newPrimaryOwner == null" class="md-primary md-raised" ng-click="apiTransferOwnershipCtrl.showTransferOwnershipConfirm($event)">Transfer</md-button>
+        </div>
+
+      </div>
     </div>
-  </md-content>
-</section>
+  </div>
+</div>

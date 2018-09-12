@@ -1,8 +1,12 @@
 table.md-table {
+  border: 0;
   .md-cell, .md-column {
     padding: 0 18px !important;
   }
 
+  thead {
+    background: #fff;
+  }
   tbody {
     tr {
       background-color: #fff;
@@ -23,8 +27,9 @@ table.md-table {
 // Add more density
 //////////////////////////////////////
 table.md-table.gv-table-dense {
+  margin-bottom: 1.1rem;
   .md-cell, .md-column {
-    padding: 0 12px !important;
+    padding: 4px 12px !important;
   }
 
   tbody {
@@ -32,4 +37,16 @@ table.md-table.gv-table-dense {
       height: 28px !important;
     }
   }
+
+  md-list-item {
+    min-height: 32px;
+
+    .md-avatar {
+      width: 32px;
+      height: 32px;
+    }
+  }
+}
+.md-table-pagination.gv-table-dense > * {
+  height: 42px;
 }

@@ -1,9 +1,10 @@
+//                   #2D323E
 $backgroundColor: rgb(45, 50, 62);
 
 @import '~angular-loading-bar/build/loading-bar.css';
-@import '~angular-material/modules/scss/angular-material.scss';
+@import '~angular-material/modules/scss/angular-material';
 @import '~angular-material-data-table/dist/md-data-table.css';
-@import '~bootstrap/dist/css/bootstrap.min.css';
+@import '~bootstrap/dist/css/bootstrap.css';
 @import '~angular-gridster/dist/angular-gridster.css';
 @import '~dragular/dist/dragular.css';
 @import '~v-accordion/dist/v-accordion.css';
@@ -13,29 +14,28 @@ $backgroundColor: rgb(45, 50, 62);
 @import '~angular-timeline/dist/angular-timeline.css';
 @import '~md-steppers/dist/md-steppers.min.css';
 @import '~tui-editor/dist/tui-editor.css';
-@import 'constants.scss';
-@import 'portal/portal.scss';
-@import 'user/_user.scss';
-@import 'user/login/_login.scss';
-@import 'management/api/_api.scss';
-@import 'components/dashboard/dashboard.scss';
-@import 'components/sidenav/_sidenav.scss';
-@import 'components/image/_image.scss';
-@import 'components/widget/_widget.scss';
-@import 'management/instances/_instances.scss';
-@import 'management/platform/dashboard/_dashboard.scss';
-@import 'components/documentation/page.scss';
-@import 'components/contextual/_contextual-doc.component.scss';
-@import 'management/tasks/_tasks.scss';
-@import 'management/portalnotifications/_portalnotifications.scss';
+@import 'constants';
+@import 'portal/portal';
+@import 'user/user';
+@import 'user/login/login';
+@import 'management/api/api';
+@import 'components/dashboard/dashboard';
+@import 'components/sidenav/sidenav';
+@import 'components/image/image';
+@import 'components/widget/widget';
+@import 'management/instances/instances';
+@import 'management/platform/dashboard/dashboard';
+@import 'components/documentation/page';
+@import 'components/contextual/contextual-doc.component';
+@import 'management/tasks/tasks';
+@import 'management/portalnotifications/portalnotifications';
 @import 'management/submenu';
+@import 'management/forms';
 @import '~highlight.js/styles/tomorrow.css';
 @import 'management/configuration/views/view/view';
 @import 'management/datatable';
 @import 'management/analytics';
 @import '~angular-moment-picker/dist/angular-moment-picker.css';
-
-$backgroundColor: rgb(45, 50, 62);
 
 html {
   font-family: 'Roboto Slab', serif;

@@ -15,14 +15,12 @@
     limitations under the License.
 
 -->
-<md-card flex>
-    <div class="widget-card" flex>
-        <md-card-title>
-            <md-card-title-text>
-                <span class="md-title"><strong>Audit Logs filters</strong></span>
-            </md-card-title-text>
-        </md-card-title>
-        <md-card-content>
+<div class="gv-forms" layout="column">
+    <h1>Audit</h1>
+
+    <div class="gv-form">
+        <h2>Logs</h2>
+        <div class="gv-form-content gv-form-content-fluid" layout="column">
             <div layout="row" layout-align="space-around end">
                 <div layout="column" layout-align="end start">
                     <md-checkbox aria-label="Only Portal Audit Logs" ng-model="$ctrl.query.mgmt" ng-if="!$ctrl.api">
@@ -64,13 +62,8 @@
                     <md-button class="md-raised" ng-click="$ctrl.search()">Apply</md-button>
                 </div>
             </div>
-        </md-card-content>
-    </div>
-</md-card>
-
-<md-card flex>
     <md-table-container>
-        <table md-table>
+        <table md-table class="gv-table-dense">
             <thead md-head>
             <tr md-row>
                 <th md-column>Date</th>
@@ -115,4 +108,6 @@
             md-total="{{$ctrl.result.total}}"
             md-on-paginate="$ctrl.onPaginate">
     </md-table-pagination>
-</md-card>
+        </div>
+    </div>
+</div>

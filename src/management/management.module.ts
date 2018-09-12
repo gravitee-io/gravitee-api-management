@@ -442,8 +442,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .config(delegatorConfig)
   .config(function ($mdThemingProvider: angular.material.IThemingProvider) {
     $mdThemingProvider.theme('default')
-      .primaryPalette('blue-grey')
-      .accentPalette('blue');
+      .primaryPalette('blue');
 
     $mdThemingProvider.theme('sidenav')
       .backgroundPalette('grey', {

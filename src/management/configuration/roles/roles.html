@@ -15,29 +15,19 @@
     limitations under the License.
 
 -->
-<div>
-<div ng-repeat="roleScope in $ctrl.roleScopes" style="margin-bottom: 32px;">
-  <md-toolbar class="md-table-toolbar md-default">
-    <div class="md-toolbar-tools">
-      <span>{{::roleScope}}</span>
-    </div>
-  </md-toolbar>
+<div class="gv-forms" layout="column">
+    <h1>Roles</h1>
+
+    <div class="gv-form" ng-repeat="roleScope in $ctrl.roleScopes">
+        <h2>scope: {{::roleScope}}</h2>
+        <div class="gv-form-content" layout="column">
   <md-table-container>
-    <table md-table>
+    <table md-table class="gv-table-dense">
       <thead md-head >
       <tr md-row>
         <th md-column width="20%">Name</th>
           <th md-column>Description</th>
-          <th md-column layout="row" layout-align="end end">
-              <md-button permission permission-only="'management-role-c'"
-                         class="md-icon-button"
-                         aria-label="Add role"
-                         ng-click="$ctrl.newRole(roleScope)"
-                         style="padding: 16px;">
-                  <ng-md-icon icon="add" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-                  <md-tooltip md-direction="left">Add new Role</md-tooltip>
-              </md-button>
-          </th>
+          <th md-column layout="row" layout-align="end end"></th>
       </tr>
       </thead>
       <tbody md-body>
@@ -65,5 +55,14 @@
       </tbody>
     </table>
   </md-table-container>
+            <div class="md-actions gravitee-api-save-button" layout="row">
+            <md-button permission permission-only="'management-role-c'"
+                       aria-label="Add role"
+                       ng-click="$ctrl.newRole(roleScope)"
+                       class="md-raised md-primary">
+                Add a new Role
+            </md-button>
+            </div>
+</div>
 </div>
 </div>

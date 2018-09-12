@@ -15,20 +15,16 @@
     limitations under the License.
 
 -->
-<md-toolbar class="md-table-toolbar md-default">
-  <div class="md-toolbar-tools">
-    <span ng-if="$ctrl.updateMode">
-      {{$ctrl.dictionary.name}}
-    </span>
-    <span ng-if="!$ctrl.updateMode">Create a new dictionary</span>
-    <div flex></div>
-  </div>
-</md-toolbar>
-
-<form name="$ctrl.formDictionary" ng-submit="$ctrl.update()" novalidate>
-  <md-content>
-    <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
-
+<div class="gv-forms" layout="column">
+  <div layout="row" layout-align="start end" class="gv-forms-header">
+  <h1 ng-if="$ctrl.updateMode">{{$ctrl.dictionary.name}}</h1>
+  <h1 ng-if="!$ctrl.updateMode">Create a new dictionary</h1>
+  <a ui-sref="management.settings.dictionaries.list">Back to dictionnaries</a>
+</div>
+  <form name="$ctrl.formDictionary" ng-submit="$ctrl.update()" novalidate>
+  <div class="gv-form">
+    <h2>General</h2>
+    <div class="gv-form-content" layout="column">
       <div layout-gt-sm="row">
         <md-input-container class="md-block" flex-gt-sm>
           <label>Name</label>
@@ -85,11 +81,12 @@
         </md-button>
       </md-input-container>
     </div>
+    </div>
+  </div>
 
-  </md-content>
-
-  <md-content ng-if="$ctrl.dictionary.type === 'dynamic'">
-    <md-subheader class="md-primary" style="background-color: #fafafa">Trigger</md-subheader>
+  <div class="gv-form"ng-if="$ctrl.dictionary.type === 'dynamic'">
+    <h2>Trigger</h2>
+    <div class="gv-form-content" layout="column">
     <div layout="row" layout-sm="column">
       <md-input-container class="md-block" flex-gt-xs>
         <label>Interval</label>
@@ -107,22 +104,23 @@
         </md-select>
       </md-input-container>
     </div>
+    </div>
+  </div>
+  <div class="gv-form" ng-if="$ctrl.dictionary.type === 'dynamic'">
+    <h2>Provider</h2>
+    <div class="gv-form-content" layout="column">
 
-
-    <md-subheader class="md-primary" style="background-color: #fafafa">Provider</md-subheader>
-    <div layout="row" layout-sm="column">
       <md-input-container class="md-block" flex-gt-xs>
         <label>Type</label>
         <md-select ng-model="$ctrl.dictionary.provider.type" placeholder="Type" required ng-required="true">
           <md-option ng-repeat="provider in $ctrl.providers" ng-value="provider.id">{{provider.name}}</md-option>
         </md-select>
       </md-input-container>
-    </div>
 
     <br>
 
     <div ng-if="$ctrl.dictionary.provider">
-      <h4>
+      <h6>
         Configuration
 
         <md-button ng-if="$ctrl.dictionary.provider.type == 'HTTP'"
@@ -131,7 +129,7 @@
                    ng-click="$ctrl.showExpectedProviderOutput()">
           <ng-md-icon class="no-top" icon="info" style="fill: #b1bdc5;"></ng-md-icon>
         </md-button>
-      </h4>
+      </h6>
 
       <div ng-if="$ctrl.dictionary.provider.type == 'HTTP'" layout="column" layout-sm="column">
         <md-input-container class="md-block" flex-gt-sm>
@@ -154,30 +152,31 @@
 
       <br>
     </div>
-  </md-content>
+    </div>
+  </div>
 
   <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button ng-if="$ctrl.updateMode" class="md-raised" type="submit"
+    <md-button ng-if="$ctrl.updateMode" class="md-raised md-primary" type="submit"
                ng-disabled="$ctrl.formDictionary.$invalid || $ctrl.formDictionary.$pristine"
                permission permission-only="['management-dictionary-u']">
       Update
     </md-button>
-    <md-button ng-if="!$ctrl.updateMode" class="md-raised" type="submit"
+    <md-button ng-if="!$ctrl.updateMode" class="md-raised md-primary" type="submit"
                ng-disabled="$ctrl.formDictionary.$invalid || $ctrl.formDictionary.$pristine"
                permission permission-only="['management-dictionary-c']">
       Create
-    </md-button>
-
-    <md-button class="md-raised md-primary" type="button" ng-click="$ctrl.reset()"
-               permission permission-only="['management-dictionary-u']"
-               ng-disabled="$ctrl.formDictionary.$invalid || $ctrl.formDictionary.$pristine">
-      Reset
     </md-button>
 
     <md-button class="md-raised md-primary" ng-if="$ctrl.updateMode && $ctrl.dictionary.type === 'manual'"
                permission permission-only="['management-dictionary-u']" ng-click="$ctrl.deploy()">
       <ng-md-icon icon="backup" style="fill: white;"></ng-md-icon>
       Deploy
+    </md-button>
+
+    <md-button class="md-raised" type="button" ng-click="$ctrl.reset()"
+               permission permission-only="['management-dictionary-u']"
+               ng-disabled="$ctrl.formDictionary.$invalid || $ctrl.formDictionary.$pristine">
+      Reset
     </md-button>
 
     <md-button ng-if="$ctrl.updateMode" class="md-raised md-warn float-right" type="button" ng-click="$ctrl.delete()"
@@ -187,11 +186,9 @@
   </div>
 </form>
 
-<md-content ng-if="$ctrl.updateMode">
-  <hr />
-
-  <md-subheader class="md-primary" style="background-color: #fafafa">Properties</md-subheader>
-
+  <div class="gv-form" ng-if="$ctrl.updateMode">
+    <h2>Properties</h2>
+    <div class="gv-form-content" layout="column">
   <form name="formProperties"
         ng-submit="$ctrl.saveProperties()" novalidate>
     <md-table-container ng-if="$ctrl.hasProperties()">
@@ -228,14 +225,17 @@
 
     <div class="md-actions gravitee-api-save-button" layout="row">
       <md-button ng-if="$ctrl.dictionary.type === 'manual'"
-                 class="md-raised float-right" type="submit"
+                 class="md-raised md-primary" type="submit"
                  permission permission-only="['management-dictionary-u']">
         Save properties
       </md-button>
     </div>
   </form>
 
-</md-content>
+    </div>
+  </div>
+</div>
+
 
 <md-button
           ng-if="$ctrl.dictionary.type === 'manual'"
@@ -246,3 +246,4 @@
   <md-tooltip md-direction="top" md-visible="false">Create property</md-tooltip>
   <ng-md-icon icon="add"></ng-md-icon>
 </md-button>
+

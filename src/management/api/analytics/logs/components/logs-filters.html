@@ -15,14 +15,14 @@
     limitations under the License.
 
 -->
-<md-card flex>
-  <div class="widget-card logs-filters-container" flex>
-    <md-card-title>
-      <md-card-title-text>
-        <span class="md-title"><strong>Filters</strong></span>
-      </md-card-title-text>
-    </md-card-title>
-    <md-card-content>
+<!--<md-card flex>-->
+  <!--<div class="widget-card logs-filters-container" flex>-->
+    <!--<md-card-title>-->
+      <!--<md-card-title-text>-->
+        <!--<span class="md-title"><strong>Filters</strong></span>-->
+      <!--</md-card-title-text>-->
+    <!--</md-card-title>-->
+    <!--<md-card-content>-->
       <form ng-submit="$ctrl.search()" name="logsFiltersForm">
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm flex="20">
@@ -68,15 +68,15 @@
             </md-select>
           </md-input-container>
           <div>
-            <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="logsFiltersForm.$pristine">
-              Clear filters
-            </md-button>
             <md-button type="submit" class="md-raised md-primary" ng-disabled="!$ctrl.hasFilters()">
               Search
+            </md-button>
+            <md-button type="button" class="md-flat" ng-click="$ctrl.clearFilters()" ng-disabled="logsFiltersForm.$pristine">
+              Clear filters
             </md-button>
           </div>
         </div>
       </form>
-    </md-card-content>
-  </div>
-</md-card>
+    <!--</md-card-content>-->
+  <!--</div>-->
+<!--</md-card>-->

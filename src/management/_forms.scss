@@ -1,0 +1,66 @@
+.gv-forms {
+  //padding: 16px;
+  h1 {
+    font-size: 2em;
+    margin: 16px 0 4px;
+  }
+  .gv-forms-header {
+    a, div {
+      padding: 0 0 4px 12px;
+    }
+  }
+
+  .gv-back-to {
+    background-color: #fff;
+    fill: #707070;
+    border: 1px solid #e2e5e7;
+  }
+
+  .gv-form-danger {
+    h2 {
+      color: #d73a49;
+    }
+    .gv-form-content {
+      border-color: #d73a49;
+    }
+    .gv-form-danger-text {
+      font-size: 1.1em;
+      font-weight: 500;
+    }
+  }
+  .gv-form {
+    .md-errors-spacer {
+      display: none;
+    }
+    .gv-input-container-dense {
+      margin: 0;
+    }
+    .gv-filters {
+      margin: 16px 0 32px;
+    }
+    .ipsum{
+      font-size: 11px;
+      line-height: 14px;
+      color: grey;
+    }
+
+    background-color: #fff;
+    margin: 6px 0;
+  }
+
+  h2 {
+    color: #000;
+    font-size: 1.4em;
+    padding: 16px 0 4px;
+    margin: 0;
+  }
+  .gv-form-content {
+    border: 1px solid #e2e5e7;
+    border-radius: 4px;
+    padding: 16px;
+    max-width: 960px;
+  }
+  .gv-form-content.gv-form-content-fluid {
+      max-width: 100%;
+  }
+}

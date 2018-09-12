@@ -93,15 +93,15 @@
 
 .gravitee-api-header {
   height: $graviteeHeader;
-  background: #fff;
-  border-bottom: 1px solid #f1f1f1;
-  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12);
+  //background: #fff;
+  //border-bottom: 1px solid #f1f1f1;
+  //box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12);
 }
 
 .gravitee-api-header-content {
   color: grey;
-  padding-left: 20px;
-  padding-right: 8px;
+  //padding-left: 20px;
+  //padding-right: 8px;
   width: 100%;
 }
 
@@ -377,10 +377,10 @@ md-switch.md-default-theme .md-bar, md-switch .md-bar {
  * Quality Metrics
  */
 #qualityMetrics {
-  padding-left: 36px;
-  h5 {
-    margin-bottom: 0;
-  }
+  //padding-left: 36px;
+  //h5 {
+  //  margin-bottom: 0;
+  //}
 }
 
 .gravitee-qm-score{
