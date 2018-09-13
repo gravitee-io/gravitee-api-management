@@ -35,12 +35,14 @@
         <gravitee-repository.version>1.18.0</gravitee-repository.version>
         <gravitee-repository-test.version>1.18.0</gravitee-repository-test.version>
         <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
-        <HikariCP.version>2.7.6</HikariCP.version>
-        <liquibase.version>3.5.3</liquibase.version>
+        <HikariCP.version>3.2.0</HikariCP.version>
+        <liquibase.version>3.6.2</liquibase.version>
         <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
-        <mysql-connector-java.version>5.1.46</mysql-connector-java.version>
-        <postgresql.version>42.1.4</postgresql.version>
-        <mariaDB.version>2.2.3</mariaDB.version>
+        <mysql-connector-java.version>8.0.12</mysql-connector-java.version>
+        <postgresql.version>42.2.5</postgresql.version>
+        <mariaDB.version>2.3.0</mariaDB.version>
+        <wix-embedded-mysql.version>4.1.2</wix-embedded-mysql.version>
+        <postgresql-embedded.version>2.9</postgresql-embedded.version>
     </properties>
 
     <dependencies>
@@ -102,7 +104,7 @@
         <dependency>
             <groupId>com.wix</groupId>
             <artifactId>wix-embedded-mysql</artifactId>
-            <version>4.1.0</version>
+            <version>${wix-embedded-mysql.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -116,7 +118,7 @@
         <dependency>
             <groupId>ru.yandex.qatools.embed</groupId>
             <artifactId>postgresql-embedded</artifactId>
-            <version>2.8</version>
+            <version>${postgresql-embedded.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -144,7 +146,7 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.5</version>
+            <version>2.6</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -210,39 +212,39 @@
                             <skip>true</skip>
                         </configuration>
                     </execution>
-                    <!--<execution>-->
-                        <!--<id>mysql</id>-->
-                        <!--<goals>-->
-                            <!--<goal>test</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<systemPropertyVariables>-->
-                                <!--<jdbcType>mysql</jdbcType>-->
-                            <!--</systemPropertyVariables>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                    <!--<execution>-->
-                        <!--<id>postgresql</id>-->
-                        <!--<goals>-->
-                            <!--<goal>test</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<systemPropertyVariables>-->
-                                <!--<jdbcType>postgresql</jdbcType>-->
-                            <!--</systemPropertyVariables>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                    <!--<execution>-->
-                        <!--<id>mariadb</id>-->
-                        <!--<goals>-->
-                            <!--<goal>test</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<systemPropertyVariables>-->
-                                <!--<jdbcType>mariadb</jdbcType>-->
-                            <!--</systemPropertyVariables>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
+                    <execution>
+                        <id>mysql</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <jdbcType>mysql</jdbcType>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>postgresql</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <jdbcType>postgresql</jdbcType>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>mariadb</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <jdbcType>mariadb</jdbcType>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
