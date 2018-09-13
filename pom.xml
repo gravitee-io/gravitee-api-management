@@ -212,7 +212,7 @@
                             <skip>true</skip>
                         </configuration>
                     </execution>
-                    <execution>
+                    <!--<execution>
                         <id>mysql</id>
                         <goals>
                             <goal>test</goal>
@@ -244,7 +244,7 @@
                                 <jdbcType>mariadb</jdbcType>
                             </systemPropertyVariables>
                         </configuration>
-                    </execution>
+                    </execution>-->
                 </executions>
             </plugin>
         </plugins>
