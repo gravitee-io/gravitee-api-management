@@ -71,6 +71,8 @@ public class ApiListItem {
 
     private int numberOfRatings;
 
+    private Set<String> tags;
+
     public String getId() {
         return id;
     }
@@ -207,6 +209,14 @@ public class ApiListItem {
         this.numberOfRatings = numberOfRatings;
     }
 
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -236,6 +246,7 @@ public class ApiListItem {
             ", manageable=" + manageable +
             ", rate=" + rate +
             ", numberOfRatings=" + numberOfRatings +
+            ", tags=" + tags +
             '}';
     }
 }

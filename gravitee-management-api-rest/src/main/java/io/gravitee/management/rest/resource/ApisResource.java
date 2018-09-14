@@ -270,6 +270,7 @@ public class ApisResource extends AbstractResource {
             apiItem.setRate(ratingSummary.getAverageRate());
             apiItem.setNumberOfRatings(ratingSummary.getNumberOfRatings());
         }
+        apiItem.setTags(api.getTags());
 
         return apiItem;
     }
