@@ -28,22 +28,29 @@
     <div layout="row" layout-wrap class="inset" infinite-scroll="$ctrl.loadMore(query.order, searchApplications, true)"
          infinite-scroll-distance="1" infinite-scroll-container="'#applications-container'">
       <md-table-container style="width: 100%">
-        <table md-table md-row-select="true" ng-model="$ctrl.selectedApplications" ng-init="query.order = 'name'">
+        <table md-table ng-model="$ctrl.selectedApplications" ng-init="query.order = 'name'">
           <thead md-head md-order="query.order">
           <tr md-row>
-            <th md-column></th>
+            <th md-column width="1%"></th>
             <th md-column md-order-by="name" ng-click="$ctrl.loadMore(query.order, searchApplications, false)"><span>Name</span></th>
-            <th md-column md-order-by="type" ng-click="$ctrl.loadMore(query.order, searchApplications, false)">Type</th>
-            <th md-column md-order-by="owner.displayName" ng-click="$ctrl.loadMore(query.order, searchApplications, false)">Owner</th>
+            <th md-column width="1%" md-order-by="type" ng-click="$ctrl.loadMore(query.order, searchApplications, false)">Type</th>
+            <th md-column width="1%" md-order-by="owner.displayName" ng-click="$ctrl.loadMore(query.order, searchApplications, false)">Owner</th>
           </tr>
           </thead>
           <tbody md-body>
           <tr md-row ui-sref="management.applications.application.general({applicationId: application.id})"
               ng-repeat="application in $ctrl.applicationsToDisplay track by application.id">
-            <td md-cell class="api-box-icon default"></td>
+            <td md-cell nowrap><div style="min-width: 70px" class="api-box-icon default"></div></td>
             <td md-cell>{{application.name}}</td>
-            <td md-cell>{{application.type}}</td>
-            <td md-cell>{{application.owner.displayName}}</td>
+            <td md-cell nowrap>{{application.type}}</td>
+            <td md-cell nowrap>
+              <span>
+                {{application.owner.displayName}}
+                <md-tooltip>
+                  <span ng-if="application.owner.email">{{::application.owner.email}}</span>
+                </md-tooltip>
+              </span>
+            </td>
           </tr>
           </tbody>
         </table>

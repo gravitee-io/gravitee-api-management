@@ -30,54 +30,54 @@
         <div layout="row" layout-wrap class="inset" infinite-scroll="$ctrl.loadMore(query.order, searchAPIs, true)"
              infinite-scroll-distance="1" infinite-scroll-container="'#apis-container'">
           <md-table-container style="width: 100%">
-            <table md-table md-row-select="true" ng-model="$ctrl.selectedApis" ng-init="query.order = 'name'">
+            <table md-table ng-model="$ctrl.selectedApis" ng-init="query.order = 'name'">
               <thead md-head md-order="query.order">
               <tr md-row>
-                <th md-column></th>
-                <th md-column md-order-by="name" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)"><span>Name</span></th>
-                <th md-column md-order-by="version" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)">Version</th>
+                <th md-column width="1%" md-order-by="name" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)"><span>Name</span></th>
+                <th md-column width="1%"></th>
                 <th md-column md-order-by="context_path" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)">Context path</th>
-                <th md-column md-order-by="state" ng-click="$ctrl.loadMore(query.order, searchAPIs, false)">State</th>
-                <th md-column>Synchronize state</th>
-                <th md-column>Visibility</th>
-                <th md-column ng-if="$ctrl.isQualityDisplayed">Quality</th>
-                <th md-column>Owner</th>
+                <th md-column width="1%">Tags</th>
+                <th md-column width="1%" ng-if="$ctrl.isQualityDisplayed">Quality</th>
+                <th md-column width="1%">Owner</th>
+                <th md-column width="1%"></th>
               </tr>
               </thead>
               <tbody md-body>
               <tr md-row ui-sref="management.apis.detail.portal.general({apiId: api.id})"
                   ng-repeat="api in $ctrl.apis track by api.id">
-                <td md-cell><img height="40" ng-src="{{::api.picture_url}}"/></td>
-                <td md-cell>{{api.name}}</td>
-                <td md-cell>{{api.version}}</td>
-                <td md-cell>{{api.context_path}}</td>
-                <td md-cell>
-                  <span ng-if="api.state === 'started'" style="color: #429f46;">Started</span>
-                  <span ng-if="api.state !== 'started'" style="color: red">Stopped</span>
+                <td md-cell nowrap>
+                  <img style="max-height:40px; max-width: 40px;margin-right: 8px;" ng-src="{{::api.picture_url}}"/>
+                  {{api.name}}
+                  ({{api.version}})
                 </td>
-                <td md-cell>
+                <td md-cell nowrap>
                   <ng-md-icon ng-if="$ctrl.syncStatus[api.id] === undefined?false:!$ctrl.syncStatus[api.id]"
-                              icon="sync_problem" aria-label="async" size="20"
-                              style="fill: #e8ac3c;">
+                              icon="sync_problem" aria-label="async" size="24"
+                              style="fill: #e8ac3c; padding-bottom: 8px;">
                     <md-tooltip>API out of sync</md-tooltip>
                   </ng-md-icon>
-                </td>
-                <td md-cell>
-                  <ng-md-icon icon="{{$ctrl.getVisibilityIcon(api)}}" size="20" style="fill: #cdcdcd;">
-                    <md-tooltip>{{$ctrl.getVisibility(api)}}</md-tooltip>
+                  <ng-md-icon ng-if="api.state !== 'started'" icon="stop" size="32" style="fill: red;">
+                    <md-tooltip>Stopped</md-tooltip>
                   </ng-md-icon>
                 </td>
-                <td md-cell ng-if="$ctrl.isQualityDisplayed">
+                <td md-cell>{{api.context_path}}</td>
+                <td md-cell nowrap>{{api.tags.join(', ')}}</td>
+                <td md-cell nowrap ng-if="$ctrl.isQualityDisplayed">
                   <span class="gravitee-qm-score-small" ng-class="$ctrl.getQualityMetricCssClass($ctrl.qualityScores[api.id])">
                   {{$ctrl.qualityScores[api.id] === undefined ? "-" : $ctrl.qualityScores[api.id]}}%
                   </span>
                 </td>
-                <td md-cell>
-                  <ng-md-icon icon="person" size="20" style="fill: #cdcdcd;">
+                <td md-cell nowrap>
+                  <span>
+                  {{::api.owner.displayName}}
                     <md-tooltip>
-                      <span>{{::api.owner.displayName}}</span>
-                      <span ng-if="api.owner.email">({{::api.owner.email}})</span>
+                      <span ng-if="api.owner.email">{{::api.owner.email}}</span>
                     </md-tooltip>
+                  </span>
+                </td>
+                <td md-cell nowrap>
+                  <ng-md-icon icon="{{$ctrl.getVisibilityIcon(api)}}" size="20" style="fill: #cdcdcd;">
+                    <md-tooltip>{{$ctrl.getVisibility(api)}}</md-tooltip>
                   </ng-md-icon>
                 </td>
               </tr>

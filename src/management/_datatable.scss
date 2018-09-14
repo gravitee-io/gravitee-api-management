@@ -1,0 +1,19 @@
+table.md-table {
+  .md-cell, .md-column {
+    padding: 0 18px !important;
+  }
+
+  tbody {
+    tr {
+      background-color: #fff;
+      height: 44px !important;
+
+      .md-row {
+        transition: background-color 0.2s;
+      }
+      &:hover {
+        background-color: #eee !important;
+      }
+    }
+  }
+}

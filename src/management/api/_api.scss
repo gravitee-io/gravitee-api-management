@@ -386,15 +386,14 @@ md-switch.md-default-theme .md-bar, md-switch .md-bar {
 .gravitee-qm-score{
 }
 .gravitee-qm-score-small {
-  font-weight: bold;
   text-align: center;
-  min-width: 60px;
-  min-height: 30px;
-  border: 2px solid;
-  border-radius: 30px;
+  min-width: 42px;
+  border: 1px solid;
+  border-radius: 4px;
   padding: 6px;
   margin: 4px 0;
   display: inline-block;
+  font-size: 0.8em;
 }
 .gravitee-qm-score-large {
   font-weight: bold;
