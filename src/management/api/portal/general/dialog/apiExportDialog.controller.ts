@@ -15,7 +15,7 @@
  */
 import * as _ from 'lodash';
 
-function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64) {
+function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64, Build) {
   'ngInject';
 
   $scope.filteredFields = [
@@ -25,13 +25,19 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64)
     { id: "plans", description: "Plans", checked: true }
   ];
 
+  $scope.data = {
+    exportVersion: null
+  };
+
   $scope.hide = function() {
     $mdDialog.hide();
   };
 
+  $scope.graviteeVersion = Build.version;
+
   $scope.export = function() {
     var excludes = _.map(_.filter($scope.filteredFields, (fl: any) => { return !fl.checked; }), "id");
-    ApiService.export(apiId, excludes)
+    ApiService.export(apiId, excludes, $scope.data.exportVersion)
       .then( (response) => {
         let link = document.createElement('a');
         document.body.appendChild(link);

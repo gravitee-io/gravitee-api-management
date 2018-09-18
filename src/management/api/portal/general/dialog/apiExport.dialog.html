@@ -18,6 +18,18 @@
 <md-dialog>
   <form name="formApiDefinition" ng-submit="export()" novalidate>
     <md-dialog-content layout-padding>
+      <div>
+        <h4>Export API definition as :</h4>
+        <div layout="column" layout-align="space-between center">
+          <md-select ng-model="data.exportVersion" placeholder="Export as">
+            <md-option value="default" selected>Current version ({{ graviteeVersion }})</md-option>
+            <md-option value="1.15">1.15.x to 1.16.x version</md-option>
+          </md-select>
+        </div>
+        <span ng-if="data.exportVersion !== 'default'" style="font-size: 75%; color: orange;">
+          <ng-md-icon icon="warning" style="fill: orange;"></ng-md-icon>Some data loss may occur depending on the target version.
+        </span>
+      </div>
       <h4>What do you want to export ?</h4>
       <div layout="column">
         <md-checkbox ng-repeat="fl in filteredFields" aria-label="fl.id" ng-model="fl.checked">

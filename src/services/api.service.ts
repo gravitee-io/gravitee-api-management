@@ -118,8 +118,8 @@ class ApiService {
     return this.$http.post(this.apisURL + 'import/swagger', swaggerDescriptor);
   }
 
-  export(apiId, exclude) {
-    return this.$http.get(this.apisURL + apiId + '/export?exclude=' + exclude.join(","));
+  export(apiId, exclude, exportVersion) {
+    return this.$http.get(this.apisURL + apiId + '/export?exclude=' + exclude.join(",") + (exportVersion ? '&version=' + exportVersion : ''));
   }
 
   verify(criteria) {
