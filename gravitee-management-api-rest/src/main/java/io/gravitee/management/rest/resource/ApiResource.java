@@ -31,6 +31,7 @@ import io.gravitee.management.service.NotifierService;
 import io.gravitee.management.service.QualityMetricsService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
+import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.swagger.annotations.*;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
@@ -395,11 +396,12 @@ public class ApiResource extends AbstractResource {
     })
     public Response exportDefinition(
             @PathParam("api") String api,
+            @QueryParam("version") @DefaultValue("default") String version,
             @QueryParam("exclude") @DefaultValue("") String exclude) {
         final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
         filterSensitiveData(apiEntity);
         return Response
-                .ok(apiService.exportAsJson(api, exclude.split(",")))
+                .ok(apiService.exportAsJson(api, version, exclude.split(",")))
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity)))
                 .build();
     }

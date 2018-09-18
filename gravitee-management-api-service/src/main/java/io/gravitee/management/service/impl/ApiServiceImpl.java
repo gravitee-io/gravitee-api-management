@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.EndpointGroup;
@@ -40,6 +39,7 @@ import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.plan.PlanQuery;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.HookScope;
 import io.gravitee.management.service.notification.NotificationParamsBuilder;
@@ -66,16 +66,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.gravitee.management.model.EventType.PUBLISH_API;
 import static io.gravitee.management.model.PageType.SWAGGER;
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toMap;
-import static io.gravitee.management.model.EventType.PUBLISH_API;
-import static java.util.Collections.singleton;
-import static java.util.Comparator.comparing;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
@@ -695,76 +693,17 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     }
 
     @Override
-    public String exportAsJson(final String apiId, String... filteredFields) {
-        final ApiEntity apiEntity = findById(apiId);
-        List<String> filteredFiedsList = Arrays.asList(filteredFields);
+    public String exportAsJson(final String apiId, String exportVersion, String... filteredFields) {
+        ApiEntity apiEntity = findById(apiId);
 
-        apiEntity.setId(null);
-        apiEntity.setCreatedAt(null);
-        apiEntity.setUpdatedAt(null);
-        apiEntity.setDeployedAt(null);
-        apiEntity.setPrimaryOwner(null);
-        apiEntity.setState(null);
-
-        ObjectNode apiJsonNode = objectMapper.valueToTree(apiEntity);
-        String field;
-
-        field = "groups";
-        if (!filteredFiedsList.contains(field)) {
-            apiJsonNode.remove(field);
-            if (apiEntity.getGroups() != null && !apiEntity.getGroups().isEmpty()) {
-                Set<GroupEntity> groupEntities = groupService.findByIds(apiEntity.getGroups());
-                apiJsonNode.putPOJO(field, groupEntities.stream().map(GroupEntity::getName).collect(Collectors.toSet()));
-            }
-        }
-
-        field = "members";
-        if (!filteredFiedsList.contains(field)) {
-            Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, apiId, RoleScope.API);
-            if (members != null) {
-                members.forEach(m -> {
-                    m.setId(null);
-                    m.setFirstname(null);
-                    m.setLastname(null);
-                    m.setEmail(null);
-                    m.setPermissions(null);
-                    m.setCreatedAt(null);
-                    m.setUpdatedAt(null);
-                });
-            }
-            apiJsonNode.putPOJO(field, members == null ? Collections.emptyList() : members);
-        }
-
-        field = "pages";
-        if (!filteredFiedsList.contains(field)) {
-            List<PageListItem> pageListItems = pageService.findApiPagesByApi(apiId);
-            List<PageEntity> pages = null;
-            if (pageListItems != null) {
-                pages = new ArrayList<>(pageListItems.size());
-                List<PageEntity> finalPages = pages;
-                pageListItems.forEach(f -> {
-                    PageEntity pageEntity = pageService.findById(f.getId());
-                    pageEntity.setId(null);
-                    finalPages.add(pageEntity);
-                });
-            }
-            apiJsonNode.putPOJO(field, pages == null ? Collections.emptyList() : pages);
-        }
-
-        field = "plans";
-        if (!filteredFiedsList.contains(field)) {
-            Set<PlanEntity> plans = planService.findByApi(apiId);
-            Set<PlanEntity> plansToAdd = plans == null
-                    ? Collections.emptySet()
-                    : plans.stream()
-                    .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
-                    .collect(Collectors.toSet());
-            apiJsonNode.putPOJO(field, plansToAdd);
-        }
+        // set metadata for serialize process
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, exportVersion);
+        metadata.put(ApiSerializer.METADATA_FILTERED_FIELDS_LIST, Arrays.asList(filteredFields));
+        apiEntity.setMetadata(metadata);
 
         try {
-            apiJsonNode.remove("permission");
-            return objectMapper.writeValueAsString(apiJsonNode);
+            return objectMapper.writeValueAsString(apiEntity);
         } catch (final Exception e) {
             LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
         }

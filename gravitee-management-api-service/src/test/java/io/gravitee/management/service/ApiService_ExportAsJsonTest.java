@@ -16,18 +16,24 @@
 package io.gravitee.management.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.management.service.jackson.ser.api.Api1_15VersionSerializer;
+import io.gravitee.management.service.jackson.ser.api.ApiCompositeSerializer;
+import io.gravitee.management.service.jackson.ser.api.ApiDefaultSerializer;
+import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -42,6 +48,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
 import java.net.URL;
@@ -87,14 +94,59 @@ public class ApiService_ExportAsJsonTest {
     @Mock
     private GroupService groupService;
 
+    @Mock
+    private ApplicationContext applicationContext;
+
     @Before
     public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
 
+        // register API Entity serializers
+        when(applicationContext.getBean(MembershipService.class)).thenReturn(membershipService);
+        when(applicationContext.getBean(PlanService.class)).thenReturn(planService);
+        when(applicationContext.getBean(PageService.class)).thenReturn(pageService);
+        when(applicationContext.getBean(GroupService.class)).thenReturn(groupService);
+        ApiCompositeSerializer apiCompositeSerializer = new ApiCompositeSerializer();
+        ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
+        apiDefaultSerializer.setApplicationContext(applicationContext);
+
+        ApiSerializer apiPrior117VersionSerializer = new Api1_15VersionSerializer();
+        apiPrior117VersionSerializer.setApplicationContext(applicationContext);
+
+        apiCompositeSerializer.setSerializers(Arrays.asList(apiDefaultSerializer, apiPrior117VersionSerializer));
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(ApiEntity.class, apiCompositeSerializer);
+        objectMapper.registerModule(module);
+
         Api api = new Api();
         api.setId(API_ID);
         api.setDescription("Gravitee.io");
+
+        // set proxy
+        Proxy proxy = new Proxy();
+        proxy.setContextPath("/test");
+        proxy.setStripContextPath(false);
+        proxy.setLoggingMode(LoggingMode.NONE);
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("default-group");
+        Endpoint endpoint = new HttpEndpoint("default", "http://test");
+        endpointGroup.setEndpoints(Collections.singleton(endpoint));
+        LoadBalancer loadBalancer = new LoadBalancer();
+        loadBalancer.setType(LoadBalancerType.ROUND_ROBIN);
+        endpointGroup.setLoadBalancer(loadBalancer);
+        proxy.setGroups(Collections.singleton(endpointGroup));
+
+        try {
+            io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
+            apiDefinition.setPaths(Collections.emptyMap());
+            apiDefinition.setProxy(proxy);
+            String definition = objectMapper.writeValueAsString(apiDefinition);
+            api.setDefinition(definition);
+        } catch (Exception e) {
+            // ignore
+        }
+
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         PageEntity page = new PageEntity();
         page.setName("My Title");
@@ -170,43 +222,136 @@ public class ApiService_ExportAsJsonTest {
 
     @Test
     public void shouldConvertAsJsonForExport() throws TechnicalException, IOException {
+        shouldConvertAsJsonForExport(ApiSerializer.Version.DEFAULT, null);
+    }
 
-        String jsonForExport = apiService.exportAsJson(API_ID, SystemRole.PRIMARY_OWNER.name());
-
-        URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExport.json");
-        String expectedJson = Resources.toString(url, Charsets.UTF_8);
-
-        assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
+    @Test
+    public void shouldConvertAsJsonForExport_1_15() throws TechnicalException, IOException {
+        shouldConvertAsJsonForExport(ApiSerializer.Version.V_1_15, "1_15");
     }
 
     @Test
     public void shouldConvertAsJsonWithoutMembers() throws IOException {
-        String jsonForExport = apiService.exportAsJson(API_ID, SystemRole.PRIMARY_OWNER.name(), "members");
+        shouldConvertAsJsonWithoutMembers(ApiSerializer.Version.DEFAULT, null);
+    }
 
-        URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportWithoutMembers.json");
-        String expectedJson = Resources.toString(url, Charsets.UTF_8);
-
-        assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
+    @Test
+    public void shouldConvertAsJsonWithoutMembers_1_15() throws IOException {
+        shouldConvertAsJsonWithoutMembers(ApiSerializer.Version.V_1_15, "1_15");
     }
 
     @Test
     public void shouldConvertAsJsonWithoutPages() throws IOException {
-        String jsonForExport = apiService.exportAsJson(API_ID, SystemRole.PRIMARY_OWNER.name(), "pages");
+        shouldConvertAsJsonWithoutPages(ApiSerializer.Version.DEFAULT, null);
+    }
 
-        URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportWithoutPages.json");
+    @Test
+    public void shouldConvertAsJsonWithoutPages_1_15() throws IOException {
+        shouldConvertAsJsonWithoutPages(ApiSerializer.Version.V_1_15, "1_15");
+    }
+
+    @Test
+    public void shouldConvertAsJsonWithoutPlans() throws IOException {
+        shouldConvertAsJsonWithoutPlans(ApiSerializer.Version.DEFAULT, null);
+    }
+
+    @Test
+    public void shouldConvertAsJsonWithoutPlans_1_15() throws IOException {
+        shouldConvertAsJsonWithoutPlans(ApiSerializer.Version.V_1_15, "1_15");
+    }
+
+    @Test
+    public void shouldConvertAsJsonMultipleGroups_1_15() throws IOException, TechnicalException {
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setDescription("Gravitee.io");
+        api.setGroups(Collections.singleton("my-group"));
+
+        // set proxy
+        Proxy proxy = new Proxy();
+        proxy.setContextPath("/test");
+        proxy.setStripContextPath(false);
+        proxy.setLoggingMode(LoggingMode.NONE);
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("default-group");
+        Endpoint endpoint = new HttpEndpoint("default", "http://test");
+        endpointGroup.setEndpoints(Collections.singleton(endpoint));
+        LoadBalancer loadBalancer = new LoadBalancer();
+        loadBalancer.setType(LoadBalancerType.ROUND_ROBIN);
+        endpointGroup.setLoadBalancer(loadBalancer);
+
+        EndpointGroup endpointGroup2 = new EndpointGroup();
+        endpointGroup2.setName("backup-group");
+        Endpoint endpoint2 = new HttpEndpoint("backup", "http://test2");
+        endpointGroup2.setEndpoints(Collections.singleton(endpoint2));
+        proxy.setGroups(new HashSet<>(Arrays.asList(endpointGroup, endpointGroup2)));
+
+        Failover failover = new Failover();
+        failover.setMaxAttempts(5);
+        failover.setRetryTimeout(2000);
+        proxy.setFailover(failover);
+
+        Cors cors = new Cors();
+        cors.setEnabled(true);
+        cors.setAccessControlAllowOrigin(Collections.singleton("*"));
+        cors.setAccessControlAllowHeaders(Collections.singleton("content-type"));
+        cors.setAccessControlAllowMethods(Collections.singleton("GET"));
+        proxy.setCors(cors);
+
+        try {
+            io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
+            apiDefinition.setPaths(Collections.emptyMap());
+            apiDefinition.setProxy(proxy);
+            String definition = objectMapper.writeValueAsString(apiDefinition);
+            api.setDefinition(definition);
+        } catch (Exception e) {
+            // ignore
+        }
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        String jsonForExport = apiService.exportAsJson(API_ID, ApiSerializer.Version.V_1_15.getVersion(), SystemRole.PRIMARY_OWNER.name());
+
+        URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportMultipleEndpointGroups-1_15.json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
         assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
     }
 
-    @Test
-    public void shouldConvertAsJsonWithoutPlans() throws IOException {
-        String jsonForExport = apiService.exportAsJson(API_ID, SystemRole.PRIMARY_OWNER.name(), "plans");
+    private void shouldConvertAsJsonForExport(ApiSerializer.Version version, String filename) throws TechnicalException, IOException {
+        String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name());
 
-        URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportWithoutPlans.json");
+        URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExport" + (filename != null ? "-"+ filename : "") +".json");
+        String expectedJson = Resources.toString(url, Charsets.UTF_8);
+
+        assertThat(jsonForExport).isNotNull();
+        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
+    }
+
+    private void shouldConvertAsJsonWithoutMembers(ApiSerializer.Version version, String filename) throws IOException {
+        String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(),SystemRole.PRIMARY_OWNER.name(), "members");
+
+        URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportWithoutMembers" + (filename != null ? "-"+ filename : "") +".json");
+        String expectedJson = Resources.toString(url, Charsets.UTF_8);
+
+        assertThat(jsonForExport).isNotNull();
+        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
+    }
+
+    private void shouldConvertAsJsonWithoutPages(ApiSerializer.Version version, String filename) throws IOException {
+        String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "pages");
+
+        URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportWithoutPages" + (filename != null ? "-"+ filename : "") +".json");
+        String expectedJson = Resources.toString(url, Charsets.UTF_8);
+
+        assertThat(jsonForExport).isNotNull();
+        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
+    }
+
+    private void shouldConvertAsJsonWithoutPlans(ApiSerializer.Version version, String filename) throws IOException {
+        String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "plans");
+
+        URL url =  Resources.getResource("io/gravitee/management/service/export-convertAsJsonForExportWithoutPlans" + (filename != null ? "-"+ filename : "") +".json");
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();

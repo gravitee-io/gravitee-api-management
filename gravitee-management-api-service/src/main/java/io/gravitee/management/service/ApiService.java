@@ -70,7 +70,7 @@ public interface ApiService {
     
     ApiEntity rollback(String apiId, UpdateApiEntity api);
 
-    String exportAsJson(String apiId, String... filteredFields);
+    String exportAsJson(String apiId, String exportVersion, String... filteredFields);
 
     ApiEntity createOrUpdateWithDefinition(ApiEntity apiEntity, String apiDefinition, String userId);
 

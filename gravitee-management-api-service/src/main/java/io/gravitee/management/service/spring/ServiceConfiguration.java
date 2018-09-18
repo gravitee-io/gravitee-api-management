@@ -16,13 +16,17 @@
 package io.gravitee.management.service.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.fetcher.spring.FetcherConfigurationConfiguration;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.management.service.jackson.ser.api.ApiCompositeSerializer;
+import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.management.service.quality.ApiQualityMetricLoader;
 import io.gravitee.plugin.fetcher.spring.FetcherPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
@@ -31,6 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.Collections;
@@ -56,10 +61,20 @@ public class ServiceConfiguration {
 		ObjectMapper objectMapper = new GraviteeMapper();
 		PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
 		objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+
+		// register API serializer
+		SimpleModule module = new SimpleModule();
+		module.addSerializer(ApiEntity.class, apiSerializer());
+		objectMapper.registerModule(module);
 		return objectMapper;
 	}
 	@Bean
 	public ApiQualityMetricLoader apiQualityMetricLoader() {
 		return new ApiQualityMetricLoader();
+	}
+
+	@Bean
+	public ApiSerializer apiSerializer() {
+		return new ApiCompositeSerializer();
 	}
 }

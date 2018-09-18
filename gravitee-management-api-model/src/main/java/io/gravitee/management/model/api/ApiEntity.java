@@ -16,6 +16,7 @@
 package io.gravitee.management.model.api;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Path;
@@ -31,6 +32,13 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 
 /**
+ * --------------------------------------------------------------------------------------------------------------
+ * --------------------------------------------------------------------------------------------------------------
+ * /!\ Do not forget to update {@see io.gravitee.management.service.jackson.ser.api.ApiDefaultSerializer}
+ * for each modification of the ApiEntity class to apply export API changes /!\
+ * --------------------------------------------------------------------------------------------------------------
+ * --------------------------------------------------------------------------------------------------------------
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
@@ -99,6 +107,9 @@ public class ApiEntity {
     @DeploymentRequired
     @JsonProperty(value = "path_mappings")
     private Set<String> pathMappings = new HashSet<>();
+
+    @JsonIgnore
+    private Map<String, Object> metadata = new HashMap<>();
 
     public String getId() {
         return id;
@@ -282,6 +293,14 @@ public class ApiEntity {
 
     public void setPathMappings(Set<String> pathMappings) {
         this.pathMappings = pathMappings;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
     }
 
     @Override
