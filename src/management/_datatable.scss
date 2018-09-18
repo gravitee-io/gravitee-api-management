@@ -16,4 +16,20 @@ table.md-table {
       }
     }
   }
+
+}
+
+//////////////////////////////////////
+// Add more density
+//////////////////////////////////////
+table.md-table.gv-table-dense {
+  .md-cell, .md-column {
+    padding: 0 12px !important;
+  }
+
+  tbody {
+    tr {
+      height: 28px !important;
+    }
+  }
 }

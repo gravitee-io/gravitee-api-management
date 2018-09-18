@@ -115,6 +115,8 @@ import * as jsyaml from 'js-yaml';
 (<any>window).jsyaml = jsyaml;
 
 import * as moment from 'moment';
+window['moment'] = moment;
+require('angular-moment-picker');
 
 import FormDirective from '../components/form/form.directive';
 import AutofocusDirective from '../components/autofocus/autofocus.directive';
@@ -415,7 +417,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
   'utf8-base64', 'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
-  'ngAnimate', 'LocalStorageModule', 'satellizer', ngInfiniteScroll])
+  'ngAnimate', 'LocalStorageModule', 'satellizer', ngInfiniteScroll, 'moment-picker'])
   .config(['cfpLoadingBarProvider', function (cfpLoadingBarProvider) {
     cfpLoadingBarProvider.includeSpinner = false;
   }])

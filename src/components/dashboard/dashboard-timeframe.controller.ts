@@ -17,6 +17,7 @@ import * as _ from 'lodash';
 import * as angular from 'angular';
 import moment = require('moment');
 import { StateService } from '@uirouter/core';
+import {Moment} from "moment";
 
 interface Timeframe {
   id: string,
@@ -37,8 +38,8 @@ class DashboardTimeframeController {
   private autoRefreshInterval: number;
   private currentInterval: any;
   private timeframe: Timeframe;
-  private pickerStartDate: Date;
-  private pickerEndDate: Date;
+  private pickerStartDate: Moment;
+  private pickerEndDate: Moment;
   private current: any;
   private onTimeframeChange: any;
 
@@ -283,13 +284,13 @@ class DashboardTimeframeController {
     this.$state.transitionTo(
       this.$state.current, _.merge(this.$state.params, this.current));
 
-    this.pickerStartDate = moment(timeframe.from).toDate();
-    this.pickerEndDate = moment(timeframe.to).toDate();
+    this.pickerStartDate = moment(timeframe.from);
+    this.pickerEndDate = moment(timeframe.to);
   }
 
   updateRangeDate() {
-    let from =  moment(this.pickerStartDate).startOf('day').unix() * 1000;
-    let to = moment(this.pickerEndDate).endOf('day').unix() * 1000;
+    let from =  this.pickerStartDate.startOf('minute').unix() * 1000;
+    let to = this.pickerEndDate.endOf('minute').unix() * 1000;
 
     let diff = to - from;
 

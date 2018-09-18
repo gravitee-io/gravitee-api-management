@@ -1,3 +1,5 @@
+import {StateService} from "@uirouter/core";
+
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -16,6 +18,13 @@
 const ApplicationLogComponent: ng.IComponentOptions = {
   bindings: {
     log: '<'
+  },
+  controller: function($state: StateService) {
+    this.backStateParams = {
+      from: $state.params['from'],
+      to: $state.params['to'],
+      q: $state.params['q'],
+    };
   },
   template: require('./application-log.html')
 };

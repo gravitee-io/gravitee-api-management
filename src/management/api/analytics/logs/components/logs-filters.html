@@ -56,12 +56,16 @@
             </md-select>
           </md-input-container>
           <md-input-container class="md-block" flex-gt-sm flex="20">
-            <label>Application</label>
-            <input ng-model="$ctrl.filters.application">
+            <label>Applications</label>
+            <md-select ng-model="$ctrl.filters.application" placeholder="Application" multiple>
+              <md-option ng-value="app.id" ng-repeat="app in $ctrl.metadata.applications">{{app.name}}</md-option>
+            </md-select>
           </md-input-container>
           <md-input-container class="md-block" flex-gt-sm flex="20">
-            <label>Plan</label>
-            <input ng-model="$ctrl.filters.plan">
+            <label>Plans</label>
+            <md-select ng-model="$ctrl.filters.plan" placeholder="Plan" multiple>
+              <md-option ng-value="plan.id" ng-repeat="plan in $ctrl.metadata.plans">{{plan.name}}</md-option>
+            </md-select>
           </md-input-container>
           <div>
             <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="logsFiltersForm.$pristine">

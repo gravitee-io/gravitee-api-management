@@ -21,10 +21,16 @@ class ApiLogsController {
   private api: any;
   private logs: {total: string; logs: any[], metadata: any};
   private query: LogsQuery;
+  private metadata: {
+    applications: any[],
+    plans: any[]
+  };
 
   constructor(
     private ApiService: ApiService,
     private resolvedApi,
+    private plans: any,
+    private applications: any,
     private $scope,
     private $state: StateService
   ) {
@@ -32,6 +38,10 @@ class ApiLogsController {
     this.ApiService = ApiService;
     this.$scope = $scope;
     this.api = resolvedApi.data;
+    this.metadata = {
+      applications: applications.data,
+      plans: plans.data
+    };
 
     this.onPaginate = this.onPaginate.bind(this);
 
@@ -53,9 +63,6 @@ class ApiLogsController {
   onPaginate(page) {
     this.query.page = page;
     this.refresh();
-  }
-
-  selectLog(log) {
   }
 
   refresh() {

@@ -1,0 +1,35 @@
+%gv-statuscode {
+  text-align: center;
+  min-width: 42px;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 4px;
+  margin: 4px 0;
+  display: inline-block;
+}
+
+.gv-statuscode-1xx {
+  @extend %gv-statuscode;
+  color: black;
+  border-color: black;
+}
+.gv-statuscode-2xx {
+  @extend %gv-statuscode;
+  color: green;
+  border-color: green;
+}
+.gv-statuscode-3xx {
+  @extend %gv-statuscode;
+  color: yellow;
+  border-color: yellow;
+}
+.gv-statuscode-4xx {
+  @extend %gv-statuscode;
+  color: orange;
+  border-color: orange;
+}
+.gv-statuscode-5xx {
+  @extend %gv-statuscode;
+  color: red;
+  border-color: red;
+}

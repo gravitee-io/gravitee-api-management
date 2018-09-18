@@ -476,6 +476,13 @@ angular-mocks@^1.7.2:
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/angular-mocks/-/angular-mocks-1.7.2.tgz#8a2bc7a7ce355697a48ab00e548b88e78f71fa52"
 
+angular-moment-picker@^0.10.2:
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/angular-moment-picker/-/angular-moment-picker-0.10.2.tgz#54c8b3c228b33dffa3b7b3d0773a585323815c33"
+  dependencies:
+    angular "^1.3"
+    moment "^2.16.0"
+
 angular-permission@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/angular-permission/-/angular-permission-6.0.0.tgz#9ce9c5c57cdf932fd655cf8756f8afc12a3ac72e"
@@ -532,6 +539,10 @@ angular-utf8-base64@^0.0.5:
 "angular@>= 1.2", "angular@>=1.2.26 <=1.7", angular@>=1.3.0, angular@>=1.4.8, angular@^1.0.1, angular@^1.3.15, angular@^1.3.2, angular@^1.4.8, angular@^1.6.5, angular@^1.7.2:
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.7.2.tgz#687b955dbe5c533f8d73460461707af00360251f"
+
+angular@^1.3:
+  version "1.7.4"
+  resolved "https://registry.yarnpkg.com/angular/-/angular-1.7.4.tgz#c1bf4884c2d470c06907737a1bf0835a9f646f31"
 
 angulartics-google-analytics@^0.5.0:
   version "0.5.0"
@@ -3281,9 +3292,9 @@ etag@^1.8.1, etag@~1.8.1:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
 
-"eve@https://github.com/adobe-webplatform/eve#eef80ed":
+"eve@git://github.com/adobe-webplatform/eve.git#eef80ed":
   version "0.4.1"
-  resolved "https://github.com/adobe-webplatform/eve#eef80ed8d188423c2272746fb8ae5cc8dad84cb1"
+  resolved "git://github.com/adobe-webplatform/eve.git#eef80ed8d188423c2272746fb8ae5cc8dad84cb1"
 
 event-emitter@^0.3.5, event-emitter@~0.3.4:
   version "0.3.5"
@@ -6779,7 +6790,7 @@ modify-filename@^1.0.0, modify-filename@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/modify-filename/-/modify-filename-1.1.0.tgz#9a2dec83806fbb2d975f22beec859ca26b393aa1"
 
-moment@^2.22.2:
+moment@^2.16.0, moment@^2.22.2:
   version "2.22.2"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.22.2.tgz#3c257f9839fc0e93ff53149632239eb90783ff66"
 
@@ -8135,7 +8146,7 @@ range-parser@^1.0.3, range-parser@^1.2.0, range-parser@~1.2.0:
   version "2.2.0-c"
   resolved "https://github.com/nhnent/raphael.git#78a6ed3ec269f33b6457b0ec66f8c3d1f2ed70e0"
   dependencies:
-    eve "https://github.com/adobe-webplatform/eve#eef80ed"
+    eve "git://github.com/adobe-webplatform/eve.git#eef80ed"
 
 raw-body@2.3.3, raw-body@^2.2.0, raw-body@^2.3.2:
   version "2.3.3"
@@ -8417,32 +8428,6 @@ request-progress@^2.0.1:
 request@2.75.x:
   version "2.75.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.75.0.tgz#d2b8268a286da13eaa5d01adf5d18cc90f657d93"
-  dependencies:
-    aws-sign2 "~0.6.0"
-    aws4 "^1.2.1"
-    bl "~1.1.2"
-    caseless "~0.11.0"
-    combined-stream "~1.0.5"
-    extend "~3.0.0"
-    forever-agent "~0.6.1"
-    form-data "~2.0.0"
-    har-validator "~2.0.6"
-    hawk "~3.1.3"
-    http-signature "~1.1.0"
-    is-typedarray "~1.0.0"
-    isstream "~0.1.2"
-    json-stringify-safe "~5.0.1"
-    mime-types "~2.1.7"
-    node-uuid "~1.4.7"
-    oauth-sign "~0.8.1"
-    qs "~6.2.0"
-    stringstream "~0.0.4"
-    tough-cookie "~2.3.0"
-    tunnel-agent "~0.4.1"
-
-request@2.87.0, request@^2.0.0, request@^2.74.0, request@^2.81.0, request@^2.87.0:
-  version "2.87.0"
-  resolved "https://registry.yarnpkg.com/request/-/request-2.87.0.tgz#32f00235cd08d482b4d0d68db93a829c0ed5756e"
   dependencies:
     aws-sign2 "~0.6.0"
     aws4 "^1.2.1"

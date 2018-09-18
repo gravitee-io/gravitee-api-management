@@ -16,19 +16,25 @@
 
 -->
 
+<div class="md-actions" layout="row">
+  <md-button ui-sref="management.apis.detail.analytics.logs($ctrl.backStateParams)">
+    <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+    <span style="color: rgba(0, 0, 0, 0.54);">Back to logs</span>
+  </md-button>
+</div>
 
-<div class="log-table" layout="row" flex layout-padding layout-align="space-around center">
-  <div layout="column" flex="33">
+<div class="log-table" layout="row" flex layout-padding layout-align="space-around start">
+  <div layout="column" flex="50">
     <span class="log-header" style="text-align: center">Request</span>
     <md-table-container>
-      <table md-table>
+      <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Date</span></td>
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Date</td>
           <td md-cell>{{$ctrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
         <tr md-row>
-          <td md-cell><span style="font-weight: bold">Request</span></td>
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Request</td>
           <td md-cell>
             <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected">
                   {{$ctrl.log.method | uppercase}}
@@ -36,28 +42,28 @@
             <span>{{$ctrl.log.uri}}</span>
           </td>
         </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Content-length (in / out)</span></td>
-          <td md-cell>{{$ctrl.log.requestContentLength}} / {{$ctrl.log.responseContentLength}}</td>
+        <tr md-row>
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Content-length</td>
+          <td md-cell>{{$ctrl.log.requestContentLength}} / {{$ctrl.log.responseContentLength}} (in / out)</td>
         </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Status</span></td>
-          <td md-cell>{{$ctrl.log.status}}</td>
+        <tr md-row>
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Status</td>
+          <td md-cell><span class="gv-statuscode-{{$ctrl.log.status / 100 | number:0}}xx">{{$ctrl.log.status}}</span></td>
         </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Response time</span></td>
+        <tr md-row>
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Response time</td>
           <td md-cell>{{$ctrl.log.responseTime | number}} ms (api: {{$ctrl.log.apiResponseTime | number}} ms / lat.: {{$ctrl.log.responseTime - $ctrl.log.apiResponseTime | number}} ms)</td>
         </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Request ID</span></td>
+        <tr md-row>
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Request ID</td>
           <td md-cell>{{$ctrl.log.id}}</td>
         </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Transaction ID</span></td>
+        <tr md-row>
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Transaction ID</td>
           <td md-cell>{{$ctrl.log.transactionId}}</td>
         </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Remote IP</span></td>
+        <tr md-row>
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Remote IP</td>
           <td md-cell>{{$ctrl.log.remoteAddress}}</td>
         </tr>
         </tbody>
@@ -65,47 +71,49 @@
     </md-table-container>
   </div>
 
-  <div layout="column" flex="33">
+  <div layout="column" flex="50">
     <span class="log-header" style="text-align: center">Context</span>
     <md-table-container>
-      <table md-table>
+      <table md-table class="gv-table-dense">
         <tbody md-body>
-        <tr md-row style="height: 30px;" ng-if="$ctrl.log.apiKey">
-          <td md-cell><span style="font-weight: bold">API Key</span></td>
+        <tr md-row ng-if="$ctrl.log.apiKey">
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>API Key</td>
           <td md-cell>{{$ctrl.log.apiKey}}</td>
         </tr>
-        <tr md-row style="height: 30px;" ng-if="$ctrl.log.application">
-          <td md-cell><span style="font-weight: bold">Application</span></td>
+        <tr md-row ng-if="$ctrl.log.application">
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Application</td>
           <td md-cell>{{$ctrl.log.metadata[$ctrl.log.application].name}}</td>
         </tr>
-        <tr md-row style="height: 30px;" ng-if="$ctrl.log.plan">
-          <td md-cell><span style="font-weight: bold">Plan</span></td>
+        <tr md-row ng-if="$ctrl.log.plan">
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Plan</td>
           <td md-cell>{{$ctrl.log.metadata[$ctrl.log.plan].name}}</td>
         </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Endpoint</span></td>
+        <tr md-row>
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Endpoint</td>
           <td md-cell>{{$ctrl.log.endpoint}}</td>
+        </tr>
+        <tr md-row ng-if="$ctrl.log.subscription">
+          <td md-cell></td>
+          <td md-cell><a ui-sref="management.apis.detail.portal.subscriptions.subscription({subscriptionId: $ctrl.log.subscription})">Go to subscription</a></td>
         </tr>
         </tbody>
       </table>
     </md-table-container>
 
-    <br>
-
     <span class="log-header" style="text-align: center">Gateway</span>
     <md-table-container>
-      <table md-table>
+      <table md-table class="gv-table-dense">
         <tbody md-body>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Host</span></td>
+        <tr md-row>
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Host</td>
           <td md-cell>{{$ctrl.log.metadata[$ctrl.log.gateway].hostname}}</td>
         </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">IP</span></td>
+        <tr md-row>
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>IP</td>
           <td md-cell>{{$ctrl.log.metadata[$ctrl.log.gateway].ip}}</td>
         </tr>
-        <tr md-row style="height: 30px;" ng-if="$ctrl.log.tenant">
-          <td md-cell><span style="font-weight: bold">Tenant</span></td>
+        <tr md-row ng-if="$ctrl.log.tenant">
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Tenant</td>
           <td md-cell>{{$ctrl.log.tenant}}</td>
         </tr>
         </tbody>
@@ -157,7 +165,7 @@
 
     <div layout="column" flex="45" ng-if="$ctrl.log.clientRequest">
       <md-table-container>
-        <table md-table>
+        <table md-table class="gv-table-dense">
           <tbody md-body>
             <tr md-row>
               <td md-cell>
@@ -174,7 +182,7 @@
       <br>
 
       <md-table-container>
-        <table md-table>
+        <table md-table class="gv-table-dense">
           <tbody md-body>
           <tr md-row ng-repeat="(key, value) in $ctrl.log.clientRequest.headers" style="height: 30px;">
             <td md-cell><span style="font-weight: bold">{{key}}</span></td>
@@ -205,7 +213,7 @@
 
     <div layout="column" flex="45" ng-if="$ctrl.log.proxyRequest">
       <md-table-container>
-        <table md-table>
+        <table md-table class="gv-table-dense">
           <tbody md-body>
             <tr md-row>
               <td md-cell>
@@ -222,7 +230,7 @@
       <br>
 
       <md-table-container ng-if="$ctrl.log.endpoint">
-        <table md-table>
+        <table md-table class="gv-table-dense">
           <tbody md-body>
           <tr md-row ng-repeat="(key, value) in $ctrl.log.proxyRequest.headers" style="height: 30px;">
             <td md-cell><span style="font-weight: bold">{{key}}</span></td>
@@ -253,11 +261,11 @@
 
     <div layout="column" flex="45" ng-if="$ctrl.log.clientResponse">
       <md-table-container>
-        <table md-table>
+        <table md-table class="gv-table-dense">
           <tbody md-body>
             <tr md-row>
               <td md-cell><span style="font-weight: bold">Status</span></td>
-              <td md-cell>{{$ctrl.log.clientResponse.status | number}}</td>
+              <td md-cell><span class="gv-statuscode-{{$ctrl.log.clientResponse.status / 100 | number:0}}xx">{{$ctrl.log.clientResponse.status | number}}</span></td>
             </tr>
           </tbody>
         </table>
@@ -266,7 +274,7 @@
       <br>
 
         <md-table-container>
-          <table md-table>
+          <table md-table class="gv-table-dense">
             <tbody md-body>
             <tr md-row ng-repeat="(key, value) in $ctrl.log.clientResponse.headers" style="height: 30px;">
               <td md-cell><span style="font-weight: bold">{{key}}</span></td>
@@ -297,11 +305,11 @@
 
     <div layout="column" flex="45" ng-if="$ctrl.log.proxyResponse">
       <md-table-container>
-        <table md-table>
+        <table md-table class="gv-table-dense">
           <tbody md-body>
           <tr md-row>
             <td md-cell><span style="font-weight: bold">Status</span></td>
-            <td md-cell>{{$ctrl.log.proxyResponse.status | number}}</td>
+            <td md-cell><span class="gv-statuscode-{{$ctrl.log.proxyResponse.status / 100 | number:0}}xx">{{$ctrl.log.proxyResponse.status | number}}</span></td>
           </tr>
           </tbody>
         </table>
@@ -310,7 +318,7 @@
       <br>
 
       <md-table-container ng-if="$ctrl.log.endpoint">
-        <table md-table>
+        <table md-table class="gv-table-dense">
           <tbody md-body>
           <tr md-row ng-repeat="(key, value) in $ctrl.log.proxyResponse.headers" style="height: 30px;">
             <td md-cell><span style="font-weight: bold">{{key}}</span></td>

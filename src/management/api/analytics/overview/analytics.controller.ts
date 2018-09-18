@@ -63,7 +63,7 @@ class ApiAnalyticsController {
           ranges: '100:199%3B200:299%3B300:399%3B400:499%3B500:599'
         },
         labels: ['1xx', '2xx', '3xx', '4xx', '5xx'],
-        colors: ['#42a5f5', '#66bb6a', '#ffee58', '#ef5350', '#8d6e63']
+        colors: ['#42a5f5', '#66bb6a', '#ffee58', '#ff8f2d', '#ef5350']
       }
     }, {
       row: 1,

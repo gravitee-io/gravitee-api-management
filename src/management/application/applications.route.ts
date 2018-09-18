@@ -245,7 +245,7 @@ function applicationsConfig($stateProvider) {
       }
     })
     .state('management.applications.application.log', {
-      url: '/logs/:logId?timestamp',
+      url: '/logs/:logId?timestamp&from&to&q',
       component: 'applicationLog',
       resolve: {
         log: ($stateParams, ApplicationService: ApplicationService) =>

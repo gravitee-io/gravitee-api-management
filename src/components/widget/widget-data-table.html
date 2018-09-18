@@ -16,7 +16,7 @@
 
 -->
 <md-table-container>
-  <table md-table class="gravitee-analytics-top-hits-table" multiple md-row-select="$ctrl.widget.chart.selectable" data-ng-model="$ctrl.selected">
+  <table md-table class="gravitee-analytics-top-hits-table gv-table-dense" multiple md-row-select="$ctrl.widget.chart.selectable" data-ng-model="$ctrl.selected">
     <thead md-head>
       <tr md-row style="height: 30px;">
         <th md-column ng-repeat="column in $ctrl.widget.chart.columns" ng-attr-md-numeric="$last">{{column}}</th>

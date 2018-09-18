@@ -32,6 +32,8 @@ $backgroundColor: rgb(45, 50, 62);
 @import '~highlight.js/styles/tomorrow.css';
 @import 'management/configuration/views/view/view';
 @import 'management/datatable';
+@import 'management/analytics';
+@import '~angular-moment-picker/dist/angular-moment-picker.css';
 
 $backgroundColor: rgb(45, 50, 62);
 

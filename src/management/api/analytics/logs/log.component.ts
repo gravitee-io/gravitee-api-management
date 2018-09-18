@@ -1,3 +1,5 @@
+import {StateService} from "@uirouter/core";
+
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -17,7 +19,12 @@ const LogComponent: ng.IComponentOptions = {
   bindings: {
     log: '<'
   },
-  controller: function() {
+  controller: function($state: StateService) {
+    this.backStateParams = {
+      from: $state.params['from'],
+      to: $state.params['to'],
+      q: $state.params['q'],
+    };
     this.getMimeType = function(log) {
 
       if (log.headers['Content-Type'] !== undefined) {

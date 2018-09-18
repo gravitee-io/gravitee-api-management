@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import {IScope} from "angular";
+import { StateService } from '@uirouter/core';
 
+interface ILogsFiltersScope extends IScope {
+  logsFiltersForm: any;
+  $parent: any;
+}
 class LogsFiltersController {
   public filters: any = {};
   public methods = {
@@ -91,25 +97,75 @@ class LogsFiltersController {
     'id': '_id'
   };
   private onFiltersChange: any;
-  private reordererdMedata: any;
-  private $scope;
+  private metadata: any;
+  private api: any;
 
-  constructor($scope) {
+  constructor(private $scope: ILogsFiltersScope,
+              private $state: StateService) {
     'ngInject';
     this.$scope = $scope;
+    this.api = this.$scope.$parent.apiCtrl.api;
   }
 
-  $onChanges(changesObj) {
-    if (changesObj.metadata) {
-      let metadata = changesObj.metadata.currentValue;
-      if (metadata) {
-        this.reordererdMedata = this.swap(metadata);
+  $onInit() {
+    //init filters based on stateParams
+    let q = this.$state.params["q"];
+    if (q) {
+      this.decodeQueryFilters(q);
+    }
+  }
+
+  private decodeQueryFilters(query) {
+    let filters = query.split("AND");
+    for (let i = 0; i < filters.length; i++) {
+      let filter = filters[i].replace(/[()]/g, "");
+      let kv = filter.split(":");
+      let k = kv[0].trim();
+      let v = kv[1].replace(/[\\\"]/g, "").split('OR').map(x => x.trim());
+      switch(k) {
+        case 'application':
+          this.filters.application = v;
+          break;
+        case 'path':
+          this.filters.uri = this.api.context_path + v[0];
+          break;
+        case 'uri':
+          this.filters.uri = v[0];
+          break;
+        case 'plan':
+          this.filters.plan = v;
+          break;
+        case 'response-time':
+          this.filters.responseTime = v;
+          break;
+        case 'method':
+          this.filters.method = v;
+          break;
+        case 'status':
+          this.filters.status = v;
+          break;
+        case '_id':
+          this.filters.id = v[0];
+          break;
+        case 'transaction':
+          this.filters.transaction = v[0];
+          break;
+        default:
+          console.log('unknown filter: ', k);
+          break;
       }
     }
-  };
-
+  }
   search() {
     let query = this.buildQuery(this.filters);
+    // Update the query parameter
+    this.$state.transitionTo(
+      this.$state.current,
+      _.merge(this.$state.params, {
+        q: query
+      }),
+      {notify: false});
+    
     this.onFiltersChange({filters : query});
   }
 
@@ -140,16 +196,13 @@ class LogsFiltersController {
     let that = this;
     _.forEach( keys, key => {
       let val = filters[key];
-      if (key === 'application' || key === 'plan') {
-        val = that.map(val, that.reordererdMedata, false);
-      }
       if (key === 'uri') {
         if (!val.startsWith('/')) {
           val = '/' + val;
         }
         val = val.replace(/\//g, '\\\\/') + '*';
       }
-      let params = (val.constructor === Array && val.length > 1) ? that.convert(val) : val;
+      let params = (val.constructor === Array && val.length > 1) ? LogsFiltersController.convert(val) : val;
       query += that.map(key, that.fields, true) + ':' + params;
       if (index + 1 < keys.length) {
         query += ' AND ';
@@ -159,7 +212,7 @@ class LogsFiltersController {
     return query;
   }
 
-  private convert(params) {
+  private static convert(params) {
     return '(' + params.join(' OR ') + ')';
   }
 
@@ -171,14 +224,6 @@ class LogsFiltersController {
       val = list[_.filter(Object.keys(list), elt => elt.toLowerCase().includes(_val.toLowerCase())).pop()];
     }
     return (val) ? val : _val;
-  }
-
-  private swap(metadata) {
-    let ret = {};
-    for(let key in metadata){
-      ret[metadata[key].name] = key;
-    }
-    return ret;
   }
 }
 

@@ -19,6 +19,7 @@
     "angular-material-data-table": "^0.10.10",
     "angular-material-icons": "^0.7.1",
     "angular-messages": "^1.7.2",
+    "angular-moment-picker": "^0.10.2",
     "angular-permission": "^6.0.0",
     "angular-sanitize": "^1.7.2",
     "angular-schema-form": "^0.8.13",

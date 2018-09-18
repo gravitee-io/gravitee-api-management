@@ -16,12 +16,18 @@
 
 -->
 
+<div class="md-actions" layout="row">
+  <md-button ui-sref="management.applications.application.logs($ctrl.backStateParams)">
+    <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+    <span style="color: rgba(0, 0, 0, 0.54);">Back to logs</span>
+  </md-button>
+</div>
 
 <div class="log-table" layout="row" flex layout-padding layout-align="space-around center">
   <div layout="column" flex="33">
     <span class="log-header" style="text-align: center">Request</span>
     <md-table-container>
-      <table md-table>
+      <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row style="height: 30px;">
           <td md-cell><span style="font-weight: bold">Date</span></td>
@@ -43,7 +49,7 @@
   <div layout="column" flex="33">
     <span class="log-header" style="text-align: center">Context</span>
     <md-table-container>
-      <table md-table>
+      <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row style="height: 30px;" ng-if="$ctrl.log.apiKey">
           <td md-cell><span style="font-weight: bold">API Key</span></td>
@@ -73,7 +79,7 @@
     </div>
 
     <md-table-container flex="30">
-      <table md-table>
+      <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row style="height: 30px;">
           <td md-cell><span style="font-weight: bold">Method</span></td>
@@ -96,7 +102,7 @@
     </md-table-container>
 
     <md-table-container flex="65">
-      <table md-table>
+      <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row ng-repeat="(key, value) in $ctrl.log.request.headers" style="height: 30px;">
           <td md-cell><span style="font-weight: bold">{{key}}</span></td>
@@ -113,11 +119,11 @@
     </div>
 
     <md-table-container flex="30">
-      <table md-table>
+      <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row style="height: 30px;">
           <td md-cell><span style="font-weight: bold">Status</span></td>
-          <td md-cell>{{$ctrl.log.status | number}}</td>
+          <td md-cell><span class="gv-statuscode-{{$ctrl.log.status / 100 | number:0}}xx">{{$ctrl.log.status | number}}</span></td>
         </tr>
         <tr md-row style="height: 30px;">
           <td md-cell><span style="font-weight: bold">Content-length</span></td>
@@ -132,7 +138,7 @@
     </md-table-container>
 
     <md-table-container flex="65">
-      <table md-table>
+      <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row ng-repeat="(key, value) in $ctrl.log.response.headers" style="height: 30px;">
           <td md-cell><span style="font-weight: bold">{{key}}</span></td>

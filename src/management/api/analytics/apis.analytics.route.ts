@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import ApiService from '../../../services/api.service';
+import {StateParams} from '@uirouter/core';
 
 export default apisAnalyticsRouterConfig;
 
@@ -81,13 +82,19 @@ function apisAnalyticsRouterConfig($stateProvider) {
           type: 'string',
           dynamic: true
         }
+      },
+      resolve: {
+        plans: ($stateParams: StateParams, ApiService: ApiService) =>
+          ApiService.getApiPlans($stateParams['apiId']),
+        applications: ($stateParams: StateParams, ApiService: ApiService) =>
+          ApiService.getSubscribers($stateParams['apiId'])
       }
     })
     .state('management.apis.detail.analytics.log', {
-      url: '/logs/:logId?timestamp',
+      url: '/logs/:logId?timestamp&from&to&q',
       component: 'log',
       resolve: {
-        log: ($stateParams, ApiService: ApiService) =>
+        log: ($stateParams: StateParams, ApiService: ApiService) =>
           ApiService.getLog($stateParams['apiId'], $stateParams['logId'], $stateParams['timestamp']).then(response => response.data)
       },
       data: {
