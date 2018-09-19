@@ -107,7 +107,7 @@
     </md-table-container>
   </div>
 
-  <div class="gravitee-instances-content">
+  <div class="gravitee-instances-content" ng-if="$ctrl.hasSystemProperties()">
     <div class="gravitee-instances-table-title" layout="row">
       <div flex="50">
         <ng-md-icon icon="assignment"></ng-md-icon> System properties

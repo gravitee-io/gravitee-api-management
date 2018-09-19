@@ -46,6 +46,10 @@ class InstanceEnvironmentController {
       }
     });
   }
+
+  hasSystemProperties() {
+    return Object.keys(this.systemPropertiesProvider).length > 0;
+  }
 }
 
 export default InstanceEnvironmentController;
