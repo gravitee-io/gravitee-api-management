@@ -80,45 +80,47 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
 
     @Override
     protected void doStart() throws Exception {
-        // Start all the groups
-        api.getProxy()
-                .getGroups()
-                .stream()
-                .map(new Function<EndpointGroup, EndpointGroupLifecycleManager>() {
-                    @Override
-                    public EndpointGroupLifecycleManager apply(EndpointGroup group) {
-                        EndpointGroupLifecycleManager groupLifecycleManager;
+        if (api.getProxy().getGroups() != null) {
+            // Start all the groups
+            api.getProxy()
+                    .getGroups()
+                    .stream()
+                    .map(new Function<EndpointGroup, EndpointGroupLifecycleManager>() {
+                        @Override
+                        public EndpointGroupLifecycleManager apply(EndpointGroup group) {
+                            EndpointGroupLifecycleManager groupLifecycleManager;
 
-                        if (gatewayConfiguration.tenant().isPresent()) {
-                            groupLifecycleManager = new MultiTenantAwareEndpointLifecycleManager(
-                                    group, gatewayConfiguration.tenant().get());
-                        } else {
-                            groupLifecycleManager = new EndpointGroupLifecycleManager(group);
+                            if (gatewayConfiguration.tenant().isPresent()) {
+                                groupLifecycleManager = new MultiTenantAwareEndpointLifecycleManager(
+                                        group, gatewayConfiguration.tenant().get());
+                            } else {
+                                groupLifecycleManager = new EndpointGroupLifecycleManager(group);
+                            }
+
+                            applicationContext.getAutowireCapableBeanFactory().autowireBean(groupLifecycleManager);
+
+                            groups.put(group.getName(), groupLifecycleManager);
+
+                            // Set the first group as the default group
+                            if (defaultGroup == null) {
+                                defaultGroup = groupLifecycleManager;
+                            }
+
+                            return groupLifecycleManager;
                         }
-
-                        applicationContext.getAutowireCapableBeanFactory().autowireBean(groupLifecycleManager);
-
-                        groups.put(group.getName(), groupLifecycleManager);
-
-                        // Set the first group as the default group
-                        if (defaultGroup == null) {
-                            defaultGroup = groupLifecycleManager;
+                    })
+                    .forEach(new Consumer<EndpointGroupLifecycleManager>() {
+                        @Override
+                        public void accept(EndpointGroupLifecycleManager groupLifecycleManager) {
+                            try {
+                                groupLifecycleManager.start();
+                                referenceRegister.add(new GroupReference(groupLifecycleManager.getGroup()));
+                            } catch (Exception ex) {
+                                logger.error("An error occurs while starting a group of endpoints: name[{}]", groupLifecycleManager);
+                            }
                         }
-
-                        return groupLifecycleManager;
-                    }
-                })
-                .forEach(new Consumer<EndpointGroupLifecycleManager>() {
-                    @Override
-                    public void accept(EndpointGroupLifecycleManager groupLifecycleManager) {
-                        try {
-                            groupLifecycleManager.start();
-                            referenceRegister.add(new GroupReference(groupLifecycleManager.getGroup()));
-                        } catch (Exception ex) {
-                            logger.error("An error occurs while starting a group of endpoints: name[{}]", groupLifecycleManager);
-                        }
-                    }
-                });
+                    });
+        }
     }
 
     @Override

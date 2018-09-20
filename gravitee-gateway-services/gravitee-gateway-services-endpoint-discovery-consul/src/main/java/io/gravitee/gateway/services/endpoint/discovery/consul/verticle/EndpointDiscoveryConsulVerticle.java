@@ -35,10 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -141,13 +138,17 @@ public class EndpointDiscoveryConsulVerticle extends AbstractVerticle implements
         LOGGER.info("Remove a de-registered endpoint from Consul.io: id[{}] name[{}]",
                 service.getId(), service.getName());
         Endpoint endpoint = createEndpoint(service);
-        //TODO: check that there is an existing group, if not, create a default one
+        if (api.getProxy().getGroups() == null) {
+            api.getProxy().setGroups(new HashSet<>());
+        }
         api.getProxy().getGroups().iterator().next().getEndpoints().remove(endpoint);
     }
 
     private void handleRegisterService(Api api, Service service) {
         Endpoint createdEndpoint = createEndpoint(service);
-        //TODO: check that there is an existing group, if not, create a default one
+        if (api.getProxy().getGroups() == null) {
+            api.getProxy().setGroups(new HashSet<>());
+        }
         Set<Endpoint> managedEndpoints = api.getProxy().getGroups().iterator().next().getEndpoints();
 
         // Get previous endpoint reference
