@@ -29,7 +29,7 @@
       "title": "Documentation"
     },
     "apis": {
-      "search": "Filtrer APIs...",
+      "search": "Rechercher une API...",
       "top": "APIs mises en avant",
       "all": "Voir toutes les APIs"
     }
@@ -47,7 +47,10 @@
     "support": "Support"
   },
   "apis": {
-    "filter": "Filtrer APIs..."
+    "filter": "Rechercher dans les APIs...",
+    "search": {
+      "view": "Résultats de la recherche"
+    }
   },
   "api": {
     "version": "Version",

@@ -13,42 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { StateService } from "@uirouter/core";
 import angular = require('angular');
 import ApiService from "../../services/api.service";
 
 export class HomeController {
+  private query: string = '';
   private apis: any[];
   private homepage: any;
   private ratingEnabled: boolean;
 
-  constructor ( private resolvedApis,
-                private $state,
-                private resolvedHomepage,
-                private Constants,
-                private ApiService: ApiService) {
+  constructor (
+    private resolvedApis,
+    private $state: StateService,
+    private resolvedHomepage,
+    private Constants,
+    private ApiService: ApiService
+  ) {
     'ngInject';
     this.apis = resolvedApis;
     this.homepage = resolvedHomepage;
-    this.$state = $state;
     this.ratingEnabled = ApiService.isRatingEnabled();
   }
 
-  querySearch(query) {
-    var results = query ? this.apis.filter( this.createFilterFor(query) ) : this.apis;
-    return results;
-  }
-
-  createFilterFor(query) {
-    var lowercaseQuery = angular.lowercase(query);
-    return function filterFn(item) {
-      return (item.value.indexOf(lowercaseQuery) === 0);
-    };
-  }
-
-  selectedItemChange(api) {
-    if (api) {
-      this.$state.go('portal.api.detail', {'apiId': api.id});
-    }
+  search() {
+    this.$state.go('portal.apilist', {q: this.query, view: 'results'});
   }
 
   getLogo() {

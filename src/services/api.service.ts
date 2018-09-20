@@ -48,6 +48,10 @@ class ApiService {
     return this.$http.get(this.apisURL + (view ? '?view=' + view : ''));
   }
 
+  searchApis(query?: string) {
+    return this.$http.post(this.apisURL + '_search?q=' + query);
+  }
+
   listTopAPIs() {
     return this.$http.get(this.apisURL + '?top=true');
   }

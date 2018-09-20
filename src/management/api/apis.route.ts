@@ -20,6 +20,7 @@ import GroupService from '../../services/group.service';
 import * as _ from 'lodash';
 import NotificationSettingsService from '../../services/notificationSettings.service';
 import {HookScope} from '../../entities/hookScope';
+import ApiService from "../../services/api.service";
 
 export default apisRouterConfig;
 
@@ -101,12 +102,16 @@ function apisRouterConfig($stateProvider) {
       }
     })
     .state('management.apis.list', {
-      url: '/?view',
+      url: '/?q',
       template: require('./apis.html'),
       controller: ApisController,
       controllerAs: '$ctrl',
       resolve: {
-        resolvedApis: function ($stateParams, ApiService) {
+        resolvedApis: function ($stateParams, ApiService: ApiService) {
+          if ($stateParams.q) {
+            return ApiService.searchApis($stateParams.q);
+          }
+
           return ApiService.list();
         }
       },

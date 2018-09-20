@@ -20,6 +20,7 @@ import PortalPagesService from "../services/portalPages.service";
 import ApplicationService from "../services/applications.service";
 import UserService from '../services/user.service';
 import _ = require('lodash');
+import PortalService from "../services/portal.service";
 
 function portalRouterConfig($stateProvider) {
   'ngInject';
@@ -61,12 +62,15 @@ function portalRouterConfig($stateProvider) {
       controller: 'PortalApisController'
     })
     .state('portal.apilist', {
-      url: '/apis?view',
+      url: '/apis?view&q',
       template: require('./api/api-list.html'),
       controller: 'PortalApiListController',
       controllerAs: 'apisCtrl',
       resolve: {
-        resolvedApis: function ($stateParams, ApiService, ViewService: ViewService) {
+        resolvedApis: function ($stateParams, PortalService: PortalService, ApiService, ViewService: ViewService) {
+          if ($stateParams.q) {
+            return PortalService.searchApis($stateParams.q);
+          }
           if ($stateParams.view) {
             return ApiService.list($stateParams.view);
           }
@@ -86,6 +90,7 @@ function portalRouterConfig($stateProvider) {
       },
       params: {
         view: undefined,
+        q: undefined
       }
     })
     .state('portal.views', {

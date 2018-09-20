@@ -21,6 +21,7 @@ import ApiService from "../../services/api.service";
 
 export class PortalApiListController {
 
+  private query: string = '';
   private apis: any[];
   private views: any[];
   private view: any;
@@ -51,6 +52,7 @@ export class PortalApiListController {
     } else {
       this.tilesMode = JSON.parse($window.sessionStorage.getItem(this.tilesModeKey));
     }
+    this.query = $state.params.q;
     this.apis = resolvedApis.data;
     this.views = resolvedViews;
     this.ratingEnabled = this.ApiService.isRatingEnabled();
@@ -72,6 +74,10 @@ export class PortalApiListController {
     $transitions.onStart({to: $state.current.name}, () => {
       this.hideApis = true;
     });
+  }
+
+  search() {
+    this.$state.go('.', {q: this.query, view: 'results'});
   }
 
   goToApi(api) {

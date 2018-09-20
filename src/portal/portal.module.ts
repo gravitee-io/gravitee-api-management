@@ -33,6 +33,7 @@ import { PortalApisController } from './api/apis.controller';
 import PortalApiListController from './api/api-list.controller';
 
 // API
+import PortalService from '../services/portal.service';
 import ApiComponent from './api/api.component';
 import ApiHeaderComponent from './api/header/api-header.component';
 import ApiHomepageComponent from './api/home/api-homepage.component';
@@ -91,6 +92,7 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
   .component('apiRatings', ApiRatingsComponent)
   .directive('gvThemeElement', () => ThemeElementDirective)
   .directive('gvStarRating', () => StarRatingDirective)
+  .service('PortalService', PortalService)
   .filter('humanDateFilter', function () {
     return function(input) {
       if (!moment().subtract(1, 'weeks').isAfter(input)) {

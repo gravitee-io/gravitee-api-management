@@ -22,26 +22,9 @@
       <h1><span>{{indexCtrl.companyName}}</span> <span translate="home.subtitle" style="font-weight: 100;"></span></h1>
     </div>
     <div layout="row" layout-align="center center" style="margin-top: 10px;">
-      <md-autocomplete flex="90" flex-sm="70" flex-gt-xs="50"
-                       md-search-text="homeCtrl.searchText"
-                       md-selected-item-change="homeCtrl.selectedItemChange(item)"
-                       md-items="item in homeCtrl.querySearch(ctrl.searchText) | filter:homeCtrl.searchText"
-                       md-item-text="item.name"
-                       md-min-length="0"
-                       placeholder="{{'home.apis.search' | translate}}"
-                       md-menu-class="autocomplete-custom-template">
-        <md-item-template>
-            <span class="item-title">
-              <ng-md-icon icon="share"></ng-md-icon>
-              <span>{{item.name}}</span>
-            </span>
-          <span class="item-metadata">
-              <span>
-                <strong>{{'api.version' | translate}} {{item.version}}</strong>
-              </span>
-            </span>
-        </md-item-template>
-      </md-autocomplete>
+      <form layout="row" name="formSearch" autocomplete="off" ng-submit="homeCtrl.search()" flex="90" flex-sm="70" flex-gt-xs="50">
+        <input type="text" autofocus class="form-control apis-filter" placeholder="{{'home.apis.search' | translate}}" ng-model="homeCtrl.query" />
+      </form>
     </div>
   </section>
   <section ng-if="homeCtrl.homepage" layout="row" layout-align="center center" gv-theme-element="portal.home.homepage">

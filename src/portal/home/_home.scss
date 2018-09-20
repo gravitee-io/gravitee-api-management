@@ -1,23 +1,21 @@
-.autocomplete-custom-template li {
-  border-bottom: 1px solid #ccc;
-  height: auto;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  white-space: normal;
+.search-bar { background-color: rgb(251, 251, 251); }
+.search-bar * { color: black !important; }
+.search-bar input { border-bottom-color: black; }
+
+.search-input {
+  font-size: 14px;
+  box-sizing: border-box;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  background: white;
+  width: 100%;
+  padding: 0 15px;
+  line-height: 40px;
+  height: 40px;
+  display: flex;
 }
-.autocomplete-custom-template li:last-child {
-  border-bottom-width: 0;
-}
-.autocomplete-custom-template .item-title,
-.autocomplete-custom-template .item-metadata {
-  display: block;
-  line-height: 2;
-}
-.autocomplete-custom-template .item-title i.material-icons {
-  float: left;
-  margin-left: -5px;
-  margin-right: 10px;
-}
+
 md-card {
   border-radius: 2px;
   &.blue {
