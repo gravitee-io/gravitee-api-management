@@ -66,7 +66,11 @@ class ApiEndpointGroupController {
 
   update(api) {
     if (!_.includes(api.proxy.groups, this.group)) {
-      api.proxy.groups.push(this.group);
+      if (!api.proxy.groups) {
+        api.proxy.groups = [this.group];
+      } else {
+        api.proxy.groups.push(this.group);
+      }
     }
 
     this.ApiService.update(api).then((updatedApi) => {
