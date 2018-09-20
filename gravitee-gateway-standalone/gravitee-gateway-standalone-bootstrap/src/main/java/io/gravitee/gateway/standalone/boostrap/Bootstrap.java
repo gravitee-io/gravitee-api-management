@@ -29,7 +29,7 @@ import java.util.List;
 public class Bootstrap {
 
     private static final String GRAVITEE_HOME_PROP = "gravitee.home";
-    private static final String CONTAINER_CLASS = "io.gravitee.gateway.standalone.Container";
+    private static final String CONTAINER_CLASS = "io.gravitee.gateway.standalone.GatewayContainer";
 
     private static final String LIB_DIRECTORY = "lib";
     private static final String LIB_EXT_DIRECTORY = LIB_DIRECTORY + File.separatorChar + "ext";
@@ -134,7 +134,7 @@ public class Bootstrap {
     private void checkInstallRoot(File graviteeHomeDir) {
         // quick sanity check on the install root
         if (!graviteeHomeDir.isDirectory()) {
-            throw new RuntimeException("Invalid Gravitee Standalone Home. Not a directory: "
+            throw new RuntimeException("Invalid Gravitee.io Node home directory. Not a directory: "
                     + graviteeHomeDir.getAbsolutePath());
         }
 
@@ -145,7 +145,7 @@ public class Bootstrap {
                 pathname.getName().startsWith("gravitee-gateway-standalone-bootstrap"));
 
         if (files == null || files.length == 0 || files.length > 1) {
-            throw new RuntimeException("Invalid Gravitee Standalone Home. No bootstrapable jar can be found in "
+            throw new RuntimeException("Invalid Gravitee.io Node home directory. No bootstrapable jar can be found in "
                     + graviteeLibDir.getAbsolutePath());
         }
     }
@@ -162,9 +162,9 @@ public class Bootstrap {
         method.invoke(graviteeDaemon, (Object[]) null);
     }
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
         Thread mainThread = Thread.currentThread();
-        mainThread.setName("gravitee");
+        mainThread.setName("graviteeio-node");
 
         try {
             Bootstrap bootstrap = new Bootstrap();
@@ -173,5 +173,5 @@ public class Bootstrap {
             t.printStackTrace();
             System.exit(1);
         }
-	}
+    }
 }
