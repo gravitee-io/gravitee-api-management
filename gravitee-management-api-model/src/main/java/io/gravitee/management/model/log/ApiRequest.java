@@ -70,6 +70,8 @@ public class ApiRequest {
 
     private String gateway;
 
+    private String subscription;
+
     private Map<String, Map<String, String>> metadata;
 
     public String getId() {
@@ -262,6 +264,14 @@ public class ApiRequest {
 
     public void setGateway(String gateway) {
         this.gateway = gateway;
+    }
+
+    public String getSubscription() {
+        return subscription;
+    }
+
+    public void setSubscription(String subscription) {
+        this.subscription = subscription;
     }
 
     public Map<String, Map<String, String>> getMetadata() {

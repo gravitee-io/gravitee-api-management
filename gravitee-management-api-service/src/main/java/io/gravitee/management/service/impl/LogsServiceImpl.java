@@ -15,19 +15,14 @@
  */
 package io.gravitee.management.service.impl;
 
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.InstanceListItem;
-import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.analytics.query.LogQuery;
 import io.gravitee.management.model.log.*;
 import io.gravitee.management.model.log.extended.Request;
 import io.gravitee.management.model.log.extended.Response;
 import io.gravitee.management.service.*;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.management.service.exceptions.PlanNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.DateRangeBuilder;
 import io.gravitee.repository.analytics.query.IntervalBuilder;
@@ -42,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -76,6 +72,12 @@ public class LogsServiceImpl implements LogsService {
 
     @Autowired
     private InstanceService instanceService;
+
+    @Autowired
+    private ApiKeyService apiKeyService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
     @Override
     public SearchLogResponse findByApi(String api, LogQuery query) {
@@ -270,6 +272,28 @@ public class LogsServiceImpl implements LogsService {
         };
     }
 
+    private String getSubscription(io.gravitee.repository.log.model.ExtendedLog log) {
+        if (log.getApiKey() != null) {
+            try {
+                ApiKeyEntity key = apiKeyService.findByKey(log.getApiKey());
+                if (key != null) {
+                    return key.getSubscription();
+                }
+            } catch (ApiKeyNotFoundException e) {
+                // wrong apikey
+            }
+        } else if (log.getPlan() != null && log.getApplication() != null){
+            PlanEntity plan = planService.findById(log.getPlan());
+            if (!PlanSecurityType.API_KEY.equals(plan.getSecurity()) && !PlanSecurityType.KEY_LESS.equals(plan.getSecurity())) {
+                Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(log.getApplication(), log.getPlan());
+                if (!subscriptions.isEmpty() && subscriptions.size() == 1) {
+                    return subscriptions.iterator().next().getId();
+                }
+            }
+        }
+        return null;
+    }
+
     private ApiRequestItem toApiRequestItem(io.gravitee.repository.log.model.Log log) {
         ApiRequestItem req = new ApiRequestItem();
         req.setId(log.getId());
@@ -320,6 +344,7 @@ public class LogsServiceImpl implements LogsService {
         req.setApiKey(log.getApiKey());
         req.setMessage(log.getMessage());
         req.setGateway(log.getGateway());
+        req.setSubscription(getSubscription(log));
 
         req.setClientRequest(createRequest(log.getClientRequest()));
         req.setProxyRequest(createRequest(log.getProxyRequest()));
@@ -331,6 +356,7 @@ public class LogsServiceImpl implements LogsService {
         String application = log.getApplication();
         String plan = log.getPlan();
         String gateway = log.getGateway();
+
 
         if (application != null) {
             metadata.computeIfAbsent(application, getApplicationMetadata(application));
