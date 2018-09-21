@@ -91,7 +91,7 @@
 
           <h4>Configuration</h4>
           <div layout="row" layout-align="start center">
-            <form name="resourceConfigurationForm" sf-schema="apiResourcesCtrl.resourceJsonSchema" sf-form="apiResourcesCtrl.resourceJsonSchemaForm" sf-model="apiResourcesCtrl.resource.configuration" sf-options="{ validateOnRender: true }" novalidate></form>
+            <form name="resourceConfigurationForm" sf-schema="apiResourcesCtrl.resourceJsonSchema" sf-form="apiResourcesCtrl.resourceJsonSchemaForm" sf-model="apiResourcesCtrl.resource.configuration" sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }" novalidate></form>
           </div>
 
           <br>

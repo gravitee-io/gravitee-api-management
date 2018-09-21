@@ -156,7 +156,7 @@
         </span>
       </div>
       <div class="gravitee-policy-panel gravitee-policy-panel-right">
-        <form name="policyConfigurationForm" sf-schema="policyJsonSchema" sf-form="policyJsonSchemaForm" sf-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId]" sf-options="{ validateOnRender: true }" novalidate></form>
+        <form name="policyConfigurationForm" sf-schema="policyJsonSchema" sf-form="policyJsonSchemaForm" sf-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId]" sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }" novalidate></form>
 
         <div ng-if="apiPoliciesCtrl.hasProperties(apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId])">
           <md-divider></md-divider>

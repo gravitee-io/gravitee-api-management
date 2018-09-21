@@ -40,7 +40,7 @@
         <md-subheader class="md-primary" style="background-color: #fafafa">Configuration</md-subheader>
         <form name="$ctrl.securityConfigurationForm" sf-schema="$ctrl.securitySchema" sf-form="['*']"
               sf-model="$ctrl.parent.plan.securityDefinition"
-              sf-options="{ validateOnRender: true }">
+              sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }">
         </form>
       </section>
 
