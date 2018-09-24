@@ -119,8 +119,11 @@ public class TargetEndpointResolver implements EndpointResolver {
                 Endpoint endpoint = reference.endpoint();
 
                 return createEndpoint(endpoint, encodedTarget.replaceFirst(sRef + ':', endpoint.target()));
+            } else if (encodedTarget.startsWith(Reference.UNKNOWN_REFERENCE)) {
+                return null;
             } else {
-                // Try to match an endpoint according to the target URL
+                // When the user selected endpoint which is not defined (according to the given target), the gateway
+                // is always returning the first endpoints reference and took into account its configuration.
                 Collection<Reference> endpoints = referenceRegister.referencesByType(EndpointReference.class);
                 Reference reference = endpoints
                         .stream()
@@ -128,7 +131,7 @@ public class TargetEndpointResolver implements EndpointResolver {
                         .findFirst()
                         .orElse(endpoints.iterator().next());
 
-                return createEndpoint(reference.endpoint(), encodedTarget);
+                return (reference != null) ? createEndpoint(reference.endpoint(), encodedTarget) : null;
             }
         }
     }

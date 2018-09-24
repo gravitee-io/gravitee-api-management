@@ -210,8 +210,6 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
 
     @Override
     protected void doStart() throws Exception {
-        // TODO: Prepare HttpClientOptions according to the endpoint to improve performance when creating a new
-        // instance of the Vertx client
         httpClientOptions = new HttpClientOptions();
 
         httpClientOptions.setPipelining(endpoint.getHttpClientOptions().isPipelining());

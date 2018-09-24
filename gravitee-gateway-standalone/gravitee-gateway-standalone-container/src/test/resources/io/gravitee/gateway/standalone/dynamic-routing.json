@@ -7,7 +7,7 @@
     "endpoints": [
       {
         "name": "default",
-        "target": "http://bad_url_but_overriden:8080/team"
+        "target": "http://localhost:8080/team"
       }
     ],
     "strip_context_path": false,

@@ -58,6 +58,7 @@ public class EndpointInvoker implements Invoker {
     public Request invoke(ExecutionContext executionContext, Request serverRequest, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
         EndpointResolver.ResolvedEndpoint endpoint = endpointResolver.resolve(serverRequest, executionContext);
 
+        // Endpoint can be null if none endpoint can be selected or if the selected endpoint is unavailable
         if (endpoint == null) {
             DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
             connectionHandler.handle(statusOnlyConnection);

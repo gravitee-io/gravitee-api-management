@@ -78,7 +78,6 @@ public class TargetEndpointResolverTest {
                 .thenAnswer(invocation -> Collections.singleton(new EndpointReference(endpoint)));
 
         EndpointResolver.ResolvedEndpoint resolvedEndpoint = resolver.resolve(serverRequest, executionContext);
-
         Assert.assertEquals(targetUri, resolvedEndpoint.getUri());
     }
 
