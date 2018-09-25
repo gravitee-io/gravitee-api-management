@@ -1,0 +1,45 @@
+{
+  "description" : "Gravitee.io",
+  "paths" : { },
+  "resources" : [ ],
+  "groups" : [ "My Group" ],
+  "members" : [ {
+    "username" : "johndoe",
+    "role" : "PRIMARY_OWNER"
+  } ],
+  "pages" : [ {
+    "name" : "My Title",
+    "type" : "MARKDOWN",
+    "content" : "Read the doc",
+    "order" : 1,
+    "published" : false,
+    "homepage" : false
+  } ],
+  "proxy": {
+    "context_path": "/test",
+    "strip_context_path": false,
+    "loggingMode": "NONE",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://test",
+        "weight": 1,
+        "backup": false,
+        "type": "HTTP",
+        "http": {
+          "connectTimeout": 5000,
+          "idleTimeout": 60000,
+          "keepAlive": true,
+          "readTimeout": 10000,
+          "pipelining": false,
+          "maxConcurrentConnections": 100,
+          "useCompression": true,
+          "followRedirects": false
+        }
+      }
+    ],
+    "load_balancing": {
+      "type": "ROUND_ROBIN"
+    }
+  }
+}
