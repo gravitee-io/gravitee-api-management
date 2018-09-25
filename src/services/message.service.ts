@@ -24,14 +24,14 @@ class MessageService {
 
   sendFromPortal(title: string, text: string, channel: string, roleScope: string, roleValues: string[]) {
     return this.$http.post(
-      `${this.baseURL}/messages`,
+      `${this.baseURL}messages`,
       this.getPayload(title, text, channel, roleScope, roleValues)
     );
   }
 
   sendFromApi(apiId: string, title: string, text: string, channel: string, roleScope: string, roleValues: string[]) {
     return this.$http.post(
-      `${this.baseURL}/apis/${apiId}/messages`,
+      `${this.baseURL}apis/${apiId}/messages`,
       this.getPayload(title, text, channel, roleScope, roleValues)
     );
   }

@@ -304,7 +304,7 @@ class ApiPortalController {
     });
   }
 
-  showExportDialog() {
+  showExportDialog(showExportVersion) {
     this.$mdDialog.show({
       controller: 'DialogApiExportController',
       controllerAs: 'dialogApiExportCtrl',
