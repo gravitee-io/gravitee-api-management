@@ -165,7 +165,7 @@ class LogsFiltersController {
         q: query
       }),
       {notify: false});
-    
+
     this.onFiltersChange({filters : query});
   }
 

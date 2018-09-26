@@ -103,7 +103,7 @@ class DictionaryController {
 
   update() {
     if (!this.updateMode) {
-      this.DictionaryService.create(this.dictionary).then((response) => {
+      this.DictionaryService.create(this.dictionary).then((response:any) => {
         this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been created');
         this.$state.go('management.settings.dictionaries.dictionary', {dictionaryId: response.data.id}, {reload: true});
       });

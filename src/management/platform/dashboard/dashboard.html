@@ -15,13 +15,16 @@
     limitations under the License.
 
 -->
+<div class="gv-sub-content">
+  <div class="gv-forms gv-forms-fluid" layout="column">
+    <h1>Dashboard</h1>
+
 <gv-dashboard model="platformDashboard" on-timeframe-change="dashboardCtrl.onTimeframeChange(timeframe)"></gv-dashboard>
 
-<div>
-  <md-card flex>
-    <div layout="row" class="dashboard-events-header">
-      <span><strong>API Events</strong></span>
-      <div flex></div>
+
+    <div class="gv-form">
+      <h2>API Events</h2>
+      <div class="gv-form-content" layout="column">
       <md-list>
         <md-list-item class="eventType" ng-class="{eventTypeSelected: selection}" ng-repeat="eventType in dashboardCtrl.eventTypes">
           <a ng-click="selection= !selection; dashboardCtrl.selectEvent(eventType)">
@@ -29,8 +32,6 @@
           </a>
         </md-list-item>
       </md-list>
-    </div>
-    <md-card-content>
       <div ng-if="dashboardCtrl.events.content.length > 0">
         <md-table-container>
           <table md-table>
@@ -64,6 +65,7 @@
         <p><ng-md-icon icon="block" style="fill: grey"></ng-md-icon></p>
         <p>No data</p>
       </div>
-    </md-card-content>
-  </md-card>
+</div>
+</div>
+  </div>
 </div>

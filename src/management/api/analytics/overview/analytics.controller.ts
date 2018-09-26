@@ -129,10 +129,12 @@ class ApiAnalyticsController {
       chart: {
         type: 'line',
         stacked: true,
+        selectable: true,
         labelPrefix: 'HTTP Status',
         request: {
-          'type': 'date_histo',
-          'aggs': 'field:status'
+          type: 'date_histo',
+          field: 'status',
+          aggs: 'field:status'
         }
       }
     }, {
@@ -146,8 +148,8 @@ class ApiAnalyticsController {
         type: 'line',
         stacked: false,
         request: {
-          'type': 'date_histo',
-          'aggs': 'avg:response-time%3Bavg:api-response-time'
+          type: 'date_histo',
+          aggs: 'avg:response-time%3Bavg:api-response-time'
         },
         labels: ['Global latency (ms)', 'API latency (ms)']
       }
@@ -160,11 +162,13 @@ class ApiAnalyticsController {
       subhead: 'Hits repartition by application',
       chart: {
         type: 'line',
+        selectable: true,
         stacked: true,
         labelPrefix: '',
         request: {
-          'type': 'date_histo',
-          'aggs': 'field:application'
+          type: 'date_histo',
+          field: 'application',
+          aggs: 'field:application'
         }
       }
     }];

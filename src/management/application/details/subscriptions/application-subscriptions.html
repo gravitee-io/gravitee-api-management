@@ -16,11 +16,11 @@
 
 -->
 <form name="formApplication" ng-submit="$ctrl.update()" novalidate>
-  <div class="gv-forms" layout="column" permission permission-only="'application-definition-u'">
+  <div class="gv-forms gv-forms-fluid" layout="column" permission permission-only="'application-definition-u'">
     <h1>{{$ctrl.application.name}} ({{$ctrl.application.type}})</h1>
     <div class="gv-form">
       <h2>Subscriptions</h2>
-      <div class="gv-form-content gv-form-content-fluid" layout="column">
+      <div class="gv-form-content" layout="column">
 
         <form ng-submit="$ctrl.doSearch()" name="$ctrl.subscriptionsFiltersForm">
           <div layout-gt-sm="row">

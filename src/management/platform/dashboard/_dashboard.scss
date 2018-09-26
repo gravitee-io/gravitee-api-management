@@ -44,18 +44,6 @@ md-list-item.eventType {
   color: white;
 }
 
-.dashboard-events-header {
-  padding-bottom: 10px; margin: 0px 15px 0 15px; border-bottom: 1px solid #efefef;
-
-  & > span {
-    margin-top: 15px;
-  }
-
-  & > md-list {
-    margin: -10px 0;
-  }
-}
-
 .dashboard-analytics-card {
   & > md-card-header {
     padding-bottom: 0px;

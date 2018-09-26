@@ -145,10 +145,11 @@ class DashboardController {
       chart: {
         type: 'line',
         stacked: true,
+        selectable: true,
         labelPrefix: 'HTTP Status',
         request: {
           type: 'date_histo',
-          field: 'api',
+          field: 'status',
           aggs: 'field:status'
         }
       }

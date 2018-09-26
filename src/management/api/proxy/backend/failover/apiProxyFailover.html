@@ -36,12 +36,12 @@
       <md-input-container class="md-block" flex>
         <label>Max attempts</label>
         <input ng-model="apiProxyCtrl.api.proxy.failover.maxAttempts" type="number" ng-required="apiProxyCtrl.failoverEnabled" min="1" ng-disabled="!apiProxyCtrl.failoverEnabled">
-        <div class="hint">Limits the number of possible tries for passing a request to the next endpoint.<br>Must be greater than 0.</div>
+        <div class="hint">Limits the number of possible tries for passing a request to the next endpoint. Must be greater than 0.</div>
       </md-input-container>
       <md-input-container class="md-block" flex>
         <label>Timeout (ms)</label>
         <input ng-model="apiProxyCtrl.api.proxy.failover.retryTimeout" type="number" min="1" ng-required="apiProxyCtrl.failoverEnabled" ng-disabled="!apiProxyCtrl.failoverEnabled">
-        <div class="hint">Limits the time allowed to pass a request to the next endpoint.<br>Must be greater than 0.</div>
+        <div class="hint">Limits the time allowed to pass a request to the next endpoint. Must be greater than 0.</div>
       </md-input-container>
 
   <div class="md-actions gravitee-api-save-button" layout="row">

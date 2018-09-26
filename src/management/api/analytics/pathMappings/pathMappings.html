@@ -15,10 +15,11 @@
     limitations under the License.
 
 -->
-<div layout="column">
-  <h4>Path Mappings</h4>
-  <section layout="row" flex>
-    <md-content flex>
+<div class="gv-forms" layout="column">
+  <h1>Path Mappings</h1>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content" layout="column">
       <md-table-container ng-show="$parent.apiCtrl.api.path_mappings.length">
         <table md-table>
           <thead md-head>
@@ -40,9 +41,6 @@
           </tbody>
         </table>
       </md-table-container>
-    </md-content>
-  </section>
-</div>
 
 <gravitee-empty-state ng-if="!$parent.apiCtrl.api.path_mappings.length"
                       icon="map"
@@ -50,10 +48,13 @@
                       message="Path mappings will appear here"
                       sub-message="Start creating a path mapping"
                       create-mode="true"></gravitee-empty-state>
+    </div>
+  </div>
+</div>
 
-<md-fab-speed-dial permission permission-only="'api-definition-c'" ng-style="!$parent.apiCtrl.api.path_mappings.length && {'text-align':'center'}"
-                   md-direction="{{$parent.apiCtrl.api.path_mappings.length?'left':'down'}}" md-open="false"
-                   ng-class="{'md-fab-bottom-right gravitee-add-button': $parent.apiCtrl.api.path_mappings.length}" class="md-scale">
+<md-fab-speed-dial permission permission-only="'api-definition-c'"
+                   md-direction="left" md-open="false"
+                   class="md-fab-bottom-right gravitee-add-button md-scale">
   <md-fab-trigger>
     <md-button class="md-fab">
       <ng-md-icon icon="add"></ng-md-icon>

@@ -47,24 +47,24 @@ class DictionaryService {
       });
   }
 
-  delete(dictionary) {
+  delete(dictionary:any) {
     return this.$http.delete([this.dictionariesURL, dictionary.id].join("/"));
   }
 
-  deploy(dictionary) {
-    return this.$http.post([this.dictionariesURL, dictionary.id, '_deploy'].join("/"));
+  deploy(dictionary:any) {
+    return this.$http.post([this.dictionariesURL, dictionary.id, '_deploy'].join("/"), {});
   }
 
-  undeploy(dictionary) {
-    return this.$http.post([this.dictionariesURL, dictionary.id, '_undeploy'].join("/"));
+  undeploy(dictionary:any) {
+    return this.$http.post([this.dictionariesURL, dictionary.id, '_undeploy'].join("/"), {});
   }
 
-  start(dictionary) {
-    return this.$http.post([this.dictionariesURL, dictionary.id].join("/") + '?action=START' );
+  start(dictionary:any) {
+    return this.$http.post([this.dictionariesURL, dictionary.id].join("/") + '?action=START', {});
   }
 
-  stop(dictionary) {
-    return this.$http.post([this.dictionariesURL, dictionary.id].join("/") + '?action=STOP' );
+  stop(dictionary:any) {
+    return this.$http.post([this.dictionariesURL, dictionary.id].join("/") + '?action=STOP', {} );
   }
 }
 

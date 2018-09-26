@@ -52,9 +52,9 @@ const DashboardComponent: ng.IComponentOptions = {
       }
     };
 
-    this.queryFilterChange = function(query) {
+    this.queryFilterChange = function(query, widget) {
       //TODO: remove event broadcast and call a widget function instead
-      $scope.$broadcast('onQueryFilterChange', query);
+      $scope.$broadcast('onQueryFilterChange', {query: query, source: widget});
       if (this.onFilterChange) {
         this.onFilterChange({query: query});
       }

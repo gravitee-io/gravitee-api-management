@@ -15,46 +15,35 @@
     limitations under the License.
 
 -->
-<!--<md-card flex>-->
-  <!--<div class="widget-card" flex>-->
-    <!--<md-card-title>-->
-      <!--<md-card-title-text>-->
-        <!--<span class="md-title"><strong>Timeframe</strong></span>-->
-      <!--</md-card-title-text>-->
-    <!--</md-card-title>-->
-    <!--<md-card-content>-->
-      <div layout="row" layout-align="start center" style="margin-bottom: 10px">
-        <div class="btn-group float-right">
-          <button class="btn btn-default" ng-repeat="timeframe in $ctrl.timeframes track by timeframe.id"
-                  ng-click="$ctrl.updateTimeframe(timeframe.id)"
-                  ng-class="{'gravitee-analytics-timeframe-active' : timeframe === $ctrl.timeframe}">
-            {{timeframe.title}}
-          </button>
-        </div>
+<div layout="row" layout-align="space-around center" style="margin: 24px 0">
+  <div class="btn-group float-right">
+    <button class="btn btn-default" ng-repeat="timeframe in $ctrl.timeframes track by timeframe.id"
+            ng-click="$ctrl.updateTimeframe(timeframe.id)"
+            ng-class="{'gravitee-analytics-timeframe-active' : timeframe === $ctrl.timeframe}">
+      {{timeframe.title}}
+    </button>
+  </div>
 
-        <div>
-          <md-input-container style="margin-bottom: 0;">
-            <label>from</label>
-            <input moment-picker="$ctrl.pickerStartDateFormated"
-                   locale="en"
-                   format="YYYY-MM-DD HH:mm"
-                   max-date="$ctrl.pickerEndDate"
-                   ng-model="$ctrl.pickerStartDate"
-                   ng-model-options="{ updateOn: 'blur' }">
-          </md-input-container>
-          <md-input-container style="margin-bottom: 0;">
-            <label>to</label>
-            <input moment-picker="$ctrl.pickerEndDateFormated"
-                   locale="en"
-                   format="YYYY-MM-DD HH:mm"
-                   min-date="$ctrl.pickerStartDate"
-                   max-date="$ctrl.now"
-                   ng-model="$ctrl.pickerEndDate"
-                   ng-model-options="{ updateOn: 'blur' }">
-          </md-input-container>
-        </div>
-        <md-button class="md-raised" ng-click="$ctrl.updateRangeDate()">Apply</md-button>
-      </div>
-    <!--</md-card-content>-->
-  <!--</div>-->
-<!--</md-card>-->
+  <div>
+    <md-input-container style="margin-bottom: 0;">
+      <label>from</label>
+      <input moment-picker="$ctrl.pickerStartDateFormated"
+             locale="en"
+             format="YYYY-MM-DD HH:mm"
+             max-date="$ctrl.pickerEndDate"
+             ng-model="$ctrl.pickerStartDate"
+             ng-model-options="{ updateOn: 'blur' }">
+    </md-input-container>
+    <md-input-container style="margin-bottom: 0;">
+      <label>to</label>
+      <input moment-picker="$ctrl.pickerEndDateFormated"
+             locale="en"
+             format="YYYY-MM-DD HH:mm"
+             min-date="$ctrl.pickerStartDate"
+             max-date="$ctrl.now"
+             ng-model="$ctrl.pickerEndDate"
+             ng-model-options="{ updateOn: 'blur' }">
+    </md-input-container>
+  </div>
+  <md-button class="md-raised" ng-click="$ctrl.updateRangeDate()">Apply</md-button>
+</div>

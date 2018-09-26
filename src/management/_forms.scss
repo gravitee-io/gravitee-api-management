@@ -1,5 +1,5 @@
 .gv-forms {
-  //padding: 16px;
+  max-width: 960px;
   h1 {
     font-size: 2em;
     margin: 16px 0 4px;
@@ -58,9 +58,13 @@
     border: 1px solid #e2e5e7;
     border-radius: 4px;
     padding: 16px;
-    max-width: 960px;
+
+    .hint{
+      bottom: -18px !important;
+    }
   }
-  .gv-form-content.gv-form-content-fluid {
-      max-width: 100%;
-  }
+
+}
+.gv-forms.gv-forms-fluid {
+  max-width: 100%;
 }

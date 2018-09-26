@@ -20,6 +20,7 @@ class DashboardFilterController {
   private fields: any;
   private filters: any[];
   private onFilterChange: any;
+  private lastSource: any;
 
   constructor(private $rootScope, private $state: StateService) {
     'ngInject';
@@ -39,14 +40,19 @@ class DashboardFilterController {
 
   addFieldFilter(filter) {
     let field = this.fields[filter.field] || {filters: {}};
-    field.filters[filter.key] = filter.name;
+
+    field.filters[filter.key] = {
+      value: filter.name,
+      onRemove: (filter.events !== undefined) && filter.events.remove
+    };
 
     let label = (filter.fieldLabel ? filter.fieldLabel : filter.field)
       + " = '" + filter.name + "'";
 
-    let query = '(' + _.map(_.keys(field.filters), (key) => filter.field + ":\\\"" + key + "\\\"").join(' OR ') + ')';
+    let query = '(' + filter.field + ":" + _.map(_.keys(field.filters), (key) => "\\\"" + key + "\\\"").join(' OR ') + ')';
 
     this.filters.push({
+      source: filter.widget,
       key: filter.field + '_' + filter.key,
       label: label
     });
@@ -56,6 +62,7 @@ class DashboardFilterController {
     field.query = query;
 
     this.fields[filter.field] = field;
+    this.lastSource = filter.widget;
     this.createAndSendQuery();
   }
 
@@ -63,27 +70,38 @@ class DashboardFilterController {
     this.removeFilter(filter.field, filter.key);
   }
 
-  deleteChips(event) {
-    let index = event.key.lastIndexOf('_')
-
-    this.removeFilter(event.key.substring(0, index), event.key.substring(index+1));
+  deleteChips(chip) {
+    let index = chip.key.lastIndexOf('_');
+    this.lastSource = chip.source;
+    this.removeFilter(chip.key.substring(0, index), chip.key.substring(index+1));
   }
 
   removeFilter(field, key) {
-    _.remove(this.filters, (current) => {
+    let filters = _.remove(this.filters, (current) => {
       return current.key === field + '_' + key;
     });
 
+    if (filters.length > 0) {
+      this.lastSource = filters[0].source;
+    }
+
     let fieldObject = this.fields[field] || {filters: {}};
 
-    delete fieldObject.filters[key];
+    let fieldFilter = fieldObject.filters[key];
+    if (fieldFilter) {
+      delete fieldObject.filters[key];
+      // Is there a registered event ?
+      if (fieldFilter.onRemove) {
+        fieldFilter.onRemove(key);
+      }
+    }
 
     if (Object.keys(fieldObject.filters).length === 0 || _.isEmpty(fieldObject.filters)) {
       delete fieldObject.filters;
     }
 
     if (! _.isEmpty(fieldObject.filters)) {
-      fieldObject.query = '(' + _.map(_.keys(fieldObject.filters), (key) => field + ":" + key).join(' OR ') + ')';
+      fieldObject.query = '(' + field + ":" + _.map(_.keys(fieldObject.filters), (key) => "\\\"" + key + "\\\"").join(' OR ') + ')';
       this.fields[field] = fieldObject;
     } else {
       delete this.fields[field];
@@ -104,7 +122,7 @@ class DashboardFilterController {
       }),
       {notify: false});
 
-    this.onFilterChange({query: query});
+    this.onFilterChange({query: query, widget: this.lastSource});
   }
 }
 

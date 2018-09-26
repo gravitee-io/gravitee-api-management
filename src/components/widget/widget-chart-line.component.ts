@@ -27,8 +27,12 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.$scope = $scope;
-
     let that = this;
+
+    this.$onInit = function() {
+      this.widget = this.parent.widget;
+    };
+
     this.$onChanges = function(changes) {
       if (changes.data) {
         let data = changes.data.currentValue;
@@ -77,7 +81,8 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
 
                 values.push({
                   name: label || bucket.name, data: bucket.data, color: lineColor, fillColor: bgColor,
-                  labelPrefix: that.parent.widget.chart.labelPrefix
+                  labelPrefix: that.parent.widget.chart.labelPrefix,
+                  id: bucket.name
                 });
               }
             });
@@ -85,19 +90,79 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
 
           let timestamp = data.timestamp;
 
+          let plotOptions = {
+            series: {
+              pointStart: timestamp.from,
+              pointInterval: timestamp.interval
+            }
+          } as any;
+
+          if (this.parent.widget.chart.selectable) {
+            plotOptions.series.events = {
+              legendItemClick: function (event) {
+                // If all series are visible, keep only the one selected
+                let selected = event.target.chart.series[event.target.index];
+                let visibles = _.filter(event.target.chart.series, { 'visible': true });
+
+                if (visibles.length === that.result.series.length) {
+                  // Do not disable selected item but disable others
+                  event.preventDefault();
+
+                  _(visibles)
+                    .filter((serie: any) => { return serie.name !== event.target.name; })
+                    .forEach((serie: any) => serie.hide());
+                  that.updateQuery(selected, selected.visible);
+                } else {
+                  if (selected.visible) {
+                    event.preventDefault();
+                  }
+                  that.updateQuery(selected, !selected.visible);
+                }
+              },
+              hide: function(event) {
+                let hidden = _.filter(event.target.chart.series, { 'visible': false });
+                if (hidden.length === that.result.series.length) {
+                  // Do not disable selected item but disable others
+                  event.preventDefault();
+
+                  // All series are hidden: display all !
+                  _(hidden)
+                    .forEach((serie: any) => serie.show());
+                }
+              }
+            };
+          }
+
           that.result = _.assign(that.result, {
             series: values,
-            plotOptions: {
-              series: {
-                pointStart: timestamp.from,
-                pointInterval: timestamp.interval
-              }
-            }
+            plotOptions: plotOptions
           });
         } else {
           that.result.series = [];
         }
       }
+    };
+
+    this.updateQuery = function(item, add) {
+      let removeFn = function() {
+          // Filter has been removed, so let's hide the serie
+        if (this.visible) {
+          this.hide();
+        }
+      };
+
+      //console.log('filter :' + item.name + '(' + add + ')');
+      that.$scope.$emit('filterItemChange', {
+        widget: that.widget.$uid,
+        field: that.widget.chart.request.field,
+        fieldLabel: that.widget.chart.request.fieldLabel,
+        key: item.userOptions.id,
+        name: item.name,
+        mode: (add) ? 'add' : 'remove',
+        events: {
+          remove: removeFn.bind(item)
+        }
+      });
     };
   }
 };

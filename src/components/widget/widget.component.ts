@@ -20,8 +20,10 @@ const WidgetComponent: ng.IComponentOptions = {
   bindings: {
     widget: '<'
   },
-  controller: function($scope) {
+  controller: function($scope, $state) {
     'ngInject';
+
+    this.$state = $state;
 
     $scope.$on('gridster-resized', function () {
       $scope.$broadcast('onWidgetResize');
@@ -34,7 +36,8 @@ const WidgetComponent: ng.IComponentOptions = {
       _.assignIn(that.widget.chart.request, {
         interval: timeframe.interval,
         from: timeframe.from,
-        to: timeframe.to
+        to: timeframe.to,
+        query: that.$state.params['q']
       });
 
       that.reload();
@@ -43,10 +46,13 @@ const WidgetComponent: ng.IComponentOptions = {
     $scope.$on('onQueryFilterChange', function (event, query) {
       // Associate the new query filter to the chart request
       _.assignIn(that.widget.chart.request, {
-        query: query
+        query: query.query
       });
 
-      that.reload();
+      // Reload only if not the same widget which applied the latest filter
+      if (that.widget.$uid !== query.source) {
+        that.reload();
+      }
     });
 
     this.reload = function() {

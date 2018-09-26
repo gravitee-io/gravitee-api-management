@@ -15,7 +15,11 @@
     limitations under the License.
 
 -->
-
+<div class="gv-forms gv-forms-fluid" layout="column">
+  <h1>Logs</h1>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content" layout="column">
 <gv-logs-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)"></gv-logs-timeframe>
 
 <md-table-container layout-padding>
@@ -68,3 +72,6 @@
   md-total="{{$ctrl.logs.total}}"
   md-on-paginate="$ctrl.onPaginate">
 </md-table-pagination>
+    </div>
+  </div>
+</div>
