@@ -60,7 +60,12 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ReactorHandler apiReactorHandler() {
+    public ReactorHandler apiReactorHandler(Api api) {
+        /*
+        if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
+            return new LoggableApiReactorHandler(new ExpressionLanguageEvaluator(api.getProxy().getLogging().getCondition()));
+        }
+        */
         return new ApiReactorHandler();
     }
 

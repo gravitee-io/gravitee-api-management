@@ -53,7 +53,7 @@ public class NoOpPolicyChainTest {
 
         noOpPolicyChain = new NoOpPolicyChain(executionContext);
 
-        noOpPolicyChain.setResultHandler(resultHandler);
+        noOpPolicyChain.handler(resultHandler);
         noOpPolicyChain.doNext(Mockito.mock(Request.class), Mockito.mock(Response.class));
 
         Mockito.verify(resultHandler, Mockito.times(1)).handle(Mockito.any(SuccessPolicyResult.class));

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.logging;
+package io.gravitee.gateway.core.logging;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;

@@ -13,34 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy;
-
-import io.gravitee.gateway.policy.impl.PolicyChain;
-import io.gravitee.policy.api.PolicyResult;
+package io.gravitee.gateway.core.processor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyChainResult {
+public interface ProcessorFailure {
 
-    private final PolicyResult policyResult;
-    private final PolicyChain policyChain;
+    int statusCode();
 
-    public PolicyChainResult(final PolicyChain policyChain, final PolicyResult policyResult) {
-        this.policyChain = policyChain;
-        this.policyResult = policyResult;
-    }
+    String message();
 
-    public PolicyResult getPolicyResult() {
-        return policyResult;
-    }
-
-    public PolicyChain getPolicyChain() {
-        return policyChain;
-    }
-
-    public boolean isFailure() {
-        return policyResult != null && policyResult.isFailure();
-    }
+    String contentType();
 }

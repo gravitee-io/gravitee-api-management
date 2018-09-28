@@ -21,8 +21,12 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
+import io.gravitee.gateway.core.processor.ProcessorContext;
+import io.gravitee.gateway.core.processor.ProcessorFailure;
+import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyChainException;
+import io.gravitee.gateway.policy.impl.processor.PolicyChainProcessorFailure;
 import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +39,16 @@ import java.util.Objects;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class PolicyChain extends BufferedReadWriteStream implements io.gravitee.policy.api.PolicyChain {
+public abstract class PolicyChain extends BufferedReadWriteStream
+        implements io.gravitee.policy.api.PolicyChain, StreamableProcessor<PolicyResult> {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     protected static final PolicyResult SUCCESS_POLICY_CHAIN = new SuccessPolicyResult();
 
     protected Handler<PolicyResult> resultHandler;
-    protected Handler<PolicyResult> streamErrorHandler;
+    protected Handler<ProcessorFailure> errorHandler;
+    protected Handler<ProcessorFailure> streamErrorHandler;
     protected final List<Policy> policies;
     protected final Iterator<Policy> policyIterator;
     protected final ExecutionContext executionContext;
@@ -70,29 +76,46 @@ public abstract class PolicyChain extends BufferedReadWriteStream implements io.
             } catch (Exception ex) {
                 logger.error("Unexpected error while running policy {}", policy, ex);
                 request.metrics().setMessage(Throwables.getStackTraceAsString(ex));
-                resultHandler.handle(PolicyResult.failure(null));
+                if (errorHandler != null) {
+                    errorHandler.handle(new PolicyChainProcessorFailure(PolicyResult.failure(null)));
+                }
             }
         } else {
-            resultHandler.handle(SUCCESS_POLICY_CHAIN);
+            resultHandler.handle(null);
         }
     }
 
     @Override
     public void failWith(PolicyResult policyResult) {
-        resultHandler.handle(policyResult);
+        errorHandler.handle(new PolicyChainProcessorFailure(policyResult));
     }
 
     @Override
     public void streamFailWith(PolicyResult policyResult) {
-        streamErrorHandler.handle(policyResult);
+        streamErrorHandler.handle(new PolicyChainProcessorFailure(policyResult));
     }
 
-    public void setResultHandler(Handler<PolicyResult> resultHandler) {
-        this.resultHandler = resultHandler;
+    @Override
+    public void process(ProcessorContext context) {
+        doNext(context.getRequest(), context.getResponse());
     }
 
-    public void setStreamErrorHandler(Handler<PolicyResult> streamErrorHandler) {
-        this.streamErrorHandler = streamErrorHandler;
+    @Override
+    public StreamableProcessor<PolicyResult> handler(Handler<PolicyResult> handler) {
+        this.resultHandler = handler;
+        return this;
+    }
+
+    @Override
+    public StreamableProcessor<PolicyResult> errorHandler(Handler<ProcessorFailure> handler) {
+        this.errorHandler = handler;
+        return this;
+    }
+
+    @Override
+    public StreamableProcessor<PolicyResult> streamErrorHandler(Handler<ProcessorFailure> handler) {
+        this.streamErrorHandler = handler;
+        return this;
     }
 
     protected abstract void execute(Policy policy, Object ... args) throws PolicyChainException;

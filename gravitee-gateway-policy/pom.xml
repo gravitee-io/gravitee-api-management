@@ -40,6 +40,12 @@
 
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-resource</artifactId>
             <version>${project.version}</version>
         </dependency>
