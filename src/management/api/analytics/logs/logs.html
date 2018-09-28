@@ -16,64 +16,67 @@
 
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
-  <h1>Logs</h1>
+  <div layout="row" layout-align="start end" class="gv-forms-header">
+    <h1>Logs</h1>
+    <a ui-sref="management.apis.detail.analytics.loggingconfigure">Configure the logging</a>
+  </div>
   <div class="gv-form">
     <h2></h2>
     <div class="gv-form-content" layout="column">
-<gv-logs-timeframe on-timeframe-change="logsCtrl.timeframeChange(timeframe)"></gv-logs-timeframe>
+      <gv-logs-timeframe on-timeframe-change="logsCtrl.timeframeChange(timeframe)"></gv-logs-timeframe>
 
-<gv-logs-filters on-filters-change="logsCtrl.filtersChange(filters)" metadata="logsCtrl.metadata"></gv-logs-filters>
+      <gv-logs-filters on-filters-change="logsCtrl.filtersChange(filters)" metadata="logsCtrl.metadata"></gv-logs-filters>
 
-<md-table-container layout-padding>
-  <table md-table class="gravitee-analytics-top-hits-table gv-table-dense" multiple md-row-select="logsCtrl.widget.chart.selectable" data-ng-model="logsCtrl.selected">
-    <thead md-head>
-    <tr md-row>
-      <th md-column width="1%" nowrap>Date</th>
-      <th md-column width="1%" nowrap>Status</th>
-      <th md-column width="1%" nowrap>Application</th>
-      <th md-column width="1%" nowrap>Plan</th>
-      <th md-column width="1%" nowrap>Method</th>
-      <th md-column>Path</th>
-      <th md-column width="1%" md-numeric nowrap>Response time</th>
-    </tr>
-    </thead>
-    <tbody md-body>
-    <tr ng-if="logsCtrl.logs.logs.length > 0" md-row
-        ng-repeat="log in logsCtrl.logs.logs | limitTo: logsCtrl.query.size"
-        md-auto-select md-select="log" md-select-id="key"
-        ng-class="{'log-error': log.status >= 400}"
-        ui-sref="management.apis.detail.analytics.log({
+      <md-table-container layout-padding>
+        <table md-table class="gravitee-analytics-top-hits-table gv-table-dense" multiple md-row-select="logsCtrl.widget.chart.selectable" data-ng-model="logsCtrl.selected">
+          <thead md-head>
+          <tr md-row>
+            <th md-column width="1%" nowrap>Date</th>
+            <th md-column width="1%" nowrap>Status</th>
+            <th md-column width="1%" nowrap>Application</th>
+            <th md-column width="1%" nowrap>Plan</th>
+            <th md-column width="1%" nowrap>Method</th>
+            <th md-column>Path</th>
+            <th md-column width="1%" md-numeric nowrap>Response time</th>
+          </tr>
+          </thead>
+          <tbody md-body>
+          <tr ng-if="logsCtrl.logs.logs.length > 0" md-row
+              ng-repeat="log in logsCtrl.logs.logs | limitTo: logsCtrl.query.size"
+              md-auto-select md-select="log" md-select-id="key"
+              ng-class="{'log-error': log.status >= 400}"
+              ui-sref="management.apis.detail.analytics.log({
             logId: log.id,
             timestamp: log.timestamp,
             from: logsCtrl.query.from,
             to: logsCtrl.query.to,
             q: logsCtrl.query.query
           })">
-      <td md-cell nowrap>{{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}}</td>
-      <td md-cell nowrap><span class="gv-statuscode-{{log.status / 100 | number:0}}xx">{{log.status}}</span></td>
-      <td md-cell nowrap>{{logsCtrl.getMetadata(log.application).name}}</td>
-      <td md-cell nowrap>{{logsCtrl.getMetadata(log.plan).name}}</td>
-      <td md-cell nowrap style="text-align: center">
+            <td md-cell nowrap>{{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}}</td>
+            <td md-cell nowrap><span class="gv-statuscode-{{log.status / 100 | number:0}}xx">{{log.status}}</span></td>
+            <td md-cell nowrap>{{logsCtrl.getMetadata(log.application).name}}</td>
+            <td md-cell nowrap>{{logsCtrl.getMetadata(log.plan).name}}</td>
+            <td md-cell nowrap style="text-align: center">
         <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{log.method | uppercase}}-selected">
           {{log.method | uppercase}}
         </span>
-      </td>
-      <td md-cell>{{log.path}}</td>
-      <td md-cell nowrap>{{log.responseTime}} ms</td>
-    </tr>
-    <tr ng-if="logsCtrl.logs.total === 0">
-      <td md-cell colspan="7" style="text-align:center;">No log</td>
-    </tr>
-    </tbody>
-  </table>
-</md-table-container>
+            </td>
+            <td md-cell>{{log.path}}</td>
+            <td md-cell nowrap>{{log.responseTime}} ms</td>
+          </tr>
+          <tr ng-if="logsCtrl.logs.total === 0">
+            <td md-cell colspan="7" style="text-align:center;">No log</td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
 
-<md-table-pagination
-  md-limit="logsCtrl.query.size"
-  md-page="logsCtrl.query.page"
-  md-total="{{logsCtrl.logs.total}}"
-  md-on-paginate="logsCtrl.onPaginate">
-</md-table-pagination>
+      <md-table-pagination
+        md-limit="logsCtrl.query.size"
+        md-page="logsCtrl.query.page"
+        md-total="{{logsCtrl.logs.total}}"
+        md-on-paginate="logsCtrl.onPaginate">
+      </md-table-pagination>
     </div>
   </div>
 </div>

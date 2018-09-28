@@ -90,6 +90,21 @@ function apisAnalyticsRouterConfig($stateProvider) {
           ApiService.getSubscribers($stateParams['apiId'])
       }
     })
+    .state('management.apis.detail.analytics.loggingconfigure', {
+      url: '/logs/configure',
+      template: require('./logs/logging-configuration.html'),
+      controller: 'ApiLoggingConfigurationController',
+      controllerAs: 'loggingCtrl',
+      data: {
+        menu: null,
+        perms: {
+          only: ['api-log-u']
+        },
+        docs: {
+          page: 'management-api-logging-configuration'
+        }
+      }
+    })
     .state('management.apis.detail.analytics.log', {
       url: '/logs/:logId?timestamp&from&to&q',
       component: 'log',

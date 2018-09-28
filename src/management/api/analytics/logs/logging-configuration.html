@@ -1,0 +1,68 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form name="formLogging" ng-submit="loggingCtrl.update(loggingCtrl.api)" novalidate>
+  <div class="gv-forms" layout="column">
+    <div layout="row" layout-align="start end" class="gv-forms-header">
+      <h1>Logging</h1>
+      <a ui-sref="management.apis.detail.analytics.logs">Back to logs</a>
+    </div>
+
+    <div class="gv-form">
+      <h2>Configuration</h2>
+      <div class="gv-form-content">
+        <div class="hints" style="color: #EF3B3A">Use logging with caution and only for development purpose since it can have impact on API performances and is requiring more spaces for analytics storage.</div>
+
+        <br />
+
+        <div layout="column" layout-wrap layout-gt-sm="row">
+            <div flex-xs flex="50">
+              <div layout-xs="column" flex-xs="50">
+                <md-input-container class="md-block" flex-gt-sm>
+                  <label>Mode</label>
+                  <md-select ng-model="loggingCtrl.api.proxy.logging.mode">
+                    <md-option ng-repeat="loggingMode in loggingModes" value="{{loggingMode.value}}">
+                      {{loggingMode.name}}
+                    </md-option>
+                  </md-select>
+                </md-input-container>
+
+                <div layout="row" flex-xs="50">
+                  <md-input-container class="md-block" flex-gt-sm>
+                    <label>Condition</label>
+                    <input ng-model="loggingCtrl.api.proxy.logging.condition" type="text" ng-required="loggingCtrl.api.proxy.logging.mode !== 'NONE'">
+                  </md-input-container>
+                  <md-button md-no-ink class="md-primary" ng-click="loggingCtrl.showConditionEditor()">Show editor</md-button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+        <div class="md-actions gravitee-api-save-button" layout="row">
+          <md-button permission permission-only="'api-log-u'" class="md-raised md-primary" type="submit" ng-disabled="formLogging.$invalid || formLogging.$pristine">
+            Save
+          </md-button>
+          <md-button permission permission-only="'api-log-u'" class="md-raised" type="button" ng-click="loggingCtrl.reset()" ng-disabled="formLogging.$pristine">
+            Reset
+          </md-button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</form>

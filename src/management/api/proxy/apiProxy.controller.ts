@@ -87,21 +87,6 @@ class ApiProxyController {
         value: 'WEIGHTED_RANDOM'
       }];
 
-    this.$scope.loggingModes = [
-      {
-        name: 'None',
-        value: 'NONE'
-      }, {
-        name: 'Client only',
-        value: 'CLIENT'
-      }, {
-        name: 'Proxy only',
-        value: 'PROXY'
-      }, {
-        name: 'Client and proxy',
-        value: 'CLIENT_PROXY'
-      }];
-
     this.$scope.methods = ['GET','DELETE','PATCH','POST','PUT','TRACE','HEAD'];
 
     this.initState();
