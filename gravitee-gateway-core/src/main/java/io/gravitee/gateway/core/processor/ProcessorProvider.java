@@ -13,30 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy;
+package io.gravitee.gateway.core.processor;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.processor.ProcessorProvider;
-import io.gravitee.gateway.core.processor.StreamableProcessor;
-import io.gravitee.gateway.policy.impl.PolicyChain;
-import io.gravitee.policy.api.PolicyResult;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyChainResolver extends ProcessorProvider<PolicyResult, StreamableProcessor<PolicyResult>> {
+public interface ProcessorProvider<T, P extends Processor<T>> {
 
-    /**
-     * Return a specific implementation of {@link PolicyChain} based on the stream type
-     *
-     * @param streamType
-     * @param request
-     * @param response
-     * @param executionContext
-     * @return
-     */
-    PolicyChain resolve(StreamType streamType, Request request, Response response, ExecutionContext executionContext);
+    P provide(Request request, Response response, ExecutionContext executionContext);
 }

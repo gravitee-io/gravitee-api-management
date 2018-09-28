@@ -89,7 +89,8 @@ public class DefaultInvoker implements Invoker {
                 ProxyConnection proxyConnection = endpoint.getConnector().request(proxyRequest);
 
                 // Enable logging at proxy level
-                if (api.getProxy().getLoggingMode().isProxyMode()) {
+                Object loggingAttr = executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy");
+                if (loggingAttr != null && ((boolean) loggingAttr) == true) {
                     proxyConnection = new LoggableProxyConnection(proxyConnection, proxyRequest);
                 }
 

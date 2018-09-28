@@ -34,7 +34,8 @@ import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class GlobalPolicyChainTest {
 
@@ -54,10 +55,10 @@ public class GlobalPolicyChainTest {
         List<Policy> policies = policies2();
 
         PolicyChain requestChain = RequestPolicyChain.create(policies, mock(ExecutionContext.class));
-        requestChain.setResultHandler(result -> {});
+        requestChain.handler(result -> {});
 
         PolicyChain responseChain = ResponsePolicyChain.create(policies, mock(ExecutionContext.class));
-        responseChain.setResultHandler(result -> {});
+        responseChain.handler(result -> {});
 
         InOrder requestOrder = inOrder(policy, policy2);
         InOrder responseOrder = inOrder(policy, policy2);

@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.WriteStream;
+import io.gravitee.reporter.api.http.Metrics;
 import io.netty.buffer.ByteBuf;
 import io.vertx.core.http.HttpServerResponse;
 
@@ -34,8 +35,11 @@ class VertxHttpServerResponse implements Response {
 
     private final HttpHeaders headers = new HttpHeaders();
 
-    VertxHttpServerResponse(HttpServerResponse httpServerResponse) {
+    private final Metrics metrics;
+
+    VertxHttpServerResponse(final HttpServerResponse httpServerResponse, final Metrics metrics) {
         this.httpServerResponse = httpServerResponse;
+        this.metrics = metrics;
     }
 
     @Override
@@ -74,6 +78,7 @@ class VertxHttpServerResponse implements Response {
                 }
             }
 
+            metrics.setResponseContentLength(metrics.getResponseContentLength() + chunk.length());
             httpServerResponse.write(io.vertx.core.buffer.Buffer.buffer((ByteBuf) chunk.getNativeBuffer()));
         }
         return this;

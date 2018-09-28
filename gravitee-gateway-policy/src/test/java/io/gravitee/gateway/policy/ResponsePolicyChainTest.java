@@ -40,7 +40,8 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ResponsePolicyChainTest {
 
@@ -73,7 +74,7 @@ public class ResponsePolicyChainTest {
     @Test
     public void doNext_emptyPolicies() throws Exception {
         PolicyChain chain = ResponsePolicyChain.create(Collections.emptyList(), mock(ExecutionContext.class));
-        chain.setResultHandler(result -> {});
+        chain.handler(result -> {});
         chain.doNext(null, null);
 
         verify(policy, never()).onRequest();
@@ -84,7 +85,7 @@ public class ResponsePolicyChainTest {
     public void doNext_singlePolicy() throws Exception {
         PolicyChain chain = ResponsePolicyChain.create(
                 Collections.singletonList(policy), mock(ExecutionContext.class));
-        chain.setResultHandler(result -> {});
+        chain.handler(result -> {});
         chain.doNext(null, null);
 
         verify(policy, never()).onRequest(anyVararg());
@@ -96,7 +97,7 @@ public class ResponsePolicyChainTest {
         ExecutionContext executionContext = mock(ExecutionContext.class);
         PolicyChain chain = ResponsePolicyChain.create(
                 Arrays.asList(policy, policy2), executionContext);
-        chain.setResultHandler(result -> {});
+        chain.handler(result -> {});
 
         chain.doNext(null, null);
 
@@ -108,7 +109,7 @@ public class ResponsePolicyChainTest {
     public void doNext_multiplePolicyOrder() throws Exception {
         PolicyChain chain = ResponsePolicyChain.create(
                 Arrays.asList(policy, policy2), mock(ExecutionContext.class));
-        chain.setResultHandler(result -> {});
+        chain.handler(result -> {});
 
         InOrder inOrder = inOrder(policy, policy2);
 
@@ -127,7 +128,7 @@ public class ResponsePolicyChainTest {
 
         PolicyChain chain = ResponsePolicyChain.create(
                 Arrays.asList(policy2, policy3), executionContext);
-        chain.setResultHandler(result -> {});
+        chain.handler(result -> {});
         chain.doNext(request, null);
 
         verify(request, atLeastOnce()).metrics();
@@ -148,7 +149,7 @@ public class ResponsePolicyChainTest {
 
         PolicyChain chain = ResponsePolicyChain.create(
                 Collections.singletonList(policy4), executionContext);
-        chain.setResultHandler(result -> {});
+        chain.handler(result -> {});
         chain.doNext(null, null);
 
         verify(stream, atLeastOnce()).bodyHandler(any(Handler.class));
@@ -177,7 +178,7 @@ public class ResponsePolicyChainTest {
 
         PolicyChain chain = ResponsePolicyChain.create(
                 Arrays.asList(policy4, policy5), executionContext);
-        chain.setResultHandler(result -> {});
+        chain.handler(result -> {});
         chain.doNext(null, null);
 
         inOrder.verify(streamPolicy4, atLeastOnce()).bodyHandler(any(Handler.class));
@@ -210,7 +211,7 @@ public class ResponsePolicyChainTest {
 
         PolicyChain chain = ResponsePolicyChain.create(
                 Arrays.asList(policy4, policy5), executionContext);
-        chain.setResultHandler(result -> {});
+        chain.handler(result -> {});
         chain.bodyHandler(mock(Handler.class));
         chain.endHandler(mock(Handler.class));
         chain.doNext(null, null);

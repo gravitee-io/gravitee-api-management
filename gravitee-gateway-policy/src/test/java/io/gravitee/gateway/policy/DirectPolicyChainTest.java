@@ -50,7 +50,7 @@ public class DirectPolicyChainTest {
         Handler<PolicyResult> resultHandler = Mockito.spy(Handler.class);
 
         directPolicyChain = new DirectPolicyChain(policyResult, executionContext);
-        directPolicyChain.setResultHandler(resultHandler);
+        directPolicyChain.handler(resultHandler);
         directPolicyChain.doNext(Mockito.mock(Request.class), Mockito.mock(Response.class));
 
         Mockito.verify(resultHandler, Mockito.times(1)).handle(policyResult);
