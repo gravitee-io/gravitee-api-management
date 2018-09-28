@@ -42,7 +42,7 @@ public class Api1_15VersionSerializer extends ApiSerializer {
             jsonGenerator.writeObjectFieldStart("proxy");
             jsonGenerator.writeObjectField("context_path", apiEntity.getProxy().getContextPath());
             jsonGenerator.writeObjectField("strip_context_path", apiEntity.getProxy().isStripContextPath());
-            jsonGenerator.writeObjectField("loggingMode", apiEntity.getProxy().getLoggingMode());
+            jsonGenerator.writeObjectField("logging", apiEntity.getProxy().getLogging());
             jsonGenerator.writeObjectField("endpoints", apiEntity.getProxy().getGroups().stream()
                     .map(endpointGroup -> endpointGroup.getEndpoints())
                     .flatMap(Collection::stream)

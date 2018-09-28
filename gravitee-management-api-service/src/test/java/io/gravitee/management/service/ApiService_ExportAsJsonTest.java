@@ -127,7 +127,6 @@ public class ApiService_ExportAsJsonTest {
         Proxy proxy = new Proxy();
         proxy.setContextPath("/test");
         proxy.setStripContextPath(false);
-        proxy.setLoggingMode(LoggingMode.NONE);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
         Endpoint endpoint = new HttpEndpoint("default", "http://test");
@@ -271,7 +270,6 @@ public class ApiService_ExportAsJsonTest {
         Proxy proxy = new Proxy();
         proxy.setContextPath("/test");
         proxy.setStripContextPath(false);
-        proxy.setLoggingMode(LoggingMode.NONE);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
         Endpoint endpoint = new HttpEndpoint("default", "http://test");
