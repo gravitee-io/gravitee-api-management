@@ -444,4 +444,24 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertNotNull(cors.getAccessControlAllowMethods());
         Assert.assertNotNull(cors.getAccessControlExposeHeaders());
     }
+
+    @Test
+    public void definition_withLogging_defaultValues() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-logging.json", Api.class);
+
+        Logging logging = api.getProxy().getLogging();
+        Assert.assertNotNull(logging);
+        Assert.assertEquals(LoggingMode.NONE, logging.getMode());
+        Assert.assertEquals("my condition", logging.getCondition());
+    }
+
+    @Test
+    public void definition_withLogging_clientMode() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-logging-client.json", Api.class);
+
+        Logging logging = api.getProxy().getLogging();
+        Assert.assertNotNull(logging);
+        Assert.assertEquals(LoggingMode.CLIENT_PROXY, logging.getMode());
+        Assert.assertEquals("my condition", logging.getCondition());
+    }
 }

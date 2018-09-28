@@ -39,8 +39,9 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
         jgen.writeStartObject();
         jgen.writeStringField("context_path", proxy.getContextPath());
         jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
-        if (proxy.getLoggingMode() != null) {
-            jgen.writeStringField("loggingMode", proxy.getLoggingMode().name());
+
+        if (proxy.getLogging() != null) {
+            jgen.writeObjectField("logging", proxy.getLogging());
         }
 
         final Set<EndpointGroup> groups = proxy.getGroups();

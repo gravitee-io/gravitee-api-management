@@ -71,11 +71,18 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             proxy.setFailover(failover);
         }
 
-        JsonNode loggingNode = node.get("loggingMode");
+        // Keep it for backward compatibility
+        JsonNode loggingModeNode = node.get("loggingMode");
+        if (loggingModeNode != null) {
+            Logging logging = new Logging();
+            logging.setMode(LoggingMode.valueOf(loggingModeNode.asText().toUpperCase()));
+            proxy.setLogging(logging);
+        }
+
+        JsonNode loggingNode = node.get("logging");
         if (loggingNode != null) {
-            proxy.setLoggingMode(LoggingMode.valueOf(loggingNode.asText().toUpperCase()));
-        } else {
-            proxy.setLoggingMode(Proxy.DEFAULT_LOGGING_MODE);
+            Logging logging = loggingNode.traverse(jp.getCodec()).readValueAs(Logging.class);
+            proxy.setLogging(logging);
         }
 
         JsonNode corsNode = node.get("cors");

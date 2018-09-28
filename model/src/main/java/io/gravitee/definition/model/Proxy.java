@@ -23,8 +23,6 @@ import java.util.Set;
  */
 public class Proxy {
 
-    public final static LoggingMode DEFAULT_LOGGING_MODE = LoggingMode.NONE;
-
     private String contextPath;
 
     private Set<EndpointGroup> groups;
@@ -33,9 +31,9 @@ public class Proxy {
 
     private Cors cors;
 
-    private boolean stripContextPath = false;
+    private Logging logging;
 
-    private LoggingMode loggingMode = DEFAULT_LOGGING_MODE;
+    private boolean stripContextPath = false;
 
     public String getContextPath() {
         return contextPath;
@@ -65,14 +63,6 @@ public class Proxy {
         this.failover = failover;
     }
 
-    public LoggingMode getLoggingMode() {
-        return loggingMode;
-    }
-
-    public void setLoggingMode(LoggingMode loggingMode) {
-        this.loggingMode = loggingMode;
-    }
-
     public Cors getCors() {
         return cors;
     }
@@ -87,5 +77,13 @@ public class Proxy {
 
     public void setGroups(Set<EndpointGroup> groups) {
         this.groups = groups;
+    }
+
+    public Logging getLogging() {
+        return logging;
+    }
+
+    public void setLogging(Logging logging) {
+        this.logging = logging;
     }
 }
