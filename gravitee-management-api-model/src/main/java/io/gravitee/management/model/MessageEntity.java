@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.model;
 
+import java.util.Map;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
@@ -26,6 +28,7 @@ public class MessageEntity {
     MessageChannel channel;
     String title;
     String text;
+    Map<String, String> params;
 
     public MessageRecipientEntity getRecipient() {
         return recipient;
@@ -57,5 +60,13 @@ public class MessageEntity {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public Map<String, String> getParams() {
+        return params;
+    }
+
+    public void setParams(Map<String, String> params) {
+        this.params = params;
     }
 }

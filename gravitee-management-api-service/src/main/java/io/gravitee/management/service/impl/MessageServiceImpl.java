@@ -15,9 +15,11 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.management.model.MessageEntity;
-import io.gravitee.management.model.MessageRecipientEntity;
-import io.gravitee.management.model.UserEntity;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.management.model.*;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -27,6 +29,7 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.Hook;
 import io.gravitee.management.service.notification.PortalHook;
+import io.gravitee.management.service.notifiers.WebNotifierService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -38,8 +41,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -74,6 +79,15 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
     @Autowired
     EmailService emailService;
+
+    @Autowired
+    ApiService apiService;
+
+    @Autowired
+    private Configuration freemarkerConfiguration;
+
+    @Autowired
+    WebNotifierService webNotifierService;
 
     @Value("${email.from}")
     private String defaultFrom;
@@ -125,8 +139,6 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     }
 
     private int send(Api api, MessageEntity message, Set<String> recipientsId) {
-        Map<String, Object> params = getParams(api, message);
-
         switch (message.getChannel()) {
             case MAIL:
                 Set<String> mails = getRecipientsEmails(recipientsId);
@@ -143,9 +155,16 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
             case PORTAL:
                 Hook hook = api==null ? PortalHook.MESSAGE : ApiHook.MESSAGE;
-                portalNotificationService.create(hook, new ArrayList<>(recipientsId), params);
+                portalNotificationService.create(hook, new ArrayList<>(recipientsId), getPortalParams(api, message));
                 return recipientsId.size();
 
+            case HTTP:
+                webNotifierService.request(
+                        HttpMethod.POST,
+                        recipientsId.iterator().next(),
+                        message.getParams(),
+                        getPostMessage(api, message));
+                return 1;
             default:
                 return 0;
         }
@@ -153,11 +172,17 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
     @Override
     public Set<String> getRecipientsId(MessageEntity message) {
+        if (MessageChannel.HTTP.equals(message.getChannel())) {
+            return Collections.singleton(message.getRecipient().getUrl());
+        }
         return getRecipientsId(null, message);
     }
 
     @Override
     public Set<String> getRecipientsId(Api api, MessageEntity message) {
+        if (MessageChannel.HTTP.equals(message.getChannel())) {
+            return Collections.singleton(message.getRecipient().getUrl());
+        }
         assertRecipientsNotEmpty(message);
         MessageRecipientEntity recipientEntity = message.getRecipient();
         // 2 cases are implemented :
@@ -255,7 +280,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         }
     }
 
-    private Map<String, Object> getParams(Api api, MessageEntity message) {
+    private Map<String, Object> getPortalParams(Api api, MessageEntity message) {
         Map<String, Object> params = new HashMap<>();
         params.put("title", message.getTitle());
         params.put("message", message.getText());
@@ -267,5 +292,23 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             params.put("api", paramApi);
         }
         return params;
+    }
+
+    private String getPostMessage(Api api, MessageEntity message) {
+        if (message.getText() == null || api == null) {
+            return message.getText();
+        }
+        try {
+            Template template = new Template(new Date().toString(), message.getText(), freemarkerConfiguration);
+
+            ApiModelEntity apiEntity = apiService.findByIdForTemplates(api.getId());
+            Map<String, Object> model = new HashMap<>();
+            model.put("api", apiEntity);
+
+            return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+        } catch (IOException | TemplateException e) {
+            LOGGER.error("Unable to apply templating on the message", e);
+            throw new TechnicalManagementException("Unable to apply templating on the message", e);
+        }
     }
 }

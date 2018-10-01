@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.service.notifiers;
+
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.management.service.notification.Hook;
+import io.gravitee.repository.management.model.GenericNotificationConfig;
+
+import java.util.Map;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-public enum MessageChannel {
-    MAIL, PORTAL, HTTP
+public interface WebNotifierService {
+    void request(HttpMethod method, final String uri, final Map<String, String> headers, String body);
 }

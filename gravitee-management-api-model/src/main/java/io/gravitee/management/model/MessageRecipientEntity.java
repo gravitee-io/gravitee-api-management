@@ -31,6 +31,8 @@ public class MessageRecipientEntity {
     @JsonProperty("role_value")
     List<String> roleValues;
 
+    String url;
+
     public String getRoleScope() {
         return roleScope;
     }
@@ -45,5 +47,13 @@ public class MessageRecipientEntity {
 
     public void setRoleValues(List<String> roleValues) {
         this.roleValues = roleValues;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

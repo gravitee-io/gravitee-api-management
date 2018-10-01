@@ -15,25 +15,20 @@
  */
 package io.gravitee.management.service.notifiers.impl;
 
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.MediaType;
-import io.gravitee.common.utils.UUID;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.notification.Hook;
+import io.gravitee.management.service.notifiers.WebNotifierService;
 import io.gravitee.management.service.notifiers.WebhookNotifierService;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 
 import static io.gravitee.management.service.notification.NotificationParamsBuilder.*;
@@ -47,54 +42,21 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(WebhookNotifierServiceImpl.class);
 
-    private static final String HTTPS_SCHEME = "https";
-    private static final int GLOBAL_TIMEOUT = 10_000;
-
     @Autowired
-    private Vertx vertx;
+    WebNotifierService webNotifierService;
 
     @Override
     public void trigger(final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
-        if (genericNotificationConfig.getConfig() == null || genericNotificationConfig.getConfig().isEmpty()) {
-            LOGGER.error("Webhook Notifier configuration is empty");
-            return;
-        }
-        URI requestUri = URI.create(genericNotificationConfig.getConfig());
-        boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
-
-        final HttpClientOptions options = new HttpClientOptions()
-                .setSsl(ssl)
-                .setTrustAll(true)
-                .setMaxPoolSize(1)
-                .setKeepAlive(false)
-                .setTcpKeepAlive(false)
-                .setConnectTimeout(GLOBAL_TIMEOUT);
-
-        final HttpClient httpClient = vertx.createHttpClient(options);
-
-        final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
-                (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
-
-        HttpClientRequest request = httpClient.post(
-                port,
-                requestUri.getHost(),
-                requestUri.toString(),
-                response -> LOGGER.debug("Webhook response status code : {}", response.statusCode())
-        );
-        request.setTimeout(GLOBAL_TIMEOUT);
 
         //body
         String body = toJson(hook, params);
 
         //headers
-        request.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-        request.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
-        request.putHeader("X-Gravitee-Event", hook.name());
-        request.putHeader("X-Gravitee-Event-Scope", hook.getScope().name());
-        request.putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
+        Map<String, String> headers = new HashMap();
+        headers.put("X-Gravitee-Event", hook.name());
+        headers.put("X-Gravitee-Event-Scope", hook.getScope().name());
 
-        request.write(body);
-        request.end();
+        webNotifierService.request(HttpMethod.POST, genericNotificationConfig.getConfig(), headers, body);
     }
 
     private String toJson(final Hook hook, final Map<String, Object> params) {
