@@ -39,6 +39,7 @@ public class ElasticsearchReporterConfiguration {
         clientConfiguration.setEndpoints(reporterConfiguration.getEndpoints());
         clientConfiguration.setUsername(reporterConfiguration.getUsername());
         clientConfiguration.setPassword(reporterConfiguration.getPassword());
+        clientConfiguration.setRequestTimeout(reporterConfiguration.getRequestTimeout());
         return new HttpClient(clientConfiguration);
     }
 

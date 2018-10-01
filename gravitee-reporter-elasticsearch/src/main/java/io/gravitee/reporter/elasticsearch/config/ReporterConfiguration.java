@@ -76,6 +76,12 @@ public class ReporterConfiguration {
 	private String password;
 
 	/**
+	 * Elasticsearch HTTP request timeout.
+	 */
+	@Value("${reporters.elasticsearch.http.timeout:30000}")
+	private long requestTimeout;
+
+	/**
 	 * Settings: number of shards
 	 */
 	@Value("${reporters.elasticsearch.settings.number_of_shards:5}")
@@ -210,5 +216,13 @@ public class ReporterConfiguration {
 
 	public void setPerTypeIndex(boolean perTypeIndex) {
 		this.perTypeIndex = perTypeIndex;
+	}
+
+	public long getRequestTimeout() {
+		return requestTimeout;
+	}
+
+	public void setRequestTimeout(long requestTimeout) {
+		this.requestTimeout = requestTimeout;
 	}
 }

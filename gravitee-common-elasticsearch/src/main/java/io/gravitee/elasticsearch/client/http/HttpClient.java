@@ -101,6 +101,7 @@ public class HttpClient implements Client {
             final URI elasticEdpt = URI.create(endpoint.getUrl());
 
             WebClientOptions options = new WebClientOptions()
+                    .setUsePooledBuffers(true)
                     .setDefaultHost(elasticEdpt.getHost())
                     .setDefaultPort(elasticEdpt.getPort() != -1 ? elasticEdpt.getPort() :
                             (HTTPS_SCHEME.equals(elasticEdpt.getScheme()) ? 443 : 80));
@@ -123,6 +124,7 @@ public class HttpClient implements Client {
                 @Override
                 public void handle(HttpContext context) {
                     context.request()
+                            .timeout(configuration.getRequestTimeout())
                             .putHeader(HttpHeaders.ACCEPT, CONTENT_TYPE)
                             .putHeader(HttpHeaders.ACCEPT_CHARSET, StandardCharsets.UTF_8.name());
 

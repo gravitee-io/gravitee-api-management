@@ -33,6 +33,8 @@ public class HttpClientConfiguration {
     private String username;
     private String password;
 
+    private long requestTimeout = 10000;
+
     public List<Endpoint> getEndpoints() {
         return endpoints;
     }
@@ -55,5 +57,13 @@ public class HttpClientConfiguration {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public long getRequestTimeout() {
+        return requestTimeout;
+    }
+
+    public void setRequestTimeout(long requestTimeout) {
+        this.requestTimeout = requestTimeout;
     }
 }
