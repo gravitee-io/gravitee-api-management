@@ -42,4 +42,10 @@ public abstract class AbstractStreamableProcessor<T> extends AbstractProcessor<T
         this.streamErrorHandler = streamErrorHandler;
         return this;
     }
+
+    @Override
+    public StreamableProcessor<T> exitHandler(Handler<T> exitHandler) {
+        this.exitHandler = exitHandler;
+        return this;
+    }
 }

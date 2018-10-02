@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.handler.Handler;
 public abstract class AbstractProcessor<T> implements Processor<T> {
 
     protected Handler<T> handler;
+    protected Handler<T> exitHandler;
     protected Handler<ProcessorFailure> errorHandler;
 
     @Override
@@ -35,6 +36,12 @@ public abstract class AbstractProcessor<T> implements Processor<T> {
     @Override
     public Processor<T> errorHandler(Handler<ProcessorFailure> errorHandler) {
         this.errorHandler = errorHandler;
+        return this;
+    }
+
+    @Override
+    public Processor<T> exitHandler(Handler<T> exitHandler) {
+        this.exitHandler = exitHandler;
         return this;
     }
 }

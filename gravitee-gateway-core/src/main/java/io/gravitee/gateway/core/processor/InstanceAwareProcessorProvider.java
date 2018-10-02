@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.logging.processor;
+package io.gravitee.gateway.core.processor;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.processor.Processor;
-import io.gravitee.gateway.core.processor.ProcessorProvider;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class LoggableRequestProcessorProvider implements ProcessorProvider {
+public class InstanceAwareProcessorProvider implements ProcessorProvider {
 
-    private final LoggableRequestProcessor processor;
+    private final Processor processor;
 
-    public LoggableRequestProcessorProvider(LoggableRequestProcessor processor) {
+    public InstanceAwareProcessorProvider(Processor processor) {
         this.processor = processor;
     }
 

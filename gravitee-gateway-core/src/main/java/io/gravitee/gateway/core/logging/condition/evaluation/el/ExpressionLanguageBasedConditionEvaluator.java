@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.logging.condition.evaluation.el;
 
-import io.gravitee.el.spel.TemplateParserContext;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.logging.condition.evaluation.ConditionEvaluator;
@@ -51,10 +50,5 @@ public class ExpressionLanguageBasedConditionEvaluator implements ConditionEvalu
         }
 
         return true;
-    }
-
-    public static void main(String[] args) {
-        ExpressionLanguageBasedConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator("#context.application == '7837f4b8-6567-4837-b7f4-b86567f83709' && #request.timestamp <= 1538140136270l");
-        evaluator.evaluate(null, null);
     }
 }
