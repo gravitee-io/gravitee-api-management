@@ -25,7 +25,7 @@
         <div class="gv-form-content" layout="column">
 
         <div layout="row" layout-align="space-around start">
-            <div layout="column">
+            <div layout="column" flex="50">
                 <label>Choose the channel you want to use</label>
                 <md-radio-group ng-model="$ctrl.channel">
                     <md-radio-button ng-repeat="chan in $ctrl.channels"
@@ -34,17 +34,51 @@
                     </md-radio-button>
                 </md-radio-group>
             </div>
-            <div layout="column">
+            <div layout="column" flex="50" ng-if="$ctrl.channel !== 'HTTP'">
                 <label>Choose the <b>{{$ctrl.resolvedScope}}</b> role you want to contact</label>
                 <md-select ng-model="$ctrl.role" ng-required="true">
                     <md-option ng-repeat="r in $ctrl.roles" ng-value="r.name">{{r.name}}</md-option>
                 </md-select>
             </div>
+
+            <div layout="column" flex="50" ng-if="$ctrl.channel === 'HTTP'">
+                <datalist id="http-headers">
+                    <option ng-repeat="h in $ctrl.defaultHttpHeaders" value="{{h}}">
+                </datalist>
+                <label>Add HTTP headers</label>
+                <md-table-container>
+                    <table md-table>
+                        <thead md-head>
+                        <tr md-row>
+                            <th md-column>Name</th>
+                            <th md-column>Value</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody md-body>
+                        <tr md-row ng-repeat="header in $ctrl.httpHeaders track by $index">
+                            <td md-cell><input list="http-headers" type="text" ng-model="header.key"></td>
+                            <td md-cell><input type="text" ng-model="header.value"></td>
+                            <td md-cell><ng-md-icon icon="delete" ng-click="$ctrl.deleteHttpHeader($index)"></ng-md-icon></td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colspan="3" md-cell ng-click="$ctrl.newHttpHeader($event)"><a>Add a new header</a></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </md-table-container>
+            </div>
         </div>
-        <md-input-container>
-            <label>Title</label>
-            <input ng-model="$ctrl.title" ng-required="true">
-        </md-input-container>
+            <md-input-container ng-if="$ctrl.channel !== 'HTTP'">
+                <label>Title</label>
+                <input ng-model="$ctrl.title" ng-required="true">
+            </md-input-container>
+            <md-input-container ng-if="$ctrl.channel === 'HTTP'">
+                <label>URL</label>
+                <input ng-model="$ctrl.url" ng-required="true">
+            </md-input-container>
         <md-input-container>
             <label>Text</label>
             <textarea ng-model="$ctrl.text" ng-required="true"

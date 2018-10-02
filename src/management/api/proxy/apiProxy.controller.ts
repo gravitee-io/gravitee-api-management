@@ -17,6 +17,9 @@ import _ = require('lodash');
 import angular = require('angular');
 import SidenavService from '../../../components/sidenav/sidenav.service';
 import UserService from '../../../services/user.service';
+import ApiService from "../../../services/api.service";
+import NotificationService from "../../../services/notification.service";
+import GroupService from "../../../services/group.service";
 
 class ApiProxyController {
   private initialApi: any;
@@ -35,15 +38,15 @@ class ApiProxyController {
   private discovery: any;
 
   constructor(
-    private ApiService,
-    private NotificationService,
+    private ApiService: ApiService,
+    private NotificationService: NotificationService,
     private UserService: UserService,
     private $scope,
     private $mdDialog,
     private $mdEditDialog,
     private $rootScope,
     private $state,
-    private GroupService,
+    private GroupService: GroupService,
     private SidenavService: SidenavService,
     private resolvedViews,
     private resolvedGroups,
@@ -99,18 +102,7 @@ class ApiProxyController {
     this.tags = resolvedTags;
     this.groups = resolvedGroups;
 
-    this.headers = [
-      'Accept','Accept-Charset','Accept-Encoding','Accept-Language','Accept-Ranges','Access-Control-Allow-Credentials',
-      'Access-Control-Allow-Headers','Access-Control-Allow-Methods','Access-Control-Allow-Origin',
-      'Access-Control-Expose-Headers','Access-Control-Max-Age','Access-Control-Request-Headers',
-      'Access-Control-Request-Method','Age','Allow','Authorization','Cache-Control','Connection','Content-Disposition',
-      'Content-Encoding','Content-ID','Content-Language','Content-Length','Content-Location','Content-MD5','Content-Range',
-      'Content-Type','Cookie','Date','ETag','Expires','Expect','Forwarded','From','Host','If-Match','If-Modified-Since',
-      'If-None-Match','If-Unmodified-Since','Keep-Alive','Last-Modified','Location','Link','Max-Forwards','MIME-Version',
-      'Origin','Pragma','Proxy-Authenticate','Proxy-Authorization','Proxy-Connection','Range','Referer','Retry-After',
-      'Server','Set-Cookie','Set-Cookie2','TE','Trailer','Transfer-Encoding','Upgrade','User-Agent','Vary','Via',
-      'Warning','WWW-Authenticate','X-Forwarded-For','X-Forwarded-Proto','X-Forwarded-Server','X-Forwarded-Host'
-    ];
+    this.headers = ApiService.defaultHttpHeaders();
 
     this.$scope.$on('apiChangeSuccess', (event, args) => {
       this.api = args.api;

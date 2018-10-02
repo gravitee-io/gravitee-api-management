@@ -22,29 +22,46 @@ class MessageService {
     this.baseURL = Constants.baseURL;
   }
 
-  sendFromPortal(title: string, text: string, channel: string, roleScope: string, roleValues: string[]) {
+  sendFromPortal(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, httpHeaders: string[]) {
     return this.$http.post(
       `${this.baseURL}messages`,
-      this.getPayload(title, text, channel, roleScope, roleValues)
+      this.getPayload(title, text, channel, roleScope, roleValues, url, httpHeaders)
     );
   }
 
-  sendFromApi(apiId: string, title: string, text: string, channel: string, roleScope: string, roleValues: string[]) {
+  sendFromApi(apiId: string, title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string,httpHeaders: string[]) {
     return this.$http.post(
       `${this.baseURL}apis/${apiId}/messages`,
-      this.getPayload(title, text, channel, roleScope, roleValues)
+      this.getPayload(title, text, channel, roleScope, roleValues, url, httpHeaders)
     );
   }
 
-  private getPayload(title: string, text: string, channel: string, roleScope: string, roleValues: string[]) {
-    return {
-      "title": title,
-      "text": text,
-      "recipient": {
-        "role_scope": roleScope,
-        "role_value": roleValues
-      },
-      "channel": channel
+  private getPayload(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string,httpHeaders: string[]) {
+    if (url) {
+      let params = {};
+      for (let idx=0; idx < httpHeaders.length; idx ++) {
+        if (httpHeaders[idx]["key"] !== "") {
+          params[httpHeaders[idx]["key"]] = httpHeaders[idx]["value"];
+        }
+      }
+      return {
+        "text": text,
+        "recipient": {
+          "url": url
+        },
+        "channel": channel,
+        "params": params
+      }
+    } else {
+      return {
+        "title": title,
+        "text": text,
+        "recipient": {
+          "role_scope": roleScope,
+          "role_value": roleValues
+        },
+        "channel": channel
+      }
     }
   }
 }
