@@ -5,7 +5,14 @@ image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-managemen
 image:https://badges.gitter.im/Join Chat.svg["Gitter", link="https://gitter.im/gravitee-io/gravitee-io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
 endif::[]
 
-Gravitee.io Rest API to manage platform
+== Overview
+
+A restful API providing a bunch of services to manage and configure the global platform.
+All exposed services are constraint by authentication and authorization rules.
+
+== Documentation
+
+You can find Gravitee.io API Management documentation from https://docs.gravitee.io/[Gravitee.io website].
 
 == Building
 
