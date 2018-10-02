@@ -56,3 +56,6 @@ repository.mongodb options :
 | sslEnabled 		                               |            |
 | threadsAllowedToBlockForConnectionMultiplier     |            |
 | cursorFinalizerEnabled                           |            |
+| keystorePassword                                 |            |
+| keystore                                         |            |
+| keyPassword                                      |            |
