@@ -37,9 +37,10 @@
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
         <label>Access-Control-Allow-Origin *</label>
-        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowOrigin" readonly="false"
+        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowOrigin"
                   ng-required="apiProxyCtrl.api.proxy.cors.enabled"
-                  md-removable="true" placeholder="*, mydomain.com, ...">
+                  md-removable="apiProxyCtrl.api.proxy.cors.enabled" placeholder="*, mydomain.com, ..."
+                  readonly="!apiProxyCtrl.api.proxy.cors.enabled">
           <md-chip-template>
             <strong>{{$chip}}</strong>
           </md-chip-template>
@@ -55,7 +56,8 @@
                    md-on-close="clearSearchTerm()"
                    data-md-container-class="selectdemoSelectHeader"
                    multiple
-                   ng-required="apiProxyCtrl.api.proxy.cors.enabled">
+                   ng-required="apiProxyCtrl.api.proxy.cors.enabled"
+                   ng-disabled="!apiProxyCtrl.api.proxy.cors.enabled">
           <md-select-header class="demo-select-header">
             <input ng-model="searchTerm"
                    type="search"
@@ -75,7 +77,7 @@
       <md-input-container class="md-block" flex-gt-sm>
           <label>Access-Control-Allow-Headers</label>
         <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowHeaders" md-autocomplete-snap
-                  md-require-match="false">
+                  md-require-match="false" readonly="!apiProxyCtrl.api.proxy.cors.enabled">
           <md-autocomplete
             md-search-text="searchHeaders"
             md-items="item in apiProxyCtrl.querySearchHeaders(searchHeaders)"
@@ -99,6 +101,7 @@
       <md-input-container class="md-block" flex-gt-sm>
         <md-checkbox
           ng-model="apiProxyCtrl.api.proxy.cors.allowCredentials"
+          ng-disabled="!apiProxyCtrl.api.proxy.cors.enabled"
           aria-label="Access-Control-Allow-Credentials"
           class="md-align-top-left" flex>
           Access-Control-Allow-Credentials<br/>
@@ -110,7 +113,10 @@
 
       <md-input-container class="md-block" flex-gt-sm>
         <label>Max Age (seconds)</label>
-        <input ng-model="apiProxyCtrl.api.proxy.cors.maxAge" type="number" ng-required="apiProxyCtrl.api.proxy.cors.enabled" min="-1">
+        <input ng-model="apiProxyCtrl.api.proxy.cors.maxAge" type="number"
+               ng-required="apiProxyCtrl.api.proxy.cors.enabled"
+               min="-1"
+               ng-disabled="!apiProxyCtrl.api.proxy.cors.enabled">
         <div class="hint">This header indicates how long the results of a preflight request can be cached (-1 if disabled).</div>
       </md-input-container>
     </div>
@@ -118,7 +124,8 @@
     <div flex-xs flex="50">
       <md-input-container class="md-block" flex-gt-sm>
         <md-chips ng-model="apiProxyCtrl.api.proxy.cors.exposeHeaders" md-autocomplete-snap
-                  md-require-match="false">
+                  md-require-match="false"
+                  readonly="!apiProxyCtrl.api.proxy.cors.enabled">
           <md-autocomplete
             md-search-text="searchHeaders"
             md-items="item in apiProxyCtrl.querySearchHeaders(searchHeaders)"

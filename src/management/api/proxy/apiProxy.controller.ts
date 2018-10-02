@@ -204,6 +204,8 @@ class ApiProxyController {
     this.api = _.cloneDeep(this.initialApi);
     this.discovery = _.cloneDeep(this.initialDiscovery);
 
+    this.initState();
+
     if (this.formApi) {
       this.formApi.$setPristine();
       this.formApi.$setUntouched();
