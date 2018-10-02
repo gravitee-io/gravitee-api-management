@@ -46,7 +46,7 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultInvoker implements Invoker {
+public class EndpointInvoker implements Invoker {
 
     @Autowired
     protected Api api;
@@ -90,7 +90,7 @@ public class DefaultInvoker implements Invoker {
 
                 // Enable logging at proxy level
                 Object loggingAttr = executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy");
-                if (loggingAttr != null && ((boolean) loggingAttr) == true) {
+                if (loggingAttr != null && ((boolean) loggingAttr)) {
                     proxyConnection = new LoggableProxyConnection(proxyConnection, proxyRequest);
                 }
 

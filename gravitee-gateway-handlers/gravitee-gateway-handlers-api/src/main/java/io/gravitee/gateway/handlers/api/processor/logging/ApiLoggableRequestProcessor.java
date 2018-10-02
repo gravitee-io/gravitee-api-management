@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.processor;
+package io.gravitee.gateway.handlers.api.processor.logging;
 
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;

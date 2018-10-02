@@ -19,7 +19,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.handlers.api.cors.CorsHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
@@ -40,9 +39,10 @@ import java.net.URL;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/cors.json")
@@ -85,7 +85,7 @@ public class CorsTest extends AbstractGatewayTest {
     }
 
     @Test
-    public void simple_request() throws Exception {
+    public void simple_request_no_origin() throws Exception {
         stubFor(get(urlEqualTo("/team/my_team"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.SC_OK)
@@ -96,7 +96,26 @@ public class CorsTest extends AbstractGatewayTest {
         HttpResponse returnResponse = response.returnResponse();
 
         assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
-        assertEquals(CorsHandler.ALLOW_ORIGIN_PUBLIC_WILDCARD, returnResponse.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());
+        assertNull(returnResponse.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+
+        // Check that the stub has never been invoked by the gateway
+        verify(1, getRequestedFor(urlEqualTo("/team/my_team")));
+    }
+
+    @Test
+    public void simple_request_with_origin() throws Exception {
+        stubFor(get(urlEqualTo("/team/my_team"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.SC_OK)
+                        .withBody("{\"key\": \"value\"}")));
+
+        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Get("http://localhost:8082/test/my_team");
+        request.addHeader(HttpHeaders.ORIGIN, "http://localhost");
+        org.apache.http.client.fluent.Response response = request.execute();
+        HttpResponse returnResponse = response.returnResponse();
+
+        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals("*", returnResponse.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());
         assertEquals("x-forwarded-host", returnResponse.getFirstHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS).getValue());
 
         // Check that the stub has never been invoked by the gateway

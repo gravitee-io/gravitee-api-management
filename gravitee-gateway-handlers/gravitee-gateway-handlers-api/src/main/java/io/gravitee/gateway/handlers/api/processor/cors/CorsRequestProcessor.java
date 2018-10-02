@@ -13,21 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.processor;
+package io.gravitee.gateway.handlers.api.processor.cors;
 
-import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.definition.model.Cors;
+import io.gravitee.gateway.core.processor.AbstractProcessor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Processor<T> {
+public abstract class CorsRequestProcessor extends AbstractProcessor<Void> {
 
-    void process(ProcessorContext context);
+    final static String ALLOW_ORIGIN_PUBLIC_WILDCARD = "*";
 
-    Processor<T> handler(Handler<T> handler);
+    final static String JOINER_CHAR_SEQUENCE = ", ";
 
-    Processor<T> errorHandler(Handler<ProcessorFailure> handler);
+    protected final Cors cors;
 
-    Processor<T> exitHandler(Handler<T> handler);
+    CorsRequestProcessor(final Cors cors) {
+        this.cors = cors;
+    }
+
+    boolean isOriginAllowed(String origin) {
+        return origin != null && (cors.getAccessControlAllowOrigin().contains(ALLOW_ORIGIN_PUBLIC_WILDCARD) ||
+                cors.getAccessControlAllowOrigin().contains(origin));
+    }
 }

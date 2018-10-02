@@ -23,7 +23,6 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
@@ -35,24 +34,24 @@ import io.gravitee.gateway.api.expression.TemplateVariableProvider;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecyleManager;
-import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessorProvider;
+import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.gravitee.gateway.core.processor.*;
 import io.gravitee.gateway.core.proxy.DirectProxyConnection;
 import io.gravitee.gateway.handlers.api.context.ExecutionContextFactory;
-import io.gravitee.gateway.handlers.api.cors.CorsHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.metrics.PathMappingMetricsHandler;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
+import io.gravitee.gateway.handlers.api.policy.api.ApiResponsePolicyChainResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
-import io.gravitee.gateway.handlers.api.processor.ApiLoggableRequestProcessor;
+import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightRequestProcessor;
+import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
+import io.gravitee.gateway.handlers.api.processor.logging.ApiLoggableRequestProcessor;
 import io.gravitee.gateway.policy.PolicyChainResolver;
 import io.gravitee.gateway.policy.PolicyManager;
-import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.security.core.SecurityPolicyChainResolver;
-import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -74,7 +73,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
 
     /**
      * Invoker is the connector to access the remote backend / endpoint.
-     * If not override by a policy, default invoker is {@link io.gravitee.gateway.core.invoker.DefaultInvoker}.
+     * If not override by a policy, default invoker is {@link EndpointInvoker}.
      */
     @Autowired
     private Invoker invoker;
@@ -85,17 +84,13 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
     private String contextPath;
 
     private List<ProcessorProvider> requestProcessors;
-
-    private PolicyChainResolver apiPolicyResolver;
+    private List<ProcessorProvider> responseProcessors;
 
     @Autowired
     private ExecutionContextFactory executionContextFactory;
 
     @Override
     protected void doHandle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
-        // Set the path without the context-path
-        serverRequest.metrics().setPath(serverRequest.pathInfo());
-
         if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
             handler = new PathMappingMetricsHandler(handler, api.getPathMappings(), serverRequest);
         }
@@ -103,24 +98,15 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
         // Prepare request execution context
         ExecutionContext executionContext = executionContextFactory.create(serverRequest, serverResponse);
         executionContext.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, serverRequest.contextPath());
+        executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
+        executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
+
+        // Prepare request metrics
+        serverRequest.metrics().setApi(api.getId());
+        serverRequest.metrics().setPath(serverRequest.pathInfo());
 
         try {
-            // Set execution context attributes and metrics specific to this handler
-            serverRequest.metrics().setApi(api.getId());
-
-            executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
-            executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
-
-            Cors cors = api.getProxy().getCors();
-            if (cors != null && cors.isEnabled()) {
-                Handler<Response> finalHandler = handler;
-
-                new CorsHandler(cors)
-                        .responseHandler(response -> handleClientRequest(serverRequest, serverResponse, executionContext, finalHandler))
-                        .handle(serverRequest, serverResponse, handler);
-            } else {
-                handleClientRequest(serverRequest, serverResponse, executionContext, handler);
-            }
+            handleClientRequest(serverRequest, serverResponse, executionContext, handler);
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while processing request", ex);
 
@@ -136,16 +122,22 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
     }
 
     private void handleClientRequest(final Request serverRequest, final Response serverResponse, final ExecutionContext executionContext, final Handler<Response> handler) {
+        // Pause the request and resume it as soon as all the stream are plugged and we have processed the HEAD part
+        // of the request.
         serverRequest.pause();
 
         // Process incoming request
         ProcessorContext context = ProcessorContext.from(serverRequest, serverResponse, executionContext);
-        StreamableProcessor<Buffer> requestProcessor = new ProviderRequestProcessorChain(requestProcessors);
+        StreamableProcessor<StreamableProcessor<Buffer>> requestProcessor = new ProviderProcessorChain(requestProcessors);
         requestProcessor
-                .handler(__ -> handleProxyInvocation(context, requestProcessor, handler))
+                .handler(stream -> handleProxyInvocation(context, stream, handler))
                 .errorHandler(failure -> {
                         handleProcessorFailure(failure, context.getResponse());
                         handler.handle(context.getResponse());
+                })
+                .exitHandler(__ -> {
+                    context.getResponse().end();
+                    handler.handle(context.getResponse());
                 })
                 .process(context);
     }
@@ -183,50 +175,49 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
         }
     }
 
-    private void handleClientResponse(final ProcessorContext processorContext, final ProxyResponse proxyResponse, final long serviceInvocationStart, final Handler<Response> handler) {
+    private void handleClientResponse(final ProcessorContext context, final ProxyResponse proxyResponse, final long serviceInvocationStart, final Handler<Response> handler) {
         // Set the status
-        processorContext.getResponse().status(proxyResponse.status());
+        context.getResponse().status(proxyResponse.status());
 
         // Copy HTTP headers
-        proxyResponse.headers().forEach((headerName, headerValues) -> processorContext.getResponse().headers().put(headerName, headerValues));
+        proxyResponse.headers().forEach((headerName, headerValues) -> context.getResponse().headers().put(headerName, headerValues));
 
-        // Calculate response policies
-        StreamableProcessor<PolicyResult> responsePolicyChain = apiPolicyResolver
-                .resolve(StreamType.ON_RESPONSE, processorContext.getRequest(), processorContext.getResponse(), processorContext.getContext());
-
-        responsePolicyChain
-                .handler(result -> {
-                    responsePolicyChain
-                            .bodyHandler(chunk -> processorContext.getResponse().write(chunk))
+        StreamableProcessor<StreamableProcessor<Buffer>> responseProcessor = new ProviderProcessorChain(responseProcessors);
+        responseProcessor
+                .handler(stream -> {
+                    stream
+                            .bodyHandler(chunk -> context.getResponse().write(chunk))
                             .endHandler(__ -> {
-                                processorContext.getResponse().end();
-                                handler.handle(processorContext.getResponse());
+                                context.getResponse().end();
+                                handler.handle(context.getResponse());
                             });
 
                     proxyResponse.bodyHandler(buffer -> {
-                        responsePolicyChain.write(buffer);
+                        stream.write(buffer);
 
-                        if (processorContext.getResponse().writeQueueFull()) {
+                        if (context.getResponse().writeQueueFull()) {
                             proxyResponse.pause();
-                            processorContext.getResponse().drainHandler(aVoid -> proxyResponse.resume());
+                            context.getResponse().drainHandler(aVoid -> proxyResponse.resume());
                         }
                     });
                     proxyResponse.endHandler(__ -> {
-                        responsePolicyChain.end();
-                        processorContext.getRequest().metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
+                        stream.end();
+                        context.getRequest().metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
                     });
                 })
                 .errorHandler(failure -> {
-                    handleProcessorFailure(failure, processorContext.getResponse());
-                    handler.handle(processorContext.getResponse());
+                    handleProcessorFailure(failure, context.getResponse());
+                    handler.handle(context.getResponse());
                 })
                 .streamErrorHandler(result -> {
-                    handleProcessorFailure(result, processorContext.getResponse());
-                    handler.handle(processorContext.getResponse());
-                });
-
-        // Execute response policy chain
-        responsePolicyChain.process(processorContext);
+                    handleProcessorFailure(result, context.getResponse());
+                    handler.handle(context.getResponse());
+                })
+                .exitHandler(__ -> {
+                    context.getResponse().end();
+                    handler.handle(context.getResponse());
+                })
+                .process(context);
 
         // Resume response read
         proxyResponse.resume();
@@ -288,9 +279,11 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
     public void afterPropertiesSet() {
         contextPath = reactable().contextPath() + '/';
 
+        // Prepare request and response processors
         requestProcessors = new ArrayList<>();
+        responseProcessors = new ArrayList<>();
 
-        apiPolicyResolver = new ApiPolicyChainResolver();
+        PolicyChainResolver apiPolicyResolver = new ApiPolicyChainResolver();
         PolicyChainResolver securityPolicyResolver = new SecurityPolicyChainResolver();
         PolicyChainResolver planPolicyResolver = new PlanPolicyChainResolver();
 
@@ -298,13 +291,23 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
         applicationContext.getAutowireCapableBeanFactory().autowireBean(planPolicyResolver);
         applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPolicyResolver);
 
+        PolicyChainResolver apiResponsePolicyResolver = new ApiResponsePolicyChainResolver();
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(apiResponsePolicyResolver);
+        responseProcessors.add(apiResponsePolicyResolver);
+
+        if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
+            requestProcessors.add(new InstanceAwareProcessorProvider(
+                    new CorsPreflightRequestProcessor(api.getProxy().getCors())));
+
+            responseProcessors.add(new InstanceAwareProcessorProvider(
+                    new CorsSimpleRequestProcessor(api.getProxy().getCors())));
+        }
+
         requestProcessors.add(securityPolicyResolver);
 
         if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
-            LoggableRequestProcessorProvider requestProcessorProvider = new LoggableRequestProcessorProvider(
-                    new ApiLoggableRequestProcessor(api.getProxy().getLogging()));
-
-            requestProcessors.add(requestProcessorProvider);
+            requestProcessors.add( new InstanceAwareProcessorProvider(
+                    new ApiLoggableRequestProcessor(api.getProxy().getLogging())));
         }
 
         requestProcessors.add(planPolicyResolver);

@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
+import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.core.processor.ProcessorContext;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
@@ -115,6 +116,11 @@ public abstract class PolicyChain extends BufferedReadWriteStream
     public StreamableProcessor<PolicyResult> streamErrorHandler(Handler<ProcessorFailure> handler) {
         this.streamErrorHandler = handler;
         return this;
+    }
+
+    @Override
+    public Processor<PolicyResult> exitHandler(Handler<PolicyResult> handler) {
+        return null;
     }
 
     protected abstract void execute(Policy policy, Object ... args) throws PolicyChainException;

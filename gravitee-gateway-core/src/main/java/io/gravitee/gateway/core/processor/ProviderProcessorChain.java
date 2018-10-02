@@ -24,18 +24,18 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * A {@link ProviderRequestProcessorChain} container used to prepare and process multiple {@link Processor}
- * while handling a request.
+ * A {@link ProviderProcessorChain} container used to prepare and process multiple {@link Processor}
+ * while handling a client request or a proxy response.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ProviderRequestProcessorChain extends AbstractStreamableProcessor<Buffer> {
+public class ProviderProcessorChain extends AbstractStreamableProcessor<StreamableProcessor<Buffer>> {
 
     private final Iterator<? extends ProcessorProvider> iterator;
     private StreamableProcessor<?> lastProcessor;
 
-    public ProviderRequestProcessorChain(List<? extends ProcessorProvider> providers) {
+    public ProviderProcessorChain(List<? extends ProcessorProvider> providers) {
         this.iterator = providers.iterator();
     }
 
@@ -72,7 +72,8 @@ public class ProviderRequestProcessorChain extends AbstractStreamableProcessor<B
                         public void handle(ProcessorFailure failure) {
                             errorHandler.handle(failure);
                         }
-                    });
+                    })
+                    .exitHandler(stream -> exitHandler.handle((StreamableProcessor<Buffer>) stream));
 
             if (processor instanceof StreamableProcessor) {
                 lastProcessor = (StreamableProcessor) processor;
@@ -81,7 +82,7 @@ public class ProviderRequestProcessorChain extends AbstractStreamableProcessor<B
 
             processor.process(context);
         } else {
-            handler.handle(null);
+            handler.handle((StreamableProcessor<Buffer>) lastProcessor);
         }
     }
 }

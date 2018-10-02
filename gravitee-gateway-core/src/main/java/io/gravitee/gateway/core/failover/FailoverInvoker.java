@@ -26,7 +26,7 @@ import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.WriteStream;
-import io.gravitee.gateway.core.invoker.DefaultInvoker;
+import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.AsyncResult;
@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FailoverInvoker extends DefaultInvoker implements InitializingBean {
+public class FailoverInvoker extends EndpointInvoker implements InitializingBean {
 
     @Autowired
     private Vertx vertx;

@@ -41,6 +41,6 @@ public class InvokerFactory extends AbstractAutowiringFactoryBean<Invoker> {
             return new FailoverInvoker();
         }
 
-        return new DefaultInvoker();
+        return new EndpointInvoker();
     }
 }
