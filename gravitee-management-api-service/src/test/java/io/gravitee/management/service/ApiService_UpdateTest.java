@@ -28,6 +28,7 @@ import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -87,6 +88,9 @@ public class ApiService_UpdateTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private SearchEngineService searchEngineService;
 
     @Before
     public void setUp() {

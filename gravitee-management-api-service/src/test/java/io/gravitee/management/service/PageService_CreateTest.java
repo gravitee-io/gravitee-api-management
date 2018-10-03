@@ -20,6 +20,7 @@ import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.service.exceptions.PageAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.PageServiceImpl;
+import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
@@ -65,6 +66,8 @@ public class PageService_CreateTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private SearchEngineService searchEngineService;
 
     @Test
     public void shouldCreatePage() throws TechnicalException {

@@ -25,6 +25,7 @@ import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
+import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -82,6 +83,9 @@ public class ApiService_CreateTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private SearchEngineService searchEngineService;
 
     @Test
     public void shouldCreateForUser() throws TechnicalException {

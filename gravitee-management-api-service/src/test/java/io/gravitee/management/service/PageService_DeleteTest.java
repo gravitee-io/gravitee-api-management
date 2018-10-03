@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.PageServiceImpl;
+import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
@@ -49,7 +50,9 @@ public class PageService_DeleteTest {
     @Mock
     private AuditService auditService;
 
-
+    @Mock
+    private SearchEngineService searchEngineService;
+    
     @Test
     public void shouldDeletePage() throws TechnicalException {
         Page page = mock(Page.class);

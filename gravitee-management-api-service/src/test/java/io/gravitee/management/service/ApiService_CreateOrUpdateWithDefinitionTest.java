@@ -24,6 +24,7 @@ import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.impl.ApiServiceImpl;
+import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -89,6 +90,9 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
     @Mock
     private IdentityService identityService;
+
+    @Mock
+    private SearchEngineService searchEngineService;
 
     @Test
     public void shouldUpdateImportApiWithMembersAndPages() throws IOException, TechnicalException {
