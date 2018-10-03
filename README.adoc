@@ -14,3 +14,13 @@ Unlike traditional HTTP proxy, the gateway is able to apply policies (ie. rules)
 == Documentation
 
 You can find Gravitee.io API Management documentation from https://docs.gravitee.io/[Gravitee.io website].
+
+== Building
+
+```
+$ git clone https://github.com/gravitee-io/gravitee-gateway
+$ cd gravitee-gateway
+$ mvn clean compile exec:java -Pdev -pl gravitee-gateway-standalone/gravitee-gateway-standalone-container
+...
+<app starts and listens on port 8082>
+```
