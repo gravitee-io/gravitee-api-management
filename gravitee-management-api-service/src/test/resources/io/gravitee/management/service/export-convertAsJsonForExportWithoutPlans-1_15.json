@@ -18,7 +18,7 @@
   "proxy": {
     "context_path": "/test",
     "strip_context_path": false,
-    "loggingMode": "NONE",
+    "loggingMode": "CLIENT_PROXY",
     "endpoints": [
       {
         "name": "default",

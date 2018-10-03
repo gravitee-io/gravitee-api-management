@@ -2,7 +2,6 @@
   "description" : "Gravitee.io",
   "paths" : { },
   "resources" : [ ],
-  "path_mappings":[],
   "groups" : [ "My Group" ],
   "members" : [ {
     "username" : "johndoe",
@@ -39,10 +38,14 @@
       } ]
     }
   } ],
+  "path_mappings":[],
   "proxy": {
     "context_path": "/test",
     "strip_context_path": false,
-    "loggingMode": "NONE",
+    "logging": {
+      "mode":"CLIENT_PROXY",
+      "condition":"condition"
+    },
     "groups": [
       {
         "name": "default-group",

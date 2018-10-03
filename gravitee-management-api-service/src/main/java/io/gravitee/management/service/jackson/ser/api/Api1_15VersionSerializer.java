@@ -17,6 +17,7 @@ package io.gravitee.management.service.jackson.ser.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.management.model.api.ApiEntity;
 
 import java.io.IOException;
@@ -42,7 +43,11 @@ public class Api1_15VersionSerializer extends ApiSerializer {
             jsonGenerator.writeObjectFieldStart("proxy");
             jsonGenerator.writeObjectField("context_path", apiEntity.getProxy().getContextPath());
             jsonGenerator.writeObjectField("strip_context_path", apiEntity.getProxy().isStripContextPath());
-            jsonGenerator.writeObjectField("logging", apiEntity.getProxy().getLogging());
+            if (apiEntity.getProxy().getLogging() == null) {
+                jsonGenerator.writeObjectField("loggingMode", LoggingMode.NONE);
+            } else {
+                jsonGenerator.writeObjectField("loggingMode", apiEntity.getProxy().getLogging().getMode());
+            }
             jsonGenerator.writeObjectField("endpoints", apiEntity.getProxy().getGroups().stream()
                     .map(endpointGroup -> endpointGroup.getEndpoints())
                     .flatMap(Collection::stream)

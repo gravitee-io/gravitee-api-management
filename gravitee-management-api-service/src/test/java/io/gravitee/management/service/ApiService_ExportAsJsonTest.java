@@ -111,10 +111,10 @@ public class ApiService_ExportAsJsonTest {
         ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
         apiDefaultSerializer.setApplicationContext(applicationContext);
 
-        ApiSerializer apiPrior117VersionSerializer = new Api1_15VersionSerializer();
-        apiPrior117VersionSerializer.setApplicationContext(applicationContext);
+        ApiSerializer apiPrior115VersionSerializer = new Api1_15VersionSerializer();
+        apiPrior115VersionSerializer.setApplicationContext(applicationContext);
 
-        apiCompositeSerializer.setSerializers(Arrays.asList(apiDefaultSerializer, apiPrior117VersionSerializer));
+        apiCompositeSerializer.setSerializers(Arrays.asList(apiDefaultSerializer, apiPrior115VersionSerializer));
         SimpleModule module = new SimpleModule();
         module.addSerializer(ApiEntity.class, apiCompositeSerializer);
         objectMapper.registerModule(module);
@@ -127,6 +127,10 @@ public class ApiService_ExportAsJsonTest {
         Proxy proxy = new Proxy();
         proxy.setContextPath("/test");
         proxy.setStripContextPath(false);
+        Logging logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT_PROXY);
+        logging.setCondition("condition");
+        proxy.setLogging(logging);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
         Endpoint endpoint = new HttpEndpoint("default", "http://test");
