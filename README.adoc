@@ -1,0 +1,43 @@
+= Gravitee Redis Repository
+
+ifdef::env-github[]
+image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-repository-redis/master["Build status", link="https://ci.gravitee.io/job/gravitee-io/job/gravitee-repository-redis"]
+image:https://badges.gitter.im/Join Chat.svg["Gitter", link="https://gitter.im/gravitee-io/gravitee-io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
+endif::[]
+
+== Overview
+
+Redis repository based on Redis implementation
+
+== Requirement
+
+The minimum requirement is :
+ * Maven3
+ * Jdk8
+
+For user gravitee snapshot, You need the declare the following repository in you maven settings :
+
+https://oss.sonatype.org/content/repositories/snapshots
+
+== Building
+
+```
+$ git clone https://github.com/gravitee-io/gravitee-repository-redis.git
+$ cd gravitee-repository-redis
+$ mvn clean package
+```
+
+== Installing
+
+Unzip the gravitee-repository-redis-1.20.0-SNAPSHOT.zip in the gravitee home directory.
+
+== Configuration
+
+  repository.redis options :
+
+  | Parameter                                        |   default  |
+  | ------------------------------------------------ | ---------: |
+  | host                                             |  localhost |
+  | port                                             |      6379  |
+  | password                                         |            |
+  | timeout                                          |        -1  |
