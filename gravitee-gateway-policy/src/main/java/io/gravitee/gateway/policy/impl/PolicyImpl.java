@@ -40,6 +40,11 @@ public class PolicyImpl extends AbstractPolicy {
     }
 
     @Override
+    public String id() {
+        return policyMetadata.id();
+    }
+
+    @Override
     public void onRequest(Object ... args) throws PolicyException {
         invoke(policyMetadata.method(OnRequest.class), args);
     }

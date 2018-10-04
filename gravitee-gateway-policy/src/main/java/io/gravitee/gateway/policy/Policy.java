@@ -23,6 +23,8 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
  */
 public interface Policy {
 
+    String id();
+
     default void onRequest(Object ... args) throws PolicyException {}
 
     default void onResponse(Object ... args) throws PolicyException {}

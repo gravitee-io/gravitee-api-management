@@ -26,6 +26,11 @@ import io.gravitee.policy.api.PolicyChain;
 public class StreamablePolicy implements Policy {
 
     @Override
+    public String id() {
+        return "streamable-policy";
+    }
+
+    @Override
     public void onRequest(Object... args) throws PolicyException {
         ((PolicyChain)args[2]).doNext(null, null);
     }

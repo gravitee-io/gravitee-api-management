@@ -111,4 +111,9 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
         response.headers().add(HttpHeaders.WWW_AUTHENTICATE, headerValue);
         policyChain.failWith(PolicyResult.failure(HttpStatusCode.UNAUTHORIZED_401, null));
     }
+
+    @Override
+    public String id() {
+        return "check-subscription";
+    }
 }
