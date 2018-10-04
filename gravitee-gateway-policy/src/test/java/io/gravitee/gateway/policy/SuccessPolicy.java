@@ -25,6 +25,11 @@ import io.gravitee.policy.api.PolicyChain;
 public class SuccessPolicy implements Policy {
 
     @Override
+    public String id() {
+        return "success-policy";
+    }
+
+    @Override
     public void onRequest(Object... args) throws PolicyException {
         ((PolicyChain)args[2]).doNext(null, null);
     }

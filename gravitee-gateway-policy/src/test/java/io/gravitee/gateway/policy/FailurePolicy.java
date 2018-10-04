@@ -24,6 +24,11 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 public class FailurePolicy implements Policy {
 
     @Override
+    public String id() {
+        return "failure-policy";
+    }
+
+    @Override
     public void onRequest(Object... args) throws PolicyException {
         throw new RuntimeException();
     }

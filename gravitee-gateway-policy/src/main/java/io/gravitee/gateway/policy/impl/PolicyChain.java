@@ -74,8 +74,7 @@ public abstract class PolicyChain extends BufferedReadWriteStream
                     doNext(request, response);
                 }
             } catch (Exception ex) {
-                logger.error("Unexpected error while running policy {}", policy, ex);
-                request.metrics().setMessage(Throwables.getStackTraceAsString(ex));
+                request.metrics().setMessage("An error occurs in policy[" + policy.id()+"] error["+Throwables.getStackTraceAsString(ex)+"]");
                 if (errorHandler != null) {
                     errorHandler.handle(new PolicyChainProcessorFailure(PolicyResult.failure(null)));
                 }
