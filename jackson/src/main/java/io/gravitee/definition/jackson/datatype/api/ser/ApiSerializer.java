@@ -86,7 +86,7 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
         }
 
         if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
-            jgen.writeArrayFieldStart("pathMappings");
+            jgen.writeArrayFieldStart("path_mappings");
             api.getPathMappings().keySet().forEach(pathMapping -> {
                 try {
                     jgen.writeObject(pathMapping);

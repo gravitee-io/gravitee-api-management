@@ -135,7 +135,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
             tagsNode.elements().forEachRemaining(jsonNode -> api.getTags().add(jsonNode.asText()));
         }
 
-        JsonNode pathMappingsNode = node.get("pathMappings");
+        JsonNode pathMappingsNode = node.get("path_mappings");
         if (pathMappingsNode != null) {
             pathMappingsNode.elements().forEachRemaining(jsonNode -> {
                 final String pathMapping = jsonNode.asText();
