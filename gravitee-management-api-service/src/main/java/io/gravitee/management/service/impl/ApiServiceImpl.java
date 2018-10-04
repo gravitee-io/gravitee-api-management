@@ -430,6 +430,15 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 if (updateApiEntity.getPicture() == null) {
                     api.setPicture(apiToUpdate.getPicture());
                 }
+                if (updateApiEntity.getGroups() == null) {
+                    api.setGroups(apiToUpdate.getGroups());
+                }
+                if (updateApiEntity.getLabels() == null) {
+                    api.setLabels(apiToUpdate.getLabels());
+                }
+                if (updateApiEntity.getViews() == null) {
+                    api.setViews(apiToUpdate.getViews());
+                }
 
                 Api updatedApi = apiRepository.update(api);
 
