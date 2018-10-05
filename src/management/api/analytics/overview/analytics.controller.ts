@@ -180,10 +180,10 @@ class ApiAnalyticsController {
         switch (Constants.portal.dashboard.widgets[i]) {
           case 'geo_country':
             this.$scope.apiDashboard.push({
-              row: 5,
-              col: i * 3,
+              row: 4,
+              col: i * 2,
               sizeY: 1,
-              sizeX: 3,
+              sizeX: 2,
               title: 'Geolocation by country',
               subhead: 'Hits repartition by country',
               chart: {
@@ -203,10 +203,10 @@ class ApiAnalyticsController {
             break;
           case 'geo_city':
             this.$scope.apiDashboard.push({
-              row: 5,
-              col: i * 3,
+              row: 4,
+              col: i * 2,
               sizeY: 1,
-              sizeX: 3,
+              sizeX: 2,
               title: 'Geolocation by city',
               subhead: 'Hits repartition by city',
               chart: {
@@ -218,6 +218,29 @@ class ApiAnalyticsController {
                   type: 'group_by',
                   field: 'geoip.city_name',
                   fieldLabel: 'city',
+                  size: 20
+
+                }
+              }
+            });
+            break;
+          case 'host':
+            this.$scope.apiDashboard.push({
+              row: 4,
+              col: i * 2,
+              sizeY: 1,
+              sizeX: 2,
+              title: 'Hits by Host ',
+              subhead: 'Hits repartition by Host HTTP Header',
+              chart: {
+                type: 'table',
+                selectable: true,
+                columns: ['Host', 'Hits'],
+                paging: 5,
+                request: {
+                  type: 'group_by',
+                  field: 'host',
+                  fieldLabel: 'host',
                   size: 20
 
                 }

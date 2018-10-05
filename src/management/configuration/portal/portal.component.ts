@@ -30,6 +30,11 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     'ngInject';
     this.Constants = Constants;
 
+    this.widgets = [
+      {'id': 'geo_country', 'label': 'Hits by country'},
+      {'id': 'geo_city', 'label': 'Hits by city'},
+      {'id': 'host', 'label': 'Hits by HTTP Host header'}];
+
     this.save = () => {
       PortalConfigService.save().then( () => {
         NotificationService.show("Configuration saved !");

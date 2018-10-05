@@ -181,6 +181,22 @@
         </div>
     </div>
 
+  <div class="gv-form">
+    <h2>Analytics</h2>
+    <div class="gv-form-content" layout="column">
+      <md-input-container class="md-block" flex-gt-sm>
+        <label>Analytics widgets</label>
+        <md-select
+          ng-model="$ctrl.Constants.portal.dashboard.widgets"
+          multiple>
+          <md-option ng-repeat="widget in $ctrl.widgets" value="{{widget.id}}">
+            {{widget.label}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+    </div>
+  </div>
+
 
     <div class="gv-form">
         <h2>Authentication</h2>

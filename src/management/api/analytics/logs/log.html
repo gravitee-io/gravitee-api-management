@@ -36,6 +36,10 @@
           <td md-cell style="width: 1%; font-weight: bold;" nowrap>Date</td>
           <td md-cell>{{$ctrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
+        <tr md-row style="height: 30px;" ng-if="$ctrl.log.host">
+          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Host</td>
+          <td md-cell>{{$ctrl.log.host}}</td>
+        </tr>
         <tr md-row>
           <td md-cell style="width: 1%; font-weight: bold;" nowrap>Request</td>
           <td md-cell>
