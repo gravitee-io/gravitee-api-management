@@ -277,7 +277,7 @@
 .tui-editor-contents h4 {
     font-size: 1.9rem;
     line-height: 30px;
-    margin: 20px 0 2px;
+    margin: 20px 0 .7em;
     /*color: #333;*/
     color: #3572b0
 }
@@ -344,6 +344,10 @@
     color: inherit;
     white-space: pre-wrap;
     background-color: transparent;
+}
+
+.tui-editor-contents table code {
+  top: 0;
 }
 
 .tui-editor-contents pre.addon {
@@ -463,3 +467,74 @@
     margin-top: 3px;
 }
 
+.tui-editor-contents .method.get:before {
+  content: "GET";
+  background-color: #3eb33e;
+}
+
+.tui-editor-contents .method.post:before {
+  content: "POST";
+  background-color: #fb8c00;
+}
+
+.tui-editor-contents .method.put:before {
+  content: "PUT";
+  background-color: #039be5;
+}
+
+.tui-editor-contents .method.patch:before {
+  content: "PATCH";
+  background-color: #039be5;
+}
+
+.tui-editor-contents .method.delete:before {
+  content: "DELETE";
+  background-color: #e53935;
+}
+
+.tui-editor-contents .method:before {
+  content: "METHOD";
+  background-color: gray;
+  display: block;
+  color: #fff;
+  float: left;
+  padding: 1px 15px;
+  font-size: 13px;
+  font-weight: 600;
+  margin: -1px 16px 0 -1px;
+  border-radius: 3px 0 0 3px;
+}
+
+.tui-editor-contents .method.get {
+  //border-color: #9ed99e;
+  border-color: #43a047;
+}
+
+.tui-editor-contents .method.post {
+  border-color: #fb8c00;
+}
+
+.tui-editor-contents .method.put {
+  border-color: #039be5;
+}
+
+.tui-editor-contents .method.patch {
+  border-color: #039be5;
+}
+
+.tui-editor-contents .method.delete {
+  border-color: #e53935;
+}
+
+.tui-editor-contents .method {
+  line-height: 41px;
+  margin-bottom: 1em;
+  font-size: 14px;
+  border-radius: 3px;
+  display: block;
+  background-color: #fafafa;
+  border: 1px solid #ebebeb;
+  font-family: 'Source Sans Pro',Helvetica,Segoe,Arial,sans-serif;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+}
