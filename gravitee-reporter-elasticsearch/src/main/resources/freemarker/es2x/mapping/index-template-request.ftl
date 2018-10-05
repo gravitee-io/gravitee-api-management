@@ -113,6 +113,10 @@
                 "mapped-path": {
                     "index": "not_analyzed",
                     "type": "string"
+                },
+                "host": {
+                    "index": "not_analyzed",
+                    "type": "string"
                 }
             }
         }

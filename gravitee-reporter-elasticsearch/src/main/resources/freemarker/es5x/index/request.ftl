@@ -57,4 +57,7 @@
   <#if metrics.getMappedPath()??>
   ,"mapped-path":"${metrics.getMappedPath()}"
   </#if>
+  <#if metrics.getHost()??>
+  ,"host":"${metrics.getHost()}"
+  </#if>
 }</@compress>

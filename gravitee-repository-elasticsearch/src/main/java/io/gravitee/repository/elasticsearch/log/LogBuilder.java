@@ -77,6 +77,7 @@ final class LogBuilder {
     private final static String FIELD_API = "api";
     private final static String FIELD_PLAN = "plan";
     private final static String FIELD_API_KEY = "api-key";
+    private final static String FIELD_HOST = "host";
 
     private final static String FIELD_MESSAGE = "message";
 
@@ -162,6 +163,11 @@ final class LogBuilder {
         final JsonNode messageNode = source.get(FIELD_MESSAGE);
         if (messageNode != null && ! messageNode.isNull()) {
             log.setMessage(messageNode.asText());
+        }
+
+        final JsonNode hostNode = source.get(FIELD_HOST);
+        if (hostNode != null && ! hostNode.isNull()) {
+            log.setHost(hostNode.asText());
         }
 
         return log;

@@ -98,6 +98,9 @@
                 },
                 "mapped-path": {
                     "type": "keyword"
+                },
+                "host": {
+                    "type": "keyword"
                 }
             }
         },
