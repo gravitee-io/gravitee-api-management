@@ -57,6 +57,8 @@ public class ApplicationRequest {
 
     private Map<String, Map<String, String>> metadata;
 
+    private String host;
+
     public String getId() {
         return id;
     }
@@ -175,6 +177,14 @@ public class ApplicationRequest {
 
     public void setMetadata(Map<String, Map<String, String>> metadata) {
         this.metadata = metadata;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 
     @Override

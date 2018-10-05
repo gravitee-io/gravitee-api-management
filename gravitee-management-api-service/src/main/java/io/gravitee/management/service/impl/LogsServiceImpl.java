@@ -16,8 +16,8 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.analytics.query.LogQuery;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.log.*;
 import io.gravitee.management.model.log.extended.Request;
 import io.gravitee.management.model.log.extended.Response;
@@ -26,7 +26,6 @@ import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.DateRangeBuilder;
 import io.gravitee.repository.analytics.query.IntervalBuilder;
-import io.gravitee.repository.analytics.query.QueryBuilder;
 import io.gravitee.repository.analytics.query.QueryBuilders;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.log.api.LogRepository;
@@ -37,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -346,6 +344,7 @@ public class LogsServiceImpl implements LogsService {
         req.setMessage(log.getMessage());
         req.setGateway(log.getGateway());
         req.setSubscription(getSubscription(log));
+        req.setHost(log.getHost());
 
         req.setClientRequest(createRequest(log.getClientRequest()));
         req.setProxyRequest(createRequest(log.getProxyRequest()));
@@ -417,6 +416,7 @@ public class LogsServiceImpl implements LogsService {
         req.setApiKey(log.getApiKey());
         req.setRequest(createRequest(log.getClientRequest()));
         req.setResponse(createResponse(log.getClientResponse()));
+        req.setHost(log.getHost());
 
         Map<String, Map<String, String>> metadata = new HashMap<>();
 
