@@ -121,7 +121,8 @@ module.exports = {
       {
         from: './docs',
         to: './docs'
-      }
+      },
+      { from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html' }
     ], {
       copyUnmodified: true,
     })

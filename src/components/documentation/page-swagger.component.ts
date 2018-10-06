@@ -77,7 +77,7 @@ const PageSwaggerComponent: ng.IComponentOptions = {
           }
           return req;
         },
-        spec: contentAsJson
+        spec: contentAsJson,
       };
 
       if (!_.isNil(this.page.configuration)) {
@@ -100,11 +100,25 @@ const PageSwaggerComponent: ng.IComponentOptions = {
         cfg["showCommonExtensions"] =
           _.isNil(this.page.configuration.showCommonExtensions)
             ? false : this.page.configuration.showCommonExtensions === "true";
+        cfg["oauth2RedirectUrl"] = window.location.origin + '/swagger-oauth2-redirect.html';
         cfg["maxDisplayedTags"] =
           _.isNaN(Number(this.page.configuration.maxDisplayedTags)) || this.page.configuration.maxDisplayedTags === "-1"
             ? undefined : Number(this.page.configuration.maxDisplayedTags);
       }
-      SwaggerUIBundle(cfg);
+
+      const ui = SwaggerUIBundle(
+        _.merge(cfg, {
+          onComplete: () => {
+            // May be used in a short future, so keeping this part of the code to not forget about it.
+            ui.initOAuth({
+              clientId: "",
+//              appName: "Swagger UI",
+              scopeSeparator: " ",
+//              additionalQueryStringParams: {some_parm: "val"}
+            });
+//            ui.preauthorizeApiKey('api_key', 'my_api_key')
+          }
+        }));
     };
 
   }
