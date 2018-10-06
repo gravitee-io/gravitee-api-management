@@ -228,7 +228,9 @@ class ApiAnalyticsController {
       }
     }
 
-    let hasTenants = _.find(this.api.proxy.endpoints, endpoint => _.has(endpoint, 'tenants'));
+    let hasTenants = _.chain(this.api.proxy.groups)
+                        .map((group) =>  group.endpoints)
+                        .find((endpoint) => _.has(endpoint, 'tenants'));
     if (hasTenants === undefined) {
       this.$scope.apiDashboard.push({
         row: 0,

@@ -15,6 +15,7 @@
  */
 import ApiService, { LogsQuery } from '../../../../services/api.service';
 import { StateService } from '@uirouter/core';
+import _ = require('lodash');
 
 class ApiLogsController {
 
@@ -23,7 +24,8 @@ class ApiLogsController {
   private query: LogsQuery;
   private metadata: {
     applications: any[],
-    plans: any[]
+    plans: any[];
+    tenants?: any[];
   };
 
   constructor(
@@ -31,6 +33,7 @@ class ApiLogsController {
     private resolvedApi,
     private plans: any,
     private applications: any,
+    private tenants: any,
     private $scope,
     private $state: StateService
   ) {
@@ -42,6 +45,14 @@ class ApiLogsController {
       applications: applications.data,
       plans: plans.data
     };
+
+    let hasTenants = _.chain(this.api.proxy.groups)
+      .map((group) =>  group.endpoints)
+      .find((endpoint) => _.has(endpoint, 'tenants'));
+
+    if (hasTenants !== undefined) {
+      this.metadata.tenants = tenants.data;
+    }
 
     this.onPaginate = this.onPaginate.bind(this);
 

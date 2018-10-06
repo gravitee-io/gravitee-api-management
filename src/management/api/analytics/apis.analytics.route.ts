@@ -15,6 +15,7 @@
  */
 import ApiService from '../../../services/api.service';
 import {StateParams} from '@uirouter/core';
+import TenantService from "../../../services/tenant.service";
 
 export default apisAnalyticsRouterConfig;
 
@@ -87,7 +88,8 @@ function apisAnalyticsRouterConfig($stateProvider) {
         plans: ($stateParams: StateParams, ApiService: ApiService) =>
           ApiService.getApiPlans($stateParams['apiId']),
         applications: ($stateParams: StateParams, ApiService: ApiService) =>
-          ApiService.getSubscribers($stateParams['apiId'])
+          ApiService.getSubscribers($stateParams['apiId']),
+        tenants: (TenantService: TenantService) => TenantService.list()
       }
     })
     .state('management.apis.detail.analytics.loggingconfigure', {

@@ -150,6 +150,9 @@ class LogsFiltersController {
         case 'transaction':
           this.filters.transaction = v[0];
           break;
+        case 'tenant':
+          this.filters.tenant = v;
+          break;
         default:
           console.log('unknown filter: ', k);
           break;
