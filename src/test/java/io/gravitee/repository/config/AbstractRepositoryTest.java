@@ -104,6 +104,8 @@ public abstract class AbstractRepositoryTest {
     protected ParameterRepository parameterRepository;
     @Inject
     protected DictionaryRepository dictionaryRepository;
+    @Inject
+    protected ApiHeaderRepository apiHeaderRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -202,6 +204,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Dictionary) {
             dictionaryRepository.create((Dictionary) object);
+        }
+        else if (object instanceof ApiHeader) {
+            apiHeaderRepository.create((ApiHeader) object);
         }
     }
 

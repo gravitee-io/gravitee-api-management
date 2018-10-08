@@ -1619,4 +1619,30 @@ public class MockTestRepositoryConfiguration {
 
         return dictionaryRepository;
     }
+
+    @Bean
+    public ApiHeaderRepository apiHeaderRepository() throws Exception {
+        final ApiHeaderRepository apiHeaderRepository = mock(ApiHeaderRepository.class);
+
+        //shouldDelete
+        when(apiHeaderRepository.findById("1"))
+                .thenReturn(of(mock(ApiHeader.class)), empty());
+
+        //shouldFindAll
+        when(apiHeaderRepository.findAll())
+                .thenReturn(new HashSet<>(Arrays.asList(mock(ApiHeader.class), mock(ApiHeader.class), mock(ApiHeader.class))));
+
+        //shouldUpdate
+        ApiHeader up = new ApiHeader();
+        up.setId("toUpdate");
+        up.setName("newName");
+        up.setValue("newValue");
+        up.setOrder(123);
+        up.setCreatedAt(new Date(1439027010882L));
+        up.setCreatedAt(new Date(1439027010883L));
+        when(apiHeaderRepository.findById("toUpdate"))
+                .thenReturn(of(up));
+
+        return apiHeaderRepository;
+    }
 }
