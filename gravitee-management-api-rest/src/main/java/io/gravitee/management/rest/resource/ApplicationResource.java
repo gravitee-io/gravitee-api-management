@@ -122,6 +122,11 @@ public class ApplicationResource extends AbstractResource {
         return resourceContext.getResource(ApplicationSubscriptionsResource.class);
     }
 
+    @Path("subscribed")
+    public ApplicationSubscribedResource getApplicationSubscribedResource() {
+        return resourceContext.getResource(ApplicationSubscribedResource.class);
+    }
+
     @Path("analytics")
     public ApplicationAnalyticsResource getApplicationAnalyticsResource() {
         return resourceContext.getResource(ApplicationAnalyticsResource.class);
