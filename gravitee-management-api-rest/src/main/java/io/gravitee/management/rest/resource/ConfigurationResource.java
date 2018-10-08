@@ -121,4 +121,9 @@ public class ConfigurationResource {
     public DictionariesResource getDictionariesResource() {
         return resourceContext.getResource(DictionariesResource.class);
     }
+
+    @Path("apiheaders")
+    public ApiHeadersResource getApiHeadersResource() {
+        return resourceContext.getResource(ApiHeadersResource.class);
+    }
 }

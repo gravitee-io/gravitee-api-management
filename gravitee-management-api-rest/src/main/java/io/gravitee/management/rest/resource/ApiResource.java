@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.UpdateApiEntity;
+import io.gravitee.management.model.api.header.ApiHeaderEntity;
 import io.gravitee.management.model.notification.NotifierEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -46,6 +47,7 @@ import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -459,6 +461,14 @@ public class ApiResource extends AbstractResource {
     })
     public Response create(@PathParam("api") String api, final MessageEntity message) {
         return Response.ok(messageService.create(api, message)).build();
+    }
+
+    @GET
+    @Path("headers")
+    @ApiOperation(value = "Get the portal API headers values")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ApiHeaderEntity> getHeaders(@PathParam("api") String api) {
+        return apiService.getPortalHeaders(api);
     }
 
     @Path("keys")

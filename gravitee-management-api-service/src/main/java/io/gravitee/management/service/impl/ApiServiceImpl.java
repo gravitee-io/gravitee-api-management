@@ -19,6 +19,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.EndpointGroup;
@@ -33,6 +36,7 @@ import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.ApiQuery;
 import io.gravitee.management.model.api.NewApiEntity;
 import io.gravitee.management.model.api.UpdateApiEntity;
+import io.gravitee.management.model.api.header.ApiHeaderEntity;
 import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -60,6 +64,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
@@ -128,9 +133,12 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private NotifierService notifierService;
     @Autowired
     private SwaggerService swaggerService;
-
     @Autowired
     private SearchEngineService searchEngineService;
+    @Autowired
+    private ApiHeaderService apiHeaderService;
+    @Autowired
+    private Configuration freemarkerConfiguration;
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String userId) throws ApiAlreadyExistsException {
@@ -1019,6 +1027,26 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         Collection<String> matchApis = searchEngineService.search(apiQuery);
         return matchApis.stream().map(this::findById).collect(toList());
+    }
+
+    @Override
+    public List<ApiHeaderEntity> getPortalHeaders(String apiId) {
+            List<ApiHeaderEntity> entities = apiHeaderService.findAll();
+            ApiModelEntity apiEntity = this.findByIdForTemplates(apiId);
+            Map<String, Object> model = new HashMap<>();
+            model.put("api", apiEntity);
+            entities.forEach(entity -> {
+                if (entity.getValue().contains("${")) {
+                    try {
+                        Template template = new Template(entity.getId() + entity.getUpdatedAt().toString(), entity.getValue(), freemarkerConfiguration);
+                        entity.setValue(FreeMarkerTemplateUtils.processTemplateIntoString(template, model));
+                    } catch (IOException | TemplateException e) {
+                        LOGGER.error("Unable to apply templating on api headers ", e);
+                        throw new TechnicalManagementException("Unable to apply templating on api headers", e);
+                    }
+                }
+            });
+            return entities;
     }
 
     private ApiCriteria.Builder queryToCriteria(ApiQuery query) {

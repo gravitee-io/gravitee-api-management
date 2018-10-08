@@ -156,10 +156,12 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                             value = f.get(o);
                         }
 
-                        if (List.class.isAssignableFrom(f.getType())) {
-                            parameterService.save(parameterKey.value(), (List) value);
-                        } else {
-                            parameterService.save(parameterKey.value(), (String) value);
+                        if (value != null) {
+                            if (List.class.isAssignableFrom(f.getType())) {
+                                parameterService.save(parameterKey.value(), (List) value);
+                            } else {
+                                parameterService.save(parameterKey.value(), (String) value);
+                            }
                         }
                     } catch (IllegalAccessException e) {
                         LOGGER.error("Unable to set parameter {}. Use the default value", parameterKey.value().key(), e);

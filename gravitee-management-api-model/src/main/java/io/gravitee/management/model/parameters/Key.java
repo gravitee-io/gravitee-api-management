@@ -36,6 +36,8 @@ public enum Key {
     PORTAL_ANALYTICS_TRACKINGID("portal.analytics.trackingId"),
     PORTAL_APIS_TILESMODE_ENABLED("portal.apis.tilesMode.enabled", "true"),
     PORTAL_APIS_VIEW_ENABLED("portal.apis.viewMode.enabled", "false"),
+    PORTAL_APIS_SHOW_TAGS_IN_APIHEADER("portal.apis.apiheader.showtags.enabled", "false"),
+    PORTAL_APIS_SHOW_VIEWS_IN_APIHEADER("portal.apis.apiheader.showviews.enabled", "false"),
     PORTAL_DASHBOARD_WIDGETS("portal.dashboard.widgets"),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management"),

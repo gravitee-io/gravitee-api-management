@@ -560,6 +560,12 @@ public class PortalConfigEntity {
         @ParameterKey(Key.PORTAL_APIS_VIEW_ENABLED)
         private Enabled viewMode;
 
+        @ParameterKey(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER)
+        private Enabled apiHeaderShowTags;
+
+        @ParameterKey(Key.PORTAL_APIS_SHOW_VIEWS_IN_APIHEADER)
+        private Enabled apiHeaderShowViews;
+
         public Enabled getTilesMode() {
             return tilesMode;
         }
@@ -574,6 +580,22 @@ public class PortalConfigEntity {
 
         public void setViewMode(Enabled viewMode) {
             this.viewMode = viewMode;
+        }
+
+        public Enabled getApiHeaderShowTags() {
+            return apiHeaderShowTags;
+        }
+
+        public void setApiHeaderShowTags(Enabled apiHeaderShowTags) {
+            this.apiHeaderShowTags = apiHeaderShowTags;
+        }
+
+        public Enabled getApiHeaderShowViews() {
+            return apiHeaderShowViews;
+        }
+
+        public void setApiHeaderShowViews(Enabled apiHeaderShowViews) {
+            this.apiHeaderShowViews = apiHeaderShowViews;
         }
     }
 

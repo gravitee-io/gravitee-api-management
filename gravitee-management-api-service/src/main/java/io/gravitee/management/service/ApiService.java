@@ -23,12 +23,10 @@ import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.ApiQuery;
 import io.gravitee.management.model.api.NewApiEntity;
 import io.gravitee.management.model.api.UpdateApiEntity;
+import io.gravitee.management.model.api.header.ApiHeaderEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -116,4 +114,6 @@ public interface ApiService {
     Collection<ApiEntity> search(ApiQuery query);
 
     Collection<ApiEntity> search(String query, Map<String, Object> filters) throws TechnicalException;
+
+    List<ApiHeaderEntity> getPortalHeaders(String apiId);
 }
