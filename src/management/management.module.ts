@@ -233,11 +233,12 @@ import ContextualDocController from '../components/contextual/contextual-doc.con
 
 // Logs
 import ApiLogsController from '../management/api/analytics/logs/logs.controller';
-import LogsTimeframeComponent from '../management/api/analytics/logs/components/logs-timeframe.component';
-import LogsTimeframeController from '../management/api/analytics/logs/components/logs-timeframe.controller';
+import LogsTimeframeComponent from '../components/logs/logs-timeframe.component';
+import LogsTimeframeController from '../components/logs/logs-timeframe.controller';
+import LogsFiltersComponent from '../components/logs/logs-filters.component';
+import LogsFiltersController from '../components/logs/logs-filters.controller';
+
 import LogComponent from '../management/api/analytics/logs/log.component';
-import LogsFiltersComponent from '../management/api/analytics/logs/components/logs-filters.component';
-import LogsFiltersController from '../management/api/analytics/logs/components/logs-filters.controller';
 import ApiLoggingConfigurationController from '../management/api/analytics/logs/logging-configuration.controller';
 import DialogConfigureLoggingEditorController from '../management/api/analytics/logs/configure-logging-editor.dialog.controller';
 

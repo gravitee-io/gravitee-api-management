@@ -19,7 +19,9 @@ const LogsFiltersComponent: ng.IComponentOptions = {
   controller: 'LogsFiltersController',
   bindings: {
     onFiltersChange: '&',
-    metadata: '<'
+    metadata: '<',
+    context: '@',
+    api: '<'
   }
 };
 

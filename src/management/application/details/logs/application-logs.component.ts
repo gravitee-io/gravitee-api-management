@@ -15,7 +15,8 @@
  */
 const ApplicationLogsComponent: ng.IComponentOptions = {
   bindings: {
-    application: '<'
+    application: '<',
+    apis: '<'
   },
   controller: 'ApplicationLogsController',
   template: require('./application-logs.html')

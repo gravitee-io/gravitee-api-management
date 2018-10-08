@@ -124,6 +124,10 @@ class ApplicationService {
     return this.$http.get(req);
   }
 
+  getSubscribedAPI(applicationId: string): ng.IHttpPromise<any> {
+    return this.$http.get(this.applicationsURL + applicationId + '/subscribed');
+  }
+
   getSubscription(applicationId, subscriptionId) {
     return this.$http.get(this.subscriptionsURL(applicationId) + subscriptionId);
   }

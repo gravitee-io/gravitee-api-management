@@ -99,12 +99,12 @@ class LogsFiltersController {
   private onFiltersChange: any;
   private metadata: any;
   private api: any;
+  private context: string;
 
   constructor(private $scope: ILogsFiltersScope,
               private $state: StateService) {
     'ngInject';
     this.$scope = $scope;
-    this.api = this.$scope.$parent.apiCtrl.api;
   }
 
   $onInit() {
@@ -123,6 +123,9 @@ class LogsFiltersController {
       let k = kv[0].trim();
       let v = kv[1].replace(/[\\\"]/g, "").split('OR').map(x => x.trim());
       switch(k) {
+        case 'api':
+          this.filters.api = v;
+          break;
         case 'application':
           this.filters.application = v;
           break;

@@ -21,13 +21,17 @@ import ApplicationService, { LogsQuery } from "../../../../services/applications
 
 class ApplicationLogsController {
 
-  private logs: {total: string; logs: any[]};
+  private logs: {total: string; logs: any[], metadata: any};
   private query: LogsQuery;
+  private metadata: {
+    apis?: any[]
+  };
+  private apis;
   private application: any;
 
   constructor(
     private ApplicationService: ApplicationService,
-    private $state: StateService
+    private $state: StateService,
   ) {
   'ngInject';
     this.ApplicationService = ApplicationService;
@@ -43,6 +47,10 @@ class ApplicationLogsController {
       this.query.from = this.$state.params['from'];
       this.query.to = this.$state.params['to'];
       this.query.query = this.$state.params['q'];
+
+    this.metadata = {
+      apis: this.apis.data
+    };
   };
 
   timeframeChange(timeframe) {
@@ -61,6 +69,12 @@ class ApplicationLogsController {
     this.ApplicationService.findLogs(this.application.id, this.query).then((logs) => {
       this.logs = logs.data;
     });
+  }
+
+  filtersChange(filters) {
+    this.query.page = 1;
+    this.query.query = filters;
+    this.refresh();
   }
 }
 

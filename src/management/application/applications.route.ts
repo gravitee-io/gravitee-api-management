@@ -19,6 +19,7 @@ import * as _ from 'lodash';
 import UserService from "../../services/user.service";
 import {HookScope} from "../../entities/hookScope";
 import NotificationSettingsService from "../../services/notificationSettings.service";
+import {StateParams} from '@uirouter/core';
 
 export default applicationsConfig;
 
@@ -242,6 +243,10 @@ function applicationsConfig($stateProvider) {
           type: 'string',
           dynamic: true
         }
+      },
+      resolve: {
+        apis: ($stateParams: StateParams, ApplicationService: ApplicationService) =>
+          ApplicationService.getSubscribedAPI($stateParams.applicationId)
       }
     })
     .state('management.applications.application.log', {

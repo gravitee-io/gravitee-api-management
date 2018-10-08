@@ -20,7 +20,9 @@
   <div class="gv-form">
     <h2></h2>
     <div class="gv-form-content" layout="column">
-<gv-logs-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)"></gv-logs-timeframe>
+      <gv-logs-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)"></gv-logs-timeframe>
+
+      <gv-logs-filters context="application" on-filters-change="$ctrl.filtersChange(filters)" metadata="$ctrl.metadata"></gv-logs-filters>
 
 <md-table-container layout-padding>
   <table md-table class="gravitee-analytics-top-hits-table gv-table-dense">

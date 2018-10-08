@@ -25,7 +25,8 @@
     <div class="gv-form-content" layout="column">
       <gv-logs-timeframe on-timeframe-change="logsCtrl.timeframeChange(timeframe)"></gv-logs-timeframe>
 
-      <gv-logs-filters on-filters-change="logsCtrl.filtersChange(filters)" metadata="logsCtrl.metadata"></gv-logs-filters>
+      <gv-logs-filters context="api" on-filters-change="logsCtrl.filtersChange(filters)" metadata="logsCtrl.metadata"
+        api="logsCtrl.api"></gv-logs-filters>
 
       <md-table-container layout-padding>
         <table md-table class="gravitee-analytics-top-hits-table gv-table-dense" multiple md-row-select="logsCtrl.widget.chart.selectable" data-ng-model="logsCtrl.selected">
