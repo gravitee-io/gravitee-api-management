@@ -415,6 +415,12 @@ import MessageService from "../services/message.service";
 import MessagesComponent from "../components/messages/messages.component";
 import apisMessagesRouterConfig from "./api/messages/apis.messages.route";
 
+import ApiPortalHeaderComponent from "../management/configuration/api-portal-header/api-portal-header.component";
+import ApiHeaderService from "../services/apiHeader.service";
+import UpdateApiPortalHeaderDialogController
+  from "./configuration/api-portal-header/update.api-portal-header.dialog.controller";
+import NewApiPortalHeaderDialogController
+  from "./configuration/api-portal-header/new.api-portal-header.dialog.controller";
 
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -709,6 +715,12 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DictionariesController', DictionariesController)
   .controller('DictionaryController', DictionaryController)
   .controller('DialogDictionaryAddPropertyController', DialogDictionaryAddPropertyController)
+
+  //ApiHeader
+  .component('configApiPortalHeader', ApiPortalHeaderComponent)
+  .service('ApiHeaderService', ApiHeaderService)
+  .controller("NewApiPortalHeaderDialogController", NewApiPortalHeaderDialogController)
+  .controller("UpdateApiPortalHeaderDialogController", UpdateApiPortalHeaderDialogController)
 
   .filter('humanDateFilter', function () {
     return function (input) {

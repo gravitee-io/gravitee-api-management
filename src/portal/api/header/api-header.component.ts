@@ -19,27 +19,54 @@ import TicketService from "../../../services/ticket.service";
 const ApiHeaderComponent: ng.IComponentOptions = {
   bindings: {
     api: '<',
-    apiRatingSummary: '<'
+    apiRatingSummary: '<',
+    apiPortalHeaders: '<'
   },
   template: require('./api-header.html'),
-  controller: function(Constants, ApiService: ApiService, $state, $stateParams, $rootScope, TicketService) {
+  controller: function(
+    Constants,
+    ApiService: ApiService,
+    $state,
+    $stateParams,
+    $rootScope,
+    TicketService: TicketService,
+    $window,
+    $timeout) {
     'ngInject';
     this.ratingEnabled = ApiService.isRatingEnabled();
     this.supportEnabled = TicketService.isSupportEnabled();
-
-    this.getEndpoint = function () {
-      return Constants.portal.entrypoint + this.api.context_path;
-    };
-
-    this.completeHeader = function () {
-      return $state.is('portal.api.detail');
-    };
+    this.Constants = Constants;
 
     $rootScope.$on('onRatingSave', () => {
       ApiService.getApiRatingSummaryByApi($stateParams.apiId).then((response) => {
         this.apiRatingSummary = response.data;
       });
     });
+
+    this.$onInit = () => {
+      $timeout(function() {
+        const apiNavbar = document.getElementById("api-navbar");
+        const headerDetail = document.getElementById("header-detail");
+        const headerMetadata = document.getElementById("header-metadata");
+        const headerTitle = document.getElementById("header");
+        const content = document.getElementById("main-content-content")
+        $window.onscroll = () => {
+          if ($window.pageYOffset > 0) {
+            headerDetail.classList.add("wipeoff");
+            headerMetadata.classList.add("wipeoff");
+            headerTitle.classList.add("sticky");
+            apiNavbar.classList.add("sticky");
+            content.classList.add("header-fixed");
+          } else {
+            headerDetail.classList.remove("wipeoff");
+            headerMetadata.classList.remove("wipeoff");
+            headerTitle.classList.remove("sticky");
+            apiNavbar.classList.remove("sticky");
+            content.classList.remove("header-fixed")
+          }
+        };
+      }, 0);
+    };
   }
 };
 

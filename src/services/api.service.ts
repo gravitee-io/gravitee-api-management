@@ -463,6 +463,10 @@ class ApiService {
     }
     return;
   }
+
+  getPortalHeaders(api) {
+    return this.$http.get(this.apisURL + api + '/headers');
+  }
 }
 
 export default ApiService;

@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import ApiHeaderService from "../../../services/apiHeader.service";
+import {ApiPortalHeader} from "../../../entities/apiPortalHeader";
 
-class PortalConfigService {
-  private portalURL: string;
-  private Constants: any;
+function NewApiPortalHeaderDialogController(
+  ApiHeaderService: ApiHeaderService,
+  $mdDialog: angular.material.IDialogService) {
+  'ngInject';
 
-  constructor(private $http, private $q, Constants) {
-    'ngInject';
-    this.portalURL = `${Constants.baseURL}portal/`;
-    this.Constants = Constants;
-  }
+  this.header = new ApiPortalHeader();
 
-  save(config) {
-    return this.$http.post(this.portalURL, config ? config : this.Constants);
-  }
+  this.cancel = function() {
+    $mdDialog.cancel();
+  };
 
-  get() {
-    return this.$http.get(this.portalURL);
-  }
+  this.save = function() {
+    ApiHeaderService.create(this.header).then(function (response) {
+      $mdDialog.hide(response.data);
+    });
+  };
 }
 
-export default PortalConfigService;
+export default NewApiPortalHeaderDialogController;

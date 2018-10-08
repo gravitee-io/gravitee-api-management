@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function ApiHeaderMetadataDialogController(mdPanelRef: angular.material.IPanelRef, metadata) {
-  'ngInject';
+export class ApiPortalHeader {
+  public id: string;
+  public name: string;
+  public value: string;
+  public order: number;
 
-  this.metadata = metadata;
-
-  this.close = function() {
-    mdPanelRef.close();
-  };
+  constructor() {
+    'ngInject';
+  }
 }
-
-export default ApiHeaderMetadataDialogController;

@@ -36,13 +36,13 @@ const PortalSettingsComponent: ng.IComponentOptions = {
       {'id': 'host', 'label': 'Hits by HTTP Host header'}];
 
     this.save = () => {
-      PortalConfigService.save().then( () => {
+      PortalConfigService.save(null).then( () => {
         NotificationService.show("Configuration saved !");
       });
     };
 
     this.reset = () => {
-      PortalConfigService.get().then((response) => {
+      this.PortalConfigService.get().then((response) => {
         Constants = response.data;
       });
     };

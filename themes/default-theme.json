@@ -54,7 +54,14 @@
         "background-color": "#eff4f9"
       },
       "plans": {
-        "background-color": "#34a0d4"
+        "background-color": "#eff4f9",
+        "title": {
+          "color": "#555"
+        }
+      },
+      "plan": {
+        "color": "#555",
+        "border": "1px solid #ccc"
       }
     }
   }

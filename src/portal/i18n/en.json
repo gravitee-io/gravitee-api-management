@@ -157,6 +157,10 @@
         "title": "{{averageRate}} stars out of 5",
         "link": "Consult the {{numberOfRatings}} rating(s)"
       }
+    },
+    "header": {
+      "views": "Views",
+      "tags": "Tags"
     }
   },
   "applications": {

@@ -27,10 +27,10 @@
     <div class="gv-form">
         <h2>Company</h2>
         <div class="gv-form-content" layout="column">
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Company name</label>
-    <input ng-model="$ctrl.Constants.company.name">
-</md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Company name</label>
+                <input ng-model="$ctrl.Constants.company.name">
+            </md-input-container>
         </div>
     </div>
 
@@ -39,32 +39,32 @@
     <div class="gv-form">
         <h2>Management</h2>
         <div class="gv-form-content" layout="column">
-<md-input-container class="md-block" flex>
-    <label>Title</label>
-    <input ng-model="$ctrl.Constants.management.title">
-</md-input-container>
-<h6>Security plans type available</h6>
-<md-input-container class="gv-input-container-dense">
-    <md-checkbox ng-model="$ctrl.Constants.plan.security.keyless.enabled" aria-label="A">
-        Keyless plans
-    </md-checkbox>
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-    <md-checkbox ng-model="$ctrl.Constants.plan.security.apikey.enabled" aria-label="A">
-        Api-key plans
-    </md-checkbox>
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-    <md-checkbox ng-model="$ctrl.Constants.plan.security.oauth2.enabled" aria-label="A">
-        Oauth2 plans
-    </md-checkbox>
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-    <md-checkbox ng-model="$ctrl.Constants.plan.security.jwt.enabled" aria-label="A">
-        JWT plans
-    </md-checkbox>
-</md-input-container>
-    </div>
+            <md-input-container class="md-block" flex>
+                <label>Title</label>
+                <input ng-model="$ctrl.Constants.management.title">
+            </md-input-container>
+            <h6>Security plans type available</h6>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.plan.security.keyless.enabled" aria-label="A">
+                    Keyless plans
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.plan.security.apikey.enabled" aria-label="A">
+                    Api-key plans
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.plan.security.oauth2.enabled" aria-label="A">
+                    Oauth2 plans
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.plan.security.jwt.enabled" aria-label="A">
+                    JWT plans
+                </md-checkbox>
+            </md-input-container>
+        </div>
     </div>
 
 
@@ -72,87 +72,87 @@
         <h2>Portal</h2>
         <div class="gv-form-content" layout="column">
 
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Title</label>
-    <input ng-model="$ctrl.Constants.portal.title">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Entrypoint</label>
-    <input ng-model="$ctrl.Constants.portal.entrypoint">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Api-key Header
-      <small>(Used by portal to display the CURL command, change the YAML configuration to impact the gateway)</small>
-    </label>
-    <input ng-model="$ctrl.Constants.portal.apikeyHeader">
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-    <md-checkbox ng-model="$ctrl.Constants.portal.apis.tilesMode.enabled" aria-label="Tiles Mode">
-        Use Tiles Mode for apis
-    </md-checkbox>
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-  <md-checkbox ng-model="$ctrl.Constants.portal.apis.viewMode.enabled" aria-label="View Mode">
-    Use View Mode for apis
-  </md-checkbox>
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-    <md-checkbox ng-model="$ctrl.Constants.portal.support.enabled" aria-label="Support">
-        Activate Support
-    </md-checkbox>
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-  <md-checkbox ng-model="$ctrl.Constants.portal.rating.enabled" aria-label="Rating">
-    Activate Rating
-  </md-checkbox>
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-  <md-checkbox ng-model="$ctrl.Constants.portal.rating.comment.mandatory" aria-label="Rating comment mandatory">
-    Force user to fill comment before to save a rating
-  </md-checkbox>
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-    <md-checkbox ng-model="$ctrl.Constants.portal.devMode.enabled" aria-label="Developer Portal Only">
-        Developer Portal Only
-    </md-checkbox>
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-    <md-checkbox ng-model="$ctrl.Constants.portal.userCreation.enabled" aria-label="Allow user creation">
-        Allow User Creation
-    </md-checkbox>
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-    <md-checkbox ng-model="$ctrl.Constants.portal.analytics.enabled" aria-label="Add Google Analytics">
-        Add Google Analytics
-    </md-checkbox>
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Google Analytics TrackingId</label>
-    <input ng-model="$ctrl.Constants.portal.analytics.trackingId">
-</md-input-container>
-    </div></div>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Title</label>
+                <input ng-model="$ctrl.Constants.portal.title">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Entrypoint</label>
+                <input ng-model="$ctrl.Constants.portal.entrypoint">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Api-key Header
+                    <small>(Used by portal to display the CURL command, change the YAML configuration to impact the gateway)</small>
+                </label>
+                <input ng-model="$ctrl.Constants.portal.apikeyHeader">
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.portal.apis.tilesMode.enabled" aria-label="Tiles Mode">
+                    Use Tiles Mode for apis
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.portal.apis.viewMode.enabled" aria-label="View Mode">
+                    Use View Mode for apis
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.portal.support.enabled" aria-label="Support">
+                    Activate Support
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.portal.rating.enabled" aria-label="Rating">
+                    Activate Rating
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.portal.rating.comment.mandatory" aria-label="Rating comment mandatory">
+                    Force user to fill comment before to save a rating
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.portal.devMode.enabled" aria-label="Developer Portal Only">
+                    Developer Portal Only
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.portal.userCreation.enabled" aria-label="Allow user creation">
+                    Allow User Creation
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.portal.analytics.enabled" aria-label="Add Google Analytics">
+                    Add Google Analytics
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Google Analytics TrackingId</label>
+                <input ng-model="$ctrl.Constants.portal.analytics.trackingId">
+            </md-input-container>
+        </div></div>
 
 
 
     <div class="gv-form">
         <h2>Theme</h2>
         <div class="gv-form-content" layout="column">
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Name</label>
-    <input ng-model="$ctrl.Constants.theme.name">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Logo</label>
-    <input ng-model="$ctrl.Constants.theme.logo">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Loader</label>
-    <input ng-model="$ctrl.Constants.theme.loader">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Css file (for example themes/assets/gravitee.css)</label>
-    <input ng-model="$ctrl.Constants.theme.css">
-</md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Name</label>
+                <input ng-model="$ctrl.Constants.theme.name">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Logo</label>
+                <input ng-model="$ctrl.Constants.theme.logo">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Loader</label>
+                <input ng-model="$ctrl.Constants.theme.loader">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Css file (for example themes/assets/gravitee.css)</label>
+                <input ng-model="$ctrl.Constants.theme.css">
+            </md-input-container>
         </div></div>
 
 
@@ -160,141 +160,141 @@
     <div class="gv-form">
         <h2>Schedulers</h2>
         <div class="gv-form-content" layout="column">
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Tasks (in seconds)</label>
-    <input type="number" min="0" ng-model="$ctrl.Constants.scheduler.tasks">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Notifications (in seconds)</label>
-    <input type="number" min="0" ng-model="$ctrl.Constants.scheduler.notifications">
-</md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Tasks (in seconds)</label>
+                <input type="number" min="0" ng-model="$ctrl.Constants.scheduler.tasks">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Notifications (in seconds)</label>
+                <input type="number" min="0" ng-model="$ctrl.Constants.scheduler.notifications">
+            </md-input-container>
         </div></div>
 
 
     <div class="gv-form">
         <h2>Documentation</h2>
         <div class="gv-form-content" layout="column">
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Documentation URL</label>
-    <input ng-model="$ctrl.Constants.documentation.url">
-</md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Documentation URL</label>
+                <input ng-model="$ctrl.Constants.documentation.url">
+            </md-input-container>
         </div>
     </div>
 
-  <div class="gv-form">
-    <h2>Analytics</h2>
-    <div class="gv-form-content" layout="column">
-      <md-input-container class="md-block" flex-gt-sm>
-        <label>Analytics widgets</label>
-        <md-select
-          ng-model="$ctrl.Constants.portal.dashboard.widgets"
-          multiple>
-          <md-option ng-repeat="widget in $ctrl.widgets" value="{{widget.id}}">
-            {{widget.label}}
-          </md-option>
-        </md-select>
-      </md-input-container>
+    <div class="gv-form">
+        <h2>Analytics</h2>
+        <div class="gv-form-content" layout="column">
+            <md-input-container class="md-block" flex-gt-sm>
+                <label>Analytics widgets</label>
+                <md-select
+                        ng-model="$ctrl.Constants.portal.dashboard.widgets"
+                        multiple>
+                    <md-option ng-repeat="widget in $ctrl.widgets" value="{{widget.id}}">
+                        {{widget.label}}
+                    </md-option>
+                </md-select>
+            </md-input-container>
+        </div>
     </div>
-  </div>
 
 
     <div class="gv-form">
         <h2>Authentication</h2>
         <div class="gv-form-content" layout="column">
-<md-input-container class="gv-input-container-dense">
-    <md-checkbox ng-model="$ctrl.Constants.authentication.forceLogin.enabled" aria-label="forceLogin">
-        Force Login
-    </md-checkbox>
-</md-input-container>
-<md-input-container class="gv-input-container-dense">
-    <md-checkbox ng-model="$ctrl.Constants.authentication.localLogin.enabled" aria-label="localLogin">
-        Local Login
-    </md-checkbox>
-</md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.authentication.forceLogin.enabled" aria-label="forceLogin">
+                    Force Login
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.Constants.authentication.localLogin.enabled" aria-label="localLogin">
+                    Local Login
+                </md-checkbox>
+            </md-input-container>
 
-<h5>Google Authentication</h5>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>ClientId</label>
-    <input disabled ng-model="$ctrl.Constants.authentication.google.clientId">
-</md-input-container>
+            <h5>Google Authentication</h5>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>ClientId</label>
+                <input disabled ng-model="$ctrl.Constants.authentication.google.clientId">
+            </md-input-container>
 
-<h5>Github Authentication</h5>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>ClientId</label>
-    <input disabled ng-model="$ctrl.Constants.authentication.github.clientId">
-</md-input-container>
+            <h5>Github Authentication</h5>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>ClientId</label>
+                <input disabled ng-model="$ctrl.Constants.authentication.github.clientId">
+            </md-input-container>
 
-<h5>OAuth2 Authentication</h5>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>ClientId</label>
-    <input disabled ng-model="$ctrl.Constants.authentication.oauth2.clientId">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Name</label>
-    <input ng-model="$ctrl.Constants.authentication.oauth2.name">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Color</label>
-    <input ng-model="$ctrl.Constants.authentication.oauth2.color">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Authorization Endpoint</label>
-    <input ng-model="$ctrl.Constants.authentication.oauth2.authorizationEndpoint">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>User Logout Endpoint</label>
-    <input ng-model="$ctrl.Constants.authentication.oauth2.userLogoutEndpoint">
-</md-input-container>
-<md-chips ng-model="$ctrl.Constants.authentication.oauth2.scope"
-        placeholder="Add a scope" secondary-placeholder="+Scope"></md-chips>
+            <h5>OAuth2 Authentication</h5>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>ClientId</label>
+                <input disabled ng-model="$ctrl.Constants.authentication.oauth2.clientId">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Name</label>
+                <input ng-model="$ctrl.Constants.authentication.oauth2.name">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Color</label>
+                <input ng-model="$ctrl.Constants.authentication.oauth2.color">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Authorization Endpoint</label>
+                <input ng-model="$ctrl.Constants.authentication.oauth2.authorizationEndpoint">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>User Logout Endpoint</label>
+                <input ng-model="$ctrl.Constants.authentication.oauth2.userLogoutEndpoint">
+            </md-input-container>
+            <md-chips ng-model="$ctrl.Constants.authentication.oauth2.scope"
+                      placeholder="Add a scope" secondary-placeholder="+Scope"></md-chips>
         </div>
     </div>
 
     <div class="gv-form">
         <h2>API Quality</h2>
         <div class="gv-form-content" layout="column">
-<md-input-container class="md-block" flex-gt-xs>
-  <md-checkbox ng-model="$ctrl.Constants.apiQualityMetrics.enabled" aria-label="Rating">
-    Enable API Quality Metrics
-  </md-checkbox>
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Functional documentation weight (0 means not used)</label>
-    <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.functionalDocumentationWeight">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Technical documentation weight (0 means not used)</label>
-    <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.technicalDocumentationWeight">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Healthcheck weight (0 means not used)</label>
-    <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.healthcheckWeight">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Description weight (0 means not used)</label>
-    <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.descriptionWeight">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Description minimum length</label>
-    <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.descriptionMinLength">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Logo weight (0 means not used)</label>
-    <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.logoWeight">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Views weight (0 means not used)</label>
-    <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.viewsWeight">
-</md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-    <label>Labels weight (0 means not used)</label>
-    <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.labelsWeight">
-</md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <md-checkbox ng-model="$ctrl.Constants.apiQualityMetrics.enabled" aria-label="Rating">
+                    Enable API Quality Metrics
+                </md-checkbox>
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Functional documentation weight (0 means not used)</label>
+                <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.functionalDocumentationWeight">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Technical documentation weight (0 means not used)</label>
+                <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.technicalDocumentationWeight">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Healthcheck weight (0 means not used)</label>
+                <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.healthcheckWeight">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Description weight (0 means not used)</label>
+                <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.descriptionWeight">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Description minimum length</label>
+                <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.descriptionMinLength">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Logo weight (0 means not used)</label>
+                <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.logoWeight">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Views weight (0 means not used)</label>
+                <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.viewsWeight">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Labels weight (0 means not used)</label>
+                <input type="number" min="0" ng-model="$ctrl.Constants.apiQualityMetrics.labelsWeight">
+            </md-input-container>
         </div>
     </div>
 
-<md-card-actions>
-    <md-button class="md-raised md-primary" ng-click="$ctrl.save()" permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Save</md-button>
-    <md-button class="md-raised" ng-click="$ctrl.reset()" permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Reset</md-button>
-</md-card-actions>
+    <md-card-actions>
+        <md-button class="md-raised md-primary" ng-click="$ctrl.save()" permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Save</md-button>
+        <md-button class="md-raised" ng-click="$ctrl.reset()" permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Reset</md-button>
+    </md-card-actions>
 </div>

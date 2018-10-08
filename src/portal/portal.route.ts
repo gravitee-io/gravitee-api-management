@@ -123,6 +123,8 @@ function portalRouterConfig($stateProvider) {
             ? ApiService.getApiRatingSummaryByApi($stateParams['apiId']).then(response => response.data)
             : null;
         },
+        apiPortalHeaders: ($stateParams, ApiService: ApiService) =>
+          ApiService.getPortalHeaders($stateParams['apiId']).then(response => response.data),
         resolvedApiPermissions: (ApiService, $stateParams) => ApiService.getPermissions($stateParams.apiId),
         onEnter: function (UserService, resolvedApiPermissions) {
           if (UserService.currentUser && !UserService.currentUser.userApiPermissions) {

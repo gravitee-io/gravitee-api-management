@@ -8,6 +8,7 @@
 
 @import 'views/views';
 @import 'views/view/view';
+@import "../constants";
 
 a, a:active, a:hover, a:visited {
   text-decoration: none;
@@ -18,11 +19,6 @@ a, a:active, a:hover, a:visited {
   background: #ccc;
   color: #000;
   padding: 0.2em 0;
-}
-
-#header {
-  padding-top: 70px;
-  padding-bottom: 30px;
 }
 
 .main-container {
@@ -77,7 +73,7 @@ a, a:active, a:hover, a:visited {
 }
 
 #plans {
-  min-height: calc(100vh - 440px);
+  min-height: calc(100vh - 316px);
   md-card-content {
     width: 100%;
     min-height: 250px;

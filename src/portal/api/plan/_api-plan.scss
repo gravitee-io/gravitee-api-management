@@ -13,19 +13,13 @@
   max-width: none;
 }
 
-.pricing-list {
-  margin: 2em 0 0;
-}
-
 .pricing-list > div {
   position: relative;
   margin-bottom: 1em;
 }
 
 @media only screen and (min-width: 768px) {
-  .pricing-list {
-    margin: 3em 0 0;
-  }
+
   .pricing-list:after {
     content: "";
     display: table;
@@ -57,6 +51,8 @@
   position: relative;
 
   h2 {
+    font-weight: 400;
+    font-size: 24px;
     padding: 20px 0;
     text-transform: uppercase;
     text-align: center;
@@ -143,7 +139,6 @@
   padding: 1.9em 0 1.6em;
   pointer-events: auto;
   text-align: center;
-  color: #173d50;
   background-color: transparent;
 }
 
@@ -259,196 +254,4 @@
   display: block;
   padding: 1.7em 0;
   border-radius: 0 0 4px 4px;
-}
-
-@-webkit-keyframes rotate {
-  0% {
-    -webkit-transform: perspective(2000px) rotateY(0);
-  }
-  70% {
-    -webkit-transform: perspective(2000px) rotateY(200deg);
-  }
-  100% {
-    -webkit-transform: perspective(2000px) rotateY(180deg);
-  }
-}
-
-@-moz-keyframes rotate {
-  0% {
-    -moz-transform: perspective(2000px) rotateY(0);
-  }
-  70% {
-    -moz-transform: perspective(2000px) rotateY(200deg);
-  }
-  100% {
-    -moz-transform: perspective(2000px) rotateY(180deg);
-  }
-}
-
-@keyframes rotate {
-  0% {
-    -webkit-transform: perspective(2000px) rotateY(0);
-    -moz-transform: perspective(2000px) rotateY(0);
-    -ms-transform: perspective(2000px) rotateY(0);
-    -o-transform: perspective(2000px) rotateY(0);
-    transform: perspective(2000px) rotateY(0);
-  }
-  70% {
-    -webkit-transform: perspective(2000px) rotateY(200deg);
-    -moz-transform: perspective(2000px) rotateY(200deg);
-    -ms-transform: perspective(2000px) rotateY(200deg);
-    -o-transform: perspective(2000px) rotateY(200deg);
-    transform: perspective(2000px) rotateY(200deg);
-  }
-  100% {
-    -webkit-transform: perspective(2000px) rotateY(180deg);
-    -moz-transform: perspective(2000px) rotateY(180deg);
-    -ms-transform: perspective(2000px) rotateY(180deg);
-    -o-transform: perspective(2000px) rotateY(180deg);
-    transform: perspective(2000px) rotateY(180deg);
-  }
-}
-
-@-webkit-keyframes rotate-inverse {
-  0% {
-    -webkit-transform: perspective(2000px) rotateY(-180deg);
-  }
-  70% {
-    -webkit-transform: perspective(2000px) rotateY(20deg);
-  }
-  100% {
-    -webkit-transform: perspective(2000px) rotateY(0);
-  }
-}
-
-@-moz-keyframes rotate-inverse {
-  0% {
-    -moz-transform: perspective(2000px) rotateY(-180deg);
-  }
-  70% {
-    -moz-transform: perspective(2000px) rotateY(20deg);
-  }
-  100% {
-    -moz-transform: perspective(2000px) rotateY(0);
-  }
-}
-
-@keyframes rotate-inverse {
-  0% {
-    -webkit-transform: perspective(2000px) rotateY(-180deg);
-    -moz-transform: perspective(2000px) rotateY(-180deg);
-    -ms-transform: perspective(2000px) rotateY(-180deg);
-    -o-transform: perspective(2000px) rotateY(-180deg);
-    transform: perspective(2000px) rotateY(-180deg);
-  }
-  70% {
-    -webkit-transform: perspective(2000px) rotateY(20deg);
-    -moz-transform: perspective(2000px) rotateY(20deg);
-    -ms-transform: perspective(2000px) rotateY(20deg);
-    -o-transform: perspective(2000px) rotateY(20deg);
-    transform: perspective(2000px) rotateY(20deg);
-  }
-  100% {
-    -webkit-transform: perspective(2000px) rotateY(0);
-    -moz-transform: perspective(2000px) rotateY(0);
-    -ms-transform: perspective(2000px) rotateY(0);
-    -o-transform: perspective(2000px) rotateY(0);
-    transform: perspective(2000px) rotateY(0);
-  }
-}
-
-@-webkit-keyframes rotate-back {
-  0% {
-    -webkit-transform: perspective(2000px) rotateY(0);
-  }
-  70% {
-    -webkit-transform: perspective(2000px) rotateY(-200deg);
-  }
-  100% {
-    -webkit-transform: perspective(2000px) rotateY(-180deg);
-  }
-}
-
-@-moz-keyframes rotate-back {
-  0% {
-    -moz-transform: perspective(2000px) rotateY(0);
-  }
-  70% {
-    -moz-transform: perspective(2000px) rotateY(-200deg);
-  }
-  100% {
-    -moz-transform: perspective(2000px) rotateY(-180deg);
-  }
-}
-
-@keyframes rotate-back {
-  0% {
-    -webkit-transform: perspective(2000px) rotateY(0);
-    -moz-transform: perspective(2000px) rotateY(0);
-    -ms-transform: perspective(2000px) rotateY(0);
-    -o-transform: perspective(2000px) rotateY(0);
-    transform: perspective(2000px) rotateY(0);
-  }
-  70% {
-    -webkit-transform: perspective(2000px) rotateY(-200deg);
-    -moz-transform: perspective(2000px) rotateY(-200deg);
-    -ms-transform: perspective(2000px) rotateY(-200deg);
-    -o-transform: perspective(2000px) rotateY(-200deg);
-    transform: perspective(2000px) rotateY(-200deg);
-  }
-  100% {
-    -webkit-transform: perspective(2000px) rotateY(-180deg);
-    -moz-transform: perspective(2000px) rotateY(-180deg);
-    -ms-transform: perspective(2000px) rotateY(-180deg);
-    -o-transform: perspective(2000px) rotateY(-180deg);
-    transform: perspective(2000px) rotateY(-180deg);
-  }
-}
-
-@-webkit-keyframes rotate-inverse-back {
-  0% {
-    -webkit-transform: perspective(2000px) rotateY(180deg);
-  }
-  70% {
-    -webkit-transform: perspective(2000px) rotateY(-20deg);
-  }
-  100% {
-    -webkit-transform: perspective(2000px) rotateY(0);
-  }
-}
-
-@-moz-keyframes rotate-inverse-back {
-  0% {
-    -moz-transform: perspective(2000px) rotateY(180deg);
-  }
-  70% {
-    -moz-transform: perspective(2000px) rotateY(-20deg);
-  }
-  100% {
-    -moz-transform: perspective(2000px) rotateY(0);
-  }
-}
-
-@keyframes rotate-inverse-back {
-  0% {
-    -webkit-transform: perspective(2000px) rotateY(180deg);
-    -moz-transform: perspective(2000px) rotateY(180deg);
-    -ms-transform: perspective(2000px) rotateY(180deg);
-    -o-transform: perspective(2000px) rotateY(180deg);
-    transform: perspective(2000px) rotateY(180deg);
-  }
-  70% {
-    -webkit-transform: perspective(2000px) rotateY(-20deg);
-    -moz-transform: perspective(2000px) rotateY(-20deg);
-    -ms-transform: perspective(2000px) rotateY(-20deg);
-    -o-transform: perspective(2000px) rotateY(-20deg);
-    transform: perspective(2000px) rotateY(-20deg);
-  }
-  100% {
-    -webkit-transform: perspective(2000px) rotateY(0);
-    -moz-transform: perspective(2000px) rotateY(0);
-    -ms-transform: perspective(2000px) rotateY(0);
-    -o-transform: perspective(2000px) rotateY(0);
-    transform: perspective(2000px) rotateY(0);
-  }
 }

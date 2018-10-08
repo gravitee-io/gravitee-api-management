@@ -535,3 +535,9 @@ md-card.no-box-shadow {
 .icon-angle-right:before { content: '\f105'; } /* '' */
 .icon-angle-up:before { content: '\f106'; } /* '' */
 .icon-angle-down:before { content: '\f107'; } /* '' */
+
+table {
+  code {
+    top: inherit;
+  }
+}

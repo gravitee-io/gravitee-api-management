@@ -15,10 +15,11 @@
     limitations under the License.
 
 -->
-<section id="header" class="md-whiteframe-5dp" layout="row" layout-align="center center" gv-theme-element="portal.api.header">
-
-  <div layout="column" flex="65">
-    <div layout="row" layout-align="start center">
+<section id="header" class="api-header md-whiteframe-5dp" layout="row" layout-align="center center" gv-theme-element="portal.api.header">
+<div class="container">
+  <div layout="row" layout-align="space-between center">
+  <div layout="column">
+    <div id="header-title" class="api-header-title" layout="row" layout-align="start center">
       <img height="60" ng-src="{{$ctrl.api.picture_url}}" alt="api-logo" />
       <div layout="column">
         <span class="api-title" ui-sref="portal.api.detail({apiId: $ctrl.api.id})">{{::$ctrl.api.name}}</span>
@@ -34,25 +35,28 @@
                         display-none-message="true"></gv-star-rating>
       </div>
     </div>
-
-    <div layout="row" style="margin-top: 18px;" ng-if="$ctrl.completeHeader()">
-      <div layout="row" flex="50">
-        <span class="api-description">{{::$ctrl.api.description}}</span>
-      </div>
-
-      <div class="api-description" layout="column" layout-align="start start" flex="30">
-        <span>{{'api.version' | translate}}: {{::$ctrl.api.version}}</span>
-        <span ng-if="$ctrl.api.context_path">{{'api.endpoint' | translate}}: {{::$ctrl.getEndpoint()}}</span>
-        <span>{{'api.owner' | translate}}: {{$ctrl.api.owner.displayName}}</span>
-        <span ng-if="$ctrl.api.deployed_at">{{'api.publishedAt' | translate}}: {{::$ctrl.api.deployed_at | humanDateFilter}}</span>
-      </div>
-
-      <div flex></div>
+    <div id="header-detail" class="api-header-detail">
+      <span class="api-description">{{::$ctrl.api.description}}</span>
     </div>
   </div>
+  <div id="header-metadata" class="api-header-metadata">
+    <ul class="api-description" style="white-space: nowrap; padding-left: 0;" layout="column">
+      <li ng-repeat="header in $ctrl.apiPortalHeaders" ng-if="header.value">{{ header.name | translate }}: {{::header.value}}</li>
+    </ul>
+    <div ng-if="$ctrl.Constants.portal.apis.apiHeaderShowTags.enabled">
+      <h2>{{ 'api.header.tags' | translate }}</h2>
+      <span ng-repeat="t in $ctrl.api.tags" class="tag-or-view">{{t}}</span>
+    </div>
+    <div ng-if="$ctrl.Constants.portal.apis.apiHeaderShowViews.enabled">
+      <h2>{{ 'api.header.views' | translate }}</h2>
+      <span ng-repeat="v in $ctrl.api.views" class="tag-or-view">{{v}}</span>
+    </div>
+  </div>
+</div>
+</div>
 </section>
 
-<div class="api-nav">
+<div class="api-nav" id="api-navbar">
   <div class="container">
     <ul>
       <li ui-sref-active="active">

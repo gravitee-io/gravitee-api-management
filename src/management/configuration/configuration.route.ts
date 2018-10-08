@@ -26,6 +26,7 @@ import TopApiService from "../../services/top-api.service";
 import UserService from "../../services/user.service";
 import ApiService from "../../services/api.service";
 import DictionaryService from "../../services/dictionary.service";
+import ApiHeaderService from "../../services/apiHeader.service";
 import _ = require('lodash');
 
 export default configurationRouterConfig;
@@ -49,7 +50,8 @@ function configurationRouterConfig($stateProvider) {
             'portal-view-r', 'portal-metadata-r', 'portal-top_apis-r', 'management-group-r',
             'management-tag-c', 'management-tenant-c', 'management-group-c', 'management-role-c', 'portal-documentation-c',
             'management-tag-u', 'management-tenant-u', 'management-group-u', 'management-role-u', 'portal-documentation-u',
-            'management-tag-d', 'management-tenant-d', 'management-group-d', 'management-role-d', 'portal-documentation-d'
+            'management-tag-d', 'management-tenant-d', 'management-group-d', 'management-role-d', 'portal-documentation-d',
+            'portal-api_header-r'
           ]
         }
       }
@@ -481,6 +483,23 @@ function configurationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['management-dictionary-c', 'management-dictionary-r', 'management-dictionary-u', 'management-dictionary-d']
+        }
+      }
+    })
+    .state('management.settings.apiPortalHeader', {
+      url: '/apiportalheader',
+      component: 'configApiPortalHeader',
+      resolve: {
+        apiPortalHeaders: (ApiHeaderService: ApiHeaderService) =>
+          ApiHeaderService.list().then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-apiportalheader'
+        },
+        perms: {
+          only: ['portal-api_header-r']
         }
       }
     });
