@@ -23,6 +23,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -41,6 +42,9 @@ public class SearchEngineConfiguration {
     @Autowired
     private Environment environment;
 
+    @Value("${search.data:${gravitee.home}/data}")
+    private String indexDirectory;
+
     @Bean
     public SearchEngineIndexer searchEngineIndexer() {
         return new SearchEngineIndexer();
@@ -48,7 +52,7 @@ public class SearchEngineConfiguration {
 
     @Bean
     public Directory indexDirectory() throws IOException {
-        Path path = Paths.get(environment.getProperty("search.data", "${gravitee.home}/data"));
+        Path path = Paths.get(indexDirectory);
         if (!path.toFile().exists()) {
             path.toFile().mkdirs();
         }
