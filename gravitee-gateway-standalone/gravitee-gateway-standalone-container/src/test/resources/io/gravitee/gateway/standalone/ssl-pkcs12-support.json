@@ -1,0 +1,40 @@
+{
+  "id": "api-test",
+  "name": "api-test",
+
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "endpoint-1",
+        "target": "https://localhost:8080/team",
+        "ssl": {
+          "trustAll": true
+        }
+      }, {
+        "name": "endpoint-2",
+        "target": "https://localhost:8080/team",
+        "ssl": {
+          "trustAll": false
+        }
+      }, {
+        "name": "endpoint-3",
+        "target": "https://localhost:8080/team",
+        "ssl": {
+          "trustAll": false,
+          "trustStore": {
+            "type": "PKCS12",
+            "path": "Defined programmatically",
+            "password": "password"
+          }
+        }
+      }
+    ],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}

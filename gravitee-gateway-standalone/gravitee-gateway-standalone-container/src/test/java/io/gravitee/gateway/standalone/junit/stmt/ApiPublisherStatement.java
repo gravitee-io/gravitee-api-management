@@ -59,12 +59,11 @@ public class ApiPublisherStatement extends Statement {
 
     private void startServer(ApiConfiguration apiConfiguration) throws Exception {
         // Creation of the Jetty server
-        // === jetty.xml ===
-        // Setup Threadpool
-        QueuedThreadPool threadPool = new QueuedThreadPool(10);
-
         servers = new ArrayList<>(apiConfiguration.workers());
         for(int i = 0 ; i < apiConfiguration.workers() ; i++) {
+            // Setup Threadpool
+            QueuedThreadPool threadPool = new QueuedThreadPool(10);
+
             // Server
             Server server = new Server(threadPool);
 

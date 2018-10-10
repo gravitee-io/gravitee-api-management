@@ -20,6 +20,12 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
+import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
+import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
+import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
+import io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore;
+import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.EndpointStatusDecorator;
 import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
@@ -36,9 +42,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.net.PemTrustOptions;
-import io.vertx.core.net.ProxyOptions;
-import io.vertx.core.net.ProxyType;
+import io.vertx.core.net.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,23 +168,98 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
                     httpClientOptions.setProxyOptions(proxyOptions);
                 }
 
-                // Configure TLS if required
                 HttpClientSslOptions sslOptions = endpoint.getHttpClientSslOptions();
-                if (sslOptions != null && sslOptions.isEnabled()) {
-                    httpClientOptions
-                            .setSsl(sslOptions.isEnabled())
-                            .setVerifyHost(sslOptions.isHostnameVerifier())
-                            .setTrustAll(sslOptions.isTrustAll());
 
-                    if (sslOptions.getPem() != null && !sslOptions.getPem().isEmpty()) {
-                        httpClientOptions.setPemTrustOptions(
-                                new PemTrustOptions().addCertValue(
-                                        io.vertx.core.buffer.Buffer.buffer(sslOptions.getPem())));
+                if (HTTPS_SCHEME.equalsIgnoreCase(hcRequestUri.getScheme())) {
+                    // Configure SSL
+                    httpClientOptions.setSsl(true);
+
+                    if (sslOptions != null) {
+                        httpClientOptions
+                                .setVerifyHost(sslOptions.isHostnameVerifier())
+                                .setTrustAll(sslOptions.isTrustAll());
+
+                        // Client trust configuration
+                        if (!sslOptions.isTrustAll() && sslOptions.getTrustStore() != null) {
+                            switch (sslOptions.getTrustStore().getType()) {
+                                case PEM:
+                                    PEMTrustStore pemTrustStore = (PEMTrustStore) sslOptions.getTrustStore();
+                                    PemTrustOptions pemTrustOptions = new PemTrustOptions();
+                                    if (pemTrustStore.getPath() != null && !pemTrustStore.getPath().isEmpty()) {
+                                        pemTrustOptions.addCertPath(pemTrustStore.getPath());
+                                    } else {
+                                        pemTrustOptions.addCertValue(io.vertx.core.buffer.Buffer.buffer(pemTrustStore.getContent()));
+                                    }
+                                    httpClientOptions.setPemTrustOptions(pemTrustOptions);
+                                    break;
+                                case PKCS12:
+                                    PKCS12TrustStore pkcs12TrustStore = (PKCS12TrustStore) sslOptions.getTrustStore();
+                                    PfxOptions pfxOptions = new PfxOptions();
+                                    pfxOptions.setPassword(pkcs12TrustStore.getPassword());
+                                    if (pkcs12TrustStore.getPath() != null && !pkcs12TrustStore.getPath().isEmpty()) {
+                                        pfxOptions.setPath(pkcs12TrustStore.getPath());
+                                    } else {
+                                        pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(pkcs12TrustStore.getContent()));
+                                    }
+                                    httpClientOptions.setPfxTrustOptions(pfxOptions);
+                                    break;
+                                case JKS:
+                                    JKSTrustStore jksTrustStore = (JKSTrustStore) sslOptions.getTrustStore();
+                                    JksOptions jksOptions = new JksOptions();
+                                    jksOptions.setPassword(jksTrustStore.getPassword());
+                                    if (jksTrustStore.getPath() != null && !jksTrustStore.getPath().isEmpty()) {
+                                        jksOptions.setPath(jksTrustStore.getPath());
+                                    } else {
+                                        jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(jksTrustStore.getContent()));
+                                    }
+                                    httpClientOptions.setTrustStoreOptions(jksOptions);
+                                    break;
+                            }
+                        }
+
+                        // Client authentication configuration
+                        if (sslOptions.getKeyStore() != null) {
+                            switch (sslOptions.getKeyStore().getType()) {
+                                case PEM:
+                                    PEMKeyStore pemKeyStore = (PEMKeyStore) sslOptions.getKeyStore();
+                                    PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions();
+                                    if (pemKeyStore.getCertPath() != null && !pemKeyStore.getCertPath().isEmpty()) {
+                                        pemKeyCertOptions.setCertPath(pemKeyStore.getCertPath());
+                                    } else if (pemKeyStore.getCertContent() != null && !pemKeyStore.getCertContent().isEmpty()) {
+                                        pemKeyCertOptions.setCertValue(io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getCertContent()));
+                                    }
+                                    if (pemKeyStore.getKeyPath() != null && !pemKeyStore.getKeyPath().isEmpty()) {
+                                        pemKeyCertOptions.setKeyPath(pemKeyStore.getKeyPath());
+                                    } else if (pemKeyStore.getKeyContent() != null && !pemKeyStore.getKeyContent().isEmpty()) {
+                                        pemKeyCertOptions.setKeyValue(io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getKeyContent()));
+                                    }
+                                    httpClientOptions.setPemKeyCertOptions(pemKeyCertOptions);
+                                    break;
+                                case PKCS12:
+                                    PKCS12KeyStore pkcs12KeyStore = (PKCS12KeyStore) sslOptions.getKeyStore();
+                                    PfxOptions pfxOptions = new PfxOptions();
+                                    pfxOptions.setPassword(pkcs12KeyStore.getPassword());
+                                    if (pkcs12KeyStore.getPath() != null && !pkcs12KeyStore.getPath().isEmpty()) {
+                                        pfxOptions.setPath(pkcs12KeyStore.getPath());
+                                    } else if (pkcs12KeyStore.getContent() != null && !pkcs12KeyStore.getContent().isEmpty()) {
+                                        pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(pkcs12KeyStore.getContent()));
+                                    }
+                                    httpClientOptions.setPfxKeyCertOptions(pfxOptions);
+                                    break;
+                                case JKS:
+                                    JKSKeyStore jksKeyStore = (JKSKeyStore) sslOptions.getKeyStore();
+                                    JksOptions jksOptions = new JksOptions();
+                                    jksOptions.setPassword(jksKeyStore.getPassword());
+                                    if (jksKeyStore.getPath() != null && !jksKeyStore.getPath().isEmpty()) {
+                                        jksOptions.setPath(jksKeyStore.getPath());
+                                    } else if (jksKeyStore.getContent() != null && !jksKeyStore.getContent().isEmpty()) {
+                                        jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(jksKeyStore.getContent()));
+                                    }
+                                    httpClientOptions.setKeyStoreOptions(jksOptions);
+                                    break;
+                            }
+                        }
                     }
-                } else if (HTTPS_SCHEME.equalsIgnoreCase(hcRequestUri.getScheme())) {
-                    // SSL is not configured but the endpoint scheme is HTTPS so let's enable the SSL on Vert.x HTTP client
-                    // automatically
-                    httpClientOptions.setSsl(true).setTrustAll(true);
                 }
 
                 HttpClient httpClient = vertx.createHttpClient(httpClientOptions);

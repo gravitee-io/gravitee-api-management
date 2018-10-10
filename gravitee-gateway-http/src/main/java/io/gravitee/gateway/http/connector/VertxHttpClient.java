@@ -22,6 +22,12 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
+import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
+import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
+import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
+import io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore;
+import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
 import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
@@ -30,9 +36,7 @@ import io.netty.channel.ConnectTimeoutException;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
-import io.vertx.core.net.PemTrustOptions;
-import io.vertx.core.net.ProxyOptions;
-import io.vertx.core.net.ProxyType;
+import io.vertx.core.net.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -232,27 +236,98 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         }
 
         URI target = URI.create(endpoint.getTarget());
-        // Configure SSL
         HttpClientSslOptions sslOptions = endpoint.getHttpClientSslOptions();
-        if (sslOptions != null && sslOptions.isEnabled()) {
-            httpClientOptions
-                    .setSsl(sslOptions.isEnabled())
-                    .setVerifyHost(sslOptions.isHostnameVerifier())
-                    .setTrustAll(sslOptions.isTrustAll());
-            enableCipherSuite();
 
-            if (sslOptions.getPem() != null && ! sslOptions.getPem().isEmpty()) {
-                httpClientOptions.setPemTrustOptions(
-                        new PemTrustOptions().addCertValue(
-                                io.vertx.core.buffer.Buffer.buffer(sslOptions.getPem())));
+        if (HTTPS_SCHEME.equalsIgnoreCase(target.getScheme())) {
+            // Configure SSL
+            httpClientOptions.setSsl(true);
+
+            if (sslOptions != null) {
+                httpClientOptions
+                        .setVerifyHost(sslOptions.isHostnameVerifier())
+                        .setTrustAll(sslOptions.isTrustAll());
+
+                // Client trust configuration
+                if (!sslOptions.isTrustAll() && sslOptions.getTrustStore() != null) {
+                    switch (sslOptions.getTrustStore().getType()) {
+                        case PEM:
+                            PEMTrustStore pemTrustStore = (PEMTrustStore) sslOptions.getTrustStore();
+                            PemTrustOptions pemTrustOptions = new PemTrustOptions();
+                            if (pemTrustStore.getPath() != null && !pemTrustStore.getPath().isEmpty()) {
+                                pemTrustOptions.addCertPath(pemTrustStore.getPath());
+                            } else {
+                                pemTrustOptions.addCertValue(io.vertx.core.buffer.Buffer.buffer(pemTrustStore.getContent()));
+                            }
+                            this.httpClientOptions.setPemTrustOptions(pemTrustOptions);
+                            break;
+                        case PKCS12:
+                            PKCS12TrustStore pkcs12TrustStore = (PKCS12TrustStore) sslOptions.getTrustStore();
+                            PfxOptions pfxOptions = new PfxOptions();
+                            pfxOptions.setPassword(pkcs12TrustStore.getPassword());
+                            if (pkcs12TrustStore.getPath() != null && !pkcs12TrustStore.getPath().isEmpty()) {
+                                pfxOptions.setPath(pkcs12TrustStore.getPath());
+                            } else {
+                                pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(pkcs12TrustStore.getContent()));
+                            }
+                            this.httpClientOptions.setPfxTrustOptions(pfxOptions);
+                            break;
+                        case JKS:
+                            JKSTrustStore jksTrustStore = (JKSTrustStore) sslOptions.getTrustStore();
+                            JksOptions jksOptions = new JksOptions();
+                            jksOptions.setPassword(jksTrustStore.getPassword());
+                            if (jksTrustStore.getPath() != null && !jksTrustStore.getPath().isEmpty()) {
+                                jksOptions.setPath(jksTrustStore.getPath());
+                            } else {
+                                jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(jksTrustStore.getContent()));
+                            }
+                            this.httpClientOptions.setTrustStoreOptions(jksOptions);
+                            break;
+                    }
+                }
+
+                // Client authentication configuration
+                if (sslOptions.getKeyStore() != null) {
+                    switch (sslOptions.getKeyStore().getType()) {
+                        case PEM:
+                            PEMKeyStore pemKeyStore = (PEMKeyStore) sslOptions.getKeyStore();
+                            PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions();
+                            if (pemKeyStore.getCertPath() != null && !pemKeyStore.getCertPath().isEmpty()) {
+                                pemKeyCertOptions.setCertPath(pemKeyStore.getCertPath());
+                            } else if (pemKeyStore.getCertContent() != null && !pemKeyStore.getCertContent().isEmpty()) {
+                                pemKeyCertOptions.setCertValue(io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getCertContent()));
+                            }
+                            if (pemKeyStore.getKeyPath() != null && !pemKeyStore.getKeyPath().isEmpty()) {
+                                pemKeyCertOptions.setKeyPath(pemKeyStore.getKeyPath());
+                            } else if (pemKeyStore.getKeyContent() != null && !pemKeyStore.getKeyContent().isEmpty()) {
+                                pemKeyCertOptions.setKeyValue(io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getKeyContent()));
+                            }
+                            this.httpClientOptions.setPemKeyCertOptions(pemKeyCertOptions);
+                            break;
+                        case PKCS12:
+                            PKCS12KeyStore pkcs12KeyStore = (PKCS12KeyStore) sslOptions.getKeyStore();
+                            PfxOptions pfxOptions = new PfxOptions();
+                            pfxOptions.setPassword(pkcs12KeyStore.getPassword());
+                            if (pkcs12KeyStore.getPath() != null && !pkcs12KeyStore.getPath().isEmpty()) {
+                                pfxOptions.setPath(pkcs12KeyStore.getPath());
+                            } else if (pkcs12KeyStore.getContent() != null && !pkcs12KeyStore.getContent().isEmpty()) {
+                                pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(pkcs12KeyStore.getContent()));
+                            }
+                            this.httpClientOptions.setPfxKeyCertOptions(pfxOptions);
+                            break;
+                        case JKS:
+                            JKSKeyStore jksKeyStore = (JKSKeyStore) sslOptions.getKeyStore();
+                            JksOptions jksOptions = new JksOptions();
+                            jksOptions.setPassword(jksKeyStore.getPassword());
+                            if (jksKeyStore.getPath() != null && !jksKeyStore.getPath().isEmpty()) {
+                                jksOptions.setPath(jksKeyStore.getPath());
+                            } else if (jksKeyStore.getContent() != null && !jksKeyStore.getContent().isEmpty()) {
+                                jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(jksKeyStore.getContent()));
+                            }
+                            this.httpClientOptions.setKeyStoreOptions(jksOptions);
+                            break;
+                    }
+                }
             }
-        } else if(HTTPS_SCHEME.equalsIgnoreCase(target.getScheme())) {
-            // SSL is not configured but the endpoint scheme is HTTPS so let's enable the SSL on Vert.x HTTP client
-            // automatically
-            httpClientOptions
-                    .setSsl(true)
-                    .setTrustAll(true);
-            enableCipherSuite();
         }
 
         printHttpClientConfiguration(httpClientOptions);
@@ -304,40 +379,5 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                     ", Username='" + httpClientOptions.getProxyOptions().getUsername() + '\'' +
                     '}');
         }
-    }
-
-    private void enableCipherSuite() {
-        // Cipher suite supported as per https://wiki.mozilla.org/Security/Server_Side_TLS
-        // Modern and intermediate compatibility
-        // Correspondence table from https://wiki.mozilla.org/Security/Server_Side_TLS#Cipher_names_correspondence_table
-        httpClientOptions
-                .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256")
-                .addEnabledCipherSuite("TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256")
-                .addEnabledCipherSuite("TLS_DHE_RSA_WITH_AES_128_GCM_SHA256")
-                .addEnabledCipherSuite("TLS_DHE_DSS_WITH_AES_128_GCM_SHA256")
-                .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256")
-                .addEnabledCipherSuite("TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256")
-                .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA")
-                .addEnabledCipherSuite("TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA")
-                .addEnabledCipherSuite("TLS_DHE_RSA_WITH_AES_128_CBC_SHA256")
-                .addEnabledCipherSuite("TLS_DHE_RSA_WITH_AES_128_CBC_SHA")
-                .addEnabledCipherSuite("TLS_DHE_DSS_WITH_AES_128_CBC_SHA256")
-                .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384")
-                .addEnabledCipherSuite("TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384")
-                .addEnabledCipherSuite("TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
-                .addEnabledCipherSuite("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384")
-                .addEnabledCipherSuite("TLS_DHE_DSS_WITH_AES_256_GCM_SHA384")
-                .addEnabledCipherSuite("TLS_DHE_RSA_WITH_AES_256_GCM_SHA384")
-                .addEnabledCipherSuite("TLS_DHE_RSA_WITH_AES_256_CBC_SHA256")
-                .addEnabledCipherSuite("TLS_DHE_DSS_WITH_AES_256_CBC_SHA256")
-                .addEnabledCipherSuite("TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384")
-                .addEnabledCipherSuite("TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384")
-                .addEnabledCipherSuite("TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384")
-                .addEnabledCipherSuite("TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384")
-                .addEnabledCipherSuite("TLS_RSA_WITH_AES_256_GCM_SHA384")
-                .addEnabledCipherSuite("TLS_RSA_WITH_AES_256_CBC_SHA256")
-                .addEnabledCipherSuite("TLS_RSA_WITH_AES_128_CBC_SHA")
-                .addEnabledCipherSuite("TLS_RSA_WITH_AES_256_CBC_SHA")
-                .addEnabledCipherSuite("TLS_RSA_WITH_AES_128_CBC_SHA256");
     }
 }
