@@ -63,6 +63,10 @@ class ApiEndpointController {
       this.creation = true;
     }
 
+    this.endpoint.ssl = this.endpoint.ssl || {trustAll: false};
+    this.endpoint.ssl.trustStore = this.endpoint.ssl.trustStore || {type: ''};
+    this.endpoint.ssl.keyStore = this.endpoint.ssl.keyStore || {type: ''};
+
     // Keep the initial state in case of form reset
     this.initialEndpoint = _.cloneDeep(this.endpoint);
 
@@ -77,9 +81,52 @@ class ApiEndpointController {
         name: 'SOCKS5 tcp proxy',
         value: 'SOCKS5'
       }];
+
+    this.$scope.trustStoreTypes = [
+      {
+        name: 'None',
+        value: ''
+      }, {
+        name: 'Java Trust Store (.jks)',
+        value: 'JKS'
+      }, {
+        name: 'PKCS#12 (.p12) / PFX (.pfx)',
+        value: 'PKCS12'
+      }, {
+        name: 'PEM (.pem)',
+        value: 'PEM'
+      }];
+
+    this.$scope.keyStoreTypes = [
+      {
+        name: 'None',
+        value: ''
+      },
+      {
+        name: 'Java Trust Store (.jks)',
+        value: 'JKS'
+      }, {
+        name: 'PKCS#12 (.p12) / PFX (.pfx)',
+        value: 'PKCS12'
+      }, {
+        name: 'PEM (.pem)',
+        value: 'PEM'
+      }];
   }
 
   update(api) {
+    if (this.endpoint.ssl.trustAll) {
+      delete this.endpoint.ssl.trustStore;
+    }
+
+    if (this.endpoint.ssl.trustStore && (!this.endpoint.ssl.trustStore.type || this.endpoint.ssl.trustStore.type === '')) {
+      delete this.endpoint.ssl.trustStore;
+    }
+
+    if (this.endpoint.ssl.keyStore && (!this.endpoint.ssl.keyStore.type || this.endpoint.ssl.keyStore.type === '')) {
+      delete this.endpoint.ssl.keyStore;
+    }
+
     let group: any = _.find(this.api.proxy.groups, { 'name': this.$stateParams.groupName});
 
     if (!_.includes(group.endpoints, this.endpoint)) {
@@ -110,18 +157,6 @@ class ApiEndpointController {
     let group: any = _.find(this.api.proxy.groups, { 'name': this.$stateParams.groupName});
     group.endpoints = _.cloneDeep(this.initialEndpoints);
     this.$state.go('management.apis.detail.proxy.endpoints');
-  }
-
-  toggleTrustAll() {
-    if (this.endpoint.ssl.trustAll === true) {
-      this.endpoint.ssl.enabled = true;
-    }
-  }
-
-  toggleSSL() {
-    if (!this.endpoint.ssl.enabled) {
-      this.endpoint.ssl.trustAll = false;
-    }
   }
 }
 

@@ -4,6 +4,11 @@
     font-size: 2em;
     margin: 16px 0 4px;
   }
+
+  .md-subheader {
+    margin: 12px 0;
+  }
+
   .gv-forms-header {
     a, div {
       padding: 0 0 4px 12px;
@@ -64,6 +69,7 @@
     padding: 16px;
 
     .hint{
+      position: initial;
       bottom: -18px !important;
     }
   }

@@ -17,17 +17,18 @@
 -->
 <form name="formEndpoint" ng-submit="endpointCtrl.update(endpointCtrl.api)" novalidate autocomplete="false">
 
-  <section>
-    <md-button class="md-button" aria-label="Back to endpoints configuration" ng-click="endpointCtrl.backToEndpointsConfiguration()">
-      <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-      <span style="color: rgba(0, 0, 0, 0.54);">Back to endpoints configuration</span>
-    </md-button>
-  </section>
+  <div class="gv-forms" layout="column">
+    <div layout="row" layout-align="start end" class="gv-forms-header">
+      <h1>Endpoint configuration</h1>
+      <a ng-click="endpointCtrl.backToEndpointsConfiguration()">Back to endpoints configuration</a>
+    </div>
 
-  <br />
+    <div class="gv-form">
+      <h2></h2>
+      <div class="gv-form-content" layout="column">
 
   <section>
-    <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
+    <md-subheader>General</md-subheader>
     <div layout="column" layout-wrap layout-gt-sm="row">
       <md-input-container flex="30">
         <label>Name</label>
@@ -54,7 +55,7 @@
   <br />
 
   <section ng-if="endpointCtrl.creation === false">
-    <md-subheader class="md-primary" style="background-color: #fafafa">
+    <md-subheader>
       Health-check
       <ng-md-icon icon="settings" style="fill: rgba(0, 0, 0, 0.54);" ui-sref="management.apis.detail.proxy.endpointhc({groupName: groupName, endpointName: endpointCtrl.endpoint.name})"></ng-md-icon>
     </md-subheader>
@@ -79,7 +80,7 @@
   <br />
 
   <section>
-    <md-subheader class="md-primary" style="background-color: #fafafa">HTTP Configuration</md-subheader>
+    <md-subheader>HTTP Configuration</md-subheader>
     <div layout="column" layout-wrap layout-gt-sm="row">
       <div flex-xs flex="50">
         <md-input-container flex-xs flex="50">
@@ -172,7 +173,7 @@
   <br />
 
   <section>
-    <md-subheader class="md-primary" style="background-color: #fafafa">
+    <md-subheader>
       <md-checkbox
         ng-model="endpointCtrl.endpoint.proxy.enabled"
         aria-label="Enable proxy" flex>
@@ -233,40 +234,207 @@
   <br />
 
   <section>
-    <md-subheader class="md-primary" style="background-color: #fafafa">SSL Support</md-subheader>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <div flex-xs flex="50">
-        <div layout-xs="column" flex-xs="100">
-          <md-checkbox
-            ng-model="endpointCtrl.endpoint.ssl.enabled"
-            ng-change="endpointCtrl.toggleSSL()"
-            aria-label="Enable SSL"
-            class="md-align-top-left" flex>
-            Enable client SSL
-          </md-checkbox>
-        </div>
-      </div>
+    <md-subheader>SSL / TLS</md-subheader>
+    <div layout="column" layout-wrap>
       <div flex-xs flex="50">
         <div layout-xs="column" flex-xs="100">
           <md-checkbox
             ng-model="endpointCtrl.endpoint.ssl.trustAll"
-            ng-change="endpointCtrl.toggleTrustAll()"
             aria-label="Enable trust all"
             class="md-warn md-align-top-left" flex>
-            Enable trust all<br/>
+            Trust all server certificates<br/>
                 <span class="ipsum">
-                  Use this with caution (if over Internet). The gateway will trust all server certificates. The connection will still be
+                  Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be
                   encrypted but this mode is vulnerable to 'man in the middle' attacks.
                 </span>
           </md-checkbox>
         </div>
       </div>
+      <div flex-xs flex="50" ng-if="!endpointCtrl.endpoint.ssl.trustAll">
+        <md-input-container class="md-block" flex-gt-sm>
+          <label>Type</label>
+          <md-select ng-model="endpointCtrl.endpoint.ssl.trustStore.type"
+                     ng-required="!endpointCtrl.endpoint.ssl.trustAll"
+                     ng-disabled="endpointCtrl.endpoint.ssl.trustAll">
+            <md-option ng-repeat="trustStore in trustStoreTypes" value="{{trustStore.value}}">
+              {{trustStore.name}}
+            </md-option>
+          </md-select>
+          <div class="hint">Type of the trust store</div>
+        </md-input-container>
+      </div>
+      <div flex ng-if="!endpointCtrl.endpoint.ssl.trustAll && endpointCtrl.endpoint.ssl.trustStore.type === 'JKS'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to JKS file</label>
+            <input ng-model="endpointCtrl.endpoint.ssl.trustStore.path" type="text" name="truststore-jks-path"
+                   ng-required="!endpointCtrl.endpoint.ssl.trustStore.content">
+            <div class="hint">Path to the JKS file</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>JKS content</label>
+            <textarea ng-model="endpointCtrl.endpoint.ssl.trustStore.content" name="truststore-jks-content" rows="5"
+                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.trustStore.path"></textarea>
+            <div class="hint">JKS binary content</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Password</label>
+            <input ng-model="endpointCtrl.endpoint.ssl.trustStore.password" type="password" name="truststore-jks-password" required>
+            <div class="hint">Trust store password</div>
+          </md-input-container>
+        </div>
+      </div>
+      <div flex ng-if="!endpointCtrl.endpoint.ssl.trustAll && endpointCtrl.endpoint.ssl.trustStore.type === 'PKCS12'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to PKCS#12 file</label>
+            <input ng-model="endpointCtrl.endpoint.ssl.trustStore.path" type="text" name="truststore-pkcs12-path"
+                   ng-required="!endpointCtrl.endpoint.ssl.trustStore.content">
+            <div class="hint">Path to the PKCS#12 file (.p12 or .pfx)</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>PKCS#12 content</label>
+            <textarea ng-model="endpointCtrl.endpoint.ssl.trustStore.content" name="truststore-pkcs12-content" rows="5"
+                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.trustStore.path"></textarea>
+            <div class="hint">PKCS#12 binary content</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Password</label>
+            <input ng-model="endpointCtrl.endpoint.ssl.trustStore.password" type="password" name="truststore-pkcs12-password" required>
+            <div class="hint">Trust store password</div>
+          </md-input-container>
+        </div>
+      </div>
+      <div flex ng-if="!endpointCtrl.endpoint.ssl.trustAll && endpointCtrl.endpoint.ssl.trustStore.type === 'PEM'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to cert file</label>
+            <input ng-model="endpointCtrl.endpoint.ssl.trustStore.path" type="text" name="truststore-pem-path"
+                   ng-required="!endpointCtrl.endpoint.ssl.trustStore.content">
+            <div class="hint">Path to the cert file (.pem)</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Certificate</label>
+            <textarea ng-model="endpointCtrl.endpoint.ssl.trustStore.content" name="truststore-pem-content" rows="5"
+                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.trustStore.path"></textarea>
+            <div class="hint">Certificate</div>
+          </md-input-container>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <br />
+
+  <section>
+    <md-subheader>
+      SSL - Client Authentication
+    </md-subheader>
+    <div layout="column" layout-wrap>
       <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
-          <label>PEM certificate</label>
-          <input ng-model="endpointCtrl.endpoint.ssl.pem">
-          <div class="hint">Use a client certificate if server requires it.</div>
+          <label>Type</label>
+          <md-select ng-model="endpointCtrl.endpoint.ssl.keyStore.type">
+            <md-option ng-repeat="keyStore in keyStoreTypes" value="{{keyStore.value}}">
+              {{keyStore.name}}
+            </md-option>
+          </md-select>
+          <div class="hint">Type of the key store</div>
         </md-input-container>
+      </div>
+      <div flex ng-if="endpointCtrl.endpoint.ssl.keyStore.type === 'JKS'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to JKS file</label>
+            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.path" type="text" name="keystore-jks-path"
+                   ng-required="!endpointCtrl.endpoint.ssl.keyStore.content">
+            <div class="hint">Path to JKS file</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>JKS content</label>
+            <textarea ng-model="endpointCtrl.endpoint.ssl.keyStore.content" name="keystore-jks-content" rows="5"
+                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.keyStore.path"></textarea>
+            <div class="hint">JKS binary content</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Password</label>
+            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.password" type="password" name="keystore-jks-password" required>
+            <div class="hint">Key store password</div>
+          </md-input-container>
+        </div>
+      </div>
+      <div flex ng-if="endpointCtrl.endpoint.ssl.keyStore.type === 'PKCS12'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to PKCS#12 file</label>
+            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.path" type="text" name="keystore-pkcs12-path"
+                   ng-required="!endpointCtrl.endpoint.ssl.keyStore.content">
+            <div class="hint">Path to the PKCS#12 file (.p12 or .pfx)</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>PKCS#12 content</label>
+            <textarea ng-model="endpointCtrl.endpoint.ssl.keyStore.content" name="keystore-pkcs12-content" rows="5"
+                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.keyStore.path"></textarea>
+            <div class="hint">PKCS#12 binary content</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Password</label>
+            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.password" type="password" name="keystore-pkcs12-password" required>
+            <div class="hint">Key store password</div>
+          </md-input-container>
+        </div>
+      </div>
+      <div flex ng-if="endpointCtrl.endpoint.ssl.keyStore.type === 'PEM'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to cert file</label>
+            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.certPath" type="text" name="keystore-pem-cert-path"
+                   ng-required="!endpointCtrl.endpoint.ssl.keyStore.certContent">
+            <div class="hint">Path to the cert file (.pem)</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Certificate</label>
+            <textarea ng-model="endpointCtrl.endpoint.ssl.keyStore.certContent" name="keystore-pem-cert-content" rows="5"
+                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.keyStore.certPath"></textarea>
+            <div class="hint">Certificate</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to private key file</label>
+            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.keyPath" type="text" name="keystore-pem-key-path"
+                   ng-required="!endpointCtrl.endpoint.ssl.keyStore.keyContent">
+            <div class="hint">Path to the private key file (.pem)</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Private Key</label>
+            <textarea ng-model="endpointCtrl.endpoint.ssl.keyStore.keyContent" name="keystore-pem-key-content" rows="5"
+                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.keyStore.keyPath"></textarea>
+            <div class="hint">Private Key</div>
+          </md-input-container>
+        </div>
       </div>
     </div>
   </section>
@@ -274,11 +442,14 @@
   <br />
 
   <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button class="md-raised" type="submit" ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine">
+    <md-button class="md-raised md-primary" type="submit" ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine">
       Save
     </md-button>
-    <md-button class="md-raised md-primary" type="button" ng-click="endpointCtrl.reset()" ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine">
+    <md-button class="md-raised" type="button" ng-click="endpointCtrl.reset()" ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine">
       Reset
     </md-button>
+  </div>
+      </div>
+    </div>
   </div>
 </form>

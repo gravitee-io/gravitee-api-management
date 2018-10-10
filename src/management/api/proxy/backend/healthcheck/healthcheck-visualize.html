@@ -15,6 +15,14 @@
     limitations under the License.
 
 -->
+<div class="gv-forms gv-forms-fluid" layout="column">
+  <div layout="row" layout-align="start end" class="gv-forms-header">
+    <h1>Health-check</h1>
+    <a permission permission-only="'api-health-u'" ui-sref="management.apis.detail.proxy.healthcheck.configure">Configure Health-check</a>
+  </div>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content" layout="column">
 <div layout="row" layout-align="end center">
   <md-button class="md-primary" permission permission-only="'api-health-r'" ng-click="healthCheckCtrl.updateChart()">
     <ng-md-icon icon="refresh" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
@@ -251,3 +259,6 @@
     </div>
   </div>
 </md-content>
+</div>
+  </div>
+</div>
