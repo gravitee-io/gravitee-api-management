@@ -56,7 +56,7 @@
 }
 
 .gv-sub-content {
-  //background-color: rgba(45, 50, 62, .03);
+  overflow: auto;
   height: calc(100vh - 54px);
   padding: 0 32px;
   @media screen and (max-width: 1000px) {
