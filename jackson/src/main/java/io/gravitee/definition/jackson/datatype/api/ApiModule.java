@@ -18,10 +18,18 @@ package io.gravitee.definition.jackson.datatype.api;
 import io.gravitee.definition.jackson.datatype.GraviteeModule;
 import io.gravitee.definition.jackson.datatype.api.deser.*;
 import io.gravitee.definition.jackson.datatype.api.deser.endpoint.HttpEndpointDeserializer;
+import io.gravitee.definition.jackson.datatype.api.deser.ssl.*;
 import io.gravitee.definition.jackson.datatype.api.ser.*;
 import io.gravitee.definition.jackson.datatype.api.ser.endpoint.HttpEndpointSerializer;
+import io.gravitee.definition.jackson.datatype.api.ser.ssl.*;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
+import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
+import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
+import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
+import io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore;
+import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,6 +61,12 @@ public class ApiModule extends GraviteeModule {
         addDeserializer(Cors.class, new CorsDeserializer(Cors.class));
         addDeserializer(EndpointGroup.class, new EndpointGroupDeserializer(EndpointGroup.class));
         addDeserializer(Logging.class, new LoggingDeserializer(Logging.class));
+        addDeserializer(JKSKeyStore.class, new JKSKeyStoreDeserializer(JKSKeyStore.class));
+        addDeserializer(PEMKeyStore.class, new PEMKeyStoreDeserializer(PEMKeyStore.class));
+        addDeserializer(PKCS12KeyStore.class, new PKCS12KeyStoreDeserializer(PKCS12KeyStore.class));
+        addDeserializer(PEMTrustStore.class, new PEMTrustStoreDeserializer(PEMTrustStore.class));
+        addDeserializer(JKSTrustStore.class, new JKSTrustStoreDeserializer(JKSTrustStore.class));
+        addDeserializer(PKCS12TrustStore.class, new PKCS12TrustStoreDeserializer(PKCS12TrustStore.class));
 
         // then serializers:
         addSerializer(Api.class, new ApiSerializer(Api.class));
@@ -72,5 +86,11 @@ public class ApiModule extends GraviteeModule {
         addSerializer(Cors.class, new CorsSerializer(Cors.class));
         addSerializer(EndpointGroup.class, new EndpointGroupSerializer(EndpointGroup.class));
         addSerializer(Logging.class, new LoggingSerializer(Logging.class));
+        addSerializer(JKSKeyStore.class, new JKSKeyStoreSerializer(JKSKeyStore.class));
+        addSerializer(PEMKeyStore.class, new PEMKeyStoreSerializer(PEMKeyStore.class));
+        addSerializer(PKCS12KeyStore.class, new PKCS12KeyStoreSerializer(PKCS12KeyStore.class));
+        addSerializer(JKSTrustStore.class, new JKSTrustStoreSerializer(JKSTrustStore.class));
+        addSerializer(PEMTrustStore.class, new PEMTrustStoreSerializer(PEMTrustStore.class));
+        addSerializer(PKCS12TrustStore.class, new PKCS12TrustStoreSerializer(PKCS12TrustStore.class));
     }
 }

@@ -22,7 +22,6 @@ import io.gravitee.definition.model.HttpClientOptions;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 
 import java.io.IOException;
-import java.util.function.Consumer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

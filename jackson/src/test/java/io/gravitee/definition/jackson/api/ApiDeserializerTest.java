@@ -20,6 +20,10 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.ssl.KeyStoreType;
+import io.gravitee.definition.model.ssl.TrustStoreType;
+import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
+import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -266,9 +270,17 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_withclientoptions() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
-        Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
-        Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientSslOptions());
+        HttpEndpoint endpoint = (HttpEndpoint) api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
+        Assert.assertNotNull(endpoint.getHttpClientOptions());
+        Assert.assertNotNull(endpoint.getHttpClientSslOptions());
+        Assert.assertNotNull(endpoint.getHttpClientSslOptions().getTrustStore());
+
+        Assert.assertEquals(TrustStoreType.PEM, endpoint.getHttpClientSslOptions().getTrustStore().getType());
+        Assert.assertEquals(PEMTrustStore.class, endpoint.getHttpClientSslOptions().getTrustStore().getClass());
+
+        PEMTrustStore trustStore = (PEMTrustStore) endpoint.getHttpClientSslOptions().getTrustStore();
+        Assert.assertNotNull(trustStore.getContent());
+        Assert.assertNull(trustStore.getPath());
     }
 
     @Test
@@ -463,5 +475,41 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertNotNull(logging);
         Assert.assertEquals(LoggingMode.CLIENT_PROXY, logging.getMode());
         Assert.assertEquals("my condition", logging.getCondition());
+    }
+
+    @Test
+    public void definition_withclientoptions_truststore() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-truststore.json", Api.class);
+
+        HttpEndpoint endpoint = (HttpEndpoint) api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
+        Assert.assertNotNull(endpoint.getHttpClientOptions());
+        Assert.assertNotNull(endpoint.getHttpClientSslOptions());
+        Assert.assertNotNull(endpoint.getHttpClientSslOptions().getTrustStore());
+
+        Assert.assertEquals(TrustStoreType.PEM, endpoint.getHttpClientSslOptions().getTrustStore().getType());
+        Assert.assertEquals(PEMTrustStore.class, endpoint.getHttpClientSslOptions().getTrustStore().getClass());
+
+        PEMTrustStore trustStore = (PEMTrustStore) endpoint.getHttpClientSslOptions().getTrustStore();
+        Assert.assertNotNull(trustStore.getContent());
+        Assert.assertNull(trustStore.getPath());
+    }
+
+    @Test
+    public void definition_withclientoptions_keystore() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-keystore.json", Api.class);
+
+        HttpEndpoint endpoint = (HttpEndpoint) api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
+        Assert.assertNotNull(endpoint.getHttpClientOptions());
+        Assert.assertNotNull(endpoint.getHttpClientSslOptions());
+        Assert.assertNotNull(endpoint.getHttpClientSslOptions().getKeyStore());
+
+        Assert.assertEquals(KeyStoreType.PEM, endpoint.getHttpClientSslOptions().getKeyStore().getType());
+        Assert.assertEquals(PEMKeyStore.class, endpoint.getHttpClientSslOptions().getKeyStore().getClass());
+
+        PEMKeyStore keyStore = (PEMKeyStore) endpoint.getHttpClientSslOptions().getKeyStore();
+        Assert.assertNotNull(keyStore.getCertContent());
+        Assert.assertNull(keyStore.getCertPath());
+        Assert.assertNotNull(keyStore.getKeyContent());
+        Assert.assertNull(keyStore.getKeyPath());
     }
 }

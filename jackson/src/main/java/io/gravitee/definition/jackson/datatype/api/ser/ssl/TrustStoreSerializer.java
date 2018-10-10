@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.jackson.datatype.api.ser;
+package io.gravitee.definition.jackson.datatype.api.ser.ssl;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
-import io.gravitee.definition.model.HttpClientSslOptions;
+import io.gravitee.definition.model.ssl.TrustStore;
 
 import java.io.IOException;
 
@@ -26,26 +26,26 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpClientSslOptionsSerializer extends StdScalarSerializer<HttpClientSslOptions> {
+public abstract class TrustStoreSerializer<T extends TrustStore> extends StdScalarSerializer<T> {
 
-    public HttpClientSslOptionsSerializer(Class<HttpClientSslOptions> t) {
+    public TrustStoreSerializer(Class<T> t) {
         super(t);
     }
 
     @Override
-    public void serialize(HttpClientSslOptions httpClientSslOptions, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(T trustStore, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
-        jgen.writeBooleanField("trustAll", httpClientSslOptions.isTrustAll());
-        jgen.writeBooleanField("hostnameVerifier", httpClientSslOptions.isHostnameVerifier());
-
-        if (httpClientSslOptions.getTrustStore() != null) {
-            jgen.writeObjectField("trustStore", httpClientSslOptions.getTrustStore());
-        }
-
-        if (httpClientSslOptions.getKeyStore() != null) {
-            jgen.writeObjectField("keyStore", httpClientSslOptions.getKeyStore());
-        }
-
+        doSerialize(trustStore, jgen, provider);
         jgen.writeEndObject();
+    }
+
+    protected void doSerialize(T trustStore, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+        jgen.writeStringField("type", trustStore.getType().name());
+    }
+
+    protected void writeStringField(JsonGenerator jgen, String field, String value) throws IOException {
+        if (value != null && !value.isEmpty()) {
+            jgen.writeStringField(field, value);
+        }
     }
 }

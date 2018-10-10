@@ -15,27 +15,22 @@
  */
 package io.gravitee.definition.model;
 
+import io.gravitee.definition.model.ssl.KeyStore;
+import io.gravitee.definition.model.ssl.TrustStore;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HttpClientSslOptions {
 
-    private boolean enabled;
-
     private boolean trustAll;
 
     private boolean hostnameVerifier;
 
-    private String pem;
+    private TrustStore trustStore;
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+    private KeyStore keyStore;
 
     public boolean isHostnameVerifier() {
         return hostnameVerifier;
@@ -45,19 +40,27 @@ public class HttpClientSslOptions {
         this.hostnameVerifier = hostnameVerifier;
     }
 
-    public String getPem() {
-        return pem;
-    }
-
-    public void setPem(String pem) {
-        this.pem = pem;
-    }
-
     public boolean isTrustAll() {
         return trustAll;
     }
 
     public void setTrustAll(boolean trustAll) {
         this.trustAll = trustAll;
+    }
+
+    public TrustStore getTrustStore() {
+        return trustStore;
+    }
+
+    public void setTrustStore(TrustStore trustStore) {
+        this.trustStore = trustStore;
+    }
+
+    public KeyStore getKeyStore() {
+        return keyStore;
+    }
+
+    public void setKeyStore(KeyStore keyStore) {
+        this.keyStore = keyStore;
     }
 }

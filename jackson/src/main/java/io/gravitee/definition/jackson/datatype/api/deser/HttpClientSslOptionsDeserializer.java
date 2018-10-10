@@ -19,6 +19,16 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.HttpClientSslOptions;
+import io.gravitee.definition.model.ssl.KeyStore;
+import io.gravitee.definition.model.ssl.KeyStoreType;
+import io.gravitee.definition.model.ssl.TrustStore;
+import io.gravitee.definition.model.ssl.TrustStoreType;
+import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
+import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
+import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
+import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
+import io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore;
+import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
 
 import java.io.IOException;
 
@@ -39,12 +49,6 @@ public class HttpClientSslOptionsDeserializer extends AbstractStdScalarDeseriali
 
         HttpClientSslOptions httpClientSslOptions = new HttpClientSslOptions();
 
-        JsonNode enabledNode = node.get("enabled");
-        if (enabledNode != null) {
-            boolean enabled = enabledNode.asBoolean(false);
-            httpClientSslOptions.setEnabled(enabled);
-        }
-
         JsonNode trustAllNode = node.get("trustAll");
         if (trustAllNode != null) {
             boolean trustAll = trustAllNode.asBoolean(false);
@@ -57,9 +61,54 @@ public class HttpClientSslOptionsDeserializer extends AbstractStdScalarDeseriali
             httpClientSslOptions.setHostnameVerifier(hostnameVerifier);
         }
 
+        // Ensure backward compatibility with Gravitee.io < 1.20
         String sPem = readStringValue(node, "pem");
         if (sPem != null) {
-            httpClientSslOptions.setPem(sPem);
+            PEMTrustStore trustStore = new PEMTrustStore();
+            trustStore.setContent(sPem);
+            httpClientSslOptions.setTrustStore(trustStore);
+        }
+
+        JsonNode trustStoreNode = node.get("trustStore");
+        if (trustStoreNode != null) {
+            TrustStoreType type = TrustStoreType.valueOf(
+                    trustStoreNode.path("type").asText().toUpperCase());
+
+            TrustStore trustStore = null;
+            switch (type) {
+                case JKS:
+                    trustStore = trustStoreNode.traverse(jp.getCodec()).readValueAs(JKSTrustStore.class);
+                    break;
+                case PEM:
+                    trustStore = trustStoreNode.traverse(jp.getCodec()).readValueAs(PEMTrustStore.class);
+                    break;
+                case PKCS12:
+                    trustStore = trustStoreNode.traverse(jp.getCodec()).readValueAs(PKCS12TrustStore.class);
+                    break;
+            }
+
+            httpClientSslOptions.setTrustStore(trustStore);
+        }
+
+        JsonNode keyStoreNode = node.get("keyStore");
+        if (keyStoreNode != null) {
+            KeyStoreType type = KeyStoreType.valueOf(
+                    keyStoreNode.path("type").asText().toUpperCase());
+
+            KeyStore keyStore = null;
+            switch (type) {
+                case JKS:
+                    keyStore = keyStoreNode.traverse(jp.getCodec()).readValueAs(JKSKeyStore.class);
+                    break;
+                case PEM:
+                    keyStore = keyStoreNode.traverse(jp.getCodec()).readValueAs(PEMKeyStore.class);
+                    break;
+                case PKCS12:
+                    keyStore = keyStoreNode.traverse(jp.getCodec()).readValueAs(PKCS12KeyStore.class);
+                    break;
+            }
+
+            httpClientSslOptions.setKeyStore(keyStore);
         }
 
         return httpClientSslOptions;
