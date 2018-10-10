@@ -38,7 +38,8 @@ class ApiHealthCheckConfigureController {
 
     if (this.$stateParams.endpointName !== undefined) {
       // Health-check for specific endpoint
-      this.endpoint = _.find(this.api.proxy.endpoints, { 'name': $stateParams.endpointName });
+      let group = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
+      this.endpoint = _.find(group.endpoints, { 'name': $stateParams.endpointName });
       this.healthcheck = this.endpoint.healthcheck;
     } else {
       this.healthcheck = this.api.services && this.api.services['health-check'];
@@ -143,7 +144,8 @@ class ApiHealthCheckConfigureController {
   }
 
   backToEndpointConfiguration() {
-    this.$state.go('management.apis.detail.proxy.endpoint', {endpointName: this.endpoint.name});
+    this.$state.go('management.apis.detail.proxy.endpoint',
+      {groupName: this.$stateParams.groupName, endpointName: this.$stateParams.endpointName});
   }
 
   backToHealthcheck() {

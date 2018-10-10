@@ -136,7 +136,7 @@ function apisProxyRouterConfig($stateProvider) {
       }
     })
     .state('management.apis.detail.proxy.endpointhc', {
-      url: '/endpoints/:endpointName/healthcheck',
+      url: '/groups/:groupName/endpoints/:endpointName/healthcheck',
       template: require('./backend/healthcheck/healthcheck-configure.html'),
       controller: 'ApiHealthCheckConfigureController',
       controllerAs: 'healthCheckCtrl',

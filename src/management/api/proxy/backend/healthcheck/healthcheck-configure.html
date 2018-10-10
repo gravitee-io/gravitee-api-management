@@ -52,7 +52,7 @@
 
   <br>
 
-  <div ng-show="healthCheckCtrl.healthcheck.inherit === false && healthCheckCtrl.healthcheck.enabled === true">
+  <div ng-show="!healthCheckCtrl.healthcheck.inherit && healthCheckCtrl.healthcheck.enabled === true">
     <md-subheader class="md-primary" style="background-color: #fafafa">Trigger</md-subheader>
     <md-content>
         <form name="formApiHealthCheckTrigger" novalidate layout-gt-sm="row" flex="100">

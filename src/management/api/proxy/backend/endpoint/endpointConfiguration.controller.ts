@@ -38,6 +38,8 @@ class ApiEndpointController {
     this.api = this.$scope.$parent.apiCtrl.api;
     this.tenants = resolvedTenants.data;
 
+    this.$scope.groupName = $stateParams.groupName;
+
     this.group = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
     this.endpoint = _.find(this.group.endpoints, { 'name': $stateParams.endpointName});
     this.initialEndpoints = _.cloneDeep(this.group.endpoints);
