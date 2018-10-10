@@ -72,7 +72,7 @@ class LoginController {
     this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : user});
 
     let route = this.RouterService.getLastRoute();
-    if (route.from) {
+    if (route.from && route.from.name !== '' && route.from.name !== 'logout') {
       this.$state.go(route.from.name, route.fromParams);
     } else {
       this.$state.go('portal.home');
