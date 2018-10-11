@@ -63,6 +63,8 @@ public class Log {
 
     private String gateway;
 
+    private String host;
+
     public String getId() {
         return id;
     }
@@ -221,6 +223,14 @@ public class Log {
 
     public void setGateway(String gateway) {
         this.gateway = gateway;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 
     @Override
