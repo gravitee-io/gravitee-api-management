@@ -30,4 +30,6 @@ public interface StreamableProcessor<T> extends Processor<T>, ReadWriteStream<Bu
     StreamableProcessor<T> errorHandler(Handler<ProcessorFailure> handler);
 
     StreamableProcessor<T> streamErrorHandler(Handler<ProcessorFailure> handler);
+
+    StreamableProcessor<T> exitHandler(Handler<T> handler);
 }

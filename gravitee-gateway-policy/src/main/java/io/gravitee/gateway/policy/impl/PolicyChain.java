@@ -50,6 +50,7 @@ public abstract class PolicyChain extends BufferedReadWriteStream
     protected Handler<PolicyResult> resultHandler;
     protected Handler<ProcessorFailure> errorHandler;
     protected Handler<ProcessorFailure> streamErrorHandler;
+    protected Handler<PolicyResult> exitHandler;
     protected final List<Policy> policies;
     protected final Iterator<Policy> policyIterator;
     protected final ExecutionContext executionContext;
@@ -119,8 +120,9 @@ public abstract class PolicyChain extends BufferedReadWriteStream
     }
 
     @Override
-    public Processor<PolicyResult> exitHandler(Handler<PolicyResult> handler) {
-        return null;
+    public StreamableProcessor<PolicyResult> exitHandler(Handler<PolicyResult> handler) {
+        this.exitHandler = handler;
+        return this;
     }
 
     protected abstract void execute(Policy policy, Object ... args) throws PolicyChainException;
