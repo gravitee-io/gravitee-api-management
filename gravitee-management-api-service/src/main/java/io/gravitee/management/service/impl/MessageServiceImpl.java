@@ -180,7 +180,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
     @Override
     public Set<String> getRecipientsId(Api api, MessageEntity message) {
-        if (MessageChannel.HTTP.equals(message.getChannel())) {
+        if (message != null && MessageChannel.HTTP.equals(message.getChannel())) {
             return Collections.singleton(message.getRecipient().getUrl());
         }
         assertRecipientsNotEmpty(message);
