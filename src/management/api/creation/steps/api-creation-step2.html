@@ -36,7 +36,7 @@
           <md-button ng-click="$ctrl.parent.moveToPreviousStep()">PREVIOUS</md-button>
         </div>
         <div flex layout="row" layout-align="end top">
-          <md-button type="submit" ng-click="$ctrl.parent.selectEndpoint(); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[1].data)" ng-disabled="apiGatewayForm.$invalid" class="md-primary md-raised">NEXT</md-button>
+          <md-button type="submit" ng-click="$ctrl.parent.selectEndpoint(); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[1].data)" ng-disabled="apiGatewayForm.$invalid">NEXT</md-button>
         </div>
       </md-step-actions>
     </md-content>

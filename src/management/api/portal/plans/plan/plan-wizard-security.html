@@ -19,7 +19,7 @@
   <md-step-body>
     <md-content layout-padding class="api-creation-general-content api-creation-content">
       <section>
-        <md-subheader class="md-primary" style="background-color: #fafafa">Authentication</md-subheader>
+        <md-subheader>Authentication</md-subheader>
         <form name="$ctrl.planGeneralForm">
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex-gt-sm>
@@ -37,7 +37,7 @@
       <br />
 
       <section ng-if="$ctrl.securitySchema">
-        <md-subheader class="md-primary" style="background-color: #fafafa">Configuration</md-subheader>
+        <md-subheader>Configuration</md-subheader>
         <form name="$ctrl.securityConfigurationForm" sf-schema="$ctrl.securitySchema" sf-form="['*']"
               sf-model="$ctrl.parent.plan.securityDefinition"
               sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }">
@@ -49,14 +49,11 @@
       <md-step-actions layout="row">
         <div flex>
           <md-button ng-click="$ctrl.parent.moveToPreviousStep()">PREVIOUS</md-button>
-          <md-button class="md-raised" ui-sref="management.apis.detail.portal.plans.list">
-            <span style="color: rgba(0, 0, 0, 0.54);">CANCEL</span>
-          </md-button>
+          <md-button class="md-raised md-warn" ui-sref="management.apis.detail.portal.plans.list">CANCEL</md-button>
         </div>
         <div flex layout="row" layout-align="end top">
           <md-button ng-disabled="$ctrl.planGeneralForm.$invalid || $ctrl.securityConfigurationForm.$invalid"
-                     ng-click="$ctrl.gotoNextStep()"
-                     class="md-primary md-raised">NEXT</md-button>
+                     ng-click="$ctrl.gotoNextStep()">NEXT</md-button>
         </div>
       </md-step-actions>
     </md-content>

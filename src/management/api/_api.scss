@@ -425,7 +425,9 @@ md-switch.md-default-theme .md-bar, md-switch .md-bar {
   padding-top: 14px;
 }
 .gravitee-qm-metrics-passed {
-  display: none;
+  font-style: italic ;
+  color: #cccccc;
+  text-decoration: line-through;
 }
 .gravitee-qm-metrics-failed {
 }

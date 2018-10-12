@@ -15,43 +15,43 @@
     limitations under the License.
 
 -->
-<div class="gv-forms" layout="column">
+<div class="gv-forms gv-forms-fluid" layout="column">
   <h1>Top APIs</h1>
   <div class="gv-form">
     <h2></h2>
     <div class="gv-form-content" layout="column">
-<md-table-container>
-  <table md-table class="gv-table-dense">
-    <thead md-head>
-    <tr md-row>
-      <th md-column width="1%" nowrap>Name</th>
-      <th md-column width="1%" nowrap>Version</th>
-      <th md-column>Description</th>
-      <th></th>
-      <th></th>
-    </tr>
-    </thead>
-    <tbody md-body>
-    <tr md-row ng-repeat="topApi in $ctrl.topApis | orderBy:'order'">
-      <td md-cell width="1%" nowrap>
-        <img height="40" ng-src="{{::topApi.picture_url}}"/>
-        {{::topApi.name}}
-      </td>
-      <td md-cell width="1%" nowrap>{{::topApi.version}}</td>
-      <td md-cell>{{::topApi.description}}</td>
-      <td md-cell layout="row" layout-align="center center">
-        <div permission permission-only="'portal-top_apis-u'">
-          <ng-md-icon ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(topApi.order)"></ng-md-icon>
-          <ng-md-icon ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(topApi.order)"></ng-md-icon>
-        </div>
-      </td>
-      <td md-cell>
-        <ng-md-icon permission permission-only="'portal-top_apis-d'" icon="delete" ng-click="$ctrl.delete(topApi)"></ng-md-icon>
-      </td>
-    </tr>
-    </tbody>
-  </table>
-</md-table-container>
+      <md-table-container>
+        <table md-table class="gv-table-dense">
+          <thead md-head>
+          <tr md-row>
+            <th md-column width="1%" nowrap>Name</th>
+            <th md-column width="1%" nowrap>Version</th>
+            <th md-column>Description</th>
+            <th md-column width="96px" nowrap></th>
+            <th md-column width="48px" nowrap></th>
+          </tr>
+          </thead>
+          <tbody md-body>
+          <tr md-row ng-repeat="topApi in $ctrl.topApis | orderBy:'order'">
+            <td md-cell width="1%" nowrap>
+              <img height="40" ng-src="{{::topApi.picture_url}}"/>
+              {{::topApi.name}}
+            </td>
+            <td md-cell width="1%" nowrap>{{::topApi.version}}</td>
+            <td md-cell>{{::topApi.description}}</td>
+            <td md-cell width="96px" nowrap>
+              <ng-md-icon permission permission-only="'portal-top_apis-u'" ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(topApi.order)"></ng-md-icon>
+              <ng-md-icon permission permission-only="'portal-top_apis-u'" ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(topApi.order)"></ng-md-icon>
+            </td>
+            <td md-cell width="48px">
+              <ng-md-icon permission permission-only="'portal-top_apis-d'"
+                          icon="delete" ng-click="$ctrl.delete(topApi)"
+                          style="height: 24px; font-size: 24px;"></ng-md-icon>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
     </div>
   </div>
 </div>

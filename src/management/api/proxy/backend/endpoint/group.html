@@ -15,53 +15,37 @@
     limitations under the License.
 
 -->
-
-<h4>Group configuration</h4>
 <form name="formGroup" ng-submit="groupCtrl.update(groupCtrl.api)" novalidate autocomplete="false">
+    <div class="gv-forms" layout="column">
+        <div layout="row" layout-align="start end" class="gv-forms-header">
+            <h1>Group configuration</h1>
+            <a ng-click="groupCtrl.backToEndpointsConfiguration()">Back to endpoints configuration</a>
+        </div>
 
-  <section>
-    <md-button class="md-button" aria-label="Back to endpoints configuration" ng-click="groupCtrl.backToEndpointsConfiguration()">
-      <ng-md-icon icon="reply" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-      <span style="color: rgba(0, 0, 0, 0.54);">Back to endpoints configuration</span>
-    </md-button>
-  </section>
-
-  <br />
-
-  <section>
-    <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <md-input-container flex="30">
-        <label>Name</label>
-        <input ng-model="groupCtrl.group.name" type="text" required>
-      </md-input-container>
+        <div class="gv-form">
+            <h2>Details</h2>
+            <div class="gv-form-content" layout="column">
+                <md-input-container flex="30">
+                    <label>Name</label>
+                    <input ng-model="groupCtrl.group.name" type="text" required>
+                </md-input-container>
+                <md-input-container class="md-block" flex-gt-sm>
+                    <label>Load balancing algorithm</label>
+                    <md-select ng-model="groupCtrl.group.load_balancing.type">
+                        <md-option ng-repeat="lb in lbs" value="{{lb.value}}">
+                            {{lb.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div class="md-actions gravitee-api-save-button" layout="row">
+                <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit" ng-disabled="formGroup.$invalid || formGroup.$pristine">
+                    Save
+                </md-button>
+                <md-button permission permission-only="'api-definition-u'" class="md-raised" type="button" ng-click="groupCtrl.reset()" ng-disabled="formGroup.$pristine">
+                    Reset
+                </md-button>
+            </div>
+        </div>
     </div>
-  </section>
-
-  <br />
-
-  <section>
-    <md-subheader class="md-primary" style="background-color: #fafafa">Load balancing</md-subheader>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Algorithm</label>
-          <md-select ng-model="groupCtrl.group.load_balancing.type">
-            <md-option ng-repeat="lb in lbs" value="{{lb.value}}">
-              {{lb.name}}
-            </md-option>
-          </md-select>
-        </md-input-container>
-      </div>
-    </div>
-  </section>
-
-  <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button permission permission-only="'api-definition-u'" class="md-raised" type="submit" ng-disabled="formGroup.$invalid || formGroup.$pristine">
-      Save
-    </md-button>
-    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="button" ng-click="groupCtrl.reset()" ng-disabled="formGroup.$pristine">
-      Reset
-    </md-button>
-  </div>
 </form>

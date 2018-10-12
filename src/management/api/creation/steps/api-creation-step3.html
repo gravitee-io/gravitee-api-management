@@ -150,12 +150,12 @@
       </div>
       <div flex layout="row" layout-align="end top">
         <md-button ng-if="$ctrl.parent.vm.stepData[2].optional" ng-click="$ctrl.parent.skipAddPlan($ctrl.parent.vm.stepData[2].data); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[2].data); apiPlanForm.$setPristine();"
-                   class="md-primary md-raised">SKIP
+                   >SKIP
         </md-button>
 
         <md-button ng-disabled="apiPlanForm.$invalid"
                    ng-click="$ctrl.parent.selectPlan(); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[2].data)"
-                   class="md-primary md-raised">NEXT
+                   >NEXT
         </md-button>
       </div>
     </md-step-actions>

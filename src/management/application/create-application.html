@@ -15,16 +15,13 @@
     limitations under the License.
 
 -->
-<section>
-  <md-toolbar class="md-table-toolbar md-default" style="background-color:#fbfbfc;">
-    <div class="md-toolbar-tools">
-      <span>Create an application</span>
-    </div>
-  </md-toolbar>
-
-  <div layout-padding>
-    <form name="formApplication" ng-submit="$ctrl.create()" novalidate>
-      <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
+<div class="gv-sub-content" flex>
+<form name="formApplication" ng-submit="$ctrl.create()" novalidate>
+  <div class="gv-forms" layout="column">
+      <h1>Create an application</h1>
+      <div class="gv-form">
+          <h2>General</h2>
+          <div class="gv-form-content" layout="column">
 
       <md-input-container class="md-block">
         <label>Name</label>
@@ -48,19 +45,19 @@
         </div>
       </md-input-container>
 
-      <div layout="row" layout-align="start" flex>
-        <md-input-container class="md-block" flex="50">
-          <label>Type</label>
-          <input ng-model="$ctrl.application.type" type="text" name="type">
-          <div class="hint" ng-if="formApplication.type.$valid || formApplication.type.$pristine">
-            Type of the application (mobile, web, ...).
+              <md-input-container class="md-block">
+                  <label>Type</label>
+                  <input ng-model="$ctrl.application.type" type="text" name="type">
+                  <div class="hint" ng-if="formApplication.type.$valid || formApplication.type.$pristine">
+                      Type of the application (mobile, web, ...).
+                  </div>
+              </md-input-container>
           </div>
-        </md-input-container>
       </div>
 
-      <md-subheader class="md-primary" style="background-color: #fafafa">Security</md-subheader>
-
-      <div layout="row" layout-align="start" flex>
+      <div class="gv-form">
+          <h2>Security</h2>
+          <div class="gv-form-content" layout="column">
         <md-input-container class="md-block" flex="50">
           <label>Client ID</label>
           <input ng-model="$ctrl.application.clientId" type="text" name="clientId" minlength="4" md-maxlength="100">
@@ -73,21 +70,19 @@
             <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
           </div>
         </md-input-container>
+
+          </div>
       </div>
 
-      <br />
-
-      <md-divider></md-divider>
-      
       <div class="md-actions gravitee-api-save-button" layout="row">
-        <md-button class="md-raised" type="submit" ng-disabled="formApplication.$invalid || formApplication.$pristine">
+        <md-button class="md-raised md-primary" type="submit" ng-disabled="formApplication.$invalid || formApplication.$pristine">
           Create
         </md-button>
-        <md-button class="md-raised md-primary" type="button" ng-click="$ctrl.reset()"
+        <md-button class="md-raised" type="button" ng-click="$ctrl.reset()"
                    ng-disabled="formApplication.$invalid || formApplication.$pristine">
-          Reset
+         Cancel
         </md-button>
       </div>
-    </form>
   </div>
-</section>
+</form>
+</div>

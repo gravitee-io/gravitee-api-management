@@ -20,7 +20,7 @@
 
     <md-content layout-padding class="api-creation-general-content api-creation-content">
       <section ng-repeat="policy in $ctrl.policies">
-        <md-subheader class="md-primary" style="background-color: #fafafa">
+        <md-subheader>
 
           <md-checkbox
             ng-model="policy.enable"
@@ -46,9 +46,8 @@
       <md-step-actions layout="row">
         <div flex>
           <md-button ng-click="$ctrl.parent.moveToPreviousStep()">PREVIOUS</md-button>
-          <md-button class="md-raised" ui-sref="management.apis.detail.portal.plans.list">
-            <span style="color: rgba(0, 0, 0, 0.54);">CANCEL</span>
-          </md-button>
+          <md-button class="md-raised md-warn"
+                     ui-sref="management.apis.detail.portal.plans.list">CANCEL</md-button>
         </div>
         <div flex layout="row" layout-align="end top">
           <md-button

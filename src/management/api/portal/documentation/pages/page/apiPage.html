@@ -154,7 +154,7 @@
     </div>
   </md-toolbar>
   <md-content layout-padding>
-    <md-subheader class="md-primary" ng-if="pageCtrl.page.type=='SWAGGER'">Configure your page</md-subheader>
+    <md-subheader ng-if="pageCtrl.page.type=='SWAGGER'">Configure your page</md-subheader>
     <div ng-if="pageCtrl.page.type=='SWAGGER'">
       <md-checkbox ng-model="pageCtrl.page.configuration.tryIt" ng-true-value="'true'" ng-false-value="'false'">
         Enable "Try it!" mode
@@ -194,7 +194,7 @@
       </md-input-container>
     </div>
     <div ng-if="pageCtrl.page.type!=='FOLDER'"></div>
-    <md-subheader class="md-primary">Configure page's source</md-subheader>
+    <md-subheader>Configure page's source</md-subheader>
     <div>
       <md-checkbox ng-model="pageCtrl.useFetcher" ng-change="pageCtrl.toggleUseFetcher()">
         Fetch content from an external resource
@@ -214,7 +214,7 @@
       </div>
     </div>
   </div>
-    <md-subheader class="md-primary">Groups Authorizations</md-subheader>
+    <md-subheader>Groups Authorizations</md-subheader>
     <div>
       <md-input-container class="md-block" flex="100">
         <label>Groups allowed to access to this page</label>

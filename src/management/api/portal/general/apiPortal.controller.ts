@@ -349,11 +349,6 @@ class ApiPortalController {
     };
   }
 
-  toggleMetricsVisibility() {
-    let visibility = (<HTMLElement>document.getElementsByClassName("gravitee-qm-metrics-list")[0]).style["visibility"];
-    (<HTMLElement>document.getElementsByClassName("gravitee-qm-metrics-list")[0]).style["visibility"] = "hidden" === visibility ? "visible" : "hidden";
-  }
-
   getQualityMetricCssClass() {
     return this.ApiService.getQualityMetricCssClass(this.qualityMetrics.score * 100);
   }

@@ -15,134 +15,139 @@
     limitations under the License.
 
 -->
-<h4>Endpoints</h4>
 <form name="apiProxyCtrl.formApi" ng-submit="apiProxyCtrl.update(apiProxyCtrl.api)" novalidate>
-  <div class="md-padding" ng-repeat="group in apiProxyCtrl.api.proxy.groups">
-    <md-subheader class="md-primary" style="background-color: #fafafa">
-      <div layout="row">
-        <div flex="90">
-          Group: {{group.name}}
-        </div>
-        <div flex  layout-align="end center">
-          <md-button class="md-icon-button" aria-label="Edit group" ui-sref="management.apis.detail.proxy.group({groupName: group.name})">
-            <ng-md-icon icon="settings" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-            <md-tooltip md-direction="left">Edit group</md-tooltip>
-          </md-button>
-          <md-button class="md-icon-button" aria-label="Delete group" ng-click="apiProxyCtrl.deleteGroup(group.name)">
-            <ng-md-icon icon="delete" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-            <md-tooltip md-direction="left">Delete group</md-tooltip>
-          </md-button>
-        </div>
+  <div class="gv-forms gv-forms-fluid" layout="column">
+    <h1>Endpoints</h1>
+    <div class="gv-form">
+      <div layout="row" layout-align="start end" class="gv-forms-header">
+        <h2>Groups</h2>
       </div>
+      <div class="gv-form-content">
+        <div ng-repeat="group in apiProxyCtrl.api.proxy.groups" style="margin-bottom: 28px;">
+          <md-subheader>
+            <div layout="row" layout-align="space-between center">
+              <div>Group: {{group.name}}</div>
+              <div>
+                <md-button class="md-icon-button" aria-label="Edit group" ui-sref="management.apis.detail.proxy.group({groupName: group.name})">
+                  <ng-md-icon icon="settings" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+                  <md-tooltip md-direction="left">Edit group</md-tooltip>
+                </md-button>
+                <md-button class="md-icon-button" aria-label="Delete group" ng-click="apiProxyCtrl.deleteGroup(group.name)">
+                  <ng-md-icon icon="delete" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+                  <md-tooltip md-direction="left">Delete group</md-tooltip>
+                </md-button>
+              </div>
+            </div>
+          </md-subheader>
+          <md-table-container>
+            <table md-table md-row-select="true" ng-model="selected" ng-init="order = 'name'" multiple="true">
+              <thead md-head md-order="order">
+              <tr md-row>
+                <th md-column md-order-by="name"><span>Name</span></th>
+                <th md-column md-order-by="target"><span>Target</span></th>
+                <th md-column md-order-by="tenant" hide-gt-xs show-gt-sm>Tenants</th>
+                <th md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
+                <th md-column md-order-by="backup" hide-gt-xs show-gt-sm>Backup</th>
+                <th md-column md-order-by="healthcheck" hide-gt-xs show-gt-sm>Health-check</th>
+                <th md-column permission permission-only="'api-definition-u'">
+                  <md-button class="md-icon-button" aria-label="Add endpoint" ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: ''})">
+                    <ng-md-icon icon="add" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+                    <md-tooltip md-direction="left">Add new endpoint</md-tooltip>
+                  </md-button>
 
-    </md-subheader>
-    <md-table-container>
-      <table md-table md-row-select="true" ng-model="selected" ng-init="order = 'name'" multiple="true">
-        <thead md-head md-order="order">
-        <tr md-row>
-          <th md-column md-order-by="name"><span>Name</span></th>
-          <th md-column md-order-by="target"><span>Target</span></th>
-          <th md-column md-order-by="tenant" hide-gt-xs show-gt-sm>Tenants</th>
-          <th md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
-          <th md-column md-order-by="backup" hide-gt-xs show-gt-sm>Backup</th>
-          <th md-column md-order-by="healthcheck" hide-gt-xs show-gt-sm>Health-check</th>
-          <th md-column permission permission-only="'api-definition-u'">
-            <md-button class="md-icon-button" aria-label="Add endpoint" ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: ''})">
-              <ng-md-icon icon="add" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-              <md-tooltip md-direction="left">Add new endpoint</md-tooltip>
-            </md-button>
+                  <md-button class="md-icon-button" aria-label="Delete endpoint" ng-click="apiProxyCtrl.removeEndpoints($event)" ng-disabled="selected.length == 0">
+                    <ng-md-icon icon="delete" style="fill: rgba(0, 0, 0, 0.54);" ng-show="selected.length > 0"></ng-md-icon>
+                    <ng-md-icon icon="delete" style="fill: rgba(142, 158, 170, 0.54);" ng-show="selected.length == 0"></ng-md-icon>
+                    <md-tooltip md-direction="left">Delete endpoint</md-tooltip>
+                  </md-button>
+                </th>
+              </tr>
+              </thead>
+              <tbody md-body>
+              <tr md-row md-select="endpoint" md-auto-select="false" ng-repeat="endpoint in group.endpoints | orderBy:order">
+                <td md-cell>{{endpoint.name}}</td>
+                <td md-cell>{{endpoint.target}}</td>
+                <td md-cell hide-gt-xs show-gt-sm>{{apiProxyCtrl.getTenants(endpoint.tenants)}}</td>
+                <td md-cell hide-gt-xs show-gt-sm ng-click="apiProxyCtrl.editWeight($event, endpoint)" ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
+                <td md-cell hide-gt-xs show-gt-sm>
+                  <ng-md-icon ng-show="endpoint.backup" icon="done" style="fill: #107F20"></ng-md-icon>
+                  <ng-md-icon ng-show="!endpoint.backup" icon="clear" style="fill: #BE2628"></ng-md-icon>
+                </td>
+                <td md-cell hide-gt-xs show-gt-sm>
+                  <ng-md-icon ng-show="endpoint.healthcheck === undefined || endpoint.healthcheck.enabled === true" icon="done" style="fill: #107F20"></ng-md-icon>
+                  <ng-md-icon ng-show="endpoint.healthcheck.enabled === false" icon="clear" style="fill: #BE2628"></ng-md-icon>
+                </td>
+                <td md-cell permission permission-only="'api-definition-u'">
+                  <md-button class="md-icon-button" aria-label="Edit endpoint" ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: endpoint.name})">
+                    <ng-md-icon icon="settings" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+                    <md-tooltip md-direction="left">Edit endpoint</md-tooltip>
+                  </md-button>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+        </div>
+        <md-content layout="row">
+          <md-button class="md-raised" permission permission-only="'api-definition-u'" ng-click="apiProxyCtrl.createGroup()">
+            Add a new group
+          </md-button>
+        </md-content>
+      </div>
+    </div>
 
-            <md-button class="md-icon-button" aria-label="Delete endpoint" ng-click="apiProxyCtrl.removeEndpoints($event)" ng-disabled="selected.length == 0">
-              <ng-md-icon icon="delete" style="fill: rgba(0, 0, 0, 0.54);" ng-show="selected.length > 0"></ng-md-icon>
-              <ng-md-icon icon="delete" style="fill: rgba(142, 158, 170, 0.54);" ng-show="selected.length == 0"></ng-md-icon>
-              <md-tooltip md-direction="left">Delete endpoint</md-tooltip>
-            </md-button>
-          </th>
-        </tr>
-        </thead>
-        <tbody md-body>
-        <tr md-row md-select="endpoint" md-auto-select="false" ng-repeat="endpoint in group.endpoints | orderBy:order">
-          <td md-cell>{{endpoint.name}}</td>
-          <td md-cell>{{endpoint.target}}</td>
-          <td md-cell hide-gt-xs show-gt-sm>{{apiProxyCtrl.getTenants(endpoint.tenants)}}</td>
-          <td md-cell hide-gt-xs show-gt-sm ng-click="apiProxyCtrl.editWeight($event, endpoint)" ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
-          <td md-cell hide-gt-xs show-gt-sm>
-            <ng-md-icon ng-show="endpoint.backup" icon="done" style="fill: #107F20"></ng-md-icon>
-            <ng-md-icon ng-show="!endpoint.backup" icon="clear" style="fill: #BE2628"></ng-md-icon>
-          </td>
-          <td md-cell hide-gt-xs show-gt-sm>
-            <ng-md-icon ng-show="endpoint.healthcheck === undefined || endpoint.healthcheck.enabled === true" icon="done" style="fill: #107F20"></ng-md-icon>
-            <ng-md-icon ng-show="endpoint.healthcheck.enabled === false" icon="clear" style="fill: #BE2628"></ng-md-icon>
-          </td>
-          <td md-cell permission permission-only="'api-definition-u'">
-            <md-button class="md-icon-button" aria-label="Edit endpoint" ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: endpoint.name})">
-              <ng-md-icon icon="settings" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
-              <md-tooltip md-direction="left">Edit endpoint</md-tooltip>
-            </md-button>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </md-table-container>
-  </div>
-
-  <md-content layout="row" layout-align="end center">
-    <md-button class="md-primary" permission permission-only="'api-definition-u'" ng-click="apiProxyCtrl.createGroup()">
-      <ng-md-icon icon="my_library_add" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>New group
-    </md-button>
-  </md-content>
-
-  <div class="md-padding">
-    <md-subheader class="md-primary" style="background-color: #fafafa">
-      <md-checkbox
-        ng-model="apiProxyCtrl.discovery.enabled"
-        aria-label="Enable endpoint discovery" flex>
+    <div class="gv-form">
+      <div layout="row" layout-align="start end" class="gv-forms-header">
+        <h2>Endpoint Discovery</h2>
         <div ng-switch on="apiProxyCtrl.discovery.enabled">
-          Enable endpoint discovery
           <span class="proxy-activated" ng-switch-when="true">(active)</span>
           <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
           <span class="proxy-deactivated" ng-switch-default>(not active)</span>
         </div>
-        <div class="hints">By enabling endpoint discovery, endpoints will be dynamically added or removed (without downtime).</div>
-      </md-checkbox>
-    </md-subheader>
+      </div>
+      <div class="gv-form-content">
+        <md-checkbox
+                ng-model="apiProxyCtrl.discovery.enabled"
+                aria-label="Enable endpoint discovery" flex>Enabled Consul.io
+          <div class="ipsum">By enabling endpoint discovery, endpoints will be dynamically added or removed (without downtime).</div>
+        </md-checkbox>
+        <div ng-show="apiProxyCtrl.discovery.enabled">
+          <md-content layout="column">
+            <md-input-container>
+              <label>HTTP Endpoint</label>
+              <input ng-model="apiProxyCtrl.discovery.configuration.url" autofocus type="url" required placeholder="http://localhost:8500">
+              <div class="hint">Address of the Consul agent with the port.</div>
+            </md-input-container>
 
-    <div ng-show="apiProxyCtrl.discovery.enabled">
-      <md-subheader class="md-primary" style="background-color: #fafafa">Consul.io configuration</md-subheader>
-      <md-content layout="column">
-        <md-input-container>
-          <label>HTTP Endpoint</label>
-          <input ng-model="apiProxyCtrl.discovery.configuration.url" autofocus type="url" required placeholder="http://localhost:8500">
-          <div class="hint">Address of the Consul agent with the port.</div>
-        </md-input-container>
+            <md-input-container>
+              <label>Service</label>
+              <input ng-model="apiProxyCtrl.discovery.configuration.service" type="text" required placeholder="my-service-name">
+              <div class="hint">The service name to query</div>
+            </md-input-container>
 
-        <md-input-container>
-          <label>Service</label>
-          <input ng-model="apiProxyCtrl.discovery.configuration.service" type="text" required placeholder="my-service-name">
-          <div class="hint">The service name to query</div>
-        </md-input-container>
+            <md-input-container>
+              <label>ACL</label>
+              <input ng-model="apiProxyCtrl.discovery.configuration.acl" type="text">
+              <div class="hint">ACL token to use in the request. This can also be specified via the CONSUL_HTTP_TOKEN environment variable.
+                If unspecified, the query will default to the token of the Consul agent at the HTTP address.</div>
+            </md-input-container>
 
-        <md-input-container>
-          <label>ACL</label>
-          <input ng-model="apiProxyCtrl.discovery.configuration.acl" type="text">
-          <div class="hint">ACL token to use in the request. This can also be specified via the CONSUL_HTTP_TOKEN environment variable.
-            If unspecified, the query will default to the token of the Consul agent at the HTTP address.</div>
-        </md-input-container>
-
-        <md-input-container>
-          <label>DC</label>
-          <input ng-model="apiProxyCtrl.discovery.configuration.dc" type="text">
-          <div class="hint">Name of the data-center to query. If unspecified, the query will default to the data-center of the Consul agent at the HTTP address.</div>
-        </md-input-container>
-      </md-content>
+            <md-input-container>
+              <label>DC</label>
+              <input ng-model="apiProxyCtrl.discovery.configuration.dc" type="text">
+              <div class="hint">Name of the data-center to query. If unspecified, the query will default to the data-center of the Consul agent at the HTTP address.</div>
+            </md-input-container>
+          </md-content>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button permission permission-only="'api-definition-u'" class="md-raised" type="submit" ng-disabled="apiProxyCtrl.formApi.$invalid || apiProxyCtrl.formApi.$pristine">
+    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit" ng-disabled="apiProxyCtrl.formApi.$invalid || apiProxyCtrl.formApi.$pristine">
       Save
     </md-button>
-    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="button" ng-click="apiProxyCtrl.reset()" ng-disabled="apiProxyCtrl.formApi.$pristine">
+    <md-button permission permission-only="'api-definition-u'" class="md-raised" type="button" ng-click="apiProxyCtrl.reset()" ng-disabled="apiProxyCtrl.formApi.$pristine">
       Reset
     </md-button>
   </div>

@@ -58,11 +58,11 @@
       </div>
       <div flex layout="row" layout-align="end top">
         <md-button ng-if="$ctrl.parent.vm.stepData[3].optional" ng-click="$ctrl.parent.skipDocumentation(); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[3].data)"
-                   class="md-primary md-raised">SKIP
+                   >SKIP
         </md-button>
         <md-button ng-disabled="!$ctrl.parent.hasPage()"
                    ng-click="$ctrl.parent.selectDocumentation(); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[3].data)"
-                   class="md-primary md-raised">NEXT
+                   >NEXT
         </md-button>
       </div>
     </md-step-actions>

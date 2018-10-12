@@ -16,17 +16,17 @@
 
 -->
 <div class="gv-sub-content">
-<div class="gv-forms gv-forms-fluid" layout="column">
-  <div class="gv-form" ng-show="$ctrl.apisProvider.length > 0 || $ctrl.isSearchResult()">
-    <div class="apis-header-filter">
-      <form flex layout="row" layout-align="center start" name="formSearch" autocomplete="off" ng-submit="$ctrl.search()">
-        <input class="form-control apis-filter" type="text" style="max-width: 960px"
-               ng-model="$ctrl.query" placeholder="Search APIs"
-                      autofocus/>
-      </form>
-    </div>
-    <div class="gv-form-content"  id="apis-container" ng-if="!hideApis"
-         style="height: calc(100vh - 200px); overflow-y: auto">
+  <div class="gv-forms gv-forms-fluid" layout="column">
+    <div class="gv-form" ng-show="$ctrl.apisProvider.length > 0 || $ctrl.isSearchResult()">
+      <div class="apis-header-filter">
+        <form flex layout="row" layout-align="center start" name="formSearch" autocomplete="off"
+              ng-submit="$ctrl.search()">
+          <input class="form-control apis-filter" type="text" style="max-width: 960px"
+                 ng-model="$ctrl.query" placeholder="Search APIs" autofocus/>
+        </form>
+      </div>
+      <div class="gv-form-content" id="apis-container" ng-if="!hideApis"
+           style="height: calc(100vh - 200px); overflow-y: auto">
         <div layout="row" layout-wrap class="inset" infinite-scroll="$ctrl.loadMore(query.order, searchAPIs, true)"
              infinite-scroll-distance="1" infinite-scroll-container="'#apis-container'">
           <md-table-container style="width: 100%">
@@ -88,25 +88,25 @@
             </table>
           </md-table-container>
         </div>
-  </div>
-  </div>
-  <gravitee-empty-state ng-if="$ctrl.apisProvider.length == 0 && !$ctrl.isSearchResult()"
-                        icon="dashboard"
-                        model="API"
-                        message="Hmmm, there is no API for you here :("
-                        sub-message="{{$ctrl.getSubMessage()}}"
-                        create-mode="$ctrl.createMode"></gravitee-empty-state>
+      </div>
+    </div>
+    <gravitee-empty-state ng-if="$ctrl.apisProvider.length == 0 && !$ctrl.isSearchResult()"
+                          icon="dashboard"
+                          model="API"
+                          message="Hmmm, there is no API for you here :("
+                          sub-message="{{$ctrl.getSubMessage()}}"
+                          create-mode="$ctrl.createMode"></gravitee-empty-state>
 
-  <div ng-if="$ctrl.apisProvider.length == 0 && !$ctrl.isSearchResult()" style="text-align: center;">
-    <md-button ng-if="!$ctrl.graviteeUser.username" class="md-raised" ui-sref="login" aria-label="login">Login</md-button>
-  </div>
+    <div ng-if="$ctrl.apisProvider.length == 0 && !$ctrl.isSearchResult()" style="text-align: center;">
+      <md-button ng-if="!$ctrl.graviteeUser.username" class="md-raised" ui-sref="login" aria-label="login">Login</md-button>
+    </div>
 
-  <div ng-style="{'text-align': $ctrl.apisProvider.length == 0 && !$ctrl.isSearchResult() ? 'center' : 'none' }">
-    <md-button ng-if="!devMode" permission permission-only="'management-api-c'"
-               ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.apisProvider.length > 0 || $ctrl.isSearchResult()}" class="md-fab"
-               aria-label="create-api" ui-sref="management.apis.new">
-      <ng-md-icon icon="add" style="fill: #fff;"></ng-md-icon>
-    </md-button>
+    <div ng-style="{'text-align': $ctrl.apisProvider.length == 0 && !$ctrl.isSearchResult() ? 'center' : 'none' }">
+      <md-button ng-if="!devMode" permission permission-only="'management-api-c'"
+                 ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.apisProvider.length > 0 || $ctrl.isSearchResult()}" class="md-fab"
+                 aria-label="create-api" ui-sref="management.apis.new">
+        <ng-md-icon icon="add" style="fill: #fff;"></ng-md-icon>
+      </md-button>
+    </div>
   </div>
-</div>
 </div>

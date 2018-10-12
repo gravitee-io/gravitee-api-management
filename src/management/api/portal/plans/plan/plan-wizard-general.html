@@ -20,7 +20,7 @@
     <md-content layout-padding class="api-creation-general-content api-creation-content">
       <form name="$ctrl.planGeneralForm">
         <section>
-          <md-subheader class="md-primary" style="background-color: #fafafa">General</md-subheader>
+          <md-subheader>General</md-subheader>
 
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex-gt-sm>
@@ -61,7 +61,7 @@
         <br />
 
         <section>
-          <md-subheader class="md-primary" style="background-color: #fafafa">Subscriptions</md-subheader>
+          <md-subheader>Subscriptions</md-subheader>
 
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex>
@@ -76,7 +76,7 @@
         <br />
 
         <section>
-          <md-subheader class="md-primary" style="background-color: #fafafa">Access-Control</md-subheader>
+          <md-subheader>Access-Control</md-subheader>
 
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex="100">
@@ -95,7 +95,7 @@
 
       <md-step-actions>
         <div layout="row" flex layout-align="end top">
-          <md-button ng-disabled="$ctrl.planGeneralForm.$invalid" ng-click="$ctrl.gotoNextStep()" class="md-primary md-raised">NEXT</md-button>
+          <md-button ng-disabled="$ctrl.planGeneralForm.$invalid" ng-click="$ctrl.gotoNextStep()">NEXT</md-button>
         </div>
       </md-step-actions>
     </md-content>
