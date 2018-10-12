@@ -19,8 +19,12 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.gateway.core.processor.ProcessorFailure;
+import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.policy.Policy;
+import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +90,18 @@ public abstract class StreamablePolicyChain extends PolicyChain {
         }
     }
 
+    private boolean streamErrorHandle = false;
+
+    @Override
+    public StreamableProcessor<PolicyResult> streamErrorHandler(Handler<ProcessorFailure> handler) {
+        super.streamErrorHandler(processorFailure -> {
+            streamErrorHandle = true;
+            handler.handle(processorFailure);
+        });
+
+        return this;
+    }
+
     @Override
     public StreamablePolicyChain write(Buffer chunk) {
         if (streamablePolicyHandlerChain != null) {
@@ -99,10 +115,12 @@ public abstract class StreamablePolicyChain extends PolicyChain {
 
     @Override
     public void end() {
-        if (streamablePolicyHandlerChain != null) {
-            streamablePolicyHandlerChain.end();
-        } else if (endHandler != null){
-            this.endHandler.handle(null);
+        if (!streamErrorHandle) {
+            if (streamablePolicyHandlerChain != null) {
+                streamablePolicyHandlerChain.end();
+            } else if (endHandler != null) {
+                this.endHandler.handle(null);
+            }
         }
     }
 
