@@ -47,7 +47,7 @@ public class LoggableRequestProcessor extends AbstractProcessor {
                 context.setResponse(new LoggableClientResponse(context.getRequest(), context.getResponse()));
             }
         } catch (Exception ex) {
-            logger.error("Unexpected error while evaluating logging condition", ex);
+            logger.warn("Unexpected error while evaluating logging condition: {}", ex.getMessage());
         }
 
         handler.handle(null);
