@@ -81,7 +81,7 @@ public class DefaultReactorHandlerRegistry extends SpringFactoriesLoader<Reactor
 
             // Do not update handler if the new is not correctly initialized
             if (newHandler != null) {
-                ReactorHandler previousHandler = handlers.get(contextPath);
+                ReactorHandler previousHandler = handlers.remove(contextPath);
 
                 register(newHandler);
 
