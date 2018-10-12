@@ -33,6 +33,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 
 /**
@@ -98,7 +99,7 @@ public class JdbcRoleRepository implements RoleRepository {
                             + " , name = ?"
                             + " , description = ?"
                             + " , default_role = ?"
-                            + " , system = ?"
+                            + " , " + escapeReservedWord("system") + " = ? "
                             + " , created_at = ? "
                             + " , updated_at = ? "
                             + " where "
