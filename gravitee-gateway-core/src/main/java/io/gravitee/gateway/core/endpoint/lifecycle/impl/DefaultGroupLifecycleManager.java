@@ -130,7 +130,10 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
             EndpointGroupLifecycleManager group = ite.next();
             group.stop();
             ite.remove();
-            referenceRegister.remove(GroupReference.REFERENCE_PREFIX + group.getGroup().getName());
+            //skip if no LbGroup (in case of an empty endpoint group)
+            if (group.getGroup() != null) {
+                referenceRegister.remove(GroupReference.REFERENCE_PREFIX + group.getGroup().getName());
+            }
         }
 
         groups.clear();
