@@ -16,7 +16,7 @@
 
 -->
   <form name="formApplication" ng-submit="$ctrl.update()" novalidate>
-    <div class="gv-forms" layout="column" permission permission-only="'application-definition-u'">
+    <div class="gv-forms" layout="column" permission permission-only="'application-definition-r'">
       <h1>{{$ctrl.application.name}}
         <small ng-if="$ctrl.application.type" style="color:grey;">( {{$ctrl.application.type}} )</small>
       </h1>
@@ -102,15 +102,19 @@
       </div>
 
       <div class="md-actions gravitee-api-save-button" layout="row">
-        <md-button class="md-raised md-primary" type="submit" ng-disabled="formApplication.$invalid || formApplication.$pristine">
+        <md-button class="md-raised md-primary" type="submit"
+                   ng-disabled="formApplication.$invalid || formApplication.$pristine"
+                   permission permission-only="'application-definition-u'">
           Save
         </md-button>
         <md-button class="md-raised" type="button" ng-click="$ctrl.reset()"
-                   ng-disabled="formApplication.$invalid || formApplication.$pristine">
+                   ng-disabled="formApplication.$invalid || formApplication.$pristine"
+                   permission permission-only="'application-definition-u'">
           Reset
         </md-button>
         <md-button class="md-raised md-warn" type="button"
-                   ng-click="$ctrl.showDeleteApplicationConfirm($event)">
+                   ng-click="$ctrl.showDeleteApplicationConfirm($event)"
+                   permission permission-only="'application-definition-d'">
           Delete
         </md-button>
       </div>
