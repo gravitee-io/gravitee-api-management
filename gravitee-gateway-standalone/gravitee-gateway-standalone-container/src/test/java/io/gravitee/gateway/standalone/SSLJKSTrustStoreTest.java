@@ -62,6 +62,7 @@ public class SSLJKSTrustStoreTest extends AbstractGatewayTest {
     // Generate the client truststore
     // keytool -import -noprompt -trustcacerts -alias selfsigned -file  keystore01.cert -keystore truststore01.jks -keypass password -storepass password
     private WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
+            .dynamicPort()
             .dynamicHttpsPort()
             .keystorePath(SSLJKSTrustStoreTest.class.getResource("/io/gravitee/gateway/standalone/keystore01.jks").getPath())
             .keystorePassword("password"));

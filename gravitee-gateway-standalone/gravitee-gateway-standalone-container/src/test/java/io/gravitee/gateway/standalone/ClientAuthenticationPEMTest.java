@@ -61,6 +61,7 @@ public class ClientAuthenticationPEMTest extends AbstractGatewayTest {
     // openssl pkcs12 -in keystore.p12 -passin pass:password -nokeys -out client-cert.pem
 
     private WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
+            .dynamicPort()
             .dynamicHttpsPort()
             .needClientAuth(true)
             .trustStorePath(ClientAuthenticationPEMTest.class.getResource("/io/gravitee/gateway/standalone/truststore01.jks").getPath())

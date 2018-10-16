@@ -52,7 +52,7 @@ import static org.junit.Assert.assertNull;
 )
 public class CorsTest extends AbstractGatewayTest {
 
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
 
     @Rule
     public final TestRule chain = RuleChain

@@ -63,6 +63,7 @@ public class ClientAuthenticationPKCS12Test extends AbstractGatewayTest {
     // keytool -importkeystore -srckeystore truststore01.jks -srcstorepass password -destkeystore truststore.p12 -deststoretype PKCS12 -deststorepass password
 
     private WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
+            .dynamicPort()
             .dynamicHttpsPort()
             .needClientAuth(true)
             .trustStorePath(ClientAuthenticationPKCS12Test.class.getResource("/io/gravitee/gateway/standalone/truststore01.jks").getPath())

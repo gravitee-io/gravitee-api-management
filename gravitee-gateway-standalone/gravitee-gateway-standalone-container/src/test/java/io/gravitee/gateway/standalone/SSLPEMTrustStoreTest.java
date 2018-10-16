@@ -59,6 +59,7 @@ public class SSLPEMTrustStoreTest extends AbstractGatewayTest {
     // openssl pkcs12 -in keystore.p12 -nokeys -passin pass:password -out server-cert.pem
 
     private WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
+            .dynamicPort()
             .dynamicHttpsPort()
             .keystorePath(SSLPEMTrustStoreTest.class.getResource("/io/gravitee/gateway/standalone/keystore01.jks").getPath())
             .keystorePassword("password"));
