@@ -39,6 +39,10 @@ public class DirectPolicyChain extends NoOpPolicyChain {
 
     @Override
     public void doNext(Request request, Response response) {
-        errorHandler.handle(new PolicyChainProcessorFailure(policyResult));
+        if (policyResult.isFailure()) {
+            errorHandler.handle(new PolicyChainProcessorFailure(policyResult));
+        } else {
+            resultHandler.handle(policyResult);
+        }
     }
 }
