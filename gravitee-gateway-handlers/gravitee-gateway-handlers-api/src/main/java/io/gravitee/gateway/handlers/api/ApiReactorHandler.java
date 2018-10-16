@@ -83,8 +83,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
 
     private String contextPath;
 
-    private List<ProcessorProvider> requestProcessors;
-    private List<ProcessorProvider> responseProcessors;
+    private List<ProcessorProvider> requestProcessors, responseProcessors, errorProcessors;
 
     @Autowired
     private ExecutionContextFactory executionContextFactory;
@@ -131,16 +130,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
         StreamableProcessor<StreamableProcessor<Buffer>> requestProcessor = new ProviderProcessorChain(requestProcessors);
         requestProcessor
                 .handler(stream -> handleProxyInvocation(context, stream, handler))
-                .errorHandler(failure -> {
-                        handleProcessorFailure(failure, context.getResponse());
-                        handler.handle(context.getResponse());
-                })
+                .errorHandler(failure -> handleError(context, failure, handler))
+                .streamErrorHandler(failure -> handleError(context, failure, handler))
                 .exitHandler(__ -> {
                     context.getResponse().end();
-                    handler.handle(context.getResponse());
-                })
-                .streamErrorHandler(error -> {
-                    handleProcessorFailure(error, context.getResponse());
                     handler.handle(context.getResponse());
                 })
                 .process(context);
@@ -154,10 +147,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
         Request invokeRequest = upstreamInvoker.invoke(processorContext.getContext(), processorContext.getRequest(), processor, connection -> {
             connection.responseHandler(proxyResponse -> handleProxyResponse(processorContext, proxyResponse, serviceInvocationStart, handler));
 
-            processor.streamErrorHandler(error -> {
+            // OVerride the stream error handler to be able to cancel connection to backend
+            processor.streamErrorHandler(failure -> {
                 connection.cancel();
-                handleProcessorFailure(error, processorContext.getResponse());
-                handler.handle(processorContext.getResponse());
+                handleError(processorContext, failure, handler);
             });
         });
 
@@ -209,14 +202,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
                         context.getRequest().metrics().setApiResponseTimeMs(System.currentTimeMillis() - serviceInvocationStart);
                     });
                 })
-                .errorHandler(failure -> {
-                    handleProcessorFailure(failure, context.getResponse());
-                    handler.handle(context.getResponse());
-                })
-                .streamErrorHandler(result -> {
-                    handleProcessorFailure(result, context.getResponse());
-                    handler.handle(context.getResponse());
-                })
+                .errorHandler(failure -> handleError(context, failure, handler))
+                .streamErrorHandler(failure -> handleError(context, failure, handler))
                 .exitHandler(__ -> {
                     context.getResponse().end();
                     handler.handle(context.getResponse());
@@ -225,6 +212,16 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
 
         // Resume response read
         proxyResponse.resume();
+    }
+
+    private void handleError(ProcessorContext context, ProcessorFailure failure, Handler<Response> handler) {
+        StreamableProcessor<StreamableProcessor<Buffer>> errorProcessor = new ProviderProcessorChain(errorProcessors);
+        errorProcessor
+                .handler(__ -> {
+                    handleProcessorFailure(failure, context.getResponse());
+                    handler.handle(context.getResponse());
+                })
+                .process(context);
     }
 
     private void handleProcessorFailure(ProcessorFailure failure, Response response) {
@@ -286,6 +283,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
         // Prepare request and response processors
         requestProcessors = new ArrayList<>();
         responseProcessors = new ArrayList<>();
+        errorProcessors = new ArrayList<>();
 
         PolicyChainResolver apiPolicyResolver = new ApiPolicyChainResolver();
         PolicyChainResolver securityPolicyResolver = new SecurityPolicyChainResolver();
@@ -303,8 +301,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
             requestProcessors.add(new InstanceAwareProcessorProvider(
                     new CorsPreflightRequestProcessor(api.getProxy().getCors())));
 
-            responseProcessors.add(new InstanceAwareProcessorProvider(
-                    new CorsSimpleRequestProcessor(api.getProxy().getCors())));
+            InstanceAwareProcessorProvider corsProcessorProvider = new InstanceAwareProcessorProvider(
+                    new CorsSimpleRequestProcessor(api.getProxy().getCors()));
+            responseProcessors.add(corsProcessorProvider);
+            errorProcessors.add(corsProcessorProvider);
         }
 
         requestProcessors.add(securityPolicyResolver);
