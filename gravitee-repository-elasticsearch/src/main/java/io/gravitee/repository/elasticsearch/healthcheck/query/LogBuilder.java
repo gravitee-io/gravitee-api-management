@@ -24,8 +24,10 @@ import io.gravitee.repository.healthcheck.query.log.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -42,7 +44,7 @@ public final class LogBuilder {
     private static final Logger logger = LoggerFactory.getLogger(LogBuilder.class);
 
     /** Document simple date format **/
-    private static SimpleDateFormat dtf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     private final static String FIELD_TIMESTAMP = "@timestamp";
 
@@ -72,8 +74,9 @@ public final class LogBuilder {
         log.setGateway( node.get(FIELD_GATEWAY).asText());
 
         try {
-            log.setTimestamp(dtf.parse((node.get(FIELD_TIMESTAMP).asText())).getTime());
-        } catch (final ParseException e) {
+            log.setTimestamp(LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf).atZone(ZoneId.systemDefault())
+                    .toInstant().toEpochMilli());
+        } catch (final DateTimeParseException e) {
             logger.error("Impossible to parse date", e);
             throw new IllegalArgumentException("Impossible to parse timestamp field", e);
         }
@@ -114,8 +117,9 @@ public final class LogBuilder {
         log.setGateway(node.get(FIELD_GATEWAY).asText());
 
         try {
-            log.setTimestamp(dtf.parse((node.get(FIELD_TIMESTAMP).asText())).getTime());
-        } catch (final ParseException e) {
+            log.setTimestamp(LocalDateTime.parse(node.get(FIELD_TIMESTAMP).asText(), dtf).atZone(ZoneId.systemDefault())
+                    .toInstant().toEpochMilli());
+        } catch (final DateTimeParseException e) {
             logger.error("Impossible to parse date", e);
             throw new IllegalArgumentException("Impossible to parse timestamp field", e);
         }
