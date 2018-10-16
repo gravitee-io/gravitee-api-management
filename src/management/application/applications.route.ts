@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApplicationService from '../../services/applications.service';
+import ApplicationService from '../../services/application.service';
 import GroupService from '../../services/group.service';
 import * as _ from 'lodash';
 import UserService from "../../services/user.service";
-import {HookScope} from "../../entities/hookScope";
-import NotificationSettingsService from "../../services/notificationSettings.service";
 import {StateParams} from '@uirouter/core';
 import ApiService from "../../services/api.service";
 
@@ -263,40 +261,6 @@ function applicationsConfig($stateProvider) {
         perms: {
           only: ['application-log-r']
         }
-      }
-    })
-    .state('management.applications.application.notifications', {
-      url: '/notifications',
-      component: 'notificationSettingsComponent',
-      data: {
-        menu: {
-          label: 'Notifications',
-          icon: 'notifications',
-        },
-        docs: {
-          page: 'management-application-notifications'
-        },
-        perms: {
-          only: ['application-notification-r']
-        }
-      },
-      resolve: {
-        resolvedHookScope: () => HookScope.APPLICATION,
-        resolvedHooks:
-          (NotificationSettingsService: NotificationSettingsService) =>
-            NotificationSettingsService.getHooks(HookScope.APPLICATION).then( (response) =>
-              response.data
-            ),
-        resolvedNotifiers:
-          (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
-            NotificationSettingsService.getNotifiers(HookScope.APPLICATION, $stateParams.applicationId).then( (response) =>
-              response.data
-            ),
-        resolvedNotificationSettings:
-          (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
-            NotificationSettingsService.getNotificationSettings(HookScope.APPLICATION, $stateParams.applicationId).then( (response) =>
-              response.data
-            )
       }
     });
 }

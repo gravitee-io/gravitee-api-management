@@ -110,13 +110,13 @@
 
             <div class="aui-nav-heading"
                  ng-if="$ctrl.settingsMenu.notifications.perm">
-                <strong>Alerts</strong>
+                <strong>Notifications</strong>
             </div>
             <ul class="aui-nav">
-                <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                    ng-if="$ctrl.settingsMenu.notifications.perm">
-                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.notifications.goTo}}">Notifications</a>
-                </li>
+              <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                  ng-if="$ctrl.settingsMenu.notifications.perm">
+                <a class="execute" ui-sref="{{$ctrl.settingsMenu.notifications.goTo}}">Notifications</a>
+              </li>
             </ul>
         </div>
 

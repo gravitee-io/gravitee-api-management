@@ -16,7 +16,7 @@
 import TicketService from '../services/ticket.service';
 import NotificationService from '../services/notification.service';
 import ApiService from '../services/api.service';
-import ApplicationService from '../services/applications.service';
+import ApplicationService from '../services/application.service';
 import UserService from '../services/user.service';
 import _ = require('lodash');
 

@@ -20,7 +20,7 @@ class RoleService {
 
   private permissionsByScope: any = {
     MANAGEMENT: {
-      permissions: ['INSTANCE', 'GROUP', 'TAG', 'TENANT', 'API', 'ROLE', 'APPLICATION', 'PLATFORM', 'AUDIT', 'NOTIFICATION', 'USER', 'MESSAGE', 'DICTIONARY'],
+      permissions: ['INSTANCE', 'GROUP', 'TAG', 'TENANT', 'API', 'ROLE', 'APPLICATION', 'PLATFORM', 'AUDIT', 'NOTIFICATION', 'USER', 'MESSAGE', 'DICTIONARY', 'ALERT'],
       userRoleManagement: true
     },
     PORTAL: {
@@ -28,10 +28,10 @@ class RoleService {
       userRoleManagement: true
     },
     API: {
-      permissions: ['DEFINITION', 'GATEWAY_DEFINITION', 'PLAN', 'SUBSCRIPTION', 'MEMBER', 'METADATA', 'ANALYTICS', 'EVENT', 'HEALTH', 'LOG', 'DOCUMENTATION', 'AUDIT', 'RATING', 'RATING_ANSWER', "DISCOVERY", "NOTIFICATION", "MESSAGE"]
+      permissions: ['DEFINITION', 'GATEWAY_DEFINITION', 'PLAN', 'SUBSCRIPTION', 'MEMBER', 'METADATA', 'ANALYTICS', 'EVENT', 'HEALTH', 'LOG', 'DOCUMENTATION', 'AUDIT', 'RATING', 'RATING_ANSWER', "DISCOVERY", "NOTIFICATION", "MESSAGE", 'ALERT']
     },
     APPLICATION: {
-      permissions: ['DEFINITION', 'MEMBER', 'ANALYTICS', 'LOG', 'SUBSCRIPTION', 'NOTIFICATION']
+      permissions: ['DEFINITION', 'MEMBER', 'ANALYTICS', 'LOG', 'SUBSCRIPTION', 'NOTIFICATION', 'ALERT']
     }
   };
 
@@ -49,11 +49,11 @@ class RoleService {
   }
 
   listPermissionsByScope(scope: string) {
-    return this.permissionsByScope[scope].permissions;
+    return this.permissionsByScope[scope];
   }
 
   isUserRoleManagement(scope: string) {
-    return this.permissionsByScope[scope].userRoleManagement;
+    return _.includes(['MANAGEMENT', 'PORTAL'], scope);
   }
 
   get(roleScope, roleName) {

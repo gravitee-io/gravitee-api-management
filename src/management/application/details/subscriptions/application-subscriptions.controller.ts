@@ -16,7 +16,7 @@
 import * as _ from 'lodash';
 import * as angular from 'angular';
 
-import ApplicationService from '../../../../services/applications.service';
+import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
 import { PagedResult } from "../../../../entities/pagedResult";

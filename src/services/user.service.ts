@@ -15,7 +15,7 @@
  */
 import {User} from '../entities/user';
 import RoleService from "./role.service";
-import ApplicationService from './applications.service';
+import ApplicationService from './application.service';
 import ApiService from './api.service';
 import _ = require('lodash');
 import StringService from './string.service';

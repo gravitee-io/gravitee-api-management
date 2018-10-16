@@ -16,7 +16,7 @@
 import * as angular from 'angular';
 
 import _ = require('lodash');
-import ApplicationService from '../../../../services/applications.service';
+import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
 import GroupService from "../../../../services/group.service";

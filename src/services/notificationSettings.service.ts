@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {HookScope} from "../entities/hookScope";
+import {Scope} from "../entities/scope";
 import {IHttpPromise} from "angular";
 import {NotificationConfig} from "../entities/notificationConfig";
 
@@ -32,52 +32,52 @@ class NotificationSettingsService {
     this.portalgCfgURL = `${Constants.baseURL}configuration/`;
   }
 
-  getHooks(scope: HookScope): IHttpPromise<any> {
+  getHooks(scope: Scope): IHttpPromise<any> {
     switch (scope) {
-      case HookScope.APPLICATION:
+      case Scope.APPLICATION:
         return this.$http.get(this.applicationsURL + "hooks");
-      case HookScope.API:
+      case Scope.API:
         return this.$http.get(this.apisURL + "hooks");
-      case HookScope.PORTAL:
+      case Scope.PORTAL:
         return this.$http.get(this.portalgCfgURL + "hooks");
       default:
         break;
     }
   }
 
-  getNotifiers(scope: HookScope, id: string): IHttpPromise<any> {
+  getNotifiers(scope: Scope, id: string): IHttpPromise<any> {
     switch (scope) {
-      case HookScope.APPLICATION:
+      case Scope.APPLICATION:
         return this.$http.get(this.applicationsURL + id + "/notifiers");
-      case HookScope.API:
+      case Scope.API:
         return this.$http.get(this.apisURL + id + "/notifiers");
-      case HookScope.PORTAL:
+      case Scope.PORTAL:
         return this.$http.get(this.portalgCfgURL + "notifiers");
       default:
         break;
     }
   }
 
-  getNotificationSettings(scope: HookScope, id: string): IHttpPromise<any> {
+  getNotificationSettings(scope: Scope, id: string): IHttpPromise<any> {
     switch (scope) {
-      case HookScope.APPLICATION:
+      case Scope.APPLICATION:
         return this.$http.get(this.applicationsURL + id  + '/notificationsettings');
-      case HookScope.API:
+      case Scope.API:
         return this.$http.get(this.apisURL + id + '/notificationsettings');
-      case HookScope.PORTAL:
+      case Scope.PORTAL:
         return this.$http.get(this.portalgCfgURL + 'notificationsettings');
       default:
         break;
     }
   }
 
-  delete(scope: HookScope, referenceId: string, notificationSettingId: string): IHttpPromise<any> {
+  delete(scope: Scope, referenceId: string, notificationSettingId: string): IHttpPromise<any> {
     switch (scope) {
-      case HookScope.APPLICATION:
+      case Scope.APPLICATION:
         return this.$http.delete(this.applicationsURL + referenceId  + '/notificationsettings/' + notificationSettingId);
-      case HookScope.API:
+      case Scope.API:
         return this.$http.delete(this.apisURL + referenceId + '/notificationsettings/' + notificationSettingId);
-      case HookScope.PORTAL:
+      case Scope.PORTAL:
         return this.$http.delete(this.portalgCfgURL + 'notificationsettings/' + notificationSettingId);
       default:
         break;

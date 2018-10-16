@@ -13,30 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Notifier} from "../../entities/notifier";
+import {Alert} from "./alert";
 
-function DialogAddNotificationSettingsController(
-  $scope,
-  $mdDialog: angular.material.IDialogService,
-  notifiers: Notifier[]) {
-
+function DialogAddAlertController($scope, $mdDialog: angular.material.IDialogService, $stateParams) {
   'ngInject';
-  this.notifiers = notifiers;
-  this.selectedNotifier = notifiers[0];
-  this.name = "";
 
   this.hide = function () {
     $mdDialog.hide();
   };
 
   this.save = function () {
-    let cfg = {
-      name: this.name,
-      notifierId: this.selectedNotifier.id
-    };
-
-    $mdDialog.hide(cfg);
+    $mdDialog.hide(new Alert(this.name, this.description, 'REQUEST', 'API', $stateParams.apiId));
   };
 }
 
-export default DialogAddNotificationSettingsController;
+export default DialogAddAlertController;

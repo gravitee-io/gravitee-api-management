@@ -191,7 +191,7 @@ import ApiSubscriptionsComponent from '../management/api/portal/subscriptions/su
 import ApiSubscriptionComponent from '../management/api/portal/subscriptions/subscription.component';
 
 // Applications
-import ApplicationService from '../services/applications.service';
+import ApplicationService from '../services/application.service';
 import ApplicationsComponent from './application/applications.component';
 import ApplicationsController from './application/applications.controller';
 import CreateApplicationsComponent from './application/create-application.component';
@@ -310,14 +310,16 @@ import RoleService from '../services/role.service';
 import DialogAddUserRoleController from '../management/configuration/roles/role/add.user.dialog.controller';
 
 import applicationRouterConfig from './application/applications.route';
+import applicationsNotificationsRouterConfig from './application/details/notifications/applications.notifications.settings.route';
 import apisRouterConfig from './api/apis.route';
 import apisAnalyticsRouterConfig from './api/analytics/apis.analytics.route';
 import apisAuditRouterConfig from './api/audit/apis.audit.route';
 import apisDesignRouterConfig from './api/design/apis.design.route';
 import apisProxyRouterConfig from './api/proxy/apis.proxy.route';
 import apisPortalRouterConfig from './api/portal/apis.portal.route';
-import apisNotificationsRouterConfig from './api/notifications/apis.notifications.route';
+import apisNotificationsRouterConfig from './api/notifications/apis.notifications.settings.route';
 import configurationRouterConfig from './configuration/configuration.route';
+import globalNotificationsRouterConfig from './configuration/notifications/global.notifications.settings.route';
 
 // User
 import UserService from '../services/user.service';
@@ -334,7 +336,8 @@ import PortalNotificationsComponent from './portalnotifications/portalnotificati
 import UserNotificationService from "../services/userNotification.service";
 
 // Notification Settings
-import NotificationSettingsComponent from '../components/notificationsettings/notificationsettings.component';
+import NotificationsComponent from './components/notifications/notifications.component';
+import NotificationSettingsComponent from './components/notifications/notificationsettings/notificationsettings.component';
 import NotificationSettingsService from "../services/notificationSettings.service";
 
 // Documentation
@@ -412,7 +415,7 @@ import ApiHeaderController from './api/header/api-header.controller';
 import ChartService from '../services/chart.service';
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
-import DialogAddNotificationSettingsController from "../components/notificationsettings/addnotificationsettings.dialog.controller";
+import DialogAddNotificationSettingsController from "./components/notifications/notificationsettings/addnotificationsettings.dialog.controller";
 
 import TopApisController from "./configuration/top-apis/top-apis.controller";
 import TopApiService from "../services/top-api.service";
@@ -437,6 +440,11 @@ import UpdateApiPortalHeaderDialogController
 import NewApiPortalHeaderDialogController
   from "./configuration/api-portal-header/new.api-portal-header.dialog.controller";
 
+// Alerts
+import AlertService from '../services/alert.service';
+import AlertComponent from './components/notifications/alert/alert.component';
+import DialogAddAlertController from './components/notifications/alert/addAlert.dialog.controller';
+
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
@@ -453,6 +461,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .config(routerConfig)
   .config(managementRouterConfig)
   .config(applicationRouterConfig)
+  .config(applicationsNotificationsRouterConfig)
   .config(apisRouterConfig)
   .config(apisPortalRouterConfig)
   .config(apisProxyRouterConfig)
@@ -462,6 +471,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .config(apisNotificationsRouterConfig)
   .config(apisMessagesRouterConfig)
   .config(configurationRouterConfig)
+  .config(globalNotificationsRouterConfig)
   .config(interceptorConfig)
   .config(delegatorConfig)
   .config(function ($mdThemingProvider: angular.material.IThemingProvider) {
@@ -585,6 +595,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('ChartService', ChartService)
   .service('TopApiService', TopApiService)
   .service('MessageService', MessageService)
+
   .directive('filecontent', () => DocumentationDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())
@@ -677,6 +688,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('NotificationSettingsService', NotificationSettingsService)
   .controller('DialogAddNotificationSettingsController', DialogAddNotificationSettingsController)
   .component('notificationSettingsComponent', NotificationSettingsComponent)
+  .component('notificationsComponent', NotificationsComponent)
 
   .component('gvPage', PageComponent)
   .component('gvPageMarkdown', PageMarkdownComponent)
@@ -731,7 +743,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DictionaryController', DictionaryController)
   .controller('DialogDictionaryAddPropertyController', DialogDictionaryAddPropertyController)
 
-  //ApiHeader
+  // ApiHeader
   .component('configApiPortalHeader', ApiPortalHeaderComponent)
   .service('ApiHeaderService', ApiHeaderService)
   .controller("NewApiPortalHeaderDialogController", NewApiPortalHeaderDialogController)
@@ -746,6 +758,11 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvIdentityproviderOidc', IdentityProviderOIDCComponent)
   .controller("IdentityProviderController", IdentityProviderController)
   .service('IdentityProviderService', IdentityProviderService)
+
+  // Alerts
+  .service('AlertService', AlertService)
+  .component('alertComponent', AlertComponent)
+  .controller('DialogAddAlertController', DialogAddAlertController)
 
   .filter('humanDateFilter', function () {
     return function (input) {

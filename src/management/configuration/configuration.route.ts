@@ -20,7 +20,9 @@ import PortalPagesService from '../../services/portalPages.service';
 import MetadataService from "../../services/metadata.service";
 import RoleService from "../../services/role.service";
 import GroupService from "../../services/group.service";
+
 import { HookScope } from "../../entities/hookScope";
+import {Scope} from "../../entities/scope";
 import NotificationSettingsService from "../../services/notificationSettings.service";
 import TopApiService from "../../services/top-api.service";
 import UserService from "../../services/user.service";
@@ -319,37 +321,6 @@ function configurationRouterConfig($stateProvider) {
         )
       }
     })
-    .state('management.settings.notifications', {
-      url: '/notifications',
-      component: 'notificationSettingsComponent',
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-notifications'
-        },
-        perms: {
-          only: ['management-notification-r']
-        }
-      },
-      resolve: {
-        resolvedHookScope: () => HookScope.PORTAL,
-        resolvedHooks:
-          (NotificationSettingsService: NotificationSettingsService) =>
-            NotificationSettingsService.getHooks(HookScope.PORTAL).then( (response) =>
-              response.data
-            ),
-        resolvedNotifiers:
-          (NotificationSettingsService: NotificationSettingsService) =>
-            NotificationSettingsService.getNotifiers(HookScope.PORTAL, null).then( (response) =>
-              response.data
-            ),
-        resolvedNotificationSettings:
-          (NotificationSettingsService: NotificationSettingsService) =>
-            NotificationSettingsService.getNotificationSettings(HookScope.PORTAL, null).then( (response) =>
-              response.data
-            )
-      }
-     })
     .state('management.settings.top-apis', {
       url: '/top-apis',
       component: 'topApis',

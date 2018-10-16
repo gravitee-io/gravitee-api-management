@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
-import moment = require("moment");
 import { StateService } from '@uirouter/core';
 
-import ApplicationService, { LogsQuery } from "../../../../services/applications.service";
+import ApplicationService, { LogsQuery } from "../../../../services/application.service";
 
 class ApplicationLogsController {
 

@@ -13,7 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export class Alert {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  reference_type: string;
+  reference_id: string;
 
-export enum HookScope {
-  API, APPLICATION, PORTAL
+  constructor(name: string, description: string, type: string, reference_type: string, reference_id: string) {
+    this.name = name;
+    this.description = description;
+    this.type = type;
+    this.reference_type = reference_type;
+    this.reference_id = reference_id;
+  }
 }

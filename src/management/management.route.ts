@@ -176,20 +176,20 @@ function managementRouterConfig($stateProvider) {
         resolvedRoles: (RoleService: RoleService) => RoleService.list("MANAGEMENT")
       }
     })
-  .state('management.tasks', {
-  url: '/tasks',
-    component: 'tasks',
-    data: {
-      docs: {
-        page: 'management-tasks'
+    .state('management.tasks', {
+    url: '/tasks',
+      component: 'tasks',
+      data: {
+        docs: {
+          page: 'management-tasks'
+        }
+      },
+      resolve: {
+        tasks: ( graviteeUser: User) => {
+          return graviteeUser.tasks;
+        }
       }
-    },
-    resolve: {
-      tasks: ( graviteeUser: User) => {
-        return graviteeUser.tasks;
-      }
-    }
-  });
+    });
 }
 
 export default managementRouterConfig;

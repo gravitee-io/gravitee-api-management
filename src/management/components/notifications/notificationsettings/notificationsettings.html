@@ -15,25 +15,10 @@
     limitations under the License.
 
 -->
-  <div layout="row">
-    <div class="gv-sub-menu menu"  ng-style="$ctrl.api || $ctrl.application ? '' : {'margin': '0 0 0 -32px', 'padding-top': '70px'}">
-      <div ng-if="$ctrl.api" class="md-headline">{{$ctrl.api.name}} ({{$ctrl.api.version}})</div>
-      <div class="aui-nav-heading">
-        <strong>Settings</strong>
-      </div>
-
-      <ul class="aui-nav">
-        <li class="iterable-item" ng-class="{'aui-nav-selected': $ctrl.isActive(notificationSetting)}"
-            ng-repeat="notificationSetting in $ctrl.notificationSettings"
-            ng-click="$ctrl.selectNotificationSetting(notificationSetting)">
-          <a class="execute" >{{notificationSetting.name}}</a>
-        </li>
-      </ul>
-    </div>
-<div class="gv-sub-content" ui-view>
-    <div class="gv-forms" layout="column">
-        <h1>{{$ctrl.selectedNotificationSetting.name}}</h1>
+<div class="gv-sub-content">
+  <div class="gv-forms" layout="column">
     <form name="$ctrl.formNotification" novalidate>
+      <h1>{{$ctrl.selectedNotificationSetting.name}}</h1>
       <div class="gv-form">
         <h2>Settings</h2>
         <div class="gv-form-content" layout="column">
@@ -91,12 +76,11 @@
       </div>
       </div>
     </form>
-    </div>
   </div>
-  </div>
-<md-button permission permission-only="['api-notification-c', 'application-notification-c', 'management-notification-c']"
-           class="md-fab md-fab-bottom-right"
-           aria-label="Add"
-           ng-click="$ctrl.addDialog()">
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
+  <md-button permission permission-only="['api-notification-c', 'application-notification-c', 'management-notification-c']"
+             class="md-fab md-fab-bottom-right"
+             aria-label="Add"
+             ng-click="$ctrl.addDialog()">
+    <ng-md-icon icon="add"></ng-md-icon>
+  </md-button>
+</div>

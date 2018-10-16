@@ -15,7 +15,7 @@
  */
 import * as _ from 'lodash';
 
-import ApplicationService from '../../../../services/applications.service';
+import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import SidenavService from '../../../../components/sidenav/sidenav.service';
 import { StateService } from '@uirouter/core';

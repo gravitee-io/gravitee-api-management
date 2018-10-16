@@ -15,7 +15,7 @@
  */
 import * as _ from 'lodash';
 
-import ApplicationService from '../../../../services/applications.service';
+import ApplicationService from '../../../../services/application.service';
 import { StateService } from '@uirouter/core';
 
 class ApplicationAnalyticsController {
