@@ -18,6 +18,7 @@ package io.gravitee.gateway.policy;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.policy.impl.processor.PolicyChainProcessorFailure;
 import io.gravitee.policy.api.PolicyResult;
 
 /**
@@ -38,6 +39,6 @@ public class DirectPolicyChain extends NoOpPolicyChain {
 
     @Override
     public void doNext(Request request, Response response) {
-        resultHandler.handle(policyResult);
+        errorHandler.handle(new PolicyChainProcessorFailure(policyResult));
     }
 }
