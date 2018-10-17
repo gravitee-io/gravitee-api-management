@@ -48,14 +48,13 @@
                       message="Path mappings will appear here"
                       sub-message="Start creating a path mapping"
                       create-mode="true"></gravitee-empty-state>
-    </div>
-  </div>
-</div>
 
-<md-fab-speed-dial permission permission-only="'api-definition-c'"
-                   md-direction="left" md-open="false"
-                   class="md-fab-bottom-right gravitee-add-button md-scale">
-  <md-fab-trigger>
+
+      <md-fab-speed-dial permission permission-only="'api-definition-c'" ng-style="!$parent.apiCtrl.api.path_mappings.length && {'text-align':'center'}"
+                         md-direction="{{$parent.apiCtrl.api.path_mappings.length?'left':'down'}}" md-open="false"
+                         ng-class="{'md-fab-bottom-right gravitee-add-button': $parent.apiCtrl.api.path_mappings.length}" class="md-scale">
+
+      <md-fab-trigger>
     <md-button class="md-fab">
       <ng-md-icon icon="add"></ng-md-icon>
     </md-button>
@@ -70,3 +69,6 @@
     </md-button>
   </md-fab-actions>
 </md-fab-speed-dial>
+    </div>
+  </div>
+</div>

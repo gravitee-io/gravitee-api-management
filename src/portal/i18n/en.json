@@ -31,7 +31,8 @@
     "apis": {
       "search": "Search for an API...",
       "top": "Top APIs",
-      "all": "See all APIs"
+      "all": "See all APIs",
+      "no.search.result": "No API found for your search."
     }
   },
   "menu": {

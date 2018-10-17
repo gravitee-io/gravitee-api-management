@@ -20,6 +20,8 @@ const LogComponent: ng.IComponentOptions = {
     log: '<'
   },
   controller: function($state: StateService) {
+    'ngInject';
+
     this.backStateParams = {
       from: $state.params['from'],
       to: $state.params['to'],

@@ -87,7 +87,7 @@ const PageSidenavDirective: ng.IDirective = ({
         };
 
         angular.element(ctr.$window).bind("scroll", function () {
-          if (ctr.$window.pageYOffset > 280) {
+          if (ctr.$window.pageYOffset > 0) {
             sidenav.addClass('sidenav-fixed');
           } else {
             sidenav.removeClass('sidenav-fixed');

@@ -24,13 +24,13 @@
 
         <form ng-submit="$ctrl.doSearch()" name="$ctrl.subscriptionsFiltersForm">
           <div layout-gt-sm="row">
-            <md-input-container class="md-block" flex-gt-sm flex="30">
+            <md-input-container class="md-block" flex-gt-sm flex="40">
               <label>Api</label>
               <md-select ng-model="$ctrl.query.apis" placeholder="Apis" multiple>
                 <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id">{{ subscriber.name }} () </md-option>
               </md-select>
             </md-input-container>
-            <md-input-container class="md-block" flex-gt-sm flex="20">
+            <md-input-container class="md-block" flex-gt-sm flex="40">
               <label>Status</label>
               <md-select ng-model="$ctrl.query.status" placeholder="Status" multiple>
                 <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.status">{{ value }}</md-option>
@@ -90,13 +90,14 @@
     md-on-paginate="$ctrl.onPaginate"
     md-page-select>
   </md-table-pagination>
-</div>
-    </div>
-  </div>
-</form>
 
 <gravitee-empty-state ng-if="$ctrl.subscriptions.data.length === 0"
                       icon="vpn_key"
                       model="Subscription"
                       message="Application's subscriptions will appear here"
                       sub-message="Start playing with APIs"></gravitee-empty-state>
+
+      </div>
+    </div>
+  </div>
+</form>

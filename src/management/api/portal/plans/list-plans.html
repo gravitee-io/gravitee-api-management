@@ -86,8 +86,6 @@
       <span ng-if="$ctrl.filteredPlans.length != 0 && $ctrl.dndEnabled"><ng-md-icon icon="info" style="fill: #b1bdc5;"></ng-md-icon> Plans can be re-ordered by dragging & dropping them.</span>
     </div>
   </div>
-</div>
-</div>
 
 <gravitee-empty-state ng-if="$ctrl.filteredPlans.length == 0"
                       icon="view_week"
@@ -95,9 +93,11 @@
                       message="Plans will appear here"
                       sub-message="Start creating a plan"
                       create-mode="true"></gravitee-empty-state>
-</div>
 <div permission permission-only="'api-plan-c'" ng-style="$ctrl.filteredPlans.length == 0 && {'text-align':'center'}">
   <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.filteredPlans.length > 0}" class="md-fab" aria-label="Add" ng-click="$ctrl.addPlan()">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
+</div>
+</div>
+  </div>
 </div>

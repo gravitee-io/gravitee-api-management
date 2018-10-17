@@ -43,11 +43,11 @@
     <ul class="api-description" style="white-space: nowrap; padding-left: 0;" layout="column">
       <li ng-repeat="header in $ctrl.apiPortalHeaders" ng-if="header.value">{{ header.name | translate }}: {{::header.value}}</li>
     </ul>
-    <div ng-if="$ctrl.Constants.portal.apis.apiHeaderShowTags.enabled">
+    <div ng-if="$ctrl.Constants.portal.apis.apiHeaderShowTags.enabled && $ctrl.api.tags.length > 0">
       <h2>{{ 'api.header.tags' | translate }}</h2>
       <span ng-repeat="t in $ctrl.api.tags" class="tag-or-view">{{t}}</span>
     </div>
-    <div ng-if="$ctrl.Constants.portal.apis.apiHeaderShowViews.enabled">
+    <div ng-if="$ctrl.Constants.portal.apis.apiHeaderShowViews.enabled && $ctrl.api.views.length > 0">
       <h2>{{ 'api.header.views' | translate }}</h2>
       <span ng-repeat="v in $ctrl.api.views" class="tag-or-view">{{v}}</span>
     </div>
