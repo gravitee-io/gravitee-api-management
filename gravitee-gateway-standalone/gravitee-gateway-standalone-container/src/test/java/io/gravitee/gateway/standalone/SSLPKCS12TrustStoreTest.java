@@ -25,11 +25,11 @@ import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
 import io.gravitee.gateway.standalone.servlet.TeamServlet;
+import io.gravitee.gateway.standalone.wiremock.ResourceUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -42,7 +42,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/ssl-pkcs12-support.json")
@@ -50,7 +50,6 @@ import static org.junit.Assert.assertEquals;
         servlet = TeamServlet.class,
         contextPath = "/team"
 )
-@Ignore
 public class SSLPKCS12TrustStoreTest extends AbstractGatewayTest {
 
     // JKS has been generated from SSLJKSTrustStoreTest
@@ -63,7 +62,7 @@ public class SSLPKCS12TrustStoreTest extends AbstractGatewayTest {
     private WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
             .dynamicPort()
             .dynamicHttpsPort()
-            .keystorePath(SSLPKCS12TrustStoreTest.class.getResource("/io/gravitee/gateway/standalone/keystore01.jks").getPath())
+            .keystorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"))
             .keystorePassword("password"));
 
     @Rule
@@ -114,7 +113,7 @@ public class SSLPKCS12TrustStoreTest extends AbstractGatewayTest {
                 HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
                 if (httpEndpoint.getHttpClientSslOptions() != null && httpEndpoint.getHttpClientSslOptions().getTrustStore() != null) {
                     PKCS12TrustStore trustStore = (PKCS12TrustStore) httpEndpoint.getHttpClientSslOptions().getTrustStore();
-                    trustStore.setPath(SSLPKCS12TrustStoreTest.class.getResource("/io/gravitee/gateway/standalone/truststore.p12").getPath());
+                    trustStore.setPath(ResourceUtils.toPath("io/gravitee/gateway/standalone/truststore.p12"));
                 }
             }
         } catch (Exception ex) {

@@ -17,7 +17,6 @@ package io.gravitee.gateway.standalone;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.ssl.TrustStore;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -26,11 +25,11 @@ import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
 import io.gravitee.gateway.standalone.servlet.TeamServlet;
+import io.gravitee.gateway.standalone.wiremock.ResourceUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -43,7 +42,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/ssl-pem-support.json")
@@ -51,7 +50,6 @@ import static org.junit.Assert.assertEquals;
         servlet = TeamServlet.class,
         contextPath = "/team"
 )
-@Ignore
 public class SSLPEMTrustStoreTest extends AbstractGatewayTest {
 
     // P12 has been generated from SSLPKCS12TrustStoreTest
@@ -63,7 +61,7 @@ public class SSLPEMTrustStoreTest extends AbstractGatewayTest {
     private WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
             .dynamicPort()
             .dynamicHttpsPort()
-            .keystorePath(SSLPEMTrustStoreTest.class.getResource("/io/gravitee/gateway/standalone/keystore01.jks").getPath())
+            .keystorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"))
             .keystorePassword("password"));
 
     @Rule
@@ -114,7 +112,7 @@ public class SSLPEMTrustStoreTest extends AbstractGatewayTest {
                 HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
                 if (httpEndpoint.getHttpClientSslOptions() != null && httpEndpoint.getHttpClientSslOptions().getTrustStore() != null) {
                     PEMTrustStore trustStore = (PEMTrustStore) httpEndpoint.getHttpClientSslOptions().getTrustStore();
-                    trustStore.setPath(SSLPEMTrustStoreTest.class.getResource("/io/gravitee/gateway/standalone/server-cert.pem").getPath());
+                    trustStore.setPath(ResourceUtils.toPath("io/gravitee/gateway/standalone/server-cert.pem"));
                 }
             }
         } catch (Exception ex) {
