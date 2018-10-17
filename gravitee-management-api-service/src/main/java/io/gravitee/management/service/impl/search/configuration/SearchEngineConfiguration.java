@@ -22,11 +22,9 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -38,9 +36,6 @@ import java.nio.file.Paths;
  */
 @Configuration
 public class SearchEngineConfiguration {
-
-    @Autowired
-    private Environment environment;
 
     @Value("${search.data:${gravitee.home}/data}")
     private String indexDirectory;

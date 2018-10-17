@@ -59,32 +59,43 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     @Override
     public List<String> search(io.gravitee.management.service.search.query.Query query) throws TechnicalException {
-        QueryParser apiParser = new MultiFieldQueryParser(new String[]{
+        MultiFieldQueryParser apiParser = new MultiFieldQueryParser(new String[]{
                 "name",
                 "description",
                 "ownerName",
                 "ownerMail",
                 "labels",
                 "tags",
-                "views"
+                "views",
+                "path",
+                "path_split"
         }, analyzer, API_FIELD_BOOST);
         apiParser.setFuzzyMinSim(0.6f);
+        apiParser.setAllowLeadingWildcard(true);
 
         QueryParser pageParser = new MultiFieldQueryParser(new String[]{
                 "name",
                 "content"
         }, analyzer, PAGE_FIELD_BOOST);
         pageParser.setFuzzyMinSim(0.6f);
+        pageParser.setAllowLeadingWildcard(true);
 
         try {
-            Query parse = apiParser.parse(QueryParserBase.escape(query.getQuery()));
-            Query parsePage = pageParser.parse(QueryParserBase.escape(query.getQuery()));
+            String inputQuery = QueryParserBase.escape(query.getQuery());
+            Query parse = apiParser.parse(inputQuery);
+            Query parsePage = pageParser.parse(inputQuery);
 
             Query apisFilter = getApisFilter(FIELD_ID, query.getFilters());
 
             // Search in API fields
             BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
-            apiQuery.add(parse, BooleanClause.Occur.MUST);
+            BooleanQuery.Builder apiFieldsQuery = new BooleanQuery.Builder();
+
+            apiFieldsQuery.add(parse, BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(new WildcardQuery(new Term("path", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+
+            apiQuery.add(apiFieldsQuery.build(), BooleanClause.Occur.MUST);
             apiQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.MUST);
             if (apisFilter != null) {
                 apiQuery.add(apisFilter, BooleanClause.Occur.MUST);
@@ -104,6 +115,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
             BooleanQuery.Builder mainQuery = new BooleanQuery.Builder();
             mainQuery.add(new BoostQuery(apiQuery.build(), 2.0f), BooleanClause.Occur.SHOULD);
+            //mainQuery.add(new BoostQuery(pathQuery.build(), 4.0f), BooleanClause.Occur.SHOULD);
             mainQuery.add(pageQuery.build(), BooleanClause.Occur.SHOULD);
 
             // Manage filters

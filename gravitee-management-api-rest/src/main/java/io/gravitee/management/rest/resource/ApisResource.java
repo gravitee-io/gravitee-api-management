@@ -226,7 +226,7 @@ public class ApisResource extends AbstractResource {
 
     @POST
     @Path("_search")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Search for API using the search engine")
     @ApiResponses({
             @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),

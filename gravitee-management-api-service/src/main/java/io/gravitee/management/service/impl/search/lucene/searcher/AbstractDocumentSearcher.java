@@ -18,6 +18,7 @@ package io.gravitee.management.service.impl.search.lucene.searcher;
 import io.gravitee.management.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.repository.exceptions.TechnicalException;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
@@ -47,8 +48,7 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
     protected final static String FIELD_ID = "id";
     protected final static String FIELD_TYPE = "type";
 
-    @Autowired
-    protected Analyzer analyzer;
+    protected Analyzer analyzer = new WhitespaceAnalyzer();
 
     @Autowired
     protected IndexWriter indexWriter;
@@ -60,13 +60,15 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
             IndexSearcher searcher = getIndexSearcher();
             final TopDocs topDocs = searcher.search(query,Integer.MAX_VALUE);
             final ScoreDoc[] hits = topDocs.scoreDocs;
-            final List<String> results = new ArrayList<>(hits.length);
+            final List<String> results = new ArrayList<>();
 
             logger.debug("Found {} total matching documents", topDocs.totalHits);
 
-            // Iterate over found results
-            for (ScoreDoc hit : hits) {
-                results.add(getReference(searcher.doc(hit.doc)));
+            if (hits.length > 0) {
+                // Iterate over found results
+                for (ScoreDoc hit : hits) {
+                    results.add(getReference(searcher.doc(hit.doc)));
+                }
             }
 
             return results;

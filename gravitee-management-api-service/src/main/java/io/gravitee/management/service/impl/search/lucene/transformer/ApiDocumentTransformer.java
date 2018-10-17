@@ -40,6 +40,7 @@ public class ApiDocumentTransformer implements DocumentTransformer {
     private final static String FIELD_CREATED_AT = "createdAt";
     private final static String FIELD_UPDATED_AT = "updatedAt";
     private final static String FIELD_PATH = "path";
+    private final static String FIELD_PATH_SPLIT = "path_split";
     private final static String FIELD_TAGS = "tags";
 
     @Override
@@ -55,7 +56,8 @@ public class ApiDocumentTransformer implements DocumentTransformer {
         if (api.getPrimaryOwner().getEmail() != null) {
             doc.add(new TextField(FIELD_OWNER_MAIL, api.getPrimaryOwner().getEmail(), Field.Store.NO));
         }
-        doc.add(new TextField(FIELD_PATH, api.getProxy().getContextPath(), Field.Store.NO));
+        doc.add(new StringField(FIELD_PATH, api.getProxy().getContextPath(), Field.Store.NO));
+        doc.add(new TextField(FIELD_PATH_SPLIT, api.getProxy().getContextPath(), Field.Store.NO));
 
         // labels
         if (api.getLabels() != null) {
