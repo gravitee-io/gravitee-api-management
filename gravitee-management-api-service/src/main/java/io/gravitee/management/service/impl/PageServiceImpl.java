@@ -801,10 +801,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		page.setContent(updatePageEntity.getContent());
         page.setLastContributor(updatePageEntity.getLastContributor());
 		page.setOrder(updatePageEntity.getOrder());
-		page.setPublished(updatePageEntity.isPublished());
+		page.setPublished(Boolean.TRUE.equals(updatePageEntity.isPublished()));
 		page.setSource(convert(updatePageEntity.getSource()));
         page.setConfiguration(updatePageEntity.getConfiguration());
-        page.setHomepage(updatePageEntity.isHomepage());
+		page.setHomepage(Boolean.TRUE.equals(updatePageEntity.isHomepage()));
         page.setExcludedGroups(updatePageEntity.getExcludedGroups());
         page.setParentId(updatePageEntity.getParentId());
 		return page;
