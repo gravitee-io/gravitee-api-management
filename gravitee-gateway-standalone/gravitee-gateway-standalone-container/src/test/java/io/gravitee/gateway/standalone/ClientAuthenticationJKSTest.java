@@ -26,11 +26,11 @@ import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
 import io.gravitee.gateway.standalone.servlet.TeamServlet;
+import io.gravitee.gateway.standalone.wiremock.ResourceUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -43,7 +43,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/client-authentication-jks-support.json")
@@ -51,7 +51,6 @@ import static org.junit.Assert.assertEquals;
         servlet = TeamServlet.class,
         contextPath = "/team"
 )
-@Ignore
 public class ClientAuthenticationJKSTest extends AbstractGatewayTest {
 
     // JKS has been generated with the following commands:
@@ -68,9 +67,9 @@ public class ClientAuthenticationJKSTest extends AbstractGatewayTest {
             .dynamicPort()
             .dynamicHttpsPort()
             .needClientAuth(true)
-            .trustStorePath(ClientAuthenticationJKSTest.class.getResource("/io/gravitee/gateway/standalone/truststore01.jks").getPath())
+            .trustStorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/truststore01.jks"))
             .trustStorePassword("password")
-            .keystorePath(ClientAuthenticationJKSTest.class.getResource("/io/gravitee/gateway/standalone/keystore01.jks").getPath())
+            .keystorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"))
             .keystorePassword("password"));
 
     @Rule
@@ -121,11 +120,11 @@ public class ClientAuthenticationJKSTest extends AbstractGatewayTest {
                 HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
                 if (httpEndpoint.getHttpClientSslOptions() != null && httpEndpoint.getHttpClientSslOptions().getKeyStore() != null) {
                     JKSKeyStore keyStore = (JKSKeyStore) httpEndpoint.getHttpClientSslOptions().getKeyStore();
-                    keyStore.setPath(ClientAuthenticationJKSTest.class.getResource("/io/gravitee/gateway/standalone/keystore01.jks").getPath());
+                    keyStore.setPath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"));
                 }
                 if (httpEndpoint.getHttpClientSslOptions() != null && httpEndpoint.getHttpClientSslOptions().getTrustStore() != null) {
                     JKSTrustStore trustStore = (JKSTrustStore) httpEndpoint.getHttpClientSslOptions().getTrustStore();
-                    trustStore.setPath(ClientAuthenticationJKSTest.class.getResource("/io/gravitee/gateway/standalone/truststore01.jks").getPath());
+                    trustStore.setPath(ResourceUtils.toPath("io/gravitee/gateway/standalone/truststore01.jks"));
                 }
             }
         } catch (Exception ex) {
