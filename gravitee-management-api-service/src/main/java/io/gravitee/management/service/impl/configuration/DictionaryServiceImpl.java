@@ -306,6 +306,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 undeploy(id);
             }
 
+            this.stop(id);
+
             dictionaryRepository.delete(id);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find a dictionary using its ID {}", id, ex);
