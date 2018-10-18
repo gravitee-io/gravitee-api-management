@@ -65,6 +65,7 @@ public class DefaultRolesUpgrader implements Upgrader, Ordered {
             perms.put(ManagementPermission.GROUP.getName(), new char[]{READ.getId()});
             perms.put(ManagementPermission.TENANT.getName(), new char[]{READ.getId()});
             perms.put(ManagementPermission.ROLE.getName(), new char[]{READ.getId()});
+            perms.put(ManagementPermission.PLATFORM.getName(), new char[]{READ.getId()});
             roleService.create(new NewRoleEntity(
                     "API_PUBLISHER",
                     "Management Role. Created by Gravitee.io.",
