@@ -81,11 +81,14 @@ class ApiLoggingConfigurationController {
       template: require('./configure-logging-editor.dialog.html'),
       clickOutsideToClose: true,
       resolve: {
-        subscribers: ($stateParams, ApiService: ApiService) =>
-          ApiService.getSubscribers($stateParams.apiId).then(response => response.data),
-
-        plans: ($stateParams, ApiService: ApiService) =>
-          ApiService.getApiPlans($stateParams.apiId).then(response => response.data)
+        subscribers: ($stateParams, ApiService: ApiService) => {
+          'ngInject';
+          return ApiService.getSubscribers($stateParams.apiId).then(response => response.data);
+        },
+        plans: ($stateParams, ApiService: ApiService) => {
+          'ngInject';
+          return ApiService.getApiPlans($stateParams.apiId).then(response => response.data);
+        }
       }
     }).then((condition) => {
       if (condition) {
