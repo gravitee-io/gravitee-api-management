@@ -117,11 +117,13 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             }
 
             // 5. add apiId that comes from group
-            apiIds.addAll(apiRepository
-                    .search(new ApiCriteria.Builder().groups(groupIds.toArray(new String[0])).build())
-                    .stream()
-                    .map(Api::getId)
-                    .collect(Collectors.toSet()));
+            if (!groupIds.isEmpty()) {
+                apiIds.addAll(apiRepository
+                        .search(new ApiCriteria.Builder().groups(groupIds.toArray(new String[0])).build())
+                        .stream()
+                        .map(Api::getId)
+                        .collect(Collectors.toSet()));
+            }
 
             // 6. search for PENDING subscriptions
             if (apiIds.isEmpty()) {
