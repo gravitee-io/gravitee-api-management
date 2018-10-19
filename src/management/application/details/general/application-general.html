@@ -75,13 +75,13 @@
 
         <md-input-container>
           <label>Client ID</label>
-          <input ng-model="$ctrl.application.clientId" type="text" name="clientId" minlength="4" md-maxlength="100">
+          <input ng-model="$ctrl.application.clientId" type="text" name="clientId" minlength="1" md-maxlength="300">
           <div class="hint" ng-if="formApplication.clientId.$valid || formApplication.clientId.$pristine">
             The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API Plan (OAuth2, JWT).
           </div>
           <div ng-messages="formApplication.clientId.$error">
-            <div ng-message="minlength">The name has to be more than 4 characters long.</div>
-            <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
+            <div ng-message="minlength">The name has to be more than 1 character long.</div>
+            <div ng-message="md-maxlength">The name has to be less than 300 characters long.</div>
           </div>
         </md-input-container>
         </div>
