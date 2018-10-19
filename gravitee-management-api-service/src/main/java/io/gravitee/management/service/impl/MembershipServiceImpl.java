@@ -32,7 +32,10 @@ import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +46,7 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.management.model.permissions.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.repository.management.model.Membership.AuditEvent.*;
-import static io.gravitee.repository.management.model.MembershipReferenceType.API;
-import static io.gravitee.repository.management.model.MembershipReferenceType.APPLICATION;
-import static io.gravitee.repository.management.model.MembershipReferenceType.GROUP;
+import static io.gravitee.repository.management.model.MembershipReferenceType.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -252,15 +253,15 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 // User does not exist so we are looking into defined providers
                 Optional<io.gravitee.management.model.providers.User> providerUser = identityService.findByReference(user.getReference());
                 if (providerUser.isPresent()) {
+                    User identityUser = providerUser.get();
+
                     try {
-                        userEntity = userService.findByUsername(providerUser.get().getUsername(), false);
+                        userEntity = userService.findBySource(identityUser.getSourceId(), identityUser.getSource(),false);
                         assertNotOverridePrimaryOwner(reference, userEntity.getId(), role);
                     } catch (UserNotFoundException unfe) {
-                        User identityUser = providerUser.get();
                         // The user is not yet registered in repository
                         // Information will be updated after the first connection of the user
                         NewExternalUserEntity newUser = new NewExternalUserEntity();
-                        newUser.setUsername(identityUser.getUsername());
                         newUser.setFirstname(identityUser.getFirstname());
                         newUser.setLastname(identityUser.getLastname());
                         newUser.setSource(identityUser.getSource());
@@ -587,10 +588,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         member.setCreatedAt(membership.getCreatedAt());
         member.setUpdatedAt(membership.getUpdatedAt());
         member.setRole(role.getName());
-        member.setFirstname(userEntity.getFirstname());
-        member.setLastname(userEntity.getLastname());
+        member.setDisplayName(userEntity.getDisplayName());
         member.setEmail(userEntity.getEmail());
-        member.setUsername(userEntity.getUsername());
 
         return member;
     }

@@ -21,39 +21,21 @@ package io.gravitee.management.model;
  */
 public class MembershipListItem {
 
-    private final String id;
-
-    private final String displayName;
-
-    private final String username;
-
-    private final String role;
+    private final MemberEntity member;
 
     public MembershipListItem(MemberEntity member) {
-        this.id = member.getId();
-        this.role = member.getRole();
-        this.username = member.getUsername();
-
-        if (member.getFirstname() != null && member.getLastname() != null) {
-            this.displayName = member.getFirstname() + ' ' + member.getLastname();
-        } else {
-            this.displayName = username;
-        }
+        this.member = member;
     }
 
     public String getId() {
-        return id;
+        return member.getId();
     }
 
     public String getDisplayName() {
-        return displayName;
+        return member.getDisplayName();
     }
 
     public String getRole() {
-        return role;
-    }
-
-    public String getUsername() {
-        return username;
+        return member.getRole();
     }
 }

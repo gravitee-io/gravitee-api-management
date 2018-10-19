@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.security.authentication.impl;
+package io.gravitee.management.service.impl.configuration.dictionary;
+
+import io.gravitee.management.service.exceptions.AbstractNotFoundException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class OAuth2AuthenticationProvider extends DefaultAuthenticationProvider {
+public class DictionaryNotFoundException extends AbstractNotFoundException {
 
-    OAuth2AuthenticationProvider(String type, int index) {
-        super(type, index);
+    private final String id;
+
+    public DictionaryNotFoundException(String id) {
+        this.id = id;
     }
 
     @Override
-    public boolean external() {
-        return true;
+    public String getMessage() {
+        return "Dictionary [" + id + "] can not be found.";
     }
 }

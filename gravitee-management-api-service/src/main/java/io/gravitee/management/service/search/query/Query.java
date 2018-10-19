@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.search.query;
 
+import io.gravitee.management.model.common.Pageable;
 import io.gravitee.management.model.search.Indexable;
 
 import java.util.HashMap;
@@ -31,6 +32,8 @@ public class Query<T extends Indexable> {
     private Map<String, Object> filters = new HashMap<>();
 
     private final Class<T> root;
+
+    private Pageable page;
 
     Query(final Class<T> root) {
         this.root = root;
@@ -54,5 +57,13 @@ public class Query<T extends Indexable> {
 
     public Class<T> getRoot() {
         return root;
+    }
+
+    public Pageable getPage() {
+        return page;
+    }
+
+    public void setPage(Pageable page) {
+        this.page = page;
     }
 }

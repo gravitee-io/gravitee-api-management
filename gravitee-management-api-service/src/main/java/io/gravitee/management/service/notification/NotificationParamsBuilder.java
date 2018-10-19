@@ -83,7 +83,7 @@ public class NotificationParamsBuilder {
 
     public NotificationParamsBuilder user(UserEntity user) {
         this.params.put(PARAM_USER, user);
-        this.params.put(PARAM_USERNAME, user.getUsername());
+        this.params.put(PARAM_USERNAME, user.getDisplayName());
         return this;
     }
 

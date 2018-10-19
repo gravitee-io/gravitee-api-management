@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.PortalConfigEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.rest.resource.portal.PortalApisResource;
+import io.gravitee.management.rest.resource.portal.SocialIdentityProvidersResource;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ConfigService;
@@ -86,5 +87,10 @@ public class PortalResource {
     @Path("media")
     public PortalMediaResource getPortalMediaResource() {
         return resourceContext.getResource(PortalMediaResource.class);
+    }
+
+    @Path("identities")
+    public SocialIdentityProvidersResource getSocialIdentityProvidersResource() {
+        return resourceContext.getResource(SocialIdentityProvidersResource.class);
     }
 }

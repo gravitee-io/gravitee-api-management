@@ -81,7 +81,7 @@ public class MembershipService_GetMembersTest {
         membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         membership.setUserId("user-id");
         UserEntity userEntity = new UserEntity();
-        userEntity.setUsername(membership.getUserId());
+        userEntity.setId(membership.getUserId());
         userEntity.setFirstname("John");
         userEntity.setLastname("Doe");
         RoleEntity po = mock(RoleEntity.class);
@@ -90,7 +90,7 @@ public class MembershipService_GetMembersTest {
         when(membershipRepository.findByReferenceAndRole(MembershipReferenceType.API, API_ID, RoleScope.API, SystemRole.PRIMARY_OWNER.name()))
                 .thenReturn(Collections.singleton(membership));
         when(userService.findById(membership.getUserId())).thenReturn(userEntity);
-        when(membershipRepository.findById(userEntity.getUsername(),MembershipReferenceType.API, API_ID)).thenReturn(of(membership));
+        when(membershipRepository.findById(userEntity.getId(),MembershipReferenceType.API, API_ID)).thenReturn(of(membership));
         when(roleService.findById(RoleScope.API, SystemRole.PRIMARY_OWNER.name())).thenReturn(po);
 
         Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, API_ID, RoleScope.API, SystemRole.PRIMARY_OWNER.name());
@@ -111,7 +111,7 @@ public class MembershipService_GetMembersTest {
         membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         membership.setUserId("user-id");
         UserEntity userEntity = new UserEntity();
-        userEntity.setUsername(membership.getUserId());
+        userEntity.setId(membership.getUserId());
         userEntity.setFirstname("John");
         userEntity.setLastname("Doe");
         RoleEntity po = mock(RoleEntity.class);
@@ -120,7 +120,7 @@ public class MembershipService_GetMembersTest {
         when(membershipRepository.findByReferenceAndRole(MembershipReferenceType.API, API_ID, RoleScope.API, null))
                 .thenReturn(Collections.singleton(membership));
         when(userService.findById(membership.getUserId())).thenReturn(userEntity);
-        when(membershipRepository.findById(userEntity.getUsername(),MembershipReferenceType.API, API_ID)).thenReturn(of(membership));
+        when(membershipRepository.findById(userEntity.getId(),MembershipReferenceType.API, API_ID)).thenReturn(of(membership));
         when(roleService.findById(RoleScope.API, SystemRole.PRIMARY_OWNER.name())).thenReturn(po);
 
         Set<MemberEntity> members = membershipService.getMembers(MembershipReferenceType.API, API_ID, RoleScope.API);

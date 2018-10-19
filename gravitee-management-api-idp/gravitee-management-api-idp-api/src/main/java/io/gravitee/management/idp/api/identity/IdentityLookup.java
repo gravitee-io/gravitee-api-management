@@ -28,4 +28,8 @@ public interface IdentityLookup {
     User retrieve(IdentityReference identityReference);
 
     Collection<User> search(String query);
+
+    default boolean searchable() {
+        return true;
+    }
 }

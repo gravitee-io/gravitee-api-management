@@ -17,6 +17,7 @@ package io.gravitee.management.idp.repository.lookup;
 
 import io.gravitee.management.idp.api.identity.User;
 import io.gravitee.management.idp.repository.RepositoryIdentityProvider;
+import io.gravitee.management.model.UserEntity;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -24,57 +25,35 @@ import io.gravitee.management.idp.repository.RepositoryIdentityProvider;
  */
 public class RepositoryUser implements User {
 
-    private final String id;
-    private String firstname, lastname, email, username;
+    private final UserEntity userEntity;
 
-    RepositoryUser(String id) {
-        this.id = id;
+    RepositoryUser(UserEntity userEntity) {
+        this.userEntity = userEntity;
     }
 
     @Override
     public String getEmail() {
-        return email;
+        return userEntity.getEmail();
     }
 
     @Override
     public String getDisplayName() {
-        return firstname + ' ' + lastname;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
+        return userEntity.getDisplayName();
     }
 
     @Override
     public String getFirstname() {
-        return firstname;
-    }
-
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
+        return userEntity.getFirstname();
     }
 
     @Override
     public String getId() {
-        return id;
+        return userEntity.getId();
     }
 
     @Override
     public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
+        return userEntity.getLastname();
     }
 
     @Override

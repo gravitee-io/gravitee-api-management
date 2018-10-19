@@ -4,13 +4,13 @@
 			<#include "header.html" />
 		</header>
 		<div style="margin-top: 50px; color: #424e5a;">
-			<h3>Hi, a new User is registered !</h3>
+			<h3>Hi, a new user is just registered!</h3>
 			<p>
 				The user
 				<#if user.firstname?? && user.lastname??>
                   ${user.firstname} ${user.lastname}
                 <#else>
-                  ${user.username}
+                  ${user.email}
                 </#if>
                 is now registered.
 			</p>

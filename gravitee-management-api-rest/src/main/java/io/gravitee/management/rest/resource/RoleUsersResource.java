@@ -17,15 +17,12 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
-import io.gravitee.management.rest.model.GroupMembership;
 import io.gravitee.management.rest.model.RoleMembership;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.MembershipService;
-import io.gravitee.management.service.UserService;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
@@ -34,7 +31,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -43,9 +39,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -117,39 +111,18 @@ public class RoleUsersResource extends AbstractResource  {
 
     private final static class MembershipListItem {
 
-        private final String id;
-        private final String username;
-        private final String firstname;
-        private final String lastname;
+        private final MemberEntity member;
 
         public MembershipListItem(final MemberEntity member) {
-            this.id = member.getId();
-            this.username = member.getUsername();
-            this.firstname = member.getFirstname();
-            this.lastname = member.getLastname();
+            this.member = member;
         }
 
         public String getId() {
-            return id;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public String getFirstname() {
-            return firstname;
-        }
-
-        public String getLastname() {
-            return lastname;
+            return member.getId();
         }
 
         public String getDisplayName() {
-            if (this.firstname != null) {
-                return this.firstname + " " + this.lastname;
-            }
-            return this.username;
+            return member.getDisplayName();
         }
     }
 }

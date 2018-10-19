@@ -120,7 +120,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                     if (optUser.get().getFirstname() != null && optUser.get().getLastname() != null) {
                         name = optUser.get().getFirstname() + " " + optUser.get().getLastname();
                     } else {
-                        name = optUser.get().getUsername();
+                        name = optUser.get().getEmail();
                     }
                 }
             } catch (TechnicalException e) {
@@ -178,7 +178,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                                         if (optUser.get().getFirstname() != null && optUser.get().getLastname() != null) {
                                             name = optUser.get().getFirstname() + " " + optUser.get().getLastname();
                                         } else {
-                                            name = optUser.get().getUsername();
+                                            name = optUser.get().getEmail();
                                         }
                                     }
                                 default:

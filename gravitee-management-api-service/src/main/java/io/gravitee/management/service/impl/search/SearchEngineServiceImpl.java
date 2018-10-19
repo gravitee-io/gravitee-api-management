@@ -28,10 +28,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -85,20 +82,16 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     }
 
     @Override
-    public Collection<String> search(io.gravitee.management.service.search.query.Query<? extends Indexable> query) {
-        Optional<Collection<String>> results = searchers.stream()
+    public SearchResult search(io.gravitee.management.service.search.query.Query<? extends Indexable> query) {
+        Optional<SearchResult> results = searchers.stream()
                 .filter(searcher -> searcher.handle(query.getRoot()))
                 .findFirst()
                 .flatMap(searcher -> {
                     try {
-                        List<String> ids = searcher.search(query)
-                                .stream()
-                                .distinct()
-                                .collect(Collectors.toList());
-                        return Optional.of(ids);
+                        return Optional.of(searcher.search(query));
                     } catch (TechnicalException te) {
                         logger.error("Unexpected error while deleting a document", te);
-                        return Optional.of(Collections.emptyList());
+                        return Optional.empty();
                     }
                 });
 

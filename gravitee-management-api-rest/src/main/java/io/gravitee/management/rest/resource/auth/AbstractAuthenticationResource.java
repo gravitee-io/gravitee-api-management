@@ -97,7 +97,7 @@ abstract class AbstractAuthenticationResource {
         RoleEntity role = membershipService.getRole(
                 MembershipReferenceType.MANAGEMENT,
                 MembershipDefaultReferenceId.DEFAULT.toString(),
-                userDetails.getUsername(),
+                userDetails.getId(),
                 RoleScope.MANAGEMENT);
         if (role != null) {
             authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));
@@ -106,7 +106,7 @@ abstract class AbstractAuthenticationResource {
         role = membershipService.getRole(
                 MembershipReferenceType.PORTAL,
                 MembershipDefaultReferenceId.DEFAULT.toString(),
-                userDetails.getUsername(),
+                userDetails.getId(),
                 RoleScope.PORTAL);
         if (role != null) {
             authorities.add(new SimpleGrantedAuthority(role.getScope().toString() + ':' + role.getName()));

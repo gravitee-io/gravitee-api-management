@@ -284,7 +284,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         if (user.getFirstname() != null && user.getLastname() != null) {
             ratingEntity.setUserDisplayName(user.getFirstname() + ' ' + user.getLastname());
         } else {
-            ratingEntity.setUserDisplayName(user.getUsername());
+            ratingEntity.setUserDisplayName(user.getEmail());
         }
 
         ratingEntity.setId(rating.getId());
@@ -308,7 +308,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                             if (userAnswer.getFirstname() != null && userAnswer.getLastname() != null) {
                                 ratingAnswerEntity.setUserDisplayName(userAnswer.getFirstname() + ' ' + userAnswer.getLastname());
                             } else {
-                                ratingAnswerEntity.setUserDisplayName(userAnswer.getUsername());
+                                ratingAnswerEntity.setUserDisplayName(userAnswer.getEmail());
                             }
                             ratingAnswerEntity.setComment(ratingAnswer.getComment());
                             ratingAnswerEntity.setCreatedAt(ratingAnswer.getCreatedAt());

@@ -19,6 +19,7 @@ import io.gravitee.management.idp.api.identity.SearchableUser;
 import io.gravitee.management.idp.core.authentication.IdentityManager;
 import io.gravitee.management.model.providers.User;
 import io.gravitee.management.service.IdentityService;
+import io.gravitee.management.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,9 @@ public class IdentityServiceImpl implements IdentityService {
 
     @Autowired
     private IdentityManager identityManager;
+
+    @Autowired
+    private UserService userService;
 
     @Override
     public Collection<SearchableUser> search(String query) {
@@ -52,7 +56,6 @@ public class IdentityServiceImpl implements IdentityService {
         user.setSourceId(identity.getReference());
         user.setSource(identity.getSource());
         user.setEmail(identity.getEmail());
-        user.setUsername(identity.getUsername());
         user.setFirstname(identity.getFirstname());
         user.setLastname(identity.getLastname());
         user.setDisplayName(identity.getDisplayName());

@@ -13,29 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
-
-import io.gravitee.common.http.HttpStatusCode;
+package io.gravitee.management.model.configuration.identity;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DictionaryAlreadyExistsException extends AbstractManagementException {
+public class RoleMappingEntity {
 
-    private final String dictionaryName;
+    private String condition;
 
-    public DictionaryAlreadyExistsException(String dictionaryName) {
-        this.dictionaryName = dictionaryName;
+    private String portal;
+
+    private String management;
+
+    public String getCondition() {
+        return condition;
     }
 
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
+    public void setCondition(String condition) {
+        this.condition = condition;
     }
 
-    @Override
-    public String getMessage() {
-        return "A dictionary with name [" + dictionaryName + "] already exists.";
+    public String getPortal() {
+        return portal;
+    }
+
+    public void setPortal(String portal) {
+        this.portal = portal;
+    }
+
+    public String getManagement() {
+        return management;
+    }
+
+    public void setManagement(String management) {
+        this.management = management;
     }
 }

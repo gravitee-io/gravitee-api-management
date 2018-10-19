@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.search.query;
 
+import io.gravitee.management.model.common.Pageable;
 import io.gravitee.management.model.search.Indexable;
 
 import java.util.Map;
@@ -52,6 +53,11 @@ public class QueryBuilder<T extends Indexable> {
 
     public QueryBuilder<T> setFilters(Map<String, Object> filters) {
         query.setFilters(filters);
+        return this;
+    }
+
+    public QueryBuilder<T> setPage(Pageable pageable) {
+        query.setPage(pageable);
         return this;
     }
 

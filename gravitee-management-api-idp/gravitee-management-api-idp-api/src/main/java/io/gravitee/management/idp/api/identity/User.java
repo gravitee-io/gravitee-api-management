@@ -25,8 +25,6 @@ public interface User {
 
     default String getReference() { return null; }
 
-    String getUsername();
-
     String getFirstname();
 
     String getLastname();

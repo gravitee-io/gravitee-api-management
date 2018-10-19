@@ -69,12 +69,14 @@ public class CompositeIdentityManager implements IdentityManager {
     public Collection<SearchableUser> search(String query) {
         Set<SearchableUser> users = new HashSet<>();
         for (IdentityLookup identityLookup : identityLookups) {
-            Collection<User> lookupUsers = identityLookup.search(query);
-            if (lookupUsers != null) {
-                users.addAll(lookupUsers
-                        .stream()
-                        .map((Function<User, SearchableUser>) DefaultSearchableUser::new)
-                        .collect(Collectors.toSet()));
+            if (identityLookup.searchable()) {
+                Collection<User> lookupUsers = identityLookup.search(query);
+                if (lookupUsers != null) {
+                    users.addAll(lookupUsers
+                            .stream()
+                            .map((Function<User, SearchableUser>) DefaultSearchableUser::new)
+                            .collect(Collectors.toSet()));
+                }
             }
         }
 

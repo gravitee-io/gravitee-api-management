@@ -19,16 +19,17 @@ import com.auth0.jwt.JWTSigner;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.common.JWTHelper;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UserAlreadyExistsException;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.management.service.exceptions.UserNotInternallyManagedException;
+import io.gravitee.management.service.impl.UserServiceImpl;
+import io.gravitee.management.service.search.SearchEngineService;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.exceptions.UserNotFoundException;
-import io.gravitee.management.service.exceptions.UsernameAlreadyExistsException;
-import io.gravitee.management.service.impl.UserServiceImpl;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +55,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class UserServiceTest {
 
+    private static final String USER_SOURCE = "usersource";
     private static final String USER_NAME = "tuser";
     private static final String EMAIL = "user@gravitee.io";
     private static final String FIRST_NAME = "The";
@@ -98,19 +100,21 @@ public class UserServiceTest {
     private EmailService emailService;
     @Mock
     private ParameterService mockParameterService;
+    @Mock
+    private SearchEngineService searchEngineService;
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
-        when(user.getUsername()).thenReturn(USER_NAME);
+        when(user.getId()).thenReturn(USER_NAME);
         when(user.getEmail()).thenReturn(EMAIL);
         when(user.getFirstname()).thenReturn(FIRST_NAME);
         when(user.getLastname()).thenReturn(LAST_NAME);
         when(user.getPassword()).thenReturn(PASSWORD);
-        when(userRepository.findByUsername(USER_NAME)).thenReturn(of(user));
+        when(userRepository.findBySource(USER_SOURCE, USER_NAME)).thenReturn(of(user));
 
-        final UserEntity userEntity = userService.findByUsername(USER_NAME, false);
+        final UserEntity userEntity = userService.findBySource(USER_SOURCE, USER_NAME, false);
 
-        assertEquals(USER_NAME, userEntity.getUsername());
+        assertEquals(USER_NAME, userEntity.getId());
         assertEquals(FIRST_NAME, userEntity.getFirstname());
         assertEquals(LAST_NAME, userEntity.getLastname());
         assertEquals(EMAIL, userEntity.getEmail());
@@ -120,29 +124,29 @@ public class UserServiceTest {
 
     @Test(expected = UserNotFoundException.class)
     public void shouldNotFindByUsernameBecauseNotExists() throws TechnicalException {
-        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.empty());
+        when(userRepository.findBySource(USER_SOURCE, USER_NAME)).thenReturn(Optional.empty());
 
-        userService.findByUsername(USER_NAME, false);
+        userService.findBySource(USER_SOURCE, USER_NAME, false);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByUsernameBecauseTechnicalException() throws TechnicalException {
-        when(userRepository.findByUsername(USER_NAME)).thenThrow(TechnicalException.class);
+        when(userRepository.findBySource(USER_SOURCE, USER_NAME)).thenThrow(TechnicalException.class);
 
-        userService.findByUsername(USER_NAME, false);
+        userService.findBySource(USER_SOURCE, USER_NAME, false);
     }
 
     @Test
     public void shouldCreate() throws TechnicalException {
-        when(newUser.getUsername()).thenReturn(USER_NAME);
         when(newUser.getEmail()).thenReturn(EMAIL);
         when(newUser.getFirstname()).thenReturn(FIRST_NAME);
         when(newUser.getLastname()).thenReturn(LAST_NAME);
+        when(newUser.getSource()).thenReturn(USER_SOURCE);
+        when(newUser.getSourceId()).thenReturn(USER_NAME);
 
-        when(userRepository.findById(USER_NAME)).thenReturn(Optional.empty());
+        when(userRepository.findBySource(USER_SOURCE, USER_NAME)).thenReturn(Optional.empty());
 
         when(user.getId()).thenReturn(USER_NAME);
-        when(user.getUsername()).thenReturn(USER_NAME);
         when(user.getEmail()).thenReturn(EMAIL);
         when(user.getFirstname()).thenReturn(FIRST_NAME);
         when(user.getLastname()).thenReturn(LAST_NAME);
@@ -165,7 +169,8 @@ public class UserServiceTest {
         verify(userRepository).create(argThat(new ArgumentMatcher<User>() {
             public boolean matches(final Object argument) {
                 final User userToCreate = (User) argument;
-                return USER_NAME.equals(userToCreate.getUsername()) &&
+                return USER_NAME.equals(userToCreate.getSourceId()) &&
+                    USER_SOURCE.equals(userToCreate.getSource()) &&
                     EMAIL.equals(userToCreate.getEmail()) &&
                     FIRST_NAME.equals(userToCreate.getFirstname()) &&
                     LAST_NAME.equals(userToCreate.getLastname()) &&
@@ -175,7 +180,7 @@ public class UserServiceTest {
             }
         }));
 
-        assertEquals(USER_NAME, createdUserEntity.getUsername());
+        assertEquals(USER_NAME, createdUserEntity.getId());
         assertEquals(FIRST_NAME, createdUserEntity.getFirstname());
         assertEquals(LAST_NAME, createdUserEntity.getLastname());
         assertEquals(EMAIL, createdUserEntity.getEmail());
@@ -185,10 +190,10 @@ public class UserServiceTest {
         assertEquals(date, createdUserEntity.getUpdatedAt());
     }
 
-    @Test(expected = UsernameAlreadyExistsException.class)
+    @Test(expected = UserAlreadyExistsException.class)
     public void shouldNotCreateBecauseExists() throws TechnicalException {
-        when(newUser.getUsername()).thenReturn(USER_NAME);
-        when(userRepository.findById(USER_NAME)).thenReturn(of(new User()));
+//        when(newUser.getUsername()).thenReturn(USER_NAME);
+        when(userRepository.findBySource(anyString(), anyString())).thenReturn(of(new User()));
 
         userService.create(newUser, false);
 
@@ -197,8 +202,8 @@ public class UserServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateBecauseTechnicalException() throws TechnicalException {
-        when(newUser.getUsername()).thenReturn(USER_NAME);
-        when(userRepository.findById(USER_NAME)).thenReturn(Optional.empty());
+//        when(newUser.getUsername()).thenReturn(USER_NAME);
+        when(userRepository.findBySource(anyString(), anyString())).thenReturn(Optional.empty());
         when(userRepository.create(any(User.class))).thenThrow(TechnicalException.class);
 
         userService.create(newUser, false);
@@ -258,7 +263,7 @@ public class UserServiceTest {
     public void createNewRegistrationUserThatIsNotCreatedYet() throws TechnicalException {
         when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
-        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.empty());
+        when(userRepository.findBySource(USER_SOURCE, USER_NAME)).thenReturn(Optional.empty());
         when(userRepository.create(any(User.class))).thenReturn(user);
 
         RegisterUserEntity userEntity = new RegisterUserEntity();
@@ -276,11 +281,10 @@ public class UserServiceTest {
 
         User user = new User();
         user.setId("CUSTOM_LONG_ID");
-        user.setUsername(USER_NAME);
         user.setEmail(EMAIL);
         user.setFirstname(FIRST_NAME);
         user.setLastname(LAST_NAME);
-        when(userRepository.findByUsername(USER_NAME)).thenReturn(Optional.of(user));
+        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
         when(userRepository.update(any(User.class))).thenReturn(user);
 
         RegisterUserEntity userEntity = new RegisterUserEntity();
@@ -292,11 +296,10 @@ public class UserServiceTest {
         verify(userRepository).update(argThat(new ArgumentMatcher<User>() {
             public boolean matches(final Object argument) {
                 final User userToCreate = (User) argument;
-                return USER_NAME.equals(userToCreate.getUsername()) &&
+                return "CUSTOM_LONG_ID".equals(userToCreate.getId()) &&
                         EMAIL.equals(userToCreate.getEmail()) &&
                         FIRST_NAME.equals(userToCreate.getFirstname()) &&
                         LAST_NAME.equals(userToCreate.getLastname()) &&
-                        "CUSTOM_LONG_ID".equals(userToCreate.getId()) &&
                         !StringUtils.isEmpty(userToCreate.getPassword());
             }
         }));
@@ -311,7 +314,7 @@ public class UserServiceTest {
         userEntity.setToken(createJWT(System.currentTimeMillis()/1000 - 100));
         userEntity.setPassword(PASSWORD);
 
-        verify(userRepository, never()).findByUsername(USER_NAME);
+        verify(userRepository, never()).findBySource(USER_SOURCE, USER_NAME);
 
         userService.create(userEntity);
     }
@@ -319,7 +322,7 @@ public class UserServiceTest {
     @Test
     public void shouldResetPassword() throws TechnicalException {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
-        when(user.getUsername()).thenReturn(USER_NAME);
+        when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
@@ -337,7 +340,7 @@ public class UserServiceTest {
 
     @Test(expected = UserNotInternallyManagedException.class)
     public void shouldNotResetPasswordCauseUserNotInternallyManaged() throws TechnicalException {
-        when(user.getUsername()).thenReturn(USER_NAME);
+        when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("external");
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 

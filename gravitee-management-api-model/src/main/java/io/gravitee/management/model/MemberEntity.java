@@ -29,11 +29,7 @@ public class MemberEntity {
 
     private String id;
 
-    private String username;
-
-    private String firstname;
-
-    private String lastname;
+    private String displayName;
 
     private String email;
 
@@ -79,20 +75,12 @@ public class MemberEntity {
         this.id = id;
     }
 
-    public String getFirstname() {
-        return firstname;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public String getEmail() {
@@ -109,14 +97,6 @@ public class MemberEntity {
 
     public void setPermissions(Map<String, char[]> permissions) {
         this.permissions = permissions;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     @Override

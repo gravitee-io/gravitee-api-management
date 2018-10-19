@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
+package io.gravitee.management.service.impl.configuration.identity;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.management.service.exceptions.AbstractManagementException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UsernameAlreadyExistsException extends AbstractManagementException {
+public class ClientSecretRequiredException extends AbstractManagementException {
 
-    private final String username;
+    private final String identityProvider;
 
-    public UsernameAlreadyExistsException(String username) {
-        this.username = username;
+    ClientSecretRequiredException(String identityProvider) {
+        this.identityProvider = identityProvider;
     }
 
     @Override
@@ -36,6 +37,6 @@ public class UsernameAlreadyExistsException extends AbstractManagementException 
 
     @Override
     public String getMessage() {
-        return "A user with username " + username + " already exists.";
+        return "A client_secret is required for provider [" + identityProvider + "]";
     }
 }

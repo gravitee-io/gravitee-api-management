@@ -165,7 +165,7 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
             user.setLastname(ctx.getStringAttribute(LDAP_ATTRIBUTE_SURNAME));
             user.setEmail(ctx.getStringAttribute(LDAP_ATTRIBUTE_MAIL));
             user.setDisplayName(ctx.getStringAttribute(LDAP_ATTRIBUTE_DISPLAYNAME));
-            user.setUsername(ctx.getStringAttribute(LdapIdentityLookup.this.identifierAttribute));
+            //user.setUsername(ctx.getStringAttribute(LdapIdentityLookup.this.identifierAttribute));
 
             if (user.getDisplayName() == null) {
                 user.setDisplayName(user.getFirstname() + ' ' + user.getLastname());

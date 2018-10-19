@@ -25,10 +25,11 @@ import io.gravitee.management.rest.model.PagedResult;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.UserService;
-import io.swagger.annotations.Api;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -47,6 +48,8 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.READ
  */
 @Path("/users")
 @Api(tags = {"User"})
+@Produces(APPLICATION_JSON)
+@Consumes(APPLICATION_JSON)
 public class UsersResource extends AbstractResource {
 
     @Context
@@ -56,12 +59,19 @@ public class UsersResource extends AbstractResource {
     private UserService userService;
 
     @GET
-    @Produces(APPLICATION_JSON)
-    @Permissions(
-            @Permission(value = RolePermission.MANAGEMENT_USERS, acls = READ)
+    @Permissions(@Permission(value = RolePermission.MANAGEMENT_USERS, acls = READ))
+    @ApiOperation(
+            value = "Search for API using the search engine",
+            notes = "User must have the MANAGEMENT_USERS[READ] permission to use this service"
     )
-    public PagedResult<UserEntity> findAll(@Valid @BeanParam Pageable pageable) {
-        Page<UserEntity> users = userService.search(pageable.toPageable());
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List users matching the query criteria", response = UserEntity.class, responseContainer = "PagedResult"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public PagedResult<UserEntity> findAll(
+            @ApiParam(name = "q")
+            @QueryParam("q") String query,
+            @Valid @BeanParam Pageable pageable) {
+        Page<UserEntity> users = userService.search(query, pageable.toPageable());
         return new PagedResult<>(users, pageable.getSize());
     }
 
@@ -70,8 +80,6 @@ public class UsersResource extends AbstractResource {
      * Generate a token and send it in an email to allow a user to create an account.
      */
     @POST
-    @Produces(APPLICATION_JSON)
-    @Consumes(APPLICATION_JSON)
     @Path("/register")
     public Response registerUser(@Valid NewExternalUserEntity newExternalUserEntity) {
         UserEntity newUser = userService.register(newExternalUserEntity);
@@ -86,8 +94,6 @@ public class UsersResource extends AbstractResource {
     }
     
     @POST
-    @Produces(APPLICATION_JSON)
-    @Consumes(APPLICATION_JSON)
     public Response createUser(@Valid RegisterUserEntity registerUserEntity) {
         UserEntity newUser = userService.create(registerUserEntity);
         if (newUser != null) {

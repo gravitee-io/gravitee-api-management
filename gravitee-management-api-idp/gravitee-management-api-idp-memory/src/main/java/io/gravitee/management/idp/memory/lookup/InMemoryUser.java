@@ -50,11 +50,6 @@ public class InMemoryUser implements User {
         return firstname + ' ' + lastname;
     }
 
-    @Override
-    public String getUsername() {
-        return reference;
-    }
-
     public void setEmail(String email) {
         this.email = email;
     }

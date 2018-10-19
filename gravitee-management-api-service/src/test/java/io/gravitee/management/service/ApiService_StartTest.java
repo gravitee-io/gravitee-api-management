@@ -90,7 +90,7 @@ public class ApiService_StartTest {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         UserEntity u = mock(UserEntity.class);
-        when(u.getUsername()).thenReturn(USER_NAME);
+        when(u.getId()).thenReturn(USER_NAME);
         when(userService.findById(any())).thenReturn(u);
     }
 

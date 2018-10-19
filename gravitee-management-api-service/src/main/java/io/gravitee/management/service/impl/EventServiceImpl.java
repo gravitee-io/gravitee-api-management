@@ -204,7 +204,6 @@ public class EventServiceImpl extends TransactionalService implements EventServi
                     UserEntity user = new UserEntity();
                     user.setSource("system");
                     user.setId(userId);
-                    user.setUsername("system");
                     eventEntity.setUser(user);
                 }
             }

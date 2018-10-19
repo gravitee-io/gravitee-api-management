@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.impl.configuration;
+package io.gravitee.management.service.impl.configuration.dictionary;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
@@ -23,8 +23,6 @@ import io.gravitee.management.model.configuration.dictionary.*;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.EventService;
 import io.gravitee.management.service.configuration.dictionary.DictionaryService;
-import io.gravitee.management.service.exceptions.DictionaryAlreadyExistsException;
-import io.gravitee.management.service.exceptions.DictionaryNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.AbstractService;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -310,9 +308,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             dictionaryRepository.delete(id);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find a dictionary using its ID {}", id, ex);
+            LOGGER.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
             throw new TechnicalManagementException(
-                    "An error occurs while trying to find a dictionary using its ID " + id, ex);
+                    "An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }
     }
 

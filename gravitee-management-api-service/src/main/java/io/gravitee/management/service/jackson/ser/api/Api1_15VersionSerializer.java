@@ -18,10 +18,19 @@ package io.gravitee.management.service.jackson.ser.api;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.service.MembershipService;
+import io.gravitee.management.service.UserService;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -65,6 +74,29 @@ public class Api1_15VersionSerializer extends ApiSerializer {
             }
 
             jsonGenerator.writeEndObject();
+        }
+
+
+
+        // handle filtered fields list
+        List<String> filteredFieldsList = (List<String>) apiEntity.getMetadata().get(METADATA_FILTERED_FIELDS_LIST);
+
+        // members
+        if (!filteredFieldsList.contains("members")) {
+            Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API);
+            List<ApiSerializer.Member> members = new ArrayList<>(memberEntities == null ? 0 : memberEntities.size());
+            if (memberEntities != null) {
+                memberEntities.forEach(m -> {
+                    UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
+                    if (userEntity != null) {
+                        Member member = new Member();
+                        member.setUsername(userEntity.getSourceId());
+                        member.setRole(m.getRole());
+                        members.add(member);
+                    }
+                });
+            }
+            jsonGenerator.writeObjectField("members", members);
         }
 
         // must end the writing process

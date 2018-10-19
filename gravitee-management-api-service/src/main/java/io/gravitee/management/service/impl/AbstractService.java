@@ -25,15 +25,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public abstract class AbstractService extends TransactionalService {
 
     protected String getAuthenticatedUsername() {
-        return getAuthenticatedUser().getUsername();
+        UserDetails authenticatedUser = getAuthenticatedUser();
+        return authenticatedUser == null ? null : authenticatedUser.getUsername();
     }
 
     UserDetails getAuthenticatedUser() {
         if (isAuthenticated()) {
             return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         }
-
-        throw new IllegalStateException("Not authenticated !");
+        return null;
     }
 
     protected boolean isAuthenticated() {

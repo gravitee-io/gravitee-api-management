@@ -60,10 +60,7 @@ public class SearchEngineConfiguration {
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
         iwc.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
 
-        IndexWriter writer = new IndexWriter(directory, iwc);
-
-        writer.commit();
-        return writer;
+        return new IndexWriter(directory, iwc);
     }
 
     @Bean

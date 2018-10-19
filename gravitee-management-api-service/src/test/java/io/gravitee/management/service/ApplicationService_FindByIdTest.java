@@ -77,7 +77,7 @@ public class ApplicationService_FindByIdTest {
         po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferenceAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
                 .thenReturn(Collections.singleton(po));
-        when(userService.findByUsername(USER_NAME, false)).thenReturn(new UserEntity());
+//        when(userService.findByUsername(USER_NAME, false)).thenReturn(new UserEntity());
 
         final ApplicationEntity applicationEntity = applicationService.findById(APPLICATION_ID);
 

@@ -13,31 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource.auth;
+package io.gravitee.management.service;
 
-import org.apache.commons.lang.StringUtils;
+import io.gravitee.management.model.configuration.identity.SocialIdentityProviderEntity;
+
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum AuthenticationSource {
+public interface SocialIdentityProviderService {
 
-    GOOGLE("google"),
-    GITHUB("github"),
-    OAUTH2("oauth2");
+    Set<SocialIdentityProviderEntity> findAll();
 
-    String name;
-
-    AuthenticationSource(final String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public String capitalize() {
-        return StringUtils.capitalize(this.name);
-    }
+    SocialIdentityProviderEntity findById(String id);
 }

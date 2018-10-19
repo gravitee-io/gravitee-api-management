@@ -16,18 +16,13 @@
 package io.gravitee.management.rest.resource;
 
 import com.fasterxml.jackson.databind.JavaType;
-import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.common.util.Version;
-import io.gravitee.management.rest.bind.AuthenticationBinder;
 import io.gravitee.management.rest.filter.PermissionsFilter;
 import io.gravitee.management.rest.filter.SecurityContextFilter;
 import io.gravitee.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.management.rest.provider.*;
-import io.gravitee.management.rest.resource.auth.GitHubAuthenticationResource;
-import io.gravitee.management.rest.resource.auth.GoogleAuthenticationResource;
 import io.gravitee.management.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.management.rest.resource.search.SearchResource;
-import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
@@ -49,8 +44,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -112,16 +105,15 @@ public class GraviteeApplication extends ResourceConfig {
         register(MessagesResource.class);
         register(MultiPartFeature.class);
 
-        // Dynamically register authentication endpoints
-        register(new AuthenticationBinder(authenticationProviderManager));
-        registerAuthenticationEndpoints();
-
         register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);
         register(UnrecognizedPropertyExceptionMapper.class);
         register(ThrowableMapper.class);
         register(NotFoundExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
+
+        // Dynamic authentication provider endpoints
+        register(OAuth2AuthenticationResource.class);
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
@@ -133,26 +125,5 @@ public class GraviteeApplication extends ResourceConfig {
         register(SwaggerSerializers.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
-    }
-
-    private void registerAuthenticationEndpoints() {
-        registerAuthenticationEndpoint("google", GoogleAuthenticationResource.class);
-        registerAuthenticationEndpoint("github", GitHubAuthenticationResource.class);
-        registerAuthenticationEndpoint("oauth2", OAuth2AuthenticationResource.class);
-    }
-
-    private void registerAuthenticationEndpoint(String provider, Class resource) {
-        if (authenticationProviderManager != null) {
-            Optional<AuthenticationProvider> socialProvider = authenticationProviderManager.findIdentityProviderByType(provider);
-            if (socialProvider.isPresent()) {
-                Map<String, Object> configuration = socialProvider.get().configuration();
-                String clientId = (String) EnvironmentUtils.get("clientId", configuration);
-                String clientSecret = (String) EnvironmentUtils.get("clientSecret", configuration);
-
-                if (clientId != null && !clientId.isEmpty() && clientSecret != null && !clientSecret.isEmpty()) {
-                    register(resource);
-                }
-            }
-        }
     }
 }

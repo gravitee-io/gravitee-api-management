@@ -34,11 +34,6 @@ public class NewExternalUserEntity {
     private String lastname;
 
     /**
-     * The user name
-     */
-    private String username;
-
-    /**
      * The user email
      */
     @NotNull
@@ -99,14 +94,6 @@ public class NewExternalUserEntity {
         this.picture = picture;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public String getEmail() {
         return email;
     }
@@ -118,9 +105,8 @@ public class NewExternalUserEntity {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("NewExternalUserEntity{");
-        sb.append("username='").append(firstname).append('\'');
         sb.append(", source='").append(source).append('\'');
-        sb.append(", external_reference='").append(sourceId).append('\'');
+        sb.append(", source_id='").append(sourceId).append('\'');
         sb.append(", firstname='").append(firstname).append('\'');
         sb.append(", lastname='").append(lastname).append('\'');
         sb.append(", mail='").append(email).append('\'');

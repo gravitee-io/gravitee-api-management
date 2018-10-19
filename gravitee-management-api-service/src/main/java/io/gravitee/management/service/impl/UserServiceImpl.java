@@ -26,8 +26,12 @@ import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.common.JWTHelper.Claims;
 import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.impl.search.SearchResult;
 import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.management.service.notification.PortalHook;
+import io.gravitee.management.service.search.SearchEngineService;
+import io.gravitee.management.service.search.query.Query;
+import io.gravitee.management.service.search.query.QueryBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -69,6 +73,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
+    /**
+     * A default source used for user registration.
+     */
+    private final static String IDP_SOURCE_GRAVITEE = "gravitee";
+
     @Autowired
     private UserRepository userRepository;
 
@@ -104,6 +113,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
+
+    @Autowired
+    private SearchEngineService searchEngineService;
 
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -143,7 +155,10 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     user.getUpdatedAt(),
                     previousUser,
                     user);
-            return convert(updatedUser, true);
+
+            final UserEntity userEntity = convert(updatedUser, true);
+            searchEngineService.index(userEntity);
+            return userEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to connect {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to connect " + userId, ex);
@@ -187,20 +202,21 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     @Override
-    public UserEntity findByUsername(String username, boolean loadRoles) {
+    public UserEntity findBySource(String source, String sourceId, boolean loadRoles) {
         try {
-            LOGGER.debug("Find user by name: {}", username);
+            LOGGER.debug("Find user by source[{}] user[{}]", source, sourceId);
 
-            Optional<User> optionalUser = userRepository.findByUsername(username);
+            Optional<User> optionalUser = userRepository.findBySource(source, sourceId);
 
             if (optionalUser.isPresent()) {
                 return convert(optionalUser.get(), loadRoles);
             }
-            //should never happen
-            throw new UserNotFoundException(username);
+
+            // Should never happen
+            throw new UserNotFoundException(sourceId);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find user using its username {}", username, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find user using its username " + username, ex);
+            LOGGER.error("An error occurs while trying to find user using source[{}], user[{}]", source, sourceId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find user using source " + source + ':' + sourceId, ex);
         }
     }
 
@@ -252,11 +268,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
             String username = claims.get(Claims.SUBJECT).toString();
 
             LOGGER.debug("Create an internal user {}", username);
-            Optional<User> checkUser = userRepository.findByUsername(username);
+            Optional<User> checkUser = userRepository.findById(username);
             User user = checkUser.orElseThrow(() -> new UserNotFoundException(username));
 
             if (StringUtils.isNotBlank(user.getPassword())) {
-                throw new UsernameAlreadyExistsException(username);
+                throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, username);
             }
 
             // Set date fields
@@ -268,12 +284,15 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             user = userRepository.update(user);
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(USER, user.getUsername()),
+                    Collections.singletonMap(USER, user.getId()),
                     User.AuditEvent.USER_CREATED,
                     user.getUpdatedAt(),
                     null,
                     user);
-            return convert(user, true);
+
+            final UserEntity userEntity = convert(user, true);
+            searchEngineService.index(userEntity);
+            return userEntity;
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to create an internal user with the token {}", registerUserEntity.getToken(), ex);
             throw new TechnicalManagementException(ex.getMessage(), ex);
@@ -323,30 +342,35 @@ public class UserServiceImpl extends AbstractService implements UserService {
     public UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole) {
         try {
             LOGGER.debug("Create an external user {}", newExternalUserEntity);
-            Optional<User> checkUser = userRepository.findById(newExternalUserEntity.getUsername());
+            Optional<User> checkUser = userRepository.findBySource(
+                    newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId());
+
             if (checkUser.isPresent()) {
-                throw new UsernameAlreadyExistsException(newExternalUserEntity.getUsername());
+                throw new UserAlreadyExistsException(newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId());
             }
 
             User user = convert(newExternalUserEntity);
             user.setId(UUID.toString(UUID.random()));
-            
+
             // Set date fields
             user.setCreatedAt(new Date());
             user.setUpdatedAt(user.getCreatedAt());
 
             User createdUser = userRepository.create(user);
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(USER, user.getUsername()),
+                    Collections.singletonMap(USER, user.getId()),
                     User.AuditEvent.USER_CREATED,
                     user.getCreatedAt(),
                     null,
                     user);
+
             if (addDefaultRole) {
                 addDefaultMembership(createdUser);
             }
 
-            return convert(createdUser, true);
+            final UserEntity userEntity = convert(createdUser, true);
+            searchEngineService.index(userEntity);
+            return userEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create an external user {}", newExternalUserEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create an external user" + newExternalUserEntity, ex);
@@ -395,18 +419,17 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         final Optional<User> optionalUser;
         try {
-            optionalUser = userRepository.findByUsername(newExternalUserEntity.getEmail());
+            optionalUser = userRepository.findBySource(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail());
             if (optionalUser.isPresent()) {
-                throw new UsernameAlreadyExistsException(newExternalUserEntity.getEmail());
+                throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail());
             }
         } catch (final TechnicalException e) {
             LOGGER.error("An error occurs while trying to register user {}", newExternalUserEntity.getEmail(), e);
             throw new TechnicalManagementException(e.getMessage(), e);
         }
 
-        newExternalUserEntity.setUsername(newExternalUserEntity.getEmail());
-        newExternalUserEntity.setSource("gravitee");
-        newExternalUserEntity.setSourceId(newExternalUserEntity.getUsername());
+        newExternalUserEntity.setSource(IDP_SOURCE_GRAVITEE);
+        newExternalUserEntity.setSourceId(newExternalUserEntity.getEmail());
 
         final UserEntity userEntity = create(newExternalUserEntity, true);
         final Map<String, Object> params = getTokenRegistrationParams(userEntity, "/#!/registration/confirm/");
@@ -415,7 +438,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                 .to(userEntity.getEmail())
-                .subject("User registration - " + userEntity.getUsername())
+                .subject("User registration - " + userEntity.getDisplayName())
                 .template(EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION)
                 .params(params)
                 .build()
@@ -429,7 +452,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         final Map<String, Object> claims = new HashMap<>();
         claims.put(Claims.ISSUER, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER));
 
-        claims.put(Claims.SUBJECT, userEntity.getUsername());
+        claims.put(Claims.SUBJECT, userEntity.getId());
         claims.put(Claims.EMAIL, userEntity.getEmail());
         claims.put(Claims.FIRSTNAME, userEntity.getFirstname());
         claims.put(Claims.LASTNAME, userEntity.getLastname());
@@ -463,12 +486,12 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     @Override
-    public UserEntity update(UpdateUserEntity updateUserEntity) {
+    public UserEntity update(String id, UpdateUserEntity updateUserEntity) {
         try {
             LOGGER.debug("Updating {}", updateUserEntity);
-            Optional<User> checkUser = userRepository.findByUsername(updateUserEntity.getUsername());
+            Optional<User> checkUser = userRepository.findById(id);
             if (!checkUser.isPresent()) {
-                throw new UserNotFoundException(updateUserEntity.getUsername());
+                throw new UserNotFoundException(id);
             }
 
             User user = checkUser.get();
@@ -493,7 +516,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             User updatedUser = userRepository.update(user);
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(USER, user.getUsername()),
+                    Collections.singletonMap(USER, user.getId()),
                     User.AuditEvent.USER_UPDATED,
                     user.getUpdatedAt(),
                     previousUser,
@@ -506,24 +529,44 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     @Override
-    public Page<UserEntity> search(Pageable pageable) {
+    public Page<UserEntity> search(String query, Pageable pageable) {
         try {
             LOGGER.debug("search users");
 
-            Page<User> users = userRepository.search(new PageableBuilder()
-                    .pageNumber(pageable.getPageNumber() - 1)
-                    .pageSize(pageable.getPageSize())
-                    .build());
+            if (query != null && !query.isEmpty()) {
+                Query<UserEntity> userQuery = QueryBuilder.create(UserEntity.class)
+                        .setQuery(query)
+                        .setPage(pageable)
+                        .build();
 
-            List<UserEntity> entities = users.getContent()
-                    .stream()
-                    .map(u -> convert(u, false))
-                    .collect(Collectors.toList());
+                SearchResult results = searchEngineService.search(userQuery);
 
-            return new Page<>(entities,
-                    users.getPageNumber() + 1,
-                    (int) users.getPageElements(),
-                    users.getTotalElements());
+                if (results.hasResults()) {
+                    List<UserEntity> users = new ArrayList<>((findByIds(results.getDocuments())));
+                    return new Page<>(users,
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            results.getHits());
+                } else {
+                    return new Page<>(Collections.<UserEntity>emptyList(),
+                            1, 0, 0);
+                }
+            } else {
+                Page<User> users = userRepository.search(new PageableBuilder()
+                        .pageNumber(pageable.getPageNumber() - 1)
+                        .pageSize(pageable.getPageSize())
+                        .build());
+
+                List<UserEntity> entities = users.getContent()
+                        .stream()
+                        .map(u -> convert(u, false))
+                        .collect(Collectors.toList());
+
+                return new Page<>(entities,
+                        users.getPageNumber() + 1,
+                        (int) users.getPageElements(),
+                        users.getTotalElements());
+            }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to search users", ex);
             throw new TechnicalManagementException("An error occurs while trying to search users", ex);
@@ -554,6 +597,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
             membershipService.removeUser(id);
             userRepository.delete(id);
 
+            final UserEntity userEntity = convert(optionalUser.get(), false);
+            searchEngineService.delete(userEntity);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete user", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete user", ex);
@@ -571,7 +616,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 throw new UserNotFoundException(id);
             }
             final User user = optionalUser.get();
-            if (!"gravitee".equals(user.getSource())) {
+            if (!IDP_SOURCE_GRAVITEE.equals(user.getSource())) {
                 throw new UserNotInternallyManagedException(id);
             }
             user.setPassword(null);
@@ -584,14 +629,14 @@ public class UserServiceImpl extends AbstractService implements UserService {
             notifierService.trigger(PortalHook.PASSWORD_RESET, params);
 
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(USER, user.getUsername()),
+                    Collections.singletonMap(USER, user.getId()),
                     User.AuditEvent.PASSWORD_RESET,
                     user.getUpdatedAt(),
                     null,
                     null);
             emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                     .to(user.getEmail())
-                    .subject("Password reset - " + user.getUsername())
+                    .subject("Password reset - " + user.getId())
                     .template(EmailNotificationBuilder.EmailTemplate.PASSWORD_RESET)
                     .params(params)
                     .build()
@@ -613,7 +658,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
         User user = new User();
 
-        user.setUsername(newExternalUserEntity.getUsername());
         user.setEmail(newExternalUserEntity.getEmail());
         user.setFirstname(newExternalUserEntity.getFirstname());
         user.setLastname(newExternalUserEntity.getLastname());
@@ -632,7 +676,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
         userEntity.setId(user.getId());
         userEntity.setSource(user.getSource());
         userEntity.setSourceId(user.getSourceId());
-        userEntity.setUsername(user.getUsername());
         userEntity.setEmail(user.getEmail());
         userEntity.setFirstname(user.getFirstname());
         userEntity.setLastname(user.getLastname());

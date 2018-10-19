@@ -74,7 +74,7 @@ public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthent
 	@Override
 	protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
 		try {
-			UserEntity user = userService.findByUsername(username, true);
+			UserEntity user = userService.findBySource(RepositoryIdentityProvider.PROVIDER_TYPE,  username, true);
 			if (RepositoryIdentityProvider.PROVIDER_TYPE.equals(user.getSource())) {
 				if (user.getPassword() == null) {
 					throw new BadCredentialsException(messages.getMessage(
@@ -98,18 +98,18 @@ public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthent
 		if (userEntity.getRoles() != null && userEntity.getRoles().size() > 0) {
 
 			authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(
-					userEntity.getRoles().stream().map(r -> r.getScope().name()+":"+r.getName()).collect(Collectors.joining(","))
+					userEntity.getRoles().stream().map(r -> r.getScope().name()+':'+r.getName()).collect(Collectors.joining(","))
 			);
 		}
 
 		io.gravitee.management.idp.api.authentication.UserDetails userDetails = new io.gravitee.management.idp.api.authentication.UserDetails(
-				userEntity.getUsername(), userEntity.getPassword(), authorities);
+				userEntity.getId(), userEntity.getPassword(), authorities);
 
 		userDetails.setFirstname(userEntity.getFirstname());
 		userDetails.setLastname(userEntity.getLastname());
 		userDetails.setEmail(userEntity.getEmail());
 		userDetails.setSource(RepositoryIdentityProvider.PROVIDER_TYPE);
-		userDetails.setSourceId(userEntity.getUsername());
+		userDetails.setSourceId(userEntity.getSourceId());
 
 		return userDetails;
 	}

@@ -26,7 +26,6 @@ import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.service.TaskService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.common.JWTHelper.Claims;
-import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
@@ -48,7 +47,10 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.*;
@@ -110,10 +112,11 @@ public class CurrentUserResource extends AbstractResource {
 
             UserDetails userDetails = new UserDetails(userEntity.getId(), password, authorities);
             userDetails.setId(userEntity.getId());
+            userDetails.setEmail(details.getEmail());
             userDetails.setFirstname(details.getFirstname());
             userDetails.setLastname(details.getLastname());
-            userDetails.setUsername(userEntity.getUsername());
-            userDetails.setEmail(details.getEmail());
+            userDetails.setSource(userEntity.getSource());
+            userDetails.setSourceId(userEntity.getSourceId());
 
             //convert UserEntityRoles to UserDetailsRoles
             userDetails.setRoles(userEntity.getRoles().
@@ -135,11 +138,16 @@ public class CurrentUserResource extends AbstractResource {
     @PUT
     @ApiOperation(value = "Update user")
     public Response updateCurrentUser(@Valid @NotNull final UpdateUserEntity user) {
-        if (!user.getUsername().equals(userService.findById(getAuthenticatedUser()).getUsername())) {
+        UserEntity userEntity = userService.findById(getAuthenticatedUser());
+
+        // TODO: how to ensure that we can update the user profile?
+/*
+        if (!userEntity.get.equals(userService.findById(getAuthenticatedUser()).getUsername())) {
             throw new ForbiddenAccessException();
         }
+*/
         checkImageSize(user.getPicture());
-        return ok(userService.update(user)).build();
+        return ok(userService.update(userEntity.getId(), user)).build();
     }
 
     @GET

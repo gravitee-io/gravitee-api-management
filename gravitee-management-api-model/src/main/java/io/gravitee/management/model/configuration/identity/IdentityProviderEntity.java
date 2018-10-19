@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.configuration.dictionary;
+package io.gravitee.management.model.configuration.identity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.common.component.Lifecycle;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DictionaryListItem {
+public class IdentityProviderEntity {
 
     private String id;
 
@@ -32,22 +34,23 @@ public class DictionaryListItem {
 
     private String description;
 
-    private DictionaryType type;
+    private IdentityProviderType type;
 
-    private String provider;
+    private boolean enabled;
+
+    private Map<String, Object> configuration;
+
+    private List<GroupMappingEntity> groupMappings;
+
+    private List<RoleMappingEntity> roleMappings;
+
+    private Map<String, String> userProfileMapping;
 
     @JsonProperty("created_at")
     private Date createdAt;
 
     @JsonProperty("updated_at")
     private Date updatedAt;
-
-    @JsonProperty("deployed_at")
-    private Date deployedAt;
-
-    private Lifecycle.State state;
-
-    private int properties;
 
     public String getId() {
         return id;
@@ -73,20 +76,12 @@ public class DictionaryListItem {
         this.description = description;
     }
 
-    public DictionaryType getType() {
+    public IdentityProviderType getType() {
         return type;
     }
 
-    public void setType(DictionaryType type) {
+    public void setType(IdentityProviderType type) {
         this.type = type;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
     }
 
     public Date getCreatedAt() {
@@ -105,42 +100,56 @@ public class DictionaryListItem {
         this.updatedAt = updatedAt;
     }
 
-    public Date getDeployedAt() {
-        return deployedAt;
+    public Map<String, Object> getConfiguration() {
+        return configuration;
     }
 
-    public void setDeployedAt(Date deployedAt) {
-        this.deployedAt = deployedAt;
+    public void setConfiguration(Map<String, Object> configuration) {
+        this.configuration = configuration;
     }
 
-    public Lifecycle.State getState() {
-        return state;
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    public void setState(Lifecycle.State state) {
-        this.state = state;
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
-    public int getProperties() {
-        return properties;
+    public List<GroupMappingEntity> getGroupMappings() {
+        return groupMappings;
     }
 
-    public void setProperties(int properties) {
-        this.properties = properties;
+    public void setGroupMappings(List<GroupMappingEntity> groupMappings) {
+        this.groupMappings = groupMappings;
+    }
+
+    public List<RoleMappingEntity> getRoleMappings() {
+        return roleMappings;
+    }
+
+    public void setRoleMappings(List<RoleMappingEntity> roleMappings) {
+        this.roleMappings = roleMappings;
+    }
+
+    public Map<String, String> getUserProfileMapping() {
+        return userProfileMapping;
+    }
+
+    public void setUserProfileMapping(Map<String, String> userProfileMapping) {
+        this.userProfileMapping = userProfileMapping;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
-        DictionaryListItem that = (DictionaryListItem) o;
-
-        return id.equals(that.id);
+        IdentityProviderEntity that = (IdentityProviderEntity) o;
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return Objects.hash(id);
     }
 }

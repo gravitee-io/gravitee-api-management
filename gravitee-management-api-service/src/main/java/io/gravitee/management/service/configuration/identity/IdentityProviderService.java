@@ -13,30 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource.auth.oauth2;
+package io.gravitee.management.service.configuration.identity;
 
-import java.util.List;
+import io.gravitee.management.model.configuration.identity.IdentityProviderEntity;
+import io.gravitee.management.model.configuration.identity.NewIdentityProviderEntity;
+import io.gravitee.management.model.configuration.identity.UpdateIdentityProviderEntity;
+
+import java.util.Set;
 
 /**
- * @author Christophe LANNOY (chrislannoy.java at gmail.com)
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class ExpressionMapping {
+public interface IdentityProviderService {
 
-    private String condition;
-    private List<String> values;
+    IdentityProviderEntity create(NewIdentityProviderEntity identityProvider);
 
-    public ExpressionMapping(String condition, List<String> values) {
-        this.condition = condition;
-        this.values = values;
-    }
+    IdentityProviderEntity update(String id, UpdateIdentityProviderEntity identityProvider);
 
-    public String getCondition() {
-        return condition;
-    }
+    IdentityProviderEntity findById(String id);
 
-    public List<String> getValues() {
-        return values;
-    }
+    void delete(String id);
 
+    Set<IdentityProviderEntity> findAll();
 }

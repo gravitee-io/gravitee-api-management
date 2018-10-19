@@ -19,7 +19,8 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.notification.NotifierEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
-import io.gravitee.management.rest.resource.configuration.DictionariesResource;
+import io.gravitee.management.rest.resource.configuration.identity.IdentityProvidersResource;
+import io.gravitee.management.rest.resource.configuration.dictionary.DictionariesResource;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.NotifierService;
@@ -125,5 +126,10 @@ public class ConfigurationResource {
     @Path("apiheaders")
     public ApiHeadersResource getApiHeadersResource() {
         return resourceContext.getResource(ApiHeadersResource.class);
+    }
+
+    @Path("identities")
+    public IdentityProvidersResource getAuthenticationProvidersResource() {
+        return resourceContext.getResource(IdentityProvidersResource.class);
     }
 }

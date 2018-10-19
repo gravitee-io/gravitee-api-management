@@ -25,7 +25,7 @@ import io.gravitee.management.idp.ldap.LdapIdentityProvider;
 public class LdapUser implements User {
 
     private final String reference;
-    private String firstname, lastname, email, displayName, username;
+    private String firstname, lastname, email, displayName;
 
     LdapUser(String reference) {
         this.reference = reference;
@@ -34,15 +34,6 @@ public class LdapUser implements User {
     @Override
     public String getReference() {
         return reference;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     @Override

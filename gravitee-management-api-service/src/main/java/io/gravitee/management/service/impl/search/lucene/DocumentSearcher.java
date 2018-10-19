@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.impl.search.lucene;
 
+import io.gravitee.management.service.impl.search.SearchResult;
 import io.gravitee.management.service.impl.search.lucene.handler.TypedHandler;
 import io.gravitee.management.service.search.query.Query;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -32,5 +33,5 @@ public interface DocumentSearcher extends TypedHandler {
      * @param query
      * @return Returns the ID field value of the matching documents.
      */
-    List<String> search(Query query) throws TechnicalException;
+    SearchResult search(Query query) throws TechnicalException;
 }

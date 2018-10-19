@@ -5,7 +5,8 @@
   "path_mappings":[],
   "groups" : [ "My Group" ],
   "members" : [ {
-    "username" : "johndoe",
+    "source":"johndoe-source",
+    "sourceId":"johndoe-sourceId",
     "role" : "PRIMARY_OWNER"
   } ],
   "plans" : [ {

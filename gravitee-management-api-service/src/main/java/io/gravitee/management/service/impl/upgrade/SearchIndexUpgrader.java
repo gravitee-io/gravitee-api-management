@@ -15,13 +15,17 @@
  */
 package io.gravitee.management.service.impl.upgrade;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageListItem;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.common.PageableImpl;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
-import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.management.service.Upgrader;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.search.SearchEngineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
@@ -42,6 +46,9 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
 
     @Autowired
     private PageService pageService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private SearchEngineService searchEngineService;
@@ -68,6 +75,16 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
                                 }
                             }
                         });
+                    }
+                });
+
+        // Index users
+        Page<UserEntity> users = userService.search(null, new PageableImpl(1, Integer.MAX_VALUE));
+        users.getContent().stream()
+                .forEach(new Consumer<UserEntity>() {
+                    @Override
+                    public void accept(UserEntity userEntity) {
+                        searchEngineService.index(userEntity);
                     }
                 });
 

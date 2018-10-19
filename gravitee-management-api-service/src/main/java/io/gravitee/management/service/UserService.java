@@ -33,12 +33,12 @@ public interface UserService {
     UserEntity connect(String userId);
     UserEntity findById(String id);
     UserEntity findByIdWithRoles(String id);
-    UserEntity findByUsername(String username, boolean loadRoles);
+    UserEntity findBySource(String source, String sourceId, boolean loadRoles);
     Set<UserEntity> findByIds(List<String> ids);
     UserEntity create(RegisterUserEntity registerUserEntity);
     UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
-    UserEntity update(UpdateUserEntity updateUserEntity);
-    Page<UserEntity> search(Pageable pageable);
+    UserEntity update(String userId, UpdateUserEntity updateUserEntity);
+    Page<UserEntity> search(String query, Pageable pageable);
     UserEntity register(NewExternalUserEntity newExternalUserEntity);
     PictureEntity getPicture(String id);
     void delete(String id);

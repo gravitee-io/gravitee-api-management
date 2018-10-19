@@ -13,22 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
+package io.gravitee.management.service.impl.configuration.identity;
+
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.management.service.exceptions.AbstractManagementException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DictionaryNotFoundException extends AbstractNotFoundException {
+public class ClientIdRequiredException extends AbstractManagementException {
 
-    private final String id;
+    private final String identityProvider;
 
-    public DictionaryNotFoundException(String id) {
-        this.id = id;
+    ClientIdRequiredException(String identityProvider) {
+        this.identityProvider = identityProvider;
+    }
+
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
     }
 
     @Override
     public String getMessage() {
-        return "Dictionary [" + id + "] can not be found.";
+        return "A client_id is required for provider [" + identityProvider + "]";
     }
 }

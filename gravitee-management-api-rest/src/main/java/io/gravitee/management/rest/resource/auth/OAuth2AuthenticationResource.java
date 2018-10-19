@@ -23,14 +23,14 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.*;
-import io.gravitee.management.rest.resource.auth.oauth2.AuthorizationServerConfigurationParser;
-import io.gravitee.management.rest.resource.auth.oauth2.ExpressionMapping;
-import io.gravitee.management.rest.resource.auth.oauth2.ServerConfiguration;
-import io.gravitee.management.rest.resource.auth.oauth2.UserMapping;
-import io.gravitee.management.security.authentication.AuthenticationProvider;
+import io.gravitee.management.model.configuration.identity.GroupMappingEntity;
+import io.gravitee.management.model.configuration.identity.RoleMappingEntity;
+import io.gravitee.management.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.RoleService;
+import io.gravitee.management.service.SocialIdentityProviderService;
+import io.gravitee.management.service.exceptions.GroupNotFoundException;
 import io.gravitee.management.service.exceptions.RoleNotFoundException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
@@ -44,12 +44,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -66,23 +64,16 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 @Singleton
-@Path("/auth/oauth2")
-@Api(tags = {"Authentication"})
+@Path("/auth/oauth2/{identity}")
+@Api(tags = {"Portal", "OAuth2 Authentication"})
 public class OAuth2AuthenticationResource extends AbstractAuthenticationResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2AuthenticationResource.class);
 
-    static class UserProfile {
-        public static final String ID = "id";
-        public static final String FIRSTNAME = "firstName";
-        public static final String LASTNAME = "lastName";
-        public static final String PICTURE = "picture";
-        public static final String EMAIL = "email";
-    }
+    private final static String TEMPLATE_ENGINE_PROFILE_ATTRIBUTE = "profile";
 
-    @Inject
-    @Named("oauth2")
-    private AuthenticationProvider authenticationProvider;
+    @Autowired
+    private SocialIdentityProviderService socialIdentityProviderService;
 
     @Autowired
     private GroupService groupService;
@@ -93,77 +84,99 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @Autowired
     protected MembershipService membershipService;
 
-    private AuthorizationServerConfigurationParser authorizationServerConfigurationParser = new AuthorizationServerConfigurationParser();
-
     private Client client;
 
-    private ServerConfiguration serverConfiguration;
+    private static final String ACCESS_TOKEN_PROPERTY = "access_token";
 
     public OAuth2AuthenticationResource() {
         this.client = ClientBuilder.newClient();
     }
 
-    @PostConstruct
-    public void init() {
-        serverConfiguration = authorizationServerConfigurationParser.parseConfiguration(authenticationProvider.configuration());
-    }
-
     @POST
     @Path("exchange")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response tokenExchange(@QueryParam(value = "token") String token,
-                                  @Context final HttpServletResponse servletResponse) throws IOException {
-        // Step1. Check the token by invoking the introspection endpoint
-        final MultivaluedStringMap introspectData = new MultivaluedStringMap();
-        introspectData.add(TOKEN, token);
-        Response response = client
-                .target(serverConfiguration.getTokenIntrospectionEndpoint())
-                .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
-                .header(HttpHeaders.AUTHORIZATION,
-                        String.format("Basic %s",
-                                Base64.getEncoder().encodeToString(
-                                        (serverConfiguration.getClientId() + ':' + serverConfiguration.getClientSecret()).getBytes())))
-                .post(Entity.form(introspectData));
-        introspectData.clear();
+    public Response tokenExchange(
+            @PathParam(value = "identity") final String identity,
+            @QueryParam(value = "token") final String token,
+            @Context final HttpServletResponse servletResponse) throws IOException {
+        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity);
 
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            JsonNode introspectPayload = response.readEntity(JsonNode.class);
-            boolean active = introspectPayload.path("active").asBoolean(true);
+        if (identityProvider != null) {
+            if (identityProvider.getTokenIntrospectionEndpoint() != null) {
+                // Step1. Check the token by invoking the introspection endpoint
+                final MultivaluedStringMap introspectData = new MultivaluedStringMap();
+                introspectData.add(TOKEN, token);
+                Response response = client
+                        //TODO: what is the correct introspection URL here ?
+                        .target(identityProvider.getTokenIntrospectionEndpoint())
+                        .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+                        .header(HttpHeaders.AUTHORIZATION,
+                                String.format("Basic %s",
+                                        Base64.getEncoder().encodeToString(
+                                                (identityProvider.getClientId() + ':' + identityProvider.getClientSecret()).getBytes())))
+                        .post(Entity.form(introspectData));
+                introspectData.clear();
 
-            if (active) {
-                return authenticateUser(token, servletResponse);
-            } else {
+                if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                    JsonNode introspectPayload = response.readEntity(JsonNode.class);
+                    boolean active = introspectPayload.path("active").asBoolean(true);
+
+                    if (active) {
+                        return authenticateUser(identityProvider, servletResponse, token);
+                    } else {
+                        return Response
+                                .status(Response.Status.UNAUTHORIZED)
+                                .entity(introspectPayload)
+                                .build();
+                    }
+                }
+
                 return Response
-                        .status(Response.Status.UNAUTHORIZED)
-                        .entity(introspectPayload)
+                        .status(response.getStatusInfo())
+                        .entity(response.getEntity())
+                        .build();
+            } else {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Token exchange is not supported for this identity provider")
                         .build();
             }
         }
 
-        return Response
-                .status(response.getStatusInfo())
-                .entity(response.getEntity())
-                .build();
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public Response exchangeAuthorizationCode(@Valid final Payload payload,
-                                              @Context final HttpServletResponse servletResponse) throws IOException {
-        // Step 1. Exchange authorization code for access token.
-        final MultivaluedStringMap accessData = new MultivaluedStringMap();
-        accessData.add(CLIENT_ID_KEY, payload.getClientId());
-        accessData.add(REDIRECT_URI_KEY, payload.getRedirectUri());
-        accessData.add(CLIENT_SECRET, serverConfiguration.getClientSecret());
-        accessData.add(CODE_KEY, payload.getCode());
-        accessData.add(GRANT_TYPE_KEY, AUTH_CODE);
-        Response response = client.target(serverConfiguration.getTokenEndpoint())
-                .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
-                .post(Entity.form(accessData));
-        accessData.clear();
+    public Response exchangeAuthorizationCode(
+            @PathParam(value = "identity") String identity,
+            @Valid @NotNull final Payload payload,
+            @Context final HttpServletResponse servletResponse) throws IOException {
+        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity);
 
-        final String accessToken = (String) getResponseEntity(response).get(serverConfiguration.getAccessTokenProperty());
-        return authenticateUser(accessToken, servletResponse);
+        if (identityProvider != null) {
+            // Step 1. Exchange authorization code for access token.
+            final MultivaluedStringMap accessData = new MultivaluedStringMap();
+            accessData.add(CLIENT_ID_KEY, payload.getClientId());
+            accessData.add(REDIRECT_URI_KEY, payload.getRedirectUri());
+            accessData.add(CLIENT_SECRET, identityProvider.getClientSecret());
+            accessData.add(CODE_KEY, payload.getCode());
+            accessData.add(GRANT_TYPE_KEY, AUTH_CODE);
+            Response response = client.target(identityProvider.getTokenEndpoint())
+                    .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+                    .post(Entity.form(accessData));
+            accessData.clear();
+
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                final String accessToken = (String) getResponseEntity(response).get(ACCESS_TOKEN_PROPERTY);
+                return authenticateUser(identityProvider, servletResponse, accessToken);
+            }
+
+            return Response
+                    .status(Response.Status.UNAUTHORIZED)
+                    .build();
+        }
+
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 
     /**
@@ -171,130 +184,117 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
      *
      * @return
      */
-    private Response authenticateUser(String accessToken, final HttpServletResponse servletResponse) throws IOException {
+    private Response authenticateUser(final SocialIdentityProviderEntity socialProvider,
+                                      final HttpServletResponse servletResponse,
+                                      final String accessToken) throws IOException {
         // Step 2. Retrieve profile information about the authenticated end-user.
         Response response = client
-                .target(serverConfiguration.getUserInfoEndpoint())
+                .target(socialProvider.getUserInfoEndpoint())
                 .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
-                .header(HttpHeaders.AUTHORIZATION,
-                        String.format(
-                                serverConfiguration.getAuthorizationHeader(),
-                                accessToken))
+                .header(HttpHeaders.AUTHORIZATION, String.format(socialProvider.getAuthorizationHeader(), accessToken))
                 .get();
 
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return processUser(userInfo, servletResponse);
+            return processUser(socialProvider, servletResponse, userInfo);
         }
 
         return Response.status(response.getStatusInfo()).build();
     }
 
-    private Response processUser(String userInfo, final HttpServletResponse servletResponse) {
-        HashMap<String, String> attrs = getUserProfileAttrs(userInfo);
+    private Response processUser(final SocialIdentityProviderEntity socialProvider, final HttpServletResponse servletResponse, final String userInfo) {
+        HashMap<String, String> attrs = getUserProfileAttrs(socialProvider.getUserProfileMapping(), userInfo);
 
-        String username = attrs.get(UserProfile.EMAIL);
-        if (username == null) {
+        String email = attrs.get(SocialIdentityProviderEntity.UserProfile.EMAIL);
+        if (email == null) {
             throw new BadRequestException("No public email linked to your account");
         }
 
-        //set user to Authentication Context
-        UserDetails userDetails = new UserDetails(username, "", Collections.emptyList());
-        userDetails.setEmail(username);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
-
+        String userId = null;
         try {
-            UserEntity registeredUser = userService.findByUsername(username, false);
-            userDetails.setUsername(registeredUser.getId());
+            UserEntity registeredUser = userService.findBySource(socialProvider.getId(), attrs.get(SocialIdentityProviderEntity.UserProfile.ID), false);
+            userId = registeredUser.getId();
+
+            // User refresh
+            UpdateUserEntity user = new UpdateUserEntity();
+
+            if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
+                user.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
+            }
+            if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
+                user.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
+            }
+            if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
+                user.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
+            }
+
+            UserEntity updatedUser = userService.update(userId, user);
+
         } catch (UserNotFoundException unfe) {
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
-            newUser.setUsername(username);
-            newUser.setEmail(username);
-            newUser.setSource(AuthenticationSource.OAUTH2.getName());
+            newUser.setEmail(email);
+            newUser.setSource(socialProvider.getId());
 
-            if (attrs.get(UserProfile.ID) != null) {
-                newUser.setSourceId(attrs.get(UserProfile.ID));
+            if (attrs.get(SocialIdentityProviderEntity.UserProfile.ID) != null) {
+                newUser.setSourceId(attrs.get(SocialIdentityProviderEntity.UserProfile.ID));
             }
-            if (attrs.get(UserProfile.LASTNAME) != null) {
-                newUser.setLastname(attrs.get(UserProfile.LASTNAME));
+            if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
+                newUser.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
             }
-            if (attrs.get(UserProfile.FIRSTNAME) != null) {
-                newUser.setFirstname(attrs.get(UserProfile.FIRSTNAME));
+            if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
+                newUser.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
             }
-            if (attrs.get(UserProfile.PICTURE) != null) {
-                newUser.setPicture(attrs.get(UserProfile.PICTURE));
+            if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
+                newUser.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
             }
 
-            List<ExpressionMapping> groupsMapping = serverConfiguration.getGroupsMapping();
-            List<ExpressionMapping> rolesMapping = serverConfiguration.getRolesMapping();
-
-            if (!groupsMapping.isEmpty()) {
+            if (socialProvider.getGroupMappings() != null && !socialProvider.getGroupMappings().isEmpty()) {
                 // Can fail if a group in config does not exist in gravitee --> HTTP 500
-                Set<GroupEntity> groupsToAdd = getGroupsToAddUser(username, groupsMapping, userInfo);
+                Set<GroupEntity> groupsToAdd = getGroupsToAddUser(userId, socialProvider.getGroupMappings(), userInfo);
 
                 UserEntity createdUser = userService.create(newUser, true);
-                userDetails.setUsername(createdUser.getId());
-
+                userId = createdUser.getId();
                 addUserToApiAndAppGroupsWithDefaultRole(createdUser.getId(), groupsToAdd);
             } else {
                 UserEntity createdUser = userService.create(newUser, true);
-                userDetails.setUsername(createdUser.getId());
+                userId = createdUser.getId();
             }
 
-            if (!rolesMapping.isEmpty()) {
-                Set<RoleEntity> rolesToAdd = getRolesToAddUser(username, rolesMapping, userInfo);
-                addRolesToUser(userDetails.getUsername(), rolesToAdd);
+            if (socialProvider.getRoleMappings() != null && !socialProvider.getRoleMappings().isEmpty()) {
+                Set<RoleEntity> rolesToAdd = getRolesToAddUser(userId, socialProvider.getRoleMappings(), userInfo);
+                addRolesToUser(userId, rolesToAdd);
             }
         }
 
-        // User refresh
-        UpdateUserEntity user = new UpdateUserEntity();
-        user.setUsername(username);
+        //set user to Authentication Context
+        UserDetails userDetails = new UserDetails(userId, "", Collections.emptyList());
+        userDetails.setEmail(email);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
 
-        if (attrs.get(UserProfile.LASTNAME) != null) {
-            user.setLastname(attrs.get(UserProfile.LASTNAME));
-        }
-        if (attrs.get(UserProfile.FIRSTNAME) != null) {
-            user.setFirstname(attrs.get(UserProfile.FIRSTNAME));
-        }
-        if (attrs.get(UserProfile.PICTURE) != null) {
-            user.setPicture(attrs.get(UserProfile.PICTURE));
-        }
-
-        UserEntity updatedUser = userService.update(user);
-
-        return connectUser(updatedUser.getId(), servletResponse);
+        return connectUser(userId, servletResponse);
     }
 
-    private HashMap<String, String> getUserProfileAttrs(String userInfo) {
+    private HashMap<String, String> getUserProfileAttrs(Map<String, String> userProfileMapping, String userInfo) {
+        TemplateEngine templateEngine = TemplateEngine.templateEngine();
+        templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
+
         ReadContext userInfoPath = JsonPath.parse(userInfo);
-        HashMap<String, String> map = new HashMap<>();
+        HashMap<String, String> map = new HashMap<>(userProfileMapping.size());
 
-        UserMapping userMapping = serverConfiguration.getUserMapping();
-        String emailMap = userMapping.getEmail();
-        String idMap = userMapping.getId();
-        String lastNameMap = userMapping.getLastname();
-        String firstNameMap = userMapping.getFirstname();
-        String pictureMap = userMapping.getPicture();
-
-        HashMap<String, String> hashMap = new HashMap<>();
-
-        hashMap.put(UserProfile.EMAIL, emailMap);
-        hashMap.put(UserProfile.ID, idMap);
-        hashMap.put(UserProfile.LASTNAME, lastNameMap);
-        hashMap.put(UserProfile.FIRSTNAME, firstNameMap);
-        hashMap.put(UserProfile.PICTURE, pictureMap);
-
-        for (Map.Entry<String, String> entry : hashMap.entrySet()) {
+        for (Map.Entry<String, String> entry : userProfileMapping.entrySet()) {
             String field = entry.getKey();
             String mapping = entry.getValue();
 
             if (mapping != null) {
                 try {
-                    map.put(field, userInfoPath.read(mapping));
-                } catch (PathNotFoundException e) {
-                    LOGGER.error("Using json-path: \"{}\", no fields are located in {}", mapping, userInfo);
+                    if (mapping.contains("{#")) {
+                        map.put(field, templateEngine.convert(mapping));
+                    } else {
+                        map.put(field, userInfoPath.read(mapping));
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Using mapping: \"{}\", no fields are located in {}", mapping, userInfo);
                 }
             }
         }
@@ -342,60 +342,59 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         }
     }
 
-    private Set<GroupEntity> getGroupsToAddUser(String username, List<ExpressionMapping> mappings, String userInfo) {
+    private Set<GroupEntity> getGroupsToAddUser(String userId, List<GroupMappingEntity> mappings, String userInfo) {
         Set<GroupEntity> groupsToAdd = new HashSet<>();
 
-        for (ExpressionMapping mapping : mappings) {
+        for (GroupMappingEntity mapping : mappings) {
             TemplateEngine templateEngine = TemplateEngine.templateEngine();
-            templateEngine.getTemplateContext().setVariable("profile", userInfo);
+            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
 
             boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
 
-            trace(username, match, mapping);
+            trace(userId, match, mapping.getCondition());
 
-            //get groups
+            // Get groups
             if (match) {
-                for (String groupName : mapping.getValues()) {
-                    List<GroupEntity> groupEntities = groupService.findByName(groupName);
-
-                    if (groupEntities.isEmpty()) {
+                for (String groupName : mapping.getGroups()) {
+                    try {
+                        groupsToAdd.add(groupService.findById(groupName));
+                    } catch (GroupNotFoundException gnfe) {
                         LOGGER.error("Unable to create user, missing group in repository : {}", groupName);
-                        throw new InternalServerErrorException();
-                    } else if (groupEntities.size() > 1) {
-                        LOGGER.warn("There's more than a group found in repository for name : {}", groupName);
                     }
-
-                    GroupEntity groupEntity = groupEntities.get(0);
-                    groupsToAdd.add(groupEntity);
                 }
             }
         }
         return groupsToAdd;
     }
 
-    private Set<RoleEntity> getRolesToAddUser(String username, List<ExpressionMapping> mappings, String userInfo) {
+    private Set<RoleEntity> getRolesToAddUser(String username, List<RoleMappingEntity> mappings, String userInfo) {
         Set<RoleEntity> rolesToAdd = new HashSet<>();
 
-        for (ExpressionMapping mapping : mappings) {
+        for (RoleMappingEntity mapping : mappings) {
             TemplateEngine templateEngine = TemplateEngine.templateEngine();
-            templateEngine.getTemplateContext().setVariable("profile", userInfo);
+            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
 
             boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
 
-            trace(username, match, mapping);
+            trace(username, match, mapping.getCondition());
 
             // Get roles
             if (match) {
-                for (String roleName : mapping.getValues()) {
-                    String [] roleAttributes = roleName.split(":");
-
+                if (mapping.getPortal() != null) {
                     try {
-                        RoleEntity roleEntity = roleService.findById(
-                                RoleScope.valueOf(roleAttributes[0].toUpperCase()),
-                                roleAttributes[1].toUpperCase());
+                        RoleEntity roleEntity = roleService.findById(RoleScope.PORTAL, mapping.getPortal());
                         rolesToAdd.add(roleEntity);
                     } catch (RoleNotFoundException rnfe) {
-                        LOGGER.error("Unable to create user, missing role in repository : {}", roleName);
+                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getPortal());
+                    }
+                }
+
+                if (mapping.getManagement() != null) {
+                    try {
+                        RoleEntity roleEntity = roleService.findById(RoleScope.MANAGEMENT, mapping.getManagement());
+                        rolesToAdd.add(roleEntity);
+                    } catch (RoleNotFoundException rnfe) {
+                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getManagement());
                     }
                 }
             }
@@ -403,12 +402,12 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         return rolesToAdd;
     }
 
-    private void trace(String username, boolean match, ExpressionMapping mapping) {
+    private void trace(String userId, boolean match, String condition) {
         if (LOGGER.isDebugEnabled()) {
             if (match) {
-                LOGGER.debug("the expression {} match on {} user's info ", mapping.getCondition(), username);
+                LOGGER.debug("the expression {} match on {} user's info ", condition, userId);
             } else {
-                LOGGER.debug("the expression {} didn't match {} on user's info ", mapping.getCondition(), username);
+                LOGGER.debug("the expression {} didn't match {} on user's info ", condition, userId);
             }
         }
     }

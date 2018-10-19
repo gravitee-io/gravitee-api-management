@@ -211,39 +211,6 @@ security:
 #        GRAVITEE-ADMINS: ADMIN,
 #        GRAVITEE-USERS: USER,
 #      }
-#    - type: google # Allow to authenticate to portal using a Google Plus account
-#      clientId: xxxx-xxx-xxx-xxx
-#      clientSecret: xxxx-xxx-xxx-xxxx
-#    - type: github # Allow to authenticate to portal using a GitHub account
-#      clientId: xxxx-xxx-xxx-xxx
-#      clientSecret: xxxx-xxx-xxx-xxxx
-#    - type: oauth2
-#      clientId: xxxx-xxx-xxx-xxx
-#      clientSecret: xxxx-xxx-xxx-xxx
-#      tokenEndpoint: https://oauth2_authorization_server/token
-#      userInfoEndpoint: https://oauth2_authorization_server/userinfo
-#      tokenIntrospectionEndpoint: https://oauth2_authorization_server/token/introspect
-#      accessTokenProperty: access_token
-#      authorizationHeader: "Bearer %s"
-#      mapping:
-#        id: sub
-#        email: email
-#        lastname: family_name
-#        firstname: given_name
-#        picture: picture
-      #   by default created user will have default role for MANAGEMENT and PORTAL
-      #   you can override this by assigning user to groups, on user creation, if its user info content match expression
-#     groups:
-#       - mapping:
-#           condition: "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
-#           values: [Example group,soft user]
-#       - mapping:
-#           condition: "{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
-#           values: ["Api consumer"]
-#     roles:
-#       - mapping:
-#           condition: "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
-#           values: ["portal:user", "management:admin"]
 
 # SMTP configuration used to send mails
 email:
@@ -305,7 +272,7 @@ user:
       #secret:
 
 # The portal URL used in emails
-#portalURL: http://portal-url.net
+portalURL: http://localhost:3000/
 
 search:
   data: ${gravitee.home}/data

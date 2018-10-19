@@ -17,6 +17,7 @@ package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.management.model.search.Indexable;
 
 import java.util.Date;
 import java.util.Objects;
@@ -28,7 +29,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties(value = "displayName", allowGetters = true)
-public class UserEntity {
+public class UserEntity implements Indexable {
 
     /**
      * User identifier
@@ -44,11 +45,6 @@ public class UserEntity {
 	 * The user last name
 	 */
 	private String lastname;
-	
-    /**
-     * The user name
-     */
-    private String username;
     
     /**
      * The user password
@@ -144,14 +140,6 @@ public class UserEntity {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
     
     public String getPassword() {
 		return password;
@@ -202,11 +190,17 @@ public class UserEntity {
     }
 
     public String getDisplayName() {
-        if (firstname == null || lastname == null) {
-            return username;
+        String displayName;
+
+        if (firstname != null || lastname != null) {
+            displayName = firstname + ' ' + lastname;
+        } else if (email != null){
+            displayName = email;
         } else {
-            return firstname + ' ' + lastname;
+            displayName = sourceId;
         }
+
+        return displayName;
     }
 
     @Override
@@ -214,21 +208,20 @@ public class UserEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UserEntity that = (UserEntity) o;
-        return Objects.equals(username, that.username);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(username);
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("UserEntity{");
         sb.append(", id='").append(id).append('\'');
-        sb.append(", username='").append(firstname).append('\'');
         sb.append(", source='").append(source).append('\'');
-        sb.append(", external_reference='").append(sourceId).append('\'');
+        sb.append(", source_id='").append(sourceId).append('\'');
         sb.append(", firstname='").append(firstname).append('\'');
         sb.append(", lastname='").append(lastname).append('\'');
         sb.append(", mail='").append(email).append('\'');

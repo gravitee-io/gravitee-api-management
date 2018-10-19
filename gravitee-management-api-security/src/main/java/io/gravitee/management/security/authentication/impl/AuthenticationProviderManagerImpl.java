@@ -38,8 +38,6 @@ public class AuthenticationProviderManagerImpl implements AuthenticationProvider
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 
-    private static final Set<String> OAUTH2_AUTHENTICATION_PROVIDERS = new HashSet(Arrays.asList("google", "github", "oauth2"));
-
     private List<AuthenticationProvider> identityProviders;
 
     @Override
@@ -79,13 +77,7 @@ public class AuthenticationProviderManagerImpl implements AuthenticationProvider
             String type = environment.getProperty("security.providers[" + idx + "].type");
             found = (type != null);
             if (found) {
-                DefaultAuthenticationProvider provider;
-                if (OAUTH2_AUTHENTICATION_PROVIDERS.contains(type)) {
-                    provider = new OAuth2AuthenticationProvider(type, idx);
-                } else {
-                    provider = new DefaultAuthenticationProvider(type, idx);
-                }
-
+                DefaultAuthenticationProvider provider = new DefaultAuthenticationProvider(type, idx);
                 provider.setConfiguration(getConfiguration(provider));
                 identityProviders.add(provider);
                 LOGGER.debug("\tAuthentication provider [{}] has been defined", type);

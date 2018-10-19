@@ -16,6 +16,7 @@
 package io.gravitee.management.service.search;
 
 import io.gravitee.management.model.search.Indexable;
+import io.gravitee.management.service.impl.search.SearchResult;
 import io.gravitee.management.service.search.query.Query;
 
 import java.util.Collection;
@@ -30,5 +31,5 @@ public interface SearchEngineService {
 
     void delete(Indexable source);
 
-    Collection<String> search(Query<? extends Indexable> query);
+    SearchResult search(Query<? extends Indexable> query);
 }

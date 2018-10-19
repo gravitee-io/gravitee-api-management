@@ -97,11 +97,13 @@
   ],
   "members": [
     {
-      "username": "admin",
+      "source": "source",
+      "sourceId": "ref-admin",
       "role": "PRIMARY_OWNER"
     },
     {
-      "username": "user",
+      "source": "source",
+      "sourceId": "ref-user",
       "role": "OWNER"
     }
   ]

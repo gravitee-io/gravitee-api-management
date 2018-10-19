@@ -17,6 +17,7 @@ package io.gravitee.management.service.impl.search.lucene.searcher;
 
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.search.Indexable;
+import io.gravitee.management.service.impl.search.SearchResult;
 import io.gravitee.repository.exceptions.TechnicalException;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
@@ -60,7 +61,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     };
 
     @Override
-    public List<String> search(io.gravitee.management.service.search.query.Query query) throws TechnicalException {
+    public SearchResult search(io.gravitee.management.service.search.query.Query query) throws TechnicalException {
         MultiFieldQueryParser apiParser = new MultiFieldQueryParser(new String[]{
                 "name",
                 "name_lowercase",

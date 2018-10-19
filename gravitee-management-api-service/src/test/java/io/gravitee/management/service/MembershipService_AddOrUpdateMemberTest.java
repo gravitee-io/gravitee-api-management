@@ -82,14 +82,13 @@ public class MembershipService_AddOrUpdateMemberTest {
     public void shouldAddApiGroupMembership() throws Exception {
         UserEntity userEntity = new UserEntity();
         userEntity.setId("my name");
-        userEntity.setUsername("my name");
         userEntity.setEmail("me@mail.com");
         RoleEntity role = mock(RoleEntity.class);
         Membership newMembership = new Membership();
         newMembership.setReferenceType(MembershipReferenceType.GROUP);
         newMembership.setRoles(Collections.singletonMap(RoleScope.API.getId(), "OWNER"));
         newMembership.setReferenceId(GROUP_ID);
-        newMembership.setUserId(userEntity.getUsername());
+        newMembership.setUserId(userEntity.getId());
         GroupEntity groupEntityMock = mock(GroupEntity.class);
         when(groupEntityMock.getName()).thenReturn("foo");
         when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.API);
@@ -105,7 +104,7 @@ public class MembershipService_AddOrUpdateMemberTest {
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
 
         verify(userService, times(2)).findById(userEntity.getId());
-        verify(membershipRepository, times(2)).findById(userEntity.getUsername(), MembershipReferenceType.GROUP, GROUP_ID);
+        verify(membershipRepository, times(2)).findById(userEntity.getId(), MembershipReferenceType.GROUP, GROUP_ID);
         verify(membershipRepository, times(1)).create(any());
         verify(membershipRepository, never()).update(any());
         verify(emailService, times(1)).sendAsyncEmailNotification(any());
@@ -115,17 +114,16 @@ public class MembershipService_AddOrUpdateMemberTest {
     public void shouldUpdateApiGroupMembership() throws Exception {
         UserEntity userEntity = new UserEntity();
         userEntity.setId("my name");
-        userEntity.setUsername("my name");
         userEntity.setEmail("me@mail.com");
         Membership membership = new Membership();
-        membership.setUserId(userEntity.getUsername());
+        membership.setUserId(userEntity.getId());
         membership.setReferenceType(MembershipReferenceType.GROUP);
         membership.setReferenceId(GROUP_ID);
         Map<Integer, String> roles = new HashMap<>();
         roles.put(RoleScope.API.getId(), "USER");
         membership.setRoles(roles);
         Membership newMembership = new Membership();
-        newMembership.setUserId(userEntity.getUsername());
+        newMembership.setUserId(userEntity.getId());
         newMembership.setReferenceType(MembershipReferenceType.GROUP);
         newMembership.setReferenceId(GROUP_ID);
         GroupEntity groupEntityMock = mock(GroupEntity.class);
@@ -140,7 +138,7 @@ public class MembershipService_AddOrUpdateMemberTest {
 
         MemberEntity updateMember = membershipService.addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
-                new MembershipService.MembershipUser(userEntity.getUsername(), null),
+                new MembershipService.MembershipUser(userEntity.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
 
         verify(userService, times(2)).findById(userEntity.getId());
@@ -226,7 +224,6 @@ public class MembershipService_AddOrUpdateMemberTest {
         when(membershipRepository.findById("userId", MembershipReferenceType.API, "API_ID")).thenReturn(of(membership));
         UserEntity userEntity = new UserEntity();
         userEntity.setId("userId");
-        userEntity.setUsername("my name");
         userEntity.setEmail("me@mail.com");
         when(userService.findById("userId")).thenReturn(userEntity);
         membershipService.addOrUpdateMember(

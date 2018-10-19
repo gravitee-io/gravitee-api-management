@@ -4,7 +4,7 @@
   "resources" : [ ],
   "groups" : [ "My Group" ],
   "members" : [ {
-    "username" : "johndoe",
+    "username" : "johndoe-sourceId",
     "role" : "PRIMARY_OWNER"
   } ],
   "plans" : [ {

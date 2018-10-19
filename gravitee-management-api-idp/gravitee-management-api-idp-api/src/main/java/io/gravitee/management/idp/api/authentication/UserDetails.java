@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.idp.api.authentication;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -51,8 +52,38 @@ public class UserDetails extends User {
     }
 
     @Override
+    @JsonIgnore
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getPassword() {
+        return super.getPassword();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return super.isEnabled();
+    }
+
+    @Override
+    @JsonIgnore
+    public boolean isAccountNonExpired() {
+        return super.isAccountNonExpired();
+    }
+
+    @Override
+    @JsonIgnore
+    public boolean isAccountNonLocked() {
+        return super.isAccountNonLocked();
+    }
+
+    @Override
+    @JsonIgnore
+    public boolean isCredentialsNonExpired() {
+        return super.isCredentialsNonExpired();
     }
 
     public void setUsername(String username) {
@@ -77,6 +108,20 @@ public class UserDetails extends User {
 
     public String getLastname() {
         return lastname;
+    }
+
+    public String getDisplayName() {
+        String displayName;
+
+        if (firstname != null || lastname != null) {
+            displayName = firstname + ' ' + lastname;
+        } else if (email != null){
+            displayName = email;
+        } else {
+            displayName = sourceId;
+        }
+
+        return displayName;
     }
 
     public void setLastname(String lastname) {

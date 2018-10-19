@@ -60,7 +60,9 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize Elamrani (azize.elamrani at graviteesource.com)
+ * @author Nicolas Geraud (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_ExportAsJsonTest {
@@ -107,6 +109,7 @@ public class ApiService_ExportAsJsonTest {
         when(applicationContext.getBean(PlanService.class)).thenReturn(planService);
         when(applicationContext.getBean(PageService.class)).thenReturn(pageService);
         when(applicationContext.getBean(GroupService.class)).thenReturn(groupService);
+        when(applicationContext.getBean(UserService.class)).thenReturn(userService);
         ApiCompositeSerializer apiCompositeSerializer = new ApiCompositeSerializer();
         ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
         apiDefaultSerializer.setApplicationContext(applicationContext);
@@ -166,13 +169,15 @@ public class ApiService_ExportAsJsonTest {
         when(membershipRepository.findByReferenceAndRole(eq(MembershipReferenceType.API), eq(API_ID), any(), any()))
                 .thenReturn(Collections.singleton(membership));
         MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setUsername(membership.getUserId());
+        memberEntity.setId(membership.getUserId());
         memberEntity.setRole(SystemRole.PRIMARY_OWNER.name());
         when(membershipService.getMembers(eq(MembershipReferenceType.API), eq(API_ID), eq(RoleScope.API)))
                 .thenReturn(Collections.singleton(memberEntity));
         UserEntity userEntity = new UserEntity();
-        userEntity.setUsername(memberEntity.getId());
-        when(userService.findByUsername(memberEntity.getId(), false)).thenReturn(userEntity);
+        userEntity.setId(memberEntity.getId());
+        userEntity.setSource(userEntity.getId() + "-source");
+        userEntity.setSourceId(userEntity.getId() + "-sourceId");
+        when(userService.findById(memberEntity.getId())).thenReturn(userEntity);
 
         api.setGroups(Collections.singleton("my-group"));
         GroupEntity groupEntity = new GroupEntity();

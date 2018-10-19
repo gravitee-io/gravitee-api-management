@@ -22,10 +22,7 @@ import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.service.GroupService;
-import io.gravitee.management.service.MembershipService;
-import io.gravitee.management.service.PageService;
-import io.gravitee.management.service.PlanService;
+import io.gravitee.management.service.*;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import org.springframework.context.ApplicationContext;
@@ -131,19 +128,21 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         // members
         if (!filteredFieldsList.contains("members")) {
-            Set<MemberEntity> members = applicationContext.getBean(MembershipService.class).getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API);
-            if (members != null) {
-                members.forEach(m -> {
-                    m.setId(null);
-                    m.setFirstname(null);
-                    m.setLastname(null);
-                    m.setEmail(null);
-                    m.setPermissions(null);
-                    m.setCreatedAt(null);
-                    m.setUpdatedAt(null);
+            Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API);
+            List<Member> members = new ArrayList<>(memberEntities == null ? 0 : memberEntities.size());
+            if (memberEntities != null) {
+                memberEntities.forEach(m -> {
+                    UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
+                    if (userEntity != null) {
+                        Member member = new Member();
+                        member.setRole(m.getRole());
+                        member.setSource(userEntity.getSource());
+                        member.setSourceId(userEntity.getSourceId());
+                        members.add(member);
+                    }
                 });
             }
-            jsonGenerator.writeObjectField("members", members == null ? Collections.emptyList() : members);
+            jsonGenerator.writeObjectField("members", members);
         }
 
         if (!filteredFieldsList.contains("pages")) {
@@ -187,5 +186,44 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
     public void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+    }
+
+    class Member {
+        private String username;
+        private String source;
+        private String sourceId;
+        private String role;
+
+        public String getSource() {
+            return source;
+        }
+
+        public void setSource(String source) {
+            this.source = source;
+        }
+
+        public String getSourceId() {
+            return sourceId;
+        }
+
+        public void setSourceId(String sourceId) {
+            this.sourceId = sourceId;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
     }
 }

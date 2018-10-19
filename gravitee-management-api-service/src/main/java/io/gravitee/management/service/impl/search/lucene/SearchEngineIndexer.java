@@ -18,7 +18,6 @@ package io.gravitee.management.service.impl.search.lucene;
 import io.gravitee.repository.exceptions.TechnicalException;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -47,31 +46,16 @@ public class SearchEngineIndexer {
     private IndexWriter writer;
 
     public long index(Document document) throws TechnicalException {
-        /*
-        if (writer.getConfig().getOpenMode() == IndexWriterConfig.OpenMode.CREATE) {
-            logger.debug("Adding a new document into the Lucene index");
-            try {
-                long seq = writer.addDocument(document);
-                writer.flush();
-                writer.commit();
-            //    writer.forceMerge(1);
-                return seq;
-            } catch (IOException ioe) {
-                logger.error("Fail to index document with Lucene", ioe);
-                throw new TechnicalException("Fail to index document with Lucene", ioe);
-            }
-        } else {*/
-            logger.debug("Updating a document into the Lucene index");
-            String id = document.get(ID_FIELD);
-            try {
-                long seq = writer.updateDocument(new Term(ID_FIELD, id), document);
-                writer.commit();
-                return seq;
-            } catch (IOException ioe) {
-                logger.error("Fail to index document with ID: {}", id, ioe);
-                throw new TechnicalException("Fail to index document with ID: " + id, ioe);
-            }
-        //}
+        logger.debug("Updating a document into the Lucene index");
+        String id = document.get(ID_FIELD);
+        try {
+            long seq = writer.updateDocument(new Term(ID_FIELD, id), document);
+            writer.commit();
+            return seq;
+        } catch (IOException ioe) {
+            logger.error("Fail to index document with ID: {}", id, ioe);
+            throw new TechnicalException("Fail to index document with ID: " + id, ioe);
+        }
     }
 
     public void remove(Document document) throws TechnicalException {

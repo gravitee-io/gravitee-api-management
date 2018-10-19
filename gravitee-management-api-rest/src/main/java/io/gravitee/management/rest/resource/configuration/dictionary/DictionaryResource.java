@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource.configuration;
+package io.gravitee.management.rest.resource.configuration.dictionary;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.configuration.dictionary.DictionaryEntity;

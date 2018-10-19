@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.rest.resource.configuration;
+package io.gravitee.management.rest.resource.configuration.dictionary;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.configuration.dictionary.DictionaryEntity;
-import io.gravitee.management.model.configuration.dictionary.DictionaryListItem;
+import io.gravitee.management.rest.model.configuration.dictionary.DictionaryListItem;
 import io.gravitee.management.model.configuration.dictionary.NewDictionaryEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -56,7 +56,7 @@ public class DictionariesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions(@Permission(value = RolePermission.MANAGEMENT_DICTIONARY, acls = RolePermissionAction.READ))
     @ApiOperation(value = "Get the list of global dictionaries",
-            notes = "User must have the READ permission to use this service")
+            notes = "User must have the DICTIONARY[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "List global dictionaries", response = DictionaryListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})

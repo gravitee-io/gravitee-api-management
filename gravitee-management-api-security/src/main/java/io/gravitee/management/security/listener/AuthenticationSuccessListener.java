@@ -58,13 +58,13 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
         final UserDetails details = (UserDetails) event.getAuthentication().getPrincipal();
 
         try {
-            UserEntity registeredUser = userService.findByUsername(details.getUsername(), false);
+            UserEntity registeredUser = userService.findBySource(details.getSource(), details.getSourceId(), false);
             updateRegisteredUser(registeredUser, details);
             // Principal username is the technical identifier of the user
+            // Dirty hack because spring security is requiring a username...
             details.setUsername(registeredUser.getId());
         } catch (UserNotFoundException unfe) {
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
-            newUser.setUsername(details.getUsername());
             newUser.setSource(details.getSource());
             newUser.setSourceId(details.getSourceId());
             newUser.setFirstname(details.getFirstname());
@@ -98,7 +98,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             updateUserEntity.setFirstname(details.getFirstname());
             updateUserEntity.setLastname(details.getLastname());
             updateUserEntity.setEmail(details.getEmail());
-            userService.update(updateUserEntity);
+            userService.update(registeredUser.getId(), updateUserEntity);
         }
     }
 

@@ -17,6 +17,7 @@ package io.gravitee.management.service.impl.search.lucene.searcher;
 
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.search.Indexable;
+import io.gravitee.management.service.impl.search.SearchResult;
 import io.gravitee.repository.exceptions.TechnicalException;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
@@ -41,7 +42,7 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
     protected final static String FIELD_TYPE_VALUE = "page";
 
     @Override
-    public List<String> search(io.gravitee.management.service.search.query.Query query) throws TechnicalException {
+    public SearchResult search(io.gravitee.management.service.search.query.Query query) throws TechnicalException {
         QueryParser parser = new MultiFieldQueryParser(new String[]{
                 "name",
                 "content"

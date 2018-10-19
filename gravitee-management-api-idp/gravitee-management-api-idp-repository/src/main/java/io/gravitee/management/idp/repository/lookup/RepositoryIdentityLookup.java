@@ -20,18 +20,18 @@ import io.gravitee.management.idp.api.identity.IdentityReference;
 import io.gravitee.management.idp.api.identity.User;
 import io.gravitee.management.idp.repository.RepositoryIdentityProvider;
 import io.gravitee.management.idp.repository.lookup.spring.RepositoryIdentityLookupConfiguration;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.UserRepository;
-import org.apache.commons.lang3.StringUtils;
+import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.common.PageableImpl;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -43,28 +43,17 @@ public class RepositoryIdentityLookup implements IdentityLookup {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryIdentityLookup.class);
 
-    public final static Set<String> MANAGED_USER_TYPES = new HashSet<>();
-
-    static {
-        MANAGED_USER_TYPES.add(RepositoryIdentityProvider.PROVIDER_TYPE);
-        MANAGED_USER_TYPES.add("oauth2");
-        MANAGED_USER_TYPES.add("google");
-        MANAGED_USER_TYPES.add("github");
-    }
-
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Override
     public io.gravitee.management.idp.api.identity.User retrieve(IdentityReference identityReference) {
         try {
-            Optional<io.gravitee.repository.management.model.User> optUser =
-                    userRepository.findByUsername(identityReference.getReference());
-
-            if (optUser.isPresent()) {
-                return convert(optUser.get());
-            }
-        } catch (TechnicalException te) {
+            return new RepositoryUser(userService.findBySource(
+                    identityReference.getSource(),
+                    identityReference.getReference(),
+                    false));
+        } catch (UserNotFoundException te) {
             LOGGER.error("Unexpected error while looking for a user with id " + identityReference.getReference(), te);
         }
         return null;
@@ -76,26 +65,19 @@ public class RepositoryIdentityLookup implements IdentityLookup {
     }
 
     @Override
-    public Collection<User> search(String query) {
-        try {
-            return userRepository.search(null).getContent().stream().filter(user -> MANAGED_USER_TYPES.contains(user.getSource())).filter(
-                    user -> (user.getUsername() != null && StringUtils.containsIgnoreCase(user.getUsername(), query)) ||
-                            (user.getFirstname() != null && StringUtils.containsIgnoreCase(user.getFirstname(), query)) ||
-                            (user.getLastname() != null && StringUtils.containsIgnoreCase(user.getLastname(), query)) ||
-                            (user.getEmail() != null && StringUtils.containsIgnoreCase(user.getEmail(), query))
-            ).map(this::convert).collect(Collectors.toSet());
-        } catch (TechnicalException te) {
-            LOGGER.error("Unexpected error while searching for users in repository", te);
-            return null;
-        }
+    public boolean searchable() {
+        return true;
     }
 
-    private User convert(io.gravitee.repository.management.model.User identity) {
-        RepositoryUser user = new RepositoryUser(identity.getId());
-        user.setUsername(identity.getUsername());
-        user.setEmail(identity.getEmail());
-        user.setFirstname(identity.getFirstname());
-        user.setLastname(identity.getLastname());
-        return user;
+    @Override
+    public Collection<User> search(String query) {
+        return userService
+                .search(query, new PageableImpl(1, 20))
+                .getContent()
+                .stream()
+                .filter(userEntity -> !userEntity.getSource().equalsIgnoreCase("ldap")
+                        && !userEntity.getSource().equalsIgnoreCase("memory"))
+                .map((Function<UserEntity, User>) RepositoryUser::new)
+                .collect(Collectors.toList());
     }
 }

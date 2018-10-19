@@ -28,7 +28,10 @@ import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -47,13 +50,16 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize Elamrani (azize.elamrani at graviteesource.com)
+ * @author Nicolas Geraud (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_CreateOrUpdateWithDefinitionTest {
 
     private static final String API_ID = "id-api";
     private static final String PLAN_ID = "my-plan";
+    private static final String SOURCE = "source";
 
     @InjectMocks
     private ApiServiceImpl apiService = new ApiServiceImpl();
@@ -89,9 +95,6 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
     private AuditService auditService;
 
     @Mock
-    private IdentityService identityService;
-
-    @Mock
     private SearchEngineService searchEngineService;
 
     @Test
@@ -106,7 +109,9 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         when(apiRepository.update(any())).thenReturn(api);
         Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
+        po.setReferenceId("ref-admin");
         Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
+        owner.setReferenceId("ref-user");
         owner.setRoles(Collections.singletonMap(RoleScope.API.getId(), "OWNER"));
         when(membershipRepository.findByReferencesAndRole(
                 MembershipReferenceType.API,
@@ -117,21 +122,23 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         when(membershipRepository.findById(po.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(po));
         when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(owner));
         UserEntity admin = new UserEntity();
-        admin.setUsername(po.getUserId());
+        admin.setId(po.getUserId());
+        admin.setSource(SOURCE);
+        admin.setSourceId(po.getReferenceId());
         UserEntity user = new UserEntity();
-        user.setUsername(owner.getUserId());
-        when(userService.findByUsername(admin.getUsername(), false)).thenReturn(admin);
-        when(userService.findByUsername(user.getUsername(), false)).thenReturn(user);
-        when(userService.findById(admin.getUsername())).thenReturn(admin);
+        user.setId(owner.getUserId());
+        user.setSource(SOURCE);
+        user.setSourceId(owner.getReferenceId());
+        when(userService.findById(admin.getId())).thenReturn(admin);
         PageEntity existingPage = mock(PageEntity.class);
         when(existingPage.getName()).thenReturn("toto");
         when(pageService.search(any())).thenReturn(Collections.singletonList(existingPage), Collections.emptyList());
 
         MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setId(admin.getUsername());
+        memberEntity.setId(admin.getId());
         when(membershipService.addOrUpdateMember(any(), any(), any())).thenReturn(memberEntity);
-        when(identityService.search(admin.getUsername())).thenReturn(Collections.singletonList(new IdOnlySearchableUser(admin.getUsername())));
-        when(identityService.search(user.getUsername())).thenReturn(Collections.singletonList(new IdOnlySearchableUser(user.getUsername())));
+        when(userService.findBySource(admin.getSource(), admin.getSourceId(), false)).thenReturn(admin);
+        when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
 
@@ -139,11 +146,11 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         verify(pageService, times(1)).update(any(), any(UpdatePageEntity.class));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(admin.getUsername(), null),
+                new MembershipService.MembershipUser(admin.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(user.getUsername(), null),
+                new MembershipService.MembershipUser(user.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
@@ -158,8 +165,10 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         when(apiRepository.update(any())).thenReturn(api);
         Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
+        po.setReferenceId("ref-admin");
         Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
         owner.setRoles(Collections.singletonMap(RoleScope.API.getId(), "OWNER"));
+        owner.setReferenceId("ref-user");
         when(membershipRepository.findByReferencesAndRole(
                 MembershipReferenceType.API,
                 Collections.singletonList(API_ID),
@@ -170,16 +179,15 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(owner));
 
         admin.setId(po.getUserId());
-        admin.setUsername(po.getUserId());
+        admin.setSource(SOURCE);
+        admin.setSourceId(po.getReferenceId());
 
         user.setId(owner.getUserId());
-        user.setUsername(owner.getUserId());
+        user.setSource(SOURCE);
+        user.setSourceId(owner.getReferenceId());
 
-        when(userService.findByUsername(admin.getUsername(), false)).thenReturn(admin);
-        when(userService.findByUsername(user.getUsername(), false)).thenReturn(user);
-
-        when(identityService.search(admin.getUsername())).thenReturn(Collections.singletonList(new IdOnlySearchableUser(admin.getUsername())));
-        when(identityService.search(user.getUsername())).thenReturn(Collections.singletonList(new IdOnlySearchableUser(user.getUsername())));
+        when(userService.findBySource(admin.getSource(), admin.getSourceId(), false)).thenReturn(admin);
+        when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
 
         return apiEntity;
     }
@@ -198,11 +206,11 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         verify(pageService, never()).createApiPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(admin.getUsername(), null),
+                new MembershipService.MembershipUser(admin.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(user.getUsername(), null),
+                new MembershipService.MembershipUser(user.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
@@ -217,20 +225,21 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
         MemberEntity userMember = new MemberEntity();
         userMember.setId("user");
-        userMember.setUsername("user");
         userMember.setRole("OWNER");
         when(membershipService.getMembers(MembershipReferenceType.API, API_ID, RoleScope.API)).thenReturn(Collections.singleton(userMember));
+        when(userService.findById(admin.getId())).thenReturn(admin);
+        when(userService.findById(user.getId())).thenReturn(user);
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
 
         verify(pageService, never()).createApiPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(admin.getUsername(), null),
+                new MembershipService.MembershipUser(admin.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
         verify(membershipService, never()).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(user.getUsername(), null),
+                new MembershipService.MembershipUser(user.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
@@ -245,24 +254,24 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
         MemberEntity userMember = new MemberEntity();
         userMember.setId("user");
-        userMember.setUsername("user");
         userMember.setRole("OWNER");
         MemberEntity adminMember = new MemberEntity();
         adminMember.setId("admin");
-        adminMember.setUsername("admin");
         adminMember.setRole("PRIMARY_OWNER");
         when(membershipService.getMembers(MembershipReferenceType.API, API_ID, RoleScope.API)).thenReturn(new HashSet<>(Arrays.asList(userMember, adminMember)));
+        when(userService.findById(admin.getId())).thenReturn(admin);
+        when(userService.findById(user.getId())).thenReturn(user);
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
 
         verify(pageService, never()).createApiPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never()).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(admin.getUsername(), null),
+                new MembershipService.MembershipUser(admin.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
         verify(membershipService, never()).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(user.getUsername(), null),
+                new MembershipService.MembershipUser(user.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
@@ -278,7 +287,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         apiEntity.setId(API_ID);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
-        when(userService.findByUsername(anyString(), eq(false))).thenReturn(new UserEntity());
+//        when(userService.findByUsername(anyString(), eq(false))).thenReturn(new UserEntity());
         Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(
@@ -310,7 +319,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         apiEntity.setId(API_ID);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
-        when(userService.findByUsername(anyString(), eq(false))).thenReturn(new UserEntity());
+//        when(userService.findByUsername(anyString(), eq(false))).thenReturn(new UserEntity());
         Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(
@@ -338,38 +347,41 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         apiEntity.setId(API_ID);
         when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
-        when(userService.findByUsername(anyString(), eq(false))).thenReturn(new UserEntity());
         Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
+        po.setReferenceId("ref-admin");
         Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
         owner.setRoles(Collections.singletonMap(RoleScope.API.getId(), "OWNER"));
+        owner.setReferenceId("ref-user");
         when(membershipRepository.findById(po.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(po));
         when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.empty());
         UserEntity admin = new UserEntity();
-        admin.setUsername(po.getUserId());
+        admin.setId(po.getUserId());
+        admin.setSource(SOURCE);
+        admin.setSourceId(po.getReferenceId());
         UserEntity user = new UserEntity();
-        user.setUsername(owner.getUserId());
-        when(userService.findByUsername(admin.getUsername(), false)).thenReturn(admin);
-        when(userService.findByUsername(user.getUsername(), false)).thenReturn(user);
-        when(userService.findById(admin.getUsername())).thenReturn(admin);
+        user.setId(owner.getUserId());
+        user.setSource(SOURCE);
+        user.setSourceId(owner.getReferenceId());
+        when(userService.findById(admin.getId())).thenReturn(admin);
 
         MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setId(admin.getUsername());
+        memberEntity.setId(admin.getId());
         when(membershipService.addOrUpdateMember(any(), any(), any())).thenReturn(memberEntity);
-        when(identityService.search(admin.getUsername())).thenReturn(Collections.singletonList(new IdOnlySearchableUser(admin.getUsername())));
-        when(identityService.search(user.getUsername())).thenReturn(Collections.singletonList(new IdOnlySearchableUser(user.getUsername())));
-        when(userService.findById(admin.getUsername())).thenReturn(admin);
+        when(userService.findBySource(admin.getSource(), admin.getSourceId(), false)).thenReturn(admin);
+        when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findById(admin.getId())).thenReturn(admin);
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
         verify(pageService, times(2)).createApiPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(admin.getUsername(), null),
+                new MembershipService.MembershipUser(admin.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(user.getUsername(), null),
+                new MembershipService.MembershipUser(user.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
@@ -387,35 +399,39 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         when(apiRepository.create(any())).thenReturn(api);
         Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
+        po.setReferenceId("ref-admin");
         Membership owner = new Membership("user", API_ID, MembershipReferenceType.API);
+        owner.setReferenceId("ref-user");
         owner.setRoles(Collections.singletonMap(RoleScope.API.getId(), "OWNER"));
         when(membershipRepository.findById(po.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.of(po));
         when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.empty());
         UserEntity admin = new UserEntity();
-        admin.setUsername(po.getUserId());
+        admin.setId(po.getUserId());
+        admin.setSource(SOURCE);
+        admin.setSourceId(po.getReferenceId());
         UserEntity user = new UserEntity();
-        user.setUsername(owner.getUserId());
-        when(userService.findByUsername(admin.getUsername(), false)).thenReturn(admin);
-        when(userService.findByUsername(user.getUsername(), false)).thenReturn(user);
-        when(userService.findById(admin.getUsername())).thenReturn(admin);
+        user.setId(owner.getUserId());
+        user.setSource(SOURCE);
+        user.setSourceId(owner.getReferenceId());
+        when(userService.findById(admin.getId())).thenReturn(admin);
         when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
 
         MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setId(admin.getUsername());
+        memberEntity.setId(admin.getId());
         when(membershipService.addOrUpdateMember(any(), any(), any())).thenReturn(memberEntity);
-        when(identityService.search(admin.getUsername())).thenReturn(Collections.singletonList(new IdOnlySearchableUser(admin.getUsername())));
-        when(identityService.search(user.getUsername())).thenReturn(Collections.singletonList(new IdOnlySearchableUser(user.getUsername())));
+        when(userService.findBySource(admin.getSource(), admin.getSourceId(), false)).thenReturn(admin);
+        when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
         verify(pageService, never()).createApiPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(admin.getUsername(), null),
+                new MembershipService.MembershipUser(admin.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipUser(user.getUsername(), null),
+                new MembershipService.MembershipUser(user.getId(), null),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
@@ -439,13 +455,10 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.empty());
         UserEntity admin = new UserEntity();
         admin.setId(po.getUserId());
-        admin.setUsername(po.getUserId());
+        admin.setSource(SOURCE);
         UserEntity user = new UserEntity();
         user.setId(owner.getUserId());
-        user.setUsername(owner.getUserId());
 
-        when(userService.findByUsername(admin.getUsername(), false)).thenReturn(admin);
-        when(userService.findByUsername(user.getUsername(), false)).thenReturn(user);
         when(userService.findById(admin.getId())).thenReturn(admin);
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
@@ -475,13 +488,10 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.empty());
         UserEntity admin = new UserEntity();
         admin.setId(po.getUserId());
-        admin.setUsername(po.getUserId());
+        admin.setSource(SOURCE);
         UserEntity user = new UserEntity();
         user.setId(owner.getUserId());
-        user.setUsername(owner.getUserId());
 
-        when(userService.findByUsername(admin.getUsername(), false)).thenReturn(admin);
-        when(userService.findByUsername(user.getUsername(), false)).thenReturn(user);
         when(userService.findById(admin.getId())).thenReturn(admin);
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
@@ -510,13 +520,9 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         when(membershipRepository.findById(owner.getUserId(), MembershipReferenceType.API, API_ID)).thenReturn(Optional.empty());
         UserEntity admin = new UserEntity();
         admin.setId(po.getUserId());
-        admin.setUsername(po.getUserId());
+        admin.setSource(SOURCE);
         UserEntity user = new UserEntity();
         user.setId(owner.getUserId());
-        user.setUsername(owner.getUserId());
-
-        when(userService.findByUsername(admin.getUsername(), false)).thenReturn(admin);
-        when(userService.findByUsername(user.getUsername(), false)).thenReturn(user);
         when(userService.findById(admin.getId())).thenReturn(admin);
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
@@ -545,34 +551,5 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
 
-    }
-
-    private static class IdOnlySearchableUser implements SearchableUser {
-
-        private final String id;
-
-        IdOnlySearchableUser(String id) {
-            this.id = id;
-        }
-
-        @Override
-        public String getId() {
-            return id;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return null;
-        }
-
-        @Override
-        public String getFirstname() {
-            return null;
-        }
-
-        @Override
-        public String getLastname() {
-            return null;
-        }
     }
 }

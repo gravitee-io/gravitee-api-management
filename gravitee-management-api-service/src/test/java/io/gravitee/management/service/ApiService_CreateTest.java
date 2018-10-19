@@ -203,7 +203,7 @@ public class ApiService_CreateTest {
 
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
-        when(userService.findByUsername(USER_NAME, false)).thenReturn(new UserEntity());
+//        when(userService.findByUsername(USER_NAME, false)).thenReturn(new UserEntity());
 
         apiService.create(newApi, USER_NAME);
     }
@@ -219,8 +219,8 @@ public class ApiService_CreateTest {
         when(newApi.getDescription()).thenReturn("Ma description");
         when(newApi.getContextPath()).thenReturn("/context");
         UserEntity admin = new UserEntity();
-        admin.setUsername(USER_NAME);
-        when(userService.findById(admin.getUsername())).thenReturn(admin);
+        admin.setId(USER_NAME);
+        when(userService.findById(admin.getId())).thenReturn(admin);
 
         final ApiEntity apiEntity = apiService.create(newApi, USER_NAME);
 

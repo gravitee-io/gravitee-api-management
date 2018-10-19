@@ -30,12 +30,7 @@ public class GroupMemberEntity {
 
     public GroupMemberEntity(MemberEntity memberEntity) {
         this.id = memberEntity.getId();
-
-        if (memberEntity.getFirstname() == null || memberEntity.getLastname() == null) {
-            displayName = memberEntity.getUsername();
-        } else {
-            displayName = memberEntity.getFirstname() + ' ' + memberEntity.getLastname();
-        }
+        this.displayName = memberEntity.getDisplayName();
         this.createdAt = memberEntity.getCreatedAt();
         this.updatedAt = memberEntity.getUpdatedAt();
     }

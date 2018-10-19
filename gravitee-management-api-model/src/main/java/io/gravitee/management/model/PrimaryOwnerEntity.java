@@ -30,12 +30,7 @@ public class PrimaryOwnerEntity {
     public PrimaryOwnerEntity(UserEntity user) {
         this.id = user.getId();
         this.email = user.getEmail();
-
-        if (user.getFirstname() == null || user.getLastname() == null) {
-            this.displayName = user.getUsername();
-        } else {
-            this.displayName = user.getFirstname() + ' ' + user.getLastname();
-        }
+        this.displayName = user.getDisplayName();
     }
 
     public String getId() {
