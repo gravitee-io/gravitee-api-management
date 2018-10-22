@@ -16,9 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
