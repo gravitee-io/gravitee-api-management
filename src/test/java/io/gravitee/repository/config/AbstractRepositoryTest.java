@@ -16,6 +16,7 @@
 package io.gravitee.repository.config;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.model.*;
 import org.apache.commons.io.FilenameUtils;
@@ -106,6 +107,8 @@ public abstract class AbstractRepositoryTest {
     protected DictionaryRepository dictionaryRepository;
     @Inject
     protected ApiHeaderRepository apiHeaderRepository;
+    @Inject
+    protected MediaRepository mediaRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
