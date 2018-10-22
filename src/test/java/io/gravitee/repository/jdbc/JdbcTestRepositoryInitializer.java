@@ -69,6 +69,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "memberships",
             "membership_roles",
             "metadata",
+            "media",
             "parameters",
             "pages",
             "page_excluded_groups",

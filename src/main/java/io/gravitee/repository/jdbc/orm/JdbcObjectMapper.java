@@ -21,6 +21,9 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -296,6 +299,11 @@ public class JdbcObjectMapper<T> {
             return new Date(timestampValue.getTime());
         } else if (column.javaType == byte.class) {
             return parseByte(value.toString());
+        } else if (column.javaType == Long.class) {
+            return ((Integer)value).longValue();
+        } else if (column.javaType == InputStream.class) {
+            byte[] data = (byte[]) value;
+            return new ByteArrayInputStream(data);
         }
         return value;
     }
@@ -341,7 +349,11 @@ public class JdbcObjectMapper<T> {
                 } else if (value instanceof Date) {
                     final Date date = (Date) value;
                     stmt.setTimestamp(idx, new Timestamp(date.getTime()));
-                } else {
+                } else if (value instanceof InputStream && column.jdbcType == Types.BLOB) {
+                    stmt.setBlob(idx, (InputStream) value);
+                } else if (value instanceof byte[] && column.jdbcType == Types.BLOB) {
+                    stmt.setBytes(idx, (byte[]) value);
+                }else {
                     stmt.setObject(idx, value);
                 }
                 if (value != null) {

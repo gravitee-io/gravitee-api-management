@@ -38,6 +38,7 @@ public abstract class AbstractJdbcTestRepositoryConfiguration {
         final HikariConfig dsConfig = new HikariConfig();
         final String jdbcUrl = getJdbcUrl();
         dsConfig.setJdbcUrl(jdbcUrl);
+        //dsConfig.setAutoCommit(false);
         setEscapeReservedWordFromJDBCUrl(jdbcUrl);
         return new HikariDataSource(dsConfig);
     }
