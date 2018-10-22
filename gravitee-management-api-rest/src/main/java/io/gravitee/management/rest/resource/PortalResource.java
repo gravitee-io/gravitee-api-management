@@ -82,4 +82,9 @@ public class PortalResource {
     public PortalApisResource getPortalApisResource() {
         return resourceContext.getResource(PortalApisResource.class);
     }
+    
+    @Path("media")
+    public PortalMediaResource getPortalMediaResource() {
+        return resourceContext.getResource(PortalMediaResource.class);
+    }
 }

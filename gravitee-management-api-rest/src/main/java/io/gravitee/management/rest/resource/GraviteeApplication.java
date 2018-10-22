@@ -40,6 +40,7 @@ import io.swagger.models.properties.LongProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
@@ -109,6 +110,7 @@ public class GraviteeApplication extends ResourceConfig {
         register(AuditResource.class);
         register(SearchResource.class);
         register(MessagesResource.class);
+        register(MultiPartFeature.class);
 
         // Dynamically register authentication endpoints
         register(new AuthenticationBinder(authenticationProviderManager));

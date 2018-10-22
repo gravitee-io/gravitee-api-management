@@ -266,6 +266,11 @@ public class ApisResource extends AbstractResource {
         return resourceContext.getResource(ApiResource.class);
     }
 
+    @Path("{api}/media")
+    public ApiMediaResource getApiMediaResource() {
+        return resourceContext.getResource(ApiMediaResource.class);
+    }
+
     private ApiListItem convert(ApiEntity api) {
         final ApiListItem apiItem = new ApiListItem();
 

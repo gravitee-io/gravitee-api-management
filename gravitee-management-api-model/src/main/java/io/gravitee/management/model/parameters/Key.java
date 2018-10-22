@@ -39,6 +39,9 @@ public enum Key {
     PORTAL_APIS_SHOW_TAGS_IN_APIHEADER("portal.apis.apiheader.showtags.enabled", "false"),
     PORTAL_APIS_SHOW_VIEWS_IN_APIHEADER("portal.apis.apiheader.showviews.enabled", "false"),
     PORTAL_DASHBOARD_WIDGETS("portal.dashboard.widgets"),
+    PORTAL_UPLOAD_MEDIA_ENABLED("portal.uploadMedia.enabled", "false"),
+    PORTAL_UPLOAD_MEDIA_MAXSIZE("portal.uploadMedia.maxSizeInOctet", "10"),
+
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management"),
 

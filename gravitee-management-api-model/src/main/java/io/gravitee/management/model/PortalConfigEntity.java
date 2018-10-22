@@ -147,11 +147,14 @@ public class PortalConfigEntity {
         private PortalDashboard dashboard;
         private PortalRating rating;
 
+        private PortalUploadMedia media;
+
         public Portal() {
             apis = new PortalApis();
             analytics = new PortalAnalytics();
             dashboard = new PortalDashboard();
             rating = new PortalRating();
+            media = new PortalUploadMedia();
         }
 
         public Enabled isDevMode() {
@@ -242,6 +245,14 @@ public class PortalConfigEntity {
             this.rating = rating;
         }
 
+        public PortalUploadMedia getUploadMedia() {
+            return media;
+        }
+
+        public void setUploadMedia(PortalUploadMedia media) {
+            this.media = media;
+        }
+
         public class PortalRating {
             @ParameterKey(Key.PORTAL_RATING_ENABLED)
             private Boolean enabled;
@@ -279,6 +290,29 @@ public class PortalConfigEntity {
                 public void setMandatory(Boolean mandatory) {
                     this.mandatory = mandatory;
                 }
+            }
+        }
+
+        public class PortalUploadMedia {
+            @ParameterKey(Key.PORTAL_UPLOAD_MEDIA_ENABLED)
+            private Boolean enabled;
+            @ParameterKey(Key.PORTAL_UPLOAD_MEDIA_MAXSIZE)
+            private Integer maxSizeInOctet;
+
+            public Boolean getEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(Boolean enabled) {
+                this.enabled = enabled;
+            }
+
+            public Integer getMaxSizeInOctet() {
+                return maxSizeInOctet;
+            }
+
+            public void setMaxSizeInOctet(Integer maxSizeInOctet) {
+                this.maxSizeInOctet = maxSizeInOctet;
             }
         }
     }
