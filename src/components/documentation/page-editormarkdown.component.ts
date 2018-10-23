@@ -16,6 +16,7 @@
 import "tui-editor/dist/tui-editor-extScrollSync";
 import "tui-editor/dist/tui-editor-extTable";
 import angular = require("angular");
+import { StateService } from '@uirouter/core';
 
 import * as TuiEditor from "tui-editor";
 
@@ -24,14 +25,23 @@ class ComponentCtrl implements ng.IComponentController {
   public page: any;
   public options: any;
 
-  constructor() {
+  private maxSize: number;
+
+  constructor(private $http, private Constants, private $state: StateService) {
       "ngInject";
+      var lastElement = Constants.portal.uploadMedia.maxSizeInOctet;
   }
 
   $onInit() {}
 
   $onChanges() {
     const initialValue = this.page && this.page.content ? this.page.content : "";
+    let mediaURL;
+    if (this.$state.params.apiId) {
+      mediaURL = this.Constants.baseURL + "apis/" + this.$state.params.apiId + "/media/";
+    } else {
+      mediaURL = this.Constants.baseURL + "portal/media/";
+    }
 
     var toolbarItems = [
       "heading",
@@ -56,6 +66,16 @@ class ComponentCtrl implements ng.IComponentController {
     ];
 
 
+    let $http = this.$http;
+    let Constants = this.Constants;
+    let maxSize = this.maxSize;
+
+    if (Constants.portal.uploadMedia.enabled) {
+      //toolbarItems
+      toolbarItems.splice(15, 0, "image");
+    }
+
+
     var tuiEditor = new TuiEditor(Object.assign({
       el: document.querySelector("#editSection"),
       initialEditType: "markdown",
@@ -69,6 +89,25 @@ class ComponentCtrl implements ng.IComponentController {
       events: {
         change: (change) => {
           this.page.content = tuiEditor.getMarkdown();
+        }
+      },
+      hooks: {
+        addImageBlobHook: function (blob, callback) {
+
+          let fd = new FormData();
+          fd.append("file", blob);
+
+          if (blob.size > Constants.portal.uploadMedia.maxSizeInOctet) {
+            callback("file uploaded to big, you're limited at " + Constants.portal.uploadMedia.maxSizeInOctet, "");
+            return false;
+          }
+
+          $http.post(mediaURL + "upload", fd, {headers: {"Content-Type": undefined}})
+          .then((response) => {
+            callback(mediaURL + "/" + response.data, blob.name);
+          });
+
+          return false;
         }
       }
     }, this.options));
