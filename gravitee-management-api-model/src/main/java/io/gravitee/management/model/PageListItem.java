@@ -17,6 +17,7 @@ package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,6 +50,9 @@ public class PageListItem {
 
     @JsonProperty("excluded_groups")
     private List<String> excludedGroups;
+
+    @JsonProperty("updated_at")
+    private Date updatedAt;
 
     public String getId() {
         return id;
@@ -133,6 +137,14 @@ public class PageListItem {
     public List<PageListItem> getPages() { return pages; }
 
     public void setPages(List<PageListItem> pages) { this.pages = pages; }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
     @Override
     public boolean equals(Object o) {

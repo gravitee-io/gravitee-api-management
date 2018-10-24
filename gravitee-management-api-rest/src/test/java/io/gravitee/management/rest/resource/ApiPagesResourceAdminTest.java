@@ -51,7 +51,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
-        doReturn(pageMock).when(pageService).findById(PAGE_NAME, false);
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = target().request().get();
 
@@ -61,7 +61,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         assertEquals(PAGE_NAME, responsePage.getName());
         verify(membershipService, never()).getRole(any(), any(), any(), any());
         verify(apiService, times(1)).findById(API_NAME);
-        verify(pageService, times(1)).findById(PAGE_NAME, false);
+        verify(pageService, times(1)).findById(PAGE_NAME);
         verify(pageService, never()).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
     }
 
@@ -75,7 +75,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
-        doReturn(pageMock).when(pageService).findById(PAGE_NAME, false);
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = target().request().get();
 
@@ -85,7 +85,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         assertEquals(PAGE_NAME, responsePage.getName());
         verify(membershipService, never()).getRole(any(), any(), any(), any());
         verify(apiService, times(1)).findById(API_NAME);
-        verify(pageService, times(1)).findById(PAGE_NAME, false);
+        verify(pageService, times(1)).findById(PAGE_NAME);
         verify(pageService, never()).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
     }
 
@@ -99,7 +99,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(false);
         pageMock.setName(PAGE_NAME);
-        doReturn(pageMock).when(pageService).findById(PAGE_NAME, false);
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = target().request().get();
 
@@ -109,7 +109,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         assertEquals(PAGE_NAME, responsePage.getName());
         verify(membershipService, never()).getRole(any(), any(), any(), any());
         verify(apiService, times(1)).findById(API_NAME);
-        verify(pageService, times(1)).findById(PAGE_NAME, false);
+        verify(pageService, times(1)).findById(PAGE_NAME);
         verify(pageService, never()).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
     }
 }

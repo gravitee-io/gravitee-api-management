@@ -18,8 +18,9 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.PageListItem;
+import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.UpdatePageEntity;
+import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
@@ -79,7 +80,8 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response getPageContent(
             @PathParam("page") String page) {
-        PageEntity pageEntity = pageService.findById(page, true);
+        PageEntity pageEntity = pageService.findById(page);
+        pageService.transformSwagger(pageEntity);
         if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
             return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
         } else {
@@ -92,15 +94,25 @@ public class PortalPagesResource extends AbstractResource {
     @ApiOperation(value = "List pages",
             notes = "Every users can use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "List of pages", response = PageListItem.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "List of pages", response = PageEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<PageListItem> listPages(
+    public List<PageEntity> listPages(
             @QueryParam("homepage") Boolean homepage,
-            @QueryParam("flatMode") Boolean flatMode) {
-        return pageService.findPortalPagesByHomepage(homepage, flatMode).
-                stream().
-                filter(page -> isDisplayable(page.isPublished(), page.getExcludedGroups())).
-                collect(Collectors.toList());
+            @QueryParam("type") PageType type,
+            @QueryParam("parent") String parent,
+            @QueryParam("name") String name,
+            @QueryParam("root") Boolean rootParent) {
+        return pageService
+                .search(new PageQuery.Builder()
+                        .homepage(homepage)
+                        .type(type)
+                        .parent(parent)
+                        .name(name)
+                        .rootParent(rootParent)
+                        .build())
+                .stream()
+                .filter(page -> isDisplayable(page.isPublished(), page.getExcludedGroups()))
+                .collect(Collectors.toList());
     }
 
     @POST
@@ -203,11 +215,13 @@ public class PortalPagesResource extends AbstractResource {
             @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
     public Response fetchAllPages() {
-        List<PageListItem> pages = pageService.findPortalPagesByHomepage(false, false);
         String contributor = getAuthenticatedUser();
-        pages.stream()
-            .filter(pageListItem -> pageListItem.getSource() != null)
-            .forEach(pageListItem -> pageService.fetch(pageListItem.getId(), contributor));
+        pageService.search(new PageQuery.Builder().build())
+                .stream()
+                .filter(pageListItem ->
+                        pageListItem.getSource() != null)
+                .forEach(pageListItem ->
+                        pageService.fetch(pageListItem.getId(), contributor));
 
         return Response.noContent().build();
     }

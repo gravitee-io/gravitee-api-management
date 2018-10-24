@@ -22,6 +22,7 @@ import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.service.*;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
@@ -146,16 +148,9 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         }
 
         if (!filteredFieldsList.contains("pages")) {
-            List<PageListItem> pageListItems = applicationContext.getBean(PageService.class).findApiPagesByApi(apiEntity.getId());
-            List<PageEntity> pages = null;
-            if (pageListItems != null) {
-                pages = new ArrayList<>(pageListItems.size());
-                List<PageEntity> finalPages = pages;
-                pageListItems.forEach(f -> {
-                    PageEntity pageEntity = applicationContext.getBean(PageService.class).findById(f.getId());
-                    pageEntity.setId(null);
-                    finalPages.add(pageEntity);
-                });
+            List<PageEntity> pages = applicationContext.getBean(PageService.class).search(new PageQuery.Builder().api(apiEntity.getId()).build());
+            if (pages != null) {
+                pages.forEach(f -> f.setId(null));
             }
             jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
         }

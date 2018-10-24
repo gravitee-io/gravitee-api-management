@@ -18,9 +18,10 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.PageListItem;
+import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
@@ -68,18 +69,29 @@ public class ApiPagesResource extends AbstractResource {
     @ApiOperation(value = "List pages",
             notes = "User must have the READ permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "List of pages", response = PageListItem.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "List of pages", response = PageEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<PageListItem> listPages(
+    public List<PageEntity> listPages(
             @PathParam("api") String api,
             @QueryParam("homepage") Boolean homepage,
-            @QueryParam("flatMode") Boolean flatMode) {
+            @QueryParam("type") PageType type,
+            @QueryParam("parent") String parent,
+            @QueryParam("name") String name,
+            @QueryParam("root") Boolean rootParent) {
         final ApiEntity apiEntity = apiService.findById(api);
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
-            final List<PageListItem> pages = pageService.findApiPagesByApiAndHomepage(api, homepage, flatMode);
 
-            return pages.stream()
+            return pageService
+                    .search(new PageQuery.Builder()
+                            .api(api)
+                            .homepage(homepage)
+                            .type(type)
+                            .parent(parent)
+                            .name(name)
+                            .rootParent(rootParent)
+                            .build())
+                    .stream()
                     .filter(page -> isDisplayable(apiEntity, page.isPublished(), page.getExcludedGroups()))
                     .collect(Collectors.toList());
         }
@@ -128,7 +140,7 @@ public class ApiPagesResource extends AbstractResource {
     public Response fetchAllPages(
             @PathParam("api") String api
     ) {
-        List<PageListItem> pages = pageService.findApiPagesByApi(api);
+        List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(api).build());
         String contributor = getAuthenticatedUser();
 
         pages.stream()

@@ -17,6 +17,7 @@ package io.gravitee.management.service.quality;
 
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.PageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +39,11 @@ public class ApiQualityMetricTechnicalDocumentation implements ApiQualityMetric 
     @Override
     public boolean isValid(ApiEntity api) {
         return pageService
-                .findApiPagesByApi(api.getId())
-                .stream()
-                .anyMatch(pageListItem ->
-                        pageListItem.isPublished()
-                                && PageType.SWAGGER.equals(pageListItem.getType()));
+                .search(new PageQuery.Builder()
+                        .api(api.getId())
+                        .published(true)
+                        .type(PageType.SWAGGER)
+                        .build())
+                .size() > 0L;
     }
 }

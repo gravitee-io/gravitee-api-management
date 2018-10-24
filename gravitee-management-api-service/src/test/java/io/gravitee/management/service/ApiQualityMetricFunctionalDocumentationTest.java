@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.PageListItem;
+import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.quality.ApiQualityMetricFunctionalDocumentation;
@@ -29,6 +29,7 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,10 +49,10 @@ public class ApiQualityMetricFunctionalDocumentationTest {
 
     @Test
     public void shouldBeValidWithMarkdownPublished() {
-        PageListItem item = mock(PageListItem.class);
+        PageEntity item = mock(PageEntity.class);
         when(item.isPublished()).thenReturn(Boolean.TRUE);
-        when(item.getType()).thenReturn(PageType.MARKDOWN);
-        when(mockPageService.findApiPagesByApi(API_ID)).thenReturn(Collections.singletonList(item));
+        when(item.getType()).thenReturn(PageType.MARKDOWN.name());
+        when(mockPageService.search(any())).thenReturn(Collections.singletonList(item));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
@@ -61,36 +62,8 @@ public class ApiQualityMetricFunctionalDocumentationTest {
     }
 
     @Test
-    public void shouldNotBeValidWithMarkdownUnpublished() {
-        PageListItem item = mock(PageListItem.class);
-        when(item.isPublished()).thenReturn(Boolean.FALSE);
-        when(item.getType()).thenReturn(PageType.MARKDOWN);
-        when(mockPageService.findApiPagesByApi(API_ID)).thenReturn(Collections.singletonList(item));
-        ApiEntity api = mock(ApiEntity.class);
-        when(api.getId()).thenReturn(API_ID);
-
-        boolean valid = srv.isValid(api);
-
-        assertFalse(valid);
-    }
-
-    @Test
-    public void shouldNotBeValidWithSwaggerPublished() {
-        PageListItem item = mock(PageListItem.class);
-        when(item.isPublished()).thenReturn(Boolean.TRUE);
-        when(item.getType()).thenReturn(PageType.SWAGGER);
-        when(mockPageService.findApiPagesByApi(API_ID)).thenReturn(Collections.singletonList(item));
-        ApiEntity api = mock(ApiEntity.class);
-        when(api.getId()).thenReturn(API_ID);
-
-        boolean valid = srv.isValid(api);
-
-        assertFalse(valid);
-    }
-
-    @Test
     public void shouldNotBeValidWithEmptyList() {
-        when(mockPageService.findApiPagesByApi(API_ID)).thenReturn(Collections.emptyList());
+        when(mockPageService.search(any())).thenReturn(Collections.emptyList());
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 

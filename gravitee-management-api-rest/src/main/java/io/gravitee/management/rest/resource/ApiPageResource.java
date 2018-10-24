@@ -70,7 +70,10 @@ public class ApiPageResource extends AbstractResource {
 
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
-            PageEntity pageEntity = pageService.findById(page, portal);
+            PageEntity pageEntity = pageService.findById(page);
+            if (portal) {
+                pageService.transformSwagger(pageEntity);
+            }
             if (isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
                 return pageEntity;
             } else {

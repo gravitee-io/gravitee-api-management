@@ -17,10 +17,10 @@ package io.gravitee.management.service.impl.upgrade;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.common.PageableImpl;
+import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.Upgrader;
@@ -32,10 +32,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -57,36 +57,25 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     public boolean upgrade() {
         // Index APIs
         Set<ApiEntity> apis = apiService.findAll();
-        apis.stream()
-                .forEach(new Consumer<ApiEntity>() {
-                    @Override
-                    public void accept(ApiEntity apiEntity) {
-                        searchEngineService.index(apiEntity);
+        apis.forEach(apiEntity -> {
+            // API
+            searchEngineService.index(apiEntity);
 
-                        List<PageListItem> apiPages = pageService.findApiPagesByApi(apiEntity.getId());
-                        apiPages.stream().forEach(new Consumer<PageListItem>() {
-                            @Override
-                            public void accept(PageListItem pageListItem) {
-                                try {
-                                    PageEntity page = pageService.findById(pageListItem.getId(), true);
-                                    searchEngineService.index(page);
-                                } catch (Exception ex) {
-
-                                }
-                            }
-                        });
-                    }
-                });
+            // Pages
+            List<PageEntity> apiPages = pageService.search(new PageQuery.Builder().api(apiEntity.getId()).published(true).build());
+            apiPages.forEach(page -> {
+                try {
+                    pageService.transformSwagger(page, apiEntity.getId());
+                    searchEngineService.index(page);
+                } catch (Exception ignored) {}
+            });
+        });
 
         // Index users
         Page<UserEntity> users = userService.search(null, new PageableImpl(1, Integer.MAX_VALUE));
-        users.getContent().stream()
-                .forEach(new Consumer<UserEntity>() {
-                    @Override
-                    public void accept(UserEntity userEntity) {
-                        searchEngineService.index(userEntity);
-                    }
-                });
+        users.getContent().forEach(userEntity ->
+                searchEngineService.index(userEntity)
+        );
 
         return true;
     }

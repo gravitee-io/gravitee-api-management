@@ -22,23 +22,20 @@ import io.gravitee.management.model.documentation.PageQuery;
 import java.util.List;
 
 /**
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Guillaume GILLON
  * @author GraviteeSource Team
- * @author Guillaume GILLON 
  */
 public interface PageService {
-
-	List<PageListItem> findApiPagesByApi(String apiId);
-
-	List<PageListItem> findApiPagesByApiAndHomepage(String apiId, Boolean homepage, Boolean flatMode);
-
-	List<PageListItem> findPortalPagesByHomepage(Boolean homepage, Boolean flatMode);
 
 	PageEntity findById(String pageId);
 
 	List<PageEntity> search(PageQuery query);
 
-	PageEntity findById(String pageId, boolean transform);
+	void transformSwagger(PageEntity pageEntity);
+
+	void transformSwagger(PageEntity pageEntity, String apiId);
 
 	PageEntity createApiPage(String apiId, NewPageEntity page);
 

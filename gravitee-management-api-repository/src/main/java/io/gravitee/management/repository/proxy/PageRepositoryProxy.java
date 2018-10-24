@@ -17,10 +17,12 @@ package io.gravitee.management.repository.proxy;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,16 +33,6 @@ import java.util.Optional;
  */
 @Component
 public class PageRepositoryProxy extends AbstractProxy<PageRepository> implements PageRepository {
-
-    @Override
-    public Collection<Page> findApiPageByApiId(String s) throws TechnicalException {
-        return target.findApiPageByApiId(s);
-    }
-
-    @Override
-    public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException {
-        return target.findApiPageByApiIdAndHomepage(apiId, isHomepage);
-    }
 
     @Override
     public Integer findMaxApiPageOrderByApiId(String s) throws TechnicalException {
@@ -68,22 +60,12 @@ public class PageRepositoryProxy extends AbstractProxy<PageRepository> implement
     }
 
     @Override
-    public Collection<Page> findPortalPageByHomepage(boolean isHomepage) throws TechnicalException {
-        return target.findPortalPageByHomepage(isHomepage);
-    }
-
-    @Override
-    public Collection<Page> findPortalPages() throws TechnicalException {
-        return target.findPortalPages();
-    }
-
-    @Override
     public Integer findMaxPortalPageOrder() throws TechnicalException {
         return target.findMaxPortalPageOrder();
     }
 
     @Override
-    public void removeAllFolderParentWith(String pageId, String apiId) throws TechnicalException {
-        target.removeAllFolderParentWith(pageId, apiId);
+    public List<Page> search(PageCriteria criteria) throws TechnicalException {
+        return target.search(criteria);
     }
 }

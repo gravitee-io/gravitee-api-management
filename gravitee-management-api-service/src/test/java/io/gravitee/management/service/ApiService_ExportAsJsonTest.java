@@ -160,8 +160,7 @@ public class ApiService_ExportAsJsonTest {
         page.setOrder(1);
         page.setType(PageType.MARKDOWN.toString());
         page.setContent("Read the doc");
-        when(pageService.findApiPagesByApi(API_ID)).thenReturn(Collections.singletonList(new PageListItem()));
-        when(pageService.findById(any())).thenReturn(page);
+        when(pageService.search(any())).thenReturn(Collections.singletonList(page));
         Membership membership = new Membership();
         membership.setUserId("johndoe");
         membership.setReferenceId(API_ID);

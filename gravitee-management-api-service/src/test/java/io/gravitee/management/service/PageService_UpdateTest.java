@@ -22,6 +22,7 @@ import io.gravitee.management.service.impl.PageServiceImpl;
 import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -101,7 +102,13 @@ public class PageService_UpdateTest {
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(pageOrder1));
 
-        when(pageRepository.findApiPageByApiId(API_ID)).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
+        when(pageRepository.search(argThat(new ArgumentMatcher<PageCriteria>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof PageCriteria && ((PageCriteria) o).getApi().equals(API_ID));
+            }
+
+        }))).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
         when(pageRepository.update(any(Page.class))).thenReturn(pageOrder1);
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
@@ -146,7 +153,13 @@ public class PageService_UpdateTest {
 
         when(pageRepository.findById("3")).thenReturn(Optional.of(pageOrder3));
 
-        when(pageRepository.findApiPageByApiId(API_ID)).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
+        when(pageRepository.search(argThat(new ArgumentMatcher<PageCriteria>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof PageCriteria && ((PageCriteria) o).getApi().equals(API_ID));
+            }
+
+        }))).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
         when(pageRepository.update(any(Page.class))).thenReturn(pageOrder1);
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
