@@ -18,6 +18,7 @@ package io.gravitee.gateway.handlers.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
@@ -121,10 +122,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
     }
 
     private void handleClientRequest(final Request serverRequest, final Response serverResponse, final ExecutionContext executionContext, final Handler<Response> handler) {
-        // Pause the request and resume it as soon as all the stream are plugged and we have processed the HEAD part
-        // of the request.
-        serverRequest.pause();
-
         // Process incoming request
         ProcessorContext context = ProcessorContext.from(serverRequest, serverResponse, executionContext);
         StreamableProcessor<StreamableProcessor<Buffer>> requestProcessor = new ProviderProcessorChain(requestProcessors);
@@ -140,6 +137,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
     }
 
     private void handleProxyInvocation(final ProcessorContext processorContext, final StreamableProcessor<Buffer> processor, final Handler<Response> handler) {
+        // Pause the request and resume it as soon as all the stream are plugged and we have processed the HEAD part
+        // of the request.
+        processorContext.getRequest().pause();
+
         // Call an invoker to get a proxy connection (connection to an underlying backend, mainly HTTP)
         Invoker upstreamInvoker = (Invoker) processorContext.getContext().getAttribute(ExecutionContext.ATTR_INVOKER);
 
@@ -298,20 +299,21 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
         responseProcessors.add(apiResponsePolicyResolver);
 
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
-            requestProcessors.add(new InstanceAwareProcessorProvider(
-                    new CorsPreflightRequestProcessor(api.getProxy().getCors())));
+            requestProcessors.add(new InstanceCreatorAwareProcessorProvider(
+                    (Function<Void, Processor>) useless -> new CorsPreflightRequestProcessor(api.getProxy().getCors())
+            ));
 
-            InstanceAwareProcessorProvider corsProcessorProvider = new InstanceAwareProcessorProvider(
-                    new CorsSimpleRequestProcessor(api.getProxy().getCors()));
-            responseProcessors.add(corsProcessorProvider);
-            errorProcessors.add(corsProcessorProvider);
+            responseProcessors.add(new InstanceCreatorAwareProcessorProvider(
+                    (Function<Void, Processor>) useless -> new CorsSimpleRequestProcessor(api.getProxy().getCors())));
+            errorProcessors.add(new InstanceCreatorAwareProcessorProvider(
+                    (Function<Void, Processor>) useless -> new CorsSimpleRequestProcessor(api.getProxy().getCors())));
         }
 
         requestProcessors.add(securityPolicyResolver);
 
         if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
-            requestProcessors.add( new InstanceAwareProcessorProvider(
-                    new ApiLoggableRequestProcessor(api.getProxy().getLogging())));
+            requestProcessors.add(new InstanceCreatorAwareProcessorProvider(
+                    (Function<Void, Processor>) useless -> new ApiLoggableRequestProcessor(api.getProxy().getLogging())));
         }
 
         requestProcessors.add(planPolicyResolver);
