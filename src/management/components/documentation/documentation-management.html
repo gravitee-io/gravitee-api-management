@@ -1,0 +1,152 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-forms gv-forms-fluid" layout="column">
+    <h1>Documentation</h1>
+    <div class="gv-form">
+        <div layout="row" layout-align="space-between center" ng-if="!renameFolder">
+            <h2>
+            <span ng-repeat="folder in $ctrl.breadcrumb">
+                <a ng-if="$ctrl.apiId && !$last" ui-sref="management.apis.detail.portal.documentation({apiId: $ctrl.apiId, parent: folder.id})">{{folder.name}}</a>
+                <a ng-if="!$ctrl.apiId && !$last" ui-sref="management.settings.documentation({parent: folder.id})">{{folder.name}}</a>
+                <span ng-if="$ctrl.apiId && $last">{{folder.name}}</span>
+                <span ng-if="!$ctrl.apiId && $last">{{folder.name}}</span>
+                <span ng-if="$first || !$last ">&nbsp;/&nbsp;</span>
+            </span>
+            </h2>
+            <div ng-if="$ctrl.breadcrumb.length > 1">
+                <md-button type="button"
+                           class="md-raised md-primary"
+                           ng-click="$ctrl.toggleRenameFolder()"
+                           aria-label="Edit">
+                    Rename Folder</md-button>
+            </div>
+        </div>
+        <div layout="row" layout-align="space-between center" ng-if="renameFolder">
+            <h2>
+            <span ng-repeat="folder in $ctrl.breadcrumb">
+                <span ng-if="!$last">{{folder.name}}</span>
+                <input ng-if="$last" type="text" ng-model="$ctrl.newFolderName">
+                <span ng-if="$first || !$last ">&nbsp;/&nbsp;</span>
+            </span>
+            </h2>
+            <div ng-if="$ctrl.breadcrumb.length > 1">
+                <md-button type="button"
+                           class="md-raised md-primary"
+                           ng-click="$ctrl.renameFolder()"
+                           aria-label="Edit">
+                    Save</md-button>
+                <md-button class="md-raised" type="button" ng-click="$ctrl.toggleRenameFolder()">
+                    Cancel
+                </md-button>
+            </div>
+        </div>
+        <div class="gv-form-content" layout="column">
+            <md-table-container ng-if="$ctrl.pages.length > 0">
+                <table md-table class="gv-table-dense">
+                    <thead md-head>
+                    <tr md-row>
+                        <th md-column class="column-with-logo">Name</th>
+                        <th md-column width="48px"></th>
+                        <th md-column width="48px"></th>
+                        <th md-column width="76px"></th>
+                        <th md-column width="1%" nowrap>Last Update</th>
+                        <th md-column width="48px"></th>
+                    </tr>
+                    </thead>
+                    <tbody md-body>
+                    <tr md-row ng-repeat="page in $ctrl.pages">
+                        <td md-cell>
+                            <md-icon md-svg-src="assets/logo_{{page.type | lowercase}}.svg" style="margin-right: 12px;"></md-icon>
+                            <span>
+                                <a ng-style="page.published?'':{'font-style': 'italic', 'color': 'grey'}"
+                                   ng-click="$ctrl.open(page)">
+                                    {{page.name}}
+                                </a>
+                                <sup ng-if="page.homepage" class="icon-button-homepage">
+                                    <ng-md-icon icon="home" size="12" style="fill: rgb(68,138,255);"></ng-md-icon>
+                                </sup>
+                            </span>
+                        </td>
+                        <td md-cell width="48px">
+                            <ng-md-icon icon="archive" ng-click="$ctrl.moveToFolder(page)"
+                                        style="font-size: 24px; height: 24px;"
+                                        ng-if="page.type !== 'folder'">
+                                <md-tooltip md-direction="top" md-visible="false">Move to ...</md-tooltip>
+                            </ng-md-icon>
+                        </td>
+                        <td md-cell width="48px">
+                            <ng-md-icon ng-if="!page.published && page.type !== 'folder'" icon="cloud_queue" ng-click="$ctrl.togglePublish(page)"
+                                        style="font-size: 24px; height: 24px;">
+                                <md-tooltip md-direction="top" md-visible="false">Publish this page</md-tooltip>
+                            </ng-md-icon>
+                            <ng-md-icon ng-if="page.published && page.type !== 'folder'" icon="cloud_done" ng-click="$ctrl.togglePublish(page)"
+                                        style="font-size: 24px; height: 24px;">
+                                <md-tooltip md-direction="top" md-visible="false">Unpublish this page</md-tooltip>
+                            </ng-md-icon>
+                        </td>
+                        <td md-cell width="76px" nowrap>
+                            <ng-md-icon ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(page)">
+                                <md-tooltip md-direction="top" md-visible="false">Move upward</md-tooltip>
+                            </ng-md-icon>
+                            <span ng-if="$first" style="padding-right: 28px"></span>
+                            <ng-md-icon ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(page)">
+                                <md-tooltip md-direction="top" md-visible="false">Move downward</md-tooltip>
+                            </ng-md-icon>
+                        </td>
+                        <td md-cell width="1%" nowrap>{{page.lastModificationDate | date:'medium'}}</td>
+                        <td md-cell width="48px">
+                            <ng-md-icon icon="delete" ng-click="$ctrl.remove(page)"
+                                        style="font-size: 24px; height: 24px;">
+                                <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
+                            </ng-md-icon>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </md-table-container>
+
+            <gravitee-empty-state ng-if="$ctrl.pages.length == 0"
+                                  icon="insert_drive_file"
+                                  model="Page"
+                                  message="Documentation will appear here"
+                                  sub-message="Start creating a page"
+                                  create-mode="true"></gravitee-empty-state>
+
+            <md-fab-speed-dial md-direction="{{$ctrl.pages.length > 0 ? 'left' : 'down'}}"
+                               md-open="false"
+                               ng-class="{'md-fab-bottom-right gravitee-add-button' : $ctrl.pages.length > 0}"
+                               class="md-scale">
+                <md-fab-trigger>
+                    <md-button aria-label="menu" class="md-fab md-success">
+                        <md-tooltip ng-if="$ctrl.pages.length > 0" md-direction="top" md-visible="false">New page</md-tooltip>
+                        <ng-md-icon icon="add"></ng-md-icon>
+                    </md-button>
+                </md-fab-trigger>
+
+                <md-fab-actions>
+                    <md-button ng-repeat="type in $ctrl.supportedTypes"
+                               class="md-fab md-raised md-mini"
+                               ng-click="$ctrl.newPage(type)">
+                        <md-tooltip md-direction="{{$ctrl.pages.length > 0 ? 'top' : 'right'}}">{{type}}</md-tooltip>
+                        <md-icon md-svg-src="assets/logo_{{type | lowercase}}.svg"></md-icon>
+                    </md-button>
+                </md-fab-actions>
+            </md-fab-speed-dial>
+        </div>
+    </div>
+</div>

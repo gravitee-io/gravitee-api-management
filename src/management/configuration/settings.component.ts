@@ -45,7 +45,7 @@ const SettingsComponent: ng.IComponentOptions = {
       documentations: {
         perm: UserService.isUserHasPermissions(
           ['portal-documentation-c', 'portal-documentation-u', 'portal-documentation-d']),
-        goTo: 'management.settings.pages'
+        goTo: 'management.settings.documentation'
       },
       metadata: {
         perm: UserService.isUserHasPermissions(

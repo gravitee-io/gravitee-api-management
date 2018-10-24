@@ -21,9 +21,9 @@ const ApiCreationStep5Component: ng.IComponentOptions = {
   controller: function(Constants) {
     'ngInject';
     if (Constants.documentation && Constants.documentation.url) {
-      this.documentationURL = Constants.documentation.url;
+      this.url = Constants.documentation.url;
     } else {
-      this.documentationURL = 'https://docs.gravitee.io';
+      this.url = 'https://docs.gravitee.io';
     }
   }
 };

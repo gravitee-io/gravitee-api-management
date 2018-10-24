@@ -1,0 +1,208 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-forms gv-forms-fluid" layout="column">
+    <div class="gv-forms-header" layout="row" layout-align="space-between end" ng-if="!rename">
+        <div>
+            <md-icon md-svg-src="assets/logo_{{$ctrl.page.type | lowercase}}.svg" style="margin: 0 8px 12px 0;"></md-icon>
+            <h1>{{$ctrl.page.name}}</h1>
+            <a ng-click="$ctrl.cancel()">Back to Documentation</a>
+        </div>
+        <div>
+            <md-button type="button"
+                       class="md-raised md-primary"
+                       ng-click="$ctrl.toggleRename()"
+                       aria-label="Edit">
+                Rename</md-button>
+        </div>
+    </div>
+    <div class="gv-forms-header" layout="row" layout-align="space-between end" ng-if="rename">
+        <div>
+            <md-icon md-svg-src="assets/logo_{{$ctrl.page.type | lowercase}}.svg" style="margin: 0 8px 12px 0;"></md-icon>
+            <input type="text" ng-model="$ctrl.newName" autofocus>
+        </div>
+        <div>
+            <md-button type="button"
+                       class="md-raised md-primary"
+                       ng-click="$ctrl.rename()"
+                       aria-label="Edit">
+                Save</md-button>
+            <md-button class="md-raised" type="button" ng-click="$ctrl.toggleRename()">
+                Cancel
+            </md-button>
+        </div>
+    </div>
+
+    <div class="gv-form" ng-if="'FOLDER' !== $ctrl.page.type">
+        <h2></h2>
+        <div class="gv-form-content" layout="column">
+
+            <div ng-if="editorReadonly" class="gv-page-draft-banner">
+                <ng-md-icon icon="warning" style="fill: #ce4844"></ng-md-icon>
+                Page's content is retrieved from an external source. If you want to edit content manually, <a ng-click="$ctrl.goToExternalSource()">please change the configuration</a>.
+            </div>
+            <md-tabs md-dynamic-height md-selected="$ctrl.selectedTab">
+
+                <md-tab md-on-select="currentTab='content'">
+                    <md-tab-label>Page</md-tab-label>
+                    <md-tab-body>
+
+                        <!-- edit SWAGGER inline -->
+                        <div ng-if="'SWAGGER' === $ctrl.page.type" style="display: inline-block; width: 100%;">
+                            <div layout="row" style="max-height: 900px; overflow: auto;">
+                                <md-input-container class="md-block" flex="50">
+                        <textarea
+                                ui-codemirror
+                                ui-codemirror-opts="$ctrl.codeMirrorOptions"
+                                ng-model="$ctrl.page.content"
+                                aria-label="page content"
+                                rows="5" style="overflow-y: scroll;"
+                                ng-disabled="pageCtrl.useFetcher"
+                                md-autofocus></textarea>
+                                </md-input-container>
+                                <gv-page flex="50" page="$ctrl.page" enable-try-it="false" edit="true"></gv-page>
+                            </div>
+                        </div>
+
+                        <!-- edit MARKDOWN inline -->
+                        <div ng-if="'MARKDOWN' === $ctrl.page.type" style="display: inline-block; width: 100%;">
+                            <md-input-container class="md-block">
+                                <gv-page-editor-markdown page="$ctrl.page"></gv-page-editor-markdown>
+                            </md-input-container>
+                        </div>
+
+                        <!-- import file -->
+                        <div style="display: inline-block;">
+                            <h4>Select a file to import:</h4>
+                            <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" >
+                        </div>
+                    </md-tab-body>
+                </md-tab>
+
+                <md-tab md-on-select="currentTab='config'">
+                    <md-tab-label>Configuration</md-tab-label>
+                    <md-tab-body>
+                        <h3>General</h3>
+                        <md-input-container class="md-block">
+                            <md-checkbox ng-model="$ctrl.page.homepage"
+                                         aria-label="set as homepage"
+                                         class="md-align-top-left"
+                                         flex>
+                                Set as homepage
+                            </md-checkbox>
+                        </md-input-container>
+                        <md-input-container class="md-block">
+                            <md-checkbox ng-model="$ctrl.page.published"
+                                         aria-label="Published"
+                                         class="md-align-top-left"
+                                         flex>
+                               Published this page
+                            </md-checkbox>
+                        </md-input-container>
+                        <!-- SWAGGER Configuration -->
+                        <div ng-if="$ctrl.page.type === 'SWAGGER'" layout="column">
+                            <h3>Swagger</h3>
+                            <md-checkbox ng-model="$ctrl.page.configuration.tryIt" ng-true-value="'true'" ng-false-value="'false'">
+                                Enable "Try it!" mode
+                            </md-checkbox>
+                            <md-input-container class="md-block">
+                                <label>Base URL</label>
+                                <input type="text" ng-model="$ctrl.page.configuration.tryItURL" ng-disabled="$ctrl.page.configuration.tryIt === 'false'">
+                                <div class="hint">Base URL used to try the API</div>
+                            </md-input-container>
+                            <md-checkbox ng-model="$ctrl.page.configuration.showURL" ng-true-value="'true'" ng-false-value="'false'">
+                                Show the URL to download the content
+                            </md-checkbox>
+                            <md-checkbox ng-model="$ctrl.page.configuration.displayOperationId" ng-true-value="'true'" ng-false-value="'false'">
+                                Display the operationId in the operations list
+                            </md-checkbox>
+                            <md-input-container class="md-block">
+                                <label>Default expansion setting for the operations and tags</label>
+                                <md-select ng-model="$ctrl.page.configuration.docExpansion">
+                                    <md-option ng-value="'list'">Expands only the tags</md-option>
+                                    <md-option ng-value="'full'">Expands the tags and operations</md-option>
+                                    <md-option ng-value="'none'">Expands nothing</md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-checkbox ng-model="$ctrl.page.configuration.enableFiltering" ng-true-value="'true'" ng-false-value="'false'" class="md-block">
+                                Add a top bar to filter content
+                            </md-checkbox>
+                            <md-checkbox ng-model="$ctrl.page.configuration.showExtensions" ng-true-value="'true'" ng-false-value="'false'" class="md-block">
+                                Display vendor extension (X-) fields and values for Operations, Parameters, and Schema
+                            </md-checkbox>
+                            <md-checkbox ng-model="$ctrl.page.configuration.showCommonExtensions" ng-true-value="'true'" ng-false-value="'false'">
+                                Display extensions (pattern, maxLength, minLength, maximum, minimum) fields and values for Parameters
+                            </md-checkbox>
+                            <md-input-container class="md-block">
+                                <label>Number of max tagged operations displayed</label>
+                                <input type="number" ng-model="$ctrl.page.configuration.maxDisplayedTags">
+                                <div class="hint">Limits the number of tagged operations displayed to at most this many (-1 means show all operations).</div>
+                            </md-input-container>
+                        </div>
+                    </md-tab-body>
+                </md-tab>
+
+                <md-tab md-on-select="currentTab='fetchers'">
+                    <md-tab-label>External Source</md-tab-label>
+                    <md-tab-body>
+                        <div style="display: inline-block;">
+                            <h3></h3>
+                            <div layout="row">
+                                <md-button ng-repeat="fetcher in $ctrl.fetchers"
+                                           ng-click="$ctrl.configureFetcher(fetcher)"
+                                           ng-class="{'md-raised': fetcher.id === $ctrl.page.source.type}"
+                                           aria-label="fetcher">
+                                    <md-icon md-svg-icon="assets/logo_{{fetcher.id | lowercase}}.svg" style="width:80px;height:40px"></md-icon>
+                                </md-button>
+                            </div>
+                            <div layout="column">
+                                <form name="PageConfigFetcherForm" sf-schema="fetcherJsonSchema" sf-form="$ctrl.fetcherJsonSchemaForm" sf-model="$ctrl.page.source.configuration"></form>
+                            </div>
+                        </div>
+                    </md-tab-body>
+                </md-tab>
+
+                <md-tab md-on-select="currentTab='access-control'">
+                    <md-tab-label>Access Control</md-tab-label>
+                    <md-tab-body>
+                        <h3>Groups Authorizations</h3>
+                        <md-input-container class="md-block" flex="100">
+                            <label>Groups allowed to access to this page. All by default.</label>
+                            <md-select ng-model="$ctrl.page.authorizedGroups" multiple>
+                                <md-option ng-repeat="group in $ctrl.groups | orderBy:'name'" ng-value="group.id">
+                                    {{group.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </md-tab-body>
+                </md-tab>
+            </md-tabs>
+
+            <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;">
+                <md-button class="md-raised md-primary" type="submit" ng-click="$ctrl.save()" ng-disabled="!$ctrl.page.name">
+                    Save
+                </md-button>
+                <md-button class="md-raised" type="button" ng-click="$ctrl.reset()">
+                    Reset
+                </md-button>
+                <md-button class="md-flat md-warn" type="button" ng-if="currentTab === 'fetchers' && $ctrl.page.source" ng-click="$ctrl.removeFetcher()">
+                    Remove External Source Configuration
+                </md-button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -29,11 +29,11 @@
               <div>Group: {{group.name}}</div>
               <div>
                 <md-button class="md-icon-button" aria-label="Edit group" ui-sref="management.apis.detail.proxy.group({groupName: group.name})">
-                  <ng-md-icon icon="settings" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+                  <ng-md-icon icon="settings"></ng-md-icon>
                   <md-tooltip md-direction="left">Edit group</md-tooltip>
                 </md-button>
                 <md-button class="md-icon-button" aria-label="Delete group" ng-click="apiProxyCtrl.deleteGroup(group.name)">
-                  <ng-md-icon icon="delete" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+                  <ng-md-icon icon="delete"></ng-md-icon>
                   <md-tooltip md-direction="left">Delete group</md-tooltip>
                 </md-button>
               </div>
@@ -51,12 +51,12 @@
                 <th md-column md-order-by="healthcheck" hide-gt-xs show-gt-sm>Health-check</th>
                 <th md-column permission permission-only="'api-definition-u'">
                   <md-button class="md-icon-button" aria-label="Add endpoint" ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: ''})">
-                    <ng-md-icon icon="add" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+                    <ng-md-icon icon="add"></ng-md-icon>
                     <md-tooltip md-direction="left">Add new endpoint</md-tooltip>
                   </md-button>
 
                   <md-button class="md-icon-button" aria-label="Delete endpoint" ng-click="apiProxyCtrl.removeEndpoints($event)" ng-disabled="selected.length == 0">
-                    <ng-md-icon icon="delete" style="fill: rgba(0, 0, 0, 0.54);" ng-show="selected.length > 0"></ng-md-icon>
+                    <ng-md-icon icon="delete" ng-show="selected.length > 0"></ng-md-icon>
                     <ng-md-icon icon="delete" style="fill: rgba(142, 158, 170, 0.54);" ng-show="selected.length == 0"></ng-md-icon>
                     <md-tooltip md-direction="left">Delete endpoint</md-tooltip>
                   </md-button>
@@ -79,7 +79,7 @@
                 </td>
                 <td md-cell permission permission-only="'api-definition-u'">
                   <md-button class="md-icon-button" aria-label="Edit endpoint" ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: endpoint.name})">
-                    <ng-md-icon icon="settings" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+                    <ng-md-icon icon="settings"></ng-md-icon>
                     <md-tooltip md-direction="left">Edit endpoint</md-tooltip>
                   </md-button>
                 </td>

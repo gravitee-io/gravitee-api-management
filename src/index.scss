@@ -26,7 +26,7 @@ $backgroundColor: rgb(45, 50, 62);
 @import 'components/widget/widget';
 @import 'management/instances/instances';
 @import 'management/platform/dashboard/dashboard';
-@import 'components/documentation/page';
+@import 'components/documentation/page/page';
 @import 'components/contextual/contextual-doc.component';
 @import 'management/tasks/tasks';
 @import 'management/portalnotifications/portalnotifications';
@@ -186,7 +186,8 @@ md-radio-button ng-md-icon {
 }
 
 .gravitee-add-button {
-  position: fixed !important;
+  position: sticky !important;
+  margin-left: auto;
 }
 
 header {
@@ -591,6 +592,14 @@ table {
   fill: rgba(0, 0, 0, 0.54);
 }
 
+ng-md-icon {
+  fill: rgba(0, 0, 0, 0.54);
+}
+.md-fab {
+  ng-md-icon {
+    fill: #fff;
+  }
+}
 md-progress-circular {
   display: inline-block;
   position: absolute;

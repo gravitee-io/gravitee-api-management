@@ -27,7 +27,7 @@
             <timeline-panel ng-class="{active : apiHistoryCtrl.isEventSelected(eventTimeline)}" class="{{eventTimeline.badgeClass}}">
               <timeline-heading>
                 <h5>{{eventTimeline.title | uppercase}}
-                  <ng-md-icon class="api-history-icon" ng-show="apiHistoryCtrl.eventToCompareRequired && !apiHistoryCtrl.isEventSelected(eventTimeline)" icon="crop_din" style="fill: rgba(0,0,0,0.54);"></ng-md-icon>
+                  <ng-md-icon class="api-history-icon" ng-show="apiHistoryCtrl.eventToCompareRequired && !apiHistoryCtrl.isEventSelected(eventTimeline)" icon="crop_din"></ng-md-icon>
                   <ng-md-icon class="api-history-icon" ng-show="apiHistoryCtrl.isEventSelectedForComparaison(eventTimeline)" icon="compare" style="fill: green;"></ng-md-icon>
                 </h5>
                 <p ng-if="eventTimeline.when">

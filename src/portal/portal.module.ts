@@ -41,13 +41,9 @@ import ApiPlansComponent from './api/plan/api-plans.component';
 import ApiSubscribeComponent from './api/subscribe/api-subscribe.component';
 import ApiRatingsComponent from './api/rating/api-ratings.component';
 
-// API documentation
-import ApiPagesComponent from './api/documentation/api-pages.component';
-import ApiPageComponent from './api/documentation/api-page.component';
-
-// Portal Pages
-import PagesComponent from './pages/pages.component';
-import PageComponent from './pages/page.component';
+// Documentation
+import PortalPagesComponent from './components/documentation/pages.component';
+import PortalPageComponent from './components/documentation/page.component';
 
 import { NavbarComponent } from './components/navbar/navbar.component';
 import ThemeElementDirective from './components/theme/theme-element.directive';
@@ -68,6 +64,7 @@ require('angulartics');
 
 import {AuthProvider} from 'satellizer';
 import NotificationService from "../services/notification.service";
+import DocumentationService from "../services/documentation.service";
 
 angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMaterial', 'pascalprecht.translate',
   'duScroll', 'satellizer', 'angulartics', require('angulartics-google-analytics')])
@@ -85,11 +82,9 @@ angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMateri
   .component('apiPortalHeader', ApiHeaderComponent) // apiHeader already used in management.... :(
   .component('apiHomepage', ApiHomepageComponent)
   .component('apiPlans', ApiPlansComponent)
-  .component('apiPages', ApiPagesComponent)
-  .component('apiPage', ApiPageComponent)
+  .component('portalPages', PortalPagesComponent)
+  .component('portalPage', PortalPageComponent)
   .component('apiSupport', ApiSupport)
-  .component('pages', PagesComponent)
-  .component('page', PageComponent)
   .component('apiSubscribe', ApiSubscribeComponent)
   .component('graviteeNavbar', NavbarComponent)
   .component('apiRatings', ApiRatingsComponent)

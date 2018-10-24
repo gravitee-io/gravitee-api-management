@@ -19,7 +19,7 @@ import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
 import DialogAddPathMappingController from "./modal/add-pathMapping.dialog.controller";
 import DialogImportPathMappingController from "./modal/import-pathMapping.dialog.controller";
-import DocumentationService from "../../../../services/apiDocumentation.service";
+import DocumentationService, {DocumentationQuery} from "../../../../services/documentation.service";
 
 class ApiPathMappingsController {
   private api: any;
@@ -39,8 +39,11 @@ class ApiPathMappingsController {
     'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
     this.api.path_mappings = _.sortBy(this.api.path_mappings);
-    DocumentationService.list(this.api.id).then((response) => {
-      this.swaggerDocs = _.filter(response.data, {type: 'swagger'});
+    const q = new DocumentationQuery();
+    q.api = this.api.id;
+    q.type = "SWAGGER";
+    DocumentationService.search(q).then((response) => {
+      this.swaggerDocs = response.data;
     });
 
     this.$scope.$on('apiChangeSuccess', (event, args) => {

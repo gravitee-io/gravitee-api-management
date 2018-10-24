@@ -13,24 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class PagesComponentCtrl implements ng.IComponentController {
+import _ = require('lodash');
+import {StateService, StateParams} from '@uirouter/core';
 
-  public pages: any;
+class PortalPagesComponentCtrl implements ng.IComponentController {
+  public resolvedPages: any[];
+  private api: string;
   private selectedPage;
-  private icon: string;
 
   constructor(
-    private $state,
-    private $stateParams) {
+    private $state: StateService,
+    private $stateParams: StateParams,
+    ) {
     'ngInject';
-
   }
 
+  pages = [];
+
   $onInit() {
-    this.icon = "icon-angle-up";
+    const pagesMap: any = _.keyBy(this.resolvedPages, 'id');
+    for (let idx in this.resolvedPages) {
+      let page = this.resolvedPages[idx];
+      if (page["parentId"]) {
+        let rootPage = pagesMap[page["parentId"]];
+        if (!rootPage) {
+          console.error("Unable to find parent page with id:", page["parentId"]);
+          console.error("Child page is: ", page);
+        } else {
+          if (!rootPage.pages) {
+            rootPage.pages = [page];
+          } else {
+            rootPage.pages.push(page)
+          }
+        }
+      }
+    }
+
+    this.pages = _.sortBy(
+      _.filter(_.values(pagesMap), (p) => !p.parentId),
+      ["order"]);
 
     if (this.pages.length && !this.$stateParams.pageId) {
-      this.selectPage(this.pages[0]);
+      let firstPage = _.find(this.pages, (p) => { return !p.parentId && p.type !== 'FOLDER'});
+      if (firstPage) {
+        this.selectPage(firstPage);
+      }
     } else {
       const page = this.pages.find(p => p.id === this.$stateParams.pageId);
 
@@ -44,7 +71,7 @@ class PagesComponentCtrl implements ng.IComponentController {
     }
   };
 
-  selectPage(page: any) {
+  selectPage (page) {
     if (this.selectedPage !== undefined) {
       this.selectedPage.selected = false;
     }
@@ -53,26 +80,30 @@ class PagesComponentCtrl implements ng.IComponentController {
     this.selectedPage.selected = true;
 
     page.selected = true;
-    this.$state.go('portal.pages.page', {pageId: page.id});
+    if (this.api) {
+      this.$state.go('portal.api.pages.page', {pageId: page.id});
+    } else {
+      this.$state.go('portal.pages.page', {pageId: page.id});
+    }
   }
 
   isFolder(page: any) {
-    return page.type === 'folder';
+    return page.type === 'FOLDER';
   }
 
   toggleFolder(page:any) {
     page.isFolderOpen = !page.isFolderOpen;
     page.icon = page.isFolderOpen ? "icon-angle-down" : "icon-angle-up";
   }
-
 }
 
-const PagesComponent: ng.IComponentOptions = {
+const PortalPagesComponent: ng.IComponentOptions = {
   bindings: {
-    pages: '<'
+    resolvedPages: '<',
+    api: '<'
   },
   template: require('./pages.html'),
-  controller: PagesComponentCtrl
+  controller: PortalPagesComponentCtrl
 };
 
-export default PagesComponent;
+export default PortalPagesComponent;

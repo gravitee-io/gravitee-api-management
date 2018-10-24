@@ -7,7 +7,6 @@
 @import 'design/properties/properties';
 @import 'design/resources/resources';
 @import 'proxy/backend/healthcheck/healthcheck';
-@import 'portal/documentation/pages/apiDocumentation';
 @import 'portal/plans/apiPlans';
 @import 'portal/subscriptions/subscriptions';
 @import 'portal/userGroupAccess/members/members';
@@ -59,9 +58,10 @@
 
 .gravitee-api-page-menu-item {
   cursor: pointer;
-  margin-left: 0;
-  min-width: 0;
-  padding: 0 10px;
+  padding: 4px;
+  border: 1px solid lightgrey;
+  border-radius: 3px;
+  margin: 2px 0;
 }
 
 .gravitee-api-visibility {

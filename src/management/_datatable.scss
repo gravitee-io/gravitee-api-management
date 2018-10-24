@@ -6,6 +6,9 @@ table.md-table {
 
   thead {
     background: #fff;
+    th.column-with-logo {
+      padding-left: 52px !important;
+    }
   }
   tbody {
     tr {

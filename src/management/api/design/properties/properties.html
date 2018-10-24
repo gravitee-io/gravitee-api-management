@@ -19,7 +19,7 @@
   <div class="gv-forms-header">
     <h1>Properties</h1>
     <span permission permission-only="'api-definition-u'">
-      <ng-md-icon icon="settings" ng-click="apiPropertiesCtrl.open()" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+      <ng-md-icon icon="settings" ng-click="apiPropertiesCtrl.open()"></ng-md-icon>
     </span>
   </div>
   <div class="gv-form">
@@ -59,10 +59,10 @@
               {{property.value}}
             </td>
             <td md-cell hide-gt-xs show-gt-sm>
-              <ng-md-icon ng-show="property.dynamic" icon="check" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+              <ng-md-icon ng-show="property.dynamic" icon="check"></ng-md-icon>
             </td>
             <td md-cell>
-              <ng-md-icon permission permission-only="'api-definition-d'" ng-show="!property.dynamic" ng-click="apiPropertiesCtrl.deleteProperty(property.key)" icon="delete" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+              <ng-md-icon permission permission-only="'api-definition-d'" ng-show="!property.dynamic" ng-click="apiPropertiesCtrl.deleteProperty(property.key)" icon="delete"></ng-md-icon>
             </td>
           </tr>
         </tbody>

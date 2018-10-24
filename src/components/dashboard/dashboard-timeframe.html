@@ -32,12 +32,12 @@
             </div>
 
             <md-button class="md-primary" ng-click="$ctrl.refresh()">
-              <ng-md-icon icon="refresh" style="fill: rgba(0, 0, 0, 0.54);" size="20"></ng-md-icon>
+              <ng-md-icon icon="refresh" size="20"></ng-md-icon>
               Refresh
             </md-button>
 
             <div>
-              <ng-md-icon icon="autorenew" style="fill: rgba(0, 0, 0, 0.54);" size="20"></ng-md-icon>
+              <ng-md-icon icon="autorenew" size="20"></ng-md-icon>
               <md-input-container>
                 <md-select ng-model="$ctrl.autoRefreshInterval" ng-change="$ctrl.autoRefreshChange()">
                   <md-option ng-repeat="interval in $ctrl.arIntervals" ng-value="interval.interval">

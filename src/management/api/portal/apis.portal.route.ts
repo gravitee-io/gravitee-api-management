@@ -16,6 +16,9 @@
 import ApiService from '../../../services/api.service';
 import MetadataService from '../../../services/metadata.service';
 import GroupService from '../../../services/group.service';
+import DocumentationService, {DocumentationQuery} from "../../../services/documentation.service";
+import {StateParams} from '@uirouter/core';
+import FetcherService from "../../../services/fetcher.service";
 
 export default apisPortalRouterConfig;
 
@@ -228,24 +231,53 @@ function apisPortalRouterConfig($stateProvider) {
       }
     })
     .state('management.apis.detail.portal.documentation', {
-      url: '/documentation',
-      template: require('./documentation/pages/apiDocumentation.html'),
-      controller: 'DocumentationController',
-      controllerAs: 'documentationCtrl',
-      data: {
-        perms: {
-          only: ['api-documentation-r']
+      url: '/documentation?:parent',
+      component: 'documentationManagement',
+      resolve: {
+        pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          if ($stateParams.parent && ""!==$stateParams.parent) {
+            q.parent = $stateParams.parent;
+          } else {
+            q.root = true;
+          }
+          return DocumentationService.search(q, $stateParams.apiId)
+            .then(response => response.data)
         },
+        folders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = "FOLDER";
+          return DocumentationService.search(q, $stateParams.apiId)
+            .then(response => response.data)
+        }
+      },
+      data: {
+        menu: null,
         docs: {
           page: 'management-api-documentation'
+        },
+        perms: {
+          only: ['api-documentation-r']
+        }
+      },
+      params: {
+        parent: {
+          type: 'string',
+          value: '',
+          squash: false
         }
       }
     })
-    .state('management.apis.detail.portal.documentation.new', {
-      url: '/new?:type',
-      template: require('./documentation/pages/page/apiPage.html'),
-      controller: 'PageController',
-      controllerAs: 'pageCtrl',
+    .state('management.apis.detail.portal.newdocumentation', {
+      url: '/documentation/new?:type&:parent',
+      component: 'newPage',
+      resolve: {
+        resolvedFetchers: (FetcherService: FetcherService) => {
+          return FetcherService.list().then(response => {
+            return response.data;
+          })
+        }
+      },
       data: {
         menu: null,
         perms: {
@@ -258,22 +290,41 @@ function apisPortalRouterConfig($stateProvider) {
           value: '',
           squash: false
         },
-        fallbackPageId: {
+        parent: {
           type: 'string',
           value: '',
           squash: false
         }
       }
     })
-    .state('management.apis.detail.portal.documentation.page', {
-      url: '/:pageId',
-      template: require('./documentation/pages/page/apiPage.html'),
-      controller: 'PageController',
-      controllerAs: 'pageCtrl',
+    .state('management.apis.detail.portal.editdocumentation', {
+      url: '/documentation/:pageId',
+      component: 'editPage',
+      resolve: {
+        resolvedPage: (DocumentationService: DocumentationService, $stateParams: StateParams) =>
+          DocumentationService.get2($stateParams.pageId, $stateParams.apiId).then(response => response.data),
+        resolvedGroups: (GroupService: GroupService) => {
+          return GroupService.list().then(response => {
+            return response.data;
+          });
+        },
+        resolvedFetchers: (FetcherService: FetcherService) => {
+          return FetcherService.list().then(response => {
+            return response.data;
+          })
+        }
+      },
       data: {
         menu: null,
         perms: {
-          only: ['api-documentation-r']
+          only: ['api-documentation-u']
+        }
+      },
+      params: {
+        pageId: {
+          type: 'string',
+          value: '',
+          squash: false
         }
       }
     })

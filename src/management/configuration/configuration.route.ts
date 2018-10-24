@@ -16,7 +16,6 @@
 import ViewService from '../../services/view.service';
 import TenantService from '../../services/tenant.service';
 import TagService from '../../services/tag.service';
-import PortalPagesService from '../../services/portalPages.service';
 import MetadataService from "../../services/metadata.service";
 import RoleService from "../../services/role.service";
 import GroupService from "../../services/group.service";
@@ -27,6 +26,9 @@ import DictionaryService from "../../services/dictionary.service";
 import ApiHeaderService from "../../services/apiHeader.service";
 import IdentityProviderService from "../../services/identityProvider.service";
 import _ = require('lodash');
+import DocumentationService, {DocumentationQuery} from "../../services/documentation.service";
+import FetcherService from "../../services/fetcher.service";
+import {StateParams} from '@uirouter/core';
 import EntrypointService from "../../services/entrypoint.service";
 
 export default configurationRouterConfig;
@@ -216,16 +218,26 @@ function configurationRouterConfig($stateProvider) {
         }
       }
     })
-    .state('management.settings.pages', {
-      url: '/pages',
-      component: 'portalPages',
+    .state('management.settings.documentation', {
+      url: '/pages?:parent',
+      component: 'documentationManagement',
       resolve: {
-        pages: (PortalPagesService: PortalPagesService) => PortalPagesService.list().then(response => response.data),
-        resolvedGroups: (GroupService: GroupService) => {
-          return GroupService.list().then(response => {
-            return response.data;
-          });
+        pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          if ($stateParams.parent && ""!==$stateParams.parent) {
+            q.parent = $stateParams.parent;
+          } else {
+            q.root = true;
+          }
+          return DocumentationService.search(q)
+            .then(response => response.data)
         },
+        folders: (DocumentationService: DocumentationService) => {
+          const q = new DocumentationQuery();
+          q.type = "FOLDER";
+          return DocumentationService.search(q)
+            .then(response => response.data)
+        }
       },
       data: {
         menu: null,
@@ -235,32 +247,74 @@ function configurationRouterConfig($stateProvider) {
         perms: {
           only: ['portal-documentation-r']
         }
-      }
-    })
-    .state('management.settings.pages.new', {
-      url: '/new?:type',
-      template: require('./pages/page/page.html'),
-      controller: 'NewPageController',
-      controllerAs: 'pageCtrl',
-      data: {
-        menu: null,
-        perms: {
-          only: ['portal-documentation-c']
-        }},
+      },
       params: {
-        type: {
+        parent: {
           type: 'string',
           value: '',
           squash: false
         }
       }
     })
-    .state('management.settings.pages.page', {
-      url: '/:pageId',
-      template: require('./pages/page/page.html'),
-      controller: 'NewPageController',
-      controllerAs: 'pageCtrl',
-      data: {menu: null}
+    .state('management.settings.newdocumentation', {
+      url: '/pages/new?type&:parent',
+      component: 'newPage',
+      resolve: {
+        resolvedFetchers: (FetcherService: FetcherService) => {
+          return FetcherService.list().then(response => {
+            return response.data;
+          })
+        }
+      },
+      data: {
+        menu: null,
+        perms: {
+          only: ['portal-documentation-c']
+        }
+      },
+      params: {
+        type: {
+          type: 'string',
+          value: '',
+          squash: false
+        },
+        parent: {
+          type: 'string',
+          value: '',
+          squash: false
+        }
+      }
+    })
+    .state('management.settings.editdocumentation', {
+      url: '/pages/:pageId',
+      component: 'editPage',
+      resolve: {
+        resolvedPage: (DocumentationService: DocumentationService, $stateParams: StateParams) =>
+          DocumentationService.get2($stateParams.pageId).then(response => response.data),
+        resolvedGroups: (GroupService: GroupService) => {
+          return GroupService.list().then(response => {
+            return response.data;
+          });
+        },
+        resolvedFetchers: (FetcherService: FetcherService) => {
+          return FetcherService.list().then(response => {
+            return response.data;
+          })
+        }
+      },
+      data: {
+        menu: null,
+        perms: {
+          only: ['portal-documentation-u']
+        }
+      },
+      params: {
+        pageId: {
+          type: 'string',
+          value: '',
+          squash: false
+        }
+      }
     })
     .state('management.settings.metadata', {
       url: '/metadata',

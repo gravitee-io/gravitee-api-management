@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const PortalPagesComponent: ng.IComponentOptions = {
+
+const PortalPageComponent: ng.IComponentOptions = {
   bindings: {
-    pages: '<'
+    page: '<',
+    api: '<'
   },
-  controller: 'PortalPagesController',
-  template: require('./portalPages.html')
+  template: require('./page.html')
 };
 
-export default PortalPagesComponent;
+export default PortalPageComponent;

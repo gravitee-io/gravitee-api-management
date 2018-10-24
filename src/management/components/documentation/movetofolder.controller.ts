@@ -13,12 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {IScope} from "angular";
 
-const PageComponent: ng.IComponentOptions = {
-  bindings: {
-    page: '<'
-  },
-  template: require('./page.html')
-};
+interface IMoveToFolderScope extends IScope {
+  folders: any[];
+  itemName: string;
+}
+function MoveToFolderDialogController(
+  $scope: IMoveToFolderScope,
+  $mdDialog: angular.material.IDialogService,
+  locals: any) {
+  'ngInject';
 
-export default PageComponent;
+  $scope.folders = locals.folders;
+  $scope.itemName = locals.itemName;
+
+  this.cancel = () => {
+    $mdDialog.hide();
+  };
+
+  this.select = (folderId: string) => {
+    $mdDialog.hide(folderId);
+  };
+}
+
+export default MoveToFolderDialogController;

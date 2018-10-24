@@ -1,0 +1,50 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<script type="text/ng-template" id="pagesTree">
+  <span ng-if="!$ctrl.isFolder(page)" ng-click="$ctrl.selectPage(page)">{{::page.name}}</span>
+  <p ng-if="$ctrl.isFolder(page) && page.pages" ng-click="$ctrl.toggleFolder(page)">{{::page.name}} <i ng-class="page.icon" class="icon-angle-up"></i></p>
+  <ul ng-if="page.pages" ng-show="page.isFolderOpen">
+    <li class="sidenav_item l2"
+        ng-class="{'active': page.selected}"
+        ng-repeat="page in page.pages"
+        ng-include="'pagesTree'">
+    </li>
+  </ul>
+
+</script>
+
+<div ng-style="{'padding-top': $ctrl.api?'0':'54px'}">
+  <div ng-if="$ctrl.pages && !$ctrl.pages.length" style="padding-top: 100px;">
+    <gravitee-empty-state icon="insert_drive_file"
+                          message="{{'api.documentation.empty.title' | translate}}" sub-message="{{'api.documentation.empty.message' | translate}}">
+    </gravitee-empty-state>
+  </div>
+
+  <md-content ng-if="$ctrl.pages && $ctrl.pages.length" layout="row" layout-xs="column" layout-padding layout-margin>
+    <div flex="15" layout="column" class="doc-sidenav" layout-padding>
+      <ul>
+        <li class="sidenav_item"
+            ng-class="{'active': page.selected}"
+            ng-repeat="page in $ctrl.pages"
+            ng-include="'pagesTree'">
+        </li>
+      </ul>
+    </div>
+    <div flex="85" ui-view></div>
+  </md-content>
+</div>

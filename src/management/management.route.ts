@@ -16,7 +16,7 @@
 import InstancesService from '../services/instances.service';
 import AuditService from "../services/audit.service";
 import ApiService from "../services/api.service";
-import ApplicationService from "../services/applications.service";
+import ApplicationService from "../services/application.service";
 import {User} from "../entities/user";
 import RoleService from "../services/role.service";
 

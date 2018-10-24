@@ -15,13 +15,12 @@
  */
 import ViewService from "../services/view.service";
 import ApiService from "../services/api.service";
-import DocumentationService from "../services/apiDocumentation.service";
-import PortalPagesService from "../services/portalPages.service";
 import ApplicationService from "../services/application.service";
 import UserService from '../services/user.service';
 import _ = require('lodash');
 import PortalService from "../services/portal.service";
 import EntrypointService from "../services/entrypoint.service";
+import DocumentationService, {DocumentationQuery} from "../services/documentation.service";
 
 function portalRouterConfig($stateProvider) {
   'ngInject';
@@ -40,8 +39,13 @@ function portalRouterConfig($stateProvider) {
       },
       controllerAs: 'indexCtrl',
       resolve: {
-        resolvedDocumentation: function (PortalPagesService: PortalPagesService) {
-          return PortalPagesService.listPortalDocumentation().then(response => response.data)
+        resolvedDocumentation: function (DocumentationService: DocumentationService) {
+          let q = new DocumentationQuery();
+          q.homepage = false;
+          q.root = true;
+          return DocumentationService
+            .search(q)
+            .then(response => _.filter(response.data, (p) => { return p.type!=='FOLDER'; }));
         }
       }
     })
@@ -54,8 +58,10 @@ function portalRouterConfig($stateProvider) {
         resolvedApis: function (ApiService) {
           return ApiService.listTopAPIs().then(response => response.data);
         },
-        resolvedHomepage: function (PortalPagesService: PortalPagesService) {
-          return PortalPagesService.getHomepage().then(response => response.data);
+        resolvedHomepage: function (DocumentationService: DocumentationService) {
+          let q = new DocumentationQuery();
+          q.homepage = true;
+          return DocumentationService.search(q).then(response => response.data && response.data.length > 0 ? response.data[0] : null);
         }
       }
     })
@@ -163,16 +169,21 @@ function portalRouterConfig($stateProvider) {
       url: '/pages',
       views: {
         'header': {component: 'apiPortalHeader'},
-        'content': {component: 'apiPages'}
+        'content': {component: 'portalPages'}
       },
       resolve: {
-        pages: ($stateParams, DocumentationService: DocumentationService) =>
-          DocumentationService.listApiPages($stateParams['apiId']).then(response => response.data)
+        resolvedPages: ($stateParams, DocumentationService: DocumentationService) => {
+          let q = new DocumentationQuery();
+          q.homepage = false;
+          return DocumentationService
+            .search(q, $stateParams['apiId'])
+            .then(response => response.data);
+        }
       },
     })
     .state('portal.api.pages.page', {
       url: '/:pageId',
-      component: 'apiPage',
+      component: 'portalPage',
       resolve: {
         page: ($stateParams, DocumentationService: DocumentationService) =>
           DocumentationService.get($stateParams['apiId'], $stateParams['pageId'], true).then(response => response.data)
@@ -194,18 +205,23 @@ function portalRouterConfig($stateProvider) {
     })
     .state('portal.pages', {
       url: '/pages',
-      component: 'pages',
+      component: 'portalPages',
       resolve: {
-        pages: ($stateParams, PortalPagesService: PortalPagesService) =>
-          PortalPagesService.listPortalDocumentation().then(response => response.data)
-      },
+        resolvedPages: (DocumentationService: DocumentationService) => {
+          let q = new DocumentationQuery();
+          q.homepage = false;
+          return DocumentationService
+            .search(q)
+            .then(response => response.data);
+        }
+      }
     })
     .state('portal.pages.page', {
       url: '/:pageId',
-      component: 'page',
+      component: 'portalPage',
       resolve: {
-        page: ($stateParams, PortalPagesService: PortalPagesService) =>
-          PortalPagesService.get($stateParams['pageId']).then(response => response.data)
+        page: ($stateParams, DocumentationService: DocumentationService) =>
+          DocumentationService.get2($stateParams['pageId']).then(response => response.data)
       },
       params: {
         pageId: {

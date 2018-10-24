@@ -1,9 +1,8 @@
 # API Documentation
 
-At this date, three types of document are supported :
+At this date, two types of document are supported :
 
 * Swagger
-* RAML
 * Markdown (MD)
 
 You can access to your API data (name, version, description ...) on your API’s documentation by writing: `${api.name}` or `${api.metadata['foo-bar']}` in your documentation's content.

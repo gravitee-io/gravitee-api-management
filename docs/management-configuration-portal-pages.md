@@ -1,9 +1,8 @@
 # Portal pages
 
-At this date, three types of document are supported :
+At this date, two types of document are supported :
 
 * Swagger
-* RAML
 * Markdown (MD)
 
 By default, portal pages are in staging mode and will be visible to administrator or users with management portal roles.

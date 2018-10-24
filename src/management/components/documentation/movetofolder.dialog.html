@@ -15,4 +15,19 @@
     limitations under the License.
 
 -->
-<gv-page page="$ctrl.page" sidenav="true"></gv-page>
+<md-dialog aria-label="confirm-dialog">
+    <md-dialog-content layout-padding>
+        <h4>Move "{{itemName}}" to ...</h4>
+        <div>
+            <md-icon md-svg-src="assets/logo_folder.svg"></md-icon>
+            <a ng-click="ctrl.select(-1)">/</a>
+        </div>
+        <div ng-repeat="folder in folders">
+            <md-icon md-svg-src="assets/logo_folder.svg"></md-icon>
+            <a ng-click="ctrl.select(folder.id)">{{folder.path}}</a>
+        </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button ng-click="ctrl.cancel()">Cancel</md-button>
+    </md-dialog-actions>
+</md-dialog>
