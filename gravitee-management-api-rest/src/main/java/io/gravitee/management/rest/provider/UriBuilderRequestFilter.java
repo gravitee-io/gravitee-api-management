@@ -36,26 +36,32 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
     @Override
     public void filter( ContainerRequestContext ctx ) throws IOException {
         List<String> schemes = ctx.getHeaders().get(HttpHeaders.X_FORWARDED_PROTO);
+        UriBuilder baseBuilder = ctx.getUriInfo().getBaseUriBuilder();
+        UriBuilder requestBuilder = ctx.getUriInfo().getRequestUriBuilder();
+
         if (schemes != null && !schemes.isEmpty()) {
             String scheme = schemes.get(0);
-            UriBuilder builder = ctx.getUriInfo().getRequestUriBuilder();
-            ctx.setRequestUri(builder.scheme(scheme).build());
+            baseBuilder.scheme(scheme);
+            requestBuilder.scheme(scheme);
+
+            ctx.setRequestUri(baseBuilder.build(), requestBuilder.build());
         }
 
         List<String> hosts = ctx.getHeaders().get(HttpHeaders.X_FORWARDED_HOST);
         if (hosts != null && !hosts.isEmpty()) {
             String host = hosts.get(0);
-            UriBuilder builder = ctx.getUriInfo().getRequestUriBuilder();
 
             if (host.contains(":")) {
                 // Forwarded host contains both host and port
                 String [] parts = host.split(":");
-                builder.host(parts[0]).port(Integer.parseInt(parts[1]));
+                baseBuilder.host(parts[0]).port(Integer.parseInt(parts[1]));
+                requestBuilder.host(parts[0]).port(Integer.parseInt(parts[1]));
             } else {
-                builder.host(host);
+                baseBuilder.host(host);
+                requestBuilder.host(host);
             }
 
-            ctx.setRequestUri(builder.build());
+            ctx.setRequestUri(baseBuilder.build(), requestBuilder.build());
         }
     }
 }
