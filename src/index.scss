@@ -541,3 +541,11 @@ table {
     top: inherit;
   }
 }
+
+.gv-search-button {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  fill: rgba(0, 0, 0, 0.54);
+}
