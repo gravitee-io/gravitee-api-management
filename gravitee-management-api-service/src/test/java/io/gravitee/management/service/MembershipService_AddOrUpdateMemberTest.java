@@ -19,9 +19,12 @@ import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.management.service.exceptions.AlreadyPrimaryOwnerException;
 import io.gravitee.management.service.exceptions.NotAuthorizedMembershipException;
 import io.gravitee.management.service.exceptions.RoleNotFoundException;
 import io.gravitee.management.service.impl.MembershipServiceImpl;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
@@ -207,5 +210,28 @@ public class MembershipService_AddOrUpdateMemberTest {
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
                 new MembershipService.MembershipUser("xxxxx", null),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "PRIMARY_OWNER"));
+    }
+
+    @Test(expected = AlreadyPrimaryOwnerException.class)
+    public void shouldNotOverridePrimaryOwner() throws TechnicalException {
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.API);
+        when(role.getName()).thenReturn(SystemRole.PRIMARY_OWNER.name());
+        when(roleService.findById(any(), any())).thenReturn(role);
+        Membership membership = mock(Membership.class);
+        when(membership.getUserId()).thenReturn("userId");
+        when(membership.getRoles()).thenReturn(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
+        when(membership.getReferenceId()).thenReturn("API_ID");
+        when(membership.getReferenceType()).thenReturn(MembershipReferenceType.API);
+        when(membershipRepository.findById("userId", MembershipReferenceType.API, "API_ID")).thenReturn(of(membership));
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("userId");
+        userEntity.setUsername("my name");
+        userEntity.setEmail("me@mail.com");
+        when(userService.findById("userId")).thenReturn(userEntity);
+        membershipService.addOrUpdateMember(
+                new MembershipService.MembershipReference(MembershipReferenceType.API, "API_ID"),
+                new MembershipService.MembershipUser("userId", null),
+                new MembershipService.MembershipRole(RoleScope.API, "USER"));
     }
 }
