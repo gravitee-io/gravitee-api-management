@@ -20,6 +20,7 @@ import UserService from "../../services/user.service";
 import {HookScope} from "../../entities/hookScope";
 import NotificationSettingsService from "../../services/notificationSettings.service";
 import {StateParams} from '@uirouter/core';
+import ApiService from "../../services/api.service";
 
 export default applicationsConfig;
 
@@ -125,7 +126,10 @@ function applicationsConfig($stateProvider) {
       component: 'applicationSubscriptions',
       resolve: {
         subscriptions: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.listSubscriptions($stateParams.applicationId).then(response => response.data)
+          ApplicationService.listSubscriptions($stateParams.applicationId).then(response => response.data),
+
+        subscribers: ($stateParams, ApplicationService: ApplicationService) =>
+          ApplicationService.getSubscribedAPI($stateParams.applicationId).then(response => response.data)
       },
       data: {
         menu: {
