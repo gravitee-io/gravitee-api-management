@@ -122,7 +122,7 @@ export class ApisController {
   }
 
   getSubMessage() {
-    if (!this.graviteeUser.username) {
+    if (!this.graviteeUser.id) {
       return 'Login to get access to more APIs';
     } else if (this.UserService.isUserHasPermissions(['management-api-c'])) {
       return 'Start creating an API';

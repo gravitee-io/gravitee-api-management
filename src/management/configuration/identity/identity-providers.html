@@ -1,0 +1,86 @@
+<div class="gv-forms gv-forms-fluid" layout="column">
+  <h1>Authentication</h1>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content" layout="column">
+
+      <h3>Configuration</h3>
+      <md-input-container class="gv-input-container-dense">
+        <md-checkbox ng-model="$ctrl.Constants.authentication.forceLogin.enabled" aria-label="Force login" ng-change="$ctrl.saveForceLogin()">
+          Force authentication to access portal
+        </md-checkbox>
+      </md-input-container>
+      <md-input-container class="gv-input-container-dense">
+        <md-checkbox ng-model="$ctrl.Constants.authentication.localLogin.enabled" aria-label="Show login form" ng-change="$ctrl.saveShowLoginForm()">
+          Show login form
+        </md-checkbox>
+      </md-input-container>
+
+      <md-table-container ng-if="$ctrl.identityProviders.length > 0">
+        <table md-table class="gv-table-dense">
+          <thead md-head>
+          <tr md-row>
+            <th md-column width="1%" nowrap></th>
+            <th md-column>ID</th>
+            <th md-column>Name</th>
+            <th md-column>Description</th>
+            <th md-column>Enabled</th>
+            <th md-column>Last updated at</th>
+            <th md-column width="48px" nowrap></th>
+          </tr>
+          </thead>
+          <tbody md-body>
+          <tr md-row ng-repeat="identityProvider in $ctrl.identityProviders | orderBy: name">
+            <td md-cell ng-switch="identityProvider.type">
+              <ng-md-icon ng-switch-when="google" icon="google-plus"></ng-md-icon>
+              <ng-md-icon ng-switch-when="github" icon="github-circle"></ng-md-icon>
+              <ng-md-icon ng-switch-when="oidc" icon="perm_identity"></ng-md-icon>
+              <ng-md-icon ng-switch-when="graviteeio_am" icon="perm_identity"></ng-md-icon>
+            </td>
+            <td md-cell>
+              <a ng-click="$ctrl.select(identityProvider)">{{identityProvider.id}}</a>
+            </td>
+            <td md-cell>{{identityProvider.name}}</td>
+            <td md-cell>{{identityProvider.description}}</td>
+            <td md-cell>
+              <ng-md-icon ng-if="identityProvider.enabled" icon="done"></ng-md-icon>
+            </td>
+            <td md-cell>{{identityProvider.updated_at | date:'MMM d, y h:mm:ss a'}}</td>
+            <td md-cell width="40" nowrap>
+              <ng-md-icon permission permission-only="'portal-identity_provider-d'"
+                          icon="delete" ng-click="$ctrl.delete(identityProvider)">
+                <md-tooltip md-direction="top" md-visible="false">Delete</md-tooltip>
+              </ng-md-icon>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+
+      <gravitee-empty-state ng-if="$ctrl.identityProviders.length === 0"
+                            icon="perm_identity"
+                            model="Identity Provider"
+                            message="Identity providers will appear here"
+                            sub-message="Start creating an identity provider"
+                            create-mode="true"></gravitee-empty-state>
+
+    </div>
+  </div>
+  <md-fab-speed-dial permission permission-only="'portal-identity_provider-c'"
+                     md-direction="{{$ctrl.identityProviders.length > 0 ? 'left' : 'down'}}" md-open="false"
+                     ng-class="{'md-fab-bottom-right' : $ctrl.identityProviders.length > 0}" class="md-scale">
+    <md-fab-trigger>
+      <md-button aria-label="menu" class="md-fab md-success">
+        <md-tooltip ng-if="$ctrl.identityProviders.length > 0" md-direction="top" md-visible="false">New identity provider</md-tooltip>
+        <ng-md-icon icon="add"></ng-md-icon>
+      </md-button>
+    </md-fab-trigger>
+
+    <md-fab-actions>
+      <md-button ng-repeat="provider in $ctrl.availableProviders" class="md-fab md-raised md-mini"  ng-click="$ctrl.create(provider.type)">
+        <md-tooltip md-direction="{{$ctrl.availableProviders.length > 0 ? 'top' : 'right'}}">{{provider.name}}</md-tooltip>
+        <ng-md-icon style="fill: black;" icon="{{provider.icon}}"></ng-md-icon>
+      </md-button>
+    </md-fab-actions>
+  </md-fab-speed-dial>
+</div>

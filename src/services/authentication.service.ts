@@ -14,61 +14,66 @@
  * limitations under the License.
  */
 
-import { AuthProvider } from "satellizer";
+import { AuthProvider, SatellizerConfig } from "satellizer";
+import { IdentityProvider } from "../entities/identityProvider";
+import * as _ from "lodash";
+import UserService from "./user.service";
+import RouterService from "./router.service";
+import { IScope } from "angular";
+import { StateService } from '@uirouter/core';
 
 class AuthenticationService {
 
-  private providers: {
-    id: string;
-    name: string;
-    color?: string;
-    icon: string
-  }[] = [];
-
   constructor(
+    private $rootScope: IScope,
+    private Constants,
+    private $window,
+    private $state: StateService,
     private $auth: AuthProvider,
-    private Constants) {
+    private UserService: UserService,
+    private RouterService: RouterService,
+    private SatellizerConfig: SatellizerConfig) {
     'ngInject';
+  }
 
-    if (Constants.authentication) {
-      let googleConfig = Constants.authentication.google;
-      if (googleConfig && googleConfig.clientId) {
-        this.providers.push({
-          id: 'google',
-          name: 'Google',
-          icon: 'google-plus'
-        });
-      }
+  authenticate(provider: IdentityProvider) {
+    provider.type = (provider.type === 'oidc') ? 'oauth2' : provider.type;
 
-      let githubConfig = Constants.authentication.github;
-      if (githubConfig && githubConfig.clientId) {
-        this.providers.push({
-          id: 'github',
-          name: 'GitHub',
-          icon: 'github-circle'
-        });
-      }
-
-      let customConfig = Constants.authentication.oauth2;
-      if (customConfig && customConfig.clientId) {
-        this.providers.push({
-          id: customConfig.name,
-          name: customConfig.name,
-          color: customConfig.color,
-          icon: 'person_outline'
-        });
-      }
+    let satellizerProvider = this.SatellizerConfig.providers[provider.type];
+    if (!satellizerProvider) {
+      satellizerProvider = _.merge(provider, {
+        oauthType: '2.0',
+        requiredUrlParams: ['scope'],
+        scopeDelimiter: ' ',
+        scope: provider.scopes
+      });
+    } else {
+      _.merge(satellizerProvider, provider);
     }
-  }
 
-  authenticate(provider) {
-    return this.$auth.authenticate(provider);
-  }
+    this.SatellizerConfig.providers[provider.type] = _.merge(satellizerProvider, {
+      url: this.Constants.baseURL + 'auth/oauth2/' + provider.id,
+      redirectUri: window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname),
+    });
 
-  getProviders() {
-    return this.providers;
-  }
+    this.$auth.authenticate(provider.type)
+      .then( () => {
+        this.UserService.current().then( (user) => {
+          if (provider.userLogoutEndpoint) {
+            this.$window.localStorage.setItem("user-logout-url", provider.userLogoutEndpoint);
+          }
+          this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : user});
 
+          let route = this.RouterService.getLastRoute();
+          if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm') {
+            this.$state.go(route.from.name, route.fromParams);
+          } else {
+            this.$state.go('portal.home');
+          }
+        });
+      })
+      .catch( () => {});
+  }
 }
 
 export default AuthenticationService;

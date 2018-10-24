@@ -30,8 +30,10 @@ const UsersComponent: ng.IComponentOptions = {
     $state: StateService
   ) {
     'ngInject';
+
     this.$onInit = () => {
       this.onPaginate = this.onPaginate.bind(this);
+      this.query = $state.params.q;
     };
 
     this.remove = (ev: Event, user: User) => {
@@ -57,13 +59,21 @@ const UsersComponent: ng.IComponentOptions = {
     };
 
     this.onPaginate = (page: number) => {
-      UserService.list(page).then((response)=> {
+      UserService.list(this.query, page).then((response)=> {
         this.usersPage = response.data;
       });
     };
 
     this.selectUser = (user) => {
       $state.go('management.settings.user', {userId: user.id});
+    };
+
+    this.getUserPicture = (user) => {
+      return UserService.getUserAvatar(user.id);
+    };
+
+    this.search = () => {
+      $state.go('.', {q: this.query});
     }
   }
 };

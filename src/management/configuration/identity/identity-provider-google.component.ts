@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class RegistrationController {
-  constructor(UserService, $scope, NotificationService) {
-    'ngInject';
+const IdentityProviderGoogleComponent: ng.IComponentOptions = {
+  bindings: {
+    identityProvider: '<'
+  },
+  template: require('./identity-provider-google.html')
+};
 
-    $scope.register = function () {
-      UserService.register($scope.user).then(function () {
-        $scope.formRegistration.$setPristine();
-        NotificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
-      });
-    };
-  }
-}
-
-export default RegistrationController;
+export default IdentityProviderGoogleComponent;

@@ -118,6 +118,11 @@ import * as moment from 'moment';
 window['moment'] = moment;
 require('angular-moment-picker');
 
+import * as tinycolor from 'tinycolor2';
+
+(<any>window).tinycolor = tinycolor;
+require('md-color-picker');
+
 import FormDirective from '../components/form/form.directive';
 import AutofocusDirective from '../components/autofocus/autofocus.directive';
 import ApiService from '../services/api.service';
@@ -379,6 +384,16 @@ import DictionaryComponent from '../management/configuration/dictionaries/dictio
 import DictionaryController from '../management/configuration/dictionaries/dictionary.controller';
 import DialogDictionaryAddPropertyController from '../management/configuration/dictionaries/add-property.dialog.controller';
 
+// Settings - Identity providers
+import IdentityProvidersComponent from '../management/configuration/identity/identity-providers.component';
+import IdentityProviderComponent from '../management/configuration/identity/identity-provider.component';
+import IdentityProviderController from '../management/configuration/identity/identity-provider.controller';
+import IdentityProviderGoogleComponent from '../management/configuration/identity/identity-provider-google.component';
+import IdentityProviderGitHubComponent from '../management/configuration/identity/identity-provider-github.component';
+import IdentityProviderGraviteeioAmComponent from '../management/configuration/identity/identity-provider-graviteeio-am.component';
+import IdentityProviderOIDCComponent from '../management/configuration/identity/identity-provider-oidc.component';
+import IdentityProviderService from '../services/identityProvider.service';
+
 // Others
 import StringService from '../services/string.service';
 import AuthenticationService from '../services/authentication.service';
@@ -426,7 +441,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
   'utf8-base64', 'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
-  'ngAnimate', 'LocalStorageModule', 'satellizer', ngInfiniteScroll, 'moment-picker'])
+  'ngAnimate', 'LocalStorageModule', 'satellizer', ngInfiniteScroll, 'moment-picker', 'mdColorPicker'])
   .config(['cfpLoadingBarProvider', function (cfpLoadingBarProvider) {
     cfpLoadingBarProvider.includeSpinner = false;
   }])
@@ -721,6 +736,16 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('ApiHeaderService', ApiHeaderService)
   .controller("NewApiPortalHeaderDialogController", NewApiPortalHeaderDialogController)
   .controller("UpdateApiPortalHeaderDialogController", UpdateApiPortalHeaderDialogController)
+
+  // Settings: Identity provider
+  .component('identityProviders', IdentityProvidersComponent)
+  .component('identityProvider', IdentityProviderComponent)
+  .component('gvIdentityproviderGraviteeioAm', IdentityProviderGraviteeioAmComponent)
+  .component('gvIdentityproviderGoogle', IdentityProviderGoogleComponent)
+  .component('gvIdentityproviderGithub', IdentityProviderGitHubComponent)
+  .component('gvIdentityproviderOidc', IdentityProviderOIDCComponent)
+  .controller("IdentityProviderController", IdentityProviderController)
+  .service('IdentityProviderService', IdentityProviderService)
 
   .filter('humanDateFilter', function () {
     return function (input) {

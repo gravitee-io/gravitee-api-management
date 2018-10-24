@@ -13,17 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class RegistrationController {
-  constructor(UserService, $scope, NotificationService) {
+const IdentityProviderGraviteeioAmComponent: ng.IComponentOptions = {
+  bindings: {
+    identityProvider: '<'
+  },
+  template: require('./identity-provider-graviteeio-am.html'),
+  controller: function(
+  ) {
     'ngInject';
 
-    $scope.register = function () {
-      UserService.register($scope.user).then(function () {
-        $scope.formRegistration.$setPristine();
-        NotificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
-      });
+    this.buttonConfig = {};
+    this.buttonConfig.backgroundOptions = {
+      label: 'Text Background',
+      icon: 'font_download',
+      default: '#34A0D4',
+      hasBackdrop: true,
+      clickOutsideToClose: true,
+      random: true,
+      openOnInput: true,
+      alphaChannel: false,
+      genericPalette: false,
+      history: false
     };
   }
-}
+};
 
-export default RegistrationController;
+export default IdentityProviderGraviteeioAmComponent;

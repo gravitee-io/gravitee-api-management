@@ -28,6 +28,10 @@ class PortalService {
     let url = this.portalURL + 'apis/_search?q=' + query;
     return this.$http.post(url);
   }
+
+  listSocialIdentityProviders() {
+    return this.$http.get(this.portalURL + 'identities');
+  }
 }
 
 export default PortalService;

@@ -16,48 +16,49 @@
 
 -->
 <md-content class="gravitee-no-sidenav-container" flex>
-  <div class="gravitee-no-sidenav-content">
-    <div class="gravitee-no-sidenav-header" layout="column">
-      <a><img src="../../../assets/GRAVITEE_LOGOsstxtclair-05.png" /></a>
-      <label>Portal Confirm Registration</label>
+  <div class="login-page">
+    <div class="form">
+      <div class="gravitee-no-sidenav-header" layout="column">
+        <label>Confirm your registration</label>
+      </div>
+
+      <label style="color: red;" ng-show="error">{{error}}</label>
+      <form name="formConfirm" ng-show="!error" ng-submit="confirmRegistration()" layout="column">
+
+        <md-input-container class="md-icon-float">
+          <label>First name</label>
+          <input ng-model="user.firstname" type="text" ng-disabled="true" required>
+        </md-input-container>
+
+        <md-input-container class="md-icon-float">
+          <label>Last name</label>
+          <input ng-model="user.lastname" type="text" ng-disabled="true" required>
+        </md-input-container>
+
+        <md-input-container class="md-icon-float">
+          <label>Email</label>
+          <input ng-model="user.email" type="email" ng-disabled="true" required>
+        </md-input-container>
+
+        <md-input-container class="md-icon-float" ng-class="{'md-input-invalid': isInvalidPassword()}">
+          <label>Password</label>
+          <input ng-model="user.password" type="password" ng-required="true" autofocus>
+        </md-input-container>
+
+        <md-input-container class="md-icon-float" ng-class="{'md-input-invalid': isInvalidPassword()}">
+          <label>Confirm password</label>
+          <input ng-model="confirmPassword" type="password" ng-required="true">
+        </md-input-container>
+
+        <label style="color: red !important;" ng-if="isInvalidPassword()">The confirm password is different!</label>
+
+        <md-button type="submit" class="md-raised md-primary"
+                   ng-disabled="formConfirm.$invalid || formConfirm.$pristine || isLoading || isInvalidPassword() || error">
+          Confirm registration
+        </md-button>
+
+        <a ui-sref="login" class="text-right">Back to login</a>
+      </form>
     </div>
-
-    <label style="color: red;" ng-show="error">{{error}}</label>
-    <form name="formConfirm" ng-show="!error" ng-submit="confirmRegistration()" layout="column">
-
-      <md-input-container class="md-icon-float">
-        <label>First name</label>
-        <input ng-model="user.firstname" type="text" ng-disabled="true" required>
-      </md-input-container>
-
-      <md-input-container class="md-icon-float">
-        <label>Last name</label>
-        <input ng-model="user.lastname" type="text" ng-disabled="true" required>
-      </md-input-container>
-
-      <md-input-container class="md-icon-float">
-        <label>Email</label>
-        <input ng-model="user.email" type="email" ng-disabled="true" required>
-      </md-input-container>
-
-      <md-input-container class="md-icon-float" ng-class="{'md-input-invalid': isInvalidPassword()}">
-        <label>Password</label>
-        <input ng-model="user.password" type="password" ng-required="true" autofocus>
-      </md-input-container>
-
-      <md-input-container class="md-icon-float" ng-class="{'md-input-invalid': isInvalidPassword()}">
-        <label>Confirm password</label>
-        <input ng-model="confirmPassword" type="password" ng-required="true">
-      </md-input-container>
-
-      <label style="color: red !important;" ng-if="isInvalidPassword()">The confirm password is different!</label>
-
-      <md-button type="submit" class="md-raised md-primary"
-                 ng-disabled="formConfirm.$invalid || formConfirm.$pristine || isLoading || isInvalidPassword() || error">
-        Confirm registration
-      </md-button>
-
-      <a ui-sref="login" class="text-right">Back to login</a>
-    </form>
   </div>
 </md-content>

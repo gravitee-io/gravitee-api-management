@@ -93,7 +93,7 @@
         </div>
       </div>
     </div>
-    <gravitee-empty-state ng-if="$ctrl.apisProvider.length == 0 && !$ctrl.isSearchResult()"
+    <gravitee-empty-state ng-if="$ctrl.apisProvider.length   == 0 && !$ctrl.isSearchResult()"
                           icon="dashboard"
                           model="API"
                           message="Hmmm, there is no API for you here :("
@@ -101,7 +101,7 @@
                           create-mode="$ctrl.createMode"></gravitee-empty-state>
 
     <div ng-if="$ctrl.apisProvider.length == 0 && !$ctrl.isSearchResult()" style="text-align: center;">
-      <md-button ng-if="!$ctrl.graviteeUser.username" class="md-raised" ui-sref="login" aria-label="login">Login</md-button>
+      <md-button ng-if="!$ctrl.graviteeUser.id" class="md-raised" ui-sref="login" aria-label="login">Login</md-button>
     </div>
 
     <div ng-style="{'text-align': $ctrl.apisProvider.length == 0 && !$ctrl.isSearchResult() ? 'center' : 'none' }">

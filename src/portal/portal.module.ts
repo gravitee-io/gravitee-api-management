@@ -66,6 +66,9 @@ import RouterService from '../services/router.service';
 
 require('angulartics');
 
+import {AuthProvider} from 'satellizer';
+import NotificationService from "../services/notification.service";
+
 angular.module('gravitee-portal', [uiRouter, permission, uiPermission, 'ngMaterial', 'pascalprecht.translate',
   'duScroll', 'satellizer', 'angulartics', require('angulartics-google-analytics')])
   .value('duScrollOffset', 54)

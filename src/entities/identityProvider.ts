@@ -13,17 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class RegistrationController {
-  constructor(UserService, $scope, NotificationService) {
-    'ngInject';
-
-    $scope.register = function () {
-      UserService.register($scope.user).then(function () {
-        $scope.formRegistration.$setPristine();
-        NotificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
-      });
-    };
-  }
+export class GroupMapping {
+  public condition: string;
+  public groups: string[];
 }
 
-export default RegistrationController;
+export class RoleMapping {
+  public condition: string;
+  public portal: string;
+  public management: string;
+}
+
+export class IdentityProvider {
+  public id: string;
+  public name: string;
+  public description: string;
+  public enabled: boolean;
+  public type: string;
+  public configuration: Map<string, any>;
+  public groupMappings: GroupMapping[];
+  public roleMappings: RoleMapping[];
+  public userProfileMapping: Map<string, string>;
+
+  constructor() {
+    'ngInject';
+  }
+}

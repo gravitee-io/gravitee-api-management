@@ -13,48 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import AuthenticationService from '../../services/authentication.service';
 import UserService from '../../services/user.service';
 import {IScope} from 'angular';
 import { StateService } from '@uirouter/core';
 import { User } from "../../entities/user";
 import RouterService from "../../services/router.service";
+import * as _ from 'lodash';
+import { IdentityProvider } from "../../entities/identityProvider";
+import AuthenticationService from "../../services/authentication.service";
 
 class LoginController {
   user: any = {};
   userCreationEnabled: boolean;
   localLoginDisabled: boolean;
 
-  private providers: {
-    id: string;
-    name: string;
-    icon: string
-  }[];
-
   constructor(
+    private AuthenticationService: AuthenticationService,
     private UserService: UserService,
     private $state: StateService,
-    Constants,
+    private Constants,
     private $rootScope: IScope,
-    private AuthenticationService: AuthenticationService,
-    private RouterService: RouterService
+    private RouterService: RouterService,
+    private identityProviders
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.portal.userCreation.enabled;
     this.localLoginDisabled = (!Constants.authentication.localLogin.enabled) || false;
     this.$state = $state;
     this.$rootScope = $rootScope;
-    this.providers = AuthenticationService.getProviders();
   }
 
-  authenticate(provider: string) {
-    this.AuthenticationService.authenticate(provider)
-      .then( () => {
-        this.UserService.current().then( (user) => {
-          this.loginSuccess(user);
-        });
-      })
-      .catch( () => {});
+  authenticate(identityProvider: string) {
+    let provider = _.find(this.identityProviders, {'id': identityProvider}) as IdentityProvider;
+    this.AuthenticationService.authenticate(provider);
   };
 
   login() {
@@ -72,7 +63,8 @@ class LoginController {
     this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : user});
 
     let route = this.RouterService.getLastRoute();
-    if (route.from && route.from.name !== '' && route.from.name !== 'logout') {
+    console.log(route);
+    if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm') {
       this.$state.go(route.from.name, route.fromParams);
     } else {
       this.$state.go('portal.home');

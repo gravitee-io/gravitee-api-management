@@ -14,46 +14,12 @@
  * limitations under the License.
  */
 
-import * as _ from 'lodash';
+import { AuthProvider } from 'satellizer';
 
-import {AuthProvider} from 'satellizer';
-
-function authenticationConfig ($authProvider: AuthProvider, Constants) {
+function authenticationConfig ($authProvider: AuthProvider) {
   'ngInject';
 
-  if (Constants.authentication) {
-    $authProvider.withCredentials = true;
-    
-    // Google
-    let googleConfig = Constants.authentication.google;
-    if (googleConfig && googleConfig.clientId) {
-      $authProvider.google({
-        url: Constants.baseURL + 'auth/google',
-        clientId: googleConfig.clientId
-      });
-    }
-
-    // GitHub
-    let githubConfig = Constants.authentication.github;
-    if (githubConfig && githubConfig.clientId) {
-      $authProvider.github({
-        url: Constants.baseURL + 'auth/github',
-        clientId: githubConfig.clientId
-      });
-    }
-
-    // Custom
-    let customConfig = Constants.authentication.oauth2;
-    if (customConfig && customConfig.clientId) {
-      $authProvider.oauth2(_.merge(customConfig, {
-        url: Constants.baseURL + 'auth/oauth2',
-        oauthType: '2.0',
-        redirectUri: window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname),
-        requiredUrlParams: ['scope'],
-        scopeDelimiter: ' '
-      }));
-    }
-  }
+  $authProvider.withCredentials = true;
 }
 
 export default authenticationConfig;

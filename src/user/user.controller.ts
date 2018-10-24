@@ -37,7 +37,7 @@ class UserController {
   }
 
   $onInit() {
-    if (! this.user || (this.user && this.user.username === undefined)) {
+    if (! this.user || (this.user && this.user.id === undefined)) {
       this.$state.go('login', {}, {reload: true, inherit: false});
     } else {
       this.originalPicture = this.getUserPicture();

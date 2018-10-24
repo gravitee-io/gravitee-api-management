@@ -14,6 +14,7 @@ $backgroundColor: rgb(45, 50, 62);
 @import '~angular-timeline/dist/angular-timeline.css';
 @import '~md-steppers/dist/md-steppers.min.css';
 @import '~tui-editor/dist/tui-editor.css';
+@import '~md-color-picker/dist/mdColorPicker.css';
 @import 'constants';
 @import 'portal/portal';
 @import 'user/user';
@@ -36,6 +37,8 @@ $backgroundColor: rgb(45, 50, 62);
 @import 'management/datatable';
 @import 'management/analytics';
 @import '~angular-moment-picker/dist/angular-moment-picker.css';
+@import 'management/configuration/users/users';
+@import 'management/configuration/user/user';
 
 html {
   font-family: 'Roboto Slab', serif;

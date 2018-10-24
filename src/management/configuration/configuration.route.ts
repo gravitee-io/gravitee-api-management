@@ -20,13 +20,14 @@ import PortalPagesService from '../../services/portalPages.service';
 import MetadataService from "../../services/metadata.service";
 import RoleService from "../../services/role.service";
 import GroupService from "../../services/group.service";
-import {HookScope} from "../../entities/hookScope";
+import { HookScope } from "../../entities/hookScope";
 import NotificationSettingsService from "../../services/notificationSettings.service";
 import TopApiService from "../../services/top-api.service";
 import UserService from "../../services/user.service";
 import ApiService from "../../services/api.service";
 import DictionaryService from "../../services/dictionary.service";
 import ApiHeaderService from "../../services/apiHeader.service";
+import IdentityProviderService from "../../services/identityProvider.service";
 import _ = require('lodash');
 
 export default configurationRouterConfig;
@@ -366,10 +367,11 @@ function configurationRouterConfig($stateProvider) {
       }
     })
     .state('management.settings.users', {
-      url: '/users',
+      url: '/users?q',
       component: 'users',
       resolve: {
-        usersPage: (UserService: UserService) => UserService.list(undefined).then(response => response.data)
+        usersPage: (UserService: UserService, $stateParams) =>
+          UserService.list($stateParams.q).then(response => response.data)
       },
       data: {
         menu: null,
@@ -500,6 +502,70 @@ function configurationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['portal-api_header-r']
+        }
+      }
+    })
+    .state('management.settings.identityproviders', {
+      abstract: true,
+      url: '/identities'
+    })
+    .state('management.settings.identityproviders.list', {
+      url: '/',
+      component: 'identityProviders',
+      resolve: {
+        identityProviders: (IdentityProviderService: IdentityProviderService) =>
+          IdentityProviderService.list().then(response => response)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-identityproviders'
+        },
+        perms: {
+          only: ['portal-identity_provider-r']
+        }
+      }
+    })
+    .state('management.settings.identityproviders.new', {
+      url: '/new?:type',
+      component: 'identityProvider',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-identityprovider'
+        },
+        perms: {
+          only: ['portal-identity_provider-c']
+        }
+      }
+    })
+    .state('management.settings.identityproviders.identityprovider', {
+      url: '/:id',
+      component: 'identityProvider',
+      resolve: {
+        identityProvider: (IdentityProviderService: IdentityProviderService, $stateParams) =>
+          IdentityProviderService.get($stateParams.id).then(response => response),
+
+        groups: (GroupService: GroupService) =>
+          GroupService.list().then(response => response.data),
+
+        portalRoles: (RoleService: RoleService) =>
+          RoleService.list('PORTAL').then( (roles) =>
+            roles
+          ),
+
+        managementRoles: (RoleService: RoleService) =>
+          RoleService.list('MANAGEMENT').then( (roles) =>
+            roles
+          )
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-identityprovider'
+        },
+        perms: {
+          only: ['portal-identity_provider-r', 'portal-identity_provider-u', 'portal-identity_provider-d']
         }
       }
     });

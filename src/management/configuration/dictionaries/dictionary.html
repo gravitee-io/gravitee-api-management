@@ -21,7 +21,7 @@
   <h1 ng-if="!$ctrl.updateMode">Create a new dictionary</h1>
   <a ui-sref="management.settings.dictionaries.list">Back to dictionnaries</a>
 </div>
-  <form name="$ctrl.formDictionary" ng-submit="$ctrl.update()" novalidate>
+  <form name="formDictionary" ng-submit="$ctrl.update()" novalidate>
   <div class="gv-form">
     <h2>General</h2>
     <div class="gv-form-content" layout="column">

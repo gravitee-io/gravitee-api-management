@@ -18,6 +18,8 @@ import { User } from './entities/user';
 import {IScope} from 'angular';
 import { StateService } from '@uirouter/core';
 import {StateProvider, UrlService} from "@uirouter/angularjs";
+import PortalService from "./services/portal.service";
+import InstancesService from "./services/instances.service";
 
 function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
   'ngInject';
@@ -92,7 +94,8 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
           if (UserService.currentUser && UserService.currentUser.id) {
             $state.go('portal.home');
           }
-        }
+        },
+        identityProviders: (PortalService: PortalService) => PortalService.listSocialIdentityProviders().then(response => response.data)
       }
     })
     .state('registration', {
@@ -131,15 +134,17 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
     })
     .state('logout', {
       template: '<div class="gravitee-no-sidenav-container"></div>',
-      controller: (UserService: UserService, $state: StateService, $rootScope: IScope, $window: ng.IWindowService, Constants: any) => {
+      controller: (UserService: UserService, $state: StateService, $rootScope: IScope, $window: ng.IWindowService) => {
         UserService.logout().then(
           () => {
             $state.go('portal.home');
             $rootScope.$broadcast('graviteeUserRefresh', {});
             $rootScope.$broadcast('graviteeUserCancelScheduledServices');
-            if (Constants.authentication && Constants.authentication.oauth2 && Constants.authentication.oauth2.userLogoutEndpoint) {
+            let userLogoutEndpoint = $window.localStorage.getItem("user-logout-url");
+            $window.localStorage.removeItem("user-logout-url");
+            if (userLogoutEndpoint != undefined) {
               var redirectUri = encodeURIComponent(window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname));
-              $window.location.href= Constants.authentication.oauth2.userLogoutEndpoint + "?redirect_uri=" + redirectUri;
+              $window.location.href= userLogoutEndpoint + "?redirect_uri=" + redirectUri;
             }
           }
         );

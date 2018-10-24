@@ -16,9 +16,12 @@
 
 -->
 <div class="gv-forms" layout="column">
-    <div class="gv-forms-header">
-        <h1>{{$ctrl.selectedUser.displayName}}</h1>
-        <a ui-sref="management.settings.users">Back to users</a>
+    <div layout="row" layout-align="start end" class="gv-forms-header">
+        <h1 class="user">
+          <img ng-src="{{$ctrl.getUserPicture()}}" class="md-avatar" alt="User picture" />{{$ctrl.selectedUser.displayName}}
+
+          <a ui-sref="management.settings.users" style="font-size: 12px; font-weight: normal;">Back to users</a>
+        </h1>
     </div>
 
 
@@ -31,18 +34,14 @@
         <tr md-row style="height: 30px;">
             <td md-cell width="15%"><span style="font-weight: bold">Email</span></td>
             <td md-cell width="35%">{{$ctrl.selectedUser.email}}</td>
-            <td md-cell nowrap width="15%"><span style="font-weight: bold">Last connection at</span></td>
-            <td md-cell width="35%">{{$ctrl.selectedUser.lastConnectionAt | date:'MMM d, y h:mm:ss a'}}</td>
+            <td md-cell><span style="font-weight: bold">Source</span></td>
+            <td md-cell>{{$ctrl.selectedUser.source}}</td>
         </tr>
         <tr md-row style="background-color: white; height: 30px;">
-            <td md-cell><span style="font-weight: bold">Username</span></td>
-            <td md-cell>{{$ctrl.selectedUser.username}}</td>
             <td md-cell><span style="font-weight: bold">Created at</span></td>
             <td md-cell>{{$ctrl.selectedUser.created_at | date:'MMM d, y h:mm:ss a'}}</td>
-        </tr>
-        <tr md-row style="height: 30px;">
-            <td md-cell><span style="font-weight: bold">Source</span></td>
-            <td md-cell colspan="3">{{$ctrl.selectedUser.source}}</td>
+            <td md-cell nowrap width="15%"><span style="font-weight: bold">Last connection at</span></td>
+            <td md-cell width="35%">{{$ctrl.selectedUser.lastConnectionAt | date:'MMM d, y h:mm:ss a'}}</td>
         </tr>
         <tr md-row style="background-color: white; height: 30px;">
             <td md-cell nowrap><span style="font-weight: bold">Management Role</span></td>

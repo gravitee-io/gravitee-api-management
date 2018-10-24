@@ -19,26 +19,36 @@
     <h1>Users</h1>
 
     <div class="gv-form">
+      <div class="apis-header-filter">
+        <form flex layout="row" layout-align="center start" name="formSearch" autocomplete="off"
+              ng-submit="$ctrl.search()">
+          <input class="form-control apis-filter" type="text" style="max-width: 960px"
+                 ng-model="$ctrl.query" placeholder="Search users" autofocus/>
+        </form>
+      </div>
         <h2></h2>
         <div class="gv-form-content" layout="column">
 <md-table-container>
     <table md-table class="gv-table-dense">
         <thead md-head>
         <tr md-row>
-          <th md-column width="1%" nowrap>Username</th>
-          <th md-column>Full name</th>
-          <th md-column width="1%" nowrap>Email</th>
-          <th md-column width="1%" nowrap>Source</th>
-          <th md-column width="48px" nowrap></th>
+          <th md-column>Display name</th>
+          <th md-column width="15%" nowrap>Email</th>
+          <th md-column width="15%" nowrap>Source</th>
+          <th md-column width="10%" nowrap></th>
         </tr>
         </thead>
         <tbody md-body>
         <tr md-row ng-repeat="user in $ctrl.usersPage.data | orderBy: orderUser">
-            <td md-cell width="1%" nowrap><a  ng-click="$ctrl.selectUser(user)">{{user.username}}</a></td>
-            <td md-cell>{{user.displayName}}</td>
-            <td md-cell width="1%" nowrap>{{user.email}}</td>
-            <td md-cell width="1%" nowrap>{{user.source}}</td>
-            <td md-cell  width="48px" nowrap ng-click="$event.stopPropagation()">
+            <td md-cell>
+              <a ng-click="$ctrl.selectUser(user)">
+                <img ng-src="{{$ctrl.getUserPicture(user)}}" class="md-avatar" alt="User picture" />
+                {{user.displayName}}
+              </a>
+            </td>
+            <td md-cell width="15%" nowrap>{{user.email}}</td>
+            <td md-cell width="15%" nowrap>{{user.source}}</td>
+            <td md-cell width="10%" nowrapng-click="$event.stopPropagation()">
                 <span permission permission-only="['management-user-d']">
                     <md-tooltip md-direction="top">delete</md-tooltip>
                     <ng-md-icon icon="delete" ng-click="$ctrl.remove($event, user)" aria-label="delete-user"></ng-md-icon>

@@ -53,6 +53,10 @@ const UserDetailComponent: ng.IComponentOptions = {
       $scope.userApplications = [];
     };
 
+    this.getUserPicture = () => {
+      return UserService.getUserAvatar(this.selectedUser.id);
+    };
+
     this.remove = (ev: Event, group: any) => {
       ev.stopPropagation();
       $mdDialog.show({
@@ -126,14 +130,14 @@ const UserDetailComponent: ng.IComponentOptions = {
         template: require('../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Are you sure you want to reset password of user "' + this.selectedUser.username + '"?',
+          title: 'Are you sure you want to reset password of user "' + this.selectedUser.displayName + '"?',
           msg: 'An email with a link to change it will be sent to him',
           confirmButton: 'Reset'
         }
       }).then( (response) => {
         if (response) {
           UserService.resetPassword(this.selectedUser.id).then( () => {
-            NotificationService.show('The password of user ' + this.selectedUser.displayName + ' has been successfully reset"');
+            NotificationService.show('The password of user "' + this.selectedUser.displayName + '" has been successfully reset');
           });
         }
       });

@@ -1,0 +1,19 @@
+
+.user {
+  min-height: 50px;
+
+  .md-avatar {
+    width: 50px;
+    height: 50px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    margin-right: 16px;
+    border-radius: 50%;
+    box-sizing: content-box;
+  }
+
+  img {
+    vertical-align: middle;
+    border: 0;
+  }
+}

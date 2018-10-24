@@ -53,12 +53,14 @@ class UserService {
     this.userURL = `${Constants.baseURL}user/`;
   }
 
-  list(page: number): ng.IPromise<any> {
-    if (!page) {
-      return this.$http.get(this.usersURL);
-    } else {
-      return this.$http.get(`${this.usersURL}?page=${page}`);
+  list(query?: string, page = 1): ng.IPromise<any> {
+    let url = `${this.usersURL}?page=${page}`;
+
+    if (query) {
+      url += '&q=' + query;
     }
+
+    return this.$http.get(url);
   }
 
   get(code: string): ng.IPromise<User> {
@@ -182,7 +184,7 @@ class UserService {
   }
 
   isAuthenticated(): boolean {
-    return (this.currentUser !== undefined && this.currentUser.username !== undefined);
+    return (this.currentUser !== undefined && this.currentUser.id !== undefined);
   }
 
   login(user): ng.IPromise<any> {
@@ -204,8 +206,8 @@ class UserService {
   }
 
   currentUserPicture(): string {
-    if (this.currentUser && this.currentUser.username) {
-      return `${this.userURL}avatar?${this.StringService.hashCode(this.currentUser.username)}`;
+    if (this.currentUser && this.currentUser.id) {
+      return `${this.userURL}avatar?${this.StringService.hashCode(this.currentUser.id)}`;
     }
   }
 

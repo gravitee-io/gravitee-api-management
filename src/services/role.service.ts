@@ -24,7 +24,7 @@ class RoleService {
       userRoleManagement: true
     },
     PORTAL: {
-      permissions: ['METADATA', 'DOCUMENTATION', 'APPLICATION', 'VIEW', 'TOP_APIS', "SETTINGS", "API_HEADER"],
+      permissions: ['METADATA', 'DOCUMENTATION', 'APPLICATION', 'VIEW', 'TOP_APIS', "SETTINGS", "API_HEADER", 'IDENTITY_PROVIDER'],
       userRoleManagement: true
     },
     API: {
