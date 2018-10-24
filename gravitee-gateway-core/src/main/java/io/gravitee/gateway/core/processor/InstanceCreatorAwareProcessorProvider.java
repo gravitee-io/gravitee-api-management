@@ -19,20 +19,22 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 
+import java.util.function.Function;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class InstanceAwareProcessorProvider implements ProcessorProvider {
+public class InstanceCreatorAwareProcessorProvider implements ProcessorProvider {
 
-    private final Processor processor;
+    private final Function<Void, Processor> function;
 
-    public InstanceAwareProcessorProvider(Processor processor) {
-        this.processor = processor;
+    public InstanceCreatorAwareProcessorProvider(Function<Void, Processor> function) {
+        this.function = function;
     }
 
     @Override
     public Processor provide(Request request, Response response, ExecutionContext executionContext) {
-        return processor;
+        return function.apply(null);
     }
 }
