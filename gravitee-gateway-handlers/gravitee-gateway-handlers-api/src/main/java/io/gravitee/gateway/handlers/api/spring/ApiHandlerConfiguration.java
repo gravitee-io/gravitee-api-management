@@ -16,6 +16,9 @@
 package io.gravitee.gateway.handlers.api.spring;
 
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
+import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
+import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitializer;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.handlers.api.validator.Validator;
 import io.gravitee.gateway.handlers.api.validator.ValidatorImpl;
@@ -37,5 +40,20 @@ public class ApiHandlerConfiguration {
     @Bean
     public Validator validator() {
         return new ValidatorImpl();
+    }
+
+    @Bean
+    public ApisManagementEndpoint apisManagementEndpoint() {
+        return new ApisManagementEndpoint();
+    }
+
+    @Bean
+    public ApiManagementEndpoint apiManagementEndpoint() {
+        return new ApiManagementEndpoint();
+    }
+
+    @Bean
+    public NodeApisEndpointInitializer nodeApisEndpointInitializer() {
+        return new NodeApisEndpointInitializer();
     }
 }
