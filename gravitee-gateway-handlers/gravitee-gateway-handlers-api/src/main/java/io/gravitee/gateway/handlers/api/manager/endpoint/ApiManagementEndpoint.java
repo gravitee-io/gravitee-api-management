@@ -18,10 +18,12 @@ package io.gravitee.gateway.handlers.api.manager.endpoint;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.node.management.http.endpoint.ManagementEndpoint;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
@@ -34,12 +36,22 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiManagementEndpoint implements Handler<RoutingContext> {
+public class ApiManagementEndpoint implements Handler<RoutingContext>, ManagementEndpoint {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ApiManagementEndpoint.class);
 
     @Autowired
     private ApiManager apiManager;
+
+    @Override
+    public HttpMethod method() {
+        return HttpMethod.GET;
+    }
+
+    @Override
+    public String path() {
+        return "/apis/:apiId";
+    }
 
     @Override
     public void handle(RoutingContext ctx) {
