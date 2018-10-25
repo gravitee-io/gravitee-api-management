@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class BridgeService  extends AbstractService {
@@ -128,6 +129,11 @@ public class BridgeService  extends AbstractService {
             bridgeRouter.post("/events/_search").handler(eventsHandler::search);
             bridgeRouter.post("/events").handler(eventsHandler::create);
             bridgeRouter.put("/events/:eventId").handler(eventsHandler::update);
+
+            // Dictionaries handler
+            DictionariesHandler dictionariesHandler = new DictionariesHandler();
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(dictionariesHandler);
+            bridgeRouter.get("/dictionaries").handler(dictionariesHandler::findAll);
         }
     }
 
