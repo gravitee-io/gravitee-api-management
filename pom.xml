@@ -39,8 +39,8 @@
     </modules>
 
     <properties>
-        <gravitee-repository.version>1.19.0</gravitee-repository.version>
-        <gravitee-common.version>1.12.0</gravitee-common.version>
+        <gravitee-repository.version>1.20.0</gravitee-repository.version>
+        <gravitee-common.version>1.13.0</gravitee-common.version>
     </properties>
 
     <dependencies>
