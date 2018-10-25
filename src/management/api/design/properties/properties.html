@@ -15,13 +15,16 @@
     limitations under the License.
 
 -->
-<md-content flex class="properties">
-  <h4>Properties</h4>
-
-  <span permission permission-only="'api-definition-u'" class="btn-group float-right">
-    <ng-md-icon icon="settings" ng-click="apiPropertiesCtrl.open()"></ng-md-icon>
-  </span>
-
+<div class="gv-forms gv-forms-fluid" layout="column">
+  <div class="gv-forms-header">
+    <h1>Properties</h1>
+    <span permission permission-only="'api-definition-u'">
+      <ng-md-icon icon="settings" ng-click="apiPropertiesCtrl.open()" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
+    </span>
+  </div>
+  <div class="gv-form">
+      <h2></h2>
+    <div class="gv-form-content" layout="column">
   <div layout="row" style="padding-left: 16px;" ng-if="dynamicPropertyEnabled">
     <span>
       Dynamic properties service is actually in <code>running</code>
@@ -38,7 +41,7 @@
             <th md-column md-order-by="name">Name</th>
             <th md-column>Value</th>
             <th md-column hide-gt-xs show-gt-sm>Dynamic</th>
-            <th md-column style="width: 48px;"></th>
+            <th md-column width="80px" nowrap></th>
           </tr>
         </thead>
         <tbody md-body>
@@ -82,7 +85,7 @@
 <md-sidenav class="md-sidenav-right md-whiteframe-z2 healthcheck" md-component-id="dynamic-properties-config">
   <md-toolbar>
     <div class="md-toolbar-tools">
-      <h2>
+      <h2 style="color: white;">
         <span>Dynamic properties settings</span>
       </h2>
       <span flex></span>
@@ -182,3 +185,6 @@
     </form>
   </md-content>
 </md-sidenav>
+    </div>
+  </div>
+</div>
