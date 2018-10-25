@@ -371,6 +371,7 @@ class ApiPortalController {
           this.ApiService.stop(this.api).then((response) => {
             this.api.state = 'stopped';
             this.api.etag = response.headers('etag');
+            this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
             this.NotificationService.show(`API ${this.api.name} has been stopped!`);
           });
         } else {
@@ -378,6 +379,7 @@ class ApiPortalController {
             this.api.state = 'started';
             this.api.etag = response.headers('etag');
             this.NotificationService.show(`API ${this.api.name} has been started!`);
+            this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
           });
         }
       }
