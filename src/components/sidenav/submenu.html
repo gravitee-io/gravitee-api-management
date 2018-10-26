@@ -15,9 +15,9 @@
     limitations under the License.
 
 -->
-<hr ng-if="$ctrl.reducedMode"/>
+<hr/>
 
-<md-list-item ng-if="!$ctrl.reducedMode && $ctrl.submenuItems.length > 0">
+<md-list-item ng-if="$ctrl.submenuItems.length > 0" class="subheader">
   <h4>{{$ctrl.sidenavService.getCurrentResource()}}</h4>
 </md-list-item>
 
@@ -26,6 +26,6 @@
   <a ui-sref="{{ :: menuItem.name }}" title="{{ :: menuItem.data.menu.label }}"
     ng-class="{'sidenav-active': $ctrl.isActive(menuItem)}">
     <ng-md-icon icon="{{ :: menuItem.data.menu.icon }}"></ng-md-icon>
-    <span ng-if="!$ctrl.reducedMode">{{ :: menuItem.data.menu.label}}</span>
+    <span>{{ :: menuItem.data.menu.label}}</span>
   </a>
 </md-list-item>

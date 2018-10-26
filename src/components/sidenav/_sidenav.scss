@@ -41,6 +41,41 @@ md-sidenav {
   @include min-max-width($sidenavMinWidth);
 }
 
+.md-sidenav-min span{
+  font-size: 0;
+  opacity: 0;
+}
+
+.md-sidenav-min .sidenav-list h4 {
+  font-size: 0;
+  padding: 0;
+  margin: 0;
+}
+
+md-sidenav, .sidenav-list md-list-item.subheader::before, md-list-item::before, .sidenav-list h4, .sidenav-list md-list-item.subheader, .sidenav-list hr, .sidenav-list span {
+  transition: .40s all;
+	-moz-transition: .40s all;
+	-webkit-transition: .40s all;
+	-o-transition: .40s all;
+}
+
+
+.md-sidenav-min .sidenav-list md-list-item.subheader {
+  min-height: 0;
+}
+
+.md-sidenav-min md-list-item.subheader::before {
+  min-height: 0;
+}
+
+.md-sidenav-min .sidenav-list hr {
+  border-top: 1px solid #eee;
+}
+
+.sidenav-list hr {
+  border-top: rgb(45, 50, 62);
+}
+
 md-sidenav.md-sidenav-theme {
   background-color: $bgColor;
 }

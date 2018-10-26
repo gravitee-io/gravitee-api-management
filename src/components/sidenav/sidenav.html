@@ -28,7 +28,7 @@
       <a ui-sref="{{ :: menuItem.name}}" ui-sref-opts="{inherit: false}" title="{{ :: menuItem.data.menu.label}}"
          ng-class="{'sidenav-active': $ctrl.isActive(menuItem)}">
         <ng-md-icon icon="{{ :: menuItem.data.menu.icon }}"></ng-md-icon>
-        <span ng-if="!$ctrl.reducedMode">{{ :: menuItem.data.menu.label }}</span>
+        <span>{{ :: menuItem.data.menu.label }}</span>
       </a>
     </md-list-item>
 
