@@ -24,11 +24,16 @@ function portalI18nConfig($translateProvider, $windowProvider) {
     suffix: '.json'
   });
 
-  const $window = $windowProvider.$get();
-  const lang = $window.navigator.language || $window.navigator.userLanguage;
-
-  $translateProvider.preferredLanguage(lang);
-  $translateProvider.fallbackLanguage(_.startsWith(lang, 'fr')?'fr':'en');
+  $translateProvider
+    .registerAvailableLanguageKeys( ["en", "fr", "pt-BR", "zh"], {
+      "en*": "en",
+      "fr*": "fr",
+      "pt*": "pt-BR",
+      "zh*": "zh",
+      "*": "en"
+      })
+    .determinePreferredLanguage();
+  $translateProvider.fallbackLanguage('en');
   $translateProvider.useSanitizeValueStrategy('escape');
 
   const locale = (window.navigator as any).userLanguage || window.navigator.language;
