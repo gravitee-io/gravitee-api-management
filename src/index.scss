@@ -537,10 +537,43 @@ md-card.no-box-shadow {
   outline: none;
 }
 
+.icon-star-empty:before { content: '\e800'; } /* '' */
+.icon-star:before { content: '\e801'; } /* '' */
+.icon-play:before { content: '\e802'; } /* '' */
+.icon-play-circled2:before { content: '\e803'; } /* '' */
+.icon-stop:before { content: '\e804'; } /* '' */
+.icon-pause:before { content: '\e805'; } /* '' */
+.icon-to-end:before { content: '\e806'; } /* '' */
+.icon-to-end-alt:before { content: '\e807'; } /* '' */
+.icon-to-start:before { content: '\e808'; } /* '' */
+.icon-to-start-alt:before { content: '\e809'; } /* '' */
+.icon-fast-fw:before { content: '\e80a'; } /* '' */
+.icon-fast-bw:before { content: '\e80b'; } /* '' */
+.icon-ok:before { content: '\e80c'; } /* '' */
+.icon-ok-circled:before { content: '\e80d'; } /* '' */
+.icon-ok-circled2:before { content: '\e80e'; } /* '' */
+.icon-cancel:before { content: '\e80f'; } /* '' */
+.icon-cancel-circled:before { content: '\e810'; } /* '' */
+.icon-cancel-circled2:before { content: '\e811'; } /* '' */
+.icon-help-circled:before { content: '\e812'; } /* '' */
+.icon-info-circled:before { content: '\e813'; } /* '' */
+.icon-arrows-cw:before { content: '\e814'; } /* '' */
+.icon-cw:before { content: '\e815'; } /* '' */
+.icon-ccw:before { content: '\e816'; } /* '' */
+.icon-cloud:before { content: '\e817'; } /* '' */
+.icon-flash:before { content: '\e818'; } /* '' */
 .icon-angle-left:before { content: '\f104'; } /* '' */
 .icon-angle-right:before { content: '\f105'; } /* '' */
 .icon-angle-up:before { content: '\f106'; } /* '' */
 .icon-angle-down:before { content: '\f107'; } /* '' */
+.icon-play-circled:before { content: '\f144'; } /* '' */
+.icon-ok-squared:before { content: '\f14a'; } /* '' */
+.icon-sun:before { content: '\f185'; } /* '' */
+.icon-moon:before { content: '\f186'; } /* '' */
+.icon-pause-circle:before { content: '\f28b'; } /* '' */
+.icon-pause-circle-o:before { content: '\f28c'; } /* '' */
+.icon-stop-circle:before { content: '\f28d'; } /* '' */
+.icon-stop-circle-o:before { content: '\f28e'; } /* '' */
 
 table {
   code {

@@ -57,14 +57,15 @@
                   ({{api.version}})
                 </td>
                 <td md-cell nowrap>
-                  <ng-md-icon ng-if="$ctrl.syncStatus[api.id] === undefined?false:!$ctrl.syncStatus[api.id]"
-                              icon="sync_problem" aria-label="async" size="24"
-                              style="fill: #e8ac3c; padding-bottom: 8px;">
-                    <md-tooltip>API out of sync</md-tooltip>
-                  </ng-md-icon>
-                  <ng-md-icon ng-if="api.state !== 'started'" icon="stop" size="32" style="fill: red;">
+                  <i ng-if="api.state == 'started'" class="icon-play-circled2" style="color:#43a047;font-size: 16px">
+                    <md-tooltip>Started</md-tooltip>
+                  </i>
+                  <i ng-if="api.state !== 'started'" class="icon-stop-circle-o" style="color:#e53935;font-size: 16px">
                     <md-tooltip>Stopped</md-tooltip>
-                  </ng-md-icon>
+                  </i>
+                  <i ng-if="$ctrl.syncStatus[api.id] === undefined?false:!$ctrl.syncStatus[api.id]" class="icon-arrows-cw" style="color:#e8ac3c;font-size: 14px;">
+                    <md-tooltip>API out of sync</md-tooltip>
+                  </i>
                 </td>
                 <td md-cell>{{api.context_path}}</td>
                 <td md-cell nowrap>{{api.tags.join(', ')}}</td>
