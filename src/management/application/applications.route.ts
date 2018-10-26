@@ -75,16 +75,14 @@ function applicationsConfig($stateProvider) {
           ApplicationService.get($stateParams.applicationId).then(response => response.data),
         resolvedApplicationPermissions: (ApplicationService, $stateParams) => ApplicationService.getPermissions($stateParams.applicationId),
         onEnter: function (UserService, resolvedApplicationPermissions) {
-          if (!UserService.currentUser.userApplicationPermissions) {
-            UserService.currentUser.userApplicationPermissions = [];
-            _.forEach(_.keys(resolvedApplicationPermissions.data), function (permission) {
-              _.forEach(resolvedApplicationPermissions.data[permission], function (right) {
-                let permissionName = 'APPLICATION-' + permission + '-' + right;
-                UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
-              });
+          UserService.currentUser.userApplicationPermissions = [];
+          _.forEach(_.keys(resolvedApplicationPermissions.data), function (permission) {
+            _.forEach(resolvedApplicationPermissions.data[permission], function (right) {
+              let permissionName = 'APPLICATION-' + permission + '-' + right;
+              UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
             });
-            UserService.reloadPermissions();
-          }
+          });
+          UserService.reloadPermissions();
         }
       }
     })
