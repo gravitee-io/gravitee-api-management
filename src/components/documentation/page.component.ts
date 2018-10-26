@@ -19,7 +19,8 @@ const PageComponent: ng.IComponentOptions = {
   bindings: {
     page: '<',
     edit: '<',
-    sidenav: '<'
+    sidenav: '<',
+    sidenavoffset: '<'
   }
 };
 

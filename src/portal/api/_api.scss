@@ -228,6 +228,28 @@ a.ui.label:focus, a.ui.label:hover {
   z-index: 10;
 }
 
+#pageHeader .container {
+  min-height: 104px;
+  max-height: 250px;
+}
+
+#pageHeader.sticky .container {
+  min-height: 0;
+  max-height: 68px;
+}
+
+#pageHeader #header-detail {
+  opacity: 100;
+}
+
+#pageHeader.sticky #header-detail {
+  opacity: 0;
+}
+
+.api-header-detail {
+  margin-top: 18px;
+}
+
 .api-nav.sticky {
   top: 147px !important;
 }
@@ -293,22 +315,31 @@ a.ui.label:focus, a.ui.label:hover {
   }
 }
 
-.api-header-detail {
-  margin-top: 18px;
-}
 .api-header-metadata {
+  max-height: 200px;
   h2 {
     font-size: 1.1em;
     margin: 12px 0 8px 0;
   }
 }
 
-.wipeoff {
-  display: none;
+#pageHeader.sticky .api-header-metadata {
+  opacity: 0;
+  max-height: 0;
 }
 
-.api-header.sticky {
-  top: 0 !important;
+#pageHeader .container, #pageHeader .api-header-metadata, #pageHeader #header-detail {
+  transition: .40s all;
+	-moz-transition: .40s all;
+	-webkit-transition: .40s all;
+	-o-transition: .40s all;
+}
+
+#pageHeader #header-detail {
+  transition: .20s all;
+	-moz-transition: .20s all;
+	-webkit-transition: .20s all;
+	-o-transition: .20s all;
 }
 
 /**

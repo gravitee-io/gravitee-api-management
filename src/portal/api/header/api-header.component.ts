@@ -48,21 +48,19 @@ const ApiHeaderComponent: ng.IComponentOptions = {
         const apiNavbar = document.getElementById("api-navbar");
         const headerDetail = document.getElementById("header-detail");
         const headerMetadata = document.getElementById("header-metadata");
-        const headerTitle = document.getElementById("header");
-        const content = document.getElementById("main-content-content")
+        const header = document.getElementById("header");
+        const headerTitle = document.getElementById("header-title");
+        const content = document.getElementById("main-content-content");
+
+        const pageHeader = document.getElementById("pageHeader");
+
         $window.onscroll = () => {
           if ($window.pageYOffset > 0) {
-            headerDetail.classList.add("wipeoff");
-            headerMetadata.classList.add("wipeoff");
-            headerTitle.classList.add("sticky");
-            apiNavbar.classList.add("sticky");
             content.classList.add("header-fixed");
+            pageHeader.classList.add("sticky");
           } else {
-            headerDetail.classList.remove("wipeoff");
-            headerMetadata.classList.remove("wipeoff");
-            headerTitle.classList.remove("sticky");
-            apiNavbar.classList.remove("sticky");
-            content.classList.remove("header-fixed")
+            content.classList.remove("header-fixed");
+            pageHeader.classList.remove("sticky");
           }
         };
       }, 0);

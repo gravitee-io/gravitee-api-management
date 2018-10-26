@@ -18,6 +18,7 @@ import * as angular from 'angular';
 
 interface IMyScope extends ng.IScope {
   page: any;
+  offset: any;
   anchors: any;
   scrollTo: Function;
 }
@@ -31,16 +32,22 @@ class PageSidenavController {
 const PageSidenavDirective: ng.IDirective = ({
   restrict: 'E',
   scope: {
-    page: '='
+    page: '=',
+    offset: '<'
   },
   template: require('./page-sidenav.html'),
   link: function (scope: IMyScope, elem, attr, ctr: {$timeout: ng.ITimeoutService, $window, $document}) {
+
+    if (! scope.offset) {
+      scope.offset = 60;
+    }
+
     ctr.$timeout(function () {
       let sidenav = angular.element(document.getElementById('sidenav'));
       let page = document.getElementById('page-content');
 
       let content:Element = undefined;
-      if(scope.page.type === 'SWAGGER') {
+      if (scope.page.type === 'SWAGGER') {
         content = page.getElementsByClassName("api-description")[0];
       } else if (scope.page.type === 'MARKDOWN') {
         content = page;
@@ -75,6 +82,7 @@ const PageSidenavDirective: ng.IDirective = ({
         */
 
         scope.anchors = _.map(h2Elements, function (elt) {
+          elt.id = elt.textContent.replace(new RegExp(' ', 'g'), '').toLowerCase();
           return {id: elt.id, title: elt.textContent, elt: elt};
         });
 
@@ -85,14 +93,6 @@ const PageSidenavDirective: ng.IDirective = ({
             .catch(function () {
             });
         };
-
-        angular.element(ctr.$window).bind("scroll", function () {
-          if (ctr.$window.pageYOffset > 0) {
-            sidenav.addClass('sidenav-fixed');
-          } else {
-            sidenav.removeClass('sidenav-fixed');
-          }
-        });
       }
 
     }, 200);

@@ -15,9 +15,9 @@
     limitations under the License.
 
 -->
-<div id="sidenav" layout-padding>
+<div id="sidenav" class="sidenav-fixed" layout-padding>
   <ul>
-    <li class="sidenav_item" ng-repeat="anchor in anchors" href="#{{::anchor.id}}" ng-click="scrollTo(anchor.elt)" du-smooth-scroll du-scrollspy>
+    <li class="sidenav_item" ng-repeat="anchor in anchors" href="#{{::anchor.id}}" ng-click="scrollTo(anchor.elt)" offset="{{::offset}}" du-smooth-scroll du-scrollspy>
       <span>{{::anchor.title}}</span>
     </li>
   </ul>
