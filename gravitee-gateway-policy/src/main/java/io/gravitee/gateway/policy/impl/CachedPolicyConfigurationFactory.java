@@ -15,10 +15,8 @@
  */
 package io.gravitee.gateway.policy.impl;
 
-import com.google.common.hash.Hashing;
 import io.gravitee.policy.api.PolicyConfiguration;
 
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -28,16 +26,16 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class CachedPolicyConfigurationFactory extends PolicyConfigurationFactoryImpl {
 
-    private final ConcurrentMap<String, PolicyConfiguration> cachedPolicyConfiguration =
+    private final ConcurrentMap<Integer, PolicyConfiguration> cachedPolicyConfiguration =
             new ConcurrentHashMap<>();
 
     @Override
     public <T extends PolicyConfiguration> T create(Class<T> policyConfigurationClass, String configuration) {
-        if (policyConfigurationClass == null) {
+        if (policyConfigurationClass == null || configuration == null) {
             return null;
         }
 
-        String hash = hash(policyConfigurationClass, configuration);
+        Integer hash = configuration.hashCode();
         PolicyConfiguration config = cachedPolicyConfiguration.get(hash);
         if (config == null) {
             config = super.create(policyConfigurationClass, configuration);
@@ -47,12 +45,5 @@ public class CachedPolicyConfigurationFactory extends PolicyConfigurationFactory
         }
 
         return (T) config;
-    }
-
-    private String hash(Class<?> policyConfigurationClass, String policyConfiguration) {
-        return Hashing.sha256().hashString(
-                (policyConfiguration == null) ?
-                        policyConfigurationClass.getName() : policyConfigurationClass.getName() + policyConfiguration,
-                StandardCharsets.UTF_8).toString();
     }
 }

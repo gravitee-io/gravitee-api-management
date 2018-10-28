@@ -41,7 +41,7 @@ import java.util.Map;
 class VertxHttpServerRequest implements Request {
 
     private final String id;
-    private final Instant instant;
+    private final long timestamp;
 
     private final HttpServerRequest httpServerRequest;
 
@@ -53,10 +53,10 @@ class VertxHttpServerRequest implements Request {
 
     VertxHttpServerRequest(HttpServerRequest httpServerRequest) {
         this.httpServerRequest = httpServerRequest;
-        this.instant = Instant.now();
+        this.timestamp = System.currentTimeMillis();
         this.id = UUID.toString(UUID.random());
 
-        this.metrics = Metrics.on(instant.toEpochMilli()).build();
+        this.metrics = Metrics.on(timestamp).build();
         this.metrics.setRequestId(id());
         this.metrics.setHttpMethod(method());
         this.metrics.setLocalAddress(localAddress());
@@ -143,8 +143,8 @@ class VertxHttpServerRequest implements Request {
     }
 
     @Override
-    public Instant timestamp() {
-        return instant;
+    public long timestamp() {
+        return timestamp;
     }
 
     @Override

@@ -18,13 +18,9 @@ package io.gravitee.gateway.standalone.policy;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.api.PolicyConfiguration;
-import io.gravitee.policy.api.PolicyContext;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,16 +37,6 @@ public class PolicyBuilder {
             @Override
             public Class<?> policy() {
                 return policy;
-            }
-
-            @Override
-            public Class<? extends PolicyContext> context() {
-                return null;
-            }
-
-            @Override
-            public Map<Class<? extends Annotation>, Method> methods() {
-                return null;
             }
 
             @Override

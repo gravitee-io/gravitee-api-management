@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
-import com.google.common.base.Throwables;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
@@ -101,20 +100,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         serverRequest.metrics().setApi(api.getId());
         serverRequest.metrics().setPath(serverRequest.pathInfo());
 
-        try {
-            handleClientRequest(serverRequest, serverResponse, executionContext, handler);
-        } catch (Exception ex) {
-            logger.error("An unexpected error occurs while processing request", ex);
-
-            serverRequest.metrics().setMessage(Throwables.getStackTraceAsString(ex));
-
-            // Send an INTERNAL_SERVER_ERROR (500)
-            serverResponse.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            serverResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-            serverResponse.end();
-
-            handler.handle(serverResponse);
-        }
+        // It's time to process the incoming client request
+        handleClientRequest(serverRequest, serverResponse, executionContext, handler);
     }
 
     private void handleClientRequest(final Request serverRequest, final Response serverResponse, final ExecutionContext executionContext, final Handler<Response> handler) {

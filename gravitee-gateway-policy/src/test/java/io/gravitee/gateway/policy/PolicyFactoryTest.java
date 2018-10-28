@@ -66,7 +66,7 @@ public class PolicyFactoryTest {
         when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
         when(policyDefinition.configuration()).then((Answer<Class>) invocationOnMock -> DummyPolicyConfiguration.class);
 
-        Object policy = policyFactory.create(policyDefinition, Collections.emptyMap());
+        Object policy = policyFactory.create(policyDefinition, null);
 
 //        verify(policyConfigurationFactory, times(1)).create(any(), anyString());
         Assert.assertNotNull(policy);
@@ -76,7 +76,7 @@ public class PolicyFactoryTest {
     public void createPolicyWithoutConfigurationAndWithConfigurationData() {
         PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
         when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
-        Object policy = policyFactory.create(policyDefinition, Collections.emptyMap());
+        Object policy = policyFactory.create(policyDefinition, null);
 
 //        verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNotNull(policy);

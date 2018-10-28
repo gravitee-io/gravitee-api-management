@@ -16,6 +16,9 @@
 package io.gravitee.gateway.handlers.api.path.impl;
 
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Rule;
+
+import java.util.stream.Collectors;
 
 /**
  * A simple path resolver based on context paths definition.
@@ -31,7 +34,10 @@ public class ApiPathResolverImpl extends AbstractPathResolver {
         api.getPaths().entrySet().forEach(declaredPath -> {
             io.gravitee.gateway.handlers.api.path.Path path = new io.gravitee.gateway.handlers.api.path.Path();
             path.setResolvedPath(declaredPath.getKey());
-            path.setRules(declaredPath.getValue().getRules());
+
+            // Keeping only enabled rules
+            path.setRules(declaredPath.getValue().getRules().stream().filter(Rule::isEnabled).collect(Collectors.toList()));
+
             register(path);
         });
     }

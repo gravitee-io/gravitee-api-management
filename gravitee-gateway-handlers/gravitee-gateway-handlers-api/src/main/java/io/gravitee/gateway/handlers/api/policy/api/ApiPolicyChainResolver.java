@@ -49,7 +49,7 @@ public class ApiPolicyChainResolver extends AbstractPolicyChainResolver {
 
         return path.getRules()
                 .stream()
-                .filter(rule -> rule.isEnabled() && rule.getMethods().contains(request.method()))
+                .filter(rule -> rule.getMethods().contains(request.method()))
                 .map(rule -> create(streamType, rule.getPolicy().getName(), rule.getPolicy().getConfiguration()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());

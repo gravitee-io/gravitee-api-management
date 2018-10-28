@@ -32,6 +32,10 @@ import java.util.*;
  */
 public class DefaultExecutionContext implements ExecutionContext {
 
+    private final static String TEMPLATE_ATTRIBUTE_REQUEST = "request";
+    private final static String TEMPLATE_ATTRIBUTE_RESPONSE = "response";
+    private final static String TEMPLATE_ATTRIBUTE_CONTEXT = "context";
+
     private final Map<String, Object> attributes = new AttributeMap();
 
     private final Request request;
@@ -48,6 +52,8 @@ public class DefaultExecutionContext implements ExecutionContext {
         this.request = request;
         this.response = response;
         this.applicationContext = applicationContext;
+
+        setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, request.contextPath());
     }
 
     @Override
@@ -81,9 +87,9 @@ public class DefaultExecutionContext implements ExecutionContext {
             spelTemplateEngine = new SpelTemplateEngine();
 
             TemplateContext templateContext = spelTemplateEngine.getTemplateContext();
-            templateContext.setVariable("request", new EvaluableRequest(request));
-            templateContext.setVariable("response", new EvaluableResponse(response));
-            templateContext.setVariable("context", new EvaluableExecutionContext(this));
+            templateContext.setVariable(TEMPLATE_ATTRIBUTE_REQUEST, new EvaluableRequest(request));
+            templateContext.setVariable(TEMPLATE_ATTRIBUTE_RESPONSE, new EvaluableResponse(response));
+            templateContext.setVariable(TEMPLATE_ATTRIBUTE_CONTEXT, new EvaluableExecutionContext(this));
 
             if (providers != null) {
                 providers.forEach(templateVariableProvider -> templateVariableProvider.provide(templateContext));
@@ -102,6 +108,14 @@ public class DefaultExecutionContext implements ExecutionContext {
     }
 
     private class AttributeMap extends HashMap<String, Object> {
+
+        /**
+         * In the most general case, the context will not store more than 10 elements in the Map.
+         * Then, the initial capacity must be set to limit size in memory.
+         */
+        AttributeMap() {
+            super(12, 1.0f);
+        }
 
         @Override
         public Object get(Object key) {

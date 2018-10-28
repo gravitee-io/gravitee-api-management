@@ -16,13 +16,12 @@
 package io.gravitee.gateway.policy;
 
 import io.gravitee.policy.api.PolicyConfiguration;
-import io.gravitee.policy.api.PolicyContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface PolicyMetadata {
@@ -32,8 +31,6 @@ public interface PolicyMetadata {
     Class<?> policy();
 
     Class<? extends PolicyConfiguration> configuration();
-
-    PolicyContext context();
 
     Method method(Class<? extends Annotation> type);
 }

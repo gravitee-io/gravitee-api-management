@@ -23,7 +23,6 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
-import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
@@ -81,6 +80,11 @@ public class DummyReactorHandler extends AbstractReactorHandler {
         ExecutionContext executionContext = executionContextFactory.create(request, response);
 
         doHandle(request, response, executionContext, handler);
+    }
+
+    @Override
+    public String contextPath() {
+        return null;
     }
 
     @Override
