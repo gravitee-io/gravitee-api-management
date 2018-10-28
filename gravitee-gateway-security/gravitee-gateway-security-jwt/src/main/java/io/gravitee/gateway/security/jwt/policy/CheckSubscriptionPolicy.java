@@ -63,7 +63,7 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
                 if (subscription.getClientId().equals(clientId) &&
                         (
                                 subscription.getEndingAt() == null ||
-                                        subscription.getEndingAt().after(Date.from(request.timestamp())))) {
+                                        subscription.getEndingAt().after(new Date(request.timestamp())))) {
 
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                     executionContext.setAttribute(ExecutionContext.ATTR_USER_ID, subscription.getId());

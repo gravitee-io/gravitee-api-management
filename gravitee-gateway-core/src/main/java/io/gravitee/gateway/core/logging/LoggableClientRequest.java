@@ -16,30 +16,24 @@
 package io.gravitee.gateway.core.logging;
 
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.common.http.HttpVersion;
-import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.RequestWrapper;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadStream;
-import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.log.Log;
-
-import java.time.Instant;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class LoggableClientRequest implements Request {
+public class LoggableClientRequest extends RequestWrapper {
 
-    private final Request request;
     private final Log log;
     private Buffer buffer;
 
     public LoggableClientRequest(final Request request) {
-        this.request = request;
+        super(request);
         this.log = new Log(request.metrics().timestamp().toEpochMilli());
         this.log.setRequestId(request.id());
 
@@ -77,95 +71,5 @@ public class LoggableClientRequest implements Request {
         });
 
         return this;
-    }
-
-    @Override
-    public ReadStream<Buffer> pause() {
-        return request.pause();
-    }
-
-    @Override
-    public ReadStream<Buffer> resume() {
-        return request.resume();
-    }
-
-    @Override
-    public String id() {
-        return request.id();
-    }
-
-    @Override
-    public String transactionId() {
-        return request.transactionId();
-    }
-
-    @Override
-    public String uri() {
-        return request.uri();
-    }
-
-    @Override
-    public String path() {
-        return request.path();
-    }
-
-    @Override
-    public String pathInfo() {
-        return request.pathInfo();
-    }
-
-    @Override
-    public String contextPath() {
-        return request.contextPath();
-    }
-
-    @Override
-    public MultiValueMap<String, String> parameters() {
-        return request.parameters();
-    }
-
-    @Override
-    public HttpHeaders headers() {
-        return request.headers();
-    }
-
-    @Override
-    public HttpMethod method() {
-        return request.method();
-    }
-
-    @Override
-    public String scheme() {
-        return request.scheme();
-    }
-
-    @Override
-    public String rawMethod() {
-        return request.rawMethod();
-    }
-
-    @Override
-    public HttpVersion version() {
-        return request.version();
-    }
-
-    @Override
-    public Instant timestamp() {
-        return request.timestamp();
-    }
-
-    @Override
-    public String remoteAddress() {
-        return request.remoteAddress();
-    }
-
-    @Override
-    public String localAddress() {
-        return request.localAddress();
-    }
-
-    @Override
-    public Metrics metrics() {
-        return request.metrics();
     }
 }

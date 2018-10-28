@@ -32,7 +32,7 @@ public class EvaluableRequest {
     }
 
     public long getTimestamp() {
-        return request.timestamp().toEpochMilli();
+        return request.timestamp();
     }
 
     public String getId() {

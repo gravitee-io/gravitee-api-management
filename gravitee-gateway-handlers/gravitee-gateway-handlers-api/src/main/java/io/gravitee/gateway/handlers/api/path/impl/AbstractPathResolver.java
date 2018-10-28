@@ -17,9 +17,8 @@ package io.gravitee.gateway.handlers.api.path.impl;
 
 import io.gravitee.gateway.handlers.api.path.Path;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
+import io.netty.handler.codec.http.QueryStringDecoder;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,27 +40,32 @@ public abstract class AbstractPathResolver implements PathResolver {
 
     private final String contextPath;
 
-    private final String DEFAULT_CHARSET =  Charset.defaultCharset().name();
-
     protected AbstractPathResolver(String contextPath) {
-        this.contextPath = contextPath;
+        if (contextPath.lastIndexOf((int)'/') != contextPath.length() - 1) {
+            this.contextPath = contextPath + URL_PATH_SEPARATOR;
+        } else {
+            this.contextPath = contextPath;
+        }
     }
 
     @Override
     public Path resolve(final String path) {
+        if (registeredPaths.size() == 1) {
+            return registeredPaths.get(0);
+        }
+
         String decodedPath;
 
         try {
-            decodedPath = URLDecoder.decode(path, DEFAULT_CHARSET);
-        } catch (UnsupportedEncodingException uee) {
+            decodedPath = QueryStringDecoder.decodeComponent(path, Charset.defaultCharset());
+        } catch (IllegalArgumentException iae) {
             decodedPath = path;
         }
-
-        decodedPath += '/';
 
         int pieces = -1;
         Path bestPath = null;
 
+        // TODO PERF: We must navigate from the longest path to the shortest to avoid counting pieces.
         for(Path registerPath : registeredPaths) {
             if (registerPath.getPattern().matcher(decodedPath).lookingAt()) {
                 int split = registerPath.getPath().split(URL_PATH_SEPARATOR).length;
@@ -79,10 +83,6 @@ public abstract class AbstractPathResolver implements PathResolver {
         String [] branches = path.getResolvedPath().split(URL_PATH_SEPARATOR);
         StringBuilder buffer = new StringBuilder(contextPath);
 
-        if (buffer.charAt(buffer.length() - 1) != '/') {
-            buffer.append(URL_PATH_SEPARATOR);
-        }
-
         path.setPath(buffer.substring(0, buffer.length() - 1) + path.getResolvedPath());
 
         for(String branch : branches) {
@@ -97,6 +97,8 @@ public abstract class AbstractPathResolver implements PathResolver {
             }
         }
 
+        // Last path separator is not required to match
+        buffer.append('?');
 
         path.setPattern(Pattern.compile(buffer.toString()));
         registeredPaths.add(path);

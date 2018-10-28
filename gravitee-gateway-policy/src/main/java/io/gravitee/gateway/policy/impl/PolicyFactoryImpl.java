@@ -23,13 +23,13 @@ import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.reflections.ReflectionUtils.*;
+import static org.reflections.ReflectionUtils.withModifier;
+import static org.reflections.ReflectionUtils.withParametersCount;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,56 +44,28 @@ public class PolicyFactoryImpl implements PolicyFactory {
      */
     private Map<Class<?>, Constructor<?>> constructors = new HashMap<>();
 
-    /**
-     * Cache of injectable fields by policy
-     */
-    private Map<Class<?>, Set<Field>> injectableFields = new HashMap<>();
-
     @Override
-    public Object create(PolicyMetadata policyMetadata, Map<Class<?>, Object> injectables) {
+    public Object create(PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
         Class<?> policyClass = policyMetadata.policy();
         LOGGER.debug("Create a new policy instance for {}", policyClass.getName());
 
-        return createPolicy(policyMetadata, injectables);
+        return createPolicy(policyMetadata, policyConfiguration);
     }
 
-    private Object createPolicy(PolicyMetadata policyMetadata, Map<Class<?>, Object> injectables) {
+    private Object createPolicy(PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
         Object policyInst = null;
 
         Constructor<?> constr = lookingForConstructor(policyMetadata.policy());
 
         if (constr != null) {
             try {
-                if (constr.getParameterCount() > 0 && injectables != null) {
-                    policyInst = constr.newInstance(injectables.get(policyMetadata.configuration()));
+                if (constr.getParameterCount() > 0 && policyConfiguration != null) {
+                    policyInst = constr.newInstance(policyConfiguration);
                 } else {
                     policyInst = constr.newInstance();
                 }
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
                 LOGGER.error("Unable to instantiate policy {}", policyMetadata.policy().getName(), ex);
-            }
-        }
-
-        if (policyInst != null && injectables != null) {
-            Set<Field> fields = lookingForInjectableFields(policyMetadata.policy());
-            if (fields != null) {
-                for (Field field : fields) {
-                    boolean accessible = field.isAccessible();
-
-                    Class<?> type = field.getType();
-                    Object value = injectables.get(type);
-                    LOGGER.debug("Inject value into field {} [{}] in {}", field.getName(), type.getName(),
-                            policyMetadata.policy());
-                    try {
-                        field.setAccessible(true);
-                        field.set(policyInst, value);
-                    } catch (IllegalAccessException iae) {
-                        LOGGER.error("Unable to set field value for {} in {}", field.getName(),
-                                policyMetadata.policy(), iae);
-                    } finally {
-                        field.setAccessible(accessible);
-                    }
-                }
             }
         }
 
@@ -131,12 +103,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
         return constructor;
     }
 
-    private Set<Field> lookingForInjectableFields(Class<?> policyClass) {
-        return injectableFields.computeIfAbsent(policyClass,
-                aClass -> ReflectionUtils.getAllFields(policyClass, withAnnotation(Inject.class)));
-    }
-
-    public static Predicate<Member> withParametersAssignableFrom(final Class... types) {
+    private static Predicate<Member> withParametersAssignableFrom(final Class... types) {
         return input -> {
             if (input != null) {
                 Class<?>[] parameterTypes = parameterTypes(input);
