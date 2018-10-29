@@ -91,6 +91,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
 
     @Override
     protected void doHandle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
+        // Pause the request and resume it as soon as all the stream are plugged and we have processed the HEAD part
+        // of the request. (see handleProxyInvocation method).
+        serverRequest.pause();
+
         if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
             handler = new PathMappingMetricsHandler(handler, api.getPathMappings(), serverRequest);
         }
@@ -137,10 +141,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
     }
 
     private void handleProxyInvocation(final ProcessorContext processorContext, final StreamableProcessor<Buffer> processor, final Handler<Response> handler) {
-        // Pause the request and resume it as soon as all the stream are plugged and we have processed the HEAD part
-        // of the request.
-        processorContext.getRequest().pause();
-
         // Call an invoker to get a proxy connection (connection to an underlying backend, mainly HTTP)
         Invoker upstreamInvoker = (Invoker) processorContext.getContext().getAttribute(ExecutionContext.ATTR_INVOKER);
 
