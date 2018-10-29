@@ -45,7 +45,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     private final static Map<String, Float> API_FIELD_BOOST = new HashMap<String, Float>() {
         {
-            put("name", 10.0f);
+            put("name", 12.0f);
+            put("name_split", 10.0f);
             put("description", 8.0f);
         }
     };
@@ -53,7 +54,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     private final static Map<String, Float> PAGE_FIELD_BOOST = new HashMap<String, Float>() {
         {
             put("name", 10.0f);
-            put("content", 8.0f);
+            put("content", 5.0f);
         }
     };
 
@@ -61,6 +62,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     public List<String> search(io.gravitee.management.service.search.query.Query query) throws TechnicalException {
         MultiFieldQueryParser apiParser = new MultiFieldQueryParser(new String[]{
                 "name",
+                "name_split",
                 "description",
                 "ownerName",
                 "ownerMail",
