@@ -230,6 +230,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role) {
+        return addOrUpdateMember(reference, user, role, false);
+    }
+
+    public MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role, boolean transferOwnership) {
         try {
             LOGGER.debug("Add a new member for {} {}", reference.getType(), reference.getId());
 
@@ -239,7 +243,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             UserEntity userEntity;
             if (user.getId() != null) {
                 userEntity = userService.findById(user.getId());
-                assertNotOverridePrimaryOwner(reference, user.getId(), role);
+                // In the context of transfer_ownership, so we must accept primary_owner overriding.
+                if (! transferOwnership) {
+                    assertNotOverridePrimaryOwner(reference, user.getId(), role);
+                }
             } else {
                 // We have a user reference, meaning that the user is coming from an external system
                 // User does not exist so we are looking into defined providers
@@ -351,7 +358,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .forEach(m -> this.addOrUpdateMember(
                         new MembershipReference(membershipReferenceType, itemId),
                         new MembershipUser(m.getId(), null),
-                        new MembershipRole(roleScope, newRole.getName())));
+                        new MembershipRole(roleScope, newRole.getName()),
+                        true));
     }
 
     @Override
