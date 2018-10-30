@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
+import com.fasterxml.jackson.databind.node.TextNode;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 
@@ -29,6 +30,7 @@ import java.io.IOException;
  * @author GraviteeSource Team
  */
 public class LoggingDeserializer extends StdScalarDeserializer<Logging> {
+    private static final JsonNode NULL = new TextNode("null");
 
     public LoggingDeserializer(Class<Logging> vc) {
         super(vc);
@@ -45,7 +47,10 @@ public class LoggingDeserializer extends StdScalarDeserializer<Logging> {
         }
 
         JsonNode condition = node.get("condition");
-        if (condition != null) {
+
+        // since 1.20
+        // test "null" for legacy configuration
+        if (condition != null && !NULL.equals(condition)) {
             logging.setCondition(condition.asText());
         }
 

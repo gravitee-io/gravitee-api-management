@@ -28,6 +28,7 @@ import java.io.IOException;
  * @author GraviteeSource Team
  */
 public class LoggingSerializer extends StdScalarSerializer<Logging> {
+    public static final String NULL = "null";
 
     public LoggingSerializer(Class<Logging> t) {
         super(t);
@@ -39,7 +40,9 @@ public class LoggingSerializer extends StdScalarSerializer<Logging> {
 
         jgen.writeStringField("mode", logging.getMode().name());
 
-        if (logging.getMode() != LoggingMode.NONE) {
+        // since 1.20
+        // test "null" for legacy configuration
+        if (logging.getMode() != LoggingMode.NONE && logging.getCondition() != null && !NULL.equals(logging.getCondition())) {
             jgen.writeStringField("condition", logging.getCondition());
         }
 
