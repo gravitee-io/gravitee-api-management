@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -118,7 +119,7 @@ public class ApiDeserializerTest extends AbstractTest {
         List<Rule> rules = paths.get("/*").getRules();
         Assert.assertEquals(4, rules.size());
 
-        List<HttpMethod> methods = rules.iterator().next().getMethods();
+        Set<HttpMethod> methods = rules.iterator().next().getMethods();
         Assert.assertEquals(2, methods.size());
     }
 
@@ -134,8 +135,8 @@ public class ApiDeserializerTest extends AbstractTest {
         List<Rule> rules = paths.get("/*").getRules();
         Assert.assertEquals(1, rules.size());
 
-        List<HttpMethod> methods = rules.iterator().next().getMethods();
-        Assert.assertEquals(9, methods.size());
+        Set<HttpMethod> methods = rules.iterator().next().getMethods();
+        Assert.assertEquals(10, methods.size());
     }
 
     @Test

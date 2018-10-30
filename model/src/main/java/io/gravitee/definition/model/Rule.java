@@ -17,8 +17,7 @@ package io.gravitee.definition.model;
 
 import io.gravitee.common.http.HttpMethod;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,7 +25,7 @@ import java.util.List;
  */
 public class Rule {
 
-    private List<HttpMethod> methods = new ArrayList<>();
+    private Set<HttpMethod> methods;
 
     private Policy policy;
 
@@ -34,11 +33,11 @@ public class Rule {
 
     private boolean enabled = true;
 
-    public List<HttpMethod> getMethods() {
+    public Set<HttpMethod> getMethods() {
         return methods;
     }
 
-    public void setMethods(List<HttpMethod> methods) {
+    public void setMethods(Set<HttpMethod> methods) {
         this.methods = methods;
     }
 

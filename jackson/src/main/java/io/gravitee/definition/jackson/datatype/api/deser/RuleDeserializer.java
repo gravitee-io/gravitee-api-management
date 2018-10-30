@@ -24,7 +24,7 @@ import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.EnumSet;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,6 +41,7 @@ public class RuleDeserializer extends StdScalarDeserializer<Rule> {
         JsonNode node = jp.getCodec().readTree(jp);
 
         Rule rule = new Rule();
+        EnumSet<HttpMethod> methods = EnumSet.noneOf(HttpMethod.class);
 
         node.fieldNames().forEachRemaining(field -> {
             JsonNode subNode = node.findValue(field);
@@ -48,14 +49,9 @@ public class RuleDeserializer extends StdScalarDeserializer<Rule> {
             switch(field) {
                 case "methods":
                     if (subNode != null && subNode.isArray()) {
-                        HttpMethod[] methods = new HttpMethod[subNode.size()];
-
-                        final int[] idx = {0};
                         subNode.elements().forEachRemaining(jsonNode -> {
-                            methods[idx[0]++] = HttpMethod.valueOf(jsonNode.asText().toUpperCase());
+                            methods.add(HttpMethod.valueOf(jsonNode.asText().toUpperCase()));
                         });
-
-                        rule.getMethods().addAll(Arrays.asList(methods));
                     }
                     break;
                 case "description":
@@ -81,11 +77,7 @@ public class RuleDeserializer extends StdScalarDeserializer<Rule> {
             }
         });
 
-        if (rule.getMethods().isEmpty()) {
-            rule.getMethods().addAll(Arrays.asList(
-                    HttpMethod.CONNECT, HttpMethod.DELETE, HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS,
-                    HttpMethod.PATCH, HttpMethod.POST, HttpMethod.PUT, HttpMethod.TRACE));
-        }
+        rule.setMethods((methods.isEmpty()) ? EnumSet.allOf(HttpMethod.class) : methods);
 
         return rule;
     }
