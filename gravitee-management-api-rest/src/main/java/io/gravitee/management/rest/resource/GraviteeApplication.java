@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.resource;
 
+import com.fasterxml.jackson.databind.JavaType;
 import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.common.util.Version;
 import io.gravitee.management.rest.bind.AuthenticationBinder;
@@ -28,14 +29,25 @@ import io.gravitee.management.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.management.rest.resource.search.SearchResource;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
+import io.swagger.converter.ModelConverter;
+import io.swagger.converter.ModelConverterContext;
+import io.swagger.converter.ModelConverters;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import io.swagger.jaxrs.listing.SwaggerSerializers;
+import io.swagger.models.Model;
+import io.swagger.models.properties.LongProperty;
+import io.swagger.models.properties.Property;
+import io.swagger.util.Json;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
 import javax.inject.Inject;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
@@ -58,6 +70,29 @@ public class GraviteeApplication extends ResourceConfig {
         beanConfig.setTitle("Gravitee.io - Rest API");
         beanConfig.setScan(true);
 
+        ModelConverters.getInstance().addConverter(new ModelConverter() {
+            @Override
+            public Property resolveProperty(Type type, ModelConverterContext context, Annotation[] annotations, Iterator<ModelConverter> chain) {
+                final JavaType jType = Json.mapper().constructType(type);
+                if (jType != null) {
+                    final Class<?> cls = jType.getRawClass();
+                    if (Date.class.isAssignableFrom(cls)) {
+                        //DateTimeProperty property =
+                        //        (DateTimeProperty) chain.next().resolveProperty(type, context, annotations, chain);
+                        return new LongProperty();
+                    }
+                }
+
+                return chain.hasNext() ?
+                        chain.next().resolveProperty(type, context, annotations, chain)
+                        : null;
+            }
+
+            @Override
+            public Model resolve(Type type, ModelConverterContext context, Iterator<ModelConverter> chain) {
+                return chain.next().resolve(type, context, chain);
+            }
+        });
         register(ApisResource.class);
         register(ApplicationsResource.class);
         register(SubscriptionsResource.class);

@@ -40,6 +40,10 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsContextPropertiesMapper.class);
 
+	private final static String LDAP_ATTRIBUTE_FIRSTNAME = "givenName";
+	private final static String LDAP_ATTRIBUTE_LASTNAME = "sn";
+	private final static String LDAP_ATTRIBUTE_MAIL = "mail";
+
 	private Environment environment;
 
 	private String identifierAttribute = "uid";
@@ -71,9 +75,9 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 				new io.gravitee.management.idp.api.authentication.UserDetails(
 						ctx.getStringAttribute(identifierAttribute), "", mappedAuthorities);
 
-		userDetails.setFirstname(ctx.getStringAttribute("sn"));
-		userDetails.setLastname(ctx.getStringAttribute("givenName"));
-		userDetails.setEmail(ctx.getStringAttribute("mail"));
+		userDetails.setFirstname(ctx.getStringAttribute(LDAP_ATTRIBUTE_FIRSTNAME));
+		userDetails.setLastname(ctx.getStringAttribute(LDAP_ATTRIBUTE_LASTNAME));
+		userDetails.setEmail(ctx.getStringAttribute(LDAP_ATTRIBUTE_MAIL));
 		userDetails.setSource(LdapIdentityProvider.PROVIDER_TYPE);
 		userDetails.setSourceId(ctx.getNameInNamespace());
 

@@ -182,32 +182,64 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
     }
 
+    /**
+     * assert that the role's scope is allowed for the given reference
+     */
+    private void assertRoleScopeAllowedForReference(MembershipReference reference, MembershipRole role) {
+        RoleEntity roleEntity = roleService.findById(role.getScope(), role.getName());
+        if (API.equals(reference.getType())
+                && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())) {
+            throw new NotAuthorizedMembershipException(role.getName());
+        } else if (APPLICATION.equals(reference.getType())
+                && !io.gravitee.management.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())) {
+            throw new NotAuthorizedMembershipException(role.getName());
+        } else if (GROUP.equals(reference.getType())
+                && !io.gravitee.management.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())
+                && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())
+                && !io.gravitee.management.model.permissions.RoleScope.GROUP.equals(roleEntity.getScope())) {
+            throw new NotAuthorizedMembershipException(role.getName());
+        } else if (GROUP.equals(reference.getType())
+                && SystemRole.PRIMARY_OWNER.name().equals(role.getName())) {
+            throw new NotAuthorizedMembershipException(role.getName());
+        }
+    }
+
+    /**
+     * assert that the role's name is allowed for the given reference
+     */
+    private void assertRoleNameAllowedForReference(MembershipReference reference, MembershipRole role) {
+        if (GROUP.equals(reference.getType())
+                && SystemRole.PRIMARY_OWNER.name().equals(role.getName())) {
+            throw new NotAuthorizedMembershipException(role.getName());
+        }
+    }
+
+    /**
+     * assert that we do not try to override the primary owner
+     */
+    private void assertNotOverridePrimaryOwner(MembershipReference reference, String userId, MembershipRole role) {
+        if (userId != null &&
+                !SystemRole.PRIMARY_OWNER.name().equals(role.getName())
+                && (API.equals(reference.getType()) || APPLICATION.equals(reference.getType()))) {
+            MemberEntity member = this.getMember(reference.getType(), reference.getId(), userId, role.getScope());
+            if (member != null && SystemRole.PRIMARY_OWNER.name().equals(member.getRole())) {
+                throw new AlreadyPrimaryOwnerException(userId);
+            }
+        }
+    }
+
     @Override
     public MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role) {
         try {
             LOGGER.debug("Add a new member for {} {}", reference.getType(), reference.getId());
 
-            RoleEntity roleEntity = roleService.findById(role.getScope(), role.getName());
-            if (API.equals(reference.getType())
-                    && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())) {
-                throw new NotAuthorizedMembershipException(role.getName());
-            } else if (MembershipReferenceType.APPLICATION.equals(reference.getType())
-                    && !io.gravitee.management.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())) {
-                throw new NotAuthorizedMembershipException(role.getName());
-            } else if (MembershipReferenceType.GROUP.equals(reference.getType())
-                    && !io.gravitee.management.model.permissions.RoleScope.APPLICATION.equals(roleEntity.getScope())
-                    && !io.gravitee.management.model.permissions.RoleScope.API.equals(roleEntity.getScope())
-                    && !io.gravitee.management.model.permissions.RoleScope.GROUP.equals(roleEntity.getScope())) {
-                throw new NotAuthorizedMembershipException(role.getName());
-            } else if (MembershipReferenceType.GROUP.equals(reference.getType())
-                && SystemRole.PRIMARY_OWNER.name().equals(role.getName())) {
-                throw new NotAuthorizedMembershipException(role.getName());
-            }
+            assertRoleScopeAllowedForReference(reference, role);
+            assertRoleNameAllowedForReference(reference, role);
 
             UserEntity userEntity;
-
             if (user.getId() != null) {
                 userEntity = userService.findById(user.getId());
+                assertNotOverridePrimaryOwner(reference, user.getId(), role);
             } else {
                 // We have a user reference, meaning that the user is coming from an external system
                 // User does not exist so we are looking into defined providers
@@ -215,6 +247,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 if (providerUser.isPresent()) {
                     try {
                         userEntity = userService.findByUsername(providerUser.get().getUsername(), false);
+                        assertNotOverridePrimaryOwner(reference, userEntity.getId(), role);
                     } catch (UserNotFoundException unfe) {
                         User identityUser = providerUser.get();
                         // The user is not yet registered in repository
@@ -272,7 +305,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     public void deleteMember(MembershipReferenceType referenceType, String referenceId, String userId) {
         try {
             LOGGER.debug("Delete member {} for {} {}", userId, referenceType, referenceId);
-            if (!MembershipReferenceType.GROUP.equals(referenceType)) {
+            if (!GROUP.equals(referenceType)) {
                 RoleScope roleScope = getScopeByMembershipReferenceType(referenceType);
 
                 RoleEntity roleEntity = this.getRole(referenceType, referenceId, userId, roleScope);
@@ -332,7 +365,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public Map<String, char[]> getMemberPermissions(ApplicationEntity application, String userId) {
-        return getMemberPermissions(MembershipReferenceType.APPLICATION,
+        return getMemberPermissions(APPLICATION,
                 application.getId(),
                 userId,
                 application.getGroups(),
@@ -341,7 +374,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public Map<String, char[]> getMemberPermissions(GroupEntity group, String userId) {
-        return getMemberPermissions(MembershipReferenceType.GROUP,
+        return getMemberPermissions(GROUP,
                 group.getId(),
                 userId,
                 null,
@@ -421,7 +454,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             if (type.equals(APPLICATION) || type.equals(API)) {
                 //get memberships by the user group
                 final List<String> groupIds = membershipRepository
-                        .findByUserAndReferenceType(userId, MembershipReferenceType.GROUP).stream()
+                        .findByUserAndReferenceType(userId, GROUP).stream()
                         .filter(m -> m.getRoles().keySet().contains(type.equals(API) ? RoleScope.API.getId() : RoleScope.APPLICATION.getId()))
                         .map(Membership::getReferenceId)
                         .collect(Collectors.toList());
@@ -494,7 +527,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         } else if (groups != null) {
             Map<String, Set<Character>> mergedPermissions = new HashMap<>();
             for (String groupid : groups) {
-                member = this.getMember(MembershipReferenceType.GROUP, groupid, userId, roleScope);
+                member = this.getMember(GROUP, groupid, userId, roleScope);
                 if (member != null) {
                     for (Map.Entry<String, char[]> perm : member.getPermissions().entrySet()) {
                         if (mergedPermissions.containsKey(perm.getKey())) {
@@ -601,7 +634,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             return RoleScope.PORTAL;
         } else if (MembershipReferenceType.MANAGEMENT.equals(type)) {
             return RoleScope.MANAGEMENT;
-        } else if (MembershipReferenceType.APPLICATION.equals(type)) {
+        } else if (APPLICATION.equals(type)) {
             return RoleScope.APPLICATION;
         } else if (API.equals(type)) {
             return RoleScope.API;

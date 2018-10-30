@@ -76,9 +76,6 @@ public class ApplicationMembersResource  extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Application member's permissions", response = MemberEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ)
-    })
     public Response getPermissions(@PathParam("application") String application) {
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
