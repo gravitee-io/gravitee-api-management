@@ -62,16 +62,14 @@ function apisRouterConfig($stateProvider) {
         resolvedTenants: () => [],
         resolvedApiPermissions: (ApiService, $stateParams) => ApiService.getPermissions($stateParams.apiId),
         onEnter: function (UserService, resolvedApiPermissions) {
-          if (!UserService.currentUser.userApiPermissions) {
-            UserService.currentUser.userApiPermissions = [];
-            _.forEach(_.keys(resolvedApiPermissions.data), function (permission) {
-              _.forEach(resolvedApiPermissions.data[permission], function (right) {
-                let permissionName = 'API-' + permission + '-' + right;
-                UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
-              });
+          UserService.currentUser.userApiPermissions = [];
+          _.forEach(_.keys(resolvedApiPermissions.data), function (permission) {
+            _.forEach(resolvedApiPermissions.data[permission], function (right) {
+              let permissionName = 'API-' + permission + '-' + right;
+              UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
             });
-            UserService.reloadPermissions();
-          }
+          });
+          UserService.reloadPermissions();
         }
       }
     })

@@ -3,6 +3,7 @@
   h1 {
     font-size: 2em;
     margin: 16px 0 4px;
+    display: inline-block;
   }
 
   .md-subheader {
@@ -12,6 +13,8 @@
   .gv-forms-header {
     a, div {
       padding: 0 0 4px 12px;
+      display: inline-block;
+
     }
   }
 
@@ -58,6 +61,7 @@
     font-size: 1.4em;
     padding: 16px 0 4px;
     margin: 0;
+    display: inline-block;
   }
 
   h3 {

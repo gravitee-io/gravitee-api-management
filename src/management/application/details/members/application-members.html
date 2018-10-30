@@ -42,14 +42,20 @@
                   </div>
                 </md-list-item>
               </td>
-              <td md-cell>
+              <td md-cell permission permission-only="'application-member-u'">
                 <md-select ng-model="member.role" ng-change="$ctrl.updateMember(member)" ng-disabled="member.role == 'PRIMARY_OWNER'" aria-label="Update member role">
                   <md-option ng-value="role.name" ng-repeat="role in $ctrl.roles" ng-disabled="role.system">{{role.name}}</md-option>
                 </md-select>
               </td>
+              <td md-cell permission permission-only="'application-member-r'">
+                <span>{{member.role}}</span>
+              </td>
               <td md-cell>
                 <div>
-                  <ng-md-icon ng-if="member.role != 'PRIMARY_OWNER'" ng-click="$ctrl.showDeleteMemberConfirm($event, member)" icon="delete" size="24" style="cursor: pointer;"></ng-md-icon>
+                  <ng-md-icon ng-if="member.role != 'PRIMARY_OWNER'"
+                              ng-click="$ctrl.showDeleteMemberConfirm($event, member)" icon="delete"
+                              size="24" style="cursor: pointer;"
+                              permission permission-only="'application-member-d'"></ng-md-icon>
                 </div>
               </td>
             </tr>
@@ -71,7 +77,7 @@
     </div>
   </div>
 
-  <div class="gv-form" ng-if="$ctrl.isAllowedToTransferOwnership()">
+  <div class="gv-form" ng-if="$ctrl.isAllowedToTransferOwnership()" permission permission-only="'application-member-u'">
     <h2>Transfer ownership</h2>
     <div class="gv-form-content" layout="column">
 

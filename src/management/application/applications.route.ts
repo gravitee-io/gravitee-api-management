@@ -20,6 +20,7 @@ import UserService from "../../services/user.service";
 import {HookScope} from "../../entities/hookScope";
 import NotificationSettingsService from "../../services/notificationSettings.service";
 import {StateParams} from '@uirouter/core';
+import ApiService from "../../services/api.service";
 
 export default applicationsConfig;
 
@@ -74,16 +75,14 @@ function applicationsConfig($stateProvider) {
           ApplicationService.get($stateParams.applicationId).then(response => response.data),
         resolvedApplicationPermissions: (ApplicationService, $stateParams) => ApplicationService.getPermissions($stateParams.applicationId),
         onEnter: function (UserService, resolvedApplicationPermissions) {
-          if (!UserService.currentUser.userApplicationPermissions) {
-            UserService.currentUser.userApplicationPermissions = [];
-            _.forEach(_.keys(resolvedApplicationPermissions.data), function (permission) {
-              _.forEach(resolvedApplicationPermissions.data[permission], function (right) {
-                let permissionName = 'APPLICATION-' + permission + '-' + right;
-                UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
-              });
+          UserService.currentUser.userApplicationPermissions = [];
+          _.forEach(_.keys(resolvedApplicationPermissions.data), function (permission) {
+            _.forEach(resolvedApplicationPermissions.data[permission], function (right) {
+              let permissionName = 'APPLICATION-' + permission + '-' + right;
+              UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
             });
-            UserService.reloadPermissions();
-          }
+          });
+          UserService.reloadPermissions();
         }
       }
     })
@@ -125,7 +124,10 @@ function applicationsConfig($stateProvider) {
       component: 'applicationSubscriptions',
       resolve: {
         subscriptions: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.listSubscriptions($stateParams.applicationId).then(response => response.data)
+          ApplicationService.listSubscriptions($stateParams.applicationId).then(response => response.data),
+
+        subscribers: ($stateParams, ApplicationService: ApplicationService) =>
+          ApplicationService.getSubscribedAPI($stateParams.applicationId).then(response => response.data)
       },
       data: {
         menu: {

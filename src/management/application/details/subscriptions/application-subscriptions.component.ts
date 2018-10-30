@@ -16,6 +16,7 @@
 const ApplicationSubscriptionsComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
+    subscribers: '<',
     subscriptions: '<'
   },
   controller: 'ApplicationSubscriptionsController',

@@ -43,14 +43,14 @@ export class PortalApiListController {
                private $transitions) {
     'ngInject';
 
-    if ($window.sessionStorage.getItem(this.tilesModeKey) === null) {
+    if ($window.localStorage.getItem(this.tilesModeKey) === null) {
       if (Constants.portal && Constants.portal.apis) {
         this.tilesMode = Constants.portal.apis.tilesMode.enabled;
       } else {
         this.tilesMode = true;
       }
     } else {
-      this.tilesMode = JSON.parse($window.sessionStorage.getItem(this.tilesModeKey));
+      this.tilesMode = JSON.parse($window.localStorage.getItem(this.tilesModeKey));
     }
     this.query = $state.params.q;
     this.apis = resolvedApis.data;
@@ -96,7 +96,7 @@ export class PortalApiListController {
 
   toggleDisplayMode() {
     this.tilesMode = !this.tilesMode;
-    this.$window.sessionStorage.setItem(this.tilesModeKey, this.tilesMode);
+    this.$window.localStorage.setItem(this.tilesModeKey, this.tilesMode);
   }
 
   sortByHighlightApi(view) {

@@ -31,6 +31,7 @@ export class SubscriptionQuery {
 class ApplicationSubscriptionsController {
 
   private subscriptions: PagedResult;
+  private subscribers: any[];
   private application: any;
 
   private query: SubscriptionQuery = new SubscriptionQuery();

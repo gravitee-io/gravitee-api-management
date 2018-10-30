@@ -15,10 +15,14 @@
     limitations under the License.
 
 -->
-<div layout="column">
-  <h4>Resources</h4>
-  <section layout="row" flex>
-    <md-content flex>
+
+<div class="gv-forms gv-forms-fluid" layout="column">
+    <div class="gv-forms-header">
+        <h1>Resources</h1>
+    </div>
+    <div class="gv-form">
+        <h2></h2>
+        <div class="gv-form-content" layout="column">
       <md-table-container ng-show="$parent.apiCtrl.api.resources.length > 0">
         <table md-table>
           <thead md-head md-order="order">
@@ -47,12 +51,11 @@
           </tbody>
         </table>
       </md-table-container>
-    </md-content>
 
     <md-sidenav class="md-sidenav-right md-whiteframe-z2 resource" md-component-id="resource-config">
       <md-toolbar>
         <div class="md-toolbar-tools">
-          <h2>
+          <h2 style="color: white;">
             <span>Resource: {{apiResourcesCtrl.resource.name}} [{{apiResourcesCtrl.resource.type}}]</span>
           </h2>
           <span flex></span>
@@ -101,8 +104,6 @@
           </div>
       </md-content>
     </md-sidenav>
-  </section>
-</div>
 
 <gravitee-empty-state ng-if="$parent.apiCtrl.api.resources.length == 0"
                       icon="style"
@@ -111,9 +112,11 @@
                       sub-message="Start creating a resource"
                       create-mode="true"></gravitee-empty-state>
 
-
 <div permission permission-only="'api-definition-c'" ng-style="$parent.apiCtrl.api.resources.length == 0 && {'text-align':'center'}">
   <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $parent.apiCtrl.api.resources.length > 0}" class="md-fab" aria-label="Add resource" ng-click="apiResourcesCtrl.showResourcePanel()">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
+</div>
+        </div>
+    </div>
 </div>
