@@ -134,6 +134,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
                 .errorHandler(failure -> handleError(context, failure, handler))
                 .streamErrorHandler(failure -> handleError(context, failure, handler))
                 .exitHandler(__ -> {
+                    context.getRequest().resume();
                     context.getResponse().end();
                     handler.handle(context.getResponse());
                 })
