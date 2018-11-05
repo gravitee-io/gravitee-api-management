@@ -86,7 +86,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
             if (MembershipReferenceType.GROUP.equals(groupMembershipReferenceType)) {
                 try {
                     groups = apiService.findById(referenceId).getGroups();
-                } catch (ApiNotFoundException ane) {
+                } catch (ApiNotFoundException | IllegalArgumentException ane) {
                     groups = applicationService.findById(referenceId).getGroups();
                 }
             }
