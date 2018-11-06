@@ -19,6 +19,7 @@ import io.gravitee.management.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.repository.exceptions.TechnicalException;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
@@ -48,7 +49,7 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
     protected final static String FIELD_ID = "id";
     protected final static String FIELD_TYPE = "type";
 
-    protected Analyzer analyzer = new WhitespaceAnalyzer();
+    protected Analyzer analyzer = new StandardAnalyzer();
 
     @Autowired
     protected IndexWriter indexWriter;

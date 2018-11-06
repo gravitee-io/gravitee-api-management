@@ -93,9 +93,10 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
             BooleanQuery.Builder apiFieldsQuery = new BooleanQuery.Builder();
 
+            final String lowerCasedQuery = query.getQuery().toLowerCase();
             apiFieldsQuery.add(parse, BooleanClause.Occur.SHOULD);
-            apiFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
-            apiFieldsQuery.add(new WildcardQuery(new Term("path", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(new WildcardQuery(new Term("name", '*' + lowerCasedQuery + '*')), BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(new WildcardQuery(new Term("path", '*' + lowerCasedQuery + '*')), BooleanClause.Occur.SHOULD);
 
             apiQuery.add(apiFieldsQuery.build(), BooleanClause.Occur.MUST);
             apiQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.MUST);
