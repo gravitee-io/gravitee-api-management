@@ -32,12 +32,22 @@ const WidgetComponent: ng.IComponentOptions = {
     let that = this;
 
     $scope.$on('onTimeframeChange', function (event, timeframe) {
+      let query;
+
+      if (that.$state.params['q'] && that.widget.chart.request.query) {
+        query = that.$state.params['q'] + ' AND ' + that.widget.chart.request.query;
+      } else if (that.$state.params['q']) {
+        query = that.$state.params['q'];
+      } else if (that.widget.chart.request.query) {
+        query = that.widget.chart.request.query;
+      }
+
       // Associate the new timeframe to the chart request
       _.assignIn(that.widget.chart.request, {
         interval: timeframe.interval,
         from: timeframe.from,
         to: timeframe.to,
-        query: that.$state.params['q']
+        query: query
       });
 
       that.reload();

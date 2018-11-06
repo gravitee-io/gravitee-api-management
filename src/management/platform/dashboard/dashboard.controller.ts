@@ -87,7 +87,7 @@ class DashboardController {
       chart: {
         type: 'table',
         link: 'api',
-        columns: ['Application', 'Hits'],
+        columns: ['API', 'Hits'],
         paging: 5,
         request: {
           type: 'group_by',
