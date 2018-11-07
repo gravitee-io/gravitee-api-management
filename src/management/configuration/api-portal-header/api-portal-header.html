@@ -39,21 +39,21 @@
                     <tr md-row>
                         <th width="1%" nowrap md-column>Name</th>
                         <th md-column>Value</th>
-                        <th width="80" nowrap></th>
-                        <th width="40" nowrap></th>
+                        <th md-column width="76px" nowrap></th>
+                        <th md-column width="48px" nowrap></th>
                     </tr>
                     </thead>
                     <tbody md-body>
                     <tr md-row ng-repeat="header in $ctrl.apiPortalHeaders">
                         <td md-cell width="1%" nowrap><a ng-click="$ctrl.updateHeader(header)">{{header.name}}</a></td>
                         <td md-cell><code>{{header.value}}</code></td>
-                        <td md-cell width="80" nowrap layout="row" layout-align="center center">
+                        <td md-cell width="76px" nowrap layout="row" layout-align="center center">
                             <div permission permission-only="'portal-api_header-u'">
                                 <ng-md-icon ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(header)"></ng-md-icon>
                                 <ng-md-icon ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(header)"></ng-md-icon>
                             </div>
                         </td>
-                        <td md-cell width="40" nowrap>
+                        <td md-cell width="48px" nowrap>
                             <ng-md-icon permission permission-only="'portal-api_header-d'"
                                         icon="delete" ng-click="$ctrl.deleteHeader(header)">
                                 <md-tooltip md-direction="top" md-visible="false">Delete</md-tooltip>

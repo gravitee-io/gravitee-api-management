@@ -45,15 +45,16 @@
               <ng-md-icon icon="visibility{{view.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility(view)"></ng-md-icon>
             </td>
             <td md-cell width="1%" nowrap>{{view.totalApis}}</td>
-            <td md-cell width="96px" nowrap>
+            <td md-cell width="96px" nowrap style="text-align: center">
               <ng-md-icon permission permission-only="'portal-view-u'" ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward($index)"></ng-md-icon>
               <ng-md-icon permission permission-only="'portal-view-u'" ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward($index)"></ng-md-icon>
             </td>
             <td md-cell width="48px" style="padding: 0 12px !important;">
               <ng-md-icon permission permission-only="'portal-view-d'"
                           icon="delete" ng-click="$ctrl.deleteView(view)"
-                          ng-if="view.id !== 'all'"
-                          style="height: 24px; width: 24px; font-size: 24px;"></ng-md-icon>
+                          ng-if="view.id !== 'all'">
+                <md-tooltip md-direction="top" md-visible="false">Delete</md-tooltip>
+              </ng-md-icon>
             </td>
           </tr>
           </tbody>

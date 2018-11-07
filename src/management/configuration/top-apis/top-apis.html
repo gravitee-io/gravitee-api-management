@@ -39,7 +39,7 @@
             </td>
             <td md-cell width="1%" nowrap>{{::topApi.version}}</td>
             <td md-cell>{{::topApi.description}}</td>
-            <td md-cell width="96px" nowrap>
+            <td md-cell width="96px" style="text-align: center;" nowrap>
               <ng-md-icon permission permission-only="'portal-top_apis-u'" ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(topApi.order)"></ng-md-icon>
               <ng-md-icon permission permission-only="'portal-top_apis-u'" ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(topApi.order)"></ng-md-icon>
             </td>

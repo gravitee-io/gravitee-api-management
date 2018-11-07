@@ -29,7 +29,7 @@
           <th md-column>Full name</th>
           <th md-column width="1%" nowrap>Email</th>
           <th md-column width="1%" nowrap>Source</th>
-          <th md-column width="1%" nowrap></th>
+          <th md-column width="48px" nowrap></th>
         </tr>
         </thead>
         <tbody md-body>
@@ -38,7 +38,7 @@
             <td md-cell>{{user.displayName}}</td>
             <td md-cell width="1%" nowrap>{{user.email}}</td>
             <td md-cell width="1%" nowrap>{{user.source}}</td>
-            <td md-cell  width="1%" nowrapng-click="$event.stopPropagation()">
+            <td md-cell  width="48px" nowrap ng-click="$event.stopPropagation()">
                 <span permission permission-only="['management-user-d']">
                     <md-tooltip md-direction="top">delete</md-tooltip>
                     <ng-md-icon icon="delete" ng-click="$ctrl.remove($event, user)" aria-label="delete-user"></ng-md-icon>
