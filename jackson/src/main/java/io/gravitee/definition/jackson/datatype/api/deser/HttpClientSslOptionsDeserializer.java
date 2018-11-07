@@ -63,7 +63,7 @@ public class HttpClientSslOptionsDeserializer extends AbstractStdScalarDeseriali
 
         // Ensure backward compatibility with Gravitee.io < 1.20
         String sPem = readStringValue(node, "pem");
-        if (sPem != null) {
+        if (sPem != null && ! sPem.equals("null")) {
             PEMTrustStore trustStore = new PEMTrustStore();
             trustStore.setContent(sPem);
             httpClientSslOptions.setTrustStore(trustStore);
@@ -88,6 +88,11 @@ public class HttpClientSslOptionsDeserializer extends AbstractStdScalarDeseriali
             }
 
             httpClientSslOptions.setTrustStore(trustStore);
+        }
+
+        // No trustore defined -> trustAll is enabled
+        if (httpClientSslOptions.getTrustStore() == null) {
+            httpClientSslOptions.setTrustAll(true);
         }
 
         JsonNode keyStoreNode = node.get("keyStore");
