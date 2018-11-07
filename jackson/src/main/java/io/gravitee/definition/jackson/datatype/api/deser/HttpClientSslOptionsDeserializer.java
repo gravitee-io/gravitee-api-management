@@ -71,23 +71,27 @@ public class HttpClientSslOptionsDeserializer extends AbstractStdScalarDeseriali
 
         JsonNode trustStoreNode = node.get("trustStore");
         if (trustStoreNode != null) {
-            TrustStoreType type = TrustStoreType.valueOf(
-                    trustStoreNode.path("type").asText().toUpperCase());
+            try {
+                TrustStoreType type = TrustStoreType.valueOf(
+                        trustStoreNode.path("type").asText().toUpperCase());
 
-            TrustStore trustStore = null;
-            switch (type) {
-                case JKS:
-                    trustStore = trustStoreNode.traverse(jp.getCodec()).readValueAs(JKSTrustStore.class);
-                    break;
-                case PEM:
-                    trustStore = trustStoreNode.traverse(jp.getCodec()).readValueAs(PEMTrustStore.class);
-                    break;
-                case PKCS12:
-                    trustStore = trustStoreNode.traverse(jp.getCodec()).readValueAs(PKCS12TrustStore.class);
-                    break;
+                TrustStore trustStore = null;
+                switch (type) {
+                    case JKS:
+                        trustStore = trustStoreNode.traverse(jp.getCodec()).readValueAs(JKSTrustStore.class);
+                        break;
+                    case PEM:
+                        trustStore = trustStoreNode.traverse(jp.getCodec()).readValueAs(PEMTrustStore.class);
+                        break;
+                    case PKCS12:
+                        trustStore = trustStoreNode.traverse(jp.getCodec()).readValueAs(PKCS12TrustStore.class);
+                        break;
+                }
+
+                httpClientSslOptions.setTrustStore(trustStore);
+            } catch (IllegalArgumentException iae) {
+
             }
-
-            httpClientSslOptions.setTrustStore(trustStore);
         }
 
         // No trustore defined -> trustAll is enabled
@@ -97,23 +101,27 @@ public class HttpClientSslOptionsDeserializer extends AbstractStdScalarDeseriali
 
         JsonNode keyStoreNode = node.get("keyStore");
         if (keyStoreNode != null) {
-            KeyStoreType type = KeyStoreType.valueOf(
-                    keyStoreNode.path("type").asText().toUpperCase());
+            try {
+                KeyStoreType type = KeyStoreType.valueOf(
+                        keyStoreNode.path("type").asText().toUpperCase());
 
-            KeyStore keyStore = null;
-            switch (type) {
-                case JKS:
-                    keyStore = keyStoreNode.traverse(jp.getCodec()).readValueAs(JKSKeyStore.class);
-                    break;
-                case PEM:
-                    keyStore = keyStoreNode.traverse(jp.getCodec()).readValueAs(PEMKeyStore.class);
-                    break;
-                case PKCS12:
-                    keyStore = keyStoreNode.traverse(jp.getCodec()).readValueAs(PKCS12KeyStore.class);
-                    break;
+                KeyStore keyStore = null;
+                switch (type) {
+                    case JKS:
+                        keyStore = keyStoreNode.traverse(jp.getCodec()).readValueAs(JKSKeyStore.class);
+                        break;
+                    case PEM:
+                        keyStore = keyStoreNode.traverse(jp.getCodec()).readValueAs(PEMKeyStore.class);
+                        break;
+                    case PKCS12:
+                        keyStore = keyStoreNode.traverse(jp.getCodec()).readValueAs(PKCS12KeyStore.class);
+                        break;
+                }
+
+                httpClientSslOptions.setKeyStore(keyStore);
+            } catch (IllegalArgumentException iae) {
+
             }
-
-            httpClientSslOptions.setKeyStore(keyStore);
         }
 
         return httpClientSslOptions;
