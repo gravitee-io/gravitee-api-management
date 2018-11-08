@@ -49,7 +49,7 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
         parser.setFuzzyMinSim(0.6f);
 
         try {
-            Query parse = parser.parse(QueryParserBase.escape(query.getQuery().toLowerCase()));
+            final Query parse = parser.parse(QueryParserBase.escape(query.getQuery()));
 
             BooleanQuery.Builder bq = new BooleanQuery.Builder();
             bq.add(parse, BooleanClause.Occur.MUST);

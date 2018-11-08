@@ -32,6 +32,7 @@ public class ApiDocumentTransformer implements DocumentTransformer {
     private final static String FIELD_TYPE = "type";
     private final static String FIELD_TYPE_VALUE = "api";
     private final static String FIELD_NAME = "name";
+    private final static String FIELD_NAME_LOWERCASE = "name_lowercase";
     private final static String FIELD_NAME_SPLIT = "name_split";
     private final static String FIELD_DESCRIPTION = "description";
     private final static String FIELD_OWNER = "ownerName";
@@ -52,6 +53,7 @@ public class ApiDocumentTransformer implements DocumentTransformer {
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
         doc.add(new StringField(FIELD_NAME, api.getName(), Field.Store.NO));
+        doc.add(new StringField(FIELD_NAME_LOWERCASE, api.getName().toLowerCase(), Field.Store.NO));
         doc.add(new TextField(FIELD_NAME_SPLIT, api.getName(), Field.Store.NO));
         doc.add(new TextField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
         doc.add(new TextField(FIELD_OWNER, api.getPrimaryOwner().getDisplayName(), Field.Store.NO));
