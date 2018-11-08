@@ -120,8 +120,20 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         String relativeUri = (uri.getRawQuery() == null) ? uri.getRawPath() : uri.getRawPath() + '?' + uri.getRawQuery();
 
         // Prepare request
-        HttpClientRequest clientRequest = httpClient.request(
-                convert(proxyRequest.method()), port, uri.getHost(), relativeUri);
+        HttpClientRequest clientRequest;
+        try {
+            clientRequest = httpClient.request(
+                    convert(proxyRequest.method()), port, uri.getHost(), relativeUri);
+        } catch (RuntimeException ex) {
+            String msg = "Error preparing the request (" +
+                    "method:"+ proxyRequest.method() +
+                    ", host:" + uri.getHost() +
+                    ", port: " + port +
+                    ", path: " + relativeUri + ")";
+            LOGGER.error(msg, ex);
+            proxyRequest.metrics().setMessage(msg);
+            throw ex;
+        }
         clientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
         clientRequest.setFollowRedirects(endpoint.getHttpClientOptions().isFollowRedirects());
 
