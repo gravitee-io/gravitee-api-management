@@ -48,13 +48,12 @@ public class MongoUserRepository implements UserRepository {
 	private GraviteeMapper mapper;
 
 	@Override
-	public Optional<User> findByUsername(String username) throws TechnicalException {
-		logger.debug("Find user by name user [{}]", username);
+	public Optional<User> findBySource(String source, String sourceId) throws TechnicalException {
+		logger.debug("Find user by name source[{}] user[{}]", source, sourceId);
 
-		UserMongo user = internalUserRepo.findByUsername(username);
+		UserMongo user = internalUserRepo.findBySourceAndSourceId(source, sourceId);
 		User res = mapper.map(user, User.class);
 
-		logger.debug("Find user by name user [{}] - Done", username);
 		return Optional.ofNullable(res);
 	}
 
@@ -93,14 +92,14 @@ public class MongoUserRepository implements UserRepository {
 
 	@Override
 	public User create(User user) throws TechnicalException {
-		logger.debug("Create user [{}]", user.getUsername());
+		logger.debug("Create user [{}]", user.getId());
 
 		UserMongo userMongo = mapper.map(user, UserMongo.class);
 		UserMongo createdUserMongo = internalUserRepo.insert(userMongo);
 
 		User res = mapper.map(createdUserMongo, User.class);
 
-		logger.debug("Create user [{}] - Done", user.getUsername());
+		logger.debug("Create user [{}] - Done", user.getId());
 
 		return res;
 	}
@@ -114,7 +113,7 @@ public class MongoUserRepository implements UserRepository {
 		final UserMongo userMongo = internalUserRepo.findById(user.getId()).orElse(null);
 
 		if (userMongo == null) {
-			throw new IllegalStateException(String.format("No user found with username [%s]", user.getUsername()));
+			throw new IllegalStateException(String.format("No user found with username [%s]", user.getId()));
 		}
 
 		userMongo.setSource(user.getSource());
@@ -125,7 +124,6 @@ public class MongoUserRepository implements UserRepository {
 		userMongo.setUpdatedAt(user.getUpdatedAt());
 		userMongo.setPassword(user.getPassword());
 		userMongo.setPicture(user.getPicture());
-		userMongo.setUsername(user.getUsername());
 		userMongo.setEmail(user.getEmail());
 		userMongo.setLastConnectionAt(user.getLastConnectionAt());
 

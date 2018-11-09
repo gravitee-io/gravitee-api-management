@@ -37,7 +37,7 @@
 		<embed.mongo.version>1.50.5</embed.mongo.version>
 		<mongo.version>3.8.0</mongo.version>
 		<spring.data.mongodb.version>2.0.9.RELEASE</spring.data.mongodb.version>
-		<dozer.version>5.4.0</dozer.version>
+		<dozer.version>6.4.1</dozer.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
 		<snakeyaml.version>1.21</snakeyaml.version>
 	</properties>
@@ -104,8 +104,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>net.sf.dozer</groupId>
-			<artifactId>dozer</artifactId>
+			<groupId>com.github.dozermapper</groupId>
+			<artifactId>dozer-core</artifactId>
 			<version>${dozer.version}</version>
 			<exclusions>
 				<exclusion>

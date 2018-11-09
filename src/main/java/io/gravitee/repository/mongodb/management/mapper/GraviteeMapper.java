@@ -15,11 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.mapper;
 
+import com.github.dozermapper.core.Mapper;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import org.dozer.Mapper;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

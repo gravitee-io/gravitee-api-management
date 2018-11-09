@@ -33,7 +33,6 @@ public class UserMongo extends Auditable {
     @Id
     private String id;
 
-    private String username;
     private String email;
     private String password;
     private String firstname;
@@ -49,14 +48,6 @@ public class UserMongo extends Auditable {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getEmail() {
@@ -127,21 +118,23 @@ public class UserMongo extends Auditable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UserMongo user = (UserMongo) o;
-        return Objects.equals(username, user.username);
+        UserMongo userMongo = (UserMongo) o;
+        return Objects.equals(id, userMongo.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(username);
+
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("User{");
         sb.append(" id='").append(id).append(",\'");
-        sb.append(" email='").append(email).append(",\'");
-        sb.append(" username='").append(username).append("\'");
+        sb.append(" source='").append(source).append(",\'");
+        sb.append(" source_id='").append(sourceId).append(",\'");
+        sb.append(" email='").append(email).append("\'");
         sb.append('}');
         return sb.toString();
     }

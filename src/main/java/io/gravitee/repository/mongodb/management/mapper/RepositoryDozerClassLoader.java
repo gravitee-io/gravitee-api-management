@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.mapper;
 
+import com.github.dozermapper.core.util.DozerClassLoader;
+import com.github.dozermapper.core.util.MappingUtils;
+import com.github.dozermapper.core.util.ResourceLoader;
 import org.apache.commons.lang3.ClassUtils;
-import org.dozer.util.DozerClassLoader;
-import org.dozer.util.MappingUtils;
-import org.dozer.util.ResourceLoader;
 
 import java.net.URL;
 
@@ -28,7 +28,7 @@ import java.net.URL;
  */
 public class RepositoryDozerClassLoader implements DozerClassLoader {
 
-    private final ResourceLoader resourceLoader = new ResourceLoader();
+    private final ResourceLoader resourceLoader = new ResourceLoader(this.getClass().getClassLoader());
     private final ClassLoader classLoader = this.getClass().getClassLoader();
 
     public RepositoryDozerClassLoader() {}

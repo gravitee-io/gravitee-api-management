@@ -13,28 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.user;
+package io.gravitee.repository.mongodb.management.internal.identityprovider;
 
-import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
+import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface UserMongoRepository extends MongoRepository<UserMongo, String>, UserMongoRepositoryCustom {
+public interface IdentityProviderMongoRepository extends MongoRepository<IdentityProviderMongo, String> {
 
-	@Query(value = "{ _id: {$in: ?0} }", fields = "{'picture': 0}")
-	Set<UserMongo> findByIds(List<String> ids);
-
-	UserMongo findBySourceAndSourceId(String source, String sourceId);
 }
+
 
 

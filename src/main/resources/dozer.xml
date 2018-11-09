@@ -1,24 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mappings xmlns="http://dozer.sourceforge.net"
+<mappings xmlns="http://dozermapper.github.io/schema/bean-mapping"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://dozer.sourceforge.net
-          http://dozer.sourceforge.net/schema/beanmapping.xsd">
+          xsi:schemaLocation="http://dozermapper.github.io/schema/bean-mapping http://dozermapper.github.io/schema/bean-mapping.xsd">
 
-  <mapping>
-    <class-a>io.gravitee.repository.management.model.Membership</class-a>
-    <class-b>io.gravitee.repository.mongodb.management.internal.model.MembershipMongo</class-b>
-    <field>
-      <a>userId</a>
-      <b>id.userId</b>
-    </field>
-    <field>
-      <a>referenceId</a>
-      <b>id.referenceId</b>
-    </field>
-    <field>
-      <a>referenceType</a>
-      <b>id.referenceType</b>
-    </field>
-  </mapping>
+    <mapping>
+        <class-a>io.gravitee.repository.management.model.Membership</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.MembershipMongo</class-b>
+        <field>
+            <a>userId</a>
+            <b>id.userId</b>
+        </field>
+        <field>
+            <a>referenceId</a>
+            <b>id.referenceId</b>
+        </field>
+        <field>
+            <a>referenceType</a>
+            <b>id.referenceType</b>
+        </field>
+    </mapping>
 
 </mappings> 

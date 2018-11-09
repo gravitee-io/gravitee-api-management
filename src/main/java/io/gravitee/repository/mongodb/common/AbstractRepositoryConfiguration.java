@@ -26,6 +26,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
+import org.springframework.data.mongodb.core.convert.DbRefResolver;
+import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.util.ClassUtils;
@@ -63,7 +66,6 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoConfi
     public GraviteeMapper graviteeMapper() {
         return new GraviteeDozerMapper();
     }
-
 
     protected Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {
 

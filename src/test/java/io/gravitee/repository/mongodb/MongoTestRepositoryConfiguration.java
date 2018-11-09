@@ -15,14 +15,12 @@
  */
 package io.gravitee.repository.mongodb;
 
-import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 /**
@@ -38,9 +36,9 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
             return MongodForTestsFactory.with(Version.Main.DEVELOPMENT);
     }
 
-    @Bean
-    public MongoTemplate mongoTemplate(Mongo mongo) {
-        return new MongoTemplate(mongoClient(), "gravitee");
+    @Override
+    protected String getDatabaseName() {
+        return "gravitee";
     }
 
     @Override
