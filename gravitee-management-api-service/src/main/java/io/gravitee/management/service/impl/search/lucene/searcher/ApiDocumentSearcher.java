@@ -45,7 +45,9 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     private final static Map<String, Float> API_FIELD_BOOST = new HashMap<String, Float>() {
         {
-            put("name", 10.0f);
+            put("name", 12.0f);
+            put("name_lowercase", 12.0f);
+            put("name_split", 10.0f);
             put("description", 8.0f);
         }
     };
@@ -53,7 +55,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     private final static Map<String, Float> PAGE_FIELD_BOOST = new HashMap<String, Float>() {
         {
             put("name", 10.0f);
-            put("content", 8.0f);
+            put("content", 5.0f);
         }
     };
 
@@ -61,6 +63,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     public List<String> search(io.gravitee.management.service.search.query.Query query) throws TechnicalException {
         MultiFieldQueryParser apiParser = new MultiFieldQueryParser(new String[]{
                 "name",
+                "name_lowercase",
+                "name_split",
                 "description",
                 "ownerName",
                 "ownerMail",
@@ -93,6 +97,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
             apiFieldsQuery.add(parse, BooleanClause.Occur.SHOULD);
             apiFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')), BooleanClause.Occur.SHOULD);
             apiFieldsQuery.add(new WildcardQuery(new Term("path", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
 
             apiQuery.add(apiFieldsQuery.build(), BooleanClause.Occur.MUST);

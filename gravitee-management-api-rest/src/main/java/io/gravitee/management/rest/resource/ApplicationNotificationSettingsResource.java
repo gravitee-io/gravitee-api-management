@@ -76,10 +76,10 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
         if (config.getConfigType().equals(NotificationConfigType.GENERIC)
-                && hasPermission(APPLICATION_NOTIFICATION, CREATE)) {
+                && hasPermission(APPLICATION_NOTIFICATION, application, CREATE)) {
             return genericNotificationConfigService.create(config);
         } else if (config.getConfigType().equals(NotificationConfigType.PORTAL)
-                && hasPermission(APPLICATION_NOTIFICATION, READ)) {
+                && hasPermission(APPLICATION_NOTIFICATION, application, READ)) {
             return portalNotificationConfigService.save(convert(config));
         }
         throw new ForbiddenAccessException();

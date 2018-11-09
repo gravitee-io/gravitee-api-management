@@ -51,10 +51,10 @@ public class EmailConfiguration {
     @Value("${email.port}")
     private String port;
 
-    @Value("${email.username}")
+    @Value("${email.username:#{null}}")
     private String username;
 
-    @Value("${email.password}")
+    @Value("${email.password:#{null}}")
     private String password;
 
     @Value("${email.protocol:smtp}")
