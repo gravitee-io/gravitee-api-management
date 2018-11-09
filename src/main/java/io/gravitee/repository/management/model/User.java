@@ -33,11 +33,6 @@ public class User {
 	private String id;
 
 	/**
-	 * The user name
-	 */
-	private String username;
-
-	/**
 	 * The source when user is coming from an external system (LDAP, ...)
 	 */
 	private String source;
@@ -91,7 +86,6 @@ public class User {
 
 	public User(User cloned) {
 		this.id = cloned.id;
-		this.username = cloned.username;
 		this.source = cloned.source;
 		this.sourceId = cloned.sourceId;
 		this.password = cloned.password;
@@ -134,14 +128,6 @@ public class User {
 
 	public void setEmail(String email) {
 		this.email = email;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
 	}
 
 	public String getPassword() {
@@ -217,9 +203,8 @@ public class User {
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("User{");
 		sb.append("id='").append(id).append('\'');
-		sb.append(", username='").append(username).append('\'');
 		sb.append(", source='").append(source).append('\'');
-		sb.append(", external_reference='").append(sourceId).append('\'');
+		sb.append(", sourceId='").append(sourceId).append('\'');
 		sb.append(", firstname='").append(firstname).append('\'');
 		sb.append(", lastname='").append(lastname).append('\'');
 		sb.append(", mail='").append(email).append('\'');

@@ -32,12 +32,14 @@ import java.util.Set;
 public interface UserRepository extends CrudRepository<User, String> {
 
 	/**
-	 * Find a {@link User} by name
+	 * Find a {@link User} by its source and user ID.
 	 *
-	 * @param username Name of the searched user
+	 * @param source The source identifier.
+	 * @param sourceId The user identifier (from the source).
 	 * @return Option user found
 	 */
-	Optional<User> findByUsername(String username) throws TechnicalException;
+	Optional<User> findBySource(String source, String sourceId) throws TechnicalException;
+
 	/**
 	 * Find a list of {@link User} by IDs
 	 *
