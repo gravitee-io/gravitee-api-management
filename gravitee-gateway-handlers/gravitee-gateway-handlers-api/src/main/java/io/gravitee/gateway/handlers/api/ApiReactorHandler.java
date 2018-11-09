@@ -91,6 +91,10 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
 
     @Override
     protected void doHandle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
+        // Pause the request and resume it as soon as all the stream are plugged and we have processed the HEAD part
+        // of the request. (see handleProxyInvocation method).
+        serverRequest.pause();
+
         if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
             handler = new PathMappingMetricsHandler(handler, api.getPathMappings(), serverRequest);
         }
@@ -130,6 +134,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
                 .errorHandler(failure -> handleError(context, failure, handler))
                 .streamErrorHandler(failure -> handleError(context, failure, handler))
                 .exitHandler(__ -> {
+                    context.getRequest().resume();
                     context.getResponse().end();
                     handler.handle(context.getResponse());
                 })

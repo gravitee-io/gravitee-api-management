@@ -103,6 +103,12 @@
             <artifactId>gravitee-common</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-management</artifactId>
+            <version>${gravitee-node.version}</version>
+        </dependency>
+
         <!-- Vert.x -->
         <dependency>
             <groupId>io.vertx</groupId>
