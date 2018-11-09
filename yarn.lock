@@ -9552,9 +9552,9 @@ svgo@^1.0.0:
     unquote "~1.1.1"
     util.promisify "~1.0.0"
 
-swagger-ui-dist@^3.17.4:
-  version "3.17.4"
-  resolved "https://registry.yarnpkg.com/swagger-ui-dist/-/swagger-ui-dist-3.17.4.tgz#7b4d3842b052cbadebec784265b2e17fdda6a232"
+swagger-ui-dist@^3.19.5:
+  version "3.19.5"
+  resolved "https://registry.yarnpkg.com/swagger-ui-dist/-/swagger-ui-dist-3.19.5.tgz#70803b36cff131e9292e273d8b80a714e05dbade"
 
 symbol-observable@1.0.1:
   version "1.0.1"
