@@ -45,7 +45,7 @@
 
 <md-fab-speed-dial permission permission-only="'portal-documentation-c'"
                    ng-if="$ctrl.$state.current.name != 'management.settings.pages.new' && listPagesDisplayed" gravitee-roles-allowed="ADMIN" md-direction="{{$ctrl.pages.length > 0 ? 'left' : 'down'}}" md-open="false"
-                   ng-class="{'md-fab-bottom-right gravitee-add-button' : $ctrl.pages.length > 0}" class="md-scale">
+                   ng-class="{'md-fab-bottom-right' : $ctrl.pages.length > 0}" class="md-scale">
   <md-fab-trigger>
     <md-button aria-label="menu" class="md-fab md-success">
       <md-tooltip ng-if="$ctrl.pages.length > 0" md-direction="top" md-visible="false">New page</md-tooltip>

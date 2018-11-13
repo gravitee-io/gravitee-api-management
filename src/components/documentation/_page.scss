@@ -4,12 +4,17 @@
 
 .sidenav-fixed {
   position:fixed;
-  top: 190px;
+  /*top: 190px;*/
+}
+
+.sidenav-relative {
+  position: relative;
 }
 
 #sidenav {
   margin-left: 30px;
-
+  padding-right: 0;
+  padding-left: 0;
   ul {
     list-style-type: none;
 

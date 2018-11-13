@@ -94,7 +94,7 @@
                       sub-message="Start creating a plan"
                       create-mode="true"></gravitee-empty-state>
 <div permission permission-only="'api-plan-c'" ng-style="$ctrl.filteredPlans.length == 0 && {'text-align':'center'}">
-  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.filteredPlans.length > 0}" class="md-fab" aria-label="Add" ng-click="$ctrl.addPlan()">
+  <md-button ng-class="{'md-fab-bottom-right': $ctrl.filteredPlans.length > 0}" class="md-fab" aria-label="Add" ng-click="$ctrl.addPlan()">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
 </div>

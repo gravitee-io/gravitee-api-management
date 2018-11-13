@@ -74,7 +74,7 @@
                         create-mode="true"></gravitee-empty-state>
 
   <div ng-style="!apiPropertiesCtrl.hasPropertiesDefined() && {'text-align':'center'}">
-    <md-button permission permission-only="'api-definition-u'" ng-class="{'md-fab-bottom-right gravitee-add-button': apiPropertiesCtrl.hasPropertiesDefined()}" class="md-fab" aria-label="Add" ng-click="apiPropertiesCtrl.showPropertyModal()">
+    <md-button permission permission-only="'api-definition-u'" ng-class="{'md-fab-bottom-right': apiPropertiesCtrl.hasPropertiesDefined()}" class="md-fab" aria-label="Add" ng-click="apiPropertiesCtrl.showPropertyModal()">
       <ng-md-icon icon="add"></ng-md-icon>
     </md-button>
   </div>

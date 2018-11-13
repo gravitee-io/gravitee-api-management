@@ -467,9 +467,12 @@ md-card.no-box-shadow {
   height: $graviteeHeader;
 }
 
+.md-content {
+  padding-top: $sidenavHeaderHeight;
+}
+
 .gv-main-container {
   height: calc(100vh - #{$sidenavHeaderHeight});
-  padding-top: $sidenavHeaderHeight;
 }
 
 .gv-button-toggled {

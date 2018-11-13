@@ -59,6 +59,7 @@
   overflow: auto;
   height: calc(100vh - 54px);
   padding: 0 32px;
+  position: relative;
   @media screen and (max-width: 1000px) {
     padding: 0 8px;
   }

@@ -28,7 +28,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
         abstract: true,
         template: "<div layout='row'>" +
         "<div ui-view='sidenav' class='gravitee-sidenav'></div>" +
-        "<md-content ui-view layout='column' flex style='height: 100vh'></md-content>" +
+        "<md-content ui-view layout='column' flex style='height: 100vh' class='md-content'></md-content>" +
         "</div>",
         resolve: {
           graviteeUser: (UserService: UserService) => UserService.current()

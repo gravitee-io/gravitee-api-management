@@ -105,7 +105,7 @@
   </div>
 
   <div ng-style="!apiMembersCtrl.members.length && {'text-align':'center'}">
-    <md-button permission permission-only="'api-member-c'" ng-class="{'md-fab-bottom-right gravitee-add-button': apiMembersCtrl.members.length}" class="md-fab" aria-label="Add" ng-click="apiMembersCtrl.showAddMemberModal($event)">
+    <md-button permission permission-only="'api-member-c'" ng-class="{'md-fab-bottom-right': apiMembersCtrl.members.length}" class="md-fab" aria-label="Add" ng-click="apiMembersCtrl.showAddMemberModal($event)">
       <ng-md-icon icon="add"></ng-md-icon>
     </md-button>
   </div>

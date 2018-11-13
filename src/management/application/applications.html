@@ -72,7 +72,7 @@
                       create-mode="true"></gravitee-empty-state>
 
 <div permission permission-only="'portal-application-c'" ng-style="$ctrl.applications.length == 0 && {'text-align':'center'}">
-  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.applications.length > 0}" class="md-fab"
+  <md-button ng-class="{'md-fab-bottom-right': $ctrl.applications.length > 0}" class="md-fab"
              aria-label="Create application" ui-sref="management.applications.new">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>

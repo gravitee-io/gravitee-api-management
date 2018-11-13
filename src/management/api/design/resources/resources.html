@@ -113,7 +113,7 @@
                       create-mode="true"></gravitee-empty-state>
 
 <div permission permission-only="'api-definition-c'" ng-style="$parent.apiCtrl.api.resources.length == 0 && {'text-align':'center'}">
-  <md-button ng-class="{'md-fab-bottom-right gravitee-add-button': $parent.apiCtrl.api.resources.length > 0}" class="md-fab" aria-label="Add resource" ng-click="apiResourcesCtrl.showResourcePanel()">
+  <md-button ng-class="{'md-fab-bottom-right': $parent.apiCtrl.api.resources.length > 0}" class="md-fab" aria-label="Add resource" ng-click="apiResourcesCtrl.showResourcePanel()">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
 </div>

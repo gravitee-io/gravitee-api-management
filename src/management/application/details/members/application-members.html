@@ -70,7 +70,7 @@
                               create-mode="true"></gravitee-empty-state>
 
         <div ng-style="!$ctrl.members.length && {'text-align':'center'}">
-          <md-button  permission permission-only="'application-member-c'" ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.members.length}" class="md-fab" aria-label="Add" ng-click="$ctrl.showAddMemberModal($event)">
+          <md-button  permission permission-only="'application-member-c'" ng-class="{'md-fab-bottom-right': $ctrl.members.length}" class="md-fab" aria-label="Add" ng-click="$ctrl.showAddMemberModal($event)">
             <ng-md-icon icon="add"></ng-md-icon>
           </md-button>
         </div>

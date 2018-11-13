@@ -76,7 +76,7 @@
 </div>
 <div ng-style="{'text-align': $ctrl.groups.length == 0 ? 'center' : 'none' }">
     <md-button permission permission-only="['management-group-c']"
-               ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.groups.length > 0}" class="md-fab"
+               ng-class="{'md-fab-bottom-right': $ctrl.groups.length > 0}" class="md-fab"
                aria-label="Add"
                ng-click="$ctrl.showAddGroupModal()">
         <ng-md-icon icon="add"></ng-md-icon>

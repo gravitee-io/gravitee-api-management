@@ -1,28 +1,92 @@
 gv-contextual-doc {
-  border-left: 1px solid #e2e5e7;
-  background-color: rgba(45, 50, 62, .03);
+  -webkit-box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+  z-index: 75 ;
 }
 .contextual-doc-container {
-  display: none;
-  margin-top: 38px;
-  width: 300px;
+  width: 0;
   right: 0;
   overflow: auto;
+  transition: width .40s;
+	-moz-transition: width .40s;
+	-webkit-transition: width .40s;
+  -o-transition: width .40s;
+  
   &.open {
-    display: block;
+    width: 300px;
+    opacity: 1;
   }
+
+  .contextual-doc-header {
+    border-bottom: solid 1px #e2e5e7;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    height: 64px; 
+    padding: 0 8px;
+    -webkit-align-items: center;
+    align-items: center;
+    width: 300px;
+    overflow: hidden;
+
+    .contextual-doc-header-title {
+      flex-direction: column;
+      -webkit-box-flex: 1;
+      -webkit-flex-grow: 1;
+      flex-grow: 1;
+    }
+
+    .contextual-doc-header-icon {
+      background: no-repeat center center;
+      -webkit-border-radius: 50%;
+      border-radius: 50%;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      cursor: pointer;
+      height: 40px;
+      margin: 0 -2px;
+      outline: none;
+      padding: 10px;
+      width: 40px;
+    }
+
+    h2 {
+      color: #80868b;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      line-height: 13px;
+      text-transform: uppercase;
+      outline: none;
+      margin: 0;
+    }
+
+    h3 {
+      outline: none;
+      color: #5f6368;
+      font-family: 'Google Sans','Roboto',Arial,sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 20px;margin: 0;
+    }
+  }
+
   div.contextual-doc-content {
     padding: 20px 8px;
     position: fixed;
     height: calc(100vh - 150px);
     overflow: auto;
+    width: 300px;
   }
   h1 {
     font-weight: 400;
-    font-size: 2em;
+    font-size: 1.8em;
+    font-family: 'Raleway',Helvetica,sans-serif;
+    line-height: 1.2;
     &:first-of-type {
       padding-bottom: 20px;
-      border-bottom: 1px solid #e2e5e7;
+      border-bottom: 1px solid #dbdbdb;
+      color: #3572b0;
     }
   }
   h2 {

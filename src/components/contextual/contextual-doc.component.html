@@ -16,5 +16,18 @@
 
 -->
 <div class="contextual-doc-container" ng-class="{'open' : $ctrl.isOpen}" ng-if="$ctrl.$state.current.name !== 'user'">
-  <div class="contextual-doc-content" markdown-to-html="$ctrl.page.content" class="markdown-page"></div>
+    <div style="position:fixed;">
+
+      <div class="contextual-doc-header">
+          <div class="contextual-doc-header-title">
+            <h3>Documentation</h3>
+          </div>
+          <div>
+            <a ng-click="$ctrl.openDocumentation()"><ng-md-icon icon="close" style="fill: rgba(0, 0, 0, 0.54);" size="20" style="top:0;"></a>
+          </div>
+      </div>
+
+      <div class="contextual-doc-content" markdown-to-html="$ctrl.page.content" class="markdown-page"></div>
+
+   </div>
 </div>
