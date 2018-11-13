@@ -16,6 +16,7 @@
 package io.gravitee.gateway.http.connector;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
@@ -38,6 +39,7 @@ class VertxProxyConnection implements ProxyConnection {
     private boolean canceled = false;
     private boolean transmitted = false;
     private boolean headersWritten = false;
+    private boolean content = false;
 
     VertxProxyConnection(final ProxyRequest proxyRequest, final HttpClientRequest httpClientRequest) {
         this.proxyRequest = proxyRequest;
@@ -93,6 +95,9 @@ class VertxProxyConnection implements ProxyConnection {
 
     @Override
     public VertxProxyConnection write(Buffer chunk) {
+        // There is some request content, set the flag to true
+        content = true;
+
         if (! headersWritten) {
             this.writeHeaders();
         }
@@ -116,18 +121,20 @@ class VertxProxyConnection implements ProxyConnection {
     private void writeHeaders() {
         HttpHeaders headers = proxyRequest.headers();
 
-        // Copy headers to upstream
-        headers.forEach(httpClientRequest::putHeader);
-
         // Check chunk flag on the request if there are some content to push and if transfer_encoding is set
         // with chunk value
-        long contentLength = headers.contentLength();
-        if (contentLength > 0 || headers.contentType() != null) {
-            if (contentLength == -1) {
-                // No content-length... so let's go for chunked transfer-encoding
+        if (content) {
+            String encoding = headers.getFirst(HttpHeaders.TRANSFER_ENCODING);
+            if (encoding != null && encoding.contains(HttpHeadersValues.TRANSFER_ENCODING_CHUNKED)) {
                 httpClientRequest.setChunked(true);
             }
+        } else {
+            proxyRequest.headers().remove(HttpHeaders.CONTENT_TYPE);
+            proxyRequest.headers().remove(HttpHeaders.TRANSFER_ENCODING);
         }
+
+        // Copy headers to upstream
+        proxyRequest.headers().forEach(httpClientRequest::putHeader);
 
         headersWritten = true;
     }

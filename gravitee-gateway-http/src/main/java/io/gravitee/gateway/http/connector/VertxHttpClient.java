@@ -72,7 +72,6 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         hopHeaders.add(HttpHeaders.PROXY_AUTHORIZATION);
         hopHeaders.add(HttpHeaders.PROXY_AUTHENTICATE);
         hopHeaders.add(HttpHeaders.PROXY_CONNECTION);
-        hopHeaders.add(HttpHeaders.TRANSFER_ENCODING);
         hopHeaders.add(HttpHeaders.TE);
         hopHeaders.add(HttpHeaders.TRAILER);
         hopHeaders.add(HttpHeaders.UPGRADE);
