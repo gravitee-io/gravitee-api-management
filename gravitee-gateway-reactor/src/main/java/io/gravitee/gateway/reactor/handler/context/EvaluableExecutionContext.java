@@ -13,28 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.context;
+package io.gravitee.gateway.reactor.handler.context;
 
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.gateway.api.Response;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EvaluableResponse {
+public class EvaluableExecutionContext {
 
-    private final Response response;
+    private final DefaultExecutionContext executionContext;
 
-    EvaluableResponse(final Response response) {
-        this.response = response;
+    EvaluableExecutionContext(DefaultExecutionContext executionContext) {
+        this.executionContext = executionContext;
     }
 
-    public int getStatus() {
-        return response.status();
-    }
-
-    public HttpHeaders getHeaders() {
-        return response.headers();
+    public Map<String, Object> getAttributes() {
+        return executionContext.getAttributes();
     }
 }

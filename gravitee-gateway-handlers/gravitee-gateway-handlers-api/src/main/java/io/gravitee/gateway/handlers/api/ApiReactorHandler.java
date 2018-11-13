@@ -38,7 +38,6 @@ import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecyleManager;
 import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.gravitee.gateway.core.processor.*;
 import io.gravitee.gateway.core.proxy.DirectProxyConnection;
-import io.gravitee.gateway.handlers.api.context.ExecutionContextFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.metrics.PathMappingMetricsHandler;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
@@ -86,11 +85,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
 
     private List<ProcessorProvider> requestProcessors, responseProcessors, errorProcessors;
 
-    @Autowired
-    private ExecutionContextFactory executionContextFactory;
-
     @Override
-    protected void doHandle(Request serverRequest, Response serverResponse, Handler<Response> handler) {
+    protected void doHandle(Request serverRequest, Response serverResponse, ExecutionContext executionContext, Handler<Response> handler) {
         // Pause the request and resume it as soon as all the stream are plugged and we have processed the HEAD part
         // of the request. (see handleProxyInvocation method).
         serverRequest.pause();
@@ -99,8 +95,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
             handler = new PathMappingMetricsHandler(handler, api.getPathMappings(), serverRequest);
         }
 
-        // Prepare request execution context
-        ExecutionContext executionContext = executionContextFactory.create(serverRequest, serverResponse);
         executionContext.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, serverRequest.contextPath());
         executionContext.setAttribute(ExecutionContext.ATTR_API, api.getId());
         executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);

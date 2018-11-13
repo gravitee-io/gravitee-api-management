@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactor.spring;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
+import io.gravitee.gateway.reactor.handler.context.provider.NodeTemplateVariableProvider;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerResolver;
 import io.gravitee.gateway.reactor.handler.transaction.TransactionHandlerFactory;
@@ -50,5 +51,10 @@ public class ReactorConfiguration {
     @Bean
     public TransactionHandlerFactory transactionHandlerFactory() {
         return new TransactionHandlerFactory();
+    }
+
+    @Bean
+    public NodeTemplateVariableProvider nodeTemplateVariableProvider() {
+        return new NodeTemplateVariableProvider();
     }
 }
