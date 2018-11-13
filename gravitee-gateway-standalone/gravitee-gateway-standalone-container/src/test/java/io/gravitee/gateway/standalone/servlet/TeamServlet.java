@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.standalone.servlet;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.standalone.utils.StringUtils;
 
 import javax.servlet.ServletException;
@@ -48,6 +49,7 @@ public class TeamServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.addHeader("X-Forwarded-Transfer-Encoding", req.getHeader(HttpHeaders.TRANSFER_ENCODING));
 
         String reqCase = req.getParameter("case");
         String mode = req.getParameter("mode");

@@ -148,4 +148,47 @@ public class PostContentGatewayTest extends AbstractGatewayTest {
             assertTrue(false);
         }
     }
+
+    @Test
+    public void call_post_no_content_with_chunked_encoding_transfer() throws Exception {
+        Request request = Request.Post("http://localhost:8082/test/my_team?mode=chunk");
+
+        try {
+            Response response = request.execute();
+
+            HttpResponse returnResponse = response.returnResponse();
+            assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+            // Set chunk mode in request but returns raw because of the size of the content
+            assertEquals(null, returnResponse.getFirstHeader("X-Forwarded-Transfer-Encoding"));
+
+            String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+            assertEquals(0, responseContent.length());
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(false);
+        }
+    }
+
+    @Test
+    public void call_post_no_content_without_chunked_encoding_transfer() throws Exception {
+        Request request = Request.Post("http://localhost:8082/test/my_team?mode=chunk")
+                .removeHeaders(HttpHeaders.TRANSFER_ENCODING);
+
+        try {
+            Response response = request.execute();
+
+            HttpResponse returnResponse = response.returnResponse();
+            assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+
+            // Set chunk mode in request but returns raw because of the size of the content
+            assertEquals(null, returnResponse.getFirstHeader("X-Forwarded-Transfer-Encoding"));
+
+            String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+            assertEquals(0, responseContent.length());
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(false);
+        }
+    }
 }
