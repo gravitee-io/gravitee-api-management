@@ -16,9 +16,9 @@
 package io.gravitee.repository.config;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.media.api.MediaRepository;
 import org.apache.commons.io.FilenameUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -111,6 +111,8 @@ public abstract class AbstractRepositoryTest {
     protected MediaRepository mediaRepository;
     @Inject
     protected IdentityProviderRepository identityProviderRepository;
+    @Inject
+    protected AlertRepository alertRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -125,7 +127,6 @@ public abstract class AbstractRepositoryTest {
         final File[] collectionsDumps = file.listFiles(
                 pathname -> pathname.isFile()
                         && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString())));
-
         for (final File collectionsDump : asList(collectionsDumps).stream().sorted((o1, o2) -> o2.getName().compareTo(o1.getName())).collect(Collectors.toList())) {
             final Class c = getClassFromFileName(FilenameUtils.getBaseName(collectionsDump.getName()));
             for (final Object object : mapToModel(collectionsDump, c)) {
@@ -215,6 +216,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof IdentityProvider) {
             identityProviderRepository.create((IdentityProvider) object);
+        }
+        else if (object instanceof Alert) {
+            alertRepository.create((Alert) object);
         }
     }
 

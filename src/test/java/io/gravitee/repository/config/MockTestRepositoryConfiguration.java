@@ -157,4 +157,9 @@ public class MockTestRepositoryConfiguration {
     public MediaRepositoryMock mediaRepository() throws Exception {
         return new MediaRepositoryMock();
     }
+
+    @Bean
+    public AlertRepositoryMock alertRepository() throws Exception {
+        return new AlertRepositoryMock();
+    }
 }

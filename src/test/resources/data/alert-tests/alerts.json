@@ -1,0 +1,27 @@
+[
+   {
+      "id":"health-check",
+      "name":"Health-check",
+      "description": "Description for alert health-check",
+      "referenceType": "API",
+      "referenceId": "api-id",
+      "type": "HEALTH_CHECK",
+      "enabled": true,
+      "createdAt": 1439022010883
+   },
+   {
+      "id":"quota80",
+      "name":"Quota80",
+      "description": "Description for alert API quota 80%",
+      "referenceType": "APPLICATION",
+      "referenceId": "application-id",
+      "type": "QUOTA",
+      "metricType": "QUOTA",
+      "thresholdType": "PERCENT_RATE",
+      "threshold": "80",
+      "plan": "gold",
+      "enabled": false,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }
+]
