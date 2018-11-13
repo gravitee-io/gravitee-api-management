@@ -16,11 +16,14 @@
 package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -35,6 +38,9 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
     protected ApplicationContext applicationContext;
 
     private ClassLoader classLoader;
+
+    @Autowired
+    private ExecutionContextFactory executionContextFactory;
 
     @Override
     public ClassLoader classloader() {
@@ -72,8 +78,11 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
         // Wrap the actual request to contextualize it
         request = new ContextualizedHttpServerRequest(reactable().contextPath(), request);
 
-        doHandle(request, response, handler);
+        // Prepare request execution context
+        ExecutionContext executionContext = executionContextFactory.create(request, response);
+
+        doHandle(request, response, executionContext, handler);
     }
 
-    protected abstract void doHandle(Request request, Response response, Handler<Response> handler);
+    protected abstract void doHandle(Request request, Response response, ExecutionContext executionContext, Handler<Response> handler);
 }

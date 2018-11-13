@@ -20,13 +20,16 @@ import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
+import io.gravitee.gateway.reactor.handler.DummyReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
+import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.transaction.TransactionHandlerFactory;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import io.gravitee.reporter.api.http.Metrics;
@@ -65,6 +68,11 @@ public class ReactorTest {
     @Mock
     private GatewayConfiguration gatewayConfiguration;
 
+    @Mock
+    private ExecutionContextFactory executionContextFactory;
+
+    private DummyReactorHandler dummyReactorHandler = new DummyReactorHandler();
+
     @Spy
     private TransactionHandlerFactory transactionHandlerFactory = new TransactionHandlerFactory();
 
@@ -79,50 +87,12 @@ public class ReactorTest {
         Request request = mock(Request.class);
         when(request.method()).thenReturn(HttpMethod.GET);
         when(request.headers()).thenReturn(new HttpHeaders());
-        when(request.headers()).thenReturn(new HttpHeaders());
         when(request.path()).thenReturn("/team");
         when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());
 
-        when(handlerResolver.resolve(any(Request.class))).thenReturn(new AbstractReactorHandler() {
-            @Override
-            public Reactable reactable() {
-                return new Reactable() {
-                    @Override
-                    public Object item() {
-                        return null;
-                    }
+        dummyReactorHandler.setExecutionContextFactory(executionContextFactory);
 
-                    @Override
-                    public String contextPath() {
-                        return "";
-                    }
-
-                    @Override
-                    public boolean enabled() {
-                        return true;
-                    }
-
-                    @Override
-                    public Set dependencies(Class type) {
-                        return null;
-                    }
-
-                    @Override
-                    public Map<String, Object> properties() {
-                        return null;
-                    }
-                };
-            }
-
-            @Override
-            protected void doHandle(Request request, Response response, Handler<Response> handler) {
-                Response proxyResponse = mock(Response.class);
-                when(proxyResponse.headers()).thenReturn(new HttpHeaders());
-                when(proxyResponse.status()).thenReturn(HttpStatusCode.OK_200);
-
-                handler.handle(proxyResponse);
-            }
-        });
+        when(handlerResolver.resolve(any(Request.class))).thenReturn(dummyReactorHandler);
 
         final CountDownLatch lock = new CountDownLatch(1);
         Response proxyResponse = mock(Response.class);

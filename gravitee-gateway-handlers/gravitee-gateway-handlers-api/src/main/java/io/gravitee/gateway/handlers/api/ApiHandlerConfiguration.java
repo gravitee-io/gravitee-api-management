@@ -25,8 +25,6 @@ import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.core.endpoint.resolver.EndpointResolver;
 import io.gravitee.gateway.core.endpoint.resolver.impl.TargetEndpointResolver;
 import io.gravitee.gateway.core.invoker.InvokerFactory;
-import io.gravitee.gateway.handlers.api.context.ExecutionContextFactory;
-import io.gravitee.gateway.handlers.api.context.TemplateVariableProviderFactory;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.gravitee.gateway.handlers.api.path.impl.ApiPathResolverImpl;
 import io.gravitee.gateway.handlers.api.policy.security.PlanBasedAuthenticationHandlerEnhancer;
@@ -37,6 +35,8 @@ import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.DefaultPolicyManager;
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
+import io.gravitee.gateway.reactor.handler.context.TemplateVariableProviderFactory;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
@@ -61,11 +61,6 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public ReactorHandler apiReactorHandler(Api api) {
-        /*
-        if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
-            return new LoggableApiReactorHandler(new ExpressionLanguageEvaluator(api.getProxy().getLogging().getCondition()));
-        }
-        */
         return new ApiReactorHandler();
     }
 
