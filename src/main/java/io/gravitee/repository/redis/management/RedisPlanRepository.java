@@ -127,6 +127,7 @@ public class RedisPlanRepository implements PlanRepository {
             plan.setClosedAt(new Date(redisPlan.getClosedAt()));
         }
         plan.setSecurityDefinition(redisPlan.getSecurityDefinition());
+        plan.setCommentRequired(redisPlan.isCommentRequired());
         return plan;
     }
 
@@ -174,7 +175,7 @@ public class RedisPlanRepository implements PlanRepository {
             redisPlan.setPublishedAt(plan.getPublishedAt().getTime());
         }
         redisPlan.setSecurityDefinition(plan.getSecurityDefinition());
-
+        redisPlan.setCommentRequired(plan.isCommentRequired());
         return redisPlan;
     }
 }
