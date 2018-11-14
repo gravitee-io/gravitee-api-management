@@ -89,6 +89,8 @@ public class Plan {
      */
     private List<String> excludedGroups;
 
+    private boolean commentRequired;
+
     public Plan() {
     }
 
@@ -246,6 +248,14 @@ public class Plan {
 
     public void setExcludedGroups(List<String> excludedGroups) {
         this.excludedGroups = excludedGroups;
+    }
+
+    public boolean isCommentRequired() {
+        return commentRequired;
+    }
+
+    public void setCommentRequired(boolean commentRequired) {
+        this.commentRequired = commentRequired;
     }
 
     @Override
