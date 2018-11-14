@@ -43,7 +43,7 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AverageResponseTimeCommand extends AstractElasticsearchQueryCommand<AverageResponseTimeResponse> {
+public class AverageResponseTimeCommand extends AbstractElasticsearchQueryCommand<AverageResponseTimeResponse> {
 
 	/**
 	 * Logger.

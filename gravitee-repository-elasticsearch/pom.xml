@@ -117,6 +117,14 @@
     		<version>3.4.2</version>
     		<scope>test</scope>
 		</dependency>
+
+		<!-- Used to load configuration file -->
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>1.23</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>

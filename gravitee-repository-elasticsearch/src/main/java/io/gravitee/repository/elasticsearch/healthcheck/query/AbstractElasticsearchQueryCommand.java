@@ -37,12 +37,12 @@ import java.util.Map;
  * @author Sebastien Devaux (Zenika)
  *
  */
-public abstract class AstractElasticsearchQueryCommand<T extends Response> implements ElasticsearchQueryCommand<T> {
+public abstract class AbstractElasticsearchQueryCommand<T extends Response> implements ElasticsearchQueryCommand<T> {
 
 	/**
 	 * Logger.
 	 */
-	private final Logger logger = LoggerFactory.getLogger(AstractElasticsearchQueryCommand.class);
+	private final Logger logger = LoggerFactory.getLogger(AbstractElasticsearchQueryCommand.class);
 	
 	/**
 	 * Elasticsearch component to perform search request.

@@ -23,7 +23,6 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.groupby.GroupByQuery;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
-import io.reactivex.Single;
 
 import java.util.Iterator;
 
@@ -35,7 +34,7 @@ import java.util.Iterator;
  * @author Guillaume Gillon
  *
  */
-public class GroupByQueryCommand extends AstractElasticsearchQueryCommand<GroupByResponse> {
+public class GroupByQueryCommand extends AbstractElasticsearchQueryCommand<GroupByResponse> {
 
 	private final static String TEMPLATE = "groupBy.ftl";
 
@@ -51,14 +50,8 @@ public class GroupByQueryCommand extends AstractElasticsearchQueryCommand<GroupB
 		final String sQuery = this.createQuery(TEMPLATE, query);
 
 		try {
-			final Long from = groupByQuery.timeRange().range().from();
-			final Long to = groupByQuery.timeRange().range().to();
-
-			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.REQUEST, from, to),
-					Type.REQUEST.getType(),
-					sQuery);
-			return this.toGroupByResponse(result.blockingGet());
+			SearchResponse searchResponse = execute(groupByQuery, Type.REQUEST, sQuery).blockingGet();
+			return this.toGroupByResponse(searchResponse);
 		} catch (Exception eex) {
 			logger.error("Impossible to perform GroupByQuery", eex);
 			throw new AnalyticsException("Impossible to perform GroupByQuery", eex);

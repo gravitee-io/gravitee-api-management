@@ -42,7 +42,7 @@ import java.util.*;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AverageDateHistogramCommand extends AstractElasticsearchQueryCommand<DateHistogramResponse> {
+public class AverageDateHistogramCommand extends AbstractElasticsearchQueryCommand<DateHistogramResponse> {
 
 	/**
 	 * Logger.

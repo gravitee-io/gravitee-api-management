@@ -31,11 +31,11 @@ public interface IndexNameGenerator {
      * @param type Type of metrics
      * @return the ES index name
      */
-    String getIndexName(Type type, Instant timestamp);
+    String getIndexName(Type type, Instant timestamp, String ... clusters);
 
-    String getIndexName(Type type, long from, long to);
+    String getIndexName(Type type, long from, long to, String ... clusters);
 
-    String getTodayIndexName(Type type);
+    String getTodayIndexName(Type type, String ... clusters);
 
-    String getWildcardIndexName(Type type);
+    String getWildcardIndexName(Type type, String ... clusters);
 }

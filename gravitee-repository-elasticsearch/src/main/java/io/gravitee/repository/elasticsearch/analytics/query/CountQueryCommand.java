@@ -21,7 +21,6 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.count.CountQuery;
 import io.gravitee.repository.analytics.query.count.CountResponse;
-import io.reactivex.Single;
 
 /**
  * Commmand used to handle CountQuery
@@ -30,7 +29,7 @@ import io.reactivex.Single;
  * @author Sebastien Devaux (Zenika)
  *
  */
-public class CountQueryCommand extends AstractElasticsearchQueryCommand<CountResponse> {
+public class CountQueryCommand extends AbstractElasticsearchQueryCommand<CountResponse> {
 
 	private final static String TEMPLATE = "count.ftl";
 
@@ -42,28 +41,10 @@ public class CountQueryCommand extends AstractElasticsearchQueryCommand<CountRes
 	@Override
 	public CountResponse executeQuery(Query<CountResponse> query) throws AnalyticsException {
 		final CountQuery countQuery = (CountQuery) query;
-		
 		final String sQuery = this.createQuery(TEMPLATE, query);
 		
 		try {
-			final Single<SearchResponse> result;
-
-			if (countQuery.timeRange() != null) {
-				final Long from = countQuery.timeRange().range().from();
-				final Long to = countQuery.timeRange().range().to();
-
-				result = this.client.search(
-						this.indexNameGenerator.getIndexName(Type.REQUEST, from, to),
-						Type.REQUEST.getType(),
-						sQuery);
-			} else {
-				result = this.client.search(
-						this.indexNameGenerator.getTodayIndexName(Type.REQUEST),
-						Type.REQUEST.getType(),
-						sQuery);
-			}
-
-			SearchResponse searchResponse = result.blockingGet();
+			SearchResponse searchResponse = execute(countQuery, Type.REQUEST, sQuery).blockingGet();
 			return this.toCountResponse(searchResponse);
 		} catch (final Exception eex) {
 			logger.error("Impossible to perform GroupByQuery", eex);

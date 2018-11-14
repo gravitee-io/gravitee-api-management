@@ -235,8 +235,8 @@ public class HttpClient implements Client {
                 .rxSendBuffer(Buffer.buffer(query))
                 .map(response -> {
                     if (response.statusCode() != HttpStatusCode.OK_200) {
-                        logger.error("Unable to search: status[{}] query[{}] response[{}]",
-                                response.statusCode(), query, response.body());
+                        logger.error("Unable to search: url[{}] status[{}] query[{}] response[{}]",
+                                url.toString(), response.statusCode(), query, response.body());
                         throw new ElasticsearchException("Unable to search");
                     }
 

@@ -15,13 +15,17 @@
  */
 package io.gravitee.repository.elasticsearch.configuration;
 
+import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.elasticsearch.config.Endpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Elasticsearch repository configuration.
@@ -64,6 +68,8 @@ public class RepositoryConfiguration {
 	 * Elasticsearch endpoints
 	 */
 	private List<Endpoint> endpoints;
+
+	private Map<String, String> crossClusterMapping;
 	
 	public String getUsername() {
 		return username;
@@ -82,7 +88,7 @@ public class RepositoryConfiguration {
 	}
 
 	public List<Endpoint> getEndpoints() {
-		if(endpoints == null){
+		if (endpoints == null) {
 			endpoints = initializeEndpoints();
 		}
 
@@ -107,6 +113,41 @@ public class RepositoryConfiguration {
 
 	public void setPerTypeIndex(boolean perTypeIndex) {
 		this.perTypeIndex = perTypeIndex;
+	}
+
+	private boolean crossClusterInitialized;
+
+	public Map<String, String> getCrossClusterMapping() {
+		if (!crossClusterInitialized) {
+			crossClusterMapping = initializeCrossClusterMapping();
+		}
+
+		return crossClusterMapping;
+	}
+
+	public boolean hasCrossClusterMapping() {
+		Map<String, String> mapping = getCrossClusterMapping();
+		return mapping != null && !mapping.isEmpty();
+	}
+
+	private Map<String, String> initializeCrossClusterMapping() {
+		crossClusterInitialized = true;
+
+		Map<String, Object> tenantMapping = EnvironmentUtils.getPropertiesStartingWith(
+				(ConfigurableEnvironment) environment, "analytics.elasticsearch.cross_cluster.mapping.");
+
+		if (tenantMapping != null) {
+			Map<String, String> mapping = new HashMap<>(tenantMapping.size());
+			tenantMapping.forEach((s, o) -> mapping.put(s.substring(s.lastIndexOf('.') + 1), (String) o));
+
+			return mapping;
+		}
+
+		return null;
+	}
+
+	public void setCrossClusterMapping(Map<String, String> crossClusterMapping) {
+		this.crossClusterMapping = crossClusterMapping;
 	}
 
 	private List<Endpoint> initializeEndpoints() {

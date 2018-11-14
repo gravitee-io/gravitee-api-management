@@ -26,7 +26,6 @@ import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.histogram.Bucket;
 import io.gravitee.repository.analytics.query.response.histogram.Data;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
-import io.reactivex.Single;
 
 import java.util.*;
 
@@ -36,7 +35,7 @@ import java.util.*;
  * @author Sebastien Devaux (Zenika)
  *
  */
-public class DateHistogramQueryCommand extends AstractElasticsearchQueryCommand<DateHistogramResponse> {
+public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand<DateHistogramResponse> {
 
 	private final static String TEMPLATE = "dateHistogram.ftl";
 	
@@ -48,17 +47,11 @@ public class DateHistogramQueryCommand extends AstractElasticsearchQueryCommand<
 	@Override
 	public DateHistogramResponse executeQuery(Query<DateHistogramResponse> query) throws AnalyticsException {
 		final DateHistogramQuery dateHistogramQuery = (DateHistogramQuery) query;
-
 		final String sQuery = this.createQuery(TEMPLATE, query);
-		final Long from = dateHistogramQuery.timeRange().range().from();
-		final Long to = dateHistogramQuery.timeRange().range().to();
 
 		try {
-			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.REQUEST, from, to),
-					Type.REQUEST.getType(),
-					sQuery);
-			return this.toDateHistogramResponse(result.blockingGet(), dateHistogramQuery);
+			SearchResponse searchResponse = execute(dateHistogramQuery, Type.REQUEST, sQuery).blockingGet();
+			return this.toDateHistogramResponse(searchResponse, dateHistogramQuery);
 		} catch (final Exception eex) {
 			logger.error("Impossible to perform DateHistogramQuery", eex);
 			throw new AnalyticsException("Impossible to perform DateHistogramQuery", eex);
