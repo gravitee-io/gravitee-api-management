@@ -67,7 +67,16 @@
             <md-input-container class="md-block" flex>
               <md-switch aria-label="Auto validate subscriptions"
                          ng-model="$ctrl.parent.plan.validation" ng-true-value="'auto'" ng-disabled="plan.security == 'key_less'" ng-false-value="'manual'">
-                &nbsp;&nbsp;Auto validate subscription
+                &nbsp;&nbsp;Auto validate subscription.
+              </md-switch>
+            </md-input-container>
+          </div>
+
+          <div layout-gt-sm="row">
+            <md-input-container class="md-block" flex>
+              <md-switch aria-label="Consumer comment"
+                         ng-model="$ctrl.parent.plan.comment_required" ng-disabled="plan.security == 'key_less'">
+                &nbsp;&nbsp;Consumer must provide a comment when subscribing to the plan.
               </md-switch>
             </md-input-container>
           </div>

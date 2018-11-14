@@ -91,6 +91,7 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
 
     canApplicationSubscribe() {
       return this.isPlanSubscribable()
+        && (! this.selectedPlan['comment_required'] || (this.selectedPlan['comment_required'] === true && this.requestMessage))
         && this.selectedApp
         && ! this.subscription
         && (

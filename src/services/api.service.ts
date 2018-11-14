@@ -245,7 +245,8 @@ class ApiService {
           validation: plan.validation, policies: plan.policies,
           securityDefinition: plan.securityDefinition,
           characteristics: plan.characteristics, order: plan.order, paths: plan.paths,
-          excluded_groups: plan.excludedGroups
+          excluded_groups: plan.excludedGroups,
+          comment_required: plan.comment_required
         });
     } else {
       return this.$http.post(this.apisURL + apiId + '/plans',
@@ -253,7 +254,8 @@ class ApiService {
           name: plan.name, description: plan.description, api: plan.api,
           validation: plan.validation, policies: plan.policies,
           characteristics: plan.characteristics, type: plan.type, paths: plan.paths,
-          security: plan.security, securityDefinition: plan.securityDefinition, excluded_groups: plan.excludedGroups
+          security: plan.security, securityDefinition: plan.securityDefinition, excluded_groups: plan.excludedGroups,
+          comment_required: plan.comment_required
         });
     }
   }
