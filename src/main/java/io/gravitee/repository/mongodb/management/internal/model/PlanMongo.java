@@ -75,6 +75,8 @@ public class PlanMongo extends Auditable {
 
     private String securityDefinition;
 
+    private boolean commentRequired;
+
     public String getId() {
         return id;
     }
@@ -193,6 +195,14 @@ public class PlanMongo extends Auditable {
 
     public void setSecurityDefinition(String securityDefinition) {
         this.securityDefinition = securityDefinition;
+    }
+
+    public boolean isCommentRequired() {
+        return commentRequired;
+    }
+
+    public void setCommentRequired(boolean commentRequired) {
+        this.commentRequired = commentRequired;
     }
 
     @Override
