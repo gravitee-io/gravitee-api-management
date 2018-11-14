@@ -25,6 +25,7 @@ import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.core.endpoint.resolver.EndpointResolver;
 import io.gravitee.gateway.core.endpoint.resolver.impl.TargetEndpointResolver;
 import io.gravitee.gateway.core.invoker.InvokerFactory;
+import io.gravitee.gateway.handlers.api.context.ApiTemplateVariableProvider;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.gravitee.gateway.handlers.api.path.impl.ApiPathResolverImpl;
 import io.gravitee.gateway.handlers.api.policy.security.PlanBasedAuthenticationHandlerEnhancer;
@@ -136,5 +137,10 @@ public class ApiHandlerConfiguration {
     @Bean
     public EndpointFactory endpointFactory() {
         return new SpringFactoriesEndpointFactory();
+    }
+
+    @Bean
+    public ApiTemplateVariableProvider apiTemplateVariableProvider() {
+        return new ApiTemplateVariableProvider();
     }
 }
