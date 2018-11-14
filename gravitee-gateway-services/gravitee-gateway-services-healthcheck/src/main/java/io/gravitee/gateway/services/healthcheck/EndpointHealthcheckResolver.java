@@ -46,6 +46,7 @@ public class EndpointHealthcheckResolver {
      */
     public List<EndpointRule> resolve(Api api) {
         HealthCheckService rootHealthCheck = api.getServices().get(HealthCheckService.class);
+        boolean hcEnabled = (rootHealthCheck != null && rootHealthCheck.isEnabled());
 
         // Filter to check only HTTP endpoints
         Stream<HttpEndpoint> httpEndpoints = api.getProxy().getGroups()
@@ -69,7 +70,7 @@ public class EndpointHealthcheckResolver {
 
         // Keep only endpoints where health-check is enabled or not settled (inherit from service)
         httpEndpoints = httpEndpoints.filter(endpoint ->
-                (endpoint.getHealthCheck() == null) ||
+                (endpoint.getHealthCheck() == null && hcEnabled) ||
                         (endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled()));
 
         return httpEndpoints.map((Function<HttpEndpoint, EndpointRule>) endpoint -> new DefaultEndpointRule(
@@ -83,19 +84,18 @@ public class EndpointHealthcheckResolver {
         if (endpoint.getType() == EndpointType.HTTP) {
             HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
             HealthCheckService rootHealthCheck = api.getServices().get(HealthCheckService.class);
+            boolean hcEnabled = (rootHealthCheck != null && rootHealthCheck.isEnabled());
 
-            return new DefaultEndpointRule(
-                    api.getId(),
-                    endpoint,
-                    (httpEndpoint.getHealthCheck() == null || httpEndpoint.getHealthCheck().isInherit()) ?
-                            rootHealthCheck : httpEndpoint.getHealthCheck());
+            if (hcEnabled || httpEndpoint.getHealthCheck() != null) {
+                return new DefaultEndpointRule(
+                        api.getId(),
+                        endpoint,
+                        (httpEndpoint.getHealthCheck() == null || httpEndpoint.getHealthCheck().isInherit()) ?
+                                rootHealthCheck : httpEndpoint.getHealthCheck());
+            }
         }
 
 
         return null;
-    }
-
-    public void setGatewayConfiguration(GatewayConfiguration gatewayConfiguration) {
-        this.gatewayConfiguration = gatewayConfiguration;
     }
 }
