@@ -28,6 +28,10 @@
                 <strong>Portal</strong>
             </div>
             <ul class="aui-nav">
+              <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                  ng-if="$ctrl.settingsMenu.apiPortalHeader.perm">
+                <a class="execute" ui-sref="{{$ctrl.settingsMenu.apiPortalHeader.goTo}}">API Portal Headers</a>
+              </li>
                 <li class="iterable-item" ui-sref-active="aui-nav-selected"
                     ng-if="$ctrl.settingsMenu.documentations.perm">
                     <a class="execute" ui-sref="{{$ctrl.settingsMenu.documentations.goTo}}">Documentation</a>
@@ -36,22 +40,21 @@
                     ng-if="$ctrl.settingsMenu.metadata.perm">
                     <a class="execute" ui-sref="{{$ctrl.settingsMenu.metadata.goTo}}">Metadata</a>
                 </li>
-                <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                    ng-if="$ctrl.settingsMenu.views.perm">
-                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.views.goTo}}">Views</a>
-                </li>
+
+              <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                  ng-if="$ctrl.settingsMenu.portalSettings.perm">
+                <a class="execute" ui-sref="{{$ctrl.settingsMenu.portalSettings.goTo}}">Settings</a>
+              </li>
+
                 <li class="iterable-item" ui-sref-active="aui-nav-selected"
                     ng-if="$ctrl.settingsMenu.topApis.perm">
                     <a class="execute" ui-sref="{{$ctrl.settingsMenu.topApis.goTo}}">Top APIs</a>
                 </li>
-                <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                    ng-if="$ctrl.settingsMenu.apiPortalHeader.perm">
-                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.apiPortalHeader.goTo}}">API Portal Headers</a>
-                </li>
-                <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                    ng-if="$ctrl.settingsMenu.portalSettings.perm">
-                    <a class="execute" ui-sref="{{$ctrl.settingsMenu.portalSettings.goTo}}">Settings</a>
-                </li>
+
+              <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                  ng-if="$ctrl.settingsMenu.views.perm">
+                <a class="execute" ui-sref="{{$ctrl.settingsMenu.views.goTo}}">Views</a>
+              </li>
             </ul>
 
 
@@ -62,6 +65,10 @@
                 <strong>Gateway</strong>
             </div>
             <ul class="aui-nav">
+              <li class="iterable-item" ui-sref-active="aui-nav-selected"
+                  ng-if="$ctrl.settingsMenu.dictionaries.perm">
+                <a class="execute" ui-sref="{{$ctrl.settingsMenu.dictionaries.goTo}}">Dictionaries</a>
+              </li>
                 <li class="iterable-item" ui-sref-active="aui-nav-selected"
                     ng-if="$ctrl.settingsMenu.tags.perm">
                     <a class="execute" ui-sref="{{$ctrl.settingsMenu.tags.goTo}}">Sharding Tags</a>
@@ -70,10 +77,6 @@
                     ng-if="$ctrl.settingsMenu.tenants.perm">
                     <a class="execute" ui-sref="{{$ctrl.settingsMenu.tenants.goTo}}">Tenants</a>
                 </li>
-              <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                  ng-if="$ctrl.settingsMenu.dictionaries.perm">
-                <a class="execute" ui-sref="{{$ctrl.settingsMenu.dictionaries.goTo}}">Dictionaries</a>
-              </li>
             </ul>
 
             <div class="aui-nav-heading"
