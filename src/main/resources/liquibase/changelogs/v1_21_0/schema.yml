@@ -1,0 +1,11 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.21.0
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+            tableName: plans
+            columns:
+                - column:
+                    name: comment_required
+                    type: boolean
