@@ -30,8 +30,6 @@ import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.expression.TemplateContext;
-import io.gravitee.gateway.api.expression.TemplateVariableProvider;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecyleManager;
@@ -64,7 +62,7 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiReactorHandler extends AbstractReactorHandler implements TemplateVariableProvider,  InitializingBean {
+public class ApiReactorHandler extends AbstractReactorHandler implements InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(ApiReactorHandler.class);
 
@@ -247,11 +245,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Templat
         }
 
         response.end();
-    }
-
-    @Override
-    public void provide(TemplateContext templateContext) {
-        templateContext.setVariable("properties", api.properties());
     }
 
     private class ProcessorFailureAsJson {
