@@ -59,6 +59,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertEquals(new Date(1507611600000L), plan.get().getClosedAt());
         assertEquals(Arrays.asList("charac 1", "charac 2"), plan.get().getCharacteristics());
         assertEquals("grp1", plan.get().getExcludedGroups().get(0));
+        assertTrue(plan.get().isCommentRequired());
     }
 
     @Test
@@ -158,6 +159,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         plan.setClosedAt(parse("14/02/2016"));
         plan.setSecurity(Plan.PlanSecurityType.OAUTH2);
         plan.setSecurityDefinition("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
+        plan.setCommentRequired(true);
 
         planRepository.create(plan);
 
@@ -177,6 +179,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid oauth2 plan closed date.", plan.getClosedAt(), createdPlan.getClosedAt());
         Assert.assertEquals("Invalid oauth2 plan security.", plan.getSecurity(), createdPlan.getSecurity());
         Assert.assertEquals("Invalid oauth2 plan security definition.", plan.getSecurityDefinition(), createdPlan.getSecurityDefinition());
+        Assert.assertEquals("Invalid oauth2 plan comment required.", plan.isCommentRequired(), createdPlan.isCommentRequired());
     }
 
     @Test

@@ -792,6 +792,7 @@ public class MockTestRepositoryConfiguration {
         when(plan2.getClosedAt()).thenReturn(new Date(1507611600000L));
         when(plan2.getCharacteristics()).thenReturn(asList("charac 1", "charac 2"));
         when(plan2.getExcludedGroups()).thenReturn(singletonList("grp1"));
+        when(plan2.isCommentRequired()).thenReturn(true);
 
         final Plan planOAuth2 = mock(Plan.class);
         when(planOAuth2.getName()).thenReturn("Plan oauth2 name");
@@ -806,6 +807,7 @@ public class MockTestRepositoryConfiguration {
         when(planOAuth2.getStatus()).thenReturn(Plan.Status.STAGING);
         when(planOAuth2.getSecurity()).thenReturn(Plan.PlanSecurityType.OAUTH2);
         when(planOAuth2.getSecurityDefinition()).thenReturn("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
+        when(planOAuth2.isCommentRequired()).thenReturn(true);
 
         final Plan createdPlanOAuth2 = mock(Plan.class);
         when(createdPlanOAuth2.getId()).thenReturn("plan-oauth2");
@@ -818,6 +820,7 @@ public class MockTestRepositoryConfiguration {
         when(createdPlanOAuth2.getUpdatedAt()).thenReturn(parse("12/02/2016"));
         when(createdPlanOAuth2.getStatus()).thenReturn(Plan.Status.STAGING);
         when(createdPlanOAuth2.getOrder()).thenReturn(0);
+        when(createdPlanOAuth2.isCommentRequired()).thenReturn(true);
         when(createdPlanOAuth2.getExcludedGroups()).thenReturn(singletonList("7c546c6b-2f2f-4487-946c-6b2f2f648784"));
         when(createdPlanOAuth2.getSecurity()).thenReturn(Plan.PlanSecurityType.OAUTH2);
         when(createdPlanOAuth2.getSecurityDefinition()).thenReturn("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");

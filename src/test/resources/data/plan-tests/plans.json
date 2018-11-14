@@ -17,18 +17,21 @@
          "charac 1",
          "charac 2"
       ],
-      "excludedGroups": [ "grp1" ]
+      "excludedGroups": [ "grp1" ],
+      "commentRequired": true
    },
    {
       "id":"updated-plan",
       "name":"old plan",
-      "apis": ["api3"]
+      "apis": ["api3"],
+      "commentRequired": true
    },
    {
       "id":"products",
       "name":"Products",
       "description": "Description for products view",
-      "apis": ["api1"]
+      "apis": ["api1"],
+      "commentRequired": false
    },
    {
       "id":"stores",
@@ -55,6 +58,7 @@
       "updatedAt": 1455235200000,
       "excludedGroups": [
          "7c546c6b-2f2f-4487-946c-6b2f2f648784"
-      ]
+      ],
+      "commentRequired": false
    }
 ]
