@@ -129,19 +129,19 @@ services:
         users:
           admin: adminadmin
 
-# Analytics repository is used to store all reporting, metrics, healthchecks stored by gateway instances
-# This is the default configuration using Elasticearch
+# Analytics repository is used to store all reporting, metrics, health-checks stored by gateway instances
+# This is the default configuration using Elasticsearch
 analytics:
   type: elasticsearch
   elasticsearch:
     endpoints:
       - http://${ds.elastic.host}:${ds.elastic.port}
 #    index: gravitee
-#    cluster: elasticsearch
 #    index_per_type: true
-#    settings:
-#      number_of_shards: 5
-#      number_of_replicas: 1
+#    cross_cluster:
+#      mapping:
+#        tenant_id: cluster_name
+#        tenant_id: cluster_name
 
 # Authentication and identity sources
 # Users can have following roles (authorities):
