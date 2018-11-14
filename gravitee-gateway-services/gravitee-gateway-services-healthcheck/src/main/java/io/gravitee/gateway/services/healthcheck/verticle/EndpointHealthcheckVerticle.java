@@ -86,7 +86,9 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     }
 
     private void startHealthCheck(Api api) {
-        if (healthcheckEnabled(api)) {
+        // Start HC only if at least one endpoint is configured with HC enabled
+        List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
+        if (!healthCheckEndpoints.isEmpty()) {
             Set<Endpoint> endpoints = api.getProxy()
                     .getGroups()
                     .stream()
@@ -100,16 +102,8 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
                 ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
             }
 
-            List<EndpointRule> healthcheckEndpoints = endpointResolver.resolve(api);
-            if (!healthcheckEndpoints.isEmpty()) {
-                healthcheckEndpoints.forEach(rule -> addTrigger(api, rule));
-            }
+            healthCheckEndpoints.forEach(rule -> addTrigger(api, rule));
         }
-    }
-
-    private boolean healthcheckEnabled(Api api) {
-        HealthCheckService rootHealthCheck = api.getServices().get(HealthCheckService.class);
-        return api.isEnabled() && (rootHealthCheck != null && rootHealthCheck.isEnabled());
     }
 
     private void stopHealthCheck(Api api) {
