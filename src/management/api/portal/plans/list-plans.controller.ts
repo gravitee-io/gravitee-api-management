@@ -97,7 +97,7 @@ class ApiListPlansController {
 
   changeFilter(statusFilter) {
     this.selectedStatus = statusFilter;
-    this.dndEnabled = (statusFilter === 'published');
+    this.dndEnabled = (statusFilter === 'published') && this.UserService.isUserHasPermissions(['api-plan-u']);
 
     if (_.includes(this.selectedStatus, statusFilter)) {
       _.pull(this.selectedStatus, statusFilter);
