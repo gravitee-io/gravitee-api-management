@@ -36,6 +36,7 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,17 +73,25 @@ public class ApiPlansResource extends AbstractResource {
             @ApiResponse(code = 200, message = "List accessible plans for current user", response = PlanEntity.class, responseContainer = "Set"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<PlanEntity> listPlans(
-            @PathParam("api") String api,
-            @QueryParam("status") @DefaultValue("published") PlanStatusParam status) {
+            @PathParam("api") final String api,
+            @QueryParam("status") @DefaultValue("published") final PlanStatusParam wishedStatus) {
 
         ApiEntity apiEntity = apiService.findById(api);
+        PlanStatusParam status;
 
-        boolean lookingForUnpublishedPlan = status.getStatuses().stream().
-                map(st -> !st.equals(PlanStatus.PUBLISHED)).
+        List<PlanStatus> readOnlyStatus = Arrays.asList(PlanStatus.PUBLISHED, PlanStatus.CLOSED);
+        boolean lookingForUnpublishedPlan = wishedStatus.getStatuses().stream().
+                map(st -> !readOnlyStatus.contains(st)).
                 reduce(Boolean::logicalOr).
                 orElse(true);
         if (lookingForUnpublishedPlan && !hasPermission(API_PLAN, api, CREATE, UPDATE, DELETE)) {
-            throw new ForbiddenAccessException();
+            status = new PlanStatusParam(
+                    wishedStatus.getStatuses()
+                            .stream()
+                            .filter(readOnlyStatus::contains)
+                            .collect(Collectors.toList()));
+        } else {
+            status = wishedStatus;
         }
 
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())

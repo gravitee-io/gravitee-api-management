@@ -18,6 +18,8 @@ package io.gravitee.management.rest.resource.param;
 import io.gravitee.management.model.PlanStatus;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,18 +31,22 @@ public class PlanStatusParam {
     private static final String SEPARATOR = ",";
     private List<PlanStatus> statuses;
 
+    public PlanStatusParam(List<PlanStatus> statuses) {
+        this.statuses = Collections.unmodifiableList(statuses);
+    }
+
     public PlanStatusParam(String param) {
-        statuses = new ArrayList<>();
+        this.statuses = new ArrayList<>();
 
         if (param != null) {
             String[] params = param.replaceAll("\\s","").split(SEPARATOR);
             for (String _param : params) {
-                statuses.add(PlanStatus.valueOf(_param.toUpperCase()));
+                this.statuses.add(PlanStatus.valueOf(_param.toUpperCase()));
             }
         }
     }
 
     public List<PlanStatus> getStatuses() {
-        return statuses;
+        return this.statuses;
     }
 }
