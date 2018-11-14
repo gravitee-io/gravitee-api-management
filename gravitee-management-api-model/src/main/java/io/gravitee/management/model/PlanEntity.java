@@ -81,6 +81,9 @@ public class PlanEntity {
     @JsonProperty("excluded_groups")
     private List<String> excludedGroups;
 
+    @JsonProperty("comment_required")
+    private boolean commentRequired;
+
     public String getId() {
         return id;
     }
@@ -215,6 +218,14 @@ public class PlanEntity {
 
     public void setExcludedGroups(List<String> excludedGroups) {
         this.excludedGroups = excludedGroups;
+    }
+
+    public boolean isCommentRequired() {
+        return commentRequired;
+    }
+
+    public void setCommentRequired(boolean commentRequired) {
+        this.commentRequired = commentRequired;
     }
 
     @Override

@@ -54,6 +54,9 @@ public class UpdatePlanEntity {
 
     private String securityDefinition;
 
+    @JsonProperty("comment_required")
+    private boolean commentRequired;
+
     public String getName() {
         return name;
     }
@@ -124,6 +127,14 @@ public class UpdatePlanEntity {
 
     public void setSecurityDefinition(String securityDefinition) {
         this.securityDefinition = securityDefinition;
+    }
+
+    public boolean isCommentRequired() {
+        return commentRequired;
+    }
+
+    public void setCommentRequired(boolean commentRequired) {
+        this.commentRequired = commentRequired;
     }
 
     @Override

@@ -85,6 +85,16 @@ public class ApplicationSubscriptionsResource {
         if (newSubscriptionEntity == null) {
             newSubscriptionEntity = new NewSubscriptionEntity();
         }
+
+        PlanEntity planEntity = planService.findById(plan);
+        
+        if (planEntity.isCommentRequired() &&
+                (newSubscriptionEntity.getRequest() == null || newSubscriptionEntity.getRequest().isEmpty())) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Plan requires a consumer comment when subscribing")
+                    .build();
+        }
+
         newSubscriptionEntity.setApplication(application);
         newSubscriptionEntity.setPlan(plan);
         Subscription subscription = convert(subscriptionService.create(newSubscriptionEntity));
