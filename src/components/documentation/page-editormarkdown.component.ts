@@ -61,6 +61,7 @@ class ComponentCtrl implements ng.IComponentController {
       initialEditType: "markdown",
       previewStyle: "vertical",
       initialValue: initialValue,
+      useDefaultHTMLSanitizer: false,
       height: "500px",
       usageStatistics: false,
       exts: ["table", "scrollSync"],
