@@ -99,6 +99,7 @@ public class CompositeIdentityManager implements IdentityManager {
             try {
                 return referenceSerializer.serialize(new IdentityReference(user.getSource(), user.getReference()));
             } catch (Exception ex) {
+                LOGGER.error("An error occurs while serializing user reference", ex);
                 return null;
             }
         }
