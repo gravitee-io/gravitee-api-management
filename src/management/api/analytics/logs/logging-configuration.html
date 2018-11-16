@@ -44,9 +44,16 @@
                 <div layout="row" flex-xs="50">
                   <md-input-container class="md-block" flex-gt-sm>
                     <label>Condition</label>
-                    <input ng-model="loggingCtrl.api.proxy.logging.condition" type="text" ng-required="loggingCtrl.api.proxy.logging.mode !== 'NONE'">
+                    <input ng-model="loggingCtrl.api.proxy.logging.condition"
+                           type="text"
+                           ng-required="loggingCtrl.api.proxy.logging.mode !== 'NONE'"
+                           ng-disabled="loggingCtrl.api.proxy.logging.mode === 'NONE'">
                   </md-input-container>
-                  <md-button md-no-ink class="md-primary" ng-click="loggingCtrl.showConditionEditor()">Show editor</md-button>
+                  <md-button md-no-ink class="md-primary"
+                             ng-click="loggingCtrl.showConditionEditor()"
+                             ng-disabled="loggingCtrl.api.proxy.logging.mode === 'NONE'">
+                    Show editor
+                  </md-button>
                 </div>
               </div>
             </div>

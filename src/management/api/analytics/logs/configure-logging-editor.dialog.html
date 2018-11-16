@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="New path mapping">
+<md-dialog aria-label="New path mapping" style="min-width: 600px;">
     <form name="formLoggingConfiguration" ng-submit="$ctrl.save()" novalidate>
         <md-dialog-content layout-padding layout="column">
           <h4>Logging condition editor</h4>
@@ -32,75 +32,136 @@
                   </md-option>
                 </md-select>
               </md-input-container>
-              <md-button md-no-ink class="md-primary" ng-click="$ctrl.addCondition()">Add</md-button>
+              <md-button md-no-ink class="md-primary"
+                         ng-click="$ctrl.addCondition()"
+                         ng-disabled="!selectedType">
+                Add
+              </md-button>
             </div>
 
             <hr />
 
             <div layout="row" ng-repeat="condition in conditions" ng-switch on="condition.type.id">
-              <div ng-switch-when="plan" layout="row">
-                <span>Plan is: </span>
-                <md-select ng-model="condition.value">
-                  <md-option ng-repeat="plan in plans" value="{{plan.id}}">
-                    {{plan.name}}
-                  </md-option>
-                </md-select>
-              </div>
-              <div ng-switch-when="application" layout="row">
-                <span>Application is: </span>
-                <md-select ng-model="condition.value">
-                  <md-option ng-repeat="application in subscribers" value="{{application.id}}">
-                    {{application.name}}
-                  </md-option>
-                </md-select>
-              </div>
-              <div ng-switch-when="request-header" layout="row">
-                <span>Header</span>
-                <md-input-container class="md-block" flex-gt-sm>
-                  <input aria-label="Header name" ng-model="condition.param1" type="text" placeholder="Header name" required>
-                </md-input-container>
-                <span> is equals to: </span>
-                <md-input-container class="md-block" flex-gt-sm>
-                  <input aria-label="Header value" ng-model="condition.value" type="text" placeholder="Header value" required>
-                </md-input-container>
-              </div>
-              <div ng-switch-when="request-param" layout="row">
-                <span>Query-parameter</span>
-                <md-input-container class="md-block" flex-gt-sm>
-                  <input aria-label="Param name" ng-model="condition.param1" type="text" placeholder="Param name" required>
-                </md-input-container>
-                <span> is equals to: </span>
-                <md-input-container class="md-block" flex-gt-sm>
-                  <input aria-label="Param value" ng-model="condition.value" type="text" placeholder="Param value" required>
-                </md-input-container>
-              </div>
-              <div ng-switch-when="request-method" layout="row">
-                <span>HTTP Method is: </span>
-                <md-select ng-model="condition.value">
-                  <md-option ng-repeat="method in methods" value="{{method}}">
-                    {{method}}
-                  </md-option>
-                </md-select>
-              </div>
-              <div ng-switch-when="logging-duration" layout="row">
-                <span>Logging is ended in: </span>
-                <md-input-container flex="20">
-                  <label>Duration Time</label>
-                  <input ng-model="condition.param1" autofocus type="number" min="1" required>
-                </md-input-container>
 
-                <div flex="2" hide-xs hide-sm></div>
-
-                <md-input-container flex="25">
-                  <label>Time Unit</label>
-                  <md-select ng-model="condition.param2" placeholder="Time unit" required>
-                    <md-option ng-value="timeUnit" ng-repeat="timeUnit in timeUnits">{{timeUnit}}</md-option>
+              <!-- plan -->
+              <div ng-switch-when="plan" layout="row" layout-align="center center" flex>
+                <div flex="10">
+                  <ng-md-icon icon="close" size="24px" ng-click="$ctrl.removeCondition($index)"></ng-md-icon>
+                </div>
+                <md-input-container flex>
+                  <label>Plan is </label>
+                  <md-select ng-model="condition.value">
+                    <md-option ng-repeat="plan in plans" value="{{plan.id}}">
+                      {{plan.name}}
+                    </md-option>
                   </md-select>
                 </md-input-container>
               </div>
-              <div ng-switch-when="logging-end-date" layout="row">
-                <md-input-container style="margin-bottom: 0;">
-                  <span>Logging is ended at: </span>
+
+              <!-- application -->
+              <div ng-switch-when="application" layout="row" layout-align="center center" flex>
+                <div flex="10">
+                  <ng-md-icon icon="close" size="24px" ng-click="$ctrl.removeCondition($index)"></ng-md-icon>
+                </div>
+                <md-input-container flex>
+                  <label>Application is </label>
+                  <md-select ng-model="condition.value">
+                    <md-option ng-repeat="application in subscribers" value="{{application.id}}">
+                      {{application.name}}
+                    </md-option>
+                  </md-select>
+                </md-input-container>
+              </div>
+
+              <!-- request header -->
+              <div ng-switch-when="request-header" layout="row" layout-align="center center" flex>
+                <div flex="10">
+                  <ng-md-icon icon="close" size="24px" ng-click="$ctrl.removeCondition($index)"></ng-md-icon>
+                </div>
+                <div layout="row" layout-align="space-between center" flex>
+                  <md-input-container>
+                    <label>Header name</label>
+                    <input aria-label="Header name" ng-model="condition.param1" type="text" required>
+                  </md-input-container>
+                  <span> is equals to </span>
+                  <md-input-container>
+                    <label>value</label>
+                    <input aria-label="Header value" ng-model="condition.value" type="text" required>
+                  </md-input-container>
+                </div>
+              </div>
+
+              <!-- request param -->
+              <div ng-switch-when="request-param" layout="row" layout-align="center center" flex>
+                <div flex="10">
+                  <ng-md-icon icon="close" size="24px" ng-click="$ctrl.removeCondition($index)"></ng-md-icon>
+                </div>
+                <div layout="row" layout-align="space-between center" flex>
+                  <md-input-container>
+                    <label>Query parameter name</label>
+                    <input aria-label="Param name" ng-model="condition.param1" type="text" required>
+                  </md-input-container>
+                  <span> is equals to </span>
+                  <md-input-container>
+                    <label>value</label>
+                    <input aria-label="Param value" ng-model="condition.value" type="text" required>
+                  </md-input-container>
+                </div>
+              </div>
+
+              <!-- request method -->
+              <div ng-switch-when="request-method" layout="row" layout-align="center center" flex>
+                <div flex="10">
+                  <ng-md-icon icon="close" size="24px" ng-click="$ctrl.removeCondition($index)"></ng-md-icon>
+                </div>
+                <md-input-container flex>
+                  <label>HTTP Method is</label>
+                  <md-select ng-model="condition.value">
+                    <md-option ng-repeat="method in methods" value="{{method}}">
+                      {{method}}
+                    </md-option>
+                  </md-select>
+                </md-input-container>
+              </div>
+
+              <!-- request remote address -->
+              <div ng-switch-when="request-remote-address" layout="row" layout-align="center center" flex>
+                <div flex="10">
+                  <ng-md-icon icon="close" size="24px" ng-click="$ctrl.removeCondition($index)"></ng-md-icon>
+                </div>
+                <md-input-container style="margin-bottom: 0;padding-bottom: 0;" flex>
+                  <label>Request remote address is</label>
+                  <input ng-model="condition.value" type="text" required>
+                </md-input-container>
+              </div>
+
+              <!-- logging duration -->
+              <div ng-switch-when="logging-duration" layout="row" layout-align="center center" flex>
+                <div flex="10">
+                  <ng-md-icon icon="close" size="24px" ng-click="$ctrl.removeCondition($index)"></ng-md-icon>
+                </div>
+                <div layout="row" layout-align="space-between center" flex>
+                  <span>Logging is ended in </span>
+                  <md-input-container style="margin-bottom: 0;padding-bottom: 0;">
+                    <label>Duration Time</label>
+                    <input ng-model="condition.param1" type="number" min="1" required>
+                  </md-input-container>
+                  <md-input-container>
+                    <label>Time Unit</label>
+                    <md-select ng-model="condition.param2" required>
+                      <md-option ng-value="timeUnit" ng-repeat="timeUnit in timeUnits">{{timeUnit}}</md-option>
+                    </md-select>
+                  </md-input-container>
+                </div>
+              </div>
+
+              <!-- logging end date -->
+              <div ng-switch-when="logging-end-date" layout="row" layout-align="center center" flex>
+                <div flex="10">
+                  <ng-md-icon icon="close" size="24px" ng-click="$ctrl.removeCondition($index)"></ng-md-icon>
+                </div>
+                <md-input-container flex>
+                  <label>Logging is ended at </label>
                   <input moment-picker="pickerStartDateFormated"
                          locale="en"
                          format="YYYY-MM-DD HH:mm"
@@ -108,9 +169,7 @@
                          ng-model-options="{ updateOn: 'blur' }">
                 </md-input-container>
               </div>
-
             </div>
-
           </div>
         </md-dialog-content>
 

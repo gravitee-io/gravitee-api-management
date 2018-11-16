@@ -79,7 +79,7 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
   $scope.types.push(new ConditionType('Duration', 'logging-duration', '#request.timestamp'));
   $scope.types.push(new ConditionType('End date', 'logging-end-date', '#request.timestamp'));
 
-  this.addCondition = function() {
+  this.addCondition = () => {
     let type:ConditionType = _.find($scope.types, { 'id': $scope.selectedType});
     if (type !== undefined) {
       $scope.conditions.push(new Condition(type, '==', ''));
@@ -87,11 +87,15 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
     $scope.selectedType = null;
   };
 
-  this.hide = function () {
+  this.removeCondition = (idx: number) => {
+    $scope.conditions.splice(idx, 1);
+  };
+
+  this.hide = () => {
     $mdDialog.hide();
   };
 
-  this.save = function () {
+  this.save = () => {
     let condition = _($scope.conditions).map((condition) => condition.toCondition()).join(' && ');
 
     $mdDialog.hide(condition);
