@@ -33,7 +33,8 @@ class ComponentCtrl implements ng.IComponentController {
       el: document.querySelector("#viewerSection"),
       viewer: true,
       height: "auto",
-      initialValue: initialValue
+      initialValue: initialValue,
+      useDefaultHTMLSanitizer: false
     }, this.options));
   }
 }
