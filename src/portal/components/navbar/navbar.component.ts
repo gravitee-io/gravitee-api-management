@@ -38,6 +38,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     'ngInject';
 
     const vm = this;
+    vm.$state = $state;
     vm.tasksScheduler = null;
     vm.$rootScope = $rootScope;
     vm.displayContextualDocumentationButton = false;
@@ -94,6 +95,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     vm.$onInit = function () {
       vm.supportEnabled = Constants.portal.support.enabled;
       $scope.$emit('graviteeUserRefresh', {user: undefined, refresh: true});
+
     };
 
     vm.isUserManagement = function () {
