@@ -46,11 +46,13 @@
             <md-input-container class="md-block" ng-if="healthCheckCtrl.endpoint !== undefined">
               <md-checkbox
                       ng-model="healthCheckCtrl.healthcheck.inherit"
+                      ng-disabled="!healthCheckCtrl.rootHealthcheckEnabled"
                       aria-label="Inherit health-check"
                       class="md-align-top-left"
                       flex>
                 Inherit configuration
-                <span class="ipsum">Inherit health-check configuration from global health-check configuration.</span>
+                <span class="ipsum" ng-if="healthCheckCtrl.rootHealthcheckEnabled">Inherit health-check configuration from global health-check configuration.</span>
+                <span class="ipsum" ng-if="!healthCheckCtrl.rootHealthcheckEnabled">You must enable a global health-check to be able to inherit from it.</span>
               </md-checkbox>
             </md-input-container>
           </md-content>

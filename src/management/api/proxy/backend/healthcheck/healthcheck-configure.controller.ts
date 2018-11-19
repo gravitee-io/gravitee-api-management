@@ -22,6 +22,7 @@ class ApiHealthCheckConfigureController {
   private timeUnits: string[];
   private httpMethods: string[];
   private endpoint: any;
+  private rootHealthcheckEnabled: boolean;
 
   constructor (
     private ApiService,
@@ -41,11 +42,15 @@ class ApiHealthCheckConfigureController {
       let group = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
       this.endpoint = _.find(group.endpoints, { 'name': $stateParams.endpointName });
       this.healthcheck = this.endpoint.healthcheck;
+      this.rootHealthcheckEnabled =
+        this.api.services &&
+        this.api.services['health-check'] &&
+        this.api.services['health-check'].enabled;
     } else {
       this.healthcheck = this.api.services && this.api.services['health-check'];
     }
 
-    this.healthcheck = this.healthcheck || {enabled: false, trigger: {}};
+    this.healthcheck = this.healthcheck || {enabled: false, inherit: false, trigger: {}};
     let inherit = (this.endpoint !== undefined) && this.healthcheck.inherit;
     let enabled = this.healthcheck.enabled;
 
