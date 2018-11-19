@@ -42,7 +42,7 @@
 			<artifactId>gravitee-management-api-idp-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-	
+
 		<!-- Spring dependencies -->
 		<dependency>
 			<groupId>org.springframework</groupId>
