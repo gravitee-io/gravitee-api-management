@@ -70,7 +70,7 @@ public class EndpointHealthcheckResolver {
 
         // Keep only endpoints where health-check is enabled or not settled (inherit from service)
         httpEndpoints = httpEndpoints.filter(endpoint ->
-                (endpoint.getHealthCheck() == null && hcEnabled) ||
+                ((endpoint.getHealthCheck() == null || !endpoint.getHealthCheck().isEnabled()) && hcEnabled) ||
                         (endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled() && !endpoint.getHealthCheck().isInherit()) ||
                         (endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled() && endpoint.getHealthCheck().isInherit() && hcEnabled));
 
