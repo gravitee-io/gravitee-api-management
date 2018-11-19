@@ -48,7 +48,7 @@ export class Condition {
       let end = moment().add(moment.duration(this.param1, this.param2));
       return `${this.type.statement} <= ${end}l`;
     } if (this.type.id === 'logging-end-date') {
-      let end = moment();
+      let end = this.param1;
       return `${this.type.statement} <= ${end}l`;
     } else if (this.type.id !== 'request-header' && this.type.id !== 'request-param') {
       return `${this.type.statement} ${this.operator} '${this.value}'`;
