@@ -109,6 +109,8 @@ public abstract class AbstractRepositoryTest {
     protected ApiHeaderRepository apiHeaderRepository;
     @Inject
     protected MediaRepository mediaRepository;
+    @Inject
+    protected IdentityProviderRepository identityProviderRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -210,6 +212,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof ApiHeader) {
             apiHeaderRepository.create((ApiHeader) object);
+        }
+        else if (object instanceof IdentityProvider) {
+            identityProviderRepository.create((IdentityProvider) object);
         }
     }
 

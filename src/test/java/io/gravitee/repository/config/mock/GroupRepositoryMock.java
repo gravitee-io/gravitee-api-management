@@ -1,0 +1,107 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.repository.config.mock;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.model.Group;
+import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.repository.management.model.GroupEventRule;
+import io.gravitee.repository.management.model.RoleScope;
+import org.mockito.ArgumentMatcher;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptySet;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.util.collections.Sets.newSet;
+
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository> {
+
+    public GroupRepositoryMock() {
+        super(GroupRepository.class);
+    }
+
+    @Override
+    void prepare(GroupRepository groupRepository) throws Exception {
+        final Group createGroup = new Group();
+        createGroup.setId("1");
+        when(groupRepository.create(any())).thenReturn(createGroup);
+
+        final Group group_application_1 = new Group();
+        group_application_1.setId("group-application-1");
+        group_application_1.setName("group-application-1");
+        GroupEventRule eventRule1 = new GroupEventRule();
+        eventRule1.setEvent(GroupEvent.API_CREATE);
+        GroupEventRule eventRule2 = new GroupEventRule();
+        eventRule2.setEvent(GroupEvent.APPLICATION_CREATE);
+        group_application_1.setEventRules(asList(eventRule1, eventRule2));
+
+        Map<Integer, String> roles = new HashMap<>();
+        roles.put(RoleScope.API.getId(), "OWNER");
+        roles.put(RoleScope.APPLICATION.getId(), "USER");
+        group_application_1.setRoles(roles);
+
+        final Group group_api_to_delete = new Group();
+        group_api_to_delete.setId("group-api-to-delete");
+        group_api_to_delete.setName("group-api-to-delete");
+        final Group group_updated = new Group();
+        group_updated.setId("group-application-1");
+        group_updated.setName("Modified Name");
+        group_updated.setUpdatedAt(new Date(1000000000000L));
+        when(groupRepository.findAll()).thenReturn(newSet(group_application_1, group_api_to_delete));
+        when(groupRepository.findById("group-application-1")).thenReturn(of(group_application_1));
+        when(groupRepository.findById("unknown")).thenReturn(empty());
+        when(groupRepository.findById("group-api-to-delete")).thenReturn(empty());
+        when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
+            @Override
+            public boolean matches(Object o) {
+                return o != null && o instanceof Group && ((Group) o).getId().equals("unknown");
+            }
+        }))).thenThrow(new TechnicalException());
+
+        when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
+            @Override
+            public boolean matches(Object o) {
+                return o != null && o instanceof Group && ((Group) o).getId().equals("group-application-1");
+            }
+        }))).thenReturn(group_updated);
+
+        when(groupRepository.findByIds(new HashSet<>(asList("group-application-1", "group-api-to-delete", "unknown")))).
+                thenReturn(new HashSet<>(asList(group_application_1, group_api_to_delete)));
+        when(groupRepository.findByIds(emptySet())).
+                thenReturn(emptySet());
+
+        when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null || (o instanceof Group && ((Group) o).getId().equals("unknown"));
+            }
+        }))).thenThrow(new IllegalStateException());
+    }
+}

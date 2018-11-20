@@ -42,21 +42,22 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         String username = "createuser1";
 
         User user = new User();
-        user.setId("user-id");
-        user.setUsername(username);
+        user.setId("createuser1");
         user.setCreatedAt(new Date());
         user.setUpdatedAt(user.getCreatedAt());
         user.setEmail(String.format("%s@gravitee.io", username));
+        user.setSource("gravitee");
+        user.setSourceId("createuser1");
         User userCreated = userRepository.create(user);
 
         assertNotNull("User created is null", userCreated);
 
-        Optional<User> optional = userRepository.findByUsername(username);
+        Optional<User> optional = userRepository.findBySource("gravitee", "createuser1");
 
         Assert.assertTrue("Unable to find saved user", optional.isPresent());
         User userFound = optional.get();
 
-        assertEquals("Invalid saved user name.", user.getUsername(), userFound.getUsername());
+        assertEquals("Invalid saved user name.", user.getId(), userFound.getId());
         assertEquals("Invalid saved user mail.", user.getEmail(), userFound.getEmail());
     }
 
@@ -66,7 +67,6 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("userRepository to update not found", optional.isPresent());
 
         final User user = optional.get();
-        user.setUsername("usernameUpdated");
         user.setSource("sourceUpdated");
         user.setSourceId("sourceIdUpdated");
         user.setPassword("passwordUpdated");
@@ -92,7 +92,6 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("User to update not found", optionalUpdated.isPresent());
 
         final User userUpdated = optionalUpdated.get();
-        assertEquals("Invalid saved username", "usernameUpdated", userUpdated.getUsername());
         assertEquals("Invalid saved source", "sourceUpdated", userUpdated.getSource());
         assertEquals("Invalid saved sourceId", "sourceIdUpdated", userUpdated.getSourceId());
         assertEquals("Invalid saved password", "passwordUpdated", userUpdated.getPassword());
@@ -116,8 +115,8 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void findUserByNameTest() throws Exception {
-        Optional<User> user = userRepository.findByUsername("user0 name");
+    public void findUserBySourceTest() throws Exception {
+        Optional<User> user = userRepository.findBySource("gravitee", "user1");
         Assert.assertTrue(user.isPresent());
     }
 
@@ -140,7 +139,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         final Optional<User> optionalUser = userRepository.findById("user1");
 
         assertTrue(optionalUser.isPresent());
-        assertEquals("User not found by its id", "user1 name", optionalUser.get().getUsername());
+        assertEquals("User not found by its id", "user1", optionalUser.get().getId());
     }
 
     @Test
@@ -149,7 +148,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(users);
         assertEquals(2, users.size());
-        assertTrue(users.stream().map(User::getUsername).collect(toList()).containsAll(asList("user1 name", "user5 name")));
+        assertTrue(users.stream().map(User::getId).collect(toList()).containsAll(asList("user1", "user5")));
     }
 
     @Test
