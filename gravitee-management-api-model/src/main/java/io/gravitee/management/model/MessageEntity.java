@@ -29,6 +29,7 @@ public class MessageEntity {
     String title;
     String text;
     Map<String, String> params;
+    boolean useSystemProxy;
 
     public MessageRecipientEntity getRecipient() {
         return recipient;
@@ -68,5 +69,13 @@ public class MessageEntity {
 
     public void setParams(Map<String, String> params) {
         this.params = params;
+    }
+
+    public boolean isUseSystemProxy() {
+        return useSystemProxy;
+    }
+
+    public void setUseSystemProxy(boolean useSystemProxy) {
+        this.useSystemProxy = useSystemProxy;
     }
 }

@@ -163,7 +163,8 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                         HttpMethod.POST,
                         recipientsId.iterator().next(),
                         message.getParams(),
-                        getPostMessage(api, message));
+                        getPostMessage(api, message),
+                        message.isUseSystemProxy());
                 return 1;
             default:
                 return 0;

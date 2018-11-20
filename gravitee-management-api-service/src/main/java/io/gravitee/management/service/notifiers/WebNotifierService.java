@@ -26,5 +26,5 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface WebNotifierService {
-    void request(HttpMethod method, final String uri, final Map<String, String> headers, String body);
+    void request(HttpMethod method, final String uri, final Map<String, String> headers, String body, boolean useSystemProxy);
 }

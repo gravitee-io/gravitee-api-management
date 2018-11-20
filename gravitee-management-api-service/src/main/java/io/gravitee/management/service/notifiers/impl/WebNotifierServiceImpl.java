@@ -35,9 +35,12 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -57,12 +60,34 @@ public class WebNotifierServiceImpl implements WebNotifierService {
     private final Logger LOGGER = LoggerFactory.getLogger(WebNotifierServiceImpl.class);
 
     private static final String HTTPS_SCHEME = "https";
-    private static final int GLOBAL_TIMEOUT = 10_000;
+
+    @Value("${httpClient.timeout:10000}")
+    private int httpClientTimeout;
+    @Value("${httpClient.proxy.type:HTTP}")
+    private String httpClientProxyType;
+
+    @Value("${httpClient.proxy.http.host:#{systemProperties['http.proxyHost'] ?: 'localhost'}}")
+    private String httpClientProxyHttpHost;
+    @Value("${httpClient.proxy.http.port:#{systemProperties['http.proxyPort'] ?: 3128}}")
+    private int httpClientProxyHttpPort;
+    @Value("${httpClient.proxy.http.username:#{null}}")
+    private String httpClientProxyHttpUsername;
+    @Value("${httpClient.proxy.http.password:#{null}}")
+    private String httpClientProxyHttpPassword;
+
+    @Value("${httpClient.proxy.https.host:#{systemProperties['https.proxyHost'] ?: 'localhost'}}")
+    private String httpClientProxyHttpsHost;
+    @Value("${httpClient.proxy.https.port:#{systemProperties['https.proxyPort'] ?: 3128}}")
+    private int httpClientProxyHttpsPort;
+    @Value("${httpClient.proxy.https.username:#{null}}")
+    private String httpClientProxyHttpsUsername;
+    @Value("${httpClient.proxy.https.password:#{null}}")
+    private String httpClientProxyHttpsPassword;
 
     @Autowired
     private Vertx vertx;
 
-    public void request(HttpMethod method, final String uri, final Map<String, String> headers, String body) {
+    public void request(HttpMethod method, final String uri, final Map<String, String> headers, String body, boolean useSystemProxy) {
         if (uri == null || uri.isEmpty()) {
             LOGGER.error("Webhook Notifier configuration is empty");
             return;
@@ -78,7 +103,24 @@ public class WebNotifierServiceImpl implements WebNotifierService {
                 .setMaxPoolSize(1)
                 .setKeepAlive(false)
                 .setTcpKeepAlive(false)
-                .setConnectTimeout(GLOBAL_TIMEOUT);
+                .setConnectTimeout(httpClientTimeout);
+
+        if (useSystemProxy) {
+            ProxyOptions proxyOptions = new ProxyOptions();
+            proxyOptions.setType(ProxyType.valueOf(httpClientProxyType));
+            if (HTTPS_SCHEME.equals(requestUri.getScheme())) {
+                proxyOptions.setHost(httpClientProxyHttpsHost);
+                proxyOptions.setPort(httpClientProxyHttpsPort);
+                proxyOptions.setUsername(httpClientProxyHttpsUsername);
+                proxyOptions.setPassword(httpClientProxyHttpsPassword);
+            } else {
+                proxyOptions.setHost(httpClientProxyHttpHost);
+                proxyOptions.setPort(httpClientProxyHttpPort);
+                proxyOptions.setUsername(httpClientProxyHttpUsername);
+                proxyOptions.setPassword(httpClientProxyHttpPassword);
+            }
+            options.setProxyOptions(proxyOptions);
+        }
 
         final HttpClient httpClient = vertx.createHttpClient(options);
 
@@ -92,7 +134,7 @@ public class WebNotifierServiceImpl implements WebNotifierService {
                 requestUri.toString(),
                 response -> LOGGER.debug("Web response status code : {}", response.statusCode())
         );
-        request.setTimeout(GLOBAL_TIMEOUT);
+        request.setTimeout(httpClientTimeout);
 
         //headers
         request.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);

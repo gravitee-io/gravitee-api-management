@@ -309,3 +309,19 @@ user:
 
 search:
   data: ${gravitee.home}/data
+
+# global configuration of the http client
+#httpClient:
+#  timeout: 10000 # in milliseconds
+#  type: HTML #HTTP, SOCK4, SOCK5
+#  proxy:
+#    http:
+#      host: localhost
+#      port: 3128
+#      username: user
+#      password: secret
+#    https:
+#      host: localhost
+#      port: 3128
+#      username: user
+#      password: secret

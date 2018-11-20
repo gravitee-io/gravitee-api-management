@@ -56,7 +56,7 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
         headers.put("X-Gravitee-Event", hook.name());
         headers.put("X-Gravitee-Event-Scope", hook.getScope().name());
 
-        webNotifierService.request(HttpMethod.POST, genericNotificationConfig.getConfig(), headers, body);
+        webNotifierService.request(HttpMethod.POST, genericNotificationConfig.getConfig(), headers, body, genericNotificationConfig.isUseSystemProxy());
     }
 
     private String toJson(final Hook hook, final Map<String, Object> params) {

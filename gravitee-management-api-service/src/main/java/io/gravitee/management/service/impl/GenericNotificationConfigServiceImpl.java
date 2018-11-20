@@ -136,6 +136,7 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
         model.setReferenceId(entity.getReferenceId());
         model.setNotifier(entity.getNotifier());
         model.setConfig(entity.getConfig());
+        model.setUseSystemProxy(entity.isUseSystemProxy());
         model.setHooks(entity.getHooks());
         return model;
     }
@@ -149,6 +150,7 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
         entity.setReferenceId(genericNotificationConfig.getReferenceId());
         entity.setNotifier(genericNotificationConfig.getNotifier());
         entity.setConfig(genericNotificationConfig.getConfig());
+        entity.setUseSystemProxy(genericNotificationConfig.isUseSystemProxy());
         entity.setHooks(genericNotificationConfig.getHooks());
         return entity;
     }

@@ -35,6 +35,7 @@ public class GenericNotificationConfigEntity {
     private String notifier;
     private String config;
     private List<String> hooks;
+    private boolean useSystemProxy;
 
     public NotificationConfigType getConfigType() {
         return configType;
@@ -100,6 +101,14 @@ public class GenericNotificationConfigEntity {
         this.referenceId = referenceId;
     }
 
+    public boolean isUseSystemProxy() {
+        return useSystemProxy;
+    }
+
+    public void setUseSystemProxy(boolean useSystemProxy) {
+        this.useSystemProxy = useSystemProxy;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -123,6 +132,7 @@ public class GenericNotificationConfigEntity {
                 ", referenceType='" + referenceType + '\'' +
                 ", referenceId='" + referenceId + '\'' +
                 ", hooks='" + hooks + '\'' +
+                ", useSystemProxy='" + useSystemProxy + '\'' +
                 ", config='" + config + '\'' +
                 '}';
     }
