@@ -250,8 +250,8 @@ public class SyncManager {
                                 apiManager.undeploy(apiId);
                             }
                         }
-                    } catch (IOException ioe) {
-                        logger.error("Error while determining deployed APIs store into events payload", ioe);
+                    } catch (Exception e) {
+                        logger.error("Error while determining deployed APIs store into events payload", e);
                     }
                     break;
             }
