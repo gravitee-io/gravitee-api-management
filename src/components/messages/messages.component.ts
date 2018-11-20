@@ -55,17 +55,18 @@ const MessagesComponent: ng.IComponentOptions = {
       const text = this.text;
       const channel = this.channel;
       const roleScope = this.resolvedScope;
+      const useSystemProxy = this.useSystemProxy;
       const roleValues = [this.role];
       if (this.resolvedApiId) {
         MessageService
-          .sendFromApi(this.resolvedApiId, title, text, channel, roleScope, roleValues, url, this.httpHeaders)
+          .sendFromApi(this.resolvedApiId, title, text, channel, roleScope, roleValues, url, useSystemProxy, this.httpHeaders)
           .then( (response) => {
             NotificationService.show(response.data + ' messages has been sent.');
             this.resetForm();
           });
       } else {
         MessageService
-          .sendFromPortal(title, text, channel, roleScope, roleValues, url, this.httpHeaders)
+          .sendFromPortal(title, text, channel, roleScope, roleValues, url, useSystemProxy, this.httpHeaders)
           .then( (response) => {
             NotificationService.show(response.data + ' messages has been sent.');
             this.resetForm();

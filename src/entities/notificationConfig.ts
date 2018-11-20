@@ -23,6 +23,7 @@ export class NotificationConfig {
   public notifier: Notifier;
   public config: string;
   public hooks: string[];
+  public useSystemProxy: boolean;
   public config_type: string;
 
   constructor() {

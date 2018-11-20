@@ -89,6 +89,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
         cfg.notifier = vm.selectedNotifier.id;
       }
       cfg.config = vm.selectedNotificationSetting.config;
+      cfg.useSystemProxy = vm.selectedNotificationSetting.useSystemProxy;
       cfg.hooks = [];
       _.forEach(vm.hookStatus, (k,v)  => {
         if (k) {

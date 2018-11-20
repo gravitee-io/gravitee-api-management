@@ -22,21 +22,21 @@ class MessageService {
     this.baseURL = Constants.baseURL;
   }
 
-  sendFromPortal(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, httpHeaders: string[]) {
+  sendFromPortal(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: string[]) {
     return this.$http.post(
       `${this.baseURL}messages`,
-      this.getPayload(title, text, channel, roleScope, roleValues, url, httpHeaders)
+      this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders)
     );
   }
 
-  sendFromApi(apiId: string, title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string,httpHeaders: string[]) {
+  sendFromApi(apiId: string, title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: string[]) {
     return this.$http.post(
       `${this.baseURL}apis/${apiId}/messages`,
-      this.getPayload(title, text, channel, roleScope, roleValues, url, httpHeaders)
+      this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders)
     );
   }
 
-  private getPayload(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string,httpHeaders: string[]) {
+  private getPayload(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: string[]) {
     if (url) {
       let params = {};
       for (let idx=0; idx < httpHeaders.length; idx ++) {
@@ -50,7 +50,8 @@ class MessageService {
           "url": url
         },
         "channel": channel,
-        "params": params
+        "params": params,
+        "useSystemProxy": useSystemProxy
       }
     } else {
       return {

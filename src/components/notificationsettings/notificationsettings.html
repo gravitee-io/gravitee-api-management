@@ -39,15 +39,19 @@
         <div class="gv-form-content" layout="column">
           <div ng-if="$ctrl.selectedNotificationSetting.config_type==='generic'">
             <h5>Configure the notifier you want to use:</h5>
-            <div layout="row" layout-wrap>
-              <md-input-container flex="60">
+            <div layout="column">
+              <md-input-container flex>
                 <label>Notifier</label>
                 <input readonly ng-model="$ctrl.selectedNotificationSetting.notifier">
               </md-input-container>
-              <md-input-container flex="60">
+              <md-input-container flex>
                 <label ng-if="$ctrl.selectedNotifier.type === 'EMAIL'">Email list (use space, ',' or ';' to separate emails)</label>
                 <label ng-if="$ctrl.selectedNotifier.type === 'WEBHOOK'">URL (Gravitee will POST datas to this url)</label>
                 <input ng-model="$ctrl.selectedNotificationSetting.config" aria-label="Notifier configuration">
+              </md-input-container>
+              <md-input-container flex ng-if="$ctrl.selectedNotifier.type === 'WEBHOOK'">
+                <md-checkbox ng-model="$ctrl.selectedNotificationSetting.useSystemProxy"
+                             aria-label="Use system proxy">Use system proxy</md-checkbox>
               </md-input-container>
             </div>
           </div>
@@ -69,14 +73,14 @@
         </div>
 
       <div class="md-actions gravitee-api-save-button" layout="row">
-        <md-button class="md-raised"
+        <md-button class="md-raised md-primary"
                    type="submit"
                    permission permission-only="['api-notification-u', 'application-notification-u', 'management-notification-u']"
                    ng-disabled="!$ctrl.validate() || $ctrl.formNotification.$pristine"
                    ng-click="$ctrl.save()">
           Save
         </md-button>
-        <md-button class="md-raised md-warn float-right"
+        <md-button class="md-raised md-warn"
                    type="button"
                    ng-click="$ctrl.delete()"
                    permission permission-only="['api-notification-d', 'application-notification-d', 'management-notification-d']"
@@ -87,13 +91,12 @@
       </div>
       </div>
     </form>
-
-    <md-button permission permission-only="['api-notification-c', 'application-notification-c', 'management-notification-c']"
-               class="md-fab md-fab-bottom-right"
-               aria-label="Add"
-               ng-click="$ctrl.addDialog()">
-      <ng-md-icon icon="add"></ng-md-icon>
-    </md-button>
     </div>
   </div>
   </div>
+<md-button permission permission-only="['api-notification-c', 'application-notification-c', 'management-notification-c']"
+           class="md-fab md-fab-bottom-right"
+           aria-label="Add"
+           ng-click="$ctrl.addDialog()">
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

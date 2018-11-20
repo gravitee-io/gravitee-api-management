@@ -75,10 +75,16 @@
                 <label>Title</label>
                 <input ng-model="$ctrl.title" ng-required="true">
             </md-input-container>
-            <md-input-container ng-if="$ctrl.channel === 'HTTP'">
+            <div layout="row">
+            <md-input-container ng-if="$ctrl.channel === 'HTTP'" flex>
                 <label>URL</label>
                 <input ng-model="$ctrl.url" ng-required="true">
             </md-input-container>
+            <md-input-container ng-if="$ctrl.channel === 'HTTP'">
+                <md-checkbox ng-model="$ctrl.useSystemProxy"
+                             aria-label="Use system proxy">Use system proxy</md-checkbox>
+            </md-input-container>
+            </div>
         <md-input-container>
             <label>Text</label>
             <textarea ng-model="$ctrl.text" ng-required="true"
