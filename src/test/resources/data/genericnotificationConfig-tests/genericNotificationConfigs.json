@@ -28,6 +28,7 @@
     "referenceType": "API",
     "referenceId": "config-to-find",
     "config": "my config",
+    "useSystemProxy": true,
     "hooks": ["A", "B"],
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883

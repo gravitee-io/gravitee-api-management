@@ -44,6 +44,7 @@ public class GenericNotificationConfigRepositoryTest extends AbstractRepositoryT
         cfg.setReferenceId("config-created");
         cfg.setNotifier("notifierId");
         cfg.setConfig("my new configuration");
+        cfg.setUseSystemProxy(true);
         cfg.setHooks(Arrays.asList("A", "B", "C"));
         cfg.setUpdatedAt(new Date(1439022010883L));
         cfg.setCreatedAt(new Date(1439022010883L));
@@ -60,6 +61,7 @@ public class GenericNotificationConfigRepositoryTest extends AbstractRepositoryT
         assertEquals(cfg.getHooks(), notificationCreated.getHooks());
         assertEquals(cfg.getCreatedAt(), notificationCreated.getCreatedAt());
         assertEquals(cfg.getUpdatedAt(), notificationCreated.getUpdatedAt());
+        assertTrue(cfg.isUseSystemProxy());
     }
 
     @Test
@@ -78,6 +80,7 @@ public class GenericNotificationConfigRepositoryTest extends AbstractRepositoryT
         cfg.setReferenceId("config-to-update");
         cfg.setNotifier("notifierId");
         cfg.setConfig("updated configuration");
+        cfg.setUseSystemProxy(true);
         cfg.setHooks(Arrays.asList("D", "B", "C"));
         cfg.setUpdatedAt(new Date(1479022010883L));
         cfg.setCreatedAt(new Date(1469022010883L));
@@ -91,6 +94,7 @@ public class GenericNotificationConfigRepositoryTest extends AbstractRepositoryT
         assertTrue(cfg.getHooks().containsAll(notificationUpdated.getHooks()));
         assertEquals(cfg.getCreatedAt(), notificationUpdated.getCreatedAt());
         assertEquals(cfg.getUpdatedAt(), notificationUpdated.getUpdatedAt());
+        assertTrue(cfg.isUseSystemProxy());
     }
 
     @Test
@@ -102,6 +106,7 @@ public class GenericNotificationConfigRepositoryTest extends AbstractRepositoryT
         cfg.setReferenceId("config-to-find");
         cfg.setNotifier("notifierId");
         cfg.setConfig("my config");
+        cfg.setUseSystemProxy(true);
         cfg.setHooks(Arrays.asList("A", "B"));
         cfg.setUpdatedAt(new Date(1439022010883L));
         cfg.setCreatedAt(new Date(1439022010883L));
@@ -115,6 +120,7 @@ public class GenericNotificationConfigRepositoryTest extends AbstractRepositoryT
         assertEquals(cfg.getReferenceId(), notificationFound.getReferenceId());
         assertEquals(cfg.getNotifier(), notificationFound.getNotifier());
         assertEquals(cfg.getConfig(), notificationFound.getConfig());
+        assertEquals(cfg.isUseSystemProxy(), notificationFound.isUseSystemProxy());
         assertEquals(cfg.getHooks(), notificationFound.getHooks());
         assertEquals(cfg.getCreatedAt(), notificationFound.getCreatedAt());
         assertEquals(cfg.getUpdatedAt(), notificationFound.getUpdatedAt());
