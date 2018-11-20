@@ -45,10 +45,6 @@ public class ViewRedisRepositoryImpl extends AbstractRedisRepository implements 
     @Override
     public RedisView findById(final String viewId) {
         Object view = redisTemplate.opsForHash().get(REDIS_KEY, viewId);
-        if (view == null) {
-            return null;
-        }
-
         return convert(view, RedisView.class);
     }
 

@@ -33,25 +33,22 @@ import java.util.stream.Collectors;
 public class UserRedisRepositoryImpl extends AbstractRedisRepository implements UserRedisRepository {
 
     private final static String REDIS_KEY = "user";
-    private final static String REDIS_KEY_USERNAME = "username";
+
+    @Override
+    public RedisUser findBySource(String sourceId, String userId) {
+        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":source:" + sourceId + ':' + userId);
+
+        if (! keys.isEmpty()) {
+            Object user = redisTemplate.opsForHash().get(REDIS_KEY, keys.iterator().next());
+            return convert(user, RedisUser.class);
+        }
+
+        return null;
+    }
 
     @Override
     public RedisUser find(String userId) {
         Object user = redisTemplate.opsForHash().get(REDIS_KEY, userId);
-        if (user == null) {
-            return null;
-        }
-
-        return convert(user, RedisUser.class);
-    }
-
-    @Override
-    public RedisUser findByUsername(String username) {
-        Object user = redisTemplate.opsForHash().get(REDIS_KEY_USERNAME, username);
-        if (user == null) {
-            return null;
-        }
-
         return convert(user, RedisUser.class);
     }
 
@@ -100,7 +97,7 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
     @Override
     public RedisUser saveOrUpdate(RedisUser user) {
         redisTemplate.opsForHash().put(REDIS_KEY, user.getId(), user);
-        redisTemplate.opsForHash().put(REDIS_KEY_USERNAME, user.getUsername(), user);
+        redisTemplate.opsForSet().add(REDIS_KEY + ":source:" + user.getSource() + ':' + user.getSourceId(), user.getId());
         return user;
     }
 
@@ -109,6 +106,6 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
         RedisUser user = find(userId);
 
         redisTemplate.opsForHash().delete(REDIS_KEY, user.getId());
-        redisTemplate.opsForHash().delete(REDIS_KEY_USERNAME, user.getUsername());
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":source:" + user.getSource() + ':' + user.getSourceId(), userId);
     }
 }

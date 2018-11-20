@@ -45,10 +45,6 @@ public class AuditRedisRepositoryImpl extends AbstractRedisRepository implements
     @Override
     public RedisAudit find(String id) {
         Object audit = redisTemplate.opsForHash().get(REDIS_KEY, id);
-        if (audit == null) {
-            return null;
-        }
-
         return convert(audit, RedisAudit.class);
     }
 

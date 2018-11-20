@@ -15,30 +15,21 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.redis.management.model.RedisUser;
+import io.gravitee.repository.redis.management.model.RedisIdentityProvider;
 
-import java.util.List;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface UserRedisRepository {
+public interface IdentityProviderRedisRepository {
 
-    RedisUser findBySource(String sourceId, String userId);
+    Set<RedisIdentityProvider> findAll();
 
-    RedisUser find(String user);
+    RedisIdentityProvider findById(String identityProviderId);
 
-    Set<RedisUser> find(List<String> user);
+    RedisIdentityProvider saveOrUpdate(RedisIdentityProvider identityProvider);
 
-    Set<RedisUser> findAll();
-
-    RedisUser saveOrUpdate(RedisUser user);
-
-    Page<RedisUser> search(Pageable pageable);
-
-    void delete(String user);
+    void delete(String identityProviderId);
 }

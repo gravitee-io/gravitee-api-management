@@ -35,11 +35,6 @@ public class PortalNotificationRedisRepositoryImpl extends AbstractRedisReposito
 
     public RedisPortalNotification find(String id) {
         final Object obj = redisTemplate.opsForHash().get(REDIS_KEY, id);
-
-        if (obj == null) {
-            return null;
-        }
-
         return convert(obj, RedisPortalNotification.class);
     }
 

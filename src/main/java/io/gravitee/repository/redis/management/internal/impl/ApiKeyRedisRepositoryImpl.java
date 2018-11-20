@@ -38,10 +38,6 @@ public class ApiKeyRedisRepositoryImpl extends AbstractRedisRepository implement
     @Override
     public RedisApiKey find(String sApiKey) {
         Object apiKey = redisTemplate.opsForHash().get(REDIS_KEY, sApiKey);
-        if (apiKey == null) {
-            return null;
-        }
-
         return convert(apiKey, RedisApiKey.class);
     }
 

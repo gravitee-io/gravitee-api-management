@@ -36,10 +36,6 @@ public class RatingAnswerRedisRepositoryImpl extends AbstractRedisRepository imp
     @Override
     public RatingAnswer findById(final String ratingAnswerId) {
         Object ratingAnswer = redisTemplate.opsForHash().get(REDIS_KEY, ratingAnswerId);
-        if (ratingAnswer == null) {
-            return null;
-        }
-
         return convert(ratingAnswer, RatingAnswer.class);
     }
 

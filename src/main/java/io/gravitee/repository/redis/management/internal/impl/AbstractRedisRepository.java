@@ -35,10 +35,10 @@ public abstract class AbstractRedisRepository {
     protected ObjectMapper objectMapper;
 
     protected <T> T convert(Object data, Class<T> type) {
-        return objectMapper.convertValue(data, type);
+        return (data == null) ? null : objectMapper.convertValue(data, type);
     }
 
     protected <T> T convert(Object data, TypeReference<T> typeReference) {
-        return objectMapper.convertValue(data, typeReference);
+        return (data == null) ? null : objectMapper.convertValue(data, typeReference);
     }
 }

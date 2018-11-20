@@ -39,10 +39,6 @@ public class GroupRedisRepositoryImpl extends AbstractRedisRepository implements
     @Override
     public RedisGroup find(String groupId) {
         Object group = redisTemplate.opsForHash().get(REDIS_KEY, groupId);
-        if (group == null) {
-            return null;
-        }
-
         return convert(group, RedisGroup.class);
     }
 

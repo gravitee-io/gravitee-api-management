@@ -15,10 +15,8 @@
  */
 package io.gravitee.repository.redis.management.internal.impl;
 
-import io.gravitee.repository.redis.management.internal.DictionaryRedisRepository;
-import io.gravitee.repository.redis.management.internal.ViewRedisRepository;
-import io.gravitee.repository.redis.management.model.RedisDictionary;
-import io.gravitee.repository.redis.management.model.RedisView;
+import io.gravitee.repository.redis.management.internal.IdentityProviderRedisRepository;
+import io.gravitee.repository.redis.management.model.RedisIdentityProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -30,34 +28,34 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Component
-public class DictionaryRedisRepositoryImpl extends AbstractRedisRepository implements DictionaryRedisRepository {
+public class IdentityProviderRedisRepositoryImpl extends AbstractRedisRepository implements IdentityProviderRedisRepository {
 
-    private final static String REDIS_KEY = "dictionary";
+    private final static String REDIS_KEY = "identity";
 
     @Override
-    public Set<RedisDictionary> findAll() {
+    public Set<RedisIdentityProvider> findAll() {
         final Map<Object, Object> dictionaries = redisTemplate.opsForHash().entries(REDIS_KEY);
 
         return dictionaries.values()
                 .stream()
-                .map(object -> convert(object, RedisDictionary.class))
+                .map(object -> convert(object, RedisIdentityProvider.class))
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public RedisDictionary findById(final String dictionaryId) {
-        Object dictionary = redisTemplate.opsForHash().get(REDIS_KEY, dictionaryId);
-        return convert(dictionary, RedisDictionary.class);
+    public RedisIdentityProvider findById(final String identityProviderId) {
+        Object identityProvider = redisTemplate.opsForHash().get(REDIS_KEY, identityProviderId);
+        return convert(identityProvider, RedisIdentityProvider.class);
     }
 
     @Override
-    public RedisDictionary saveOrUpdate(final RedisDictionary dictionary) {
-        redisTemplate.opsForHash().put(REDIS_KEY, dictionary.getId(), dictionary);
-        return dictionary;
+    public RedisIdentityProvider saveOrUpdate(final RedisIdentityProvider identityProvider) {
+        redisTemplate.opsForHash().put(REDIS_KEY, identityProvider.getId(), identityProvider);
+        return identityProvider;
     }
 
     @Override
-    public void delete(final String dictionary) {
-        redisTemplate.opsForHash().delete(REDIS_KEY, dictionary);
+    public void delete(final String identityProviderId) {
+        redisTemplate.opsForHash().delete(REDIS_KEY, identityProviderId);
     }
 }

@@ -37,10 +37,6 @@ public class MembershipRedisRepositoryImpl extends AbstractRedisRepository imple
     @Override
     public RedisMembership findById(String userId, String referenceType, String referenceId) {
         Object membershipsObj = redisTemplate.opsForHash().get(REDIS_KEY, getMembershipKey(userId, referenceType, referenceId));
-        if (membershipsObj == null) {
-            return null;
-        }
-
         return convert(membershipsObj, RedisMembership.class);
     }
 

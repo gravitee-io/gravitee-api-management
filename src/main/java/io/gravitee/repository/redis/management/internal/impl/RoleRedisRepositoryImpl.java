@@ -36,10 +36,6 @@ public class RoleRedisRepositoryImpl extends AbstractRedisRepository implements 
     @Override
     public RedisRole find(String roleId) {
         Object role = redisTemplate.opsForHash().get(REDIS_KEY, roleId);
-        if (role == null) {
-            return null;
-        }
-
         return convert(role, RedisRole.class);
     }
 

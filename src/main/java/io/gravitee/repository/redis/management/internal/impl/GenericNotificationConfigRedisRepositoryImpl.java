@@ -36,11 +36,6 @@ public class GenericNotificationConfigRedisRepositoryImpl extends AbstractRedisR
     @Override
     public RedisGenericNotificationConfig findById(String id) {
         final Object obj = redisTemplate.opsForHash().get(REDIS_KEY, id);
-
-        if (obj == null) {
-            return null;
-        }
-
         return convert(obj, RedisGenericNotificationConfig.class);
     }
 

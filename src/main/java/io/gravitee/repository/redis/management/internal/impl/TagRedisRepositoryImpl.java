@@ -45,10 +45,6 @@ public class TagRedisRepositoryImpl extends AbstractRedisRepository implements T
     @Override
     public RedisTag findById(final String tagId) {
         Object tag = redisTemplate.opsForHash().get(REDIS_KEY, tagId);
-        if (tag == null) {
-            return null;
-        }
-
         return convert(tag, RedisTag.class);
     }
 

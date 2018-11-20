@@ -35,10 +35,6 @@ public class PlanRedisRepositoryImpl extends AbstractRedisRepository implements 
     @Override
     public RedisPlan find(String planId) {
         Object plan = redisTemplate.opsForHash().get(REDIS_KEY, planId);
-        if (plan == null) {
-            return null;
-        }
-
         return convert(plan, RedisPlan.class);
     }
 

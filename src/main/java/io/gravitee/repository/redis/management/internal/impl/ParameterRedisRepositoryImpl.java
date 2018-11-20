@@ -37,9 +37,6 @@ public class ParameterRedisRepositoryImpl extends AbstractRedisRepository implem
     @Override
     public RedisParameter findById(final String parameterKey) {
         Object parameter = redisTemplate.opsForHash().get(REDIS_KEY, parameterKey);
-        if (parameter == null) {
-            return null;
-        }
         return convert(parameter, RedisParameter.class);
     }
 

@@ -38,10 +38,6 @@ public class PageRedisRepositoryImpl extends AbstractRedisRepository implements 
     @Override
     public RedisPage find(String pageId) {
         Object page = redisTemplate.opsForHash().get(REDIS_KEY, pageId);
-        if (page == null) {
-            return null;
-        }
-
         return convert(page, RedisPage.class);
     }
 

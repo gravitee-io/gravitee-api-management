@@ -61,14 +61,14 @@ public class RedisUserRepository implements UserRepository {
 
     @Override
     public User update(User user) throws TechnicalException {
-        if (user == null || user.getUsername() == null) {
-            throw new IllegalStateException("User to update must have a username");
+        if (user == null || user.getId() == null) {
+            throw new IllegalStateException("User to update must have an ID");
         }
 
         final RedisUser redisUser = userRedisRepository.find(user.getId());
 
         if (redisUser == null) {
-            throw new IllegalStateException(String.format("No user found with username [%s]", user.getUsername()));
+            throw new IllegalStateException(String.format("No user found with id [%s]", user.getId()));
         }
 
         RedisUser redisUserUdated = userRedisRepository.saveOrUpdate(convert(user));
@@ -76,8 +76,8 @@ public class RedisUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByUsername(String username) throws TechnicalException {
-        RedisUser redisUser = userRedisRepository.findByUsername(username);
+    public Optional<User> findBySource(String sourceId, String userId) throws TechnicalException {
+        RedisUser redisUser = this.userRedisRepository.findBySource(sourceId, userId);
         return Optional.ofNullable(convert(redisUser));
     }
 
@@ -108,7 +108,6 @@ public class RedisUserRepository implements UserRepository {
 
         User user = new User();
         user.setId(redisUser.getId());
-        user.setUsername(redisUser.getUsername());
         user.setEmail(redisUser.getEmail());
         user.setFirstname(redisUser.getFirstname());
         user.setLastname(redisUser.getLastname());
@@ -129,7 +128,6 @@ public class RedisUserRepository implements UserRepository {
     private RedisUser convert(User user) {
         RedisUser redisUser = new RedisUser();
         redisUser.setId(user.getId());
-        redisUser.setUsername(user.getUsername());
         redisUser.setEmail(user.getEmail());
         redisUser.setFirstname(user.getFirstname());
         redisUser.setLastname(user.getLastname());

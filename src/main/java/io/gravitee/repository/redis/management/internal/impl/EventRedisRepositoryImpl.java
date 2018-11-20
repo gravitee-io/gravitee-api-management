@@ -43,11 +43,6 @@ public class EventRedisRepositoryImpl extends AbstractRedisRepository implements
     @Override
     public RedisEvent find(String eventId) {
         final Object event = redisTemplate.opsForHash().get(REDIS_KEY, eventId);
-
-        if (event == null) {
-            return null;
-        }
-
         return convert(event, RedisEvent.class);
     }
 

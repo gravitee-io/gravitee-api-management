@@ -51,10 +51,6 @@ public class RatingRedisRepositoryImpl extends AbstractRedisRepository implement
     @Override
     public Rating findById(final String ratingId) {
         Object rating = redisTemplate.opsForHash().get(REDIS_KEY, ratingId);
-        if (rating == null) {
-            return null;
-        }
-
         return convert(rating, Rating.class);
     }
 

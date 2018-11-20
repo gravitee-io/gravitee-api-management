@@ -36,11 +36,6 @@ public class PortalNotificationConfigRedisRepositoryImpl extends AbstractRedisRe
     @Override
     public RedisPortalNotificationConfig find(String user, String referenceType, String referenceId) {
         final Object obj = redisTemplate.opsForHash().get(REDIS_KEY, getPk(user, referenceType, referenceId));
-
-        if (obj == null) {
-            return null;
-        }
-
         return convert(obj, RedisPortalNotificationConfig.class);
     }
 

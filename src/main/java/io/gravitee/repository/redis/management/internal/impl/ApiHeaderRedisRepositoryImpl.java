@@ -45,10 +45,6 @@ public class ApiHeaderRedisRepositoryImpl extends AbstractRedisRepository implem
     @Override
     public RedisApiHeader findById(final String id) {
         Object redis = redisTemplate.opsForHash().get(REDIS_KEY, id);
-        if (redis == null) {
-            return null;
-        }
-
         return convert(redis, RedisApiHeader.class);
     }
 

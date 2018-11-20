@@ -39,10 +39,6 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
     @Override
     public RedisApplication find(String applicationId) {
         Object api = redisTemplate.opsForHash().get(REDIS_KEY, applicationId);
-        if (api == null) {
-            return null;
-        }
-
         return convert(api, RedisApplication.class);
     }
 

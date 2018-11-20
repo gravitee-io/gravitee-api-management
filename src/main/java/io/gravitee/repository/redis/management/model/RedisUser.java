@@ -15,16 +15,13 @@
  */
 package io.gravitee.repository.redis.management.model;
 
-import java.util.Objects;
-
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RedisUser {
 
     private String id;
-    private String username;
     private String password;
     private String email;
     private String firstname;
@@ -90,14 +87,6 @@ public class RedisUser {
 
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getPicture() {

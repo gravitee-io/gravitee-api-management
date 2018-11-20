@@ -43,10 +43,6 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
     @Override
     public RedisApi find(String apiId) {
         Object api = redisTemplate.opsForHash().get(REDIS_KEY, apiId);
-        if (api == null) {
-            return null;
-        }
-
         return convert(api, RedisApi.class);
     }
 

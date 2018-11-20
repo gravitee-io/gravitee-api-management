@@ -43,10 +43,6 @@ public class SubscriptionRedisRepositoryImpl extends AbstractRedisRepository imp
     @Override
     public RedisSubscription find(String subscriptionId) {
         Object subscription = redisTemplate.opsForHash().get(REDIS_KEY, subscriptionId);
-        if (subscription == null) {
-            return null;
-        }
-
         return convert(subscription, RedisSubscription.class);
     }
 

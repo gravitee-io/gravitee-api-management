@@ -45,10 +45,6 @@ public class TenantRedisRepositoryImpl extends AbstractRedisRepository implement
     @Override
     public RedisTenant findById(final String tenantId) {
         Object tenant = redisTemplate.opsForHash().get(REDIS_KEY, tenantId);
-        if (tenant == null) {
-            return null;
-        }
-
         return convert(tenant, RedisTenant.class);
     }
 
