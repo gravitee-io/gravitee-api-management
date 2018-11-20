@@ -64,16 +64,11 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
       if (securityType && securityType.policy) {
         this.PolicyService.getSchema(securityType.policy).then(schema => {
           this.securitySchema = schema.data;
-          if (this.parent.plan.securityDefinition) {
-            this.parent.plan.securityDefinition = JSON.parse(this.parent.plan.securityDefinition);
-          } else {
-            this.parent.plan.securityDefinition = {};
-          }
         });
       } else {
         this.securitySchema = undefined;
-        this.parent.plan.securityDefinition = {};
       }
+      this.parent.plan.securityDefinition = {};
     };
 
     gotoNextStep() {
