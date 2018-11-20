@@ -102,6 +102,7 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
         mongo.setReferenceId(genericNotificationConfig.getReferenceId());
         mongo.setNotifier(genericNotificationConfig.getNotifier());
         mongo.setConfig(genericNotificationConfig.getConfig());
+        mongo.setUseSystemProxy(genericNotificationConfig.isUseSystemProxy());
         mongo.setHooks(genericNotificationConfig.getHooks());
         mongo.setCreatedAt(genericNotificationConfig.getCreatedAt());
         mongo.setUpdatedAt(genericNotificationConfig.getUpdatedAt());
@@ -117,6 +118,7 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
         cfg.setReferenceId(mongo.getReferenceId());
         cfg.setNotifier(mongo.getNotifier());
         cfg.setConfig(mongo.getConfig());
+        cfg.setUseSystemProxy(mongo.isUseSystemProxy());
         cfg.setHooks(mongo.getHooks());
         cfg.setCreatedAt(mongo.getCreatedAt());
         cfg.setUpdatedAt(mongo.getUpdatedAt());

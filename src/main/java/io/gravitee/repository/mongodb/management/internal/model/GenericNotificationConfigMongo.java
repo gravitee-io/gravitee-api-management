@@ -37,6 +37,7 @@ public class GenericNotificationConfigMongo {
 	private String referenceId;
 	private String notifier;
 	private String config;
+	private boolean useSystemProxy;
 	private List<String> hooks;
 	private Date createdAt;
 	private Date updatedAt;
@@ -110,6 +111,14 @@ public class GenericNotificationConfigMongo {
 		this.updatedAt = updatedAt;
 	}
 
+	public boolean isUseSystemProxy() {
+		return useSystemProxy;
+	}
+
+	public void setUseSystemProxy(boolean useSystemProxy) {
+		this.useSystemProxy = useSystemProxy;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -131,6 +140,7 @@ public class GenericNotificationConfigMongo {
 				", referenceId='" + referenceId + '\'' +
 				", notifier='" + notifier + '\'' +
 				", config='" + config + '\'' +
+				", useSystemProxy='" + useSystemProxy + '\'' +
 				", hooks='" + hooks + '\'' +
 				", createdAt='" + createdAt + '\'' +
 				", updatedAt='" + updatedAt + '\'' +
