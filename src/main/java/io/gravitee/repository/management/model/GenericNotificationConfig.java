@@ -28,6 +28,7 @@ public class GenericNotificationConfig {
     private String name;
     private String notifier;
     private String config;
+    private boolean useSystemProxy;
     private List<String> hooks;
     private NotificationReferenceType referenceType;
     private String referenceId;
@@ -106,6 +107,14 @@ public class GenericNotificationConfig {
         this.updatedAt = updatedAt;
     }
 
+    public boolean isUseSystemProxy() {
+        return useSystemProxy;
+    }
+
+    public void setUseSystemProxy(boolean useSystemProxy) {
+        this.useSystemProxy = useSystemProxy;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -124,6 +133,7 @@ public class GenericNotificationConfig {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", notifier='" + notifier + '\'' +
+                ", config=" + config + '\'' +
                 ", referenceType='" + referenceType + '\'' +
                 ", referenceId='" + referenceId + '\'' +
                 ", hooks='" + hooks + '\'' +
