@@ -61,7 +61,7 @@ public class JdbcPlanRepository implements PlanRepository {
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("published_at", Types.TIMESTAMP, Date.class)
             .addColumn("closed_at", Types.TIMESTAMP, Date.class)
-            .addColumn("comment_required", Types.BOOLEAN, Boolean.class)
+            .addColumn("comment_required", Types.BOOLEAN, boolean.class)
             .build(); 
     
     private static final JdbcHelper.ChildAdder<Plan> CHILD_ADDER = (Plan parent, ResultSet rs) -> {
