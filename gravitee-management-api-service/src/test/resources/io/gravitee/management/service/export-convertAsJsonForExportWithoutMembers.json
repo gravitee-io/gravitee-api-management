@@ -33,7 +33,8 @@
         },
         "enabled" : true
       } ]
-    }
+    },
+    "comment_required" : false
   } ],
   "proxy": {
     "context_path": "/test",
