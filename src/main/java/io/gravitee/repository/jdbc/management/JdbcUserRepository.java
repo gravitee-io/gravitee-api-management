@@ -53,7 +53,6 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             .addColumn("source", Types.NVARCHAR, String.class)
             .addColumn("source_id", Types.NVARCHAR, String.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("username", Types.NVARCHAR, String.class)
             .build();
 
     @Override
@@ -67,17 +66,17 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     }
 
     @Override
-    public Optional<User> findByUsername(String username) throws TechnicalException {
-        LOGGER.debug("JdbcUserRepository.findByUsername({})", username);
+    public Optional<User> findBySource(String source, String sourceId) throws TechnicalException {
+        LOGGER.debug("JdbcUserRepository.findBySource({}, {})", source, sourceId);
         try {
-            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.username = ?"
+            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.source = ? and u.source_id = ?"
                     , ORM.getRowMapper()
-                    , username
+                    , source, sourceId
             );
             return users.stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find user by username", ex);
-            throw new TechnicalException("Failed to find user by username", ex);
+            LOGGER.error("Failed to find user by source", ex);
+            throw new TechnicalException("Failed to find user by source", ex);
         }
     }
 

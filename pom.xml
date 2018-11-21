@@ -71,6 +71,14 @@
             <version>${HikariCP.version}</version>
         </dependency>
 
+        <!-- Jackson dependencies -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -212,7 +220,8 @@
                             <skip>true</skip>
                         </configuration>
                     </execution>
-                    <execution>
+                    <!--
+                   <execution>
                         <id>mysql</id>
                         <goals>
                             <goal>test</goal>
@@ -245,6 +254,7 @@
                             </systemPropertyVariables>
                         </configuration>
                     </execution>
+                    -->
                 </executions>
             </plugin>
         </plugins>

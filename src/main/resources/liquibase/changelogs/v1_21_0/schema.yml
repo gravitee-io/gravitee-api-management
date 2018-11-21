@@ -3,6 +3,10 @@ databaseChangeLog:
         id: 1.21.0
         author: GraviteeSource Team
         changes:
+        - dropColumn:
+            tableName: users
+            columnName: username
+
         - addColumn:
             tableName: plans
             columns:
@@ -16,7 +20,28 @@ databaseChangeLog:
                 - column:
                     name: use_system_proxy
                     type: boolean
+                    
         - modifyDataType:
             tableName: pages
             columnName: source_configuration
             newDataType: nvarchar(256)
+
+        - createTable:
+            tableName: identity_providers
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: enabled, type: boolean, constraints: { nullable: false } }
+                - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: configuration, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: group_mappings, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: role_mappings, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: user_profile_mapping, type: nvarchar(4000), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_identity_providers
+            columnNames: id
+            tableName: identity_providers
