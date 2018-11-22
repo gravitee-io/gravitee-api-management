@@ -9,3 +9,14 @@ databaseChangeLog:
                 - column:
                     name: comment_required
                     type: boolean
+
+        - addColumn:
+            tableName: generic_notification_configs
+            columns:
+                - column:
+                    name: use_system_proxy
+                    type: boolean
+        - modifyDataType:
+            tableName: pages
+            columnName: source_configuration
+            newDataType: nvarchar(256)

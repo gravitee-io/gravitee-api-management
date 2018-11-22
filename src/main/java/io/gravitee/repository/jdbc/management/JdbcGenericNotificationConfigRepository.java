@@ -50,6 +50,7 @@ public class JdbcGenericNotificationConfigRepository extends JdbcAbstractCrudRep
             .addColumn("config", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, NotificationReferenceType.class)
+            .addColumn("use_system_proxy", Types.BOOLEAN, boolean.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
