@@ -32,6 +32,7 @@ public class RedisGenericNotificationConfig {
     private List<String> hooks;
     private NotificationReferenceType referenceType;
     private String referenceId;
+    private boolean useSystemProxy;
     private long createdAt;
     private long updatedAt;
 
@@ -107,6 +108,14 @@ public class RedisGenericNotificationConfig {
         this.updatedAt = updatedAt;
     }
 
+    public boolean isUseSystemProxy() {
+        return useSystemProxy;
+    }
+
+    public void setUseSystemProxy(boolean useSystemProxy) {
+        this.useSystemProxy = useSystemProxy;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -128,6 +137,7 @@ public class RedisGenericNotificationConfig {
                 ", referenceType='" + referenceType + '\'' +
                 ", referenceId='" + referenceId + '\'' +
                 ", hooks='" + hooks + '\'' +
+                ", useSystemProxy=" + useSystemProxy +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

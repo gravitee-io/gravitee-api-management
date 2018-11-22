@@ -91,6 +91,7 @@ public class RedisGenericNotificationConfigRepository implements GenericNotifica
         genericNotificationConfig.setReferenceType(redisGenericNotificationConfig.getReferenceType());
         genericNotificationConfig.setReferenceId(redisGenericNotificationConfig.getReferenceId());
         genericNotificationConfig.setHooks(redisGenericNotificationConfig.getHooks());
+        genericNotificationConfig.setUseSystemProxy(redisGenericNotificationConfig.isUseSystemProxy());
         genericNotificationConfig.setCreatedAt(new Date(redisGenericNotificationConfig.getCreatedAt()));
         genericNotificationConfig.setUpdatedAt(new Date(redisGenericNotificationConfig.getUpdatedAt()));
 
@@ -111,6 +112,7 @@ public class RedisGenericNotificationConfigRepository implements GenericNotifica
         redis.setReferenceType(genericNotificationConfig.getReferenceType());
         redis.setReferenceId(genericNotificationConfig.getReferenceId());
         redis.setHooks(genericNotificationConfig.getHooks());
+        redis.setUseSystemProxy(genericNotificationConfig.isUseSystemProxy());
         redis.setCreatedAt(genericNotificationConfig.getCreatedAt().getTime());
         redis.setUpdatedAt(genericNotificationConfig.getUpdatedAt().getTime());
 
