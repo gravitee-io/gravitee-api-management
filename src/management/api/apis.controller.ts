@@ -69,7 +69,7 @@ export class ApisController {
     this.isQualityDisplayed = Constants.apiQualityMetrics && Constants.apiQualityMetrics.enabled;
 
     $transitions.onStart({to: $state.current.name}, () => {
-      $scope.hideApis = true;
+      $scope.apisLoading = true;
     });
   }
 

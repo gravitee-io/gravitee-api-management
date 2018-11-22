@@ -34,19 +34,18 @@
     </div>
     <div flex="85" layout="column">
       <div layout="row" layout-align="center center">
-        <h5 class="gravitee-view-description" ng-if="apisCtrl.view && apisCtrl.view.description && !apisCtrl.hideApis">
+        <h5 class="gravitee-view-description" ng-if="apisCtrl.view && apisCtrl.view.description && !apisCtrl.apisLoading">
           {{apisCtrl.view.description}}
         </h5>
       </div>
       <div layout="row" layout-align="center center">
-        <md-content ng-show="!apisCtrl.hideApis"
-                    layout="row" layout-align="start start"
-                    layout-wrap
-                    class="api-gallery">
+        <md-progress-circular ng-if="apisCtrl.apisLoading" md-mode="indeterminate"></md-progress-circular>
+        <md-content class="api-gallery">
           <div flex="100" layout="row">
             <form flex layout="row" name="formSearch" autocomplete="off" ng-submit="apisCtrl.search()">
-              <input type="text" autofocus class="form-control apis-filter" placeholder="{{'apis.filter' | translate}}" ng-model="apisCtrl.query" />
-              <md-button class="md-primary gv-search-button" type="submit" aria-label="Search">
+              <input type="text" autofocus class="form-control apis-filter" placeholder="{{'apis.filter' | translate}}"
+                     ng-model="apisCtrl.query" ng-disabled="apisCtrl.apisLoading" />
+              <md-button class="md-primary gv-search-button" type="submit" aria-label="Search" ng-disabled="apisCtrl.apisLoading">
                 <ng-md-icon icon="search"></ng-md-icon>
               </md-button>
             </form>
@@ -56,63 +55,64 @@
               <ng-md-icon ng-if="!apisCtrl.tilesMode" icon="view_module" style="fill: rgba(0, 0, 0, 0.54);"></ng-md-icon>
             </md-button>
           </div>
-          <div ng-if="apisCtrl.selectedView === 'results' && apisCtrl.apis.length == 0"
-               style="font-size: 1.6em; margin-top:60px;">
-            {{'home.apis.no.search.result' | translate}}
-            <br>
-            (<b>{{::apisCtrl.query}}</b>)
+          <div ng-show="!apisCtrl.apisLoading" layout="row" layout-align="start start" layout-wrap>
+            <div ng-if="apisCtrl.selectedView === 'results' && apisCtrl.apis.length == 0"
+                 style="font-size: 1.6em; margin-top:60px;">
+              {{'home.apis.no.search.result' | translate}}
+              <br>
+              (<b>{{::apisCtrl.query}}</b>)
+            </div>
+
+            <md-card ng-if="apisCtrl.tilesMode" class="api-box gravitee-card gravitee-api-card"
+                     ng-repeat="api in apisCtrl.apis"
+                     ng-click="apisCtrl.goToApi(api)" ng-class="apisCtrl.getViewClass(api)"
+                     layout-wrap>
+              <md-card-title style="padding-top: 15px; padding-bottom: 0px;">
+                <md-card-title-text>
+                  <span class="md-headline">{{::api.name}}</span>
+                  <span class="md-subhead">{{::api.version}}</span>
+                </md-card-title-text>
+                <md-card-title-media>
+                  <div class="md-media-sm card-media">
+                    <img ng-src="{{::api.picture_url}}" alt="api-logo" />
+                  </div>
+                </md-card-title-media>
+              </md-card-title>
+              <md-card-content>
+                <div class="api-infos">
+                  <small>{{::api.description}}</small>
+                </div>
+                <div class="api-views" layout="row">
+                  <div flex="65">
+                    <a ng-if="api.views" ng-repeat="view in api.views" class="ui label" ng-click="apisCtrl.changeView($event, view)">{{view}}</a>
+                    <div ng-if="!api.views || api.views.length === 0" class="no-view"></div>
+                  </div>
+
+                  <gv-star-rating flex ng-if="apisCtrl.ratingEnabled && api.rate"  value="api.rate"
+                                  message="'api.rating.rate' | translate:{numberOfRatings: api.numberOfRatings}" display-none-message="true"
+                                  ng-click="apisCtrl.goToRating($event, api)"></gv-star-rating>
+                </div>
+              </md-card-content>
+            </md-card>
+
+            <md-table-container ng-if="!apisCtrl.tilesMode" style="width: 100%">
+              <table md-table>
+                <tbody md-body>
+                <tr style="height: 80px;" md-row ng-click="apisCtrl.goToApi(api)"
+                    ng-repeat="api in apisCtrl.apis">
+                  <td md-cell><img height="40" ng-src="{{::api.picture_url}}"/></td>
+                  <td md-cell>{{api.name}}</td>
+                  <td md-cell>{{api.version}}</td>
+                  <td md-cell>{{api.description}}</td>
+                  <td class="api-table-rating" md-cell ng-if="apisCtrl.ratingEnabled" width="20%">
+                    <gv-star-rating flex ng-if="api.rate" value="api.rate" ng-click="apisCtrl.goToRating($event, api)"
+                                    message="'api.rating.rate' | translate:{numberOfRatings: api.numberOfRatings}"></gv-star-rating>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </md-table-container>
           </div>
-
-          <md-card ng-if="apisCtrl.tilesMode" class="api-box gravitee-card gravitee-api-card"
-                   ng-repeat="api in apisCtrl.apis"
-                   ng-click="apisCtrl.goToApi(api)" ng-class="apisCtrl.getViewClass(api)"
-                   layout-wrap>
-            <md-card-title style="padding-top: 15px; padding-bottom: 0px;">
-              <md-card-title-text>
-                <span class="md-headline">{{::api.name}}</span>
-                <span class="md-subhead">{{::api.version}}</span>
-              </md-card-title-text>
-              <md-card-title-media>
-                <div class="md-media-sm card-media">
-                  <img ng-src="{{::api.picture_url}}" alt="api-logo" />
-                </div>
-              </md-card-title-media>
-            </md-card-title>
-            <md-card-content>
-              <div class="api-infos">
-                <small>{{::api.description}}</small>
-              </div>
-              <div class="api-views" layout="row">
-                <div flex="65">
-                  <a ng-if="api.views" ng-repeat="view in api.views" class="ui label" ng-click="apisCtrl.changeView($event, view)">{{view}}</a>
-                  <div ng-if="!api.views || api.views.length === 0" class="no-view"></div>
-                </div>
-
-                <gv-star-rating flex ng-if="apisCtrl.ratingEnabled && api.rate"  value="api.rate"
-                                message="'api.rating.rate' | translate:{numberOfRatings: api.numberOfRatings}" display-none-message="true"
-                                ng-click="apisCtrl.goToRating($event, api)"></gv-star-rating>
-              </div>
-            </md-card-content>
-          </md-card>
-
-          <md-table-container ng-if="!apisCtrl.tilesMode" style="width: 100%">
-            <table md-table>
-              <tbody md-body>
-              <tr style="height: 80px;" md-row ng-click="apisCtrl.goToApi(api)"
-                  ng-repeat="api in apisCtrl.apis">
-                <td md-cell><img height="40" ng-src="{{::api.picture_url}}"/></td>
-                <td md-cell>{{api.name}}</td>
-                <td md-cell>{{api.version}}</td>
-                <td md-cell>{{api.description}}</td>
-                <td class="api-table-rating" md-cell ng-if="apisCtrl.ratingEnabled" width="20%">
-                  <gv-star-rating flex ng-if="api.rate" value="api.rate" ng-click="apisCtrl.goToRating($event, api)"
-                                  message="'api.rating.rate' | translate:{numberOfRatings: api.numberOfRatings}"></gv-star-rating>
-                </td>
-              </tr>
-              </tbody>
-            </table>
-          </md-table-container>
-
         </md-content>
       </div>
     </div>
