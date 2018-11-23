@@ -153,7 +153,7 @@ security:
   providers:  # authentication providers
     - type: memory
       # password encoding/hashing algorithm. One of:
-      # - bcrypt : passwords are hashed with bcrypt
+      # - bcrypt : passwords are hashed with bcrypt (supports only $2a$ algorithm)
       # - none : passwords are not hashed/encrypted
       # default value is bcrypt
       password-encoding-algo: bcrypt
