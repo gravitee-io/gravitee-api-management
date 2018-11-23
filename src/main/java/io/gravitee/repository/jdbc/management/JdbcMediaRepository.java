@@ -79,11 +79,9 @@ public class JdbcMediaRepository implements MediaRepository {
             PreparedStatement ps = ORM.buildInsertPreparedStatementCreator(media).createPreparedStatement(conn);
 
             ps.execute();
-            //jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(media));
             conn.commit();
 
             return media.getId();
-            //return findMediaBy(media.getHash(), media.getApi(), media.getType()).get().getId();
         } catch (final Exception ex) {
             LOGGER.error("Failed to create media", ex);
             throw new TechnicalException("Failed to create media", ex);
@@ -118,33 +116,33 @@ public class JdbcMediaRepository implements MediaRepository {
         return mediaList.stream().findFirst();
     }
 
-    @Override
-    public void delete(String hash, String mediaType) {
-        this.deleteApiFor(hash, null, mediaType);
-    }
+//    @Override
+//    public void delete(String hash, String mediaType) {
+//        this.deleteApiFor(hash, null, mediaType);
+//    }
 
-    @Override
-    public void deleteApiFor(String hash, String api, String mediaType) {
-        LOGGER.debug("deleteApiMediaFor({}, {}, {})", hash, api, mediaType);
+//    @Override
+//    public void deleteApiFor(String hash, String api, String mediaType) {
+//        LOGGER.debug("deleteApiMediaFor({}, {}, {})", hash, api, mediaType);
+//
+//        String sql = null;
+//        Object[] param = null;
+//        if (api != null) {
+//            sql = "delete from "+ escapeReservedWord("media")+" where hash = ? and type = ? and api = ?";
+//            param = new Object[]{hash, mediaType, api};
+//        } else {
+//            sql = "delete from media where hash = ? and type = ?";
+//            param = new Object[]{hash, mediaType};
+//        }
+//
+//        jdbcTemplate.update(sql, param);
+//    }
 
-        String sql = null;
-        Object[] param = null;
-        if (api != null) {
-            sql = "delete from "+ escapeReservedWord("media")+" where hash = ? and type = ? and api = ?";
-            param = new Object[]{hash, mediaType, api};
-        } else {
-            sql = "delete from media where hash = ? and type = ?";
-            param = new Object[]{hash, mediaType};
-        }
 
-        jdbcTemplate.update(sql, param);
-    }
-
-
-    @Override
-    public long totalSizeFor(String api, String mediaType) {
-        String sql = "select sum(size) from "+ escapeReservedWord("media")+" where type = ? and api = ?";
-        Object[] param = new Object[]{mediaType, api};
-        return (Long) jdbcTemplate.queryForObject(sql, Long.class, param);
-    }
+//    @Override
+//    public long totalSizeFor(String api, String mediaType) {
+//        String sql = "select sum(size) from "+ escapeReservedWord("media")+" where type = ? and api = ?";
+//        Object[] param = new Object[]{mediaType, api};
+//        return (Long) jdbcTemplate.queryForObject(sql, Long.class, param);
+//    }
 }
