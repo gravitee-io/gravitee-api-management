@@ -1696,15 +1696,11 @@ public class MockTestRepositoryConfiguration {
 
         when(mediaRepository.save(any(Media.class))).thenReturn("223344");
 
-        //when(imagesRepository.saveMediaFor(any(Media.class))).thenReturn("4692FBACBEF919061ECF328CA543E028");
-
         when(mediaRepository.findByHash("4692FBACBEF919061ECF328CA543E028", "image"))
                 .thenReturn(of(mediaData));
 
         when(mediaRepository.findByHash("77C921AB285376AFF72FBDD2D0784E0B", "123456","image"))
                 .thenReturn(of(mediaData3));
-
-        when(mediaRepository.totalSizeFor(anyString(), anyString())).thenReturn(88458L);
 
         when(mediaRepository.findByHash("1BC5D9656D860DE678CBEF5C169D8B15", "image"))
                 .thenReturn(of(mediaData2), empty());
