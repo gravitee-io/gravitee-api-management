@@ -22,6 +22,7 @@ import java.util.Optional;
 
 /**
  * @author Guillaume Gillon
+ * @author GraviteeSource Team
  */
 public interface MediaRepository {
 
@@ -29,9 +30,4 @@ public interface MediaRepository {
 
     Optional<Media> findByHash(String hash, String mediaType);
     Optional<Media> findByHash(String hash, String api, String mediaType);
-
-    void delete(String hash, String mediaType);
-    void deleteApiFor(String hash, String api, String mediaType);
-
-    long totalSizeFor(String api, String mediaType);
 }
