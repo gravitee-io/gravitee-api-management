@@ -55,20 +55,20 @@ public class RedisMediaRepository implements MediaRepository {
         return Optional.ofNullable(convert(mediaRedisRepository.findMediaBy(hash, api, mediaType).orElse(null)));
     }
 
-    @Override
-    public void delete(String hash, String mediaType) {
-        this.deleteApiFor(hash, null, mediaType);
-    }
+//    @Override
+//    public void delete(String hash, String mediaType) {
+//        this.deleteApiFor(hash, null, mediaType);
+//    }
 
-    @Override
-    public void deleteApiFor(String hash, String api, String mediaType) {
-        mediaRedisRepository.deleteApiMediaFor(hash, api, mediaType);
-    }
+//    @Override
+//    public void deleteApiFor(String hash, String api, String mediaType) {
+//        mediaRedisRepository.deleteApiMediaFor(hash, api, mediaType);
+//    }
 
-    @Override
-    public long totalSizeFor(String api, String mediaType) {
-        return mediaRedisRepository.totalSizeFor(api, mediaType);
-    }
+//    @Override
+//    public long totalSizeFor(String api, String mediaType) {
+//        return mediaRedisRepository.totalSizeFor(api, mediaType);
+//    }
 
     private Media convert(RedisMedia redisMedia) {
         if (redisMedia == null) {
@@ -108,26 +108,7 @@ public class RedisMediaRepository implements MediaRepository {
 
         redisMedia.setApi(media.getApi());
         redisMedia.setHash(media.getHash());
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-         /*InputStream in = media.getData();
-        /*byte[] result = null;
-        try {
-            int next = media.getData().read();
-
-            while (next > -1) {
-                bos.write(next);
-                next = in.read();
-            }
-            bos.flush();
-            result = bos.toByteArray();
-            bos.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
         redisMedia.setData(media.getData());
-
 
         return redisMedia;
     }
