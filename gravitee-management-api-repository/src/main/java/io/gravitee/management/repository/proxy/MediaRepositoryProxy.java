@@ -24,6 +24,7 @@ import java.util.Optional;
 
 /**
  * @author Guillaume GILLON
+ * @author GraviteeSource Team
  */
 @Component
 public class MediaRepositoryProxy extends AbstractProxy<MediaRepository> implements MediaRepository {
@@ -40,20 +41,5 @@ public class MediaRepositoryProxy extends AbstractProxy<MediaRepository> impleme
     @Override
     public Optional<Media> findByHash(String hash, String api, String mediaType) {
         return target.findByHash(hash, api, mediaType);
-    }
-
-    @Override
-    public void delete(String hash, String mediaType) {
-        target.delete(hash, mediaType);
-    }
-
-    @Override
-    public void deleteApiFor(String hash, String api, String mediaType) {
-        target.deleteApiFor(hash, api, mediaType);
-    }
-
-    @Override
-    public long totalSizeFor(String api, String mediaType) {
-        return target.totalSizeFor(api, mediaType);
     }
 }
