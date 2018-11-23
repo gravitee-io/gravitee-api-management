@@ -51,9 +51,6 @@ import static com.mongodb.client.model.Filters.not;
 @Component
 public class MongoMediaRepository implements MediaRepository {
 
-
-    private Map<String, GridFsOperations> gridFsOperationsMap = new HashMap<>(5);
-
     @Autowired
     private MongoDbFactory mongoFactory;
 
@@ -142,27 +139,18 @@ public class MongoMediaRepository implements MediaRepository {
         return Optional.ofNullable(imageData);
     }
 
-    @Override
-    public void delete(String hash, String mediaType) {
-        this.deleteApiFor(hash, null, mediaType);
-    }
-
-    @Override
-    public void deleteApiFor(String hash, String api, String mediaType) {
-        GridFSFile file = getGridFs().find(getQueryFindMedia(hash, api, mediaType)).first();
-
-        getGridFs().delete(file.getId());
-
-        /*Criteria criteria = null;
-
-        if(api == null) {
-            criteria = Criteria.where("metadata.hash").is(hash).and("metadata.api").exists(false);
-        } else {
-            criteria = Criteria.where("metadata.hash").is(hash).and("metadata.api").is(api);
-        }
-        Query query = Query.query(criteria);
-        getGridOperation(mediaType).delete(query);*/
-    }
+//    @Override
+//    public void delete(String hash, String mediaType) {
+//        this.deleteApiFor(hash, null, mediaType);
+//    }
+//
+//    @Override
+//    public void deleteApiFor(String hash, String api, String mediaType) {
+//        GridFSFile file = getGridFs().find(getQueryFindMedia(hash, api, mediaType)).first();
+//
+//        getGridFs().delete(file.getId());
+//
+//    }
 
     private Bson getQueryFindMedia(String hash, String api, String mediaType) {
         Bson addQuery = api == null ? not(exists("metadata.api")) : eq("metadata.api", api);
@@ -170,24 +158,23 @@ public class MongoMediaRepository implements MediaRepository {
     }
 
 
-    @Override
-    public long totalSizeFor(String api, String mediaType) {
-
-        GridFSFindIterable gridFSFindIterable = getGridFs().find();
-
-        long sum = 0;
-        for (GridFSFile gridFSFile : gridFSFindIterable) {
-            sum += (Long)gridFSFile.getMetadata().get("size");
-        }
-
-        return sum;
-    }
+//    @Override
+//    public long totalSizeFor(String api, String mediaType) {
+//
+//        GridFSFindIterable gridFSFindIterable = getGridFs().find();
+//
+//        long sum = 0;
+//        for (GridFSFile gridFSFile : gridFSFindIterable) {
+//            sum += (Long)gridFSFile.getMetadata().get("size");
+//        }
+//
+//        return sum;
+//    }
 
     private GridFSBucket getGridFs() {
 
         MongoDatabase db = mongoFactory.getDb();
         String bucketName = "media";
-        //String bucketName = api == null ? mediaType : mediaType + "-" + api;
         return GridFSBuckets.create(db, bucketName);
     }
 }
