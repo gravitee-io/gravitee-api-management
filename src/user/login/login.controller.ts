@@ -63,7 +63,6 @@ class LoginController {
     this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : user});
 
     let route = this.RouterService.getLastRoute();
-    console.log(route);
     if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm') {
       this.$state.go(route.from.name, route.fromParams);
     } else {
