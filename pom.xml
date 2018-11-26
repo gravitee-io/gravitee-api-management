@@ -19,7 +19,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
   <properties>
     <frontend-maven-plugin.version>1.6</frontend-maven-plugin.version>
     <node.version>v8.11.3</node.version>
@@ -27,172 +27,172 @@
   </properties>
 
   <parent>
-        <groupId>io.gravitee</groupId>
-        <artifactId>gravitee-parent</artifactId>
-        <version>13</version>
-    </parent>
+    <groupId>io.gravitee</groupId>
+    <artifactId>gravitee-parent</artifactId>
+    <version>14-SNAPSHOT</version>
+  </parent>
 
-    <groupId>io.gravitee.management</groupId>
-    <artifactId>gravitee-management-webui</artifactId>
-    <version>1.21.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Gravitee.io APIM - Portal</name>
+  <groupId>io.gravitee.management</groupId>
+  <artifactId>gravitee-management-webui</artifactId>
+  <version>1.21.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Gravitee.io APIM - Portal</name>
 
-    <build>
-        <plugins>
-          <plugin>
-            <groupId>com.mycila</groupId>
-            <artifactId>license-maven-plugin</artifactId>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <mapping>
+            <ts>SLASHSTAR_STYLE</ts>
+          </mapping>
+          <excludes>
+            <exclude>LICENSE.txt</exclude>
+            <exclude>node/**</exclude>
+            <exclude>node_modules/**</exclude>
+            <exclude>src/libraries/**</exclude>
+            <exclude>**/*.scss</exclude>
+            <exclude>**/*.svg</exclude>
+            <exclude>Jenkinsfile</exclude>
+            <exclude>**/.*</exclude>
+            <exclude>**/*.adoc</exclude>
+            <exclude>**/*.woff</exclude>
+            <exclude>**/*.ttf</exclude>
+            <exclude>**/*.woff2</exclude>
+            <exclude>**/*.eot</exclude>
+            <exclude>yarn.lock</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>dist</directory>
+            </fileset>
+            <fileset>
+              <directory>.tmp</directory>
+            </fileset>
+            <fileset>
+              <directory>node</directory>
+            </fileset>
+            <fileset>
+              <directory>node_modules</directory>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>${frontend-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>install node and yarn</id>
+            <goals>
+              <goal>install-node-and-yarn</goal>
+            </goals>
             <configuration>
-              <mapping>
-                <ts>SLASHSTAR_STYLE</ts>
-              </mapping>
-              <excludes>
-                <exclude>LICENSE.txt</exclude>
-                <exclude>node/**</exclude>
-                <exclude>node_modules/**</exclude>
-                <exclude>src/libraries/**</exclude>
-                <exclude>**/*.scss</exclude>
-                <exclude>**/*.svg</exclude>
-                <exclude>Jenkinsfile</exclude>
-                <exclude>**/.*</exclude>
-                <exclude>**/*.adoc</exclude>
-                <exclude>**/*.woff</exclude>
-                <exclude>**/*.ttf</exclude>
-                <exclude>**/*.woff2</exclude>
-                <exclude>**/*.eot</exclude>
-                <exclude>yarn.lock</exclude>
-              </excludes>
+              <nodeVersion>${node.version}</nodeVersion>
+              <yarnVersion>${yarn.version}</yarnVersion>
             </configuration>
-          </plugin>
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <filesets>
-                      <fileset>
-                          <directory>dist</directory>
-                      </fileset>
-                      <fileset>
-                          <directory>.tmp</directory>
-                      </fileset>
-                      <fileset>
-                        <directory>node</directory>
-                      </fileset>
-                      <fileset>
-                        <directory>node_modules</directory>
-                      </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-            <plugin>
-              <groupId>com.github.eirslett</groupId>
-              <artifactId>frontend-maven-plugin</artifactId>
-              <version>${frontend-maven-plugin.version}</version>
-              <executions>
-                <execution>
-                  <id>install node and yarn</id>
-                  <goals>
-                    <goal>install-node-and-yarn</goal>
-                  </goals>
-                  <configuration>
-                    <nodeVersion>${node.version}</nodeVersion>
-                    <yarnVersion>${yarn.version}</yarnVersion>
-                  </configuration>
-                </execution>
-                <execution>
-                  <id>yarn install</id>
-                  <goals>
-                    <goal>yarn</goal>
-                  </goals>
-                  <phase>generate-resources</phase>
-                </execution>
-                <execution>
-                  <id>build with yarn</id>
-                  <goals>
-                    <goal>yarn</goal>
-                  </goals>
-                  <phase>process-resources</phase>
-                  <configuration>
-                    <arguments>run buildNoReg</arguments>
-                  </configuration>
-                </execution>
-              </executions>
-            </plugin>
-          <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                      <configuration>
-                        <appendAssemblyId>false</appendAssemblyId>
-                        <descriptors>
-                          <descriptor>assembly.xml</descriptor>
-                        </descriptors>
-                      </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <!--Plugin used to replace version on several files -->
-            <plugin>
-                <groupId>com.google.code.maven-replacer-plugin</groupId>
-                <artifactId>replacer</artifactId>
-                <version>1.5.3</version>
-                <executions>
-                    <execution>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>replace</goal>
-                        </goals>
-                        <configuration>
-                            <includes>
-                                <include>${project.basedir}/package.json</include>
-                                <include>${project.basedir}/build.json</include>
-                            </includes>
-                            <replacements>
-                                <replacement>
-                                    <token>"name"(\s*):(\s*)"(.*)"</token>
-                                    <value>"name": "${project.artifactId}"</value>
-                                </replacement>
-                                <replacement>
-                                    <token>"version": "(.*)"</token>
-                                    <value>"version": "${project.version}"</value>
-                                </replacement>
-                                <replacement>
-                                    <token>'version': '(.*)'</token>
-                                    <value>'version': '${project.version}'</value>
-                                </replacement>
-                                <replacement>
-                                    <token>"description"(\s*):(\s*)"(.*)"</token>
-                                    <value>"description": "${project.name}"</value>
-                                </replacement>
-                            </replacements>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>replace-base-url</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>replace</goal>
-                        </goals>
-                        <configuration>
-                            <includes>
-                                <include>${project.basedir}/dist/constants.json</include>
-                            </includes>
-                            <replacements>
-                                <replacement>
-                                    <token>"baseURL": "(.*)"</token>
-                                    <value>"baseURL": "http://localhost:8083/management/"</value>
-                                </replacement>
-                            </replacements>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+          </execution>
+          <execution>
+            <id>yarn install</id>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <phase>generate-resources</phase>
+          </execution>
+          <execution>
+            <id>build with yarn</id>
+            <goals>
+              <goal>yarn</goal>
+            </goals>
+            <phase>process-resources</phase>
+            <configuration>
+              <arguments>run buildNoReg</arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>assembly.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!--Plugin used to replace version on several files -->
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <version>1.5.3</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>${project.basedir}/package.json</include>
+                <include>${project.basedir}/build.json</include>
+              </includes>
+              <replacements>
+                <replacement>
+                  <token>"name"(\s*):(\s*)"(.*)"</token>
+                  <value>"name": "${project.artifactId}"</value>
+                </replacement>
+                <replacement>
+                  <token>"version": "(.*)"</token>
+                  <value>"version": "${project.version}"</value>
+                </replacement>
+                <replacement>
+                  <token>'version': '(.*)'</token>
+                  <value>'version': '${project.version}'</value>
+                </replacement>
+                <replacement>
+                  <token>"description"(\s*):(\s*)"(.*)"</token>
+                  <value>"description": "${project.name}"</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+          <execution>
+            <id>replace-base-url</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>${project.basedir}/dist/constants.json</include>
+              </includes>
+              <replacements>
+                <replacement>
+                  <token>"baseURL": "(.*)"</token>
+                  <value>"baseURL": "http://localhost:8083/management/"</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
