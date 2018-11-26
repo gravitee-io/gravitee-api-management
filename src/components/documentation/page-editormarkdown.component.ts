@@ -98,7 +98,7 @@ class ComponentCtrl implements ng.IComponentController {
           fd.append("file", blob);
 
           if (blob.size > Constants.portal.uploadMedia.maxSizeInOctet) {
-            callback("file uploaded to big, you're limited at " + Constants.portal.uploadMedia.maxSizeInOctet, "");
+            callback("file uploaded to big, you're limited at " + Constants.portal.uploadMedia.maxSizeInOctet, " bytes");
             return false;
           }
 
