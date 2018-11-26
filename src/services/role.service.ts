@@ -20,12 +20,10 @@ class RoleService {
 
   private permissionsByScope: any = {
     MANAGEMENT: {
-      permissions: ['INSTANCE', 'GROUP', 'TAG', 'TENANT', 'API', 'ROLE', 'APPLICATION', 'PLATFORM', 'AUDIT', 'NOTIFICATION', 'USER', 'MESSAGE', 'DICTIONARY', 'ALERT'],
-      userRoleManagement: true
+      permissions: ['INSTANCE', 'GROUP', 'TAG', 'TENANT', 'API', 'ROLE', 'APPLICATION', 'PLATFORM', 'AUDIT', 'NOTIFICATION', 'USER', 'MESSAGE', 'DICTIONARY', 'ALERT']
     },
     PORTAL: {
-      permissions: ['METADATA', 'DOCUMENTATION', 'APPLICATION', 'VIEW', 'TOP_APIS', "SETTINGS", "API_HEADER", 'IDENTITY_PROVIDER'],
-      userRoleManagement: true
+      permissions: ['METADATA', 'DOCUMENTATION', 'APPLICATION', 'VIEW', 'TOP_APIS', "SETTINGS", "API_HEADER", 'IDENTITY_PROVIDER']
     },
     API: {
       permissions: ['DEFINITION', 'GATEWAY_DEFINITION', 'PLAN', 'SUBSCRIPTION', 'MEMBER', 'METADATA', 'ANALYTICS', 'EVENT', 'HEALTH', 'LOG', 'DOCUMENTATION', 'AUDIT', 'RATING', 'RATING_ANSWER', "DISCOVERY", "NOTIFICATION", "MESSAGE", 'ALERT']
@@ -49,7 +47,7 @@ class RoleService {
   }
 
   listPermissionsByScope(scope: string) {
-    return this.permissionsByScope[scope];
+    return this.permissionsByScope[scope].permissions;
   }
 
   isUserRoleManagement(scope: string) {
