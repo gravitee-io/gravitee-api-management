@@ -32,6 +32,7 @@ import io.gravitee.gateway.services.healthcheck.EndpointStatusDecorator;
 import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
 import io.gravitee.gateway.services.healthcheck.eval.assertion.AssertionEvaluation;
 import io.gravitee.gateway.services.healthcheck.http.el.EvaluableHttpResponse;
+import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEngineService;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
@@ -75,6 +76,8 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
     private Handler<EndpointStatus> statusHandler;
 
     private AlertEngineService alertEngineService;
+    private Node node;
+    private String port;
 
     public HttpEndpointRuleHandler(Vertx vertx, EndpointRule rule) {
         this.vertx = vertx;
@@ -408,15 +411,22 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
         endpointStatus.setTransition(transition);
 
         if (transition && alertEngineService != null) {
-            final Event.Builder props = new Event.Builder()
+            final Event.Builder event = new Event.Builder()
                     .timestamp(currentTimeMillis())
+                    .context("Gateway", node.id())
+                    .context("Hostname", node.hostname())
+                    .context("Port", port)
                     .type("HEALTH_CHECK")
                     .prop("API", rule.api())
                     .prop("Endpoint name", rule.endpoint().getName())
                     .prop("Old status", previousStatusName)
                     .prop("New status", rule.endpoint().getStatus().name())
                     .prop("Success", endpointStatus.isSuccess());
-            alertEngineService.send(props.build());
+            final Object tenant = node.metadata().get("tenant");
+            if (tenant != null) {
+                event.context("Tenant", (String) tenant);
+            }
+            alertEngineService.send(event.build());
         }
 
         statusHandler.handle(endpointStatus);
@@ -428,5 +438,13 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
 
     public void setAlertEngineService(AlertEngineService alertEngineService) {
         this.alertEngineService = alertEngineService;
+    }
+
+    public void setNode(Node node) {
+        this.node = node;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
     }
 }
