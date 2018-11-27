@@ -17,8 +17,10 @@ package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.management.model.User;
 import org.springframework.stereotype.Component;
 
@@ -31,40 +33,30 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @Component
-public class HttpUserRepository extends AbstractRepository implements UserRepository {
+public class HttpIdentityProviderRepository extends AbstractRepository implements IdentityProviderRepository {
 
     @Override
-    public Optional<User> findById(String s) throws TechnicalException {
+    public Set<IdentityProvider> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public User create(User item) throws TechnicalException {
+    public Optional<IdentityProvider> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public User update(User item) throws TechnicalException {
+    public IdentityProvider create(IdentityProvider item) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public IdentityProvider update(IdentityProvider item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
     public void delete(String s) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Optional<User> findBySource(String source, String sourceId) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Set<User> findByIds(List<String> ids) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Page<User> search(Pageable pageable) throws TechnicalException {
         throw new IllegalStateException();
     }
 }
