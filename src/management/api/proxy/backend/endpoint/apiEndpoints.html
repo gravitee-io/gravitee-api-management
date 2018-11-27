@@ -74,8 +74,8 @@
                   <ng-md-icon ng-show="!endpoint.backup" icon="clear" style="fill: #BE2628"></ng-md-icon>
                 </td>
                 <td md-cell hide-gt-xs show-gt-sm>
-                  <ng-md-icon ng-show="endpoint.healthcheck === undefined || endpoint.healthcheck.enabled === true" icon="done" style="fill: #107F20"></ng-md-icon>
-                  <ng-md-icon ng-show="endpoint.healthcheck.enabled === false" icon="clear" style="fill: #BE2628"></ng-md-icon>
+                  <ng-md-icon ng-show="apiProxyCtrl.hasHealthCheck(endpoint)" icon="done" style="fill: #107F20"></ng-md-icon>
+                  <ng-md-icon ng-show="!apiProxyCtrl.hasHealthCheck(endpoint)" icon="clear" style="fill: #BE2628"></ng-md-icon>
                 </td>
                 <td md-cell permission permission-only="'api-definition-u'">
                   <md-button class="md-icon-button" aria-label="Edit endpoint" ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: endpoint.name})">
