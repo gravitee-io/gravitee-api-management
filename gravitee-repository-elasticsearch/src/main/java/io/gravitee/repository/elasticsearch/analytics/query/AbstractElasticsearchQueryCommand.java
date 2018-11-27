@@ -49,6 +49,8 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 	 * Logger.
 	 */
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	private static final String[] ALL_CLUSTERS = {"*"};
 	
 	/**
 	 * Elasticsearch client to perform search request.
@@ -129,11 +131,8 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 						.map(fieldValue ->
 								configuration.getCrossClusterMapping().get(fieldValue.substring(2, fieldValue.length() - 2)))
 						.toArray(String[]::new);
-
 			}
-
 		}
-
-		return null;
+		return ALL_CLUSTERS;
 	}
 }
