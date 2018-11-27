@@ -50,11 +50,13 @@ import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.reactor.handler.alert.AlertHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.security.core.SecurityPolicyChainResolver;
+import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEngineService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +88,11 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
     @Autowired
     private AlertEngineService alertEngineService;
+
+    @Autowired
+    private Node node;
+    @Value("${http.port:8082}")
+    private String port;
 
     @Override
     protected void doHandle(Request serverRequest, Response serverResponse, ExecutionContext executionContext, Handler<Response> handler) {
@@ -199,7 +206,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         // Resume response read
         proxyResponse.resume();
 
-        final AlertHandler alertHandler = new AlertHandler(alertEngineService, context.getRequest(), context.getContext(), handler);
+        final AlertHandler alertHandler = new AlertHandler(alertEngineService, context.getRequest(), context.getContext(),
+                node, port,handler);
         alertHandler.handle(context.getResponse());
     }
 
