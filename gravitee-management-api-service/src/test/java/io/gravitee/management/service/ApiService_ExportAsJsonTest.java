@@ -47,6 +47,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.mockito.internal.util.collections.Sets;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 
@@ -198,7 +199,7 @@ public class ApiService_ExportAsJsonTest {
         path.setPath("/");
         io.gravitee.definition.model.Rule rule = new io.gravitee.definition.model.Rule();
         rule.setEnabled(true);
-        rule.setMethods(Collections.singletonList(HttpMethod.GET));
+        rule.setMethods(Sets.newSet(HttpMethod.GET));
         Policy policy = new Policy();
         policy.setName("rate-limit");
         String ls = System.lineSeparator();
