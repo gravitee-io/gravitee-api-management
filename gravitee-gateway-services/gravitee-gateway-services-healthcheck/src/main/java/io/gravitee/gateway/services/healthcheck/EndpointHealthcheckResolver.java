@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EndpointHealthcheckResolver {
@@ -70,10 +71,17 @@ public class EndpointHealthcheckResolver {
         httpEndpoints = httpEndpoints.filter(endpoint -> !endpoint.isBackup());
 
         // Keep only endpoints where health-check is enabled or not settled (inherit from service)
-        httpEndpoints = httpEndpoints.filter(endpoint ->
-                ((endpoint.getHealthCheck() == null || !endpoint.getHealthCheck().isEnabled()) && hcEnabled) ||
-                        (endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled() && !endpoint.getHealthCheck().isInherit()) ||
-                        (endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled() && endpoint.getHealthCheck().isInherit() && hcEnabled));
+        httpEndpoints = httpEndpoints.filter(endpoint -> (
+                (endpoint.getHealthCheck() == null && hcEnabled)
+                        ||
+                        (endpoint.getHealthCheck() != null
+                                && endpoint.getHealthCheck().isEnabled()
+                                && !endpoint.getHealthCheck().isInherit())
+                        ||
+                        (endpoint.getHealthCheck() != null
+                                && endpoint.getHealthCheck().isEnabled()
+                                && endpoint.getHealthCheck().isInherit()
+                                && hcEnabled)));
 
         return httpEndpoints.map((Function<HttpEndpoint, EndpointRule>) endpoint -> new DefaultEndpointRule(
                 api.getId(),
