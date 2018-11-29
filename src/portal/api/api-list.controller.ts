@@ -29,7 +29,7 @@ export class PortalApiListController {
   private selectedView: string;
   private tilesMode: boolean;
   private tilesModeKey = 'gv-tiles-mode';
-  private hideApis: boolean;
+  private apisLoading: boolean;
 
   constructor (private $scope: IScope,
                private $state,
@@ -72,7 +72,7 @@ export class PortalApiListController {
     }
 
     $transitions.onStart({to: $state.current.name}, () => {
-      this.hideApis = true;
+      this.apisLoading = true;
     });
   }
 

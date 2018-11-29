@@ -316,6 +316,20 @@ class ApiProxyController {
       }
     });
   }
+
+  hasHealthCheck(endpoint: any) {
+    if (endpoint.backup) {
+      return false;
+    }
+
+    if (endpoint.healthcheck !== undefined) {
+      return endpoint.healthcheck.enabled;
+    } else {
+      return (this.api.services &&
+        this.api.services['health-check'] &&
+        this.api.services['health-check'].enabled);
+    }
+  }
 }
 
 export default ApiProxyController;
