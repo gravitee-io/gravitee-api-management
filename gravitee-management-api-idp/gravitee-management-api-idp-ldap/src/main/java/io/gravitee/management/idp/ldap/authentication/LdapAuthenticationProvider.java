@@ -69,6 +69,8 @@ public class LdapAuthenticationProvider implements AuthenticationProvider<Securi
         DefaultLdapAuthoritiesPopulator populator = new DefaultLdapAuthoritiesPopulator(contextSource,
                 environment.getProperty("group-search-base", ""));
         populator.setRolePrefix("");
+        populator.setGroupRoleAttribute(environment.getProperty("group-role-attribute", "cn"));
+        populator.setGroupSearchFilter(environment.getProperty("group-search-filter", "(uniqueMember={0})"));
 
         ldapAuthenticationProviderConfigurer.ldapAuthoritiesPopulator(populator).contextSource(contextSource);
 
