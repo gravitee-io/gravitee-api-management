@@ -44,7 +44,6 @@ public class AlertHandler implements Handler<Response> {
     private static final String PROP_APPLICATION = "APPLICATION";
     private static final String PROP_PLAN = "Plan";
     private static final String PROP_RESPONSE_STATUS = "Response status";
-    private static final String PROP_RESPONSE_TIME = "Response time in ms";
     private static final String PROP_LATENCY = "Latency in ms";
     private static final String PROP_QUOTA_COUNT = "Quota count";
     private static final String PROP_QUOTA_LIMIT = "Quota limit";
@@ -87,7 +86,6 @@ public class AlertHandler implements Handler<Response> {
                         .prop(PROP_APPLICATION, executionContext.getAttribute(ExecutionContext.ATTR_APPLICATION))
                         .prop(PROP_PLAN, executionContext.getAttribute(ExecutionContext.ATTR_PLAN))
                         .prop(PROP_RESPONSE_STATUS, result.status())
-                        .prop(PROP_RESPONSE_TIME, serverRequest.metrics().getApiResponseTimeMs())
                         .prop(PROP_LATENCY, serverRequest.metrics().getProxyLatencyMs());
 
                 final Object tenant = node.metadata().get("tenant");
