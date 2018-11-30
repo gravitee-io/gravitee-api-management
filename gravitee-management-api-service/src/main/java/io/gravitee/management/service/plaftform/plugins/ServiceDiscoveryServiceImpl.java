@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.impl;
+package io.gravitee.management.service.plaftform.plugins;
 
 import io.gravitee.management.model.platform.plugin.PluginEntity;
-import io.gravitee.management.service.ResourceService;
-import io.gravitee.management.service.exceptions.ResourceNotFoundException;
+import io.gravitee.management.service.ServiceDiscoveryService;
+import io.gravitee.management.service.exceptions.ServiceDiscoveryNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.impl.TransactionalService;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
-import io.gravitee.plugin.resource.ResourcePlugin;
+import io.gravitee.plugin.discovery.ServiceDiscoveryPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,51 +38,51 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Component
-public class ResourceServiceImpl extends TransactionalService implements ResourceService {
+public class ServiceDiscoveryServiceImpl extends TransactionalService implements ServiceDiscoveryService {
 
     /**
      * Logger.
      */
-    private final Logger LOGGER = LoggerFactory.getLogger(ResourceServiceImpl.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(ServiceDiscoveryServiceImpl.class);
 
     @Autowired
-    private ConfigurablePluginManager<ResourcePlugin> resourcePluginManager;
+    private ConfigurablePluginManager<ServiceDiscoveryPlugin> serviceDiscoveryPluginManager;
 
     @Override
     public Set<PluginEntity> findAll() {
         try {
-            LOGGER.debug("List all resources");
-            final Collection<ResourcePlugin> resourceDefinitions = resourcePluginManager.findAll();
+            LOGGER.debug("List all service discovery plugins");
+            final Collection<ServiceDiscoveryPlugin> plugins = serviceDiscoveryPluginManager.findAll();
 
-            return resourceDefinitions.stream()
-                    .map(resourceDefinition -> convert(resourceDefinition))
+            return plugins.stream()
+                    .map(this::convert)
                     .collect(Collectors.toSet());
         } catch (Exception ex) {
-            LOGGER.error("An error occurs while trying to list all resources", ex);
-            throw new TechnicalManagementException("An error occurs while trying to list all resources", ex);
+            LOGGER.error("An error occurs while trying to list all service discovery plugins", ex);
+            throw new TechnicalManagementException("An error occurs while trying to list all service discovery plugins", ex);
         }
     }
 
     @Override
-    public PluginEntity findById(String resource) {
-        LOGGER.debug("Find resource by ID: {}", resource);
-        ResourcePlugin resourceDefinition = resourcePluginManager.get(resource);
+    public PluginEntity findById(String pluginId) {
+        LOGGER.debug("Find service discovery plugin by ID: {}", pluginId);
+        ServiceDiscoveryPlugin plugin = serviceDiscoveryPluginManager.get(pluginId);
 
-        if (resourceDefinition == null) {
-            throw new ResourceNotFoundException(resource);
+        if (plugin == null) {
+            throw new ServiceDiscoveryNotFoundException(pluginId);
         }
 
-        return convert(resourceDefinition);
+        return convert(plugin);
     }
 
     @Override
-    public String getSchema(String resource) {
+    public String getSchema(String pluginId) {
         try {
-            LOGGER.debug("Find resource schema by ID: {}", resource);
-            return resourcePluginManager.getSchema(resource);
+            LOGGER.debug("Find service discovery plugin schema by ID: {}", pluginId);
+            return serviceDiscoveryPluginManager.getSchema(pluginId);
         } catch (IOException ioex) {
-            LOGGER.error("An error occurs while trying to get resource's schema for resource {}", resource, ioex);
-            throw new TechnicalManagementException("An error occurs while trying to get resource's schema for resource " + resource, ioex);
+            LOGGER.error("An error occurs while trying to get service discovery plugin's schema for plugin {}", pluginId, ioex);
+            throw new TechnicalManagementException("An error occurs while trying to get service discovery plugin's schema for plugin " + pluginId, ioex);
         }
     }
 

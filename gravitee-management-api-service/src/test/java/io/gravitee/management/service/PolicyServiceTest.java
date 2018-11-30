@@ -17,9 +17,9 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.PolicyEntity;
 import io.gravitee.management.service.impl.PolicyServiceImpl;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.plugin.policy.PolicyPluginManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +46,7 @@ public class PolicyServiceTest {
     private PolicyService policyService = new PolicyServiceImpl();
 
     @Mock
-    private PolicyPluginManager policyManager;
+    private ConfigurablePluginManager<PolicyPlugin> policyManager;
 
     @Mock
     private PolicyPlugin policyDefinition;

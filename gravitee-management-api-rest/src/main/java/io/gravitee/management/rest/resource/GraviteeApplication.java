@@ -92,6 +92,7 @@ public class GraviteeApplication extends ResourceConfig {
         register(SubscriptionsResource.class);
         register(UsersResource.class);
         register(PoliciesResource.class);
+        register(ServicesDiscoveryResource.class);
         register(FetchersResource.class);
         register(ResourcesResource.class);
         register(InstancesResource.class);

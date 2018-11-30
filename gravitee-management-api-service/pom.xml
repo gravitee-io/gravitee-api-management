@@ -92,6 +92,11 @@
 			<artifactId>gravitee-plugin-alert</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>io.gravitee.plugin</groupId>
+			<artifactId>gravitee-plugin-service-discovery</artifactId>
+		</dependency>
+
 		<!-- Lucene -->
 		<dependency>
 			<groupId>org.apache.lucene</groupId>

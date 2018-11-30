@@ -21,9 +21,9 @@ import io.gravitee.management.model.PolicyEntity;
 import io.gravitee.management.service.PolicyService;
 import io.gravitee.management.service.exceptions.PolicyNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
     private final Logger LOGGER = LoggerFactory.getLogger(PolicyServiceImpl.class);
 
     @Autowired
-    private PolicyPluginManager policyManager;
+    private ConfigurablePluginManager<PolicyPlugin> policyManager;
 
     @Override
     public Set<PolicyEntity> findAll() {
@@ -80,7 +80,7 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
     public String getSchema(String policyId) {
         try {
             LOGGER.debug("Find policy schema by ID: {}", policyId);
-            return policyManager.getPolicyConfiguration(policyId);
+            return policyManager.getSchema(policyId);
         } catch (IOException ioex) {
             LOGGER.error("An error occurs while trying to get policy schema for policy {}", policyId, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get policy schema for policy " + policyId, ioex);

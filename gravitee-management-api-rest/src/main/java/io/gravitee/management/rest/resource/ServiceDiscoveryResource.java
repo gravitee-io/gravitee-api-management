@@ -21,7 +21,7 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.platform.plugin.PluginEntity;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.management.service.ResourceService;
+import io.gravitee.management.service.ServiceDiscoveryService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
@@ -35,41 +35,40 @@ import javax.ws.rs.core.Context;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugin", "Resource"})
-public class ResourceResource {
+@Api(tags = {"Plugin", "Service Discovery"})
+public class ServiceDiscoveryResource {
 
     @Context
     private ResourceContext resourceContext;
 
     @Inject
-    private ResourceService resourceService;
+    private ServiceDiscoveryService serviceDiscoveryService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a resource")
+    @ApiOperation(value = "Get a service discovery")
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
     })
-    public PluginEntity getResource(
-            @PathParam("resource") String resource) {
-        return resourceService.findById(resource);
+    public PluginEntity getServiceDiscovery(
+            @PathParam("plugin") String pluginId) {
+        return serviceDiscoveryService.findById(pluginId);
     }
 
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a resource's schema")
+    @ApiOperation(value = "Get a service discovery's schema")
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
     })
-    public String getResourceSchema(
-            @PathParam("resource") String resource) {
-        // Check that the resource exists
-        resourceService.findById(resource);
+    public String getServiceDiscoverySchema(
+            @PathParam("plugin") String pluginId) {
+        // Check that the service discovery exists
+        serviceDiscoveryService.findById(pluginId);
 
-        return resourceService.getSchema(resource);
+        return serviceDiscoveryService.getSchema(pluginId);
     }
 }

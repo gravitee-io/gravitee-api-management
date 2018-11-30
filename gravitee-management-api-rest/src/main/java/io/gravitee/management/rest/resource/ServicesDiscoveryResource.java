@@ -22,7 +22,7 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.platform.plugin.PluginEntity;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.management.service.ResourceService;
+import io.gravitee.management.service.ServiceDiscoveryService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
@@ -40,35 +40,36 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * Defines the REST resources to manage service discovery.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/resources")
-@Api(tags = {"Plugin", "Resource"})
-public class ResourcesResource {
+@Path("/services-discovery")
+@Api(tags = {"Plugin", "Service Discovery"})
+public class ServicesDiscoveryResource {
 
     @Context
     private ResourceContext resourceContext;
 
     @Inject
-    private ResourceService resourceService;
+    private ServiceDiscoveryService serviceDiscoveryService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List resources")
+    @ApiOperation(value = "List service discovery plugins")
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.READ)
     })
     public Collection<ResourceListItem> listResources(@QueryParam("expand") List<String> expand) {
-        Stream<ResourceListItem> stream = resourceService.findAll().stream().map(this::convert);
+        Stream<ResourceListItem> stream = serviceDiscoveryService.findAll().stream().map(this::convert);
 
         if(expand!=null && !expand.isEmpty()) {
             for (String s : expand) {
                 switch (s) {
                     case "schema":
                         stream = stream.map(resourceListItem -> {
-                            resourceListItem.setSchema(resourceService.getSchema(resourceListItem.getId()));
+                            resourceListItem.setSchema(serviceDiscoveryService.getSchema(resourceListItem.getId()));
                             return resourceListItem;
                         });
                         break;
@@ -82,18 +83,18 @@ public class ResourcesResource {
                 .collect(Collectors.toList());
     }
 
-    @Path("{resource}")
-    public ResourceResource getResourceResource() {
-        return resourceContext.getResource(ResourceResource.class);
+    @Path("{plugin}")
+    public ServiceDiscoveryResource getServiceDiscoveryResource() {
+        return resourceContext.getResource(ServiceDiscoveryResource.class);
     }
 
-    private ResourceListItem convert(PluginEntity resource) {
+    private ResourceListItem convert(PluginEntity pluginEntity) {
         ResourceListItem item = new ResourceListItem();
 
-        item.setId(resource.getId());
-        item.setName(resource.getName());
-        item.setDescription(resource.getDescription());
-        item.setVersion(resource.getVersion());
+        item.setId(pluginEntity.getId());
+        item.setName(pluginEntity.getName());
+        item.setDescription(pluginEntity.getDescription());
+        item.setVersion(pluginEntity.getVersion());
 
         return item;
     }

@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.platform.plugin.PluginEntity;
-
-import java.util.Set;
+package io.gravitee.management.service.exceptions;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ResourceService {
+public class ServiceDiscoveryNotFoundException extends AbstractNotFoundException {
 
-    Set<PluginEntity> findAll();
+    private final String pluginId;
 
-    PluginEntity findById(String resource);
+    public ServiceDiscoveryNotFoundException(String pluginId) {
+        this.pluginId = pluginId;
+    }
 
-    String getSchema(String resource);
+    @Override
+    public String getMessage() {
+        return "Service Discovery [" + pluginId + "] can not be found.";
+    }
 }

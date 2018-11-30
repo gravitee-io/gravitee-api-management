@@ -20,9 +20,9 @@ import io.gravitee.management.model.PluginEntity;
 import io.gravitee.management.service.FetcherService;
 import io.gravitee.management.service.exceptions.FetcherNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
-import io.gravitee.plugin.fetcher.FetcherPluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,7 @@ public class FetcherServiceImpl extends TransactionalService implements FetcherS
     private final Logger LOGGER = LoggerFactory.getLogger(FetcherServiceImpl.class);
 
     @Autowired
-    private FetcherPluginManager fetcherPluginManager;
+    private ConfigurablePluginManager<FetcherPlugin> fetcherPluginManager;
 
     @Override
     public Set<FetcherEntity> findAll() {
@@ -79,7 +79,7 @@ public class FetcherServiceImpl extends TransactionalService implements FetcherS
     public String getSchema(String fetcher) {
         try {
             LOGGER.debug("Find fetcher schema by ID: {}", fetcher);
-            return fetcherPluginManager.getConfiguration(fetcher);
+            return fetcherPluginManager.getSchema(fetcher);
         } catch (IOException ioex) {
             LOGGER.error("An error occurs while trying to get fetcher's schema for fetcher {}", fetcher, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get fetcher's schema for fetcher " + fetcher, ioex);

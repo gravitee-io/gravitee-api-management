@@ -34,8 +34,8 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.search.SearchEngineService;
+import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
-import io.gravitee.plugin.fetcher.FetcherPluginManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Audit;
@@ -85,7 +85,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	private SwaggerService swaggerService;
 
 	@Autowired
-	private FetcherPluginManager fetcherPluginManager;
+	private PluginManager<FetcherPlugin> fetcherPluginManager;
 
 	@Autowired
 	private FetcherConfigurationFactory fetcherConfigurationFactory;

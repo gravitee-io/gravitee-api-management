@@ -34,9 +34,9 @@
 
     <properties>
         <gravitee-node.version>1.2.0</gravitee-node.version>
-        <gravitee-definition.version>1.14.0</gravitee-definition.version>
+        <gravitee-definition.version>1.15.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>1.13.0</gravitee-common.version>
-        <gravitee-plugin.version>1.5.0</gravitee-plugin.version>
+        <gravitee-plugin.version>1.6.0-SNAPSHOT</gravitee-plugin.version>
         <gravitee-repository.version>1.21.0</gravitee-repository.version>
         <gravitee-gateway-api.version>1.12.0</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.0.0</gravitee-fetcher-api.version>
@@ -52,7 +52,7 @@
         <mail.version>1.4.7</mail.version>
         <freemarker.version>2.3.28</freemarker.version>
         <java-jwt.version>2.2.1</java-jwt.version>
-        <guava.version>18.0</guava.version>
+        <guava.version>20.0</guava.version>
         <assertj-core.version>3.5.2</assertj-core.version>
         <jsonpath.version>2.3.0</jsonpath.version>
         <lucene.version>7.5.0</lucene.version>
@@ -143,6 +143,11 @@
             <dependency>
                 <groupId>io.gravitee.plugin</groupId>
                 <artifactId>gravitee-plugin-alert</artifactId>
+                <version>${gravitee-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-service-discovery</artifactId>
                 <version>${gravitee-plugin.version}</version>
             </dependency>
             <dependency>

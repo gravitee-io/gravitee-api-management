@@ -23,11 +23,11 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ResourceService {
+public interface ServiceDiscoveryService {
 
     Set<PluginEntity> findAll();
 
-    PluginEntity findById(String resource);
+    PluginEntity findById(String pluginId);
 
-    String getSchema(String resource);
+    String getSchema(String pluginId);
 }
