@@ -59,6 +59,10 @@ public class EndpointGroupSerializer extends StdScalarSerializer<EndpointGroup> 
             jgen.writeObjectField("load_balancing", group.getLoadBalancer());
         }
 
+        if (group.getServices() != null && ! group.getServices().isEmpty()) {
+            jgen.writeObjectField("services", group.getServices());
+        }
+
         jgen.writeEndObject();
     }
 }

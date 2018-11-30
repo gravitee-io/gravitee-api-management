@@ -28,7 +28,7 @@ import java.util.function.Consumer;
  */
 public final class Services {
 
-    private Map<Class<? extends Service>, Service> services;
+    private Map<Class<? extends Service>, Service> services = new HashMap<>();
 
     public Collection<Service> getAll() {
         if (services == null) {
@@ -47,16 +47,15 @@ public final class Services {
     }
 
     public void set(Collection<? extends Service> services) {
-        Map<Class<? extends Service>, Service> servicesMap = new HashMap<>();
+        services.forEach((Consumer<Service>) service -> Services.this.services.put(service.getClass(), service));
+    }
 
-        services.forEach(new Consumer<Service>() {
-            @Override
-            public void accept(Service service) {
-                servicesMap.put(service.getClass(), service);
-            }
-        });
+    public void put(Class<? extends Service> clazz, Service service) {
+        this.services.put(clazz, service);
+    }
 
-        this.services = servicesMap;
+    public void remove(Class<? extends Service> clazz) {
+        this.services.remove(clazz);
     }
 
     public boolean isEmpty() {

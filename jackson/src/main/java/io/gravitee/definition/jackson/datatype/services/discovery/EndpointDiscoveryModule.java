@@ -17,11 +17,8 @@ package io.gravitee.definition.jackson.datatype.services.discovery;
 
 import io.gravitee.definition.jackson.datatype.GraviteeModule;
 import io.gravitee.definition.jackson.datatype.services.discovery.deser.EndpointDiscoveryDeserializer;
-import io.gravitee.definition.jackson.datatype.services.discovery.deser.consul.ConsulEndpointDiscoveryProviderConfigurationDeserializer;
 import io.gravitee.definition.jackson.datatype.services.discovery.ser.EndpointDiscoverySerializer;
-import io.gravitee.definition.jackson.datatype.services.discovery.ser.consul.ConsulEndpointDiscoveryProviderConfigurationSerializer;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
-import io.gravitee.definition.model.services.discovery.consul.ConsulEndpointDiscoveryConfiguration;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 
 /**
@@ -38,10 +35,8 @@ public class EndpointDiscoveryModule extends GraviteeModule {
 
         // first deserializers
         addDeserializer(EndpointDiscoveryService.class, new EndpointDiscoveryDeserializer(EndpointDiscoveryService.class));
-        addDeserializer(ConsulEndpointDiscoveryConfiguration.class, new ConsulEndpointDiscoveryProviderConfigurationDeserializer(ConsulEndpointDiscoveryConfiguration.class));
 
         // then serializers:
         addSerializer(EndpointDiscoveryService.class, new EndpointDiscoverySerializer(EndpointDiscoveryService.class));
-        addSerializer(ConsulEndpointDiscoveryConfiguration.class, new ConsulEndpointDiscoveryProviderConfigurationSerializer(ConsulEndpointDiscoveryConfiguration.class));
     }
 }

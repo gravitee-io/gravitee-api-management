@@ -25,6 +25,7 @@ import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.LoadBalancer;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.services.Services;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -85,6 +86,12 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
         if (loadBalancingNode != null) {
             LoadBalancer loadBalancer = loadBalancingNode.traverse(jp.getCodec()).readValueAs(LoadBalancer.class);
             group.setLoadBalancer(loadBalancer);
+        }
+
+        JsonNode servicesNode = node.get("services");
+        if (servicesNode != null) {
+            Services services = servicesNode.traverse(jp.getCodec()).readValueAs(Services.class);
+            group.getServices().set(services.getAll());
         }
 
         return group;

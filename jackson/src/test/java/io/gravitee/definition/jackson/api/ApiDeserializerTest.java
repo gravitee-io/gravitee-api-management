@@ -535,4 +535,12 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertNull(endpoint.getHttpClientSslOptions().getTrustStore());
         Assert.assertTrue(endpoint.getHttpClientSslOptions().isTrustAll());
     }
+
+    @Test
+    public void definition_defaultgroup_withDiscovery() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-endpointgroup-discovery.json", Api.class);
+
+        EndpointGroup group = api.getProxy().getGroups().iterator().next();
+        Assert.assertNotNull(group);
+    }
 }

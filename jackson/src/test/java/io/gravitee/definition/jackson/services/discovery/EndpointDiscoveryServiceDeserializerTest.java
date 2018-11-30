@@ -15,19 +15,12 @@
  */
 package io.gravitee.definition.jackson.services.discovery;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.services.discovery.EndpointDiscoveryProvider;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
-import io.gravitee.definition.model.services.discovery.consul.ConsulEndpointDiscoveryConfiguration;
-import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
-import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
-import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,28 +40,18 @@ public class EndpointDiscoveryServiceDeserializerTest extends AbstractTest {
     public void definition_withEndpointDiscovery_consul() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/discovery/api-withservice-consul.json", Api.class);
 
-        EndpointDiscoveryService endpointDiscoveryService = api.getService(EndpointDiscoveryService.class);
+        EndpointDiscoveryService endpointDiscoveryService = api.getProxy().getGroups().iterator()
+                .next().getServices()
+                .get(EndpointDiscoveryService.class);
         Assert.assertNotNull(endpointDiscoveryService);
         Assert.assertNotNull(endpointDiscoveryService.getConfiguration());
 
-        Assert.assertEquals(EndpointDiscoveryProvider.CONSUL, endpointDiscoveryService.getProvider());
+        Assert.assertEquals("consul-service-discovery", endpointDiscoveryService.getProvider());
+        Assert.assertNotNull(endpointDiscoveryService.getConfiguration());
 
-        ConsulEndpointDiscoveryConfiguration discoveryProviderConfiguration =
-                (ConsulEndpointDiscoveryConfiguration) endpointDiscoveryService.getConfiguration();
-        Assert.assertEquals("my-service", discoveryProviderConfiguration.getService());
-        Assert.assertEquals("acl", discoveryProviderConfiguration.getAcl());
-        Assert.assertEquals("dc", discoveryProviderConfiguration.getDc());
-    }
-
-    @Test(expected = JsonMappingException.class)
-    public void definition_withEndpointDiscovery_consul_noUrl() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/services/discovery/api-withservice-consul-nourl.json", Api.class);
-        api.getServices().get(DynamicPropertyService.class);
-    }
-
-    @Test(expected = JsonMappingException.class)
-    public void definition_withEndpointDiscovery_consul_noService() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/services/discovery/api-withservice-consul-noservice.json", Api.class);
-        api.getServices().get(DynamicPropertyService.class);
+        JsonNode configNode = objectMapper().readTree(endpointDiscoveryService.getConfiguration());
+        Assert.assertEquals("my-service", configNode.path("service").asText());
+        Assert.assertEquals("acl", configNode.path("acl").asText());
+        Assert.assertEquals("dc", configNode.path("dc").asText());
     }
 }

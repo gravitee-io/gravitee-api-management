@@ -19,10 +19,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.datatype.services.core.deser.ServiceDeserializer;
-import io.gravitee.definition.model.services.discovery.EndpointDiscoveryProvider;
-import io.gravitee.definition.model.services.discovery.EndpointDiscoveryProviderConfiguration;
+import io.gravitee.definition.jackson.datatype.services.discovery.EndpointDiscoveryProviderMapper;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
-import io.gravitee.definition.model.services.discovery.consul.ConsulEndpointDiscoveryConfiguration;
 
 import java.io.IOException;
 
@@ -43,17 +41,14 @@ public class EndpointDiscoveryDeserializer extends ServiceDeserializer<EndpointD
         if (service.isEnabled()) {
             final JsonNode providerNode = node.get("provider");
             if (providerNode != null) {
-                service.setProvider(EndpointDiscoveryProvider.valueOf(providerNode.asText().toUpperCase()));
+                String provider = providerNode.asText().toUpperCase();
+                String providerPlugin = EndpointDiscoveryProviderMapper.getProvider(provider);
+                service.setProvider(providerPlugin);
             } else {
                 throw ctxt.mappingException("[endpoint-discovery] Provider is required");
             }
 
-            final JsonNode configurationNode = node.get("configuration");
-            if (service.getProvider() == EndpointDiscoveryProvider.CONSUL) {
-                EndpointDiscoveryProviderConfiguration configuration =
-                        configurationNode.traverse(jsonParser.getCodec()).readValueAs(ConsulEndpointDiscoveryConfiguration.class);
-                service.setConfiguration(configuration);
-            }
+            service.setConfiguration(node.get("configuration").toString());
         }
     }
 }

@@ -15,6 +15,8 @@
  */
 package io.gravitee.definition.model;
 
+import io.gravitee.definition.model.services.Services;
+
 import java.util.Set;
 
 /**
@@ -28,6 +30,8 @@ public class EndpointGroup {
     private Set<Endpoint> endpoints;
 
     private LoadBalancer loadBalancer = new LoadBalancer();
+
+    private Services services = new Services();
 
     public Set<Endpoint> getEndpoints() {
         return endpoints;
@@ -51,6 +55,14 @@ public class EndpointGroup {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Services getServices() {
+        return services;
+    }
+
+    public void setServices(Services services) {
+        this.services = services;
     }
 
     @Override

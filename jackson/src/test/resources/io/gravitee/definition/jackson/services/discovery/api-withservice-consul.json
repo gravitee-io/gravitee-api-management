@@ -3,7 +3,12 @@
   "name": "my-team-api",
 
   "proxy": {
-    "context_path": "/team"
+    "context_path": "/team",
+    "groups": [
+      {
+        "name": "default"
+      }
+    ]
   },
 
   "paths": {
@@ -13,7 +18,7 @@
 
   "services": {
     "discovery": {
-      "provider": "CONSUL",
+      "provider": "consul-service-discovery",
       "configuration": {
         "url": "http://host1:8500",
         "service": "my-service",

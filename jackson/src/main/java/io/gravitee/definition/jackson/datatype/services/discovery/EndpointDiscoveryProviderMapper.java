@@ -13,13 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.services.discovery;
+package io.gravitee.definition.jackson.datatype.services.discovery;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum EndpointDiscoveryProvider {
+public class EndpointDiscoveryProviderMapper {
 
-    CONSUL
+    private final static Map<String, String> PROVIDERS_PLUGIN_MAPPING = new HashMap<>();
+
+    static {
+        PROVIDERS_PLUGIN_MAPPING.put("CONSUL", "consul-service-discovery");
+    }
+
+    public static String getProvider(String provider) {
+        return PROVIDERS_PLUGIN_MAPPING.getOrDefault(provider, provider.toLowerCase());
+    }
 }

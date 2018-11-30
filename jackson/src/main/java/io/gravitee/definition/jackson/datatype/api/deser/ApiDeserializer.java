@@ -19,17 +19,16 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Properties;
-import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
@@ -88,6 +87,19 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
         if (servicesNode != null) {
             Services services = servicesNode.traverse(jp.getCodec()).readValueAs(Services.class);
             api.getServices().set(services.getAll());
+        }
+
+        // Add compatibility with Definition 1.22
+        if (api.getServices() != null) {
+            EndpointDiscoveryService discoveryService = api.getServices().get(EndpointDiscoveryService.class);
+            if (discoveryService != null) {
+                api.getServices().remove(EndpointDiscoveryService.class);
+                Set<EndpointGroup> endpointGroups = api.getProxy().getGroups();
+                if (endpointGroups != null && ! endpointGroups.isEmpty()) {
+                    EndpointGroup defaultGroup = endpointGroups.iterator().next();
+                    defaultGroup.getServices().put(EndpointDiscoveryService.class, discoveryService);
+                }
+            }
         }
 
         JsonNode resourcesNode = node.get("resources");

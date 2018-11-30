@@ -29,23 +29,23 @@ public class EndpointDiscoveryService extends Service {
         super(SERVICE_KEY);
     }
 
-    private EndpointDiscoveryProvider provider;
+    private String provider;
 
-    private EndpointDiscoveryProviderConfiguration configuration;
+    private String configuration;
 
-    public EndpointDiscoveryProvider getProvider() {
+    public String getProvider() {
         return provider;
     }
 
-    public void setProvider(EndpointDiscoveryProvider provider) {
+    public void setProvider(String provider) {
         this.provider = provider;
     }
 
-    public EndpointDiscoveryProviderConfiguration getConfiguration() {
+    public String getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(EndpointDiscoveryProviderConfiguration configuration) {
+    public void setConfiguration(String configuration) {
         this.configuration = configuration;
     }
 

@@ -1,0 +1,39 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "context_path": "/team",
+    "groups": [
+      {
+        "name": "default",
+        "endpoints": [
+          {
+            "name": "endpoint_0",
+            "target": "http://host1:8083/myapi"
+          }, {
+            "name": "endpoint_1",
+            "target": "http://host2:8083/myapi"
+          }
+        ],
+        "services": {
+          "discovery": {
+            "provider": "consul",
+            "configuration": {
+              "url": "http://host1:8500",
+              "service": "my-service",
+              "acl": "acl",
+              "dc": "dc"
+            }
+          }
+        }
+      }
+    ],
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  }
+}

@@ -18,6 +18,7 @@ package io.gravitee.definition.jackson.datatype.services.discovery.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.jackson.datatype.services.core.ser.ServiceSerializer;
+import io.gravitee.definition.jackson.datatype.services.discovery.EndpointDiscoveryProviderMapper;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 
 import java.io.IOException;
@@ -37,8 +38,9 @@ public class EndpointDiscoverySerializer extends ServiceSerializer<EndpointDisco
         super.doSerialize(service, jgen, serializerProvider);
 
         if (service.isEnabled()) {
-            jgen.writeStringField("provider", service.getProvider().name());
-            jgen.writeObjectField("configuration", service.getConfiguration());
+            jgen.writeStringField("provider", EndpointDiscoveryProviderMapper.getProvider(service.getProvider()));
+            jgen.writeFieldName("configuration");
+            jgen.writeRawValue(service.getConfiguration());
         }
     }
 }
