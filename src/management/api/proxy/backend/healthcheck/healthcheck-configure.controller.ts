@@ -39,13 +39,18 @@ class ApiHealthCheckConfigureController {
 
     if (this.$stateParams.endpointName !== undefined) {
       // Health-check for specific endpoint
-      let group = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
+      let group: any = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
       this.endpoint = _.find(group.endpoints, { 'name': $stateParams.endpointName });
-      this.healthcheck = this.endpoint.healthcheck;
       this.rootHealthcheckEnabled =
         this.api.services &&
         this.api.services['health-check'] &&
         this.api.services['health-check'].enabled;
+      
+      if (!this.endpoint.healthcheck && this.rootHealthcheckEnabled) {
+        this.healthcheck = {enabled: true, inherit: true};
+      } else {
+        this.healthcheck = this.endpoint.healthcheck;
+      }
     } else {
       this.healthcheck = this.api.services && this.api.services['health-check'];
     }
