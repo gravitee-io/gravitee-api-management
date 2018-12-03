@@ -27,7 +27,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,11 +50,11 @@ public class RoleScopesResource extends AbstractResource  {
             @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.READ)
     })
     public Map<String, List<String>> list()  {
-        final Map<String, List<String>> roles = new HashMap<>(4);
-        roles.put(RoleScope.MANAGEMENT.name(), stream(ManagementPermission.values()).map(ManagementPermission::getName).collect(toList()));
-        roles.put(RoleScope.PORTAL.name(), stream(PortalPermission.values()).map(PortalPermission::getName).collect(toList()));
-        roles.put(RoleScope.API.name(), stream(ApiPermission.values()).map(ApiPermission::getName).collect(toList()));
-        roles.put(RoleScope.APPLICATION.name(), stream(ApplicationPermission.values()).map(ApplicationPermission::getName).collect(toList()));
+        final Map<String, List<String>> roles = new LinkedHashMap<>(4);
+        roles.put(RoleScope.MANAGEMENT.name(), stream(ManagementPermission.values()).map(ManagementPermission::getName).sorted().collect(toList()));
+        roles.put(RoleScope.PORTAL.name(), stream(PortalPermission.values()).map(PortalPermission::getName).sorted().collect(toList()));
+        roles.put(RoleScope.API.name(), stream(ApiPermission.values()).map(ApiPermission::getName).sorted().collect(toList()));
+        roles.put(RoleScope.APPLICATION.name(), stream(ApplicationPermission.values()).map(ApplicationPermission::getName).sorted().collect(toList()));
         return roles;
     }
 
