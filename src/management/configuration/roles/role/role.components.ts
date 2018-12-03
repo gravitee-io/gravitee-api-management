@@ -19,24 +19,24 @@ import _ = require('lodash');
 import { StateService } from '@uirouter/core';
 
 const RoleComponent: ng.IComponentOptions = {
-  bindings: {},
+  bindings: {
+    roleScopes: '<'
+  },
   template: require('./role.html'),
   controller: function ( RoleService: RoleService,
                          NotificationService: NotificationService,
                          $state: StateService) {
     'ngInject';
     this.$onInit = () => {
-      let that = this;
       this.editMode = !!$state.params.role;
+      this.permissions = this.roleScopes[$state.params.roleScope];
       if ($state.params.role) {
-        RoleService.get($state.params.roleScope, $state.params.role).then( (role) => {
-          that.permissions = RoleService.listPermissionsByScope($state.params.roleScope);
-          that.role = role;
-          that._modelToView();
+        RoleService.get($state.params.roleScope, $state.params.role).then((role) => {
+          this.role = role;
+          this._modelToView();
+          this.checkSelectAll();
         });
       } else {
-        this.permissions = RoleService.listPermissionsByScope($state.params.roleScope);
-
         if (this.permissions) {
           this.role = {
             scope: $state.params.roleScope,
@@ -84,6 +84,22 @@ const RoleComponent: ng.IComponentOptions = {
           return _.zipObject(values, _.map(values, () => true))
         })
         .value();
+    };
+
+    this.selectAll = (action, checked) => {
+      _.forEach(this.permissions, (permission) => {
+        if (!this.role.permissions[permission]) {
+          this.role.permissions[permission] = {};
+        }
+        this.role.permissions[permission][action] = checked;
+      });
+    };
+
+    this.checkSelectAll = function () {
+      this.createCheckedAll = _.every(this.permissions, (permission) => this.role.permissions[permission].C);
+      this.readCheckedAll = _.every(this.permissions, (permission) => this.role.permissions[permission].R);
+      this.updateCheckedAll = _.every(this.permissions, (permission) => this.role.permissions[permission].U);
+      this.deleteCheckedAll = _.every(this.permissions, (permission) => this.role.permissions[permission].D);
     };
   }
 };

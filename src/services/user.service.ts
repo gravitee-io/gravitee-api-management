@@ -162,24 +162,22 @@ class UserService {
 
   reloadPermissions() {
     const rights: string[] = this.RoleService.listRights();
-    const scopes = this.RoleService.listScopes();
-    let allPermissions: string[] = [];
+    this.RoleService.listScopes().then((permissionsByScope) => {
+      let allPermissions: string[] = [];
+      _.forEach(permissionsByScope, function (permissions, scope) {
+        _.forEach(permissions, function (permission) {
+          _.forEach(rights, function (right) {
+            let permissionName = scope + '-' + permission + '-' + right;
+            allPermissions.push(_.toLower(permissionName));
+          });
+        });
+      });
 
-    const that = this;
-    _.forEach(scopes, function (scope) {
-      let permissionsByScope = that.RoleService.listPermissionsByScope(scope);
-      _.forEach(permissionsByScope, function (permission) {
-        _.forEach(rights, function (right) {
-          let permissionName = scope + '-' + permission + '-' + right;
-          allPermissions.push(_.toLower(permissionName));
-        })
-      })
-    });
-
-    this.PermPermissionStore.defineManyPermissions(allPermissions, function (permissionName) {
-      return _.includes(that.currentUser.userPermissions, permissionName) ||
-        _.includes(that.currentUser.userApiPermissions, permissionName) ||
-        _.includes(that.currentUser.userApplicationPermissions, permissionName);
+      this.PermPermissionStore.defineManyPermissions(allPermissions, (permissionName) => {
+        return _.includes(this.currentUser.userPermissions, permissionName) ||
+          _.includes(this.currentUser.userApiPermissions, permissionName) ||
+          _.includes(this.currentUser.userApplicationPermissions, permissionName);
+      });
     });
   }
 

@@ -54,21 +54,36 @@
         <th md-column>UPDATE</th>
         <th md-column>DELETE</th>
       </tr>
+      <tr md-row>
+        <th md-cell></th>
+        <th md-cell>
+          <md-checkbox aria-label="Select all create" ng-model="$ctrl.createCheckedAll" ng-change="$ctrl.selectAll('C', $ctrl.createCheckedAll)"></md-checkbox>
+        </th>
+        <th md-cell>
+          <md-checkbox aria-label="Select all read" ng-model="$ctrl.readCheckedAll" ng-change="$ctrl.selectAll('R', $ctrl.readCheckedAll)"></md-checkbox>
+        </th>
+        <th md-cell>
+          <md-checkbox aria-label="Select all update" ng-model="$ctrl.updateCheckedAll" ng-change="$ctrl.selectAll('U', $ctrl.updateCheckedAll)"></md-checkbox>
+        </th>
+        <th md-cell>
+          <md-checkbox aria-label="Select all delete" ng-model="$ctrl.deleteCheckedAll" ng-change="$ctrl.selectAll('D', $ctrl.deleteCheckedAll)"></md-checkbox>
+        </th>
+      </tr>
       </thead>
       <tbody md-body>
       <tr md-row ng-repeat="permission in $ctrl.permissions">
         <td md-cell><b>{{permission}}</b></td>
         <td md-cell>
-          <md-checkbox aria-label="{{permission}} create" ng-model="$ctrl.role.permissions[permission].C"></md-checkbox>
+          <md-checkbox aria-label="{{permission}} create" ng-model="$ctrl.role.permissions[permission].C" ng-change="$ctrl.checkSelectAll()"></md-checkbox>
         </td>
         <td md-cell>
-          <md-checkbox aria-label="{{permission}} read" ng-model="$ctrl.role.permissions[permission].R"></md-checkbox>
+          <md-checkbox aria-label="{{permission}} read" ng-model="$ctrl.role.permissions[permission].R" ng-change="$ctrl.checkSelectAll()"></md-checkbox>
         </td>
         <td md-cell>
-          <md-checkbox aria-label="{{permission}} update" ng-model="$ctrl.role.permissions[permission].U"></md-checkbox>
+          <md-checkbox aria-label="{{permission}} update" ng-model="$ctrl.role.permissions[permission].U" ng-change="$ctrl.checkSelectAll()"></md-checkbox>
         </td>
         <td md-cell>
-          <md-checkbox aria-label="{{permission}} delete" ng-model="$ctrl.role.permissions[permission].D  "></md-checkbox>
+          <md-checkbox aria-label="{{permission}} delete" ng-model="$ctrl.role.permissions[permission].D" ng-change="$ctrl.checkSelectAll()"></md-checkbox>
         </td>
       </tr>
       </tbody>

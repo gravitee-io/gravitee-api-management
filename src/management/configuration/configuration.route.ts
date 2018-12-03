@@ -20,10 +20,6 @@ import PortalPagesService from '../../services/portalPages.service';
 import MetadataService from "../../services/metadata.service";
 import RoleService from "../../services/role.service";
 import GroupService from "../../services/group.service";
-
-import { HookScope } from "../../entities/hookScope";
-import {Scope} from "../../entities/scope";
-import NotificationSettingsService from "../../services/notificationSettings.service";
 import TopApiService from "../../services/top-api.service";
 import UserService from "../../services/user.service";
 import ApiService from "../../services/api.service";
@@ -279,6 +275,9 @@ function configurationRouterConfig($stateProvider) {
     .state('management.settings.rolenew', {
       url: '/role/:roleScope/new',
       component: 'role',
+      resolve: {
+        roleScopes: (RoleService: RoleService) => RoleService.listScopes()
+      },
       data: {
         menu: null,
         docs: {
@@ -292,6 +291,9 @@ function configurationRouterConfig($stateProvider) {
     .state('management.settings.roleedit', {
       url: '/role/:roleScope/:role',
       component: 'role',
+      resolve: {
+        roleScopes: (RoleService: RoleService) => RoleService.listScopes()
+      },
       data: {
         menu: null,
         docs: {
@@ -316,8 +318,7 @@ function configurationRouterConfig($stateProvider) {
       },
       resolve: {
         members: (RoleService: RoleService, $stateParams) =>
-          RoleService.listUsers($stateParams.roleScope, $stateParams.role).then( (response) =>
-            response
+          RoleService.listUsers($stateParams.roleScope, $stateParams.role).then( (response) => response
         )
       }
     })

@@ -18,22 +18,7 @@ import _ = require('lodash');
 class RoleService {
   private roleURL: string;
 
-  private permissionsByScope: any = {
-    MANAGEMENT: {
-      permissions: ['INSTANCE', 'GROUP', 'TAG', 'TENANT', 'API', 'ROLE', 'APPLICATION', 'PLATFORM', 'AUDIT', 'NOTIFICATION', 'USER', 'MESSAGE', 'DICTIONARY', 'ALERT']
-    },
-    PORTAL: {
-      permissions: ['METADATA', 'DOCUMENTATION', 'APPLICATION', 'VIEW', 'TOP_APIS', "SETTINGS", "API_HEADER", 'IDENTITY_PROVIDER']
-    },
-    API: {
-      permissions: ['DEFINITION', 'GATEWAY_DEFINITION', 'PLAN', 'SUBSCRIPTION', 'MEMBER', 'METADATA', 'ANALYTICS', 'EVENT', 'HEALTH', 'LOG', 'DOCUMENTATION', 'AUDIT', 'RATING', 'RATING_ANSWER', "DISCOVERY", "NOTIFICATION", "MESSAGE", 'ALERT']
-    },
-    APPLICATION: {
-      permissions: ['DEFINITION', 'MEMBER', 'ANALYTICS', 'LOG', 'SUBSCRIPTION', 'NOTIFICATION', 'ALERT']
-    }
-  };
-
-  constructor(private $http, Constants) {
+  constructor(private $http, Constants, private $q) {
     'ngInject';
     this.roleURL = `${Constants.baseURL}configuration/rolescopes/`;
   }
@@ -43,11 +28,26 @@ class RoleService {
   }
 
   listScopes() {
-    return _.keys(this.permissionsByScope);
+    return this.fetchScopes().then((permissionsByScope) => {
+      return permissionsByScope;
+    });
   }
 
   listPermissionsByScope(scope: string) {
-    return this.permissionsByScope[scope].permissions;
+    return this.fetchScopes().then((permissionsByScope) => {
+      return permissionsByScope[scope];
+    });
+  }
+
+  private fetchScopes() {
+    if (this.permissionsByScope) {
+      return this.$q.resolve<any>(this.permissionsByScope);
+    } else {
+      return this.$http.get(this.roleURL).then(response => {
+        this.permissionsByScope = response.data;
+        return this.permissionsByScope;
+      });
+    }
   }
 
   isUserRoleManagement(scope: string) {
