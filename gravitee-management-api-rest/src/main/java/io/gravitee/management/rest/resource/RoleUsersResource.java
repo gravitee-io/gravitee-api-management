@@ -38,8 +38,8 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.URI;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -60,7 +60,7 @@ public class RoleUsersResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.READ)
     })
-    public Set<MembershipListItem> listUsersPerRole(
+    public List<MembershipListItem> listUsersPerRole(
             @PathParam("scope")RoleScope scope,
             @PathParam("role") String role) {
         if (RoleScope.MANAGEMENT.equals(scope) || RoleScope.PORTAL.equals(scope)) {
@@ -70,10 +70,26 @@ public class RoleUsersResource extends AbstractResource  {
                     scope,
                     role);
 
-            return members.stream().map(MembershipListItem::new).collect(Collectors.toSet());
+            return members
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(MembershipListItem::new)
+                    .sorted((a,b) -> {
+                        if (a.getDisplayName() == null && b.getDisplayName() == null) {
+                            return a.getId().compareToIgnoreCase(b.getId());
+                        }
+                        if (a.getDisplayName() == null) {
+                            return -1;
+                        }
+                        if (b.getDisplayName() == null) {
+                            return 1;
+                        }
+                        return a.getDisplayName().compareToIgnoreCase(b.getDisplayName());
+                    })
+                    .collect(Collectors.toList());
         }
 
-        return Collections.emptySet();
+        return Collections.emptyList();
     }
 
     @POST
