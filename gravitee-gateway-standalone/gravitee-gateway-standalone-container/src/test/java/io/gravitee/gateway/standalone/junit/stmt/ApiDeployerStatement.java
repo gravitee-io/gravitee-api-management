@@ -27,8 +27,10 @@ import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyRegister;
 import io.gravitee.gateway.standalone.utils.SocketUtils;
-import io.gravitee.plugin.policy.PolicyPluginManager;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.policy.PolicyPlugin;
 import org.junit.runners.model.Statement;
+import org.springframework.core.ResolvableType;
 
 import java.net.URL;
 import java.net.URLDecoder;
@@ -60,7 +62,13 @@ public class ApiDeployerStatement extends Statement {
         container = new GatewayContainer();
 
         if (target instanceof PolicyRegister) {
-            ((PolicyRegister) target).register(container.applicationContext().getBean(PolicyPluginManager.class));
+            String[] beanNamesForType = container.applicationContext().getBeanNamesForType(
+                    ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
+
+            ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>)
+                    container.applicationContext().getBean(beanNamesForType[0]);
+
+            ((PolicyRegister) target).register(ppm);
         }
 
         container.start();

@@ -18,7 +18,8 @@ package io.gravitee.gateway.standalone;
 import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.servlet.TeamServlet;
-import io.gravitee.plugin.policy.PolicyPluginManager;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
@@ -50,7 +51,7 @@ public class PolicyNotFoundGatewayTest extends AbstractGatewayTest {
     }
 
     @Override
-    public void register(PolicyPluginManager policyPluginManager) {
+    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         // Do not install any policy in registry
     }
 }

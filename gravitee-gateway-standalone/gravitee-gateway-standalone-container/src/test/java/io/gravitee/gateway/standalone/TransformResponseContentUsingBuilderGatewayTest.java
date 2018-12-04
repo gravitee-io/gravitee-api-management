@@ -21,8 +21,8 @@ import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.policy.TransformResponseContentPolicy;
 import io.gravitee.gateway.standalone.servlet.EchoServlet;
 import io.gravitee.gateway.standalone.utils.StringUtils;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -58,7 +58,7 @@ public class TransformResponseContentUsingBuilderGatewayTest extends AbstractGat
     }
 
     @Override
-    public void register(PolicyPluginManager policyPluginManager) {
+    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.register(policyPluginManager);
 
         PolicyPlugin transformResponseContentPolicy = PolicyBuilder.build("transform-response-content", TransformResponseContentPolicy.class);

@@ -32,6 +32,7 @@ import io.gravitee.node.notifier.spring.NotifierPluginConfiguration;
 import io.gravitee.node.vertx.spring.VertxConfiguration;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
+import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -54,7 +55,8 @@ import org.springframework.context.annotation.Import;
         ApiHandlerConfiguration.class,
         DictionaryConfiguration.class,
         NotifierPluginConfiguration.class,
-        AlertPluginConfiguration.class
+        AlertPluginConfiguration.class,
+        ServiceDiscoveryPluginConfiguration.class
 })
 public class StandaloneConfiguration {
 

@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.policy;
+package io.gravitee.gateway.services.endpoint.discovery.endpoint;
 
-import io.gravitee.plugin.core.api.ConfigurablePluginManager;
-import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyRegister {
+public class DiscoveredEndpoint extends HttpEndpoint {
 
-    void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager);
+    public DiscoveredEndpoint(String name, String target) {
+        super(name, target);
+    }
 }

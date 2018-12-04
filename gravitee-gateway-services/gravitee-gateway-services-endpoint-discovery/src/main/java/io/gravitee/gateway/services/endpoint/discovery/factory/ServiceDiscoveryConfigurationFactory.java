@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.policy;
+package io.gravitee.gateway.services.endpoint.discovery.factory;
 
-import io.gravitee.plugin.core.api.ConfigurablePluginManager;
-import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.discovery.api.ServiceDiscoveryConfiguration;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyRegister {
+public interface ServiceDiscoveryConfigurationFactory {
 
-    void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager);
+    <T extends ServiceDiscoveryConfiguration> T create(Class<T> serviceDiscoveryConfigurationClass, String configuration);
 }
