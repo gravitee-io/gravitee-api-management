@@ -21,10 +21,10 @@ import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.plugin.policy.PolicyPluginManager;
 import io.gravitee.plugin.policy.internal.PolicyMethodResolver;
 import io.gravitee.policy.api.PolicyConfiguration;
 import io.gravitee.policy.api.annotations.OnRequest;
@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.ResolvableType;
 import org.springframework.util.ClassUtils;
 
 import java.io.IOException;
@@ -90,7 +91,11 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
     }
 
     private void initialize() {
-        PolicyPluginManager ppm = applicationContext.getBean(PolicyPluginManager.class);
+        String[] beanNamesForType = applicationContext.getParent().getBeanNamesForType(
+                ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
+
+        ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>) applicationContext
+                .getParent().getBean(beanNamesForType[0]);
         PolicyClassLoaderFactory pclf = applicationContext.getBean(PolicyClassLoaderFactory.class);
         ReactorHandler rh = applicationContext.getBean(ReactorHandler.class);
         ResourceLifecycleManager rm = applicationContext.getBean(ResourceLifecycleManager.class);

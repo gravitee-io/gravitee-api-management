@@ -22,8 +22,8 @@ import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.DynamicRoutingPolicy;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.servlet.TeamServlet;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
@@ -78,7 +78,7 @@ public class DynamicRoutingGatewayTest extends AbstractGatewayTest {
     }
 
     @Override
-    public void register(PolicyPluginManager policyPluginManager) {
+    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.register(policyPluginManager);
 
         PolicyPlugin dynamicRoutingPolicy = PolicyBuilder.build("dynamic-routing", DynamicRoutingPolicy.class);

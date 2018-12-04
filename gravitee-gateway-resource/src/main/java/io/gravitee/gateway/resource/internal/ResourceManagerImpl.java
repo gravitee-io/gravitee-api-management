@@ -21,10 +21,10 @@ import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
-import io.gravitee.plugin.resource.ResourcePluginManager;
 import io.gravitee.resource.api.ResourceConfiguration;
 import io.gravitee.resource.api.ResourceManager;
 import org.slf4j.Logger;
@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.ResolvableType;
 import org.springframework.util.ClassUtils;
 
 import java.io.IOException;
@@ -99,7 +100,11 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
     }
 
     private void initialize() {
-        ResourcePluginManager rpm = applicationContext.getBean(ResourcePluginManager.class);
+        String[] beanNamesForType = applicationContext.getParent().getBeanNamesForType(
+                ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
+
+        ConfigurablePluginManager<ResourcePlugin> rpm = (ConfigurablePluginManager<ResourcePlugin>) applicationContext.getBean(beanNamesForType[0]);
+
         ResourceClassLoaderFactory rclf = applicationContext.getBean(ResourceClassLoaderFactory.class);
         ResourceConfigurationFactory rcf = applicationContext.getBean(ResourceConfigurationFactory.class);
         ReactorHandler rh = applicationContext.getBean(ReactorHandler.class);

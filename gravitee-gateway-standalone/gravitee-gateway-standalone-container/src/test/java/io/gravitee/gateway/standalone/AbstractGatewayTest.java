@@ -19,12 +19,12 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
-import io.gravitee.gateway.standalone.policy.PolicyBuilder;
-import io.gravitee.gateway.standalone.policy.PolicyRegister;
 import io.gravitee.gateway.standalone.policy.ApiKeyPolicy;
 import io.gravitee.gateway.standalone.policy.KeylessPolicy;
+import io.gravitee.gateway.standalone.policy.PolicyBuilder;
+import io.gravitee.gateway.standalone.policy.PolicyRegister;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
@@ -43,7 +43,7 @@ public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderIn
             .around(new ApiDeployer(this));
 
     @Override
-    public void register(PolicyPluginManager policyPluginManager) {
+    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         PolicyPlugin apiKey = PolicyBuilder.build("api-key", ApiKeyPolicy.class);
         policyPluginManager.register(apiKey);
 

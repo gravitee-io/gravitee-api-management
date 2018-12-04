@@ -205,10 +205,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
         // Resume response read
         proxyResponse.resume();
-
-        final AlertHandler alertHandler = new AlertHandler(alertEngineService, context.getRequest(), context.getContext(),
-                node, port,handler);
-        alertHandler.handle(context.getResponse());
     }
 
     private void handleError(ProcessorContext context, ProcessorFailure failure, Handler<Response> handler) {

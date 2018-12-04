@@ -17,12 +17,11 @@ package io.gravitee.gateway.standalone;
 
 import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.policy.ValidateRequestPolicy;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.policy.ValidateResponsePolicy;
 import io.gravitee.gateway.standalone.servlet.EchoServlet;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.plugin.policy.PolicyPluginManager;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -52,7 +51,7 @@ public class ResponseInvalidContentTest extends AbstractGatewayTest {
     }
 
     @Override
-    public void register(PolicyPluginManager policyPluginManager) {
+    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.register(policyPluginManager);
 
         PolicyPlugin errorResponseStreamPolicy = PolicyBuilder.build("content-response-error", ValidateResponsePolicy.class);
