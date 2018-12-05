@@ -310,7 +310,7 @@ notifiers:
 
 # Gravitee Alert Engine is only available with support
 alerts:
-  enabled: true
+  enabled: false
   default:
     enabled: false
     hazelcast:
