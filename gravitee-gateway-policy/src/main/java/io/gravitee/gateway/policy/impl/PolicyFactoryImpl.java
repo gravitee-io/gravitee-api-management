@@ -59,7 +59,7 @@ public class PolicyFactoryImpl implements PolicyFactory {
 
         if (constr != null) {
             try {
-                if (constr.getParameterCount() > 0 && policyConfiguration != null) {
+                if (constr.getParameterCount() > 0) {
                     policyInst = constr.newInstance(policyConfiguration);
                 } else {
                     policyInst = constr.newInstance();
