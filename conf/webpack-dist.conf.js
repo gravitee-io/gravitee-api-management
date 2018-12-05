@@ -87,7 +87,8 @@ module.exports = {
     new webpack.ProvidePlugin({
       $: 'jquery',
       jQuery: 'jquery',
-      moment: 'moment'
+      moment: 'moment',
+      tinycolor: 'tinycolor2'
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
