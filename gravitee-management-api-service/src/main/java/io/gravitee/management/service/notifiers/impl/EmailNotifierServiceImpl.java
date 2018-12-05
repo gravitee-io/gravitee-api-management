@@ -98,6 +98,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
 
         // Application Hook
+        else if (hook.equals(ApplicationHook.SUBSCRIPTION_NEW)) {
+            return EmailNotificationBuilder.EmailTemplate.SUBSCRIPTION_CREATED;
+        }
         else if (hook.equals(ApplicationHook.SUBSCRIPTION_ACCEPTED)) {
             return EmailNotificationBuilder.EmailTemplate.APPROVE_SUBSCRIPTION;
         }

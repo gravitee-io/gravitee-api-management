@@ -82,6 +82,7 @@ public class EmailNotificationBuilder {
         RENEWED_API_KEY("apiKeyRenewed.html"),
         EXPIRE_API_KEY("apiKeyExpired.html"),
         NEW_SUBSCRIPTION("subscriptionReceived.html"),
+        SUBSCRIPTION_CREATED("subscriptionCreated.html"),
         APPROVE_SUBSCRIPTION("subscriptionApproved.html"),
         CLOSE_SUBSCRIPTION("subscriptionClosed.html"),
         REJECT_SUBSCRIPTION("subscriptionRejected.html"),
