@@ -20,6 +20,8 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyChainException;
 import io.gravitee.gateway.policy.PolicyException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +31,8 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class RequestPolicyChain extends StreamablePolicyChain {
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(RequestPolicyChain.class);
 
     private RequestPolicyChain(final List<Policy> policies, final ExecutionContext executionContext) {
         super(policies, executionContext);
@@ -43,6 +47,7 @@ public class RequestPolicyChain extends StreamablePolicyChain {
         try {
             policy.onRequest(args);
         } catch (PolicyException pe) {
+            LOGGER.error("Exception occurred while executing request policy chain", pe);
             throw new PolicyChainException(pe);
         }
     }
