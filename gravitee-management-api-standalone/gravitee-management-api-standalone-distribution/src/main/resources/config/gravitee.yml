@@ -311,6 +311,7 @@ notifiers:
 # Gravitee Alert Engine is only available with support
 alerts:
   enabled: false
+  # Default plugin provided with support
   default:
     enabled: false
     hazelcast:
