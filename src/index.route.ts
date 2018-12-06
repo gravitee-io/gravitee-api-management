@@ -144,7 +144,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
             $window.localStorage.removeItem("user-logout-url");
             if (userLogoutEndpoint != undefined) {
               var redirectUri = encodeURIComponent(window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname));
-              $window.location.href= userLogoutEndpoint + "?redirect_uri=" + redirectUri;
+              $window.location.href= userLogoutEndpoint + redirectUri;
             }
           }
         );
