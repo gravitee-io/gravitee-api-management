@@ -69,6 +69,7 @@ class PageController {
       mode: "javascript"
     };
 
+    this.$scope.pageContentFile = {};
     this.$scope.$watch('pageContentFile.content', (data) => {
       if (data) {
         this.page.content = data;
