@@ -80,6 +80,15 @@
 		</fileSet>
 
 		<fileSet>
+			<directory>../target/distribution/data</directory>
+			<outputDirectory>/data</outputDirectory>
+			<fileMode>644</fileMode>
+			<excludes>
+				<exclude>*</exclude>
+			</excludes>
+		</fileSet>
+
+		<fileSet>
 			<directory>../target/distribution/bin</directory>
 			<outputDirectory>/bin</outputDirectory>
 			<includes>
