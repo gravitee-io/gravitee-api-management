@@ -141,10 +141,10 @@
     </div>
 
 
-      <div class="gv-form gv-form-danger">
+      <div class="gv-form gv-form-danger" permission permission-only="['api-definition-u', 'api-definition-d']">
         <h2>Danger Zone</h2>
         <div class="gv-form-content" layout="column">
-          <div layout="row" layout-align="space-between center">
+          <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-u'">
             <div class="gv-form-danger-text" ng-if="portalCtrl.api.state==='started'">
               Stop the API. It will no longer be available on all gateways.
             </div>
@@ -152,16 +152,14 @@
               Start the API. It will be available on all gateways (depending on sharding tags).
             </div>
             <div>
-              <md-button permission permission-only="'api-definition-u'"
-                         class="md-flat md-warn" type="button" ng-click="portalCtrl.changeLifecycle()"
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeLifecycle()"
                          ng-if="portalCtrl.api.state==='started'">Stop the API</md-button>
-              <md-button permission permission-only="'api-definition-u'"
-                         class="md-flat md-warn" type="button" ng-click="portalCtrl.changeLifecycle()"
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeLifecycle()"
                          ng-if="portalCtrl.api.state==='stopped'">Start the API</md-button>
             </div>
           </div>
 
-          <div layout="row" layout-align="space-between center">
+          <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-u'">
             <div class="gv-form-danger-text" ng-if="portalCtrl.api.visibility==='public'">
               Make this API private. Only members will see it.
             </div>
@@ -169,23 +167,20 @@
               Make this API public. Everyone can see it.
             </div>
             <div>
-              <md-button permission permission-only="'api-definition-u'"
-                         class="md-flat md-warn" type="button" ng-click="portalCtrl.toggleVisibility(); portalCtrl.update(portalCtrl.api);"
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.toggleVisibility(); portalCtrl.update(portalCtrl.api);"
                          ng-if="portalCtrl.api.visibility==='public'">Make Private</md-button>
-              <md-button permission permission-only="'api-definition-u'"
-                         class="md-flat md-warn" type="button" ng-click="portalCtrl.toggleVisibility(); portalCtrl.update(portalCtrl.api);"
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.toggleVisibility(); portalCtrl.update(portalCtrl.api);"
                          ng-if="portalCtrl.api.visibility==='private'">Make Public</md-button>
             </div>
           </div>
 
-          <div layout="row" layout-align="space-between center">
+          <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-d'">
             <div class="gv-form-danger-text">
               Delete this API.
               <span ng-if="portalCtrl.api.state === 'started'">A running API cannot be deleted</span>
             </div>
             <div>
-              <md-button permission permission-only="'api-definition-d'"
-                         class="md-flat md-warn" type="button" ng-click="portalCtrl.delete(portalCtrl.api.id)"
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.delete(portalCtrl.api.id)"
                          ng-disabled="portalCtrl.api.state === 'started'">Delete</md-button>
             </div>
           </div>
