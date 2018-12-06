@@ -78,7 +78,7 @@ public class RoleUsersResource extends AbstractResource  {
                     .map(MembershipListItem::new)
                     .sorted((a,b) -> {
                         if (a.getDisplayName() == null && b.getDisplayName() == null) {
-                            return a.getUsername().compareToIgnoreCase(b.getUsername());
+                            return a.getId().compareToIgnoreCase(b.getId());
                         }
                         if (a.getDisplayName() == null) {
                             return -1;

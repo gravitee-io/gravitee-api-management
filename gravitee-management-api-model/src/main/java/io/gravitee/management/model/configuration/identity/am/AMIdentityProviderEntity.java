@@ -26,7 +26,7 @@ public class AMIdentityProviderEntity extends SocialIdentityProviderEntity {
 
     private static final String AUTHORIZATION_URL = "/oauth/authorize";
     private static final String TOKEN_URL = "/oauth/token";
-    private static final String LOGOUT_URL = "/oauth/logout";
+    private static final String LOGOUT_URL = "/logout?target_url=";
     private static final String TOKEN_INTROSPECTION_URL = "/oauth/introspect";
     private static final String USER_INFO_URL = "/oidc/userinfo";
     private static final String ACCESS_TOKEN_PROPERTY = "access_token";
