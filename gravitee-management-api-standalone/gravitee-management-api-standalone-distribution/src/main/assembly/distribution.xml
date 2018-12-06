@@ -48,6 +48,15 @@
             </excludes>
         </fileSet>
 
+        <!-- Just to create an empty data directory -->
+        <fileSet>
+            <directory>src/main/assembly</directory>
+            <outputDirectory>/data</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+        </fileSet>
+
         <fileSet>
             <directory>target/staging</directory>
             <outputDirectory>/plugins</outputDirectory>
