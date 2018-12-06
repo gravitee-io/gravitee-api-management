@@ -17,39 +17,42 @@
 -->
 <div class="gv-forms" layout="column">
     <div class="gv-forms-header">
-        <h1>role [{{$ctrl.roleScope}}]: {{::$ctrl.role}}</h1>
+        <h1>role [{{::$ctrl.roleScope}}]: {{::$ctrl.role}}</h1>
         <a ui-sref="management.settings.roles">Back to roles</a>
     </div>
 
     <div class="gv-form">
         <h2>Members</h2>
-        <div class="gv-form-content" layout="column">
-<md-table-container>
-    <table md-table>
-        <thead md-head class="gv-table-dense">
-        <tr md-row>
-            <th md-column>Full name</th>
-            <th md-column>Username</th>
-            <th md-column></th>
-        </tr>
-        </thead>
-        <tbody md-body>
-        <tr md-row
-            ng-repeat="user in $ctrl.members">
-            <td md-cell>{{user.displayName}}</td>
-            <td md-cell>{{user.username}}</td>
-            <td md-cell ng-click="$event.stopPropagation()">
-                <div layout="row" layout-align="end center">
+        <div class="gv-form-content" layout="column"
+             infinite-scroll="$ctrl.loadMoreMembers()"
+             infinite-scroll-distance="1"
+             infinite-scroll-container="'.gv-sub-content'">
+            <md-table-container>
+                <table md-table>
+                    <thead md-head class="gv-table-dense">
+                    <tr md-row>
+                        <th md-column>Full name</th>
+                        <th md-column>Username</th>
+                        <th md-column></th>
+                    </tr>
+                    </thead>
+                    <tbody md-body>
+                    <tr md-row
+                        ng-repeat="user in $ctrl.loadedMembers">
+                        <td md-cell>{{::user.displayName}}</td>
+                        <td md-cell>{{::user.username}}</td>
+                        <td md-cell ng-click="$event.stopPropagation()">
+                            <div layout="row" layout-align="end center">
                     <span permission permission-only="['management-role-u']">
                         <md-tooltip md-direction="top">delete</md-tooltip>
-                        <ng-md-icon icon="delete" ng-click="$ctrl.deleteUser(user)" aria-label="delete-user"></ng-md-icon>
+                        <ng-md-icon icon="delete" ng-click="$ctrl.deleteUser(user, $index)" aria-label="delete-user"></ng-md-icon>
                     </span>
-                </div>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</md-table-container>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </md-table-container>
         </div>
     </div>
 </div>

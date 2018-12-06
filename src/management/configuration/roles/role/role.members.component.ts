@@ -16,6 +16,7 @@
 import RoleService from "../../../../services/role.service";
 import NotificationService from "../../../../services/notification.service";
 import { StateService } from '@uirouter/core';
+import * as _ from 'lodash';
 
 const RoleMembersComponent: ng.IComponentOptions = {
   bindings: {
@@ -28,6 +29,7 @@ const RoleMembersComponent: ng.IComponentOptions = {
                          $state: StateService,
                          $stateParams) {
     'ngInject';
+    this.loadedMembers = [];
     this.roleScope = $stateParams.roleScope;
     this.role = $stateParams.role;
     this.$onInit = () => {
@@ -36,8 +38,12 @@ const RoleMembersComponent: ng.IComponentOptions = {
       }
     };
 
-    this.deleteUser = (member) => {
-      let that = this;
+    this.loadMoreMembers = () => {
+      let loadedMembersLength = this.loadedMembers ? this.loadedMembers.length : 0;
+      this.loadedMembers = _.take(this.members, 20 + loadedMembersLength);
+    };
+
+    this.deleteUser = (member, index) => {
       $mdDialog.show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
@@ -51,15 +57,18 @@ const RoleMembersComponent: ng.IComponentOptions = {
         if (response) {
           RoleService.deleteUser({scope: this.roleScope, name: this.role}, member.id).then( () => {
             NotificationService.show(`User ${member.displayName} no longer has the role ${this.role}`);
-            that.loadUsers();
+            this.members.splice(index, 1);
+            this.loadedMembers.splice(index, 1);
           });
         }
       });
     };
 
-    this.loadUsers = () => {
+    this.reloadMembers = () => {
       RoleService.listUsers(this.roleScope, this.role).then( (members) => {
         this.members = members;
+        this.loadedMembers = [];
+        this.loadMoreMembers();
       });
     };
 
@@ -76,7 +85,7 @@ const RoleMembersComponent: ng.IComponentOptions = {
         }
       }).then((usernames) => {
         if (usernames && usernames.length > 0) {
-            that.loadUsers();
+            that.reloadMembers();
         }
       });
     };
