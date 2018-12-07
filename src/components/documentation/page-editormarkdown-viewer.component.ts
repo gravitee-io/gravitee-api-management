@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 import * as Viewer from "tui-editor/dist/tui-editor-Viewer";
-
+import * as _ from 'lodash';
 class ComponentCtrl implements ng.IComponentController {
+  private page: any;
+  private options: any;
 
-  public page: any;
-  public options: any;
-
-  constructor(private $rootScope) {
-      "ngInject";
+  constructor(private $location) {
+    'ngInject';
   }
-
-  $onInit() {}
 
   $onChanges() {
     const initialValue = this.page && this.page.content ? this.page.content : "";
-
     new Viewer(Object.assign({
       el: document.querySelector("#viewerSection"),
       viewer: true,
       height: "auto",
-      initialValue: initialValue,
+      initialValue: _.replace(
+                      _.replace(initialValue,
+                        '(#', '(' + this.$location.absUrl() + '#'),
+                      'href="#', 'href="'+ this.$location.absUrl() + '#'
+      ),
       useDefaultHTMLSanitizer: false
     }, this.options));
   }
