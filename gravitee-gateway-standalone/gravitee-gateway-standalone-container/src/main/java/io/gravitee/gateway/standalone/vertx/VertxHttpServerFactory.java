@@ -67,6 +67,8 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
             }
         }
 
+        options.setHandle100ContinueAutomatically(true);
+        
         // Customizable configuration
         options.setCompressionSupported(httpServerConfiguration.isCompressionSupported());
         options.setIdleTimeout(httpServerConfiguration.getIdleTimeout());
