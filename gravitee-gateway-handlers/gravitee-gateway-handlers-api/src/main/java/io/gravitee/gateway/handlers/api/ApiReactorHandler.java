@@ -93,6 +93,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     private Node node;
     @Value("${http.port:8082}")
     private String port;
+    @Value("${alerts.enabled:false}")
+    private boolean alertEnabled;
 
     @Override
     protected void doHandle(Request serverRequest, Response serverResponse, ExecutionContext executionContext, Handler<Response> handler) {
@@ -102,6 +104,11 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
         if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
             handler = new PathMappingMetricsHandler(handler, api.getPathMappings(), serverRequest);
+        }
+
+        // Set alert handler if enabled
+        if (alertEnabled) {
+            handler = new AlertHandler(alertEngineService, serverRequest, executionContext, node, port, handler);
         }
 
         executionContext.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, serverRequest.contextPath());
@@ -205,10 +212,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
         // Resume response read
         proxyResponse.resume();
-
-        final AlertHandler alertHandler = new AlertHandler(alertEngineService, context.getRequest(), context.getContext(),
-                node, port,handler);
-        alertHandler.handle(context.getResponse());
     }
 
     private void handleError(ProcessorContext context, ProcessorFailure failure, Handler<Response> handler) {

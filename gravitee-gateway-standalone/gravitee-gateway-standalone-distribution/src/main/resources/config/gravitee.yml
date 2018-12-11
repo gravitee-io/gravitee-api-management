@@ -217,6 +217,7 @@ ds:
 
 # Gravitee Alert Engine is only available with support
 alerts:
+  enabled: false
   default:
     enabled: false
     hazelcast:
