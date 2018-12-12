@@ -95,52 +95,6 @@
         </md-content>
       </div>
     </div>
-
-    <div class="gv-form">
-      <div class="gv-forms-header">
-        <h2>Endpoint Discovery</h2>
-        <div ng-switch on="apiProxyCtrl.discovery.enabled">
-          <span class="proxy-activated" ng-switch-when="true">(active)</span>
-          <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
-          <span class="proxy-deactivated" ng-switch-default>(not active)</span>
-        </div>
-      </div>
-      <div class="gv-form-content">
-        <md-checkbox
-                ng-model="apiProxyCtrl.discovery.enabled"
-                aria-label="Enable endpoint discovery" flex>Enabled Consul.io
-          <div class="ipsum">By enabling endpoint discovery, endpoints will be dynamically added or removed (without downtime).</div>
-        </md-checkbox>
-        <div ng-show="apiProxyCtrl.discovery.enabled">
-          <md-content layout="column">
-            <md-input-container>
-              <label>HTTP Endpoint</label>
-              <input ng-model="apiProxyCtrl.discovery.configuration.url" autofocus type="url" required placeholder="http://localhost:8500">
-              <div class="hint">Address of the Consul agent with the port.</div>
-            </md-input-container>
-
-            <md-input-container>
-              <label>Service</label>
-              <input ng-model="apiProxyCtrl.discovery.configuration.service" type="text" required placeholder="my-service-name">
-              <div class="hint">The service name to query</div>
-            </md-input-container>
-
-            <md-input-container>
-              <label>ACL</label>
-              <input ng-model="apiProxyCtrl.discovery.configuration.acl" type="text">
-              <div class="hint">ACL token to use in the request. This can also be specified via the CONSUL_HTTP_TOKEN environment variable.
-                If unspecified, the query will default to the token of the Consul agent at the HTTP address.</div>
-            </md-input-container>
-
-            <md-input-container>
-              <label>DC</label>
-              <input ng-model="apiProxyCtrl.discovery.configuration.dc" type="text">
-              <div class="hint">Name of the data-center to query. If unspecified, the query will default to the data-center of the Consul agent at the HTTP address.</div>
-            </md-input-container>
-          </md-content>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div class="md-actions gravitee-api-save-button" layout="row">

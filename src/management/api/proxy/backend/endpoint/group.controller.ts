@@ -21,14 +21,21 @@ class ApiEndpointGroupController {
   private group: any;
   private initialGroups: any;
   private initialGroup: any;
-
+  private discovery: any;
+  private initialDiscovery: any;
   private creation: boolean = false;
+
+  private serviceDiscoveryJsonSchemaForm: string[];
+  private types: any[];
+  private serviceDiscoveryJsonSchema: any;
 
   constructor (
     private ApiService,
     private NotificationService,
+    private ServiceDiscoveryService,
     private $scope,
     private $rootScope,
+    private resolvedServicesDiscovery,
     private $state,
     private $stateParams
   ) {
@@ -37,6 +44,13 @@ class ApiEndpointGroupController {
     this.api = this.$scope.$parent.apiCtrl.api;
     this.group = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
 
+    this.serviceDiscoveryJsonSchemaForm = ["*"];
+
+    this.types = resolvedServicesDiscovery.data;
+
+    this.discovery = this.group.services && this.group.services['discovery'];
+    this.discovery = this.discovery || {enabled: false, configuration: {}};
+    this.initialDiscovery = _.cloneDeep(this.discovery);
     this.initialGroups = _.cloneDeep(this.api.proxy.groups);
 
     // Creation mode
@@ -62,6 +76,36 @@ class ApiEndpointGroupController {
         name: 'Weighted Random',
         value: 'WEIGHTED_RANDOM'
       }];
+
+    this.retrievePluginSchema();
+  }
+
+  onTypeChange() {
+    this.discovery.configuration = {};
+
+    this.retrievePluginSchema();
+  }
+
+  retrievePluginSchema() {
+    if (this.discovery.provider !== undefined) {
+      this.ServiceDiscoveryService.getSchema(this.discovery.provider).then(({data}) => {
+          this.serviceDiscoveryJsonSchema = data;
+          return {
+            schema: data
+          };
+        },
+        (response) => {
+          if (response.status === 404) {
+            this.serviceDiscoveryJsonSchema = {};
+            return {
+              schema: {}
+            };
+          } else {
+            //todo manage errors
+            this.NotificationService.showError('Unexpected error while loading service discovery schema for ' + this.discovery.provider);
+          }
+        });
+    }
   }
 
   update(api) {
@@ -83,7 +127,7 @@ class ApiEndpointGroupController {
 
   onApiUpdate() {
     this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
-    this.NotificationService.show('Endpoint saved');
+    this.NotificationService.show('Group configuration saved');
     this.$state.go('management.apis.detail.proxy.endpoints');
   }
 

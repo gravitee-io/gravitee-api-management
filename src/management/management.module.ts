@@ -156,6 +156,7 @@ import PageController from '../management/api/portal/documentation/pages/page/ap
 import PolicyService from '../services/policy.service';
 import ResourceService from '../services/resource.service';
 import FetcherService from '../services/fetcher.service';
+import ServiceDiscoveryService from '../services/serviceDiscovery.service';
 import LoginController from '../user/login/login.controller';
 import DiffDirective from '../components/diff/diff.directive';
 import DialogApiImportController from '../management/api/portal/general/dialog/apiImportDialog.controller';
@@ -578,6 +579,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('UserService', UserService)
   .service('ResourceService', ResourceService)
   .service('FetcherService', FetcherService)
+  .service('ServiceDiscoveryService', ServiceDiscoveryService)
   .service('EventsService', EventsService)
   .service('AnalyticsService', AnalyticsService)
   .service('ViewService', ViewService)

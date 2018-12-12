@@ -15,6 +15,8 @@
  */
 import TenantService from '../../../services/tenant.service';
 import ApiService from '../../../services/api.service';
+import ResourceService from "../../../services/resource.service";
+import ServiceDiscoveryService from "../../../services/serviceDiscovery.service";
 
 export default apisProxyRouterConfig;
 
@@ -126,6 +128,9 @@ function apisProxyRouterConfig($stateProvider) {
       template: require('./backend/endpoint/group.html'),
       controller: 'ApiEndpointGroupController',
       controllerAs: 'groupCtrl',
+      resolve: {
+        resolvedServicesDiscovery: (ServiceDiscoveryService: ServiceDiscoveryService) => ServiceDiscoveryService.list()
+      },
       data: {
         perms: {
           only: ['api-definition-r']
