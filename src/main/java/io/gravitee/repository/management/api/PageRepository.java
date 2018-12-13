@@ -16,9 +16,11 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -27,17 +29,9 @@ import java.util.Collection;
  */
 public interface PageRepository extends CrudRepository<Page, String> {
 
-	Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException;
-
-	Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException;
+	List<Page> search(PageCriteria criteria) throws TechnicalException;
 
 	Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException;
 
-	Collection<Page> findPortalPageByHomepage(boolean isHomepage) throws TechnicalException;
-
-	Collection<Page> findPortalPages() throws TechnicalException;
-
 	Integer findMaxPortalPageOrder() throws TechnicalException;
-
-    void removeAllFolderParentWith(String parentId, String apiId) throws TechnicalException;
 }
