@@ -29,10 +29,12 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static io.gravitee.management.service.impl.ParameterServiceImpl.KV_SEPARATOR;
+import static java.util.Collections.*;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -45,7 +47,6 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     @Autowired
     private ParameterService parameterService;
-
     @Autowired
     private ConfigurableEnvironment environment;
 
@@ -75,23 +76,40 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     f.setAccessible(true);
                     try {
                         final List<String> values = parameterMap.get(parameterKey.value().key());
+                        final String defaultValue = parameterKey.value().defaultValue();
                         if (Enabled.class.isAssignableFrom(f.getType())) {
-                            f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, parameterKey.value().defaultValue()))
+                            f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, defaultValue))
                                     ? new Enabled(true)
                                     : new Enabled(false)
                             );
                         } else if (Boolean.class.isAssignableFrom(f.getType())) {
-                            f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, parameterKey.value().defaultValue())));
+                            f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, defaultValue)));
                         } else if (Integer.class.isAssignableFrom(f.getType())) {
-                            f.set(o, Integer.valueOf(getFirstValueOrDefault(values, parameterKey.value().defaultValue())));
+                            f.set(o, Integer.valueOf(getFirstValueOrDefault(values, defaultValue)));
                         } else if (List.class.isAssignableFrom(f.getType())) {
                             if (values == null || values.isEmpty()) {
-                                f.set(o, Collections.emptyList());
+                                f.set(o, emptyList());
                             } else {
                                 f.set(o, values);
                             }
+                        } else if (Map.class.isAssignableFrom(f.getType())) {
+                            if (values == null || values.isEmpty()) {
+                                if (defaultValue == null) {
+                                    f.set(o, emptyMap());
+                                } else {
+                                    f.set(o, singletonMap(defaultValue.split(KV_SEPARATOR)[0], defaultValue.split(KV_SEPARATOR)[1]));
+                                }
+                            } else {
+                                f.set(o, values.stream().collect(toMap(v -> v.split(KV_SEPARATOR)[0], v -> {
+                                    final String[] split = v.split(KV_SEPARATOR);
+                                    if (split.length < 2) {
+                                        return "";
+                                    }
+                                    return split[1];
+                                })));
+                            }
                         } else {
-                            f.set(o, getFirstValueOrDefault(values, parameterKey.value().defaultValue()));
+                            f.set(o, getFirstValueOrDefault(values, defaultValue));
                         }
                     } catch (IllegalAccessException e) {
                         LOGGER.error("Unable to set parameter {}. Use the default value", parameterKey.value().key(), e);
@@ -147,20 +165,19 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     boolean accessible = f.isAccessible();
                     f.setAccessible(true);
                     try {
-                        Object value;
-                        if (f.get(o) != null && Enabled.class.isAssignableFrom(f.getType())) {
-                            value = Boolean.toString(((Enabled) f.get(o)).isEnabled());
-                        } else if (f.get(o) != null && !Collection.class.isAssignableFrom(f.getType())) {
-                            value = f.get(o).toString();
-                        } else {
-                            value = f.get(o);
-                        }
-
-                        if (value != null) {
-                            if (List.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), (List) value);
+                        if (f.get(o) != null) {
+                            if (Enabled.class.isAssignableFrom(f.getType())) {
+                                parameterService.save(parameterKey.value(), Boolean.toString(((Enabled) f.get(o)).isEnabled()));
+                            } else if (Boolean.class.isAssignableFrom(f.getType())) {
+                                parameterService.save(parameterKey.value(), Boolean.toString((Boolean) f.get(o)));
+                            } else if (Integer.class.isAssignableFrom(f.getType())) {
+                                parameterService.save(parameterKey.value(), Integer.toString((Integer) f.get(o)));
+                            } else if (List.class.isAssignableFrom(f.getType())) {
+                                parameterService.save(parameterKey.value(), (List) f.get(o));
+                            } else if (Map.class.isAssignableFrom(f.getType())) {
+                                parameterService.save(parameterKey.value(), (Map) f.get(o));
                             } else {
-                                parameterService.save(parameterKey.value(), (String) value);
+                                parameterService.save(parameterKey.value(), (String) f.get(o));
                             }
                         }
                     } catch (IllegalAccessException e) {

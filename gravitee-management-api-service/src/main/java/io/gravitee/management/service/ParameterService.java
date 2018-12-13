@@ -43,4 +43,5 @@ public interface ParameterService {
 
     Parameter save(Key key, String value);
     Parameter save(Key key, List<String> value);
+    Parameter save(Key key, Map<String, String> values);
 }

@@ -33,7 +33,8 @@ public enum ManagementPermission implements Permission {
     USER        ("USER",         2100),
     MESSAGE     ("MESSAGE",      2200),
     DICTIONARY  ("DICTIONARY",   2300),
-    ALERT       ("ALERT",        2400);
+    ALERT       ("ALERT",        2400),
+    ENTRYPOINT ("ENTRYPOINT",  2500);
 
     String name;
     int mask;

@@ -113,8 +113,10 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             //TODO: Find a way to validate mapping expression
             IdentityProvider identityProvider = convert(updateIdentityProvider);
 
+            final IdentityProvider idpToUpdate = optIdentityProvider.get();
             identityProvider.setId(id);
-            identityProvider.setCreatedAt(optIdentityProvider.get().getCreatedAt());
+            identityProvider.setType(idpToUpdate.getType());
+            identityProvider.setCreatedAt(idpToUpdate.getCreatedAt());
             identityProvider.setUpdatedAt(new Date());
 
             IdentityProvider updatedIdentityProvider =  identityProviderRepository.update(identityProvider);
@@ -124,7 +126,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                     singletonMap(IDENTITY_PROVIDER, id),
                     IdentityProvider.AuditEvent.IDENTITY_PROVIDER_UPDATED,
                     identityProvider.getUpdatedAt(),
-                    optIdentityProvider.get(),
+                    idpToUpdate,
                     updatedIdentityProvider);
 
             return convert(updatedIdentityProvider);

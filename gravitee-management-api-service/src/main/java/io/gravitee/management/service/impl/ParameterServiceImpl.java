@@ -38,6 +38,7 @@ import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAM
 import static java.lang.String.join;
 import static java.util.Arrays.stream;
 import static java.util.Collections.*;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -51,6 +52,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     private static final Logger LOGGER = LoggerFactory.getLogger(ParameterServiceImpl.class);
 
     private static final String SEPARATOR = ";";
+    public static final String KV_SEPARATOR = "@";
 
     @Inject
     private ParameterRepository parameterRepository;
@@ -181,5 +183,13 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     @Override
     public Parameter save(final Key key, final List<String> values) {
         return save(key, values==null ? null : join(SEPARATOR, values));
+    }
+
+    @Override
+    public Parameter save(final Key key, final Map<String, String> values) {
+        return save(key, values==null ? null : values.entrySet()
+                .stream()
+                .map(entry -> entry.getKey() + KV_SEPARATOR + entry.getValue())
+                .collect(joining(SEPARATOR)));
     }
 }

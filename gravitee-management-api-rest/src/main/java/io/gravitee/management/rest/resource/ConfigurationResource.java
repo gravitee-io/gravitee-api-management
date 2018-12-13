@@ -132,4 +132,9 @@ public class ConfigurationResource {
     public IdentityProvidersResource getAuthenticationProvidersResource() {
         return resourceContext.getResource(IdentityProvidersResource.class);
     }
+
+    @Path("entrypoints")
+    public EntrypointsResource getEntryPointsResource() {
+        return resourceContext.getResource(EntrypointsResource.class);
+    }
 }
