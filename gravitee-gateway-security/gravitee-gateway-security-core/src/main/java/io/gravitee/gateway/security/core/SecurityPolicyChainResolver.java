@@ -53,16 +53,18 @@ public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
                 return RequestPolicyChain.create(createAuthenticationChain(policies), executionContext);
             }
 
-            // No authentication method selected. use the first one to create an unauthorized response:
+            // No authentication method selected. use the first one with the lowest oder number to create an unauthorized response:
             final List<AuthenticationHandler> securityProviders = this.securityManager.getSecurityProviders();
             if (securityProviders != null && !securityProviders.isEmpty()) {
                 Collections.sort(securityProviders, Comparator.comparingInt(AuthenticationHandler::order));
                 final AuthenticationHandler authenticationHandler = securityProviders.get(0);
 
-                this.logger.debug(
-                        "No security provider has been selected to process request {}. Using first security provider {} to return an unauthorized status",
-                        request.id(),
-                        authenticationHandler.name());
+                if (this.logger.isDebugEnabled()) {
+                    this.logger.debug(
+                            "No security provider has been selected to process request {}. Using first security provider {} to return an unauthorized status",
+                            request.id(),
+                            authenticationHandler.name());
+                }
 
                 final List<AuthenticationPolicy> policies = authenticationHandler.handle(executionContext);
                 return RequestPolicyChain.create(this.createAuthenticationChain(policies), executionContext);
