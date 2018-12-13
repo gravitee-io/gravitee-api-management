@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
@@ -28,10 +29,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -51,14 +50,11 @@ public class MongoPageRepository implements PageRepository {
     private GraviteeMapper mapper;
 
     @Override
-    public Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException {
-        logger.debug("Find pages by api {}", apiId);
-
-        List<PageMongo> pages = internalPageRepo.findByApi(apiId);
-        Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
-
-        logger.debug("Find pages by api {} - Done", apiId);
-        return res;
+    public List<Page> search(PageCriteria criteria) throws TechnicalException {
+        logger.debug("Search Pages by criteria");
+        List<PageMongo> results = internalPageRepo.search(criteria);
+        logger.debug("Search Pages by criteria. Count={} - Done", results == null ? 0 : results.size());
+        return mapper.collection2list(results, PageMongo.class, Page.class);
     }
 
     @Override
@@ -162,29 +158,4 @@ public class MongoPageRepository implements PageRepository {
         return pageSourceMongo;
     }
 
-    @Override
-    public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException {
-        return mapper.collection2list(internalPageRepo.findByHomepage(apiId, isHomepage), PageMongo.class, Page.class);
-    }
-
-    @Override
-    public Collection<Page> findPortalPageByHomepage(boolean isHomepage) throws TechnicalException {
-        return mapper.collection2list(internalPageRepo.findByHomepage(isHomepage), PageMongo.class, Page.class);
-    }
-
-    @Override
-    public Collection<Page> findPortalPages() throws TechnicalException {
-        logger.debug("Find portal pages");
-
-        List<PageMongo> pages = internalPageRepo.findPortalPages();
-        Set<Page> res = mapper.collection2set(pages, PageMongo.class, Page.class);
-
-        logger.debug("Find portal pages - Done");
-        return res;
-    }
-
-    @Override
-    public void removeAllFolderParentWith(String pageId, String apiId) throws TechnicalException {
-        internalPageRepo.updateAllPageWithParent(pageId, apiId);
-    }
 }

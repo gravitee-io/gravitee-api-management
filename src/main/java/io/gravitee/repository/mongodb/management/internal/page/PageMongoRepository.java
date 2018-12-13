@@ -17,10 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.page;
 
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -29,16 +26,4 @@ import java.util.List;
  */
 @Repository
 public interface PageMongoRepository extends MongoRepository<PageMongo, String>, PageMongoRepositoryCustom {
-
-	@Query("{ 'api' : ?0 }")
-	List<PageMongo> findByApi(String apiId);
-
-	@Query("{ 'api': ?0, 'homepage': ?1 }")
-	List<PageMongo> findByHomepage(String apiId, boolean isHomepage);
-
-	@Query("{ 'api': {$exists: false}, 'homepage': ?0 }")
-	List<PageMongo> findByHomepage(boolean isHomepage);
-
-	@Query("{ 'api': {$exists: false} }")
-	List<PageMongo> findPortalPages();
 }

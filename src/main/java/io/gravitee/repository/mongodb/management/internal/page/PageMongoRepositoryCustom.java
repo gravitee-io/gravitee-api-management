@@ -15,6 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.page;
 
+import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
+
+import java.util.List;
+
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -22,9 +27,10 @@ package io.gravitee.repository.mongodb.management.internal.page;
  */
 public interface PageMongoRepositoryCustom {
 
+	List<PageMongo> search(PageCriteria criteria);
+
 	int findMaxPageOrderByApi(String apiId);
 
 	int findMaxPortalPageOrder();
 
-	void updateAllPageWithParent(String pageFolderId, String apiId);
 }
