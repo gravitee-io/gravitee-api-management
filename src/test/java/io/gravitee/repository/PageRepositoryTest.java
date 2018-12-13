@@ -21,25 +21,22 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class PageRepositoryTest extends AbstractRepositoryTest {
 
     @Override
     protected String getTestCasesPath() {
         return "/data/page-tests/";
-    }
-
-    @Test
-    public void shouldFindApiPageByApiId() throws Exception {
-        final Collection<Page> pages = pageRepository.findApiPageByApiId("my-api");
-
-        assertNotNull(pages);
-        assertEquals(1, pages.size());
-        assertFindPage(pages.iterator().next());
     }
 
     @Test
@@ -262,27 +259,6 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertFalse("should not exists after delete", pageShouldNotExists.isPresent());
     }
 
-    @Test
-    public void shouldRemoveFolderParent() throws Exception {
-
-        Optional<Page> page1 = pageRepository.findById("page-to-be-removed-parentId-1");
-        Optional<Page> page2 = pageRepository.findById("page-to-be-removed-parentId-2");
-
-        assertTrue("should not exists after delete", page1.isPresent());
-        assertTrue("should not exists after delete", page2.isPresent());
-        assertEquals("the parentId should be page-to-be-removed-parentId", "page-to-be-removed-parentId", page1.get().getParentId());
-        assertEquals("the parentId should be page-to-be-removed-parentId", "page-to-be-removed-parentId", page2.get().getParentId());
-
-
-        pageRepository.removeAllFolderParentWith("page-to-be-removed-parentId", page1.get().getApi());
-
-        page1 = pageRepository.findById("page-to-be-removed-parentId-1");
-        page2 = pageRepository.findById("page-to-be-removed-parentId-2");
-
-        assertEquals("the parentId should be empty", "", page1.get().getParentId());
-        assertEquals("the parentId should be empty", "", page2.get().getParentId());
-    }
-
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownPage() throws Exception {
         Page unknownPage = new Page();
@@ -295,48 +271,6 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         pageRepository.update(null);
         fail("A null page should not be updated");
-    }
-
-    @Test
-    public void shouldFindApiPageByApiIdAndHomepageFalse() throws Exception {
-        Collection<Page> pages = pageRepository.findApiPageByApiIdAndHomepage("my-api-2", false);
-        assertNotNull(pages);
-        assertEquals(2, pages.size());
-    }
-
-    @Test
-    public void shouldFindApiPageByApiIdAndHomepageTrue() throws Exception {
-        Collection<Page> pages = pageRepository.findApiPageByApiIdAndHomepage("my-api-2", true);
-        assertNotNull(pages);
-        assertEquals(1, pages.size());
-        assertEquals("home", pages.iterator().next().getId());
-    }
-
-
-    @Test
-    public void shouldFindPortalPages() throws Exception {
-        Collection<Page> pages = pageRepository.findPortalPages();
-        assertNotNull(pages);
-        assertEquals(2, pages.size());
-        Set<String> ids = pages.stream().map(Page::getId).collect(Collectors.toSet());
-        assertTrue(ids.contains("FindPortalPage-homepage"));
-        assertTrue(ids.contains("FindPortalPage-nothomepage"));
-    }
-
-    @Test
-    public void shouldFindPortalPageByHomepageFalse() throws Exception {
-        Collection<Page> pages = pageRepository.findPortalPageByHomepage(false);
-        assertNotNull(pages);
-        assertEquals(1, pages.size());
-        assertEquals("FindPortalPage-nothomepage", pages.iterator().next().getId());
-    }
-
-    @Test
-    public void shouldFindPortalPageByHomepageTrue() throws Exception {
-        Collection<Page> pages = pageRepository.findPortalPageByHomepage(true);
-        assertNotNull(pages);
-        assertEquals(1, pages.size());
-        assertEquals("FindPortalPage-homepage", pages.iterator().next().getId());
     }
 
     @Test
