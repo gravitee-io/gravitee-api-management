@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const TagsComponent: ng.IComponentOptions = {
-  bindings: {
-    tags: '<',
-    entrypoints: '<'
-  },
-  controller: 'TagsController',
-  template: require('./tags.html')
-};
+function DeleteEntrypointDialogController($scope, $mdDialog: angular.material.IDialogService, entrypoint) {
+  'ngInject';
 
-export default TagsComponent;
+  $scope.entrypoint = entrypoint.value;
+
+  $scope.cancel = function() {
+    $mdDialog.cancel();
+  };
+
+  $scope.ok = function() {
+    $mdDialog.hide(entrypoint);
+  };
+}
+
+export default DeleteEntrypointDialogController;

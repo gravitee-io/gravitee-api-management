@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div class="gv-forms" layout="column">
+<form name="$ctrl.formSettings" class="gv-forms" layout="column" ng-submit="$ctrl.save()">
     <h1>Settings</h1>
     <blockquote>
         <p style="font-size: 12px">
@@ -75,10 +75,6 @@
             <md-input-container class="md-block" flex-gt-xs>
                 <label>Title</label>
                 <input ng-model="$ctrl.Constants.portal.title">
-            </md-input-container>
-            <md-input-container class="md-block" flex-gt-xs>
-                <label>Entrypoint</label>
-                <input ng-model="$ctrl.Constants.portal.entrypoint">
             </md-input-container>
             <md-input-container class="md-block" flex-gt-xs>
                 <label>Api-key Header
@@ -250,7 +246,9 @@
     </div>
 
     <md-card-actions>
-        <md-button class="md-raised md-primary" ng-click="$ctrl.save()" permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Save</md-button>
-        <md-button class="md-raised" ng-click="$ctrl.reset()" permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Reset</md-button>
+        <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
+                   permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Save</md-button>
+        <md-button type="button" class="md-raised" ng-click="$ctrl.reset()" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
+                   permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Reset</md-button>
     </md-card-actions>
-</div>
+</form>

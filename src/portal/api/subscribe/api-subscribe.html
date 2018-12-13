@@ -142,9 +142,9 @@
 
         <div layout="column">
           <h5 translate="api.subscription.step3.apikey.curl"></h5>
-          <div layout="row">
+          <div layout="row" ng-repeat="curl in $ctrl.getCurlSample()">
             <blockquote flex="80">
-              <p id="example-curl-apikey">{{$ctrl.getApiKeyCurlSample()}}</p>
+              <p id="example-curl-apikey">{{curl}}</p>
             </blockquote>
             <span>
               <md-tooltip md-direction="right">{{'common.copyToClipboard' | translate}}</md-tooltip>
@@ -172,9 +172,9 @@
 
         <div layout="column">
           <h5 translate="api.subscription.step3.oauth2.curl"></h5>
-          <div layout="row">
+          <div layout="row" ng-repeat="curl in $ctrl.getCurlSample()">
             <blockquote flex="80">
-              <p id="example-curl-oauth2">{{$ctrl.getOAuth2CurlSample()}}</p>
+              <p id="example-curl-oauth2">{{curl}}</p>
             </blockquote>
             <span>
               <md-tooltip md-direction="right">{{'common.copyToClipboard' | translate}}</md-tooltip>
@@ -202,9 +202,9 @@
 
         <div layout="column">
           <h5 translate="api.subscription.step3.jwt.curl"></h5>
-          <div layout="row">
+          <div layout="row" ng-repeat="curl in $ctrl.getCurlSample()">
             <blockquote flex="80">
-              <p id="example-curl-jwt">{{$ctrl.getOAuth2CurlSample()}}</p>
+              <p id="example-curl-jwt">{{curl}}</p>
             </blockquote>
             <span>
               <md-tooltip md-direction="right">{{'common.copyToClipboard' | translate}}</md-tooltip>

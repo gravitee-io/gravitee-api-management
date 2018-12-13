@@ -27,6 +27,7 @@ import DictionaryService from "../../services/dictionary.service";
 import ApiHeaderService from "../../services/apiHeader.service";
 import IdentityProviderService from "../../services/identityProvider.service";
 import _ = require('lodash');
+import EntrypointService from "../../services/entrypoint.service";
 
 export default configurationRouterConfig;
 
@@ -105,7 +106,8 @@ function configurationRouterConfig($stateProvider) {
       url: '/tags',
       component: 'tags',
       resolve: {
-        tags: (TagService: TagService) => TagService.list().then(response => response.data)
+        tags: (TagService: TagService) => TagService.list().then(response => response.data),
+        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.list().then(response => response.data)
       },
       data: {
         menu: null,
@@ -114,6 +116,38 @@ function configurationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['management-tag-r']
+        }
+      }
+    })
+    .state('management.settings.newEntrypoint', {
+      url: '/entrypoint/new',
+      component: 'entrypoint',
+      resolve: {
+        tags: (TagService: TagService) => TagService.list().then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-entrypoint'
+        },
+        perms: {
+          only: ['management-entrypoint-c']
+        }
+      }
+    })
+    .state('management.settings.entrypoint', {
+      url: '/entrypoint/:entrypointId',
+      component: 'entrypoint',
+      resolve: {
+        tags: (TagService: TagService) => TagService.list().then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-entrypoint'
+        },
+        perms: {
+          only: ['management-entrypoint-u']
         }
       }
     })
@@ -398,6 +432,7 @@ function configurationRouterConfig($stateProvider) {
       url: '/portal',
       component: 'portalSettings',
       resolve: {
+        tags: (TagService: TagService) => TagService.list().then(response => response.data)
       },
       data: {
         menu: null,

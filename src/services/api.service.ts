@@ -471,6 +471,18 @@ class ApiService {
   getPortalHeaders(api): ng.IPromise<any> {
     return this.$http.get(this.apisURL + api + '/headers');
   }
+
+  getTagEntrypoints(api, entrypoints) {
+    if (!api.tags || api.tags.length === 0) {
+      return [this.Constants.portal.entrypoint];
+    } else {
+      let tagEntrypoints = _.filter(entrypoints, (entrypoint) => _.intersection(entrypoint.tags, api.tags).length > 0);
+      if (!tagEntrypoints || tagEntrypoints.length === 0) {
+        return [this.Constants.portal.entrypoint];
+      }
+      return _.map(tagEntrypoints, 'value');
+    }
+  }
 }
 
 export default ApiService;

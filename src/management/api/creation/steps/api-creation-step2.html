@@ -22,9 +22,7 @@
         <md-input-container class="md-block" flex-gt-sm>
           <label>Backend</label>
           <input ng-model="$ctrl.parent.endpoint" type="url" required name="endpoint">
-          <div class="hint" ng-if="apiGatewayForm.endpoint.$valid || apiGatewayForm.endpoint.$pristine">Target
-            backend when a request is received for the API context-path
-          </div>
+          <div class="hint" ng-if="apiGatewayForm.endpoint.$valid || apiGatewayForm.endpoint.$pristine">Target backend when a request is received for the API context-path</div>
           <div ng-messages="apiGatewayForm.endpoint.$error">
             <div ng-message="required">Endpoint is required.</div>
             <div ng-message="url">Endpoint is not a valid URL.</div>

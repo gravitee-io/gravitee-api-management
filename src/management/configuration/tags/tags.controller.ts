@@ -16,6 +16,8 @@
 import * as _ from 'lodash';
 import TagService from '../../../services/tag.service';
 import NotificationService from '../../../services/notification.service';
+import EntrypointService from "../../../services/entrypoint.service";
+import PortalConfigService from "../../../services/portalConfig.service";
 
 class TagsController {
   private tagsToCreate: any[];
@@ -28,7 +30,10 @@ class TagsController {
     private NotificationService: NotificationService,
     private $q: ng.IQService,
     private $mdEditDialog,
-    private $mdDialog: angular.material.IDialogService) {
+    private $mdDialog: angular.material.IDialogService,
+    private EntrypointService: EntrypointService,
+    private Constants,
+    private PortalConfigService: PortalConfigService) {
     'ngInject';
 
     this.tagsToCreate = [];
@@ -138,13 +143,15 @@ class TagsController {
       locals: {
         tag: tag
       }
-    }).then(function (deleteTag) {
+    }).then((deleteTag) => {
       if (deleteTag) {
         if (tag.id) {
-          that.TagService.delete(tag).then(function () {
-            that.NotificationService.show("Tag '" + tag.name + "' deleted with success");
-            _.remove(that.tags, tag);
-          });
+          that.TagService.delete(tag).then(() => {
+            this.deleteEntrypointsByTag(tag).then(() => {
+              that.NotificationService.show("Tag '" + tag.name + "' deleted with success");
+                _.remove(that.tags, tag);
+              });
+            });
         } else {
           _.remove(that.tagsToCreate, tag);
           _.remove(that.tags, tag);
@@ -163,6 +170,51 @@ class TagsController {
     this.NotificationService.show('Sharding Tag ID has been copied to clipboard');
     e.clearSelection();
   }
+
+  deleteEntrypoint(entrypoint) {
+    this.$mdDialog.show({
+      controller: 'DeleteEntrypointDialogController',
+      template: require('../entrypoint/delete.entrypoint.dialog.html'),
+      locals: {
+        entrypoint: entrypoint
+      }
+    }).then((entrypointToDelete) => {
+      if (entrypointToDelete) {
+        if (entrypointToDelete.id) {
+          this.EntrypointService.delete(entrypointToDelete).then(() => {
+            this.NotificationService.show("Entrypoint '" + entrypointToDelete.value + "' deleted with success");
+            _.remove(this.entrypoints, entrypointToDelete);
+          });
+        }
+      }
+    });
+  }
+
+  deleteEntrypointsByTag(tag) {
+    let promises = [];
+    _.forEach(this.entrypoints, (entrypoint) => {
+      if (_.includes(entrypoint.tags, tag.id)) {
+        promises.push(this.EntrypointService.delete(entrypoint).then(() => {
+          _.remove(this.entrypoints, entrypoint);
+        }));
+      }
+    });
+    return this.$q.all(promises);
+  }
+
+  saveSettings = () => {
+    PortalConfigService.save().then( () => {
+      NotificationService.show("Configuration saved!");
+      this.formSettings.$setPristine();
+    });
+  };
+
+  resetSettings = () => {
+    PortalConfigService.get().then((response) => {
+      this.Constants = response.data;
+      this.formSettings.$setPristine();
+    });
+  };
 }
 
 export default TagsController;

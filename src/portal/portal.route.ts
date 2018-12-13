@@ -17,10 +17,11 @@ import ViewService from "../services/view.service";
 import ApiService from "../services/api.service";
 import DocumentationService from "../services/apiDocumentation.service";
 import PortalPagesService from "../services/portalPages.service";
-import ApplicationService from "../services/applications.service";
+import ApplicationService from "../services/application.service";
 import UserService from '../services/user.service';
 import _ = require('lodash');
 import PortalService from "../services/portal.service";
+import EntrypointService from "../services/entrypoint.service";
 
 function portalRouterConfig($stateProvider) {
   'ngInject';
@@ -154,7 +155,8 @@ function portalRouterConfig($stateProvider) {
         homepage: ($stateParams, DocumentationService: DocumentationService) =>
           DocumentationService.getApiHomepage($stateParams['apiId']).then(response => response.data),
         isAuthenticated: ($stateParams, UserService: UserService) =>
-          UserService.isAuthenticated()
+          UserService.isAuthenticated(),
+        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.listForPortal().then(response => response.data)
       }
     })
     .state('portal.api.pages', {
@@ -224,13 +226,7 @@ function portalRouterConfig($stateProvider) {
           ApiService.getPublishedApiPlans($stateParams['apiId']).then(response => response.data),
         applications: (ApplicationService: ApplicationService) =>
           ApplicationService.list().then(response => response.data),
-        /*
-        plan: ($stateParams, ApiService: ApiService) =>
-          ApiService.getApiPlan($stateParams['apiId'], $stateParams['planId']).then(response => response.data),
-
-        subscriptions: ($stateParams, ApiService: ApiService) =>
-          ApiService.getPlanSubscriptions($stateParams['apiId'], $stateParams['planId']).then(response => response.data)
-        */
+        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.listForPortal().then(response => response.data)
       }
     })
     .state('portal.api.rating', {

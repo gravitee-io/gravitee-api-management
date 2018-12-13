@@ -15,17 +15,16 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="Delete tag '{{tag}}'">
+<md-dialog aria-label="Delete entrypoint '{{entrypoint}}'">
   <md-dialog-content layout-padding>
-    <p>Are you sure you want to delete the tag '{{tag}}'?</p>
-    <b>Entrypoints configured with this tag will be also deleted!</b>
+    <p>Are you sure you want to delete the entrypoint '{{entrypoint}}'?</p>
   </md-dialog-content>
   <md-dialog-actions layout="row">
     <md-button ng-click="cancel()" md-auto-focus>
       Cancel
     </md-button>
     <md-button ng-click="ok()" class="md-raised md-warn">
-      Delete tag
+      Delete entrypoint
     </md-button>
   </md-dialog-actions>
 </md-dialog>

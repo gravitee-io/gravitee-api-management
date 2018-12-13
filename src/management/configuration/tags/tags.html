@@ -27,65 +27,108 @@
   <div class="gv-form">
     <h2>Details</h2>
     <div class="gv-form-content" layout="column">
-<md-table-container>
-  <table md-table ng-init="order = 'name'">
-    <thead md-head md-order="order">
-    <tr md-row>
-      <th md-column md-order-by="id">ID
-      </th>
-      <th md-column md-order-by="name">Name</th>
-      <th md-column md-order-by="description">Description</th>
-      <th permission permission-only="'management-tag-d'"></th>
-    </tr>
-    </thead>
-    <tbody md-body>
-    <tr md-row ng-repeat="tag in $ctrl.tags | orderBy: order" ng-mouseover="hovered = true && tag.id" ng-mouseout="hovered = false">
-      <td md-cell>
-        {{tag.id}}
-        <span style="position: absolute">
-            <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
-            <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"
-                        ngclipboard data-clipboard-text="{{tag.id}}"
-                        ngclipboard-success="$ctrl.onClipboardSuccess(e);"
-                        role="button" ></ng-md-icon>
-        </span>
-      </td>
-      <td permission permission-only="'management-tag-u'"
-          md-cell ng-click="$ctrl.editName($event, tag)" ng-class="{'gravitee-placeholder': !tag.name}">
-        {{tag.name || 'Add a name'}}
-      </td>
-      <td permission permission-only="'management-tag-u'"
-          md-cell ng-click="$ctrl.editDescription($event, tag)" ng-class="{'gravitee-placeholder': !tag.description}">
-        {{tag.description || 'Add a description'}}
-      </td>
-      <td permission permission-except="'management-tag-u'">
-        {{tag.name}}
-      </td>
-      <td permission permission-except="'management-tag-u'">
-        {{tag.description}}
-      </td>
-      <td md-cell permission permission-only="'management-tag-d'"><ng-md-icon icon="delete" ng-click="$ctrl.deleteTag(tag)"></ng-md-icon></td>
-    </tr>
-    <tr md-row permission permission-only="'management-tag-c'">
-      <td md-cell></td>
-      <td md-cell ng-click="$ctrl.newTag($event)" class="gravitee-placeholder">
-        New tag
-      </td>
-      <td md-cell></td>
-      <td md-cell></td>
-    </tr>
-    </tbody>
-  </table>
-</md-table-container>
+      <md-table-container>
+        <table md-table ng-init="order = 'name'">
+          <thead md-head md-order="order">
+          <tr md-row>
+            <th md-column md-order-by="id">ID</th>
+            <th md-column md-order-by="name">Name</th>
+            <th md-column md-order-by="description">Description</th>
+            <th permission permission-only="'management-tag-d'"></th>
+          </tr>
+          </thead>
+          <tbody md-body>
+          <tr md-row ng-repeat="tag in $ctrl.tags | orderBy: order" ng-mouseover="hovered = true && tag.id" ng-mouseout="hovered = false">
+            <td md-cell>
+              {{tag.id}}
+              <span style="position: absolute">
+                  <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
+                  <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"
+                              ngclipboard data-clipboard-text="{{tag.id}}"
+                              ngclipboard-success="$ctrl.onClipboardSuccess(e);"
+                              role="button" style="margin-left: 3px;top: -6px"></ng-md-icon>
+              </span>
+            </td>
+            <td permission permission-only="'management-tag-u'"
+                md-cell ng-click="$ctrl.editName($event, tag)" ng-class="{'gravitee-placeholder': !tag.name}">
+              {{tag.name || 'Add a name'}}
+            </td>
+            <td permission permission-only="'management-tag-u'"
+                md-cell ng-click="$ctrl.editDescription($event, tag)" ng-class="{'gravitee-placeholder': !tag.description}">
+              {{tag.description || 'Add a description'}}
+            </td>
+            <td permission permission-except="'management-tag-u'">
+              {{tag.name}}
+            </td>
+            <td permission permission-except="'management-tag-u'">
+              {{tag.description}}
+            </td>
+            <td md-cell permission permission-only="'management-tag-d'"><ng-md-icon icon="delete" ng-click="$ctrl.deleteTag(tag)"></ng-md-icon></td>
+          </tr>
+          <tr md-row permission permission-only="'management-tag-c'">
+            <td md-cell></td>
+            <td md-cell ng-click="$ctrl.newTag($event)" class="gravitee-placeholder">
+              New tag
+            </td>
+            <td md-cell></td>
+            <td md-cell></td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
 
-<div permission permission-only="['management-tag-c', 'management-tag-u']">
-  <md-button ng-click="$ctrl.saveTags()"
-             ng-disabled="!$ctrl.tagsToCreate.length && !$ctrl.tagsToUpdate.length"
-             class="md-raised md-primary">Save</md-button>
-  <md-button ng-click="$ctrl.reset()"
-             ng-disabled="!$ctrl.tagsToCreate.length && !$ctrl.tagsToUpdate.length"
-             class="md-raised">Reset</md-button>
-</div>
+      <div permission permission-only="['management-tag-c', 'management-tag-u']">
+        <md-button ng-click="$ctrl.saveTags()"
+                   ng-disabled="!$ctrl.tagsToCreate.length && !$ctrl.tagsToUpdate.length"
+                   class="md-raised md-primary">Save</md-button>
+        <md-button ng-click="$ctrl.reset()"
+                   ng-disabled="!$ctrl.tagsToCreate.length && !$ctrl.tagsToUpdate.length"
+                   class="md-raised">Reset</md-button>
+      </div>
+    </div>
+    <form name="$ctrl.formSettings" class="gv-form" ng-submit="$ctrl.saveSettings()">
+      <h2>Default configuration</h2>
+      <div class="gv-form-content" layout="column">
+        <md-input-container class="md-block" flex-gt-xs>
+          <label>Entrypoint</label>
+          <input ng-model="$ctrl.Constants.portal.entrypoint">
+        </md-input-container>
+        <md-card-actions>
+          <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
+                     permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Save</md-button>
+          <md-button type="button" class="md-raised" ng-click="$ctrl.resetSettings()" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
+                     permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Reset</md-button>
+        </md-card-actions>
+      </div>
+    </form>
+    <br />
+    <a ng-if="$ctrl.tags && $ctrl.tags.length" ui-sref="management.settings.newEntrypoint">Add a mapping configuration entrypoint / tags</a>
+    <br />
+    <div class="gv-form-content" layout="column" ng-if="$ctrl.entrypoints && $ctrl.entrypoints.length">
+      <md-table-container>
+        <table md-table>
+          <thead md-head>
+          <tr md-row>
+            <th md-column>Entrypoint</th>
+            <th md-column>Tags</th>
+            <th permission permission-only="'management-entrypoint-u'" width="64px" nowrap></th>
+            <th permission permission-only="'management-entrypoint-d'" width="64px" nowrap></th>
+          </tr>
+          </thead>
+          <tbody md-body>
+          <tr md-row ng-repeat="entrypoint in $ctrl.entrypoints | orderBy: order">
+            <td md-cell>{{entrypoint.value}}</td>
+            <td md-cell>{{entrypoint.tags.join(', ')}}</td>
+            <td md-cell permission permission-only="'management-entrypoint-u'">
+              <ng-md-icon icon="edit" ui-sref="management.settings.entrypoint({entrypointId: entrypoint.id})"></ng-md-icon>
+            </td>
+            <td md-cell permission permission-only="'management-entrypoint-d'">
+              <ng-md-icon icon="delete" ng-click="$ctrl.deleteEntrypoint(entrypoint)"></ng-md-icon>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
     </div>
   </div>
 </div>

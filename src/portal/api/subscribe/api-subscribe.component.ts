@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApplicationService from "../../../services/applications.service";
 import ApiService from "../../../services/api.service";
 import NotificationService from "../../../services/notification.service";
 import * as _ from "lodash";
@@ -23,7 +22,8 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
     api: '<',
     plans: '<',
     applications: '<',
-    subscriptions: '<'
+    subscriptions: '<',
+    entrypoints: '<'
   },
   template: require('./api-subscribe.html'),
   controller: class {
@@ -62,12 +62,12 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
             if (this.subscription !== undefined) {
               this.fetchApiKey(this.subscription.id);
             }
-        });
+          });
       }
     }
 
     fetchApiKey(subscriptionId) {
-      this.ApplicationService.listApiKeys(this.selectedApp.id, subscriptionId).then( (apiKeys) => {
+      this.ApplicationService.listApiKeys(this.selectedApp.id, subscriptionId).then((apiKeys) => {
         let apiKey = _.find(apiKeys.data, function (apiKey: any) {
           return !apiKey.revoked;
         });
@@ -78,7 +78,7 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
     }
 
     subscribe(application: any) {
-      this.ApplicationService.subscribe(application.id, this.selectedPlan.id, this.requestMessage).then( (subscription) => {
+      this.ApplicationService.subscribe(application.id, this.selectedPlan.id, this.requestMessage).then((subscription) => {
         this.subscription = subscription.data;
         this.NotificationService.show('api.subscription.step3.successful', null, {planName: this.selectedPlan.name});
         this.fetchApiKey(this.subscription.id);
@@ -91,9 +91,9 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
 
     canApplicationSubscribe() {
       return this.isPlanSubscribable()
-        && (! this.selectedPlan['comment_required'] || (this.selectedPlan['comment_required'] === true && this.requestMessage))
+        && (!this.selectedPlan['comment_required'] || (this.selectedPlan['comment_required'] === true && this.requestMessage))
         && this.selectedApp
-        && ! this.subscription
+        && !this.subscription
         && (
           (('oauth2' === this.selectedPlan.security || 'jwt' === this.selectedPlan.security) && this.selectedApp.clientId)
           || (this.selectedPlan.security === 'api_key')
@@ -121,14 +121,13 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
       delete this.subscription;
     }
 
-    getApiKeyCurlSample() {
-      return 'curl -X GET "' + this.Constants.portal.entrypoint + this.api.context_path +
-        '" -H "' + this.Constants.portal.apikeyHeader + ': ' + (this.apiKey ? this.apiKey : 'given_api_key') + '"';
-    }
-
-    getOAuth2CurlSample() {
-      return 'curl -X GET "' + this.Constants.portal.entrypoint + this.api.context_path +
-        '" -H "Authorization: Bearer xxxx-xxxx-xxxx-xxxx"';
+    getCurlSample() {
+      let entrypoints = this.ApiService.getTagEntrypoints(this.api, this.entrypoints);
+      return _.map(entrypoints, (entrypoint) => {
+        return 'curl -X GET "' + entrypoint + this.api.context_path + '" -H "' + (this.apiKey ?
+          this.Constants.portal.apikeyHeader + ': ' + (this.apiKey ? this.apiKey : 'given_api_key') + '"' :
+          '"Authorization: Bearer xxxx-xxxx-xxxx-xxxx"');
+      });
     }
   }
 };

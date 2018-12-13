@@ -450,6 +450,11 @@ import CircularPercentageComponent from "./components/circularPercentage/circula
 import CircularPercentageController from "./components/circularPercentage/circularPercentage.controller";
 
 
+import EntrypointService from '../services/entrypoint.service';
+import EntrypointComponent from "./configuration/entrypoint/entrypoint.component";
+import EntrypointController from "./configuration/entrypoint/entrypoint.controller";
+import DeleteEntrypointDialogController from './configuration/entrypoint/delete.entrypoint.dialog.controller';
+
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
@@ -773,6 +778,11 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   // CircularPercentageComponent
   .component("circularPercentage", CircularPercentageComponent)
   .controller("CircularPercentageController", CircularPercentageController)
+
+  .service('EntrypointService', EntrypointService)
+  .component('entrypoint', EntrypointComponent)
+  .controller('EntrypointController', EntrypointController)
+  .controller('DeleteEntrypointDialogController', DeleteEntrypointDialogController)
 
   .filter('humanDateFilter', function () {
     return function (input) {

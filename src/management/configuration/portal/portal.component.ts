@@ -19,6 +19,7 @@ import { StateService } from '@uirouter/core';
 
 const PortalSettingsComponent: ng.IComponentOptions = {
   bindings: {
+    tags: '<'
   },
   template: require('./portal.html'),
   controller: function(
@@ -37,13 +38,15 @@ const PortalSettingsComponent: ng.IComponentOptions = {
 
     this.save = () => {
       PortalConfigService.save(null).then( () => {
-        NotificationService.show("Configuration saved !");
+        NotificationService.show("Configuration saved!");
+        this.formSettings.$setPristine();
       });
     };
 
     this.reset = () => {
-      this.PortalConfigService.get().then((response) => {
-        Constants = response.data;
+      PortalConfigService.get().then((response) => {
+        this.Constants = response.data;
+        this.formSettings.$setPristine();
       });
     };
   }
