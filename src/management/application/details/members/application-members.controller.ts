@@ -144,9 +144,9 @@ class ApplicationMembersController {
     if (query) {
       return this.UserService.search(query).then((response) => {
         return _.filter(response.data, (user:any) => {
-          return _.findIndex(this.members,
+          return  user.id === undefined || _.findIndex(this.members,
               function(member: any) {
-                return member.username === user.id && member.role === 'PRIMARY_OWNER';
+                return member.id === user.id && member.role === 'PRIMARY_OWNER';
               }) === -1;
         });
       });
