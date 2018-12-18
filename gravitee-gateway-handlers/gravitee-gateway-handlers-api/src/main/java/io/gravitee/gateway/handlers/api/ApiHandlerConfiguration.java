@@ -29,6 +29,9 @@ import io.gravitee.gateway.handlers.api.context.ApiTemplateVariableProvider;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.gravitee.gateway.handlers.api.path.impl.ApiPathResolverImpl;
 import io.gravitee.gateway.handlers.api.policy.security.PlanBasedAuthenticationHandlerEnhancer;
+import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
+import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManager;
@@ -142,5 +145,20 @@ public class ApiHandlerConfiguration {
     @Bean
     public ApiTemplateVariableProvider apiTemplateVariableProvider() {
         return new ApiTemplateVariableProvider();
+    }
+
+    @Bean
+    public RequestProcessorChainFactory requestProcessorChainFactory() {
+        return new RequestProcessorChainFactory();
+    }
+
+    @Bean
+    public ResponseProcessorChainFactory responseProcessorChainFactory() {
+        return new ResponseProcessorChainFactory();
+    }
+
+    @Bean
+    public OnErrorProcessorChainFactory errorProcessorChainFactory() {
+        return new OnErrorProcessorChainFactory();
     }
 }

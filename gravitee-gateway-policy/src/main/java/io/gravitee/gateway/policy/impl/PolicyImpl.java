@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy.impl;
 
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.AbstractPolicy;
 import io.gravitee.gateway.policy.PolicyException;
@@ -55,9 +56,9 @@ public class PolicyImpl extends AbstractPolicy {
     }
 
     @Override
-    public ReadWriteStream<?> onResponseContent(Object ... args) throws PolicyException {
+    public ReadWriteStream<Buffer> onResponseContent(Object ... args) throws PolicyException {
         Object stream = invoke(policyMetadata.method(OnResponseContent.class), args);
-        return (stream != null) ? (ReadWriteStream) stream : null;
+        return (stream != null) ? (ReadWriteStream<Buffer>) stream : null;
     }
 
     @Override
@@ -73,9 +74,9 @@ public class PolicyImpl extends AbstractPolicy {
     }
 
     @Override
-    public ReadWriteStream<?> onRequestContent(Object ... args) throws PolicyException {
+    public ReadWriteStream<Buffer> onRequestContent(Object ... args) throws PolicyException {
         Object stream = invoke(policyMetadata.method(OnRequestContent.class), args);
-        return (stream != null) ? (ReadWriteStream) stream : null;
+        return (stream != null) ? (ReadWriteStream<Buffer>) stream : null;
     }
 
     private Object invoke(Method invokedMethod, Object ... args) throws PolicyException {

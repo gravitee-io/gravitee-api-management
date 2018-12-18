@@ -15,40 +15,32 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.servlet.RedirectServlet;
-import io.gravitee.gateway.standalone.servlet.TeamServlet;
-import io.gravitee.gateway.standalone.utils.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/redirect.json")
-@ApiConfiguration(
-        servlet = RedirectServlet.class,
-        contextPath = "/team"
-)
 public class FollowRedirectTest extends AbstractGatewayTest {
     
     @Test
-    public void call_api_with_Redirections() throws Exception {
-        Request request = Request.Get("http://localhost:8082/redirect/item");
-        Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+    public void shouldFollowRedirect() throws Exception {
+        wireMockRule.stubFor(get("/redirect").willReturn(permanentRedirect("http://localhost:" + wireMockRule.port() + "/final")));
+        wireMockRule.stubFor(get("/final").willReturn(ok()));
 
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        HttpResponse response = Request.Get("http://localhost:8082/api/redirect").execute().returnResponse();
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
-        assertEquals("redirected", responseContent);
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/redirect")));
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/final")));
     }
 }

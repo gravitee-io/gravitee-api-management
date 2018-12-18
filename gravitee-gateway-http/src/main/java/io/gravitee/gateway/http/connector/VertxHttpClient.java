@@ -32,7 +32,9 @@ import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
+import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.core.endpoint.EndpointException;
+import io.gravitee.gateway.core.proxy.EmptyProxyResponse;
 import io.netty.channel.ConnectTimeoutException;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
@@ -120,7 +122,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
 
         // Prepare request
         HttpClientRequest clientRequest = httpClient.request(
-                convert(proxyRequest.method()), port, uri.getHost(), relativeUri);
+                HttpMethod.valueOf(proxyRequest.method().name()), port, uri.getHost(), relativeUri);
         clientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
         clientRequest.setFollowRedirects(endpoint.getHttpClientOptions().isFollowRedirects());
 
@@ -148,7 +150,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                         event instanceof UnknownHostException)) {
                     proxyConnection.handleConnectTimeout(event);
                 } else {
-                    VertxProxyResponse clientResponse = new VertxProxyResponse(
+                    ProxyResponse clientResponse = new EmptyProxyResponse(
                             ((event instanceof ConnectTimeoutException) || (event instanceof TimeoutException)) ?
                                     HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
 
@@ -180,33 +182,6 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         proxyConnection.handleResponse(proxyClientResponse);
     }
 
-    private HttpMethod convert(io.gravitee.common.http.HttpMethod httpMethod) {
-        switch (httpMethod) {
-            case CONNECT:
-                return HttpMethod.CONNECT;
-            case DELETE:
-                return HttpMethod.DELETE;
-            case GET:
-                return HttpMethod.GET;
-            case HEAD:
-                return HttpMethod.HEAD;
-            case OPTIONS:
-                return HttpMethod.OPTIONS;
-            case PATCH:
-                return HttpMethod.PATCH;
-            case POST:
-                return HttpMethod.POST;
-            case PUT:
-                return HttpMethod.PUT;
-            case TRACE:
-                return HttpMethod.TRACE;
-            case OTHER:
-                return HttpMethod.OTHER;
-        }
-
-        return null;
-    }
-
     @Override
     protected void doStart() throws Exception {
         httpClientOptions = new HttpClientOptions();
@@ -218,6 +193,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         httpClientOptions.setUsePooledBuffers(true);
         httpClientOptions.setMaxPoolSize(endpoint.getHttpClientOptions().getMaxConcurrentConnections());
         httpClientOptions.setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
+        httpClientOptions.setLogActivity(true);
 
         // Configure proxy
         HttpProxy proxy = endpoint.getHttpProxy();

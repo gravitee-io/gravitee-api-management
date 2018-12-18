@@ -6,13 +6,13 @@
     "context_path": "/test",
     "endpoints": [
       {
-        "name": "default-europe",
-        "tenant": "europe",
-        "target": "http://localhost:9999/team"
-      }, {
         "name": "default-asia",
         "tenant": "asia",
         "target": "http://localhost:8080/team"
+      }, {
+        "name": "default-europe",
+        "tenant": "europe",
+        "target": "http://localhost:9999/team"
       }
     ],
     "strip_context_path": false,

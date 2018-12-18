@@ -18,7 +18,7 @@ package io.gravitee.gateway.reactor.handler;
 import io.gravitee.gateway.api.Request;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ReactorHandlerResolver {

@@ -16,14 +16,13 @@
 package io.gravitee.gateway.standalone;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.servlet.TimeoutServlet;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
+import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -31,17 +30,29 @@ import static org.junit.Assert.assertEquals;
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/failover.json")
-@ApiConfiguration(
-        servlet = TimeoutServlet.class,
-        contextPath = "/team")
 public class FailoverTest extends AbstractGatewayTest {
 
     @Test
-    public void call_read_timeout_api() throws Exception {
-        Request request = Request.Get("http://localhost:8082/team/my_team");
-        Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+    public void shouldFallbacktoSecondEndpoint_noBody() throws Exception {
+        wireMockRule.stubFor(get("/fallback/my_team").willReturn(ok()));
 
-        assertEquals(HttpStatusCode.BAD_GATEWAY_502, returnResponse.getStatusLine().getStatusCode());
+        final HttpResponse response = Request.Get("http://localhost:8082/team/my_team").execute().returnResponse();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/fallback/my_team")));
+    }
+
+    @Test
+    public void shouldFallbacktoSecondEndpoint_withBody() throws Exception {
+        final String request = "This is a dummy request payload";
+
+        wireMockRule.stubFor(post("/fallback/my_team").willReturn(ok().withBody("")));
+
+        final HttpResponse response = Request.Post("http://localhost:8082/team/my_team")
+                .bodyString(request, ContentType.TEXT_PLAIN)
+                .execute().returnResponse();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
+        wireMockRule.verify(postRequestedFor(urlPathEqualTo("/fallback/my_team")).withRequestBody(equalTo(request)));
     }
 }

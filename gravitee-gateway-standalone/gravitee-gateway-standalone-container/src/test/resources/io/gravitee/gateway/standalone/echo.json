@@ -3,11 +3,15 @@
   "name": "api-echo",
 
   "proxy": {
-    "context_path": "/echo",
+    "context_path": "/api",
     "endpoints": [
       {
-        "name": "default",
-        "target": "http://localhost:8080/echo"
+        "name": "endpoint-1",
+        "target": "http://localhost:8080/api1"
+      },
+      {
+        "name": "endpoint-2",
+        "target": "http://localhost:8080/api2"
       }
     ],
     "strip_context_path": false,

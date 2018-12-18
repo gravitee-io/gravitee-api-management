@@ -15,21 +15,31 @@
  */
 package io.gravitee.gateway.standalone;
 
+import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
-import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
 import io.gravitee.gateway.standalone.policy.ApiKeyPolicy;
 import io.gravitee.gateway.standalone.policy.KeylessPolicy;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.policy.PolicyRegister;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.Log4JLoggerFactory;
+import io.netty.util.internal.logging.Slf4JLoggerFactory;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
+
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,9 +47,18 @@ import java.util.Collections;
  */
 public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderInterceptor {
 
+    protected final WireMockRule wireMockRule = getWiremockRule();
+
+    protected Api api;
+
+    @BeforeClass
+    public static void init() {
+        InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
+    }
+
     @Rule
     public final TestRule chain = RuleChain
-            .outerRule(new ApiPublisher())
+            .outerRule(wireMockRule)
             .around(new ApiDeployer(this));
 
     @Override
@@ -57,8 +76,29 @@ public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderIn
         policyPluginManager.register(jwtPolicy);
     }
 
+    private String exchangePort(URI uri, int port) {
+        try {
+            return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), port, uri.getPath(), uri.getQuery(), uri.getFragment()).toString();
+        } catch (URISyntaxException e) {
+            return null;
+        }
+    }
+
+    String exchangePort(String sUri, int port) {
+            return exchangePort(URI.create(sUri), port);
+    }
+
+    protected WireMockRule getWiremockRule() {
+        return new WireMockRule(
+                wireMockConfig()
+                        .dynamicPort()
+                        .extensions(new ResponseTemplateTransformer(true)));
+    }
+
     @Override
     public void before(Api api) {
+        this.api = api;
+
         // By default, add a keyless plan to the API
         Plan plan = new Plan();
         plan.setId("default_plan");
@@ -66,6 +106,15 @@ public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderIn
         plan.setSecurity("key_less");
 
         api.setPlans(Collections.singletonList(plan));
+
+        this.updateEndpoints();
+    }
+
+    protected void updateEndpoints() {
+        // Define dynamically endpoint port
+        for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
+            endpoint.setTarget(exchangePort(endpoint.getTarget(), wireMockRule.port()));
+        }
     }
 
     @Override

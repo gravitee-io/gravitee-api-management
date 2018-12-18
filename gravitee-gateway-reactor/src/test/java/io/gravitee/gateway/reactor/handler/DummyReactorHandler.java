@@ -18,12 +18,8 @@ package io.gravitee.gateway.reactor.handler;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,9 +32,6 @@ import static org.mockito.Mockito.when;
  * @author GraviteeSource Team
  */
 public class DummyReactorHandler extends AbstractReactorHandler {
-
-    @Autowired
-    private ExecutionContextFactory executionContextFactory;
 
     @Override
     public Reactable reactable() {
@@ -70,16 +63,9 @@ public class DummyReactorHandler extends AbstractReactorHandler {
         };
     }
 
-    public void setExecutionContextFactory(ExecutionContextFactory executionContextFactory) {
-        this.executionContextFactory = executionContextFactory;
-    }
-
     @Override
-    public void handle(Request request, Response response, Handler<Response> handler) {
-        // Prepare request execution context
-        ExecutionContext executionContext = executionContextFactory.create(request, response);
-
-        doHandle(request, response, executionContext, handler);
+    public void handle(ExecutionContext context) {
+        doHandle(context);
     }
 
     @Override
@@ -88,11 +74,9 @@ public class DummyReactorHandler extends AbstractReactorHandler {
     }
 
     @Override
-    protected void doHandle(Request request, Response response, ExecutionContext executionContext, Handler<Response> handler) {
+    protected void doHandle(ExecutionContext executionContext) {
         Response proxyResponse = mock(Response.class);
         when(proxyResponse.headers()).thenReturn(new HttpHeaders());
         when(proxyResponse.status()).thenReturn(HttpStatusCode.OK_200);
-
-        handler.handle(proxyResponse);
     }
 }

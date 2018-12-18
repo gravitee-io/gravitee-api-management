@@ -24,7 +24,6 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +60,7 @@ public abstract class StreamablePolicyChain extends PolicyChain {
             if (policy.isStreamable()) {
                 try {
                     // Run OnXXXContent to get ReadWriteStream object
-                    final ReadWriteStream streamer = stream(policy, request, response, this, executionContext);
+                    final ReadWriteStream<Buffer> streamer = stream(policy, request, response, this, executionContext);
                     if (streamer != null) {
                         // An handler was never assigned to start the chain, so let's do it
                         if (streamablePolicyHandlerChain == null) {
@@ -93,7 +92,7 @@ public abstract class StreamablePolicyChain extends PolicyChain {
     private boolean streamErrorHandle = false;
 
     @Override
-    public StreamableProcessor<PolicyResult> streamErrorHandler(Handler<ProcessorFailure> handler) {
+    public StreamableProcessor<ExecutionContext, Buffer> streamErrorHandler(Handler<ProcessorFailure> handler) {
         super.streamErrorHandler(processorFailure -> {
             streamErrorHandle = true;
             handler.handle(processorFailure);
@@ -124,5 +123,5 @@ public abstract class StreamablePolicyChain extends PolicyChain {
         }
     }
 
-    protected abstract ReadWriteStream stream(Policy policy, Object... args) throws Exception;
+    protected abstract ReadWriteStream<Buffer> stream(Policy policy, Object... args) throws Exception;
 }

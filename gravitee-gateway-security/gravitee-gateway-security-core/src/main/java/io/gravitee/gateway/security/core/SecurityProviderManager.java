@@ -71,13 +71,10 @@ public class SecurityProviderManager implements InitializingBean {
                 try {
                     ((InitializingBean) authenticationHandler).afterPropertiesSet();
                 } catch (Exception e) {
-                    logger.debug("An error occurs while loading Security Provider [{}]", authenticationHandler.name(), e);
+                    logger.debug("An error occurs while loading security provider [{}]: {}", authenticationHandler.name(), e.getMessage());
                 }
             }
         });
-
-        // Sort by order
-        Collections.sort(availableSecurityProviders, Comparator.comparingInt(AuthenticationHandler::order));
 
         // Filter security providers if a filter is defined
         if (securityProviderFilter != null) {
@@ -85,6 +82,9 @@ public class SecurityProviderManager implements InitializingBean {
         } else {
             securityProviders = availableSecurityProviders;
         }
+
+        // Sort by order
+        Collections.sort(securityProviders, Comparator.comparingInt(AuthenticationHandler::order));
     }
 
     public List<AuthenticationHandler> getSecurityProviders() {

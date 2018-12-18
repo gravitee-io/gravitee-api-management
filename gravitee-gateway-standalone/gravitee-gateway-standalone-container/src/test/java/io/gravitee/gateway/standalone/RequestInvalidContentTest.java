@@ -15,19 +15,18 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.policy.ValidateRequestPolicy;
-import io.gravitee.gateway.standalone.policy.ValidateResponsePolicy;
-import io.gravitee.gateway.standalone.servlet.EchoServlet;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -35,30 +34,27 @@ import static org.junit.Assert.assertEquals;
  * @author GraviteeSource Team
  */
 @ApiDescriptor(value = "/io/gravitee/gateway/standalone/handle-content-error.json")
-@ApiConfiguration(
-        servlet = EchoServlet.class,
-        contextPath = "/echo")
 public class RequestInvalidContentTest extends AbstractGatewayTest {
 
     @Test
     public void call_validate_request_content() throws Exception {
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/echo/helloworld");
-        request.bodyString("Invalid body", ContentType.TEXT_PLAIN);
+        wireMockRule.stubFor(post("/echo/helloworld").willReturn(ok()));
 
-        org.apache.http.client.fluent.Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        HttpResponse response = Request.Post("http://localhost:8082/echo/helloworld")
+                .bodyString("Invalid body", ContentType.TEXT_PLAIN)
+                .execute().returnResponse();
 
-        assertEquals(HttpStatus.SC_BAD_REQUEST, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());
+
+        // Check that the stub has never been invoked by the gateway
+        wireMockRule.verify(0, postRequestedFor(urlPathEqualTo("/echo/helloworld")));
     }
 
     @Override
     public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.register(policyPluginManager);
 
-        PolicyPlugin errorRequestStreamPolicy = PolicyBuilder.build("content-request-error", ValidateRequestPolicy.class);
+        PolicyPlugin errorRequestStreamPolicy = PolicyBuilder.build("content-response-error", ValidateRequestPolicy.class);
         policyPluginManager.register(errorRequestStreamPolicy);
-
-        PolicyPlugin errorResponseStreamPolicy = PolicyBuilder.build("content-response-error", ValidateResponsePolicy.class);
-        policyPluginManager.register(errorResponseStreamPolicy);
     }
 }

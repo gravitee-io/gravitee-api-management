@@ -194,9 +194,7 @@ class VertxHttpServerRequest implements Request {
 
     @Override
     public Request endHandler(Handler<Void> endHandler) {
-        if (! ended()) {
-            httpServerRequest.endHandler(endHandler::handle);
-        }
+        httpServerRequest.endHandler(endHandler::handle);
         return this;
     }
 

@@ -15,44 +15,39 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.servlet.EchoServlet;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/echo.json")
-@ApiConfiguration(
-        servlet = EchoServlet.class,
-        contextPath = "/echo",
-        workers = 2
-)
 public class RoundRobinLoadBalancingMultipleTest extends AbstractGatewayTest {
 
     @Test
     public void call_round_robin_lb_multiple_endpoints() throws Exception {
-        Request request = Request.Get("http://localhost:8082/echo/helloworld");
+        wireMockRule.stubFor(get("/api1").willReturn(ok()));
+        wireMockRule.stubFor(get("/api2").willReturn(ok()));
+
+        Request request = Request.Get("http://localhost:8082/api");
 
         int calls = 20;
 
         for(int i = 0 ; i < calls ; i++) {
-            Response response = request.execute();
-            HttpResponse returnResponse = response.returnResponse();
+            HttpResponse response = request.execute().returnResponse();
 
-            assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
-
-            String workerHeader = returnResponse.getFirstHeader("worker").getValue();
-            assertEquals("worker#" + (i%2) , workerHeader);
+            assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+            wireMockRule.verify((i / 2) + 1, getRequestedFor(urlEqualTo("/api" + (i%2 + 1))));
         }
 
+        wireMockRule.verify(calls / 2, getRequestedFor(urlPathEqualTo("/api1")));
+        wireMockRule.verify(calls / 2, getRequestedFor(urlPathEqualTo("/api2")));
     }
 }

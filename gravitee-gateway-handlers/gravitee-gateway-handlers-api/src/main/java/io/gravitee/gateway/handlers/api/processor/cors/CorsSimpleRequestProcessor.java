@@ -17,9 +17,9 @@ package io.gravitee.gateway.handlers.api.processor.cors;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.definition.model.Cors;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.processor.ProcessorContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,9 +32,9 @@ public class CorsSimpleRequestProcessor extends CorsRequestProcessor {
     }
 
     @Override
-    public void process(ProcessorContext context) {
-        handleSimpleCrossOriginRequest(context.getRequest(), context.getResponse());
-        handler.handle(null);
+    public void handle(ExecutionContext context) {
+        handleSimpleCrossOriginRequest(context.request(), context.response());
+        next.handle(context);
     }
 
     private void handleSimpleCrossOriginRequest(Request request, Response response) {

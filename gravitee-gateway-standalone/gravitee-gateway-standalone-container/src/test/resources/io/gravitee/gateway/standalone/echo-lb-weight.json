@@ -3,16 +3,16 @@
   "name": "api-echo",
 
   "proxy": {
-    "context_path": "/echo",
+    "context_path": "/api",
     "endpoints": [
       {
         "name": "endpoint_0",
-        "target": "http://localhost:8080/echo",
+        "target": "http://localhost:8080/api1",
         "weight": 3
       },
       {
         "name": "endpoint_1",
-        "target": "http://localhost:8080/echo",
+        "target": "http://localhost:8080/api2",
         "weight": 7
       }
     ],

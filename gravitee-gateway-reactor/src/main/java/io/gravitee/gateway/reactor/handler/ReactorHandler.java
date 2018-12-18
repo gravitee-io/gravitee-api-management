@@ -16,8 +16,7 @@
 package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.Reactable;
 
@@ -25,9 +24,13 @@ import io.gravitee.gateway.reactor.Reactable;
  * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReactorHandler extends LifecycleComponent<ReactorHandler> {
-    void handle(Request request, Response response, Handler<Response> handler);
+public interface ReactorHandler extends LifecycleComponent<ReactorHandler>, Handler<ExecutionContext> {
+
     String contextPath();
+
     ClassLoader classloader();
+
     Reactable reactable();
+
+    ReactorHandler handler(Handler<ExecutionContext> handler);
 }

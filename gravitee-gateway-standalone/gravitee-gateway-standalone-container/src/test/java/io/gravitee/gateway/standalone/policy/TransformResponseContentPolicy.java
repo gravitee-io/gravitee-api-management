@@ -17,16 +17,15 @@ package io.gravitee.gateway.standalone.policy;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.stream.TransformableRequestStreamBuilder;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.policy.api.PolicyChain;
-import io.gravitee.policy.api.annotations.OnRequest;
-import io.gravitee.policy.api.annotations.OnRequestContent;
-
-import java.util.function.Function;
+import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.annotations.OnResponseContent;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,18 +33,21 @@ import java.util.function.Function;
  */
 public class TransformResponseContentPolicy {
 
-    @OnRequest
-    public void onRequest(Request request, Response response, PolicyChain policyChain) {
-        request.headers().set(HttpHeaders.TRANSFER_ENCODING, HttpHeadersValues.TRANSFER_ENCODING_CHUNKED);
+    @OnResponse
+    public void onResponse(Request request, Response response, PolicyChain policyChain) {
+        response.headers().set(HttpHeaders.TRANSFER_ENCODING, HttpHeadersValues.TRANSFER_ENCODING_CHUNKED);
 
         policyChain.doNext(request, response);
     }
 
-    @OnRequestContent
-    public ReadWriteStream onRequestContent(Request request) {
+    @OnResponseContent
+    public ReadWriteStream onResponseContent(Request request, ExecutionContext context) {
         return TransformableRequestStreamBuilder
                 .on(request)
-                .transform(buffer -> Buffer.buffer("A new content"))
+                .transform(buffer -> {
+                    String content = context.getTemplateEngine().convert(buffer.toString());
+                    return Buffer.buffer(content);
+                })
                 .build();
     }
 }

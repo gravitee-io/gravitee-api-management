@@ -18,8 +18,8 @@ package io.gravitee.gateway.core.failover;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
@@ -52,16 +52,16 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
     }
 
     @Override
-    public Request invoke(ExecutionContext executionContext, Request serverRequest, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
-        final Request failoverServerRequest = new FailoverRequest(serverRequest);
+    public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
+        ((MutableExecutionContext)context).request(new FailoverRequest(context.request()));
 
         circuitBreaker.execute(new io.vertx.core.Handler<Future<ProxyConnection>>() {
             @Override
             public void handle(Future<ProxyConnection> event) {
-                FailoverInvoker.super.invoke(executionContext, failoverServerRequest, stream, proxyConnection -> {
+                FailoverInvoker.super.invoke(context, stream, proxyConnection -> {
                     proxyConnection.exceptionHandler(event::fail);
-                    proxyConnection.responseHandler(
-                            response -> event.complete(new FailoverProxyConnection(proxyConnection, response)));
+                    proxyConnection.responseHandler(response ->
+                            event.complete(new FailoverProxyConnection(proxyConnection, response)));
                 });
             }
         }).setHandler(new io.vertx.core.Handler<AsyncResult<ProxyConnection>>() {
@@ -78,8 +78,6 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
                 }
             }
         });
-
-        return failoverServerRequest;
     }
 
     @Override
@@ -99,7 +97,7 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
 
         @Override
         public WriteStream<Buffer> write(Buffer content) {
-            return null;
+            return this;
         }
 
         @Override

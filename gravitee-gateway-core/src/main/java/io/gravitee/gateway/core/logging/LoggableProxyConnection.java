@@ -91,7 +91,7 @@ public class LoggableProxyConnection implements ProxyConnection {
 
         appendLog(buffer, chunk);
 
-        return proxyConnection;
+        return this;
     }
 
     protected void appendLog(Buffer buffer, Buffer chunk) {
@@ -133,7 +133,7 @@ public class LoggableProxyConnection implements ProxyConnection {
 
         @Override
         public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
-            return proxyResponse.bodyHandler(chunk -> {
+            proxyResponse.bodyHandler(chunk -> {
                 if (buffer == null) {
                     buffer = Buffer.buffer();
                 }
@@ -141,17 +141,21 @@ public class LoggableProxyConnection implements ProxyConnection {
                 bodyHandler.handle(chunk);
                 appendLog(buffer, chunk);
             });
+
+            return this;
         }
 
         @Override
         public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
-            return proxyResponse.endHandler(result -> {
+            proxyResponse.endHandler(result -> {
                 if (buffer != null) {
                     log.getProxyResponse().setBody(buffer.toString());
                 }
 
                 endHandler.handle(result);
             });
+
+            return this;
         }
 
         @Override
@@ -172,6 +176,10 @@ public class LoggableProxyConnection implements ProxyConnection {
         @Override
         public int status() {
             return proxyResponse.status();
+        }
+
+        protected void appendLog(Buffer buffer, Buffer chunk) {
+            buffer.appendBuffer(chunk);
         }
     }
 }

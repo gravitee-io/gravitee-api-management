@@ -15,19 +15,19 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.OverrideRequestContentPolicy;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
-import io.gravitee.gateway.standalone.servlet.EchoServlet;
 import io.gravitee.gateway.standalone.utils.StringUtils;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -35,23 +35,23 @@ import static org.junit.Assert.assertEquals;
  * @author GraviteeSource Team
  */
 @ApiDescriptor(value = "/io/gravitee/gateway/standalone/override-request-content.json")
-@ApiConfiguration(
-        servlet = EchoServlet.class,
-        contextPath = "/echo")
 public class OverrideRequestContentGatewayTest extends AbstractGatewayTest {
 
     @Test
-    public void call_override_request_content() throws Exception {
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/echo/helloworld");
-        request.bodyString("Request content overriden by policy", ContentType.TEXT_PLAIN);
+    public void shouldOverrideRequestContent() throws Exception {
+        wireMockRule.stubFor(post("/api").willReturn(ok("{{request.body}}").withTransformers("response-template")));
 
-        org.apache.http.client.fluent.Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        HttpResponse response = Request.Post("http://localhost:8082/api")
+                .bodyString("Request content overriden by policy", ContentType.TEXT_PLAIN)
+                .execute().returnResponse();
 
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        String responseContent = StringUtils.copy(response.getEntity().getContent());
         assertEquals(OverrideRequestContentPolicy.STREAM_POLICY_CONTENT, responseContent);
+
+        wireMockRule.verify(1, postRequestedFor(urlPathEqualTo("/api"))
+                .withRequestBody(equalTo(OverrideRequestContentPolicy.STREAM_POLICY_CONTENT)));
     }
 
     @Override

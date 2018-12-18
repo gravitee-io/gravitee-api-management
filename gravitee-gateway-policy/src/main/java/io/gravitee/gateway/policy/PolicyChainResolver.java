@@ -18,16 +18,16 @@ package io.gravitee.gateway.policy;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.processor.ProcessorProvider;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
+import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
 import io.gravitee.gateway.policy.impl.PolicyChain;
-import io.gravitee.policy.api.PolicyResult;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyChainResolver extends ProcessorProvider<PolicyResult, StreamableProcessor<PolicyResult>> {
+public interface PolicyChainResolver extends ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>> {
 
     /**
      * Return a specific implementation of {@link PolicyChain} based on the stream type

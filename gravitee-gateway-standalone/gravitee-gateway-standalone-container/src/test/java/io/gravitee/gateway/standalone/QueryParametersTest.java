@@ -15,101 +15,133 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.servlet.TeamServlet;
 import io.gravitee.gateway.standalone.utils.StringUtils;
+import io.netty.handler.codec.http.QueryStringEncoder;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/teams.json")
-@ApiConfiguration(
-        servlet = TeamServlet.class,
-        contextPath = "/team"
-)
 public class QueryParametersTest extends AbstractGatewayTest {
 
     @Test
     public void call_get_query_params() throws Exception {
+        wireMockRule.stubFor(
+                get(urlPathEqualTo("/team/my_team"))
+                .willReturn(
+                        ok()
+                                .withBody("{{request.query.q}}")
+                                .withTransformers("response-template")));
+
         String query = "true";
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
                 .addParameter("q", "true")
                 .build();
 
-        Response response = Request.Get(target).execute();
+        HttpResponse response = Request.Get(target).execute().returnResponse();
 
-        HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        String responseContent = StringUtils.copy(response.getEntity().getContent());
         assertEquals(query, responseContent);
+
+        wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 
     @Test
     public void call_get_query_params_emptyvalue() throws Exception {
-        String query = "";
+        wireMockRule.stubFor(
+                get(urlPathEqualTo("/team/my_team"))
+                        .willReturn(
+                                ok()
+                                        .withBody("{{request.query.q}}")
+                                        .withTransformers("response-template")));
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
                 .addParameter("q", null)
                 .build();
 
-        Response response = Request.Get(target).execute();
+        HttpResponse response = Request.Get(target).execute().returnResponse();
 
-        HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
-        assertEquals(query, responseContent);
+        String responseContent = StringUtils.copy(response.getEntity().getContent());
+        assertEquals("", responseContent);
+
+        wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 
     @Test
     public void call_get_query_params_spaces() throws Exception {
+        wireMockRule.stubFor(
+                get(urlPathEqualTo("/team/my_team"))
+                        .willReturn(
+                                ok()
+                                        .withBody("{{request.query.q}}")
+                                        .withTransformers("response-template")));
+
         String query = "myparam:test+AND+myotherparam:12";
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
                 .addParameter("q", query)
                 .build();
 
-        Response response = Request.Get(target).execute();
+        HttpResponse response = Request.Get(target).execute().returnResponse();
 
-        HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        String responseContent = StringUtils.copy(response.getEntity().getContent());
         assertEquals(query, responseContent);
+
+        wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 
     @Test
     public void call_get_query_accent() throws Exception {
+        wireMockRule.stubFor(
+                get(urlPathEqualTo("/team/my_team"))
+                        .willReturn(
+                                ok()
+                                        .withBody("{{request.query.q}}")
+                                        .withTransformers("response-template")));
+
         String query = "poupée";
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
                 .addParameter("q", query)
                 .build();
 
-        Response response = Request.Get(target).execute();
+        HttpResponse response = Request.Get(target).execute().returnResponse();
 
-        HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        String responseContent = StringUtils.copy(response.getEntity().getContent());
         assertEquals(query, responseContent);
+
+        wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 
     @Test
     public void call_get_query_with_special_separator() throws Exception {
+        wireMockRule.stubFor(
+                get(urlPathEqualTo("/team/my_team"))
+                        .willReturn(
+                                ok()
+                                        .withBody("{{request.query.q}}")
+                                        .withTransformers("response-template")));
+
         String query = "from:2016-01-01;to:2016-01-31";
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
@@ -118,35 +150,37 @@ public class QueryParametersTest extends AbstractGatewayTest {
                 .addParameter("q", query)
                 .build();
 
-        Response response = Request.Get(target).execute();
+        HttpResponse response = Request.Get(target).execute().returnResponse();
 
-        HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        String responseContent = StringUtils.copy(response.getEntity().getContent());
         assertEquals(query, responseContent);
+
+        wireMockRule.verify(1, getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 
     @Test
     public void call_get_query_with_json_content() throws Exception {
+        wireMockRule.stubFor(get(urlPathEqualTo("/team/my_team")).willReturn(ok()));
+
         String query = "{\"key\": \"value\"}";
 
-        URI target = new URIBuilder("http://localhost:8082/test/my_team")
-                .setQuery(query)
-                .build();
+        URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter(query, null).build();
 
-        Response response = Request.Get(target).execute();
+        HttpResponse response = Request.Get(target).execute().returnResponse();
 
-        HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
-        assertEquals(query, responseContent);
+        QueryStringEncoder encoder = new QueryStringEncoder("/team/my_team");
+        encoder.addParam(query, null);
+
+        wireMockRule.verify(getRequestedFor(urlEqualTo(encoder.toString())));
     }
 
     @Test
     public void call_get_query_with_multiple_parameter_values() throws Exception {
-        String query = "country=fr&country=es&type=MAG";
+        wireMockRule.stubFor(get(urlPathEqualTo("/team/my_team")).willReturn(ok()));
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
                 .addParameter("country", "fr")
@@ -154,18 +188,23 @@ public class QueryParametersTest extends AbstractGatewayTest {
                 .addParameter("type", "MAG")
                 .build();
 
-        Response response = Request.Get(target).execute();
+        HttpResponse response = Request.Get(target).execute().returnResponse();
 
-        HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
-        assertEquals(query, responseContent);
+        QueryStringEncoder encoder = new QueryStringEncoder("/team/my_team");
+        encoder.addParam("country", "fr");
+        encoder.addParam("country", "es");
+        encoder.addParam("type", "MAG");
+
+        wireMockRule.verify(getRequestedFor(urlEqualTo(encoder.toString())));
     }
 
     @Test
     @Ignore
     public void call_get_query_with_multiple_parameter_values_ordered() throws Exception {
+        wireMockRule.stubFor(get(urlPathEqualTo("/team/my_team")).willReturn(ok()));
+
         String query = "country=fr&type=MAG&country=es";
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
@@ -174,47 +213,49 @@ public class QueryParametersTest extends AbstractGatewayTest {
                 .addParameter("country", "es")
                 .build();
 
-        Response response = Request.Get(target).execute();
+        HttpResponse response = Request.Get(target).execute().returnResponse();
 
-        HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
-        assertEquals(query, responseContent);
+        wireMockRule.verify(getRequestedFor(urlEqualTo("/team/my_team?"+query)));
     }
 
     @Test
     public void call_multiple_characters() throws Exception {
+        wireMockRule.stubFor(get(urlPathEqualTo("/team/my_team")).willReturn(ok()));
         String query = "RECHERCHE,35147,8;RECHERCHE,670620,1";
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
                 .addParameter("q", "RECHERCHE,35147,8;RECHERCHE,670620,1")
                 .build();
 
-        Response response = Request.Get(target).execute();
+        HttpResponse response = Request.Get(target).execute().returnResponse();
 
-        HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
-        assertEquals(query, responseContent);
+        QueryStringEncoder encoder = new QueryStringEncoder("/team/my_team");
+        encoder.addParam("q", query);
+
+        wireMockRule.verify(getRequestedFor(urlEqualTo(encoder.toString())));
     }
 
     @Test
     public void call_percent_character() throws Exception {
-        String query = "username=toto&password=password%";
+        wireMockRule.stubFor(get(urlPathEqualTo("/team/my_team")).willReturn(ok()));
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
                 .addParameter("username", "toto")
                 .addParameter("password", "password%")
                 .build();
 
-        Response response = Request.Get(target).execute();
+        HttpResponse response = Request.Get(target).execute().returnResponse();
 
-        HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
-        assertEquals(query, responseContent);
+        QueryStringEncoder encoder = new QueryStringEncoder("/team/my_team");
+        encoder.addParam("username", "toto");
+        encoder.addParam("password", "password%");
+
+        wireMockRule.verify(getRequestedFor(urlEqualTo(encoder.toString())));
     }
 }

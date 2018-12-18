@@ -39,6 +39,13 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
 
     static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
+    private final static List<AuthenticationPolicy> POLICIES = Arrays.asList(
+            // First, validate the incoming access_token thanks to an OAuth2 authorization server
+            (PluginAuthenticationPolicy) () -> AUTHENTICATION_HANDLER_NAME,
+
+            // Then, check that there is an existing valid subscription associated to the client_id
+            (HookAuthenticationPolicy) () -> CheckSubscriptionPolicy.class);
+
     @Override
     public boolean canHandle(Request request, AuthenticationContext authenticationContext) {
         List<String> authorizationHeaders = request.headers().get(HttpHeaders.AUTHORIZATION);
@@ -72,11 +79,6 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
 
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
-        return Arrays.asList(
-                // First, validate the incoming jwt token
-                (PluginAuthenticationPolicy) () -> AUTHENTICATION_HANDLER_NAME,
-
-                // Then, check that there is an existing valid subscription associated to the client_id
-                (HookAuthenticationPolicy) () -> CheckSubscriptionPolicy.class);
+        return POLICIES;
     }
 }

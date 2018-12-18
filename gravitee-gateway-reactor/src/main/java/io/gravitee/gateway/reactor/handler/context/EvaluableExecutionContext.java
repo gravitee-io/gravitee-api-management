@@ -23,9 +23,9 @@ import java.util.Map;
  */
 public class EvaluableExecutionContext {
 
-    private final DefaultExecutionContext executionContext;
+    private final ReactableExecutionContext executionContext;
 
-    EvaluableExecutionContext(DefaultExecutionContext executionContext) {
+    EvaluableExecutionContext(ReactableExecutionContext executionContext) {
         this.executionContext = executionContext;
     }
 

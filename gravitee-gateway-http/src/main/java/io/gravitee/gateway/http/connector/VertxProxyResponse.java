@@ -40,11 +40,6 @@ class VertxProxyResponse implements ProxyResponse {
         this.status = httpClientResponse.statusCode();
     }
 
-    VertxProxyResponse(final int status) {
-        this.status = status;
-        this.httpClientResponse = null;
-    }
-
     @Override
     public int status() {
         return this.status;
@@ -77,19 +72,13 @@ class VertxProxyResponse implements ProxyResponse {
 
     @Override
     public ReadStream<Buffer> pause() {
-        if (httpClientResponse != null) {
-            httpClientResponse.pause();
-        }
+        httpClientResponse.pause();
         return this;
     }
 
     @Override
     public ReadStream<Buffer> resume() {
-        if (httpClientResponse != null) {
-            httpClientResponse.resume();
-        } else {
-            endHandler.handle(null);
-        }
-        return null;
+        httpClientResponse.resume();
+        return this;
     }
 }

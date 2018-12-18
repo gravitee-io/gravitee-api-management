@@ -18,11 +18,11 @@ package io.gravitee.gateway.policy;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.policy.impl.PolicyChain;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
-import io.gravitee.policy.api.PolicyResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,8 +62,8 @@ public abstract class AbstractPolicyChainResolver implements PolicyChainResolver
                                               ExecutionContext executionContext);
 
     @Override
-    public StreamableProcessor<PolicyResult> provide(Request request, Response response, ExecutionContext executionContext) {
-        return resolve(StreamType.ON_REQUEST, request, response, executionContext);
+    public StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context) {
+        return resolve(StreamType.ON_REQUEST, context.request(), context.response(), context);
     }
 
     public void setPolicyManager(PolicyManager policyManager) {

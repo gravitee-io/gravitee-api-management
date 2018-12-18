@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -29,6 +29,4 @@ import java.lang.annotation.Target;
 public @interface ApiDescriptor {
 
     String value();
-
-    boolean enhanceHttpPort() default true;
 }

@@ -21,30 +21,30 @@ import io.gravitee.gateway.api.handler.Handler;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractStreamableProcessor<T> extends AbstractProcessor<T> implements StreamableProcessor<T> {
+public abstract class AbstractStreamableProcessor<T, S> extends AbstractProcessor<T> implements StreamableProcessor<T, S> {
 
-    protected Handler<ProcessorFailure> streamErrorHandler;
+    private Handler<ProcessorFailure> streamErrorHandler;
 
     @Override
-    public StreamableProcessor<T> handler(Handler<T> handler) {
-        this.handler = handler;
+    public StreamableProcessor<T, S> handler(Handler<T> handler) {
+        this.next = handler;
         return this;
     }
 
     @Override
-    public StreamableProcessor<T> errorHandler(Handler<ProcessorFailure> errorHandler) {
+    public StreamableProcessor<T, S> errorHandler(Handler<ProcessorFailure> errorHandler) {
         this.errorHandler = errorHandler;
         return this;
     }
 
     @Override
-    public StreamableProcessor<T> streamErrorHandler(Handler<ProcessorFailure> streamErrorHandler) {
+    public StreamableProcessor<T, S> streamErrorHandler(Handler<ProcessorFailure> streamErrorHandler) {
         this.streamErrorHandler = streamErrorHandler;
         return this;
     }
 
     @Override
-    public StreamableProcessor<T> exitHandler(Handler<T> exitHandler) {
+    public StreamableProcessor<T, S> exitHandler(Handler<Void> exitHandler) {
         this.exitHandler = exitHandler;
         return this;
     }

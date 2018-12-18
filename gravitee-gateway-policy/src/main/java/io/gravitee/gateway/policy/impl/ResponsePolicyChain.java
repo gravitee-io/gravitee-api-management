@@ -16,6 +16,7 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyChainException;
@@ -49,7 +50,7 @@ public class ResponsePolicyChain extends StreamablePolicyChain {
     }
 
     @Override
-    protected ReadWriteStream<?> stream(Policy policy, Object... args) throws Exception {
+    protected ReadWriteStream<Buffer> stream(Policy policy, Object... args) throws Exception {
         return policy.onResponseContent(args);
     }
 

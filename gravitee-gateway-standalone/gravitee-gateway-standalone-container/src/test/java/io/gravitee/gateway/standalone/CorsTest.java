@@ -15,29 +15,15 @@
  */
 package io.gravitee.gateway.standalone;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
-import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
-import io.gravitee.gateway.standalone.servlet.TeamServlet;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestRule;
-
-import java.net.URL;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -46,93 +32,57 @@ import static org.junit.Assert.assertNull;
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/cors.json")
-@ApiConfiguration(
-        servlet = TeamServlet.class,
-        contextPath = "/team"
-)
 public class CorsTest extends AbstractGatewayTest {
-
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
-
-    @Rule
-    public final TestRule chain = RuleChain
-            .outerRule(new ApiPublisher())
-            .outerRule(wireMockRule)
-            .around(new ApiDeployer(this));
 
     @Test
     public void preflight_request() throws Exception {
-        Request request = Request.Options("http://localhost:8082/test/my_team")
+        HttpResponse response = Request.Options("http://localhost:8082/test/my_team")
                 .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
-                .addHeader(HttpHeaders.ORIGIN, "http://localhost");
+                .addHeader(HttpHeaders.ORIGIN, "http://localhost")
+                .execute().returnResponse();
 
-        Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        wireMockRule.verify(0, optionsRequestedFor(urlEqualTo("/team/my_team")));
     }
 
     @Test
     public void preflight_request_unauthorized() throws Exception {
-        Request request = Request.Options("http://localhost:8082/test/my_team")
+        HttpResponse response = Request.Options("http://localhost:8082/test/my_team")
                 .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
-                .addHeader(HttpHeaders.ORIGIN, "http://bad_host");
+                .addHeader(HttpHeaders.ORIGIN, "http://bad_host")
+                .execute().returnResponse();
 
-        Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());
 
-        assertEquals(HttpStatus.SC_BAD_REQUEST, returnResponse.getStatusLine().getStatusCode());
+        wireMockRule.verify(0, optionsRequestedFor(urlEqualTo("/team/my_team")));
     }
 
     @Test
     public void simple_request_no_origin() throws Exception {
-        stubFor(get(urlEqualTo("/team/my_team"))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.SC_OK)
-                        .withBody("{\"key\": \"value\"}")));
+        wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Get("http://localhost:8082/test/my_team");
-        org.apache.http.client.fluent.Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        HttpResponse response = Request.Get("http://localhost:8082/test/my_team")
+                .execute().returnResponse();
 
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
-        assertNull(returnResponse.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        assertNull(response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
 
-        // Check that the stub has never been invoked by the gateway
-        verify(1, getRequestedFor(urlEqualTo("/team/my_team")));
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 
     @Test
     public void simple_request_with_origin() throws Exception {
-        stubFor(get(urlEqualTo("/team/my_team"))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.SC_OK)
-                        .withBody("{\"key\": \"value\"}")));
+        wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Get("http://localhost:8082/test/my_team");
-        request.addHeader(HttpHeaders.ORIGIN, "http://localhost");
-        org.apache.http.client.fluent.Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        HttpResponse response = Request.Get("http://localhost:8082/test/my_team")
+                .addHeader(HttpHeaders.ORIGIN, "http://localhost")
+                .execute().returnResponse();
 
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
-        assertEquals("*", returnResponse.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());
-        assertEquals("x-forwarded-host", returnResponse.getFirstHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS).getValue());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        assertEquals("*", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());
+        assertEquals("x-forwarded-host", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS).getValue());
 
-        // Check that the stub has never been invoked by the gateway
-        verify(1, getRequestedFor(urlEqualTo("/team/my_team")));
-    }
-
-    @Override
-    public void before(Api api) {
-        super.before(api);
-
-        try {
-            Endpoint edpt = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
-            URL target = new URL(edpt.getTarget());
-            URL newTarget = new URL(target.getProtocol(), target.getHost(), wireMockRule.port(), target.getFile());
-            edpt.setTarget(newTarget.toString());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 }
