@@ -17,7 +17,10 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.ApiKeyEntity;
+import io.gravitee.management.model.NewSubscriptionEntity;
+import io.gravitee.management.model.PlanEntity;
+import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -141,6 +144,30 @@ public class ApplicationSubscriptionsResource {
     public Subscription getSubscription(
             @PathParam("subscription") String subscription) {
         return convert(subscriptionService.findById(subscription));
+    }
+
+    @DELETE
+    @Path("{subscription}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Close the subscription",
+            notes = "User must have the APPLICATION_SUBSCRIPTION[DELETE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Subscription has been closed successfully", response = Subscription.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
+    })
+    public Response closeSubscription(
+            @PathParam("application") String application,
+            @PathParam("subscription") String subscriptionId) {
+        SubscriptionEntity subscription = subscriptionService.findById(subscriptionId);
+        if (subscription.getApplication().equals(application)) {
+            return Response.ok(convert(subscriptionService.close(subscriptionId))).build();
+        }
+
+        return Response
+                .status(Response.Status.FORBIDDEN)
+                .build();
     }
 
     @GET
