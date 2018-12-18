@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -80,6 +80,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
         else if (hook.equals(ApiHook.SUBSCRIPTION_ACCEPTED) || hook.equals(ApiHook.SUBSCRIPTION_NEW)) {
             return EmailNotificationBuilder.EmailTemplate.NEW_SUBSCRIPTION;
+        }
+        else if (hook.equals(ApiHook.SUBSCRIPTION_CLOSED)) {
+            return EmailNotificationBuilder.EmailTemplate.CLOSE_SUBSCRIPTION;
         }
         else if (hook.equals(ApiHook.NEW_SUPPORT_TICKET)) {
             return EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET_NOTIFICATION;
