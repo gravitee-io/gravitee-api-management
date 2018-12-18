@@ -96,6 +96,33 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
       this.NotificationService.show('API Key has been copied to clipboard');
       e.clearSelection();
     }
+
+    close() {
+      let msg = 'The application will not be able to consume API anymore.';
+      if (this.subscription.plan.security === 'api_key') {
+        msg += '<br/>All Api-keys associated to this subscription will be closed and could no be used.'
+      }
+
+      this.$mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to close this subscription?',
+          msg: msg,
+          confirmButton: 'Close'
+        }
+      }).then( (response) => {
+        if (response) {
+          this.ApplicationService.closeSubscription(this.application.id, this.subscription.id).then((response) => {
+            this.NotificationService.show('The subscription has been closed');
+            this.subscription = response.data;
+            this.listApiKeys();
+          });
+        }
+      });
+    }
   }
 };
 

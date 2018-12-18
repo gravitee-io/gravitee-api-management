@@ -132,6 +132,10 @@ class ApplicationService {
     return this.$http.get(this.subscriptionsURL(applicationId) + subscriptionId);
   }
 
+  closeSubscription(applicationId, subscriptionId) {
+    return this.$http.delete(this.subscriptionsURL(applicationId) + subscriptionId);
+  }
+
   listApiKeys(applicationId, subscriptionId): ng.IHttpPromise<any> {
     return this.$http.get(this.subscriptionsURL(applicationId) + subscriptionId + '/keys');
   }
