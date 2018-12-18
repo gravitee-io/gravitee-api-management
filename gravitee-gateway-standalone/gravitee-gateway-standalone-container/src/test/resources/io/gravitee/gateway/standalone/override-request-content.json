@@ -3,11 +3,11 @@
   "name": "api-test",
 
   "proxy": {
-    "context_path": "/echo",
+    "context_path": "/api",
     "endpoints": [
       {
         "name": "default",
-        "target": "http://localhost:8080/echo"
+        "target": "http://localhost:8080/api"
       }
     ],
     "strip_context_path": false,

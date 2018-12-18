@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.core.processor;
 
-import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 
@@ -23,13 +22,16 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface StreamableProcessor<T> extends Processor<T>, ReadWriteStream<Buffer> {
+public interface StreamableProcessor<T, S> extends Processor<T>, ReadWriteStream<S> {
 
-    StreamableProcessor<T> handler(Handler<T> handler);
+    @Override
+    StreamableProcessor<T, S> handler(Handler<T> handler);
 
-    StreamableProcessor<T> errorHandler(Handler<ProcessorFailure> handler);
+    @Override
+    StreamableProcessor<T, S> errorHandler(Handler<ProcessorFailure> handler);
 
-    StreamableProcessor<T> streamErrorHandler(Handler<ProcessorFailure> handler);
+    StreamableProcessor<T, S> streamErrorHandler(Handler<ProcessorFailure> handler);
 
-    StreamableProcessor<T> exitHandler(Handler<T> handler);
+    @Override
+    StreamableProcessor<T, S> exitHandler(Handler<Void> handler);
 }

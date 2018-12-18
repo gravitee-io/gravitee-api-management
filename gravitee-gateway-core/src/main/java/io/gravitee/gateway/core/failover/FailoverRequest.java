@@ -22,6 +22,9 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadStream;
 
 /**
+ * The failover request is defined to store the incoming request body into a buffer which would be reusable in case
+ * of retry / failover to an other endpoint.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -59,6 +62,11 @@ class FailoverRequest extends RequestWrapper {
         return this;
     }
 
+    /**
+     * <code>resume</code> method may be called multiple times depending on the failover max-retry configuration.
+     * At the very first call, the underlying / wrapped request is normally resumed. For the next calls, we are simply
+     * pushing the buffer content and then call end to signal the end of the stream.
+     */
     @Override
     public ReadStream<Buffer> resume() {
         if (! resumed) {

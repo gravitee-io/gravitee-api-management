@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy;
 
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 
 /**
@@ -29,9 +30,9 @@ public interface Policy {
 
     default void onResponse(Object ... args) throws PolicyException {}
 
-    default ReadWriteStream<?> onRequestContent(Object ... args) throws PolicyException { return null; }
+    default ReadWriteStream<Buffer> onRequestContent(Object ... args) throws PolicyException { return null; }
 
-    default ReadWriteStream<?> onResponseContent(Object ... args) throws PolicyException { return null; }
+    default ReadWriteStream<Buffer> onResponseContent(Object ... args) throws PolicyException { return null; }
 
     default boolean isStreamable() { return false; }
 

@@ -36,6 +36,9 @@ public class KeylessAuthenticationHandler implements AuthenticationHandler {
 
     static final String KEYLESS_POLICY = "key-less";
 
+    private final static List<AuthenticationPolicy> POLICIES = Collections.singletonList(
+            (PluginAuthenticationPolicy) () -> KEYLESS_POLICY);
+
     @Override
     public boolean canHandle(Request request, AuthenticationContext authenticationContext) {
         return true;
@@ -53,7 +56,6 @@ public class KeylessAuthenticationHandler implements AuthenticationHandler {
 
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
-        return Collections.singletonList(
-                (PluginAuthenticationPolicy) () -> KEYLESS_POLICY);
+        return POLICIES;
     }
 }

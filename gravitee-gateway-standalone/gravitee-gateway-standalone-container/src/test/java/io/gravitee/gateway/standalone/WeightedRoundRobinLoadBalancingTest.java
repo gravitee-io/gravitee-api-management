@@ -15,18 +15,14 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.servlet.EchoServlet;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -34,17 +30,15 @@ import static org.junit.Assert.assertEquals;
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/echo-lb-weight.json")
-@ApiConfiguration(
-        servlet = EchoServlet.class,
-        contextPath = "/echo",
-        workers = 2
-)
 public class WeightedRoundRobinLoadBalancingTest extends AbstractGatewayTest {
 
     @Test
     public void call_weighted_lb_multiple_endpoints() throws Exception {
-        Request request = Request.Get("http://localhost:8082/echo/helloworld");
-        Map<String, Integer> counts = new HashMap<>();
+        wireMockRule.stubFor(get(urlEqualTo("/api1")).willReturn(ok()));
+        wireMockRule.stubFor(get(urlEqualTo("/api2")).willReturn(ok()));
+
+        Request request = Request.Get("http://localhost:8082/api");
+
         int calls = 10;
 
         for(int i = 0 ; i < calls ; i++) {
@@ -52,20 +46,9 @@ public class WeightedRoundRobinLoadBalancingTest extends AbstractGatewayTest {
             HttpResponse returnResponse = response.returnResponse();
 
             assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
-
-            String workerHeader = returnResponse.getFirstHeader("worker").getValue();
-
-            Integer workerCount = counts.get(workerHeader);
-            if (workerCount == null) {
-                workerCount = 1;
-            } else {
-                ++workerCount;
-            }
-            counts.put(workerHeader, workerCount);
-
         }
 
-        assertEquals(3, (int) counts.get("worker#0"));
-        assertEquals(7, (int) counts.get("worker#1"));
+        wireMockRule.verify(3, getRequestedFor(urlPathEqualTo("/api1")));
+        wireMockRule.verify(7, getRequestedFor(urlPathEqualTo("/api2")));
     }
 }

@@ -15,15 +15,13 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.servlet.TeamServlet;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -31,10 +29,6 @@ import static org.junit.Assert.assertEquals;
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/tenant.json")
-@ApiConfiguration(
-        servlet = TeamServlet.class,
-        contextPath = "/team"
-)
 public class MultiTenantGatewayTest extends AbstractGatewayTest {
 
     private static final String MULTI_TENANT_SYSTEM_PROPERTY = "gravitee.tenant";
@@ -45,10 +39,12 @@ public class MultiTenantGatewayTest extends AbstractGatewayTest {
 
     @Test
     public void call_get_query_params() throws Exception {
-        Request request = Request.Get("http://localhost:8082/test/my_team");
-        Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 }

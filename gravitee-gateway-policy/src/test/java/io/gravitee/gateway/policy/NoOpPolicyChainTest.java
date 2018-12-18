@@ -19,14 +19,14 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.policy.impl.SuccessPolicyResult;
-import io.gravitee.policy.api.PolicyResult;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+
+import java.util.Collections;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,9 +35,6 @@ import org.mockito.MockitoAnnotations;
 public class NoOpPolicyChainTest {
 
     private NoOpPolicyChain noOpPolicyChain;
-
-    @Mock
-    private PolicyResult policyResult;
 
     @Mock
     private ExecutionContext executionContext;
@@ -49,20 +46,20 @@ public class NoOpPolicyChainTest {
 
     @Test
     public void shouldCallResultHandler() {
-        Handler<PolicyResult> resultHandler = Mockito.spy(Handler.class);
+        Handler<ExecutionContext> resultHandler = Mockito.spy(Handler.class);
 
         noOpPolicyChain = new NoOpPolicyChain(executionContext);
 
         noOpPolicyChain.handler(resultHandler);
         noOpPolicyChain.doNext(Mockito.mock(Request.class), Mockito.mock(Response.class));
 
-        Mockito.verify(resultHandler, Mockito.times(1)).handle(Mockito.any(SuccessPolicyResult.class));
+        Mockito.verify(resultHandler, Mockito.times(1)).handle(executionContext);
     }
 
     @Test
     public void shouldReturnNullIterator() {
         noOpPolicyChain = new NoOpPolicyChain(executionContext);
 
-        Assert.assertNull(noOpPolicyChain.iterator());
+        Assert.assertEquals(Collections.emptyIterator(), noOpPolicyChain.iterator());
     }
 }

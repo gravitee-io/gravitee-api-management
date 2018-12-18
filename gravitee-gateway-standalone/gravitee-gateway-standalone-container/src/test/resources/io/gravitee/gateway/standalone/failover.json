@@ -6,12 +6,15 @@
     "context_path": "/team",
     "endpoints": [
       {
-        "name": "default",
+        "name": "endpoint1",
         "target": "http://toto.com.org.io:8080/team",
         "http": {
           "connectTimeout": 1000,
           "readTimeout": 1000
         }
+      },{
+        "name": "endpoint2",
+        "target": "http://localhost:8080/fallback"
       }
     ],
     "failover": {

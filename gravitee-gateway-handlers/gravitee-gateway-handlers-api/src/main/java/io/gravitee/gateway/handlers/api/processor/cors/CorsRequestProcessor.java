@@ -16,13 +16,14 @@
 package io.gravitee.gateway.handlers.api.processor.cors;
 
 import io.gravitee.definition.model.Cors;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class CorsRequestProcessor extends AbstractProcessor<Void> {
+public abstract class CorsRequestProcessor extends AbstractProcessor<ExecutionContext> {
 
     final static String ALLOW_ORIGIN_PUBLIC_WILDCARD = "*";
 

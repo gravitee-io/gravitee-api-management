@@ -48,6 +48,9 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
 
     static final String API_KEY_POLICY = "api-key";
 
+    private final static List<AuthenticationPolicy> POLICIES = Collections.singletonList(
+            (PluginAuthenticationPolicy) () -> API_KEY_POLICY);
+
     @Value("${policy.api-key.header:" + GraviteeHttpHeader.X_GRAVITEE_API_KEY + "}")
     private String apiKeyHeader = GraviteeHttpHeader.X_GRAVITEE_API_KEY;
 
@@ -82,8 +85,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
 
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
-        return Collections.singletonList(
-                (PluginAuthenticationPolicy) () -> API_KEY_POLICY);
+        return POLICIES;
     }
 
     private String lookForApiKey(Request request) {

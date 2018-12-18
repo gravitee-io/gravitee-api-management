@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy;
 
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 
 /**
@@ -39,12 +40,12 @@ public class FailurePolicy implements Policy {
     }
 
     @Override
-    public ReadWriteStream<?> onRequestContent(Object... args) throws PolicyException {
+    public ReadWriteStream<Buffer> onRequestContent(Object... args) throws PolicyException {
         throw new RuntimeException();
     }
 
     @Override
-    public ReadWriteStream<?> onResponseContent(Object... args) throws PolicyException {
+    public ReadWriteStream<Buffer> onResponseContent(Object... args) throws PolicyException {
         throw new RuntimeException();
     }
 

@@ -15,13 +15,10 @@
  */
 package io.gravitee.gateway.core.proxy;
 
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
-import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.WriteStream;
 
 /**
@@ -32,15 +29,15 @@ public class DirectProxyConnection implements ProxyConnection {
 
     private Handler<ProxyResponse> responseHandler;
 
-    private final DirectResponse response;
+    private final ProxyResponse response;
 
     public DirectProxyConnection(int statusCode) {
-        this.response = new DirectResponse(statusCode);
+        this.response = new EmptyProxyResponse(statusCode);
     }
 
     @Override
     public WriteStream<Buffer> write(Buffer content) {
-        return null;
+        throw new IllegalStateException();
     }
 
     @Override
@@ -56,56 +53,5 @@ public class DirectProxyConnection implements ProxyConnection {
 
     public void sendResponse() {
         this.responseHandler.handle(response);
-    }
-
-    public static class DirectResponse implements ProxyResponse {
-
-        private Handler<Buffer> bodyHandler;
-        private Handler<Void> endHandler;
-
-        private final HttpHeaders httpHeaders = new HttpHeaders();
-
-        private final int statusCode;
-
-        DirectResponse(int statusCode) {
-            this.statusCode = statusCode;
-            httpHeaders.set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-        }
-
-        @Override
-        public int status() {
-            return statusCode;
-        }
-
-        @Override
-        public HttpHeaders headers() {
-            return httpHeaders;
-        }
-
-        @Override
-        public ProxyResponse bodyHandler(Handler<Buffer> bodyHandler) {
-            this.bodyHandler = bodyHandler;
-            return this;
-        }
-
-        Handler<Buffer> bodyHandler() {
-            return this.bodyHandler;
-        }
-
-        @Override
-        public ProxyResponse endHandler(Handler<Void> endHandler) {
-            this.endHandler = endHandler;
-            return this;
-        }
-
-        Handler<Void> endHandler() {
-            return this.endHandler;
-        }
-
-        @Override
-        public ReadStream<Buffer> resume() {
-            endHandler.handle(null);
-            return this;
-        }
     }
 }

@@ -15,34 +15,29 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.servlet.TeamServlet;
-import io.gravitee.gateway.standalone.servlet.TimeoutServlet;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/read-timeout.json")
-@ApiConfiguration(
-        servlet = TimeoutServlet.class,
-        contextPath = "/team")
 public class ReadTimeoutTest extends AbstractGatewayTest {
 
     @Test
     public void call_read_timeout_api() throws Exception {
-        Request request = Request.Get("http://localhost:8082/team/my_team");
-        Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        wireMockRule.stubFor(get("/").willReturn(serviceUnavailable().withFixedDelay(2000)));
 
-        assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, returnResponse.getStatusLine().getStatusCode());
+        HttpResponse response = Request.Get("http://localhost:8082/api").execute().returnResponse();
+
+        assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, response.getStatusLine().getStatusCode());
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/")));
     }
 }

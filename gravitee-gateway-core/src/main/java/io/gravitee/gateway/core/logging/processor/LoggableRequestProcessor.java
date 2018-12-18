@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.logging.processor;
 
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.core.logging.LimitedLoggableClientRequest;
 import io.gravitee.gateway.core.logging.LimitedLoggableClientResponse;
 import io.gravitee.gateway.core.logging.LoggableClientRequest;
@@ -22,7 +24,6 @@ import io.gravitee.gateway.core.logging.LoggableClientResponse;
 import io.gravitee.gateway.core.logging.condition.evaluation.ConditionEvaluator;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
-import io.gravitee.gateway.core.processor.ProcessorContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class LoggableRequestProcessor extends AbstractProcessor {
+public class LoggableRequestProcessor extends AbstractProcessor<ExecutionContext> {
 
     private final Logger logger = LoggerFactory.getLogger(LoggableRequestProcessor.class);
 
@@ -41,28 +42,29 @@ public class LoggableRequestProcessor extends AbstractProcessor {
     }
 
     @Override
-    public void process(ProcessorContext context) {
+    public void handle(ExecutionContext context) {
         try {
             boolean condition = evaluate(context);
 
             if (condition) {
-                int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context.getContext());
 
-                context.setRequest(maxSizeLogMessage == - 1 ?
-                        new LoggableClientRequest(context.getRequest()) :
-                        new LimitedLoggableClientRequest(context.getRequest(), maxSizeLogMessage));
-                context.setResponse(maxSizeLogMessage == - 1 ?
-                        new LoggableClientResponse(context.getRequest(), context.getResponse()) :
-                        new LimitedLoggableClientResponse(context.getRequest(), context.getResponse(), maxSizeLogMessage));
+                int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context);
+
+                ((MutableExecutionContext) context).request(maxSizeLogMessage == - 1 ?
+                        new LoggableClientRequest(context.request()) :
+                        new LimitedLoggableClientRequest(context.request(), maxSizeLogMessage));
+                ((MutableExecutionContext) context).response(maxSizeLogMessage == - 1 ?
+                        new LoggableClientResponse(context.request(), context.response()) :
+                        new LimitedLoggableClientResponse(context.request(), context.response(), maxSizeLogMessage));
             }
         } catch (Exception ex) {
             logger.warn("Unexpected error while evaluating logging condition: {}", ex.getMessage());
         }
 
-        handler.handle(null);
+        next.handle(context);
     }
 
-    protected boolean evaluate(ProcessorContext context) throws Exception {
-        return evaluator.evaluate(context.getRequest(), context.getContext());
+    protected boolean evaluate(ExecutionContext context) throws Exception {
+        return evaluator.evaluate(context.request(), context);
     }
 }

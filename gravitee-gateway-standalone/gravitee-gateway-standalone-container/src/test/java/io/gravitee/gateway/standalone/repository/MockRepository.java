@@ -19,7 +19,8 @@ import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class MockRepository implements Repository {
 

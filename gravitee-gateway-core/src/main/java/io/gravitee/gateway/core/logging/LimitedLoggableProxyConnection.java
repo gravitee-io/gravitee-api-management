@@ -60,5 +60,10 @@ public class LimitedLoggableProxyConnection extends LoggableProxyConnection {
         LimitedLoggableProxyResponse(ProxyResponse proxyResponse) {
             super(proxyResponse);
         }
+
+        @Override
+        protected void appendLog(Buffer buffer, Buffer chunk) {
+            buffer.appendBuffer(chunk, maxSizeLogMessage);
+        }
     }
 }

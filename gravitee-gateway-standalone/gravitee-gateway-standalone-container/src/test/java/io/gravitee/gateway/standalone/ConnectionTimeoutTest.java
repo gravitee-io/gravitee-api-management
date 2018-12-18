@@ -15,13 +15,10 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.servlet.TeamServlet;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
@@ -30,21 +27,14 @@ import static org.junit.Assert.assertTrue;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor(
-        value = "/io/gravitee/gateway/standalone/connect-timeout.json",
-        enhanceHttpPort = false)
-@ApiConfiguration(
-        servlet = TeamServlet.class,
-        contextPath = "/team")
+@ApiDescriptor("/io/gravitee/gateway/standalone/connect-timeout.json")
 public class ConnectionTimeoutTest extends AbstractGatewayTest {
 
     @Test
     public void call_unreachable_api() throws Exception {
-        Request request = Request.Post("http://localhost:8082/unreachable");
-        Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        HttpResponse response = Request.Post("http://localhost:8082/unreachable").execute().returnResponse();
 
-        assertTrue(returnResponse.getStatusLine().getStatusCode() == HttpStatus.SC_GATEWAY_TIMEOUT
-                    || returnResponse.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_GATEWAY);
+        assertTrue(response.getStatusLine().getStatusCode() == HttpStatus.SC_GATEWAY_TIMEOUT
+                    || response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_GATEWAY);
     }
 }

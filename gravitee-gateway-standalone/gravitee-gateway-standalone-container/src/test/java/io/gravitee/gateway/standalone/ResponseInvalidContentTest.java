@@ -15,11 +15,9 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.policy.ValidateResponsePolicy;
-import io.gravitee.gateway.standalone.servlet.EchoServlet;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
@@ -27,6 +25,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -34,20 +33,21 @@ import static org.junit.Assert.assertEquals;
  * @author GraviteeSource Team
  */
 @ApiDescriptor(value = "/io/gravitee/gateway/standalone/handle-content-error.json")
-@ApiConfiguration(
-        servlet = EchoServlet.class,
-        contextPath = "/echo")
 public class ResponseInvalidContentTest extends AbstractGatewayTest {
 
     @Test
     public void call_validate_response_content() throws Exception {
+        wireMockRule.stubFor(post("/echo/helloworld").willReturn(ok()));
+
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/echo/helloworld");
         request.bodyString("My request content", ContentType.TEXT_PLAIN);
 
-        org.apache.http.client.fluent.Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        HttpResponse response = request.execute().returnResponse();
 
-        assertEquals(HttpStatus.SC_BAD_REQUEST, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());
+
+        // Check that the stub has never been invoked by the gateway
+        wireMockRule.verify(1, postRequestedFor(urlPathEqualTo("/echo/helloworld")));
     }
 
     @Override

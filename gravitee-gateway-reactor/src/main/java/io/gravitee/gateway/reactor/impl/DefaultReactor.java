@@ -22,9 +22,11 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactor.Reactable;
@@ -33,10 +35,8 @@ import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
-import io.gravitee.gateway.reactor.handler.ResponseTimeHandler;
-import io.gravitee.gateway.reactor.handler.reporter.ReporterHandler;
-import io.gravitee.gateway.reactor.handler.transaction.TransactionHandlerFactory;
-import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,57 +53,73 @@ public class DefaultReactor extends AbstractService implements
 
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private Environment environment;
+
     @Autowired
     private ReactorHandlerRegistry reactorHandlerRegistry;
+
     @Autowired
     private ReactorHandlerResolver reactorHandlerResolver;
-    @Autowired
-    private ReporterService reporterService;
-    @Autowired
-    private TransactionHandlerFactory transactionHandlerFactory;
+
     @Autowired
     private GatewayConfiguration gatewayConfiguration;
 
+    @Autowired
+    private RequestProcessorChainFactory requestProcessorChainFactory;
+
+    @Autowired
+    private ResponseProcessorChainFactory responseProcessorChainFactory;
+
     @Override
-    public void route(Request serverRequest, Response serverResponse, final Handler<Response> handler) {
+    public void route(Request serverRequest, Response serverResponse, Handler<ExecutionContext> handler) {
         LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
 
-        // Prepare handler chain
-        Handler<Request> requestHandlerChain = transactionHandlerFactory.create(request -> {
-            ReactorHandler reactorHandler = reactorHandlerResolver.resolve(request);
-            if (reactorHandler != null) {
-                // Prepare the handler chain
-                final Handler<Response> responseHandlerChain = new ResponseTimeHandler(request,
-                        new ReporterHandler(reporterService, request, handler));
-
-                reactorHandler.handle(request, serverResponse, responseHandlerChain);
-            } else {
-                LOGGER.debug("No handler can be found for request {}, returning NOT_FOUND (404)", request.path());
-                sendNotFound(serverResponse, handler);
-            }
-        }, serverResponse);
+        // Prepare request execution context
+        ExecutionContext context = new SimpleExecutionContext(serverRequest, serverResponse);
 
         // Set gateway tenant
-        serverRequest.metrics().setTenant(gatewayConfiguration.tenant().orElse(null));
+        gatewayConfiguration.tenant().ifPresent(tenant -> serverRequest.metrics().setTenant(tenant));
 
-        // And handle the request
-        requestHandlerChain.handle(serverRequest);
+        // Prepare handler chain
+        requestProcessorChainFactory
+                .create()
+                .handler(ctx -> {
+                    ReactorHandler reactorHandler = reactorHandlerResolver.resolve(ctx.request());
+                    if (reactorHandler != null) {
+                        reactorHandler
+                                .handler(context1 -> {
+                                    // Ensure that response has been ended before going further
+                                    context1.response().end();
+
+                                    responseProcessorChainFactory
+                                            .create()
+                                            .handler(handler)
+                                            .handle(context1);
+                                })
+                                .handle(ctx);
+                    } else {
+                        sendNotFound(context);
+                    }
+                })
+                .errorHandler(__ -> {})
+                .exitHandler(__ -> {})
+                .handle(context);
     }
 
-    private void sendNotFound(Response serverResponse, Handler<Response> handler) {
+    private void sendNotFound(ExecutionContext context) {
+        LOGGER.debug("No handler can be found for request {}, returning NOT_FOUND (404)", context.request().path());
         // Send a NOT_FOUND HTTP status code (404)
-        serverResponse.status(HttpStatusCode.NOT_FOUND_404);
+        context.response().status(HttpStatusCode.NOT_FOUND_404);
 
         String message = environment.getProperty("http.errors[404].message", "No context-path matches the request URI.");
-        serverResponse.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(message.length()));
-        serverResponse.headers().set(HttpHeaders.CONTENT_TYPE, "text/plain");
-        serverResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-        serverResponse.write(Buffer.buffer(message));
+        context.response().headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(message.length()));
+        context.response().headers().set(HttpHeaders.CONTENT_TYPE, "text/plain");
+        context.response().headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+        context.response().write(Buffer.buffer(message));
 
-        serverResponse.end();
-        handler.handle(serverResponse);
+        context.response().end();
     }
 
     @Override

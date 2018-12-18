@@ -15,50 +15,41 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
-import io.gravitee.gateway.standalone.junit.rules.ApiPublisher;
-import io.gravitee.gateway.standalone.servlet.EchoServlet;
-import io.gravitee.gateway.standalone.servlet.TeamServlet;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestRule;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/echo.json")
-@ApiConfiguration(
-        servlet = EchoServlet.class,
-        contextPath = "/echo",
-        workers = 1
-)
 public class RoundRobinLoadBalancingSingleTest extends AbstractGatewayTest {
 
     @Test
     public void call_round_robin_lb_single_endpoint() throws Exception {
-        Request request = Request.Get("http://localhost:8082/echo/helloworld");
+        wireMockRule.stubFor(get("/api2").willReturn(ok()));
+
+        Request request = Request.Get("http://localhost:8082/api");
+
+        // Set the first endpoint with down status
+        api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
 
         int calls = 20;
 
         for(int i = 0 ; i < calls ; i++) {
-            Response response = request.execute();
-            HttpResponse returnResponse = response.returnResponse();
+            HttpResponse response = request.execute().returnResponse();
 
-            assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
-
-            String workerHeader = returnResponse.getFirstHeader("worker").getValue();
-            assertEquals("worker#0" , workerHeader);
+            assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         }
+
+        wireMockRule.verify(0, getRequestedFor(urlPathEqualTo("/api1")));
+        wireMockRule.verify(calls, getRequestedFor(urlPathEqualTo("/api2")));
     }
 }

@@ -21,8 +21,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
@@ -49,6 +48,8 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
 
     @Autowired
     private ExecutionContextFactory executionContextFactory;
+
+    protected Handler<ExecutionContext> handler;
 
     @Override
     public ClassLoader classloader() {
@@ -77,28 +78,30 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
     }
 
     @Override
-    public void handle(Request request, Response response, Handler<Response> handler) {
-        // Wrap the actual request to contextualize it
-        request = new ContextualizedHttpServerRequest(reactable().contextPath(), request);
+    public ReactorHandler handler(Handler<ExecutionContext> handler) {
+        this.handler = handler;
+        return this;
+    }
 
-        // Prepare request execution context
-        ExecutionContext executionContext = executionContextFactory.create(request, response);
+    @Override
+    public void handle(ExecutionContext context) {
+        // Wrap the actual request to contextualize it
+        ((MutableExecutionContext) context).request(new ContextualizedHttpServerRequest(reactable().contextPath(), context.request()));
 
         try {
-            doHandle(request, response, executionContext, handler);
+            doHandle(executionContextFactory.create(context));
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while processing request", ex);
 
-            request.metrics().setMessage(Throwables.getStackTraceAsString(ex));
+            context.request().metrics().setMessage(Throwables.getStackTraceAsString(ex));
 
             // Send an INTERNAL_SERVER_ERROR (500)
-            response.status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-            response.end();
+            context.response().status(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+            context.response().headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
-            handler.handle(response);
+            handler.handle(context);
         }
     }
 
-    protected abstract void doHandle(Request request, Response response, ExecutionContext executionContext, Handler<Response> handler);
+    protected abstract void doHandle(ExecutionContext executionContext);
 }

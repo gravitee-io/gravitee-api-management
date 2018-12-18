@@ -35,6 +35,12 @@
         <!-- Gravitee.io dependencies -->
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-reporting</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -68,11 +74,6 @@
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.plugin</groupId>
-            <artifactId>gravitee-plugin-alert</artifactId>
         </dependency>
 
         <!-- Logging -->

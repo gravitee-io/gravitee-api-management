@@ -15,11 +15,9 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
-import io.gravitee.gateway.standalone.policy.TransformResponseContentPolicy;
-import io.gravitee.gateway.standalone.servlet.EchoServlet;
+import io.gravitee.gateway.standalone.policy.TransformResponseContentUsingBuilderPolicy;
 import io.gravitee.gateway.standalone.utils.StringUtils;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -28,40 +26,49 @@ import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
+import java.util.UUID;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor(value = "/io/gravitee/gateway/standalone/transform-response-content.json")
-@ApiConfiguration(
-        servlet = EchoServlet.class,
-        contextPath = "/echo")
 public class TransformResponseContentUsingBuilderGatewayTest extends AbstractGatewayTest {
 
     private static final String BODY_CONTENT = "Content to transform:";
 
     @Test
-    public void call_override_request_content() throws Exception {
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/echo/helloworld");
-        request.bodyString(BODY_CONTENT +" {#request.id}", ContentType.TEXT_PLAIN);
+    public void shouldTransformResponseContent() throws Exception {
+        String requestBody = BODY_CONTENT +" {#request.id}";
 
-        org.apache.http.client.fluent.Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        wireMockRule.stubFor(post("/api").willReturn(
+                ok("{{request.body}}").withTransformers("response-template")));
 
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
+        request.bodyString(requestBody, ContentType.TEXT_PLAIN);
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        HttpResponse response = request.execute().returnResponse();
 
-        assertEquals("A new content", responseContent);
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+
+        String responseContent = StringUtils.copy(response.getEntity().getContent());
+        String [] parts = responseContent.split(":");
+
+        assertTrue(responseContent.startsWith(BODY_CONTENT));
+        assertTrue(UUID.fromString(parts[1].substring(1)) != null);
+
+        wireMockRule.verify(1, postRequestedFor(urlPathEqualTo("/api")).withRequestBody(equalTo(requestBody)));
     }
 
     @Override
     public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.register(policyPluginManager);
 
-        PolicyPlugin transformResponseContentPolicy = PolicyBuilder.build("transform-response-content", TransformResponseContentPolicy.class);
+        PolicyPlugin transformResponseContentPolicy = PolicyBuilder.build("transform-response-content", TransformResponseContentUsingBuilderPolicy.class);
         policyPluginManager.register(transformResponseContentPolicy);
     }
 }

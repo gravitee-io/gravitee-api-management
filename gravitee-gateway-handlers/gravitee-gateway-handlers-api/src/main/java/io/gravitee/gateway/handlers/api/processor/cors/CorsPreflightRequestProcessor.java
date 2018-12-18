@@ -18,9 +18,9 @@ package io.gravitee.gateway.handlers.api.processor.cors;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Cors;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.core.processor.ProcessorContext;
 
 import java.util.Collection;
 import java.util.Set;
@@ -37,14 +37,13 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
     }
 
     @Override
-    public void process(ProcessorContext context) {
-        if (isPreflightRequest(context.getRequest())) {
-            handlePreflightRequest(context.getRequest(), context.getResponse());
+    public void handle(ExecutionContext context) {
+        if (isPreflightRequest(context.request())) {
+            handlePreflightRequest(context.request(), context.response());
             exitHandler.handle(null);
         } else {
-            // we are in the context
-            // Let's continue request processing
-            handler.handle(null);
+            // We are in the context of a simple request, let's continue request processing
+            next.handle(context);
         }
     }
 

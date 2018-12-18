@@ -15,34 +15,46 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.servlet.TeamServlet;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.client.fluent.Response;
+import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/teams.json")
-@ApiConfiguration(
-        servlet = TeamServlet.class,
-        contextPath = "/team"
-)
 public class SimpleGatewayTest extends AbstractGatewayTest {
-    
-    @Test
-    public void call_get_started_api() throws Exception {
-        Request request = Request.Get("http://localhost:8082/test/my_team");
-        Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
 
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+    @Test
+    public void call_get_started_api_noBody() throws Exception {
+        wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
+
+        final HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
+    }
+
+    @Test
+    public void call_get_started_api_withBody() throws Exception {
+        final String request = "This is a dummy request payload";
+
+        wireMockRule.stubFor(post("/team/my_team").willReturn(ok()));
+
+        final HttpResponse response = Request.Post("http://localhost:8082/test/my_team")
+                .bodyString(request, ContentType.TEXT_PLAIN)
+                .execute().returnResponse();
+
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+
+        wireMockRule.verify(postRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 }

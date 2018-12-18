@@ -16,8 +16,6 @@
 package io.gravitee.gateway.policy;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.policy.impl.PolicyChain;
 
 import java.util.Collections;
@@ -37,17 +35,12 @@ public class NoOpPolicyChain extends PolicyChain {
     }
 
     @Override
-    public void doNext(Request request, Response response) {
-        resultHandler.handle(SUCCESS_POLICY_CHAIN);
-    }
-
-    @Override
     protected void execute(Policy policy, Object... args) throws PolicyChainException {
         // Nothing to do
     }
 
     @Override
     protected Iterator<Policy> iterator() {
-        return null;
+        return Collections.emptyIterator();
     }
 }

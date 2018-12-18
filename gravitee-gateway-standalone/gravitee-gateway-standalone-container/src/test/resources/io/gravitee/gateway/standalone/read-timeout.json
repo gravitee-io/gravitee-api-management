@@ -3,13 +3,13 @@
   "name": "My unreachable API",
 
   "proxy": {
-    "context_path": "/team",
+    "context_path": "/api",
     "endpoints": [
       {
         "name": "default",
-        "target": "http://localhost:8080/team",
+        "target": "http://localhost:8080",
         "http": {
-          "readTimeout": 2000
+          "readTimeout": 1000
         }
       }
     ],

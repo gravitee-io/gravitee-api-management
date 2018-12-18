@@ -15,18 +15,14 @@
  */
 package io.gravitee.gateway.standalone.junit.stmt;
 
-import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
 import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyRegister;
-import io.gravitee.gateway.standalone.utils.SocketUtils;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.junit.runners.model.Statement;
@@ -34,9 +30,7 @@ import org.springframework.core.ResolvableType;
 
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,8 +40,6 @@ public class ApiDeployerStatement extends Statement {
 
     private final Statement base;
     private final Object target;
-
-    private GatewayContainer container;
 
     public ApiDeployerStatement(Statement base, Object target) {
         this.base = base;
@@ -59,7 +51,7 @@ public class ApiDeployerStatement extends Statement {
         URL home = ApiDeployerStatement.class.getResource("/gravitee-01/");
         System.setProperty("gravitee.home", URLDecoder.decode(home.getPath(), "UTF-8"));
 
-        container = new GatewayContainer();
+        GatewayContainer container = new GatewayContainer();
 
         if (target instanceof PolicyRegister) {
             String[] beanNamesForType = container.applicationContext().getBeanNamesForType(
@@ -72,9 +64,8 @@ public class ApiDeployerStatement extends Statement {
         }
 
         container.start();
-
         Thread.sleep(1000);
-
+        
         ApiManager apiManager = container.applicationContext().getBean(ApiManager.class);
         Api api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
 
@@ -92,7 +83,7 @@ public class ApiDeployerStatement extends Statement {
         Api api = new GraviteeMapper().readValue(jsonFile, Api.class);
 
         if (api.getProxy().getGroups() == null || api.getProxy().getGroups().isEmpty()) {
-            // Createa default endpoint group
+            // Create a default endpoint group
             EndpointGroup group = new EndpointGroup();
             group.setName("default");
             group.setEndpoints(Collections.emptySet());
@@ -102,33 +93,6 @@ public class ApiDeployerStatement extends Statement {
         if (ApiLoaderInterceptor.class.isAssignableFrom(target.getClass())) {
             ApiLoaderInterceptor loader = (ApiLoaderInterceptor) target;
             loader.before(api);
-        }
-
-        boolean enhanceHttpPort = target.getClass().getAnnotation(ApiDescriptor.class).enhanceHttpPort();
-
-        if (enhanceHttpPort) {
-            EndpointGroup group = api.getProxy().getGroups().iterator().next();
-            List<Endpoint> endpoints = new ArrayList<>(group.getEndpoints());
-            List<Integer> bindPorts = SocketUtils.getBindPorts();
-
-            for(int i = 0 ; i < bindPorts.size() ; i++) {
-                int port = SocketUtils.getBindPorts().get(i);
-                if (i < endpoints.size()) {
-                    Endpoint edpt = endpoints.get(i);
-                    URL target = new URL(edpt.getTarget());
-                    URL newTarget = new URL(target.getProtocol(), target.getHost(), port, target.getFile());
-                    edpt.setTarget(newTarget.toString());
-                    edpt.setName(UUID.toString(UUID.random()));
-                } else {
-                    // Use the first defined endpoint as reference
-                    HttpEndpoint first = (HttpEndpoint) endpoints.get(0);
-                    URL target = new URL(first.getTarget());
-                    URL newTarget = new URL(target.getProtocol(), target.getHost(), port, target.getFile());
-                    HttpEndpoint edpt = new HttpEndpoint(UUID.toString(UUID.random()), newTarget.toString());
-                    edpt.setHttpClientOptions(first.getHttpClientOptions());
-                    group.getEndpoints().add(edpt);
-                }
-            }
         }
 
         if (ApiLoaderInterceptor.class.isAssignableFrom(target.getClass())) {

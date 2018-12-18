@@ -15,11 +15,9 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.policy.TransformRequestContentUsingBuilderPolicy;
-import io.gravitee.gateway.standalone.servlet.EchoServlet;
 import io.gravitee.gateway.standalone.utils.StringUtils;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -30,6 +28,7 @@ import org.junit.Test;
 
 import java.util.UUID;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -38,27 +37,29 @@ import static org.junit.Assert.assertTrue;
  * @author GraviteeSource Team
  */
 @ApiDescriptor(value = "/io/gravitee/gateway/standalone/transform-request-content.json")
-@ApiConfiguration(
-        servlet = EchoServlet.class,
-        contextPath = "/echo")
 public class TransformRequestContentUsingBuilderGatewayTest extends AbstractGatewayTest {
 
     private static final String BODY_CONTENT = "Content to transform:";
+
     @Test
-    public void call_override_request_content() throws Exception {
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/echo/helloworld");
+    public void shouldTransformRequestContent() throws Exception {
+        wireMockRule.stubFor(post("/api").willReturn(
+                ok("{{request.body}}").withTransformers("response-template")));
+
+        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
         request.bodyString(BODY_CONTENT +" {#request.id}", ContentType.TEXT_PLAIN);
 
-        org.apache.http.client.fluent.Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        HttpResponse response = request.execute().returnResponse();
 
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        String responseContent = StringUtils.copy(returnResponse.getEntity().getContent());
+        String responseContent = StringUtils.copy(response.getEntity().getContent());
         String [] parts = responseContent.split(":");
 
         assertTrue(responseContent.startsWith(BODY_CONTENT));
         assertTrue(UUID.fromString(parts[1].substring(1)) != null);
+
+        wireMockRule.verify(1, postRequestedFor(urlPathEqualTo("/api")));
     }
 
     @Override

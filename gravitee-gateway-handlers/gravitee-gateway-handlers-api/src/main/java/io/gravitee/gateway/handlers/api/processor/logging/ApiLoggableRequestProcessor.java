@@ -20,7 +20,6 @@ import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.logging.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
 import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessor;
-import io.gravitee.gateway.core.processor.ProcessorContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,12 +36,13 @@ public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
     }
 
     @Override
-    protected boolean evaluate(ProcessorContext context) throws Exception {
+    protected boolean evaluate(ExecutionContext context) throws Exception {
         boolean evaluate = super.evaluate(context);
         if (evaluate) {
-            context.getContext().setAttribute(ExecutionContext.ATTR_PREFIX + "logging.client", mode.isClientMode());
-            context.getContext().setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy", mode.isProxyMode());
-            context.getContext().setAttribute(ExecutionContext.ATTR_PREFIX + "logging.max.size.log.message", maxSizeLogMessage);
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.client", mode.isClientMode());
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy", mode.isProxyMode());
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.max.size.log.message", maxSizeLogMessage);
+
             return mode.isClientMode();
         }
 

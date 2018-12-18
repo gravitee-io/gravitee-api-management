@@ -17,64 +17,58 @@ package io.gravitee.gateway.standalone;
 
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.standalone.junit.annotation.ApiConfiguration;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.DynamicRoutingPolicy;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
-import io.gravitee.gateway.standalone.servlet.TeamServlet;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.fluent.Request;
 import org.junit.Test;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor(
-        value = "/io/gravitee/gateway/standalone/dynamic-routing.json",
-        enhanceHttpPort = true)
-@ApiConfiguration(
-        servlet = TeamServlet.class,
-        contextPath = "/team")
+@ApiDescriptor(value = "/io/gravitee/gateway/standalone/dynamic-routing.json")
 public class DynamicRoutingGatewayTest extends AbstractGatewayTest {
 
     private Api api;
 
     @Test
     public void call_dynamic_api() throws Exception {
+        wireMockRule.stubFor(get("/team").willReturn(ok()));
+
         String initialTarget = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget();
-        String dynamicTarget = create(URI.create("http://localhost:8080/team"), new URL(initialTarget).getPort()).toString();
+        String dynamicTarget = exchangePort(initialTarget, wireMockRule.port());
 
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Get("http://localhost:8082/test/my_team");
-        request.addHeader("X-Dynamic-Routing-URI", dynamicTarget);
+        HttpResponse response = Request.Get("http://localhost:8082/test/my_team")
+                .addHeader("X-Dynamic-Routing-URI", dynamicTarget)
+                .execute().returnResponse();
 
-        org.apache.http.client.fluent.Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
-
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team")));
     }
 
     @Test
     public void call_dynamic_api_unavailable() throws Exception {
         String initialTarget = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget();
-        String dynamicTarget = create(URI.create("http://localhost:8080/team"), new URL(initialTarget).getPort()).toString();
+        String dynamicTarget = exchangePort("http://localhost:8080/team", new URL(initialTarget).getPort());
 
         api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Get("http://localhost:8082/test/my_team");
-        request.addHeader("X-Dynamic-Routing-URI", dynamicTarget);
 
-        org.apache.http.client.fluent.Response response = request.execute();
-        HttpResponse returnResponse = response.returnResponse();
+        HttpResponse response = Request.Get("http://localhost:8082/test/my_team")
+                .addHeader("X-Dynamic-Routing-URI", dynamicTarget)
+                .execute().returnResponse();
 
-        assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, returnResponse.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, response.getStatusLine().getStatusCode());
+        wireMockRule.verify(0, getRequestedFor(urlPathEqualTo("/team")));
     }
 
     @Override
@@ -89,13 +83,5 @@ public class DynamicRoutingGatewayTest extends AbstractGatewayTest {
     public void before(Api api) {
         super.before(api);
         this.api = api;
-    }
-
-    private static URI create(URI uri, int port) {
-        try {
-            return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), port, uri.getPath(), uri.getQuery(), uri.getFragment());
-        } catch (URISyntaxException e) {
-            return uri;
-        }
     }
 }
