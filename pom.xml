@@ -220,7 +220,6 @@
                             <skip>true</skip>
                         </configuration>
                     </execution>
-                    <!--
                    <execution>
                         <id>mysql</id>
                         <goals>
@@ -254,7 +253,6 @@
                             </systemPropertyVariables>
                         </configuration>
                     </execution>
-                    -->
                 </executions>
             </plugin>
         </plugins>

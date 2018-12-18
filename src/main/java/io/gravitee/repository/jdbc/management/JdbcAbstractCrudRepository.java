@@ -65,9 +65,7 @@ public abstract class JdbcAbstractCrudRepository<T, I> extends JdbcAbstractPagea
     public Set<T> findAll() throws TechnicalException {
         LOGGER.debug("JdbcAbstractCrudRepository<{}>.findAll()", getOrm().getTableName());
         try {
-            List<T> items = jdbcTemplate.query(getOrm().getSelectAllSql()
-                    , getRowMapper()
-            );
+            List<T> items = jdbcTemplate.query(getOrm().getSelectAllSql(), getRowMapper());
             return new HashSet<>(items);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find all {} items:", getOrm().getTableName(), ex);
