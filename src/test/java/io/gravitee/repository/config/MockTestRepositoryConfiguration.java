@@ -162,4 +162,9 @@ public class MockTestRepositoryConfiguration {
     public AlertRepositoryMock alertRepository() throws Exception {
         return new AlertRepositoryMock();
     }
+
+    @Bean
+    public EntrypointRepositoryMock entrypointRepositoryMock() throws Exception {
+        return new EntrypointRepositoryMock();
+    }
 }

@@ -113,6 +113,8 @@ public abstract class AbstractRepositoryTest {
     protected IdentityProviderRepository identityProviderRepository;
     @Inject
     protected AlertRepository alertRepository;
+    @Inject
+    protected EntrypointRepository entrypointRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -219,6 +221,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Alert) {
             alertRepository.create((Alert) object);
+        }
+        else if (object instanceof Entrypoint) {
+            entrypointRepository.create((Entrypoint) object);
         }
     }
 
