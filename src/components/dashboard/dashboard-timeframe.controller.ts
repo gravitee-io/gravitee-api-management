@@ -42,6 +42,8 @@ class DashboardTimeframeController {
   private pickerEndDate: Moment;
   private current: any;
   private onTimeframeChange: any;
+  private displayMode: any;
+  private displayModes: any[];
 
   constructor(
     private $scope,
@@ -55,6 +57,22 @@ class DashboardTimeframeController {
     this.now = moment().toDate();
 
     let that = this;
+
+    this.displayModes = [
+      {
+        field: '',
+        key: '',
+        label: 'All'
+      }, {
+        key: 'api-response-time',
+        field: '_exists_',
+        label: 'Only hits to the backend endpoint'
+      }, {
+        key: 'api-response-time',
+        field: '!_exists_',
+        label: 'Without hits to the backend endpoint'
+      }];
+    this.displayMode = this.displayModes[0];
 
     this.arIntervals = [
       {
@@ -307,6 +325,31 @@ class DashboardTimeframeController {
       from: from,
       to: to
     });
+  }
+
+  updateDisplayMode() {
+    _.forEach(this.displayModes, (displayMode) => {
+      this.$scope.$emit('filterItemChange', {
+        field: displayMode.field,
+        key: displayMode.key,
+        mode: 'remove',
+        silent: !(!this.displayMode.field && _.last(this.displayModes) === displayMode)
+      });
+    });
+    if (this.displayMode.field) {
+      this.$scope.$emit('filterItemChange', {
+        field: this.displayMode.field,
+        fieldLabel: 'Display mode',
+        key: this.displayMode.key,
+        name: this.displayMode.label,
+        mode: 'add',
+        events: {
+          remove: () => {
+            this.displayMode = this.displayModes[0];
+          }
+        }
+      });
+    }
   }
 }
 

@@ -63,20 +63,20 @@ class DashboardFilterController {
 
     this.fields[filter.field] = field;
     this.lastSource = filter.widget;
-    this.createAndSendQuery();
+    this.createAndSendQuery(filter.silent);
   }
 
   removeFieldFilter(filter) {
-    this.removeFilter(filter.field, filter.key);
+    this.removeFilter(filter.field, filter.key, filter.silent);
   }
 
   deleteChips(chip) {
     let index = chip.key.lastIndexOf('_');
     this.lastSource = chip.source;
-    this.removeFilter(chip.key.substring(0, index), chip.key.substring(index+1));
+    this.removeFilter(chip.key.substring(0, index), chip.key.substring(index+1), false);
   }
 
-  removeFilter(field, key) {
+  removeFilter(field, key, silent) {
     let filters = _.remove(this.filters, (current) => {
       return current.key === field + '_' + key;
     });
@@ -91,7 +91,7 @@ class DashboardFilterController {
     if (fieldFilter) {
       delete fieldObject.filters[key];
       // Is there a registered event ?
-      if (fieldFilter.onRemove) {
+      if (fieldFilter.onRemove && !silent) {
         fieldFilter.onRemove(key);
       }
     }
@@ -107,22 +107,23 @@ class DashboardFilterController {
       delete this.fields[field];
     }
 
-    this.createAndSendQuery();
+    this.createAndSendQuery(silent);
   }
 
-  createAndSendQuery() {
+  createAndSendQuery(silent) {
     // Create a query with all the current filters
     let query = _.values(_.mapValues(this.fields, function(value) { return value.query; })).join(' AND ');
 
     // Update the query parameter
-    this.$state.transitionTo(
-      this.$state.current,
-      _.merge(this.$state.params, {
-        q: query
-      }),
-      {notify: false});
-
-    this.onFilterChange({query: query, widget: this.lastSource});
+    if (!silent) {
+      this.$state.transitionTo(
+        this.$state.current,
+        _.merge(this.$state.params, {
+          q: query
+        }),
+        {notify: false});
+      this.onFilterChange({query: query, widget: this.lastSource});
+    }
   }
 }
 

@@ -21,6 +21,16 @@
       <span class="md-title">
         <div layout="row" layout-align="start center">
           <div flex layout="row" layout-align="end center">
+            <div style="text-align: center;width: 34%;">
+              <md-input-container ng-if="$ctrl.$state.params['apiId']">
+                <md-select ng-model="$ctrl.displayMode" ng-change="$ctrl.updateDisplayMode()">
+                  <md-option ng-repeat="displayMode in $ctrl.displayModes" ng-value="displayMode">
+                    {{displayMode.label}}
+                  </md-option>
+                </md-select>
+              </md-input-container>
+            </div>
+
             <md-button class="md-primary" ng-click="$ctrl.refresh()">
               <ng-md-icon icon="refresh" style="fill: rgba(0, 0, 0, 0.54);" size="20"></ng-md-icon>
               Refresh
