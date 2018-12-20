@@ -191,6 +191,16 @@ public class SubscriptionServiceTest {
     }
 
     @Test(expected = PlanNotSubscribableException.class)
+    public void shouldNotCreateBecausePlanAlreadyDeprecated() throws Exception {
+        // Stub
+        when(plan.getStatus()).thenReturn(PlanStatus.DEPRECATED);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+
+        // Run
+        subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+    }
+
+    @Test(expected = PlanNotSubscribableException.class)
     public void shouldNotCreateBecausePlanKeyless() throws Exception {
         // Stub
         when(plan.getSecurity()).thenReturn(PlanSecurityType.KEY_LESS);

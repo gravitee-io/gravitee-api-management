@@ -13,30 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.service.exceptions;
+
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum PlanStatus {
-    /**
-     * Plan is configured but not yet published
-     */
-    STAGING,
+public class PlanAlreadyDeprecatedException extends AbstractManagementException {
 
-    /**
-     * Plan is published to portal and can be used to make calls
-     */
-    PUBLISHED,
+    private final String plan;
 
-    /**
-     * Plan is closed
-     */
-    CLOSED,
+    public PlanAlreadyDeprecatedException(String plan) {
+        this.plan = plan;
+    }
 
-    /**
-     * Plan is deprecated
-     */
-    DEPRECATED
+    @Override
+    public String getMessage() {
+        return "Plan " + plan + " is already deprecated !";
+    }
+
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 }

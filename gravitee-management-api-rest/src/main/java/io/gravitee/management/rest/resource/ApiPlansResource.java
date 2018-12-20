@@ -30,8 +30,8 @@ import io.swagger.annotations.*;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -275,5 +275,30 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         return Response.ok(planService.publish(plan)).build();
+    }
+
+    @POST
+    @Path("/{plan}/_depreciate")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Depreciate a plan",
+            notes = "User must have the API_PLAN[UPDATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Plan successfully depreciated", response = PlanEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = API_PLAN, acls = UPDATE)
+    })
+    public Response depreciatePlan(
+            @PathParam("api") String api,
+            @PathParam("plan") String plan) {
+        PlanEntity planEntity = planService.findById(plan);
+        if (! planEntity.getApis().contains(api)) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("'plan' parameter does not correspond to the current API")
+                    .build();
+        }
+
+        return Response.ok(planService.depreciate(plan)).build();
     }
 }

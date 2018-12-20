@@ -155,6 +155,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             PlanEntity planEntity = planService.findById(plan);
 
+            if (planEntity.getStatus() == PlanStatus.DEPRECATED) {
+                throw new PlanNotSubscribableException(plan);
+            }
+
             if (planEntity.getStatus() == PlanStatus.CLOSED) {
                 throw new PlanAlreadyClosedException(plan);
             }

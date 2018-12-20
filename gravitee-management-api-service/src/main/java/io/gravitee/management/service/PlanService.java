@@ -47,5 +47,7 @@ public interface PlanService {
 
     PlanEntity publish(String plan);
 
+    PlanEntity depreciate(String plan);
+
     PlansConfigurationEntity getConfiguration();
 }

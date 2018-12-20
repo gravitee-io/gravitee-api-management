@@ -385,6 +385,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new PlanAlreadyClosedException(planId);
             } else if (plan.getStatus() == Plan.Status.PUBLISHED) {
                 throw new PlanAlreadyPublishedException(planId);
+            } else if (plan.getStatus() == Plan.Status.DEPRECATED) {
+                throw new PlanAlreadyDeprecatedException(planId);
             }
 
             Set<Plan> plans = planRepository.findByApi(plan.getApis().iterator().next());
@@ -431,6 +433,50 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             logger.error("An error occurs while trying to publish plan: {}", planId, ex);
             throw new TechnicalManagementException(
                     String.format("An error occurs while trying to publish plan: %s", planId), ex);
+        }
+    }
+
+    @Override
+    public PlanEntity depreciate(String planId) {
+        try {
+            logger.debug("Depreciate plan {}", planId);
+
+            Optional<Plan> optPlan = planRepository.findById(planId);
+            if (! optPlan.isPresent()) {
+                throw new PlanNotFoundException(planId);
+            }
+
+            Plan plan = optPlan.get();
+            Plan previousPlan = new Plan(plan);
+            if (plan.getStatus() == Plan.Status.DEPRECATED) {
+                throw new PlanAlreadyDeprecatedException(planId);
+            } else if (plan.getStatus() == Plan.Status.CLOSED) {
+                throw new PlanAlreadyClosedException(planId);
+            } else if (plan.getStatus() == Plan.Status.STAGING) {
+                throw new PlanNotYetPublishedException(planId);
+            }
+
+            // Update plan status
+            plan.setStatus(Plan.Status.DEPRECATED);
+            plan.setUpdatedAt(new Date());
+
+            // Save plan
+            plan = planRepository.update(plan);
+
+            // Audit
+            auditService.createApiAuditLog(
+                    plan.getApis().iterator().next(),
+                    Collections.singletonMap(PLAN, plan.getId()),
+                    PLAN_DEPRECATED,
+                    plan.getUpdatedAt(),
+                    previousPlan,
+                    plan);
+
+            return convert(plan);
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to depreciate plan: {}", planId, ex);
+            throw new TechnicalManagementException(
+                    String.format("An error occurs while trying to depreciate plan: %s", planId), ex);
         }
     }
 
