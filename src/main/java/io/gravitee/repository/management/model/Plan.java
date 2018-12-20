@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public class Plan {
     public enum AuditEvent implements Audit.AuditEvent {
-        PLAN_CREATED, PLAN_UPDATED, PLAN_DELETED, PLAN_PUBLISHED, PLAN_CLOSED
+        PLAN_CREATED, PLAN_UPDATED, PLAN_DELETED, PLAN_PUBLISHED, PLAN_CLOSED, PLAN_DEPRECATED
     }
 
     private String id;
@@ -345,6 +345,11 @@ public class Plan {
         /**
          * Plan is closed
          */
-        CLOSED
+        CLOSED,
+
+        /**
+         * Plan is deprecated
+         */
+        DEPRECATED
     }
 }
