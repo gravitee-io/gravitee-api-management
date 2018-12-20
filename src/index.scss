@@ -39,6 +39,7 @@ $backgroundColor: rgb(45, 50, 62);
 @import '~angular-moment-picker/dist/angular-moment-picker.css';
 @import 'management/configuration/users/users';
 @import 'management/configuration/user/user';
+@import 'management/components/notifications/notifications';
 
 html {
   font-family: 'Roboto Slab', serif;
