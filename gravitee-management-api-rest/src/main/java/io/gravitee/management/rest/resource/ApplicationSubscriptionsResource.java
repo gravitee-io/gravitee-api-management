@@ -275,6 +275,7 @@ public class ApplicationSubscriptionsResource {
                 ));
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
+        subscription.setPausedAt(subscriptionEntity.getPausedAt());
 
         return subscription;
     }
@@ -292,7 +293,7 @@ public class ApplicationSubscriptionsResource {
         private ListStringParam apis;
 
         @QueryParam("status")
-        @DefaultValue("accepted,pending")
+        @DefaultValue("accepted,pending,paused")
         @ApiModelProperty(dataType = "string", allowableValues = "accepted, pending, rejected, closed", value = "Subscription status")
         private ListSubscriptionStatusParam status;
 

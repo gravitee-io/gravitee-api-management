@@ -54,6 +54,10 @@ public interface SubscriptionService {
 
     SubscriptionEntity process(ProcessSubscriptionEntity processSubscription, String validator);
 
+    SubscriptionEntity pause(String subscription);
+
+    SubscriptionEntity resume(String subscription);
+
     SubscriptionEntity close(String subscription);
 
     void delete(String subscription);

@@ -445,7 +445,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             Subscription subscription = optSubscription.get();
 
-            if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
+            if (subscription.getStatus() == Subscription.Status.ACCEPTED ||
+                    subscription.getStatus() == Subscription.Status.PAUSED) {
                 Subscription previousSubscription = new Subscription(subscription);
                 final Date now = new Date();
                 subscription.setUpdatedAt(now);
@@ -498,6 +499,138 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             logger.error("An error occurs while trying to close subscription {}", subscriptionId, ex);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to close subscription %s", subscriptionId), ex);
+        }
+    }
+
+    @Override
+    public SubscriptionEntity pause(String subscriptionId) {
+        try {
+            logger.debug("Pause subscription {}", subscriptionId);
+
+            Optional<Subscription> optSubscription = subscriptionRepository.findById(subscriptionId);
+            if (!optSubscription.isPresent()) {
+                throw new SubscriptionNotFoundException(subscriptionId);
+            }
+
+            Subscription subscription = optSubscription.get();
+
+            if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
+                Subscription previousSubscription = new Subscription(subscription);
+                final Date now = new Date();
+                subscription.setUpdatedAt(now);
+                subscription.setPausedAt(now);
+                subscription.setStatus(Subscription.Status.PAUSED);
+
+                subscription = subscriptionRepository.update(subscription);
+
+                // Send an email to subscriber
+                final ApplicationEntity application = applicationService.findById(subscription.getApplication());
+                final PlanEntity plan = planService.findById(subscription.getPlan());
+                String apiId = plan.getApis().iterator().next();
+                final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
+                final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+                final Map<String, Object> params = new NotificationParamsBuilder()
+                        .owner(owner)
+                        .api(api)
+                        .plan(plan)
+                        .application(application)
+                        .build();
+
+                notifierService.trigger(ApiHook.SUBSCRIPTION_PAUSED, apiId, params);
+                notifierService.trigger(ApplicationHook.SUBSCRIPTION_PAUSED, application.getId(), params);
+                createAudit(
+                        apiId,
+                        subscription.getApplication(),
+                        SUBSCRIPTION_PAUSED,
+                        subscription.getUpdatedAt(),
+                        previousSubscription,
+                        subscription);
+
+                // API Keys are automatically paused
+                Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                for (ApiKeyEntity apiKey : apiKeys) {
+                    Date expireAt = apiKey.getExpireAt();
+                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
+                        apiKey.setPaused(true);
+                        apiKey.setUpdatedAt(now);
+                        apiKeyService.update(apiKey);
+                    }
+                }
+
+                return convert(subscription);
+            }
+
+            throw new SubscriptionNotPausableException(subscription);
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to pause subscription {}", subscriptionId, ex);
+            throw new TechnicalManagementException(String.format(
+                    "An error occurs while trying to pause subscription %s", subscriptionId), ex);
+        }
+    }
+
+    @Override
+    public SubscriptionEntity resume(String subscriptionId) {
+        try {
+            logger.debug("Resume subscription {}", subscriptionId);
+
+            Optional<Subscription> optSubscription = subscriptionRepository.findById(subscriptionId);
+            if (!optSubscription.isPresent()) {
+                throw new SubscriptionNotFoundException(subscriptionId);
+            }
+
+            Subscription subscription = optSubscription.get();
+
+            if (subscription.getStatus() == Subscription.Status.PAUSED) {
+                Subscription previousSubscription = new Subscription(subscription);
+                final Date now = new Date();
+                subscription.setUpdatedAt(now);
+                subscription.setPausedAt(null);
+                subscription.setStatus(Subscription.Status.ACCEPTED);
+
+                subscription = subscriptionRepository.update(subscription);
+
+                // Send an email to subscriber
+                final ApplicationEntity application = applicationService.findById(subscription.getApplication());
+                final PlanEntity plan = planService.findById(subscription.getPlan());
+                String apiId = plan.getApis().iterator().next();
+                final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
+                final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+                final Map<String, Object> params = new NotificationParamsBuilder()
+                        .owner(owner)
+                        .api(api)
+                        .plan(plan)
+                        .application(application)
+                        .build();
+
+                notifierService.trigger(ApiHook.SUBSCRIPTION_RESUMED, apiId, params);
+                notifierService.trigger(ApplicationHook.SUBSCRIPTION_RESUMED, application.getId(), params);
+                createAudit(
+                        apiId,
+                        subscription.getApplication(),
+                        SUBSCRIPTION_RESUMED,
+                        subscription.getUpdatedAt(),
+                        previousSubscription,
+                        subscription);
+
+                // API Keys are automatically revoked
+                Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                for (ApiKeyEntity apiKey : apiKeys) {
+                    Date expireAt = apiKey.getExpireAt();
+                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
+                        apiKey.setPaused(false);
+                        apiKey.setUpdatedAt(now);
+                        apiKeyService.update(apiKey);
+                    }
+                }
+
+                return convert(subscription);
+            }
+
+            throw new SubscriptionNotPausedException(subscription);
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to resume subscription {}", subscriptionId, ex);
+            throw new TechnicalManagementException(String.format(
+                    "An error occurs while trying to resume subscription %s", subscriptionId), ex);
         }
     }
 
@@ -609,6 +742,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 metadata.put(subscription.getApplication(), "name", applicationEntity.getName());
             }
 
+
             if (!metadata.containsKey(subscription.getPlan())) {
                 PlanEntity planEntity = planService.findById(subscription.getPlan());
                 metadata.put(subscription.getPlan(), "name", planEntity.getName());
@@ -642,6 +776,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setSubscribedBy(subscription.getSubscribedBy());
         entity.setClosedAt(subscription.getClosedAt());
         entity.setClientId(subscription.getClientId());
+        entity.setPausedAt(subscription.getPausedAt());
 
         return entity;
     }

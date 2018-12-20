@@ -13,17 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.service.exceptions;
+
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.repository.management.model.Subscription;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum SubscriptionStatus {
-    PENDING,
-    REJECTED,
-    ACCEPTED,
-    CLOSED,
-    PAUSED,
-    RESUMED
+public class SubscriptionNotPausedException extends AbstractManagementException {
+
+    private final Subscription subscription;
+
+    public SubscriptionNotPausedException(Subscription subscription) {
+        this.subscription = subscription;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Subscription [" + subscription.getId() + "] can not be resumed because currently not paused";
+    }
+
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 }

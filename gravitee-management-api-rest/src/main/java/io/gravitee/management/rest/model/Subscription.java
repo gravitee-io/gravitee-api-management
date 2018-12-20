@@ -72,6 +72,9 @@ public class Subscription {
     @JsonProperty("closed_at")
     private Date closedAt;
 
+    @JsonProperty("paused_at")
+    private Date pausedAt;
+
     @JsonProperty("client_id")
     private String clientId;
 
@@ -201,6 +204,14 @@ public class Subscription {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    public Date getPausedAt() {
+        return pausedAt;
+    }
+
+    public void setPausedAt(Date pausedAt) {
+        this.pausedAt = pausedAt;
     }
 
     @Override

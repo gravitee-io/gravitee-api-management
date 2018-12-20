@@ -85,6 +85,8 @@ public class EmailNotificationBuilder {
         SUBSCRIPTION_CREATED("subscriptionCreated.html"),
         APPROVE_SUBSCRIPTION("subscriptionApproved.html"),
         CLOSE_SUBSCRIPTION("subscriptionClosed.html"),
+        PAUSE_SUBSCRIPTION("subscriptionPaused.html"),
+        RESUME_SUBSCRIPTION("subscriptionResumed.html"),
         REJECT_SUBSCRIPTION("subscriptionRejected.html"),
         USER_REGISTRATION("userRegistration.html"),
         USER_REGISTERED("userRegistered.html"),

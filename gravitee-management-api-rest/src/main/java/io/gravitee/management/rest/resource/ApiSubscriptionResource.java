@@ -34,7 +34,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static io.gravitee.management.model.SubscriptionStatus.CLOSED;
+import static io.gravitee.management.model.SubscriptionStatus.*;
 import static io.gravitee.management.model.permissions.RolePermissionAction.UPDATE;
 
 /**
@@ -144,7 +144,7 @@ public class ApiSubscriptionResource extends AbstractResource {
     @ApiOperation(value = "Change the status of a subscription",
             notes = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "API subscription successfully closed", response = Subscription.class),
+            @ApiResponse(code = 200, message = "Subscription status successfully updated", response = Subscription.class),
             @ApiResponse(code = 400, message = "Status changes not authorized"),
             @ApiResponse(code = 404, message = "API subscription does not exist"),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -154,10 +154,16 @@ public class ApiSubscriptionResource extends AbstractResource {
     public Response changeSubscriptionStatus(
             @PathParam("api") String api,
             @PathParam("subscription") String subscription,
-            @ApiParam(required = true, allowableValues = "CLOSED")
+            @ApiParam(required = true, allowableValues = "CLOSED, PAUSED, RESUMED")
             @QueryParam("status") SubscriptionStatus subscriptionStatus) {
         if (CLOSED.equals(subscriptionStatus)) {
             SubscriptionEntity updatedSubscriptionEntity = subscriptionService.close(subscription);
+            return Response.ok(convert(updatedSubscriptionEntity)).build();
+        } else if (PAUSED.equals(subscriptionStatus)) {
+            SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pause(subscription);
+            return Response.ok(convert(updatedSubscriptionEntity)).build();
+        } else if (RESUMED.equals(subscriptionStatus)) {
+            SubscriptionEntity updatedSubscriptionEntity = subscriptionService.resume(subscription);
             return Response.ok(convert(updatedSubscriptionEntity)).build();
         } else {
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -271,6 +277,7 @@ public class ApiSubscriptionResource extends AbstractResource {
                 ));
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
+        subscription.setPausedAt(subscriptionEntity.getPausedAt());
 
         return subscription;
     }

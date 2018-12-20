@@ -279,6 +279,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             ApiKey key = optKey.get();
 
+            key.setPaused(apiKeyEntity.isPaused());
             setExpiration(apiKeyEntity.getExpireAt(), key);
 
             return convert(key);
@@ -312,8 +313,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     private void setExpiration(Date expirationDate, ApiKey key) throws TechnicalException {
-        ApiKey oldkey = new ApiKey(key);
         if (!key.isRevoked() && key.getExpireAt() == null) {
+            ApiKey oldkey = new ApiKey(key);
+
             key.setUpdatedAt(new Date());
             key.setExpireAt(expirationDate);
             apiKeyRepository.update(key);
@@ -347,6 +349,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                     key.getUpdatedAt(),
                     oldkey,
                     key);
+        } else {
+            key.setUpdatedAt(new Date());
+            apiKeyRepository.update(key);
         }
     }
 

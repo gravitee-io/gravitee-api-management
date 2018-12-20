@@ -178,7 +178,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         private ListStringParam applications;
 
         @QueryParam("status")
-        @DefaultValue("accepted,pending")
+        @DefaultValue("accepted,pending,paused")
         @ApiModelProperty(dataType = "string", allowableValues = "accepted, pending, rejected, closed", value = "Subscription status")
         private ListSubscriptionStatusParam status;
 

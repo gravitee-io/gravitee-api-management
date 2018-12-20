@@ -48,6 +48,8 @@ public class ApiKeyEntity {
     @JsonProperty("revoked_at")
     private Date revokedAt;
 
+    private boolean paused;
+
     public String getKey() {
         return key;
     }
@@ -118,6 +120,14 @@ public class ApiKeyEntity {
 
     public void setRevokedAt(Date revokedAt) {
         this.revokedAt = revokedAt;
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public void setPaused(boolean paused) {
+        this.paused = paused;
     }
 
     @Override

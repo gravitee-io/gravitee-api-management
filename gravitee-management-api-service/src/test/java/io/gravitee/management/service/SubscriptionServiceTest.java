@@ -740,6 +740,45 @@ public class SubscriptionServiceTest {
         verify(notifierService).trigger(eq(ApplicationHook.SUBSCRIPTION_CLOSED), anyString(), anyMap());
     }
 
+    @Test(expected = SubscriptionNotFoundException.class)
+    public void shouldNotPauseSubscriptionBecauseDoesNoExist() throws Exception {
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+
+        subscriptionService.pause(SUBSCRIPTION_ID);
+    }
+
+    @Test
+    public void shouldPauseSubscription() throws Exception {
+        final Date now = new Date();
+
+        final Subscription subscription = new Subscription();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setStatus(Subscription.Status.ACCEPTED);
+        subscription.setEndingAt(now);
+        subscription.setPlan(PLAN_ID);
+        subscription.setApplication(APPLICATION_ID);
+
+        final ApiKeyEntity apiKey = new ApiKeyEntity();
+        apiKey.setKey("api-key");
+        apiKey.setRevoked(false);
+
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
+        when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
+        when(application.getPrimaryOwner()).thenReturn(mock(PrimaryOwnerEntity.class));
+
+        subscriptionService.pause(SUBSCRIPTION_ID);
+
+        verify(apiKeyService).update(apiKey);
+        verify(notifierService).trigger(eq(ApiHook.SUBSCRIPTION_PAUSED), anyString(), anyMap());
+        verify(notifierService).trigger(eq(ApplicationHook.SUBSCRIPTION_PAUSED), anyString(), anyMap());
+    }
+
     @Test
     public void shouldProcessButReject() throws Exception {
         // Prepare data
