@@ -79,8 +79,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (securityContext.isUserInRole(SystemRole.ADMIN.name()) ||
-                securityContext.isUserInRole(AbstractResource.MANAGEMENT_ADMIN) ||
+        if (    securityContext.isUserInRole(AbstractResource.MANAGEMENT_ADMIN) ||
                 securityContext.isUserInRole(AbstractResource.PORTAL_ADMIN)) {
             logger.debug("User [{}] has full access because of its ADMIN role",
                     securityContext.getUserPrincipal().getName());

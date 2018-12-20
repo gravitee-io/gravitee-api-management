@@ -168,7 +168,7 @@ security:
           username: admin
           # Password value: admin
           password: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq
-          roles: ADMIN
+          roles: MANAGEMENT:ADMIN, PORTAL:ADMIN
         - user:
           username: api1
           # Password value: api1
