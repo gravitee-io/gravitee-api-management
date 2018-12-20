@@ -23,7 +23,8 @@ import java.util.Date;
  */
 public class Subscription {
     public enum AuditEvent implements Audit.AuditEvent {
-        SUBSCRIPTION_CREATED, SUBSCRIPTION_UPDATED, SUBSCRIPTION_DELETED, SUBSCRIPTION_CLOSED
+        SUBSCRIPTION_CREATED, SUBSCRIPTION_UPDATED, SUBSCRIPTION_DELETED, SUBSCRIPTION_CLOSED, SUBSCRIPTION_PAUSED,
+        SUBSCRIPTION_RESUMED
     }
 
     /**
@@ -95,6 +96,8 @@ public class Subscription {
 
     private Date closedAt;
 
+    private Date pausedAt;
+
     public Subscription() {}
 
     public Subscription(Subscription cloned) {
@@ -112,6 +115,7 @@ public class Subscription {
         this.createdAt = cloned.createdAt;
         this.updatedAt = cloned.updatedAt;
         this.closedAt = cloned.closedAt;
+        this.pausedAt = cloned.pausedAt;
     }
 
     public String getId() {
@@ -242,6 +246,14 @@ public class Subscription {
         this.clientId = clientId;
     }
 
+    public Date getPausedAt() {
+        return pausedAt;
+    }
+
+    public void setPausedAt(Date pausedAt) {
+        this.pausedAt = pausedAt;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -276,6 +288,11 @@ public class Subscription {
         /**
          * Subscription has been closed
          */
-        CLOSED
+        CLOSED,
+
+        /**
+         * Subscription has been paused
+         */
+        PAUSED
     }
 }

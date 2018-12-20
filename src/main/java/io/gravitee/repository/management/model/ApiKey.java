@@ -68,10 +68,14 @@ public class ApiKey {
 	private boolean revoked;
 
 	/**
+	 * Flag to indicate if the Api Key is paused ?
+	 */
+	private boolean paused;
+
+	/**
 	 * If the key is revoked, the revocation date
 	 */
 	private Date revokedAt;
-
 
 	public ApiKey() {}
 
@@ -85,6 +89,7 @@ public class ApiKey {
 		this.updatedAt = cloned.updatedAt;
 		this.revoked = cloned.revoked;
 		this.revokedAt = cloned.revokedAt;
+		this.paused = cloned.paused;
 	}
 	public boolean isRevoked() {
 		return revoked;
@@ -156,6 +161,14 @@ public class ApiKey {
 
 	public void setSubscription(String subscription) {
 		this.subscription = subscription;
+	}
+
+	public boolean isPaused() {
+		return paused;
+	}
+
+	public void setPaused(boolean paused) {
+		this.paused = paused;
 	}
 
 	@Override
