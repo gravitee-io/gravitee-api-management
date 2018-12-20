@@ -31,7 +31,7 @@
                   <ng-md-icon class="api-history-icon" ng-show="apiHistoryCtrl.isEventSelectedForComparaison(eventTimeline)" icon="compare" style="fill: green;"></ng-md-icon>
                 </h5>
                 <p ng-if="eventTimeline.when">
-                  <small class="text-muted ng-binding"><i class="glyphicon glyphicon-time"></i>{{eventTimeline.when | date : 'medium'}} by {{eventTimeline.user.firstname? eventTimeline.user.firstname + ' ' + eventTimeline.user.lastname : eventTimeline.user.username}}</small>
+                  <small class="text-muted ng-binding"><i class="glyphicon glyphicon-time"></i>{{eventTimeline.when | date : 'medium'}} by {{eventTimeline.user.displayName}}</small>
                 </p>
                 <p ng-if="eventTimeline.isCurrentAPI">
                   <small class="text-muted ng-binding"><i class="glyphicon glyphicon-info-sign"></i>In progress API definition</small>
