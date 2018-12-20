@@ -304,6 +304,7 @@ public class LogsServiceImpl implements LogsService {
         req.setResponseTime(log.getResponseTime());
         req.setStatus(log.getStatus());
         req.setTimestamp(log.getTimestamp());
+        req.setEndpoint(log.getApiResponseTime() > 0);
         return req;
     }
 

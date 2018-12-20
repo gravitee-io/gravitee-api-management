@@ -24,18 +24,13 @@ import io.gravitee.common.http.HttpMethod;
 public class ApiRequestItem extends LogItem {
 
     private String transactionId;
-
     private String path;
-
     private HttpMethod method;
-
     private int status;
-
     private long responseTime;
-
     private String plan;
-
     private String application;
+    private boolean endpoint;
 
     public String getTransactionId() {
         return transactionId;
@@ -91,5 +86,13 @@ public class ApiRequestItem extends LogItem {
 
     public void setApplication(String application) {
         this.application = application;
+    }
+
+    public boolean isEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(boolean endpoint) {
+        this.endpoint = endpoint;
     }
 }
