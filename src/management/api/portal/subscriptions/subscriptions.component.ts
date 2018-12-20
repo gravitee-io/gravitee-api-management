@@ -20,7 +20,7 @@ import { PagedResult } from "../../../../entities/pagedResult";
 import { StateService } from '@uirouter/core';
 
 export class SubscriptionQuery {
-  status?: string[] = ['ACCEPTED', 'PENDING'];
+  status?: string[] = ['ACCEPTED', 'PENDING', 'PAUSED'];
   applications?: string[];
   plans?: string[];
   page?: number = 1;
@@ -45,6 +45,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     private status = {
       'ACCEPTED': 'Accepted',
       'CLOSED': 'Closed',
+      'PAUSED': 'Paused',
       'PENDING': 'Pending',
       'REJECTED': 'Rejected'
     };

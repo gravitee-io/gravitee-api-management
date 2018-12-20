@@ -296,6 +296,14 @@ class ApiService {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/status?status=CLOSED');
   }
 
+  pauseSubscription(apiId, subscriptionId) {
+    return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/status?status=PAUSED');
+  }
+
+  resumeSubscription(apiId, subscriptionId) {
+    return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/status?status=RESUMED');
+  }
+
   processSubscription(apiId, subscriptionId, processSubscription): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/_process', processSubscription);
   }

@@ -70,6 +70,10 @@
           <td md-cell><span style="font-weight: bold">Message to subscriber</span></td>
           <td md-cell colspan="3">{{$ctrl.subscription.reason}}</td>
         </tr>
+        <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status && $ctrl.subscription.paused_at">
+          <td md-cell><span style="font-weight: bold">Paused at</span></td>
+          <td md-cell colspan="3">{{$ctrl.subscription.paused_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
+        </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status && $ctrl.subscription.closed_at">
           <td md-cell><span style="font-weight: bold">Closed at</span></td>
           <td md-cell colspan="3">{{$ctrl.subscription.closed_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
@@ -95,12 +99,25 @@
       </div>
     </div>
 
-    <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.subscription.status === 'accepted'">
+    <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.subscription.status === 'accepted' || $ctrl.subscription.status === 'paused'">
+      <md-button class="md-raised md-primary" ng-click="$ctrl.pause()"
+                 permission permission-only="'api-subscription-u'"
+                 ng-if="$ctrl.subscription.status === 'accepted'">
+        <ng-md-icon icon="pause" style="fill: white"></ng-md-icon>
+        Pause
+      </md-button>
+
+      <md-button class="md-raised md-primary" ng-click="$ctrl.resume()"
+                 permission permission-only="'api-subscription-u'"
+                 ng-if="$ctrl.subscription.status === 'paused'">
+        <ng-md-icon icon="play_arrow" style="fill: white"></ng-md-icon>
+        Resume
+      </md-button>
+
       <md-button class="md-raised md-warn" ng-click="$ctrl.close()" permission permission-only="'api-subscription-u'">
         <ng-md-icon icon="not_interested" style="fill: white"></ng-md-icon>
         Close
       </md-button>
-
     </div>
   </div>
   </div>

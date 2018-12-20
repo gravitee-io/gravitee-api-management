@@ -98,9 +98,9 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
     }
 
     close() {
-      let msg = 'The application will not be able to consume API anymore.';
+      let msg = 'The application will not be able to consume this API anymore.';
       if (this.subscription.plan.security === 'api_key') {
-        msg += '<br/>All Api-keys associated to this subscription will be closed and could no be used.'
+        msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.'
       }
 
       this.$mdDialog.show({

@@ -22,7 +22,7 @@ import ApiService from '../../../../services/api.service';
 import { PagedResult } from "../../../../entities/pagedResult";
 
 export class SubscriptionQuery {
-  status?: string[] = ['ACCEPTED', 'PENDING'];
+  status?: string[] = ['ACCEPTED', 'PENDING','PAUSED'];
   apis?: string[];
   page?: number = 1;
   size?: number = 20;
@@ -39,6 +39,7 @@ class ApplicationSubscriptionsController {
   private status = {
     'ACCEPTED': 'Accepted',
     'CLOSED': 'Closed',
+    'PAUSED': 'Paused',
     'PENDING': 'Pending',
     'REJECTED': 'Rejected'
   };

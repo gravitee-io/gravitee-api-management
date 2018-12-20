@@ -51,9 +51,9 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     }
 
     close() {
-      let msg = 'The application will not be able to consume API anymore.';
+      let msg = 'The application will not be able to consume this API anymore.';
       if (this.subscription.plan.security === 'api_key') {
-        msg += '<br/>All Api-keys associated to this subscription will be closed and could no be used.'
+        msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.'
       }
 
       this.$mdDialog.show({
@@ -70,6 +70,57 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
         if (response) {
           this.ApiService.closeSubscription(this.api.id, this.subscription.id).then((response) => {
             this.NotificationService.show('The subscription has been closed');
+            this.subscription = response.data;
+            this.listApiKeys();
+          });
+        }
+      });
+    }
+
+    pause() {
+      let msg = 'The application will not be able to consume this API anymore.';
+      if (this.subscription.plan.security === 'api_key') {
+        msg += '<br/>All Api-keys associated to this subscription will be paused and could not be used.'
+      }
+
+      this.$mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to pause this subscription?',
+          msg: msg,
+          confirmButton: 'Pause'
+        }
+      }).then( (response) => {
+        if (response) {
+          this.ApiService.pauseSubscription(this.api.id, this.subscription.id).then((response) => {
+            this.NotificationService.show('The subscription has been paused');
+            this.subscription = response.data;
+            this.listApiKeys();
+          });
+        }
+      });
+    }
+
+    resume() {
+      let msg = 'The application will again be able to consume your API.';
+
+      this.$mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to resume this subscription?',
+          msg: msg,
+          confirmButton: 'Resume'
+        }
+      }).then( (response) => {
+        if (response) {
+          this.ApiService.resumeSubscription(this.api.id, this.subscription.id).then((response) => {
+            this.NotificationService.show('The subscription has been resumed');
             this.subscription = response.data;
             this.listApiKeys();
           });
