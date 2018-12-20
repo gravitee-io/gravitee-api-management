@@ -68,7 +68,7 @@
                 <td md-cell>{{endpoint.name}}</td>
                 <td md-cell>{{endpoint.target}}</td>
                 <td md-cell hide-gt-xs show-gt-sm>{{apiProxyCtrl.getTenants(endpoint.tenants)}}</td>
-                <td md-cell hide-gt-xs show-gt-sm ng-click="apiProxyCtrl.editWeight($event, endpoint)" ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
+                <td md-cell hide-gt-xs show-gt-sm ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
                 <td md-cell hide-gt-xs show-gt-sm>
                   <ng-md-icon ng-show="endpoint.backup" icon="done" style="fill: #107F20"></ng-md-icon>
                   <ng-md-icon ng-show="!endpoint.backup" icon="clear" style="fill: #BE2628"></ng-md-icon>
