@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>13</version>
+        <version>14</version>
     </parent>
 
     <groupId>io.gravitee.management</groupId>
@@ -34,10 +34,10 @@
     <name>Gravitee.io APIM - Management</name>
 
     <properties>
-        <gravitee-node.version>1.1.0</gravitee-node.version>
+        <gravitee-node.version>1.2.1-SNAPSHOT</gravitee-node.version>
         <gravitee-definition.version>1.13.2</gravitee-definition.version>
         <gravitee-common.version>1.13.0</gravitee-common.version>
-        <gravitee-plugin.version>1.4.0</gravitee-plugin.version>
+        <gravitee-plugin.version>1.5.0</gravitee-plugin.version>
         <gravitee-repository.version>1.20.0</gravitee-repository.version>
         <gravitee-gateway-api.version>1.11.0</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.0.0</gravitee-fetcher-api.version>
