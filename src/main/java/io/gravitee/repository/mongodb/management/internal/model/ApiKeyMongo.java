@@ -73,6 +73,11 @@ public class ApiKeyMongo {
 	private boolean revoked;
 
 	/**
+	 * Flag to indicate if the Api Key is paused ?
+	 */
+	private boolean paused;
+
+	/**
 	 * If the key is revoked, the revocation date
 	 */
 	private Date revokedAt;
@@ -147,6 +152,14 @@ public class ApiKeyMongo {
 
 	public void setRevokedAt(Date revokedAt) {
 		this.revokedAt = revokedAt;
+	}
+
+	public boolean isPaused() {
+		return paused;
+	}
+
+	public void setPaused(boolean paused) {
+		this.paused = paused;
 	}
 
 	@Override

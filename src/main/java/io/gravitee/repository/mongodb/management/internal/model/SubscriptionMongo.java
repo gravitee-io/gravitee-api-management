@@ -91,6 +91,8 @@ public class SubscriptionMongo extends Auditable {
 
     private Date closedAt;
 
+    private Date pausedAt;
+
     public String getId() {
         return id;
     }
@@ -201,6 +203,14 @@ public class SubscriptionMongo extends Auditable {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    public Date getPausedAt() {
+        return pausedAt;
+    }
+
+    public void setPausedAt(Date pausedAt) {
+        this.pausedAt = pausedAt;
     }
 
     @Override
