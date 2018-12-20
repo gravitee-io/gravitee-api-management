@@ -133,8 +133,8 @@ public class ApiKeyRefresher implements Runnable {
     }
 
     private void saveOrUpdate(ApiKey apiKey) {
-        if (apiKey.isRevoked()) {
-            logger.debug("Remove a revoked api-key from cache [key: {}] [plan: {}] [app: {}]", apiKey.getKey(), apiKey.getPlan(), apiKey.getApplication());
+        if (apiKey.isRevoked() || apiKey.isPaused()) {
+            logger.debug("Remove a paused / revoked api-key from cache [key: {}] [plan: {}] [app: {}]", apiKey.getKey(), apiKey.getPlan(), apiKey.getApplication());
             cache.remove(apiKey.getKey());
         } else {
             logger.debug("Cache an api-key [key: {}] [plan: {}] [app: {}]", apiKey.getKey(), apiKey.getPlan(), apiKey.getApplication());

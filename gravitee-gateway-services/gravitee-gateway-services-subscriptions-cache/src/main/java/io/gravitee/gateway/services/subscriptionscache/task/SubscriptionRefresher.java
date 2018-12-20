@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -64,6 +65,9 @@ public class SubscriptionRefresher implements Runnable {
 
     private Throwable lastException;
 
+    private final static List<Subscription.Status> REFRESH_STATUS = Arrays.asList(
+            Subscription.Status.ACCEPTED, Subscription.Status.CLOSED, Subscription.Status.PAUSED);
+
     public SubscriptionRefresher(final Api api) {
         this.api = api;
     }
@@ -93,7 +97,7 @@ public class SubscriptionRefresher implements Runnable {
                 criteriaBuilder.status(Subscription.Status.ACCEPTED);
             } else {
                 criteriaBuilder
-                        .statuses(Arrays.asList(Subscription.Status.ACCEPTED, Subscription.Status.CLOSED))
+                        .statuses(REFRESH_STATUS)
                         .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
                         .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
             }
@@ -138,7 +142,8 @@ public class SubscriptionRefresher implements Runnable {
 
         Element element = cache.get(subscription.getId());
 
-        if (subscription.getStatus() == Subscription.Status.CLOSED && element != null) {
+        if ((subscription.getStatus() == Subscription.Status.CLOSED || subscription.getStatus() == Subscription.Status.PAUSED)
+                && element != null) {
             cache.removeElement(element);
             String oldKey = (String) element.getObjectValue();
             Element eltSubscription = cache.get(oldKey);
