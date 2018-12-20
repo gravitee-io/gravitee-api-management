@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public class Api {
     public enum AuditEvent implements Audit.AuditEvent {
-        API_CREATED, API_UPDATED, API_DELETED
+        API_CREATED, API_UPDATED, API_DELETED, API_ROLLBACKED
     }
     /**
      * The api ID.
