@@ -42,7 +42,7 @@ class ApiListPlansController {
   ) {
     'ngInject';
     this.dndEnabled = UserService.isUserHasPermissions(['api-plan-u']);
-    this.statusFilters = ['staging', 'published', 'closed'];
+    this.statusFilters = ['staging', 'published', 'deprecated', 'closed'];
     this.selectedStatus = ['published'];
 
     this.countByStatus = {};
@@ -151,6 +151,30 @@ class ApiListPlansController {
       }, function() {
         // You cancelled the dialog
       });
+    });
+  }
+
+  depreciate(plan, ev) {
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        title: 'Would you like to depreciate plan "' + plan.name + '" ?',
+        msg: 'By depreciating this plan, users will no more being able to subscribe it.',
+        confirmButton: 'Depreciate'
+      }
+    }).then( (response) => {
+      if (response) {
+        this.ApiService.depreciatePlan(this.$stateParams.apiId, plan.id).then( () => {
+          this.NotificationService.show('Plan ' + plan.name + ' has been deprecated');
+          this.$rootScope.$broadcast("planChangeSuccess", { state: "deprecated"});
+          this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
+          this.selectedStatus = ['published'];
+          this.list();
+        });
+      }
     });
   }
 

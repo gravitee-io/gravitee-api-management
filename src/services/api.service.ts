@@ -226,7 +226,7 @@ class ApiService {
    * API plans
    */
   getApiPlans(apiId) {
-    return this.$http.get(this.apisURL + apiId + '/plans?status=staging,published,closed');
+    return this.$http.get(this.apisURL + apiId + '/plans?status=staging,published,closed,deprecated');
   }
 
   getApiPlan(apiId, planId) {
@@ -270,6 +270,10 @@ class ApiService {
 
   publishPlan(apiId, planId) {
     return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_publish');
+  }
+
+  depreciatePlan(apiId, planId) {
+    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_depreciate');
   }
 
   /*

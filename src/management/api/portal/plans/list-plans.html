@@ -50,6 +50,10 @@
             <md-tooltip md-direction="top">Publish plan</md-tooltip>
             <ng-md-icon style="fill: #6ba2c5;" icon="backup" ng-click="$ctrl.publish(plan)"></ng-md-icon>
           </span>
+          <span ng-if="plan.status === 'published'" permission permission-only="'api-plan-u'">
+            <md-tooltip md-direction="top">Depreciate plan</md-tooltip>
+            <ng-md-icon style="fill: #d3772d;" icon="portable_wifi_off" ng-click="$ctrl.depreciate(plan)"></ng-md-icon>
+          </span>
           <span ng-if="plan.status !== 'closed'" permission permission-only="'api-plan-u'">
             <md-tooltip md-direction="top">Close plan</md-tooltip>
             <ng-md-icon style="fill: #d3091d;" icon="close" ng-click="$ctrl.close(plan)"></ng-md-icon>
