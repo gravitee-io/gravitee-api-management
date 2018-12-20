@@ -21,9 +21,13 @@ import com.github.fge.jsonpatch.diff.JsonDiff;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.audit.AuditEntity;
 import io.gravitee.management.model.audit.AuditQuery;
 import io.gravitee.management.service.AuditService;
+import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.AuditCriteria.Builder;
@@ -65,7 +69,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     private GroupRepository groupRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Autowired
     private ObjectMapper mapper;
@@ -113,23 +117,17 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         for (AuditEntity auditEntity : content) {
             //add user's display name
             String metadataKey = "USER:"+auditEntity.getUser()+":name";
-            String name = auditEntity.getUser();
             try {
-                Optional<User> optUser = userRepository.findById(auditEntity.getUser());
-                if (optUser.isPresent()) {
-                    if (optUser.get().getFirstname() != null && optUser.get().getLastname() != null) {
-                        name = optUser.get().getFirstname() + " " + optUser.get().getLastname();
-                    } else {
-                        name = optUser.get().getEmail();
-                    }
-                }
-            } catch (TechnicalException e) {
+                UserEntity user = userService.findById(auditEntity.getUser());
+                metadata.put(metadataKey, user.getDisplayName());
+            } catch (TechnicalManagementException e) {
                 LOGGER.error("Error finding metadata {}", auditEntity.getUser());
-
+            } catch (UserNotFoundException unfe) {
+                metadata.put(metadataKey, auditEntity.getUser());
             }
-            metadata.put(metadataKey, name);
 
             //add property metadata
+            String name;
             if (auditEntity.getProperties() != null) {
                 for (Map.Entry<String, String> property : auditEntity.getProperties().entrySet()) {
                     metadataKey = new StringJoiner(":").
@@ -173,13 +171,11 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                                     }
                                     break;
                                 case USER:
-                                    Optional<User> optUser = userRepository.findById(property.getValue());
-                                    if (optUser.isPresent()) {
-                                        if (optUser.get().getFirstname() != null && optUser.get().getLastname() != null) {
-                                            name = optUser.get().getFirstname() + " " + optUser.get().getLastname();
-                                        } else {
-                                            name = optUser.get().getEmail();
-                                        }
+                                    try {
+                                        UserEntity user = userService.findById(property.getValue());
+                                        name = user.getDisplayName();
+                                    } catch (UserNotFoundException unfe) {
+                                        name = property.getValue();
                                     }
                                 default:
                                     break;
