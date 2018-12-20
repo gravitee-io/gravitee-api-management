@@ -644,6 +644,15 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     public ApiEntity rollback(String apiId, UpdateApiEntity api) {
         LOGGER.debug("Rollback API : {}", apiId);
         try {
+            // Audit
+            auditService.createApiAuditLog(
+                    apiId,
+                    Collections.emptyMap(),
+                    API_ROLLBACKED,
+                    new Date(),
+                    null,
+                    null);
+
             return update(apiId, api);
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to rollback API: {}", apiId, ex);
