@@ -71,9 +71,6 @@
                       model="GROUPS"
                       message="There is no group to manage"
                       ></gravitee-empty-state>
-        </div>
-    </div>
-</div>
 <div ng-style="{'text-align': $ctrl.groups.length == 0 ? 'center' : 'none' }">
     <md-button permission permission-only="['management-group-c']"
                ng-class="{'md-fab-bottom-right gravitee-add-button': $ctrl.groups.length > 0}" class="md-fab"
@@ -81,4 +78,7 @@
                ng-click="$ctrl.showAddGroupModal()">
         <ng-md-icon icon="add"></ng-md-icon>
     </md-button>
+</div>
+</div>
+</div>
 </div>
