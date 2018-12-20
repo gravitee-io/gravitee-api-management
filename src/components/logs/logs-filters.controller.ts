@@ -100,6 +100,22 @@ class LogsFiltersController {
   private metadata: any;
   private api: any;
   private context: string;
+  private displayMode: any;
+
+  private displayModes = [
+    {
+      field: '',
+      key: '',
+      label: 'All'
+    }, {
+      key: 'api-response-time',
+      field: '_exists_',
+      label: 'Only hits to the backend endpoint'
+    }, {
+      key: 'api-response-time',
+      field: '!_exists_',
+      label: 'Without hits to the backend endpoint'
+    }];
 
   constructor(private $scope: ILogsFiltersScope,
               private $state: StateService) {
@@ -112,6 +128,14 @@ class LogsFiltersController {
     let q = this.$state.params["q"];
     if (q) {
       this.decodeQueryFilters(q);
+      _.forEach(this.displayModes, (displayMode) => {
+        if (this.filters[displayMode.field]) {
+          this.displayMode = displayMode;
+        }
+      });
+      if (!this.displayMode) {
+        this.displayMode = this.displayModes[0];
+      }
     }
   }
 
@@ -155,6 +179,12 @@ class LogsFiltersController {
           break;
         case 'tenant':
           this.filters.tenant = v;
+          break;
+        case '_exists_':
+          this.filters['_exists_'] = v;
+          break;
+        case '!_exists_':
+          this.filters['!_exists_'] = v;
           break;
         default:
           console.log('unknown filter: ', k);
@@ -230,6 +260,16 @@ class LogsFiltersController {
       val = list[_.filter(Object.keys(list), elt => elt.toLowerCase().includes(_val.toLowerCase())).pop()];
     }
     return (val) ? val : _val;
+  }
+
+  updateDisplayMode() {
+    _.forEach(this.displayModes, (displayMode) => {
+      delete this.filters[displayMode.field];
+    });
+    delete this.filters[this.displayMode.field];
+    if (this.displayMode.field) {
+      this.filters[this.displayMode.field] =  this.displayMode.key
+    }
   }
 }
 

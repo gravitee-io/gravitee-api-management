@@ -39,6 +39,7 @@
             <th md-column width="1%" nowrap>Method</th>
             <th md-column>Path</th>
             <th md-column width="1%" md-numeric nowrap>Response time</th>
+            <th md-column width="1%" md-numeric nowrap>Endpoint</th>
           </tr>
           </thead>
           <tbody md-body>
@@ -64,9 +65,10 @@
             </td>
             <td md-cell>{{log.path}}</td>
             <td md-cell nowrap>{{log.responseTime}} ms</td>
+            <td md-cell><span ng-if="log.endpoint">X</span></td>
           </tr>
           <tr ng-if="logsCtrl.logs.total === 0">
-            <td md-cell colspan="7" style="text-align:center;">No log</td>
+            <td md-cell colspan="8" style="text-align:center;">No log</td>
           </tr>
           </tbody>
         </table>
