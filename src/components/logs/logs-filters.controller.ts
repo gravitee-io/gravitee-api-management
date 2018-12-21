@@ -145,7 +145,7 @@ class LogsFiltersController {
       let filter = filters[i].replace(/[()]/g, "");
       let kv = filter.split(":");
       let k = kv[0].trim();
-      let v = kv[1].replace(/[\\\"]/g, "").split('OR').map(x => x.trim());
+      let v = kv[1].split('OR').map(x => x.trim());
       switch(k) {
         case 'api':
           this.filters.api = v;

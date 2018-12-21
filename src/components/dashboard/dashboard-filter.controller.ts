@@ -49,7 +49,7 @@ class DashboardFilterController {
     let label = (filter.fieldLabel ? filter.fieldLabel : filter.field)
       + " = '" + filter.name + "'";
 
-    let query = '(' + filter.field + ":" + _.map(_.keys(field.filters), (key) => "\\\"" + key + "\\\"").join(' OR ') + ')';
+    let query = '(' + filter.field + ":" + _.map(_.keys(field.filters)).join(' OR ') + ')';
 
     this.filters.push({
       source: filter.widget,
@@ -101,7 +101,7 @@ class DashboardFilterController {
     }
 
     if (! _.isEmpty(fieldObject.filters)) {
-      fieldObject.query = '(' + field + ":" + _.map(_.keys(fieldObject.filters), (key) => "\\\"" + key + "\\\"").join(' OR ') + ')';
+      fieldObject.query = '(' + field + ":" + _.map(_.keys(fieldObject.filters)).join(' OR ') + ')';
       this.fields[field] = fieldObject;
     } else {
       delete this.fields[field];
