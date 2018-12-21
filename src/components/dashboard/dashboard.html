@@ -15,20 +15,16 @@
     limitations under the License.
 
 -->
-<div class="gv-form">
-    <h2></h2>
-    <div class="gv-form-content" layout="column">
+<div class="gv-form-content" layout="column">
     <gv-dashboard-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)"></gv-dashboard-timeframe>
     <gv-dashboard-filter on-filter-change="$ctrl.queryFilterChange(query, widget)"></gv-dashboard-filter>
     <div layout="row" flex="100" layout-align="end center" ng-if="$ctrl.accessLogs">
-      <md-button md-no-ink class="md-primary" ng-click="$ctrl.viewLogs()">View logs</md-button>
+        <md-button md-no-ink class="md-primary" ng-click="$ctrl.viewLogs()">View logs</md-button>
     </div>
 
-  <div gridster="$ctrl.dashboardOptions" layout="row" style="width:100%">
-      <md-card gridster-item="widget" ng-repeat="widget in $ctrl.model">
-        <gv-widget widget="widget"></gv-widget>
-      </md-card>
-  </div>
+    <div gridster="$ctrl.dashboardOptions" layout="row" style="width:100%">
+        <md-card gridster-item="widget" ng-repeat="widget in $ctrl.model">
+            <gv-widget widget="widget"></gv-widget>
+        </md-card>
     </div>
-
 </div>

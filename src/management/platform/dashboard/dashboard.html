@@ -18,9 +18,10 @@
 <div class="gv-sub-content">
   <div class="gv-forms gv-forms-fluid" layout="column">
     <h1>Dashboard</h1>
-
-<gv-dashboard model="platformDashboard" on-timeframe-change="dashboardCtrl.onTimeframeChange(timeframe)"></gv-dashboard>
-
+    <div class="gv-form">
+      <h2></h2>
+      <gv-dashboard model="platformDashboard" on-timeframe-change="dashboardCtrl.onTimeframeChange(timeframe)"></gv-dashboard>
+    </div>
 
     <div class="gv-form">
       <h2>API Events</h2>

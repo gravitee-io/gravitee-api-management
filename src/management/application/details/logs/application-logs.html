@@ -16,9 +16,11 @@
 
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
-  <h1>Logs</h1>
+  <h1>{{$ctrl.application.name}}
+    <small ng-if="$ctrl.application.type" style="color:grey;">( {{$ctrl.application.type}} )</small>
+  </h1>
   <div class="gv-form">
-    <h2></h2>
+    <h2>Logs</h2>
     <div class="gv-form-content" layout="column">
       <gv-logs-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)"></gv-logs-timeframe>
 
