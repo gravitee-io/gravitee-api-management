@@ -82,13 +82,11 @@ public class PermissionServiceImpl extends AbstractService implements Permission
         if (firstDegreeRole != null) {
             roles = Collections.singleton(firstDegreeRole);
         } else if (groupMembershipReferenceType != null) {
-            Set<String> groups = null;
-            if (MembershipReferenceType.GROUP.equals(groupMembershipReferenceType)) {
-                try {
-                    groups = apiService.findById(referenceId).getGroups();
-                } catch (ApiNotFoundException | IllegalArgumentException ane) {
-                    groups = applicationService.findById(referenceId).getGroups();
-                }
+            Set<String> groups;
+            try {
+                groups = apiService.findById(referenceId).getGroups();
+            } catch (ApiNotFoundException | IllegalArgumentException ane) {
+                groups = applicationService.findById(referenceId).getGroups();
             }
 
             if (groups != null && !groups.isEmpty()) {

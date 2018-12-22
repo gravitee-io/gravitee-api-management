@@ -73,8 +73,7 @@ public abstract class AbstractResource {
     }
 
     protected boolean isAdmin() {
-        return  isUserInRole(SystemRole.ADMIN.name()) ||
-                isUserInRole(MANAGEMENT_ADMIN) ||
+        return  isUserInRole(MANAGEMENT_ADMIN) ||
                 isUserInRole(PORTAL_ADMIN);
     }
 
