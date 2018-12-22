@@ -128,7 +128,7 @@ export const NavbarComponent: ng.IComponentOptions = {
         TaskService.getTasks().then((response) => {
           const result = new PagedResult();
           result.populate(response.data);
-          TaskService.fillUserTasks(vm.graviteeUser, result);
+          vm.graviteeUser = TaskService.fillUserTasks(result);
         });
       }
     };

@@ -23,8 +23,8 @@ class Page {
 }
 
 export class PagedResult {
-  public data: any[];
-  public metadata: any;
+  public data: any[] = [];
+  public metadata: any = {};
   public page: Page = new Page();
 
   constructor() {

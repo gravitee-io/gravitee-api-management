@@ -20,6 +20,7 @@ import ApiService from './api.service';
 import _ = require('lodash');
 import StringService from './string.service';
 import {UrlService} from "@uirouter/angularjs";
+import {PagedResult} from "../entities/pagedResult";
 
 class UserService {
   private baseURL: string;
@@ -227,6 +228,11 @@ class UserService {
 
   getMemberships(id: string, type: string): ng.IPromise<any> {
     return this.$http.get(`${this.usersURL}${id}/memberships?type=${type}`)
+  }
+
+  setTasks(tasks: PagedResult) {
+    this.currentUser.tasks.populate(tasks);
+    return this.currentUser;
   }
 }
 
