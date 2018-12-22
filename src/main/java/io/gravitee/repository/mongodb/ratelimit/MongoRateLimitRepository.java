@@ -73,18 +73,7 @@ public class MongoRateLimitRepository implements RateLimitRepository {
     public RateLimit get(String rateLimitKey) {
         //because RateLimit has no default constructor, we have to manually map values
         Document result = mongoOperations.findById(rateLimitKey, Document.class, RATE_LIMIT_COLLECTION);
-
-        RateLimit rateLimit = new RateLimit(rateLimitKey);
-
-        if (result != null) {
-            rateLimit.setCounter((long) result.get(FIELD_COUNTER));
-            rateLimit.setLastRequest((long) result.get(FIELD_LAST_REQUEST));
-            rateLimit.setResetTime(((Date) result.get(FIELD_RESET_TIME)).getTime());
-            rateLimit.setUpdatedAt((long) result.get(FIELD_UPDATED_AT));
-            rateLimit.setCreatedAt((long) result.get(FIELD_CREATED_AT));
-            rateLimit.setAsync((boolean) result.get(FIELD_ASYNC));
-        }
-        return rateLimit;
+        return convert(result);
     }
 
     @Override
@@ -105,6 +94,25 @@ public class MongoRateLimitRepository implements RateLimitRepository {
     @Override
     public Iterator<RateLimit> findAsyncAfter(long timestamp) {
         final Query query = Query.query(Criteria.where(FIELD_ASYNC).is(true).and(FIELD_UPDATED_AT).gte(timestamp));
-        return mongoOperations.find(query, RateLimit.class, RATE_LIMIT_COLLECTION).iterator();
+        return mongoOperations.find(query, Document.class, RATE_LIMIT_COLLECTION)
+                .stream()
+                .map(this::convert)
+                .iterator();
+    }
+
+    private RateLimit convert(Document document) {
+        if (document == null) {
+            return null;
+        }
+
+        RateLimit rateLimit = new RateLimit(document.getString((FIELD_KEY)));
+        rateLimit.setCounter((long) document.get(FIELD_COUNTER));
+        rateLimit.setLastRequest((long) document.get(FIELD_LAST_REQUEST));
+        rateLimit.setResetTime(((Date) document.get(FIELD_RESET_TIME)).getTime());
+        rateLimit.setUpdatedAt((long) document.get(FIELD_UPDATED_AT));
+        rateLimit.setCreatedAt((long) document.get(FIELD_CREATED_AT));
+        rateLimit.setAsync((boolean) document.get(FIELD_ASYNC));
+
+        return rateLimit;
     }
 }
