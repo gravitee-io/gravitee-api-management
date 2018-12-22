@@ -28,7 +28,7 @@
 
 	<groupId>io.gravitee.repository</groupId>
 	<artifactId>gravitee-repository-mongodb</artifactId>
-	<version>1.20.2-SNAPSHOT</version>
+	<version>1.20.2</version>
 	<name>Gravitee.io APIM - Repository - MongoDB</name>
 
 	<properties>
