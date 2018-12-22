@@ -38,6 +38,10 @@
         <label>Target</label>
         <input ng-model="endpointCtrl.endpoint.target" type="text" required>
       </md-input-container>
+      <md-input-container flex="30">
+        <label>Weight</label>
+        <input ng-model="endpointCtrl.endpoint.weight" type="number" min="1" max="99">
+      </md-input-container>
     </div>
 
     <div layout="column">
