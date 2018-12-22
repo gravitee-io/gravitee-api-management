@@ -73,7 +73,8 @@ public class MongoRateLimitRepository implements RateLimitRepository {
     public RateLimit get(String rateLimitKey) {
         //because RateLimit has no default constructor, we have to manually map values
         Document result = mongoOperations.findById(rateLimitKey, Document.class, RATE_LIMIT_COLLECTION);
-        return convert(result);
+        RateLimit rateLimit = convert(result);
+        return rateLimit == null ? new RateLimit(rateLimitKey) : rateLimit;
     }
 
     @Override
