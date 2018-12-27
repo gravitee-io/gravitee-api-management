@@ -106,14 +106,14 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         final int port = uri.getPort() != -1 ? uri.getPort() :
                 (HTTPS_SCHEME.equals(uri.getScheme()) ? 443 : 80);
 
-        // Override with default headers defined for endpoint
-        if (endpoint.getHostHeader() != null && !endpoint.getHostHeader().isEmpty()) {
-            proxyRequest.headers().set(HttpHeaders.HOST, endpoint.getHostHeader());
-        } else {
-            final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
-                    uri.getHost() : uri.getHost() + ':' + port;
+        final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
+                uri.getHost() : uri.getHost() + ':' + port;
 
-            proxyRequest.headers().set(HttpHeaders.HOST, host);
+        proxyRequest.headers().set(HttpHeaders.HOST, host);
+
+        // Apply headers from endpoint
+        if (endpoint.getHeaders() != null && !endpoint.getHeaders().isEmpty()) {
+            endpoint.getHeaders().forEach(proxyRequest.headers()::set);
         }
 
         String relativeUri = (uri.getRawQuery() == null) ? uri.getRawPath() : uri.getRawPath() + '?' + uri.getRawQuery();

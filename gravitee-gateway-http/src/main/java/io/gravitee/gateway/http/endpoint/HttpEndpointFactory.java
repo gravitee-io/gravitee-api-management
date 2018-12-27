@@ -47,7 +47,6 @@ public final class HttpEndpointFactory extends TemplateAwareEndpointFactory<io.g
     protected io.gravitee.definition.model.endpoint.HttpEndpoint resolve(io.gravitee.definition.model.endpoint.HttpEndpoint endpoint) {
         // HTTP endpoint configuration
         endpoint.setTarget(convert(endpoint.getTarget()));
-        endpoint.setHostHeader(convert(endpoint.getHostHeader()));
 
         // HTTP Proxy configuration
         if (endpoint.getHttpProxy() != null) {
@@ -56,6 +55,10 @@ public final class HttpEndpointFactory extends TemplateAwareEndpointFactory<io.g
             endpoint.getHttpProxy().setPassword(convert(endpoint.getHttpProxy().getPassword()));
         }
 
+        // Default HTTP headers
+        if (endpoint.getHeaders() != null && !endpoint.getHeaders().isEmpty()) {
+            endpoint.getHeaders().replaceAll((key, value) -> convert(value));
+        }
         return endpoint;
     }
 
