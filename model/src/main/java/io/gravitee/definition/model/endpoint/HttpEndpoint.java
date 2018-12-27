@@ -18,6 +18,8 @@ package io.gravitee.definition.model.endpoint;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -30,7 +32,7 @@ public class HttpEndpoint extends Endpoint {
 
     private HttpClientSslOptions httpClientSslOptions;
 
-    private String hostHeader;
+    private Map<String, String> headers;
 
     private EndpointHealthCheckService healthCheck;
 
@@ -62,12 +64,12 @@ public class HttpEndpoint extends Endpoint {
         this.httpClientSslOptions = httpClientSslOptions;
     }
 
-    public String getHostHeader() {
-        return hostHeader;
+    public Map<String, String> getHeaders() {
+        return headers;
     }
 
-    public void setHostHeader(String hostHeader) {
-        this.hostHeader = hostHeader;
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
     }
 
     public EndpointHealthCheckService getHealthCheck() {

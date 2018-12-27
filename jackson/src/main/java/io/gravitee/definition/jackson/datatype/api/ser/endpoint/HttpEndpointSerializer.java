@@ -66,8 +66,8 @@ public class HttpEndpointSerializer extends EndpointSerializer<HttpEndpoint>  {
             jgen.writeEndArray();
         }
 
-        if (endpoint.getHostHeader() != null && !endpoint.getHostHeader().trim().isEmpty()) {
-            jgen.writeStringField("hostHeader", endpoint.getHostHeader());
+        if (endpoint.getHeaders() != null && !endpoint.getHeaders().isEmpty()) {
+            jgen.writeObjectField("headers", endpoint.getHeaders());
         }
     }
 }

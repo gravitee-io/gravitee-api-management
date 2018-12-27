@@ -16,8 +16,10 @@
 package io.gravitee.definition.jackson.datatype.api.deser.endpoint;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.definition.jackson.datatype.api.deser.EndpointDeserializer;
 import io.gravitee.definition.model.HttpClientOptions;
 import io.gravitee.definition.model.HttpClientSslOptions;
@@ -26,6 +28,8 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -83,7 +87,9 @@ public class HttpEndpointDeserializer extends EndpointDeserializer<HttpEndpoint>
         if (hostHeaderNode != null) {
             String hostHeader = hostHeaderNode.asText();
             if (! hostHeader.trim().isEmpty()) {
-                endpoint.setHostHeader(hostHeader);
+                Map<String, String> headers = new HashMap<>();
+                headers.put(HttpHeaders.HOST, hostHeader);
+                endpoint.setHeaders(headers);
             }
         }
 
@@ -91,6 +97,18 @@ public class HttpEndpointDeserializer extends EndpointDeserializer<HttpEndpoint>
         if (healthcheckNode != null && healthcheckNode.isObject()) {
             EndpointHealthCheckService healthCheckService = healthcheckNode.traverse(jp.getCodec()).readValueAs(EndpointHealthCheckService.class);
             endpoint.setHealthCheck(healthCheckService);
+        }
+
+        JsonNode headersNode = node.get("headers");
+        if (headersNode != null) {
+            Map<String, String> headers = headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {});
+            if (headers != null && ! headers.isEmpty()) {
+                if (endpoint.getHeaders() == null) {
+                    endpoint.setHeaders(headers);
+                } else {
+                    headers.forEach(endpoint.getHeaders()::putIfAbsent);
+                }
+            }
         }
 
         return endpoint;

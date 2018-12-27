@@ -16,6 +16,7 @@
 package io.gravitee.definition.jackson.api;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.*;
@@ -408,7 +409,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-empty-hostHeader.json", Api.class);
 
         Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
-        Assert.assertNull(((HttpEndpoint) endpoint).getHostHeader());
+        Assert.assertNull(((HttpEndpoint) endpoint).getHeaders());
     }
 
     @Test
@@ -416,7 +417,8 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-hostHeader.json", Api.class);
 
         Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
-        Assert.assertNotNull(((HttpEndpoint) endpoint).getHostHeader());
+        Assert.assertNotNull(((HttpEndpoint) endpoint).getHeaders().get(HttpHeaders.HOST));
+        Assert.assertEquals("host", ((HttpEndpoint) endpoint).getHeaders().get(HttpHeaders.HOST));
     }
 
     @Test
@@ -542,5 +544,16 @@ public class ApiDeserializerTest extends AbstractTest {
 
         EndpointGroup group = api.getProxy().getGroups().iterator().next();
         Assert.assertNotNull(group);
+    }
+
+    @Test
+    public void definition_withHeaders() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-headers.json", Api.class);
+
+        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
+        Assert.assertNotNull(((HttpEndpoint) endpoint).getHeaders());
+        Assert.assertEquals("header1", ((HttpEndpoint) endpoint).getHeaders().get("x-header1"));
+        Assert.assertEquals("header2", ((HttpEndpoint) endpoint).getHeaders().get("x-header2"));
+        Assert.assertEquals("host", ((HttpEndpoint) endpoint).getHeaders().get(HttpHeaders.HOST));
     }
 }
