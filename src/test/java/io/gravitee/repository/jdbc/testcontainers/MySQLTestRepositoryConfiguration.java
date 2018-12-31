@@ -13,39 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.jdbc;
+package io.gravitee.repository.jdbc.testcontainers;
 
-import ch.vorburger.exec.ManagedProcessException;
-import ch.vorburger.mariadb4j.DB;
-import ch.vorburger.mariadb4j.DBConfiguration;
+import io.gravitee.repository.jdbc.AbstractJdbcTestRepositoryConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
+import org.testcontainers.containers.MySQLContainer;
 
 import javax.inject.Inject;
 
-import static java.lang.String.format;
-
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Conditional(MariaDBCondition.class)
-public class MariaDBTestRepositoryConfiguration extends AbstractJdbcTestRepositoryConfiguration {
+@Conditional(MySQLCondition.class)
+public class MySQLTestRepositoryConfiguration extends AbstractJdbcTestRepositoryConfiguration {
 
     @Inject
-    private DB embeddedMariaDB;
+    private MySQLContainer embeddedMysql;
 
     @Override
-    String getJdbcUrl() {
-        final DBConfiguration config = embeddedMariaDB.getConfiguration();
-        return format("jdbc:mariadb://localhost:%s/gravitee", config.getPort());
+    protected String getJdbcUrl() {
+        return getJdbcUrl(embeddedMysql);
     }
 
     @Bean(destroyMethod = "stop")
-    public DB embeddedMariaDB() throws ManagedProcessException {
-        final DB db = DB.newEmbeddedDB(3306);
-        db.start();
-        db.createDB("gravitee");
-        return db;
+    public MySQLContainer embeddedMysql() {
+        MySQLContainer container = new MySQLContainer<>();
+        container.start();
+        return container;
     }
 }

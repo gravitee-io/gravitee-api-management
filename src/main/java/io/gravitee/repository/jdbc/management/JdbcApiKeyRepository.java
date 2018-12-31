@@ -66,16 +66,19 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         LOGGER.debug("JdbcApiKeyRepository.findByCriteria({})", akc);
         try {
             List<Object> args = new ArrayList<>();
-            StringBuilder query = new StringBuilder();
-            query.append("select * from " + escapeReservedWord("keys") + " ");
+            StringBuilder query = new StringBuilder("select * from ")
+                    .append(escapeReservedWord("keys"))
+                    .append(" ");
+
             boolean first = true;
             if (!akc.isIncludeRevoked()) {
                 first = addClause(first, query);
-                query.append(" ( revoked = false ) ");
+                query.append(" ( revoked = ? ) ");
+                args.add(false);
             }
             if ((akc.getPlans() != null) && !akc.getPlans().isEmpty()) {
                 first = addClause(first, query);
-                query.append(" ( plan in ( ");
+                query.append(" ( ").append(escapeReservedWord("plan")).append(" in ( ");
                 boolean subFirst = true;
                 for (String plan : akc.getPlans()) {
                     if (!subFirst) {

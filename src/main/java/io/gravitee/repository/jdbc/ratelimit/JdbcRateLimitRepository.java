@@ -143,8 +143,9 @@ public class JdbcRateLimitRepository implements RateLimitRepository {
     public Iterator<RateLimit> findAsyncAfter(long timestamp) {
         final List<RateLimit> items = jdbcTemplate.query("select " + escapeReservedWord("key") + ", counter, last_request, reset_time, created_at, updated_at, async "
                         + " from ratelimit "
-                        + " where async = true and updated_at > ?"
+                        + " where async = ? and updated_at > ?"
                 , MAPPER
+                , true
                 , timestamp
         );
         return items.iterator();

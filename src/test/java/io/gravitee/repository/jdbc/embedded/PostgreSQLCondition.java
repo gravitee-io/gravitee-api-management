@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.jdbc;
+package io.gravitee.repository.jdbc.embedded;
 
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
@@ -21,12 +21,13 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PostgreSQLCondition implements Condition {
 
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        return "postgresql".equals(System.getProperty("jdbcType"));
+        return "postgresql-te".equals(System.getProperty("jdbcType"));
     }
 }

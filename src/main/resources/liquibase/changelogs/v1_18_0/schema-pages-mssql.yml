@@ -1,12 +1,11 @@
 databaseChangeLog:
     - changeSet:
-        id: 1.18.0-pageconfiguration
+        id: 1.18.0-pageconfiguration-mssql
         author: GraviteeSource Team
         preConditions:
             onFail: MARK_RAN
-            not:
-                dbms:
-                  type: mssql
+            dbms:
+               type: mssql
         changes:
         - addColumn:
             tableName: pages
@@ -23,22 +22,6 @@ databaseChangeLog:
             constraintName: pk_page_configuration
             columnNames: page_id, k, v
             tableName: page_configuration
-
-        - sql:
-            comment: Move tryIt to a the dedicated table
-            sql: >
-              insert into page_configuration (page_id, k, v)
-              select id, 'tryIt', configuration_try_it
-              from pages
-              where configuration_try_it is true
-
-        - sql:
-            comment: Move tryItURL to a the dedicated table
-            sql: >
-              insert into page_configuration (page_id, k, v)
-              select id, 'tryItURL', configuration_try_it_url
-              from pages
-              where configuration_try_it_url is not null
 
         - dropColumn:
             columnName: configuration_try_it_url

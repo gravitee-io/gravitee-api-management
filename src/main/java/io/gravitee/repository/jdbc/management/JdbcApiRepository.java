@@ -38,6 +38,7 @@ import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.*;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 
 /**
@@ -189,7 +190,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
         List<String> filteredViews = ORM.filterStrings(api.getViews());
         if (!filteredViews.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into api_views ( api_id, View ) values ( ?, ? )"
+            jdbcTemplate.batchUpdate("insert into api_views ( api_id, "+ escapeReservedWord("view") +" ) values ( ?, ? )"
                     , ORM.getBatchStringSetter(api.getId(), filteredViews));
         }
     }
@@ -256,7 +257,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 sbQuery.append("and a.version = ? ");
             }
             if (!StringUtils.isEmpty(apiCriteria.getView())) {
-                sbQuery.append("and av.view = ? ");
+                sbQuery.append("and av.").append(escapeReservedWord("view")).append(" = ? ");
             }
             if (!StringUtils.isEmpty(apiCriteria.getVisibility())) {
                 sbQuery.append("and a.visibility = ? ");

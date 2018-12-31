@@ -19,6 +19,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import javax.sql.DataSource;
 
@@ -31,15 +32,22 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 @ComponentScan("io.gravitee.repository.jdbc")
 public abstract class AbstractJdbcTestRepositoryConfiguration {
 
-    abstract String getJdbcUrl();
+    protected abstract String getJdbcUrl();
 
     @Bean
     public DataSource graviteeDataSource() {
         final HikariConfig dsConfig = new HikariConfig();
         final String jdbcUrl = getJdbcUrl();
         dsConfig.setJdbcUrl(jdbcUrl);
-        //dsConfig.setAutoCommit(false);
         setEscapeReservedWordFromJDBCUrl(jdbcUrl);
         return new HikariDataSource(dsConfig);
+    }
+
+    protected String getJdbcUrl(JdbcDatabaseContainer jdbcDatabaseContainer) {
+        String url = jdbcDatabaseContainer.getJdbcUrl().replaceFirst("jdbc:", "jdbc:tc:");
+        String user = ";user=" + jdbcDatabaseContainer.getUsername();
+        String password = ";password=" + jdbcDatabaseContainer.getPassword() +";";
+        System.err.println(url + user + password);
+        return url + user + password;
     }
 }

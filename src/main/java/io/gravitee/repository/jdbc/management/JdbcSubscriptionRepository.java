@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -106,7 +107,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             argsList.add(criteria.getClientId());
             started = true;
         }
-        started = addStringsWhereClause(criteria.getPlans(), "plan", argsList, builder, started);
+        started = addStringsWhereClause(criteria.getPlans(), escapeReservedWord("plan"), argsList, builder, started);
         started = addStringsWhereClause(criteria.getApplications(), "application", argsList, builder, started);
         started = addStringsWhereClause(criteria.getApis(), "api", argsList, builder, started);
 

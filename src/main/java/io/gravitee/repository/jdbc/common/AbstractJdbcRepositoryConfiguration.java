@@ -56,10 +56,15 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     @Autowired
     private Environment env;
 
-    private static char escapeReservedWordsChar = '`';
+    // Default escape char for reserved keywords
+    private static char escapeReservedWordsPrefixChar = '`';
+    private static char escapeReservedWordsSufixChar = '`';
+
+    private static final String POSTGRESQL_DRIVER_TYPE = "postgresql";
+    private static final String SQLSERVER_DRIVER_TYPE = "sqlserver";
 
     public static String escapeReservedWord(final String word) {
-        return escapeReservedWordsChar + word + escapeReservedWordsChar;
+        return escapeReservedWordsPrefixChar + word + escapeReservedWordsSufixChar;
     }
 
     @Override
@@ -106,8 +111,24 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     }
 
     public static void setEscapeReservedWordFromJDBCUrl(final String jdbcUrl) {
-        if (jdbcUrl != null && "postgresql".equals(jdbcUrl.split(":")[1])) {
-            escapeReservedWordsChar = '\"';
+        if (jdbcUrl != null) {
+            String[] tokenizedJdbcUrl = jdbcUrl.split(":");
+            String databaseType = tokenizedJdbcUrl[1];
+            //for TestContainers
+            if ("tc".equals(databaseType)) {
+                databaseType = tokenizedJdbcUrl[2];
+            }
+
+            switch (databaseType) {
+                case POSTGRESQL_DRIVER_TYPE:
+                    escapeReservedWordsPrefixChar = '\"';
+                    escapeReservedWordsSufixChar = '\"';
+                    break;
+                case SQLSERVER_DRIVER_TYPE:
+                    escapeReservedWordsPrefixChar = '[';
+                    escapeReservedWordsSufixChar = ']';
+                    break;
+            }
         }
     }
 

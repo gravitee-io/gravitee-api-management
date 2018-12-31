@@ -43,6 +43,8 @@
         <mariaDB.version>2.3.0</mariaDB.version>
         <wix-embedded-mysql.version>4.1.2</wix-embedded-mysql.version>
         <postgresql-embedded.version>2.9</postgresql-embedded.version>
+        <testcontainers.version>1.11.1</testcontainers.version>
+        <default-database.jdbcType>postgresql-te</default-database.jdbcType>
     </properties>
 
     <dependencies>
@@ -110,6 +112,21 @@
         </dependency>
 
         <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- MySQL -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.wix</groupId>
             <artifactId>wix-embedded-mysql</artifactId>
             <version>${wix-embedded-mysql.version}</version>
@@ -120,6 +137,14 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql-connector-java.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Postgres -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -137,6 +162,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- MariaDB -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mariadb</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>ch.vorburger.mariaDB4j</groupId>
             <artifactId>mariaDB4j</artifactId>
@@ -148,6 +181,21 @@
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <version>${mariaDB.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Microsoft SQL Server -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mssqlserver</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>7.2.1.jre8</version>
             <scope>test</scope>
         </dependency>
 
@@ -221,35 +269,13 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>postgresql</id>
+                        <id>default-jdbc-test</id>
                         <goals>
                             <goal>test</goal>
                         </goals>
                         <configuration>
                             <systemPropertyVariables>
-                                <jdbcType>postgresql</jdbcType>
-                            </systemPropertyVariables>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>mysql</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <systemPropertyVariables>
-                                <jdbcType>mysql</jdbcType>
-                            </systemPropertyVariables>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>mariadb</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <systemPropertyVariables>
-                                <jdbcType>mariadb</jdbcType>
+                                <jdbcType>${default-database.jdbcType}</jdbcType>
                             </systemPropertyVariables>
                         </configuration>
                     </execution>
@@ -257,4 +283,139 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>testcontainer</id>
+            <activation>
+                <property>
+                    <name>tc</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <argLine>-Xmx1024m</argLine>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>default-jdbc-test</id>
+                                <configuration>
+                                    <skip>true</skip>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>postgresql</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <jdbcType>postgresql-tc</jdbcType>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>mysql</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <jdbcType>mysql-tc</jdbcType>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>mariadb</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <jdbcType>mariadb-tc</jdbcType>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>sqlserver</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <jdbcType>sqlserver-tc</jdbcType>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>testembedded</id>
+            <activation>
+                <property>
+                    <name>te</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <argLine>-Xmx1024m</argLine>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>default-jdbc-test</id>
+                                <configuration>
+                                    <skip>true</skip>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>postgresql</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <jdbcType>postgresql-te</jdbcType>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>mysql</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <jdbcType>mysql-te</jdbcType>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>mariadb</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <jdbcType>mariadb-te</jdbcType>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

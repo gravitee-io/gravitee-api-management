@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.jdbc;
+package io.gravitee.repository.jdbc.testcontainers;
 
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
@@ -21,12 +21,13 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class MySQLCondition implements Condition {
+public class MariaDBCondition implements Condition {
 
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        return "mysql".equals(System.getProperty("jdbcType"));
+        return "mariadb-tc".equals(System.getProperty("jdbcType"));
     }
 }
