@@ -100,6 +100,7 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 			clusters = extractCluster(query);
 		}
 
+		sQuery = sQuery.replaceAll(":((\\/)(\\w|-)*)", ":\\\\\"$1\\\\\"");
 		if (query.timeRange() != null) {
 			final Long from = query.timeRange().range().from();
 			final Long to = query.timeRange().range().to();
