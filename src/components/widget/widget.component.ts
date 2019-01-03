@@ -34,9 +34,7 @@ const WidgetComponent: ng.IComponentOptions = {
     $scope.$on('onTimeframeChange', function (event, timeframe) {
       let query;
 
-      if (that.$state.params['q'] && that.widget.chart.request.query) {
-        query = that.$state.params['q'] + ' AND ' + that.widget.chart.request.query;
-      } else if (that.$state.params['q']) {
+      if (that.$state.params['q']) {
         query = that.$state.params['q'];
       } else if (that.widget.chart.request.query) {
         query = that.widget.chart.request.query;
