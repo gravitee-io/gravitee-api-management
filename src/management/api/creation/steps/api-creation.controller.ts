@@ -47,10 +47,6 @@ class ApiCreationController {
   };
   private skippedStep: boolean;
   private apiSteps: any[];
-  private enableFileImport: boolean;
-  private importFileMode: boolean;
-  private importURLMode: boolean;
-  private apiDescriptorURL: string;
   private endpoint: any;
   private rateLimit: any;
   private quota: any;
@@ -102,9 +98,6 @@ class ApiCreationController {
 
     // init steps settings
     this.initStepSettings();
-
-    // init import API settings
-    this.initImportAPISettings();
 
     // init documentation settings
     this.initDocumentationSettings();
@@ -241,101 +234,6 @@ class ApiCreationController {
     }).catch(function () {
       _this.vm.showBusyText = false;
     });
-  }
-
-  /*
-   API import
-   */
-  initImportAPISettings() {
-    var that = this;
-    this.enableFileImport = false;
-    this.importFileMode= true;
-    this.importURLMode= false;
-    this.apiDescriptorURL = null;
-    this.$scope.$watch('importAPIFile.content', function (data) {
-      if (data) {
-        that.enableFileImport = true;
-      }
-    });
-  }
-
-
-  importAPI() {
-    if (this.importFileMode) {
-      var extension = this.$scope.importAPIFile.name.split('.').pop();
-      switch (extension) {
-        case "yml" :
-        case "yaml" :
-          this.importSwagger();
-          break;
-        case "json" :
-          if (this.isSwaggerDescriptor()) {
-            this.importSwagger();
-          } else {
-            this.importGraviteeIODefinition();
-          }
-          break;
-        default:
-          this.enableFileImport = false;
-          this.NotificationService.showError("Input file must be a valid API definition file.");
-      }
-    } else {
-      this.importSwagger();
-    }
-  }
-
-  importGraviteeIODefinition() {
-    var _this = this;
-    this.ApiService.import(null, this.$scope.importAPIFile.content).then(function (api) {
-      _this.NotificationService.show('API created');
-      _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
-    });
-  }
-
-  importSwagger() {
-    let _this = this;
-    let swagger;
-
-    if (this.importFileMode) {
-      swagger = {
-        version: 'VERSION_2_0',
-        type: 'INLINE',
-        payload: this.$scope.importAPIFile.content
-      }
-    } else {
-      swagger = {
-        version: 'VERSION_2_0',
-        type: 'URL',
-        payload: this.apiDescriptorURL
-      }
-    }
-
-    this.ApiService.importSwagger(swagger).then(function (api) {
-      var importedAPI = api.data;
-      importedAPI.contextPath = importedAPI.name.replace(/\s+/g, '').toLowerCase();
-      importedAPI.description = (importedAPI.description) ? importedAPI.description : "Default API description";
-      _this.ApiService.create(importedAPI).then(function(api) {
-        _this.NotificationService.show('API created');
-        _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
-      });
-    });
-  }
-
-  enableImport() {
-    if (this.importFileMode) {
-      return this.enableFileImport;
-    } else {
-      return (this.apiDescriptorURL && this.apiDescriptorURL.length);
-    }
-  }
-
-  isSwaggerDescriptor() {
-    try {
-      var fileContent = JSON.parse(this.$scope.importAPIFile.content);
-      return fileContent.hasOwnProperty('swagger');
-    } catch (e) {
-      this.NotificationService.showError("Invalid json file.");
-    }
   }
 
   /*

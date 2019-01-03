@@ -40,7 +40,7 @@ class ApiService {
     this.Constants = Constants;
   }
 
-  defaultHttpHeaders() {
+  defaultHttpHeaders(): string[] {
     return [
       'Accept','Accept-Charset','Accept-Encoding','Accept-Language','Accept-Ranges','Access-Control-Allow-Credentials',
       'Access-Control-Allow-Headers','Access-Control-Allow-Methods','Access-Control-Allow-Origin',
@@ -55,43 +55,39 @@ class ApiService {
     ];
   }
 
-  get(name) {
+  get(name): ng.IPromise<any> {
     return this.$http.get(this.apisURL + name);
   }
 
-  list(view?: string) {
+  list(view?: string): ng.IPromise<any> {
     return this.$http.get(this.apisURL + (view ? '?view=' + view : ''));
   }
 
-  searchApis(query?: string) {
+  searchApis(query?: string): ng.IPromise<any> {
     return this.$http.post(this.apisURL + '_search?q=' + query);
   }
 
-  listTopAPIs() {
+  listTopAPIs(): ng.IPromise<any> {
     return this.$http.get(this.apisURL + '?top=true');
   }
 
-  listByGroup(group) {
+  listByGroup(group): ng.IPromise<any> {
     return this.$http.get(this.apisURL + '?group=' + group);
   }
 
-  start(api) {
+  start(api): ng.IPromise<any> {
     return this.$http.post(this.apisURL + api.id + '?action=START', {}, {headers: {'If-Match': api.etag}});
   }
 
-  stop(api) {
+  stop(api): ng.IPromise<any> {
     return this.$http.post(this.apisURL + api.id + '?action=STOP', {}, {headers: {'If-Match': api.etag}});
   }
 
-  reload(name) {
+  reload(name): ng.IPromise<any> {
     return this.$http.post(this.apisURL + 'reload/' + name);
   }
 
-  create(api) {
-    return this.$http.post(this.apisURL, api);
-  }
-
-  update(api) {
+  update(api): ng.IPromise<any> {
     //clean endpoint http proxy
     if (api.proxy && api.proxy.endpoints) {
       _.forEach(api.proxy.endpoints, (endpoint) => {
@@ -109,50 +105,50 @@ class ApiService {
     );
   }
 
-  delete(name) {
+  delete(name): ng.IPromise<any> {
     return this.$http.delete(this.apisURL + name);
   }
 
-  listPolicies(apiName) {
+  listPolicies(apiName): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiName + '/policies');
   }
 
-  isAPISynchronized(apiId) {
+  isAPISynchronized(apiId): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/state');
   }
 
-  deploy(apiId) {
+  deploy(apiId): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/deploy');
   }
 
-  rollback(apiId, apiDescriptor) {
+  rollback(apiId, apiDescriptor): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/rollback', apiDescriptor);
   }
 
-  import(apiId, apiDefinition) {
+  import(apiId: string, apiDefinition: string): ng.IPromise<any> {
     return this.$http.post(this.apisURL + (apiId ? apiId + '/' : '') + 'import', apiDefinition);
   }
 
-  importSwagger(swaggerDescriptor) {
+  importSwagger(swaggerDescriptor: string): ng.IPromise<any> {
     return this.$http.post(this.apisURL + 'import/swagger', swaggerDescriptor);
   }
 
-  export(apiId, exclude, exportVersion) {
+  export(apiId, exclude, exportVersion): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/export?exclude=' + exclude.join(",") + (exportVersion ? '&version=' + exportVersion : ''));
   }
 
-  verify(criteria) {
+  verify(criteria): ng.IPromise<any> {
     return this.$http.post(this.apisURL + 'verify', criteria);
   }
 
-  importPathMappings(apiId, page) {
+  importPathMappings(apiId, page): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/import-path-mappings?page=' + page);
   }
 
   /*
    * Analytics
    */
-  analytics(api, request) {
+  analytics(api, request): ng.IPromise<any> {
     var url = this.apisURL + api + '/analytics?';
 
     var keys = Object.keys(request);
@@ -169,7 +165,7 @@ class ApiService {
   /*
    * Logs
    */
-  findLogs(api: string, query: LogsQuery) {
+  findLogs(api: string, query: LogsQuery): ng.IPromise<any> {
     var url = this.apisURL + api + '/logs?';
 
     var keys = Object.keys(query);
@@ -183,7 +179,7 @@ class ApiService {
     return this.$http.get(url, {timeout: 30000});
   }
 
-  getLog(api, logId, timestamp) {
+  getLog(api, logId, timestamp): ng.IPromise<any> {
     return this.$http.get(this.apisURL + api + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
   }
 
@@ -210,11 +206,11 @@ class ApiService {
   /*
    * API events
    */
-  getApiEvents(api, eventTypes) {
+  getApiEvents(api, eventTypes): ng.IPromise<any> {
     return this.$http.get(this.apisURL + api + '/events?type=' + eventTypes);
   }
 
-  listPlans(apiId, type) {
+  listPlans(apiId, type): string {
     let url = this.$http.get(this.apisURL + apiId + '/plans');
     if (type) {
       url += '?type=' + type;
@@ -225,19 +221,19 @@ class ApiService {
   /*
    * API plans
    */
-  getApiPlans(apiId) {
+  getApiPlans(apiId): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/plans?status=staging,published,closed,deprecated');
   }
 
-  getApiPlan(apiId, planId) {
+  getApiPlan(apiId, planId): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/plans/' + planId);
   }
 
-  getPublishedApiPlans(apiId) {
+  getPublishedApiPlans(apiId): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/plans?status=published');
   }
 
-  savePlan(apiId, plan) {
+  savePlan(apiId, plan): ng.IPromise<any> {
     if (plan.id) {
       return this.$http.put(this.apisURL + apiId + '/plans/' + plan.id,
         {
@@ -260,15 +256,15 @@ class ApiService {
     }
   }
 
-  closePlan(apiId, planId) {
+  closePlan(apiId, planId): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_close');
   }
 
-  deletePlan(apiId, planId) {
+  deletePlan(apiId, planId): ng.IPromise<any> {
     return this.$http.delete(this.apisURL + apiId + '/plans/' + planId);
   }
 
-  publishPlan(apiId, planId) {
+  publishPlan(apiId, planId): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_publish');
   }
 
@@ -292,23 +288,23 @@ class ApiService {
     return this.$http.get(this.apisURL + apiId + '/subscribers');
   }
 
-  getSubscription(apiId, subscriptionId) {
+  getSubscription(apiId, subscriptionId): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/subscriptions/' + subscriptionId);
   }
 
-  closeSubscription(apiId, subscriptionId) {
+  closeSubscription(apiId, subscriptionId): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/status?status=CLOSED');
   }
 
-  processSubscription(apiId, subscriptionId, processSubscription) {
+  processSubscription(apiId, subscriptionId, processSubscription): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/_process', processSubscription);
   }
 
-  getPlanSubscriptions(apiId, planId) {
+  getPlanSubscriptions(apiId, planId): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/subscriptions?plan='+planId);
   }
 
-  getAllPlanSubscriptions(apiId, planId) {
+  getAllPlanSubscriptions(apiId, planId): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/subscriptions?plan='+planId+'&status=accepted,pending,rejected,closed');
   }
 
@@ -316,56 +312,50 @@ class ApiService {
     return this.$http.post(this.apisURL + apiId + '/subscriptions?plan=' + planId + '&application=' + applicationId, '');
   }
 
-  /*
-  revokeSubscription(apiId, subscriptionId) {
-    return this.$http.delete(this.apisURL + apiId + '/subscriptions/' + subscriptionId);
-  }
-  */
-
-  listApiKeys(apiId, subscriptionId) {
+  listApiKeys(apiId, subscriptionId): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/keys');
   }
 
-  revokeApiKey(apiId, subscriptionId, apiKey) {
+  revokeApiKey(apiId, subscriptionId, apiKey): ng.IPromise<any> {
     return this.$http.delete(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/keys/' + apiKey);
   }
 
-  renewApiKey(apiId, subscriptionId) {
+  renewApiKey(apiId, subscriptionId): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId);
   }
 
-  updateApiKey(apiId, apiKey) {
+  updateApiKey(apiId, apiKey): ng.IPromise<any> {
     return this.$http.put(this.apisURL + apiId + '/keys/' + apiKey.key, apiKey);
   }
 
-  listApiMetadata(apiId) {
+  listApiMetadata(apiId): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/metadata');
   }
 
-  getApiMetadata(apiId, metadataId) {
+  getApiMetadata(apiId, metadataId): ng.IPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/metadata/' + metadataId);
   }
 
-  createMetadata(apiId, metadata) {
+  createMetadata(apiId, metadata): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/metadata', metadata);
   }
 
-  updateMetadata(apiId, metadata) {
+  updateMetadata(apiId, metadata): ng.IPromise<any> {
     return this.$http.put(this.apisURL + apiId + '/metadata/' + metadata.key, metadata);
   }
 
-  deleteMetadata(apiId, metadataId) {
+  deleteMetadata(apiId, metadataId): ng.IPromise<any> {
     return this.$http.delete(this.apisURL + apiId + '/metadata/' + metadataId);
   }
 
-  getPermissions(api) {
+  getPermissions(api): ng.IPromise<any> {
     return this.$http.get(this.apisURL + api + '/members/permissions');
   }
 
   /*
    * Health-check
    */
-  apiHealth(api: string, type?: string, field?: string) {
+  apiHealth(api: string, type?: string, field?: string): ng.IPromise<any> {
     let req = this.apisURL + api + '/health';
     if (type !== undefined) {
       req += '?type=' + type;
@@ -377,7 +367,7 @@ class ApiService {
     return this.$http.get(req, {timeout: 30000});
   }
 
-  apiHealthLogs(api: string, query: LogsQuery) {
+  apiHealthLogs(api: string, query: LogsQuery): ng.IPromise<any> {
     let url = this.apisURL + api + '/health/logs?';
 
     let keys = Object.keys(query);
@@ -391,11 +381,11 @@ class ApiService {
     return this.$http.get(url, {timeout: 30000});
   }
 
-  getHealthLog(api: string, log: string) {
+  getHealthLog(api: string, log: string): ng.IPromise<any> {
     return this.$http.get(this.apisURL + api + '/health/logs/' + log);
   }
 
-  apiHealthAverage(api, request) {
+  apiHealthAverage(api, request): ng.IPromise<any> {
     var url = this.apisURL + api + '/health/average?';
 
     var keys = Object.keys(request);
@@ -413,51 +403,51 @@ class ApiService {
    * API ratings
    */
 
-  isRatingEnabled() {
+  isRatingEnabled(): boolean {
     return this.Constants.portal.rating.enabled;
   }
 
-  getApiRatings(api, pageNumber) {
+  getApiRatings(api, pageNumber): ng.IPromise<any> {
     return this.$http.get(this.apisURL + api + '/ratings?pageSize=10&pageNumber=' + pageNumber);
   }
 
-  getApiRatingForConnectedUser(api) {
+  getApiRatingForConnectedUser(api): ng.IPromise<any> {
     return this.$http.get(this.apisURL + api + '/ratings/current');
   }
 
-  getApiRatingSummaryByApi(api) {
+  getApiRatingSummaryByApi(api): ng.IPromise<any> {
     return this.$http.get(this.apisURL + api + '/ratings/summary');
   }
 
-  createRating(api, rating) {
+  createRating(api, rating): ng.IPromise<any> {
     return this.$http.post(this.apisURL + api + '/ratings', rating);
   }
 
-  createRatingAnswer(api, ratingId, ratingAnswer) {
+  createRatingAnswer(api, ratingId, ratingAnswer): ng.IPromise<any> {
     return this.$http.post(this.apisURL + api + '/ratings/' + ratingId + '/answers', ratingAnswer);
   }
 
-  updateRating(api, rating) {
+  updateRating(api, rating): ng.IPromise<any> {
     return this.$http.put(this.apisURL + api + '/ratings/' + rating.id,
       {'rate': rating.rate, 'title': rating.title, 'comment': rating.comment});
   }
 
-  deleteRating(api, ratingId) {
+  deleteRating(api, ratingId): ng.IPromise<any> {
     return this.$http.delete(this.apisURL + api + '/ratings/' + ratingId);
   }
 
-  deleteRatingAnswer(api, ratingId, answerId) {
+  deleteRatingAnswer(api, ratingId, answerId): ng.IPromise<any> {
     return this.$http.delete(this.apisURL + api + '/ratings/' + ratingId + '/answers/' + answerId);
   }
 
   /*
    * Quality Metrics
    */
-  getQualityMetrics(api) {
+  getQualityMetrics(api): ng.IPromise<any> {
     return this.$http.get(this.apisURL + api + '/quality');
   }
 
-  getQualityMetricCssClass(score) {
+  getQualityMetricCssClass(score): string {
     if (score !== undefined) {
       if ( score < 50 ) {
         return 'gravitee-qm-score-bad';
@@ -470,7 +460,7 @@ class ApiService {
     return;
   }
 
-  getPortalHeaders(api) {
+  getPortalHeaders(api): ng.IPromise<any> {
     return this.$http.get(this.apisURL + api + '/headers');
   }
 }
