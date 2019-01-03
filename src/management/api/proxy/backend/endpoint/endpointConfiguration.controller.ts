@@ -57,7 +57,8 @@ class ApiEndpointController {
           maxConcurrentConnections : 100,
           useCompression : true,
           followRedirects : false
-        }
+        },
+        ssl: {trustAll: true}
       };
 
       this.creation = true;
