@@ -254,6 +254,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             dictionary.setId(id);
             dictionary.setCreatedAt(optDictionary.get().getCreatedAt());
             dictionary.setUpdatedAt(new Date());
+            dictionary.setState(optDictionary.get().getState());
 
             Dictionary updatedDictionary =  dictionaryRepository.update(dictionary);
 
