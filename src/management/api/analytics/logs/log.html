@@ -206,7 +206,8 @@
     </div>
     <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientRequest">
       <p>No log for this request.</p>
-      <p>Please check or configure logging mode (client).</p>
+      <p permission permission-only="'api-log-u'">Please check or <a ui-sref="management.apis.detail.analytics.loggingconfigure">configure logging mode</a> (client).</p>
+      <p permission permission-except="'api-log-u'">Please check or configure logging mode (client).</p>
     </div>
 
     <div flex="5" layout="column" layout-align="center center">
@@ -254,7 +255,8 @@
     </div>
     <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyRequest">
       <p>No log for this request.</p>
-      <p>Please check or configure logging mode (proxy).</p>
+      <p permission permission-only="'api-log-u'">Please check or <a ui-sref="management.apis.detail.analytics.loggingconfigure">configure logging mode</a> (proxy).</p>
+      <p permission permission-except="'api-log-u'">Please check or configure logging mode (proxy).</p>
     </div>
   </div>
 
@@ -298,7 +300,8 @@
     </div>
     <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientResponse">
       <p>No log for this response.</p>
-      <p>Please check or configure logging mode (client).</p>
+      <p permission permission-only="'api-log-u'">Please check or <a ui-sref="management.apis.detail.analytics.loggingconfigure">configure logging mode</a> (client).</p>
+      <p permission permission-except="'api-log-u'">Please check or configure logging mode (client).</p>
     </div>
 
     <div flex="5" layout="column" layout-align="center center">
@@ -342,7 +345,8 @@
     </div>
     <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyResponse">
       <p>No log for this response.</p>
-      <p>Please check or configure logging mode (proxy).</p>
+      <p permission permission-only="'api-log-u'">Please check or <a ui-sref="management.apis.detail.analytics.loggingconfigure">configure logging mode</a> (proxy).</p>
+      <p permission permission-except="'api-log-u'">Please check or configure logging mode (proxy).</p>
     </div>
   </div>
 </div>
