@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcColumn;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.repository.management.model.PageType;
@@ -30,8 +31,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
-import java.util.*;
 import java.util.Date;
+import java.util.*;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
@@ -316,49 +317,6 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     }
 
     @Override
-    public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean homePage) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.findApiPageByApiIdAndHomepage({}, {})", apiId, homePage);
-        try {
-            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from pages p left join page_configuration pc on p.id = pc.page_id where p.api = ? and p.homepage = ? order by " + ESCAPED_ORDER_COLUMN_NAME
-                    , rowMapper
-                    , apiId, homePage
-            );
-
-            List<Page> items = rowMapper.getRows();
-            for (Page page : items) {
-                addExcludedGroups(page);
-            }
-            return items;
-        } catch (final Exception ex) {
-            LOGGER.error("Failed to find page by api and homepage:", ex);
-            throw new TechnicalException("Failed to find page by api and homepage", ex);
-        }
-    }
-
-    @Override
-    public Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.findApiPageByApiId({})", apiId);
-        try {
-            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from pages p left join page_configuration pc on p.id = pc.page_id where p.api = ? order by " + ESCAPED_ORDER_COLUMN_NAME
-                    , rowMapper
-                    , apiId
-            );
-            List<Page> items = rowMapper.getRows();
-            for (Page page : items) {
-                addExcludedGroups(page);
-            }
-            return items;
-        } catch (final Exception ex) {
-            final String message = "Failed to find page by api";
-            LOGGER.error(message, ex);
-            throw new TechnicalException(message, ex);
-        }
-
-    }
-
-    @Override
     public Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.findMaxApiPageOrderByApiId({})", apiId);
         try {
@@ -374,34 +332,49 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     }
 
     @Override
-    public Collection<Page> findPortalPageByHomepage(boolean homePage) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.findPortalPageByHomepage({})", homePage);
+    public List<Page> search(PageCriteria criteria) throws TechnicalException {
+        LOGGER.debug("JdbcPageRepository.search()");
         try {
             JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from pages p left join page_configuration pc on p.id = pc.page_id where p.api is null and p.homepage = ? order by " + ESCAPED_ORDER_COLUMN_NAME
-                    , rowMapper
-                    , homePage
-            );
-            List<Page> items = rowMapper.getRows();
-            for (Page page : items) {
-                addExcludedGroups(page);
-            }
-            return items;
-        } catch (final Exception ex) {
-            final String message = "Failed to find page by homepage";
-            LOGGER.error(message, ex);
-            throw new TechnicalException(message, ex);
-        }
-    }
 
-    @Override
-    public Collection<Page> findPortalPages() throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.findPortalPages()");
-        try {
-            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from pages p left join page_configuration pc on p.id = pc.page_id where p.api is null order by " + ESCAPED_ORDER_COLUMN_NAME
-                    , rowMapper
-            );
+            String select = "select * from pages p left join page_configuration pc on p.id = pc.page_id where";
+            StringJoiner where = new StringJoiner(" and ", " ", " ");
+            List<Object> params = new ArrayList<>();
+
+            if (criteria != null) {
+                if (criteria.getHomepage() != null) {
+                    where.add("p.homepage = ?");
+                    params.add(criteria.getHomepage());
+                }
+                if (criteria.getApi() == null) {
+                    where.add("p.api is null");
+                } else {
+                    where.add("p.api = ?");
+                    params.add(criteria.getApi());
+                }
+                if (criteria.getPublished() != null) {
+                    where.add("p.published = ?");
+                    params.add(criteria.getPublished());
+                }
+                if (criteria.getName() != null) {
+                    where.add("p.name = ?");
+                    params.add(criteria.getName());
+                }
+                if (criteria.getParent() != null) {
+                    where.add("p.parent_id = ?");
+                    params.add(criteria.getParent());
+                }
+                if (criteria.getRootParent() != null && criteria.getRootParent().equals(Boolean.TRUE)) {
+                    where.add("p.parent_id is null");
+                }
+                if (criteria.getType() != null) {
+                    where.add("p.type = ?");
+                    params.add(criteria.getType());
+                }
+            }
+
+            jdbcTemplate.query(select + where.toString() + "order by " + ESCAPED_ORDER_COLUMN_NAME, rowMapper, params.toArray());
+
             List<Page> items = rowMapper.getRows();
             for (Page page : items) {
                 addExcludedGroups(page);
@@ -423,19 +396,6 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             );
         } catch (final Exception ex) {
             final String message = "Failed to find max portal page order";
-            LOGGER.error(message, ex);
-            throw new TechnicalException(message, ex);
-        }
-    }
-
-    @Override
-    public void removeAllFolderParentWith(String pageId, String apiId) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.removeAllFolderParentWith()");
-
-        try {
-            jdbcTemplate.update("update pages set parent_id = ''  where parent_id = ? and api = ?", pageId, apiId);
-        } catch (final Exception ex) {
-            final String message = "Failed to remove ParentId of the folder id " + pageId;
             LOGGER.error(message, ex);
             throw new TechnicalException(message, ex);
         }
