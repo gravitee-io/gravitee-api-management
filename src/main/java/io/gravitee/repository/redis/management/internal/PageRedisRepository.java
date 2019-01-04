@@ -36,5 +36,4 @@ public interface PageRedisRepository {
 
     Set<RedisPage> findPortalPages();
 
-    void removeAllFolderParentWith(String pageFolderId, String api);
 }

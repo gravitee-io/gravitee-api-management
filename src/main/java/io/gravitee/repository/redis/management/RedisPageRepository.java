@@ -17,6 +17,7 @@ package io.gravitee.repository.redis.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.repository.management.model.PageType;
@@ -27,8 +28,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -42,16 +45,43 @@ public class RedisPageRepository implements PageRepository {
     private PageRedisRepository pageRedisRepository;
 
     @Override
-    public Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException {
-        return pageRedisRepository.findByApi(apiId)
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+    public List<Page> search(PageCriteria criteria) throws TechnicalException {
+        Collection<RedisPage> pages;
+        if (criteria != null && criteria.getApi() != null && !criteria.getApi().isEmpty()) {
+            pages = pageRedisRepository.findByApi(criteria.getApi());
+        } else {
+            pages = pageRedisRepository.findPortalPages();
+        }
+
+        Stream<RedisPage> stream = pages.stream();
+        if (criteria != null) {
+            if (criteria.getHomepage() != null) {
+                stream = stream.filter(p -> criteria.getHomepage().equals(p.isHomepage()));
+            }
+            if (criteria.getPublished() != null) {
+                stream = stream.filter(p -> criteria.getPublished().equals(p.isPublished()));
+            }
+            if (criteria.getName() != null) {
+                stream = stream.filter(p -> criteria.getName().equals(p.getName()));
+            }
+            if (criteria.getParent() != null) {
+                stream = stream.filter(p -> criteria.getParent().equals(p.getParentId()));
+            }
+            if (criteria.getRootParent() != null && criteria.getRootParent().equals(Boolean.TRUE)) {
+                stream = stream.filter(p -> p.getParentId() == null || p.getParentId().isEmpty());
+            }
+            if (criteria.getType() != null) {
+                stream = stream.filter(p -> criteria.getType().equals(p.getType()));
+            }
+        }
+
+
+        return stream.map(this::convert).collect(Collectors.toList());
     }
 
     @Override
     public Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException {
-        return findApiPageByApiId(apiId).stream().mapToInt(Page::getOrder).max().orElse(0);
+        return pageRedisRepository.findByApi(apiId).stream().mapToInt(RedisPage::getOrder).max().orElse(0);
     }
 
     @Override
@@ -87,31 +117,8 @@ public class RedisPageRepository implements PageRepository {
     }
 
     @Override
-    public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException {
-        Collection<Page> pages = findApiPageByApiId(apiId);
-        return pages.stream().filter(page -> page.isHomepage() == isHomepage).collect(Collectors.toList());
-    }
-
-    @Override
-    public Collection<Page> findPortalPageByHomepage(boolean isHomepage) throws TechnicalException {
-        return pageRedisRepository.findPortalPages()
-                .stream()
-                .filter(p-> p.isHomepage() == isHomepage)
-                .map(this::convert)
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Collection<Page> findPortalPages() throws TechnicalException {
-        return pageRedisRepository.findPortalPages()
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
-    }
-
-    @Override
     public Integer findMaxPortalPageOrder() throws TechnicalException {
-        return findPortalPages().stream().mapToInt(Page::getOrder).max().orElse(0);
+        return pageRedisRepository.findPortalPages().stream().mapToInt(RedisPage::getOrder).max().orElse(0);
     }
 
     private Page convert(RedisPage redisPage) {
@@ -169,10 +176,5 @@ public class RedisPageRepository implements PageRepository {
 
         redisPage.setConfiguration(page.getConfiguration());
         return redisPage;
-    }
-
-    @Override
-    public void removeAllFolderParentWith(String pageId, String apiId) throws TechnicalException {
-        pageRedisRepository.removeAllFolderParentWith(pageId, apiId);
     }
 }
