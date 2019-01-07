@@ -32,6 +32,7 @@ public class RedisApiKey {
     private long updatedAt;
     private boolean revoked;
     private long revokeAt;
+    private boolean paused;
 
     public String getKey() {
         return key;
@@ -103,6 +104,14 @@ public class RedisApiKey {
 
     public void setRevokeAt(long revokeAt) {
         this.revokeAt = revokeAt;
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public void setPaused(boolean paused) {
+        this.paused = paused;
     }
 
     @Override

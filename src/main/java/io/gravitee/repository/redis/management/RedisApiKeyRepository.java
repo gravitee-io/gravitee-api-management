@@ -117,7 +117,7 @@ public class RedisApiKeyRepository implements ApiKeyRepository {
             apiKey.setRevokedAt(new Date(redisApiKey.getRevokeAt()));
         }
         apiKey.setRevoked(redisApiKey.isRevoked());
-
+        apiKey.setPaused(redisApiKey.isPaused());
         return apiKey;
     }
 
@@ -142,7 +142,7 @@ public class RedisApiKeyRepository implements ApiKeyRepository {
             redisApiKey.setRevokeAt(apiKey.getRevokedAt().getTime());
         }
         redisApiKey.setRevoked(apiKey.isRevoked());
-
+        redisApiKey.setPaused(apiKey.isPaused());
         return redisApiKey;
     }
 }

@@ -127,6 +127,9 @@ public class RedisSubscriptionRepository implements SubscriptionRepository {
         if (redisSubscription.getClosedAt() != 0) {
             subscription.setClosedAt(new Date(redisSubscription.getClosedAt()));
         }
+        if (redisSubscription.getPausedAt() != 0) {
+            subscription.setPausedAt(new Date(redisSubscription.getPausedAt()));
+        }
 
         return subscription;
     }
@@ -158,6 +161,9 @@ public class RedisSubscriptionRepository implements SubscriptionRepository {
         }
         if (subscription.getUpdatedAt() != null) {
             redisSubscription.setUpdatedAt(subscription.getUpdatedAt().getTime());
+        }
+        if (subscription.getPausedAt() != null) {
+            redisSubscription.setPausedAt(subscription.getPausedAt().getTime());
         }
 
         return redisSubscription;

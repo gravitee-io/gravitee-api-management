@@ -89,6 +89,8 @@ public class RedisSubscription {
 
     private long closedAt;
 
+    private long pausedAt;
+
     public String getId() {
         return id;
     }
@@ -215,6 +217,14 @@ public class RedisSubscription {
 
     public void setClosedAt(long closedAt) {
         this.closedAt = closedAt;
+    }
+
+    public long getPausedAt() {
+        return pausedAt;
+    }
+
+    public void setPausedAt(long pausedAt) {
+        this.pausedAt = pausedAt;
     }
 
     @Override

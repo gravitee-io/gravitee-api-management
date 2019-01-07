@@ -32,8 +32,8 @@
 	<name>Gravitee.io APIM - Repository - Redis</name>
 
 	<properties>
-		<gravitee-repository.version>1.21.0</gravitee-repository.version>
-		<gravitee-repository-test.version>1.21.0</gravitee-repository-test.version>
+		<gravitee-repository.version>1.22.0-SNAPSHOT</gravitee-repository.version>
+		<gravitee-repository-test.version>1.22.0-SNAPSHOT</gravitee-repository-test.version>
 		<jedis.version>2.9.0</jedis.version>
 		<spring-data-redis.version>1.8.14.RELEASE</spring-data-redis.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
