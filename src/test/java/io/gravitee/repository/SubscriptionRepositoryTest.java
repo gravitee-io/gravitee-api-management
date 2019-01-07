@@ -67,6 +67,7 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Subscription created at", 1459022010883L, subscription.getCreatedAt().getTime());
         assertEquals("Subscription updated at", 1469022010883L, subscription.getUpdatedAt().getTime());
         assertEquals("Subscription processed at", 1479022010883L, subscription.getProcessedAt().getTime());
+        assertEquals("Subscription paused at", 1479022010883L, subscription.getPausedAt().getTime());
         assertEquals("Subscription client id", "my-client-id", subscription.getClientId());
     }
 

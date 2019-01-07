@@ -58,6 +58,7 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
         sub1.setCreatedAt(new Date(1459022010883L));
         sub1.setUpdatedAt(new Date(1469022010883L));
         sub1.setProcessedAt(new Date(1479022010883L));
+        sub1.setPausedAt(new Date(1479022010883L));
         sub1.setClientId("my-client-id");
 
         final Subscription sub3 = new Subscription();
