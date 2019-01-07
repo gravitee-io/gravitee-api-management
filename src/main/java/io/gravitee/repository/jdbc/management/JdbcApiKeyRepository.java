@@ -47,6 +47,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("revoked", Types.BOOLEAN, boolean.class)
+            .addColumn("paused", Types.BOOLEAN, boolean.class)
             .addColumn("revoked_at", Types.TIMESTAMP, Date.class)
             .build();    
     
