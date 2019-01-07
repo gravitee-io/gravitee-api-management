@@ -77,7 +77,43 @@
     </div>
   </section>
 
-  <br />
+  <br/>
+
+        <section>
+          <md-subheader>
+            HTTP Request
+            <div class="hints">Default configuration of HTTP requests emitted by the API gateway to upstream</div>
+          </md-subheader>
+          <div layout="column" layout-wrap layout-gt-sm="row">
+            <div layout="column" layout-sm="column">
+              <h5 style="color: grey;">
+                <span>Headers</span>
+                <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5;" aria-label="Add HTTP header" ng-click="endpointCtrl.addHTTPHeader()">Add headers</ng-md-icon>
+              </h5>
+              <div layout="row" layout-sm="column" layout-align="center center" ng-repeat="header in endpointCtrl.endpoint.headers">
+                <ng-md-icon icon="remove_circle_outline" style="fill: #b1bdc5;" aria-label="Delete header" ng-click="endpointCtrl.removeHTTPHeader($index)"></ng-md-icon>
+
+                <div flex="5" hide-xs hide-sm>
+                  <!-- Spacer //-->
+                </div>
+
+                <md-input-container flex-gt-sm>
+                  <input aria-label="Header name" ng-model="header.name" type="text" placeholder="Header name" ng-required="true">
+                </md-input-container>
+
+                <div flex="5" hide-xs hide-sm>
+                  <!-- Spacer //-->
+                </div>
+
+                <md-input-container flex-gt-sm>
+                  <input aria-label="Header value" ng-model="header.value" type="text" placeholder="Header value" ng-required="true">
+                </md-input-container>
+              </div>
+            </div>
+          </div>
+        </section>
+
+  <br/>
 
   <section>
     <md-subheader>HTTP Configuration</md-subheader>
@@ -154,17 +190,6 @@
               it follows the redirection provided by the <code>Location</code> response header
             </span>
           </md-checkbox>
-        </div>
-
-        <div layout-xs="column" flex-xs="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Override Host header</label>
-            <input ng-model="endpointCtrl.endpoint.hostHeader" type="text" name="hostHeader">
-            <div class="hint" >
-              Allows to override Host header sent to the target endpoint. If no value is specified,
-              the Host header value is defined using the host and port from the endpoint's target.
-            </div>
-          </md-input-container>
         </div>
       </div>
     </div>

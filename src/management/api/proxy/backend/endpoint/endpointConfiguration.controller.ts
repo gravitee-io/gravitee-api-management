@@ -67,6 +67,11 @@ class ApiEndpointController {
     this.endpoint.ssl.trustStore = this.endpoint.ssl.trustStore || {type: ''};
     this.endpoint.ssl.keyStore = this.endpoint.ssl.keyStore || {type: ''};
 
+    this.endpoint.headers = (this.endpoint.headers) ?
+      Object
+        .keys(this.endpoint.headers)
+        .map(name => ({ name, value: this.endpoint.headers[name] })) : [];
+
     // Keep the initial state in case of form reset
     this.initialEndpoint = _.cloneDeep(this.endpoint);
 
@@ -127,6 +132,12 @@ class ApiEndpointController {
       delete this.endpoint.ssl.keyStore;
     }
 
+    if (this.endpoint.headers.length > 0) {
+      this.endpoint.headers = _.mapValues(_.keyBy(this.endpoint.headers, 'name'), 'value');
+    } else {
+      delete this.endpoint.headers;
+    }
+
     let group: any = _.find(this.api.proxy.groups, { 'name': this.$stateParams.groupName});
 
     if (!_.includes(group.endpoints, this.endpoint)) {
@@ -157,6 +168,17 @@ class ApiEndpointController {
     let group: any = _.find(this.api.proxy.groups, { 'name': this.$stateParams.groupName});
     group.endpoints = _.cloneDeep(this.initialEndpoints);
     this.$state.go('management.apis.detail.proxy.endpoints');
+  }
+
+  addHTTPHeader() {
+    this.endpoint.headers.push({name: '', value: ''});
+  }
+
+  removeHTTPHeader(idx) {
+    if (this.endpoint.headers !== undefined) {
+      this.endpoint.headers.splice(idx, 1);
+      this.$scope.formEndpoint.$setDirty();
+    }
   }
 }
 
