@@ -188,8 +188,8 @@ security:
 #      context-source-password: "secret"
 #      context-source-url: "ldap://localhost:10389/c=io,o=gravitee"
 #      context-source-base: "c=io,o=gravitee" # the context source base
-      # The 'user-dn-patterns' value is a specific pattern used to build the user's DN, for example "uid={0},ou=people". The key "{0}" must be present and will be substituted with the username.
-#      user-dn-patterns: "uid={0},ou=people"
+      # The 'user-dn-pattern' value is a specific pattern used to build the user's DN, for example "uid={0},ou=people". The key "{0}" must be present and will be substituted with the username.
+#      user-dn-pattern: "uid={0},ou=people"
       # Search base for user searches. Defaults to "". Only used with user-search-filter.
       # It should be relative to the Base DN. If the whole DN is o=user accounts,c=io,o=gravitee then the user-search-base should be like this:
 #      user-search-base: "o=user accounts"
