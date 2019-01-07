@@ -17,6 +17,7 @@ package io.gravitee.repository.management.model;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum PageType {
@@ -24,6 +25,7 @@ public enum PageType {
 	MARKDOWN,
 	RAML,
 	SWAGGER,
-	FOLDER
+	FOLDER,
+	ROOT
 	
 }
