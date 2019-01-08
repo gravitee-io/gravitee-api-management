@@ -69,9 +69,9 @@ public class AlertTriggerServiceImpl extends AbstractService implements AlertTri
     private String host;
     @Value("${notifiers.email.port}")
     private String port;
-    @Value("${notifiers.email.username}")
+    @Value("${notifiers.email.username:#{null}}")
     private String username;
-    @Value("${notifiers.email.password}")
+    @Value("${notifiers.email.password:#{null}}")
     private String password;
     @Value("${notifiers.email.from}")
     private String defaultFrom;
