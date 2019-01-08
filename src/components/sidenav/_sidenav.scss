@@ -116,12 +116,15 @@ md-sidenav:not(._md-locked-open) {
 
 .sidenav-list {
   overflow-y: auto;
+  overflow-x: hidden;
+  
   height: calc(100vh - #{$sidenavHeaderHeight});
   padding: 0;
 
   & md-list-item {
     min-height: 40px;
     padding: 0;
+    width: 200px;
   }
 
   ng-md-icon {
@@ -154,6 +157,7 @@ md-sidenav:not(._md-locked-open) {
     padding: 15px $sidenavItemLeftWidth/2 8px;
     white-space: nowrap;
     overflow: hidden;
+    overflow-x: hidden;
     text-overflow: ellipsis;
   }
 
