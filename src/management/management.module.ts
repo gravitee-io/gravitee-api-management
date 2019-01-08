@@ -442,9 +442,13 @@ import NewApiPortalHeaderDialogController
   from "./configuration/api-portal-header/new.api-portal-header.dialog.controller";
 
 // Alerts
-import AlertService from '../services/alert.service';
-import AlertComponent from './components/notifications/alert/alert.component';
-import DialogAddAlertController from './components/notifications/alert/addAlert.dialog.controller';
+import AlertService from "../services/alert.service";
+import AlertComponent from "./components/notifications/alert/alert.component";
+import DialogAddAlertController from "./components/notifications/alert/addAlert.dialog.controller";
+
+import CircularPercentageComponent from "./components/circularPercentage/circularPercentage.component";
+import CircularPercentageController from "./components/circularPercentage/circularPercentage.controller";
+
 
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -765,6 +769,10 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('AlertService', AlertService)
   .component('alertComponent', AlertComponent)
   .controller('DialogAddAlertController', DialogAddAlertController)
+
+  // CircularPercentageComponent
+  .component("circularPercentage", CircularPercentageComponent)
+  .controller("CircularPercentageController", CircularPercentageController)
 
   .filter('humanDateFilter', function () {
     return function (input) {

@@ -121,11 +121,8 @@
                id="qualityMetrics"
                layout="row" layout-align="start center">
             <div layout="column" layout-padding>
-              <div class="gravitee-qm-score-large"
-                   ng-class="portalCtrl.getQualityMetricCssClass()"
-                   ng-mouseover="portalCtrl.toggleMetricsVisibility()"
-                   ng-mouseleave="portalCtrl.toggleMetricsVisibility()">
-                {{ portalCtrl.qualityMetrics.score * 100 | number:0 }}%
+              <div style="width: 100px; padding: 0">
+                <circular-percentage score="portalCtrl.qualityMetrics.score"></circular-percentage>
               </div>
             </div>
             <div layout="column" layout-align="start start" class="gravitee-qm-metrics-list" style="padding-left: 20px">

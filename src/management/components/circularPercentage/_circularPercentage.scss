@@ -1,0 +1,47 @@
+.circle-bg {
+    fill: none;
+    stroke: #e2e5e7;
+    //stroke: #e06666ff;
+    stroke-width: 2.8;
+}
+  
+.circle {
+    fill: none;
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    animation: progress 1s ease-out forwards;
+}
+
+.circular-chart.orange .circle {
+    stroke: #ff9f00;
+}
+
+.circular-chart.gravitee-qm-score-bad .circle {
+    stroke: #d73a49;
+}
+
+.circular-chart.gravitee-qm-score-medium .circle {
+    stroke: rgb(232, 172, 60);
+}
+.circular-chart.gravitee-qm-score-good .circle {
+    stroke: #429f46;
+}
+
+.percentage {
+    fill: #707070;
+    font-family: sans-serif;
+    font-size: 0.90em;
+    text-anchor: middle;
+}
+
+.circular-chart.gravitee-qm-score-bad .percentage {
+    fill: #d73a49;
+}
+
+.circular-chart.gravitee-qm-score-medium .percentage {
+    fill: rgb(232, 172, 60);
+}
+
+.circular-chart.gravitee-qm-score-good .percentage {
+    fill: #429f46;
+}
