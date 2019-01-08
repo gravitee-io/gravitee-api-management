@@ -38,20 +38,20 @@
       <md-content style="background-color: inherit" layout="column" layout-gt-sm="row" layout-align="center center" layout-wrap>
         <md-card class="api-box gravitee-card gravitee-api-card" ng-repeat="api in homeCtrl.apis track by api.id"
                  ng-click="homeCtrl.goToApi(api)" layout-wrap>
-          <md-card-title>
+          <md-card-title style="padding-top: 15px; padding-bottom: 0px;">
             <md-card-title-text>
               <span class="md-headline">{{api.name}}</span>
               <span class="md-subhead">{{api.version}}</span>
             </md-card-title-text>
             <md-card-title-media>
-              <div class="md-media-sm card-media">
+              <div class="md-media-sm card-media gravitee-media">
                 <img ng-src="{{::api.picture_url}}" alt="api-logo" />
               </div>
             </md-card-title-media>
           </md-card-title>
           <md-card-content>
             <div class="api-infos">
-              <small>{{api.description}}</small>
+              <p>{{api.description}}</p>
             </div>
             <div class="api-views" layout="row">
               <div flex="65">

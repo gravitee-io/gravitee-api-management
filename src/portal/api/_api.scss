@@ -151,7 +151,32 @@ md-card-content {
 }
 
 .api-infos {
-  padding-bottom: 10px;
+  > p {
+    height: 45px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  :after {
+    content: "";
+    text-align: right;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 20px;
+    background: linear-gradient(to bottom,rgba(255,255,255,0),#fff 100%,#fff);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.gravitee-media img {
+  width: auto;
+  max-width: 100px;
+  max-height: 75px;
 }
 
 .api-views {
