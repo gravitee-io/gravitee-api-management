@@ -195,13 +195,17 @@
       <table md-table ng-init="order = 'name'">
         <thead md-head md-order="order">
         <tr md-row>
+          <th md-column>
+            <md-checkbox aria-label="Select all" ng-model="$ctrl.selectAll" ng-change="$ctrl.toggleSelectAll($ctrl.selectAll)"></md-checkbox>
+          </th>
           <th md-column md-order-by="name">Key</th>
           <th md-column>Value</th>
-          <th md-column style="width: 48px;" ng-if="$ctrl.dictionary.type === 'manual'"></th>
+          <th md-column md-column width="80px" nowrap ng-if="$ctrl.dictionary.type === 'manual'"></th>
         </tr>
         </thead>
         <tbody md-body>
         <tr md-row ng-repeat="(key, value) in $ctrl.dictionary.properties">
+          <td md-cell><md-checkbox aria-label="Select {{key}}" ng-model="$ctrl.selectedProperties[key]" ng-change="$ctrl.checkSelectAll()"></md-checkbox></td>
           <td md-cell>{{key}}</td>
           <td md-cell ng-click="$ctrl.editProperty($event, key, value)"
               ng-class="{'gravitee-placeholder': value}">
@@ -228,6 +232,10 @@
                  class="md-raised md-primary" type="submit"
                  permission permission-only="['management-dictionary-u']">
         Save properties
+      </md-button>
+      <md-button class="md-raised md-warn float-right" type="button" ng-click="$ctrl.deleteSelectedProperties()"
+                 permission permission-only="['management-dictionary-u']" ng-disabled="!$ctrl.hasSelectedProperties()">
+        Delete
       </md-button>
     </div>
   </form>

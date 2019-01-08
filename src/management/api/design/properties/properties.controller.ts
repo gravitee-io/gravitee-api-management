@@ -34,6 +34,7 @@ class ApiPropertiesController {
   private joltSpecificationOptions: any;
   private dynamicPropertyProviders: {id: string; name: string}[];
   private timeUnits: string[];
+  private selectedProperties: any = {};
 
   constructor (
     private ApiService: ApiService,
@@ -94,7 +95,7 @@ class ApiPropertiesController {
       template: require('../../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Are you sure you want to remove property [' + key + '] ?',
+        title: 'Are you sure you want to remove property [' + key + ']?',
         msg: '',
         confirmButton: 'Remove'
       }
@@ -131,7 +132,7 @@ class ApiPropertiesController {
   update() {
     var _that = this;
     this.api.services['dynamic-property'] = this.dynamicPropertyService;
-    this.ApiService.update(this.api).then((updatedApi) => {
+    return this.ApiService.update(this.api).then((updatedApi) => {
       _that.api = updatedApi.data;
       _that.api.etag = updatedApi.headers('etag');
       _that.$rootScope.$broadcast('apiChangeSuccess', {api: _that.api});
@@ -199,6 +200,48 @@ class ApiPropertiesController {
       parent: angular.element(document.body),
       clickOutsideToClose: true
     });
+  }
+
+  deleteSelectedProperties() {
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        title: 'Are you sure you want to remove selected properties?',
+        msg: '',
+        confirmButton: 'Remove'
+      }
+    }).then((response) => {
+      if (response) {
+        _.forEach(this.selectedProperties, (v, k) => {
+          if (v) {
+            _.remove(this.api.properties, (property: any) => {
+              return property.key === k;
+            });
+            delete this.selectedProperties[k];
+          }
+        });
+        this.update();
+      }
+    });
+  }
+
+  toggleSelectAll(selectAll) {
+    if (selectAll) {
+      _.forEach(this.api.properties, (p) => this.selectedProperties[p.key] = true);
+    } else {
+      this.selectedProperties = {};
+    }
+  }
+
+  checkSelectAll() {
+    this.selectAll = _.filter(this.selectedProperties, (p) => p).length === Object.keys(this.api.properties).length;
+  }
+
+  hasSelectedProperties() {
+    return _.filter(this.selectedProperties, (p) => p).length > 0;
   }
 }
 

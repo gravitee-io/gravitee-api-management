@@ -38,6 +38,9 @@
       <table md-table ng-init="order = 'name'">
         <thead md-head md-order="order">
           <tr md-row>
+            <th md-column>
+              <md-checkbox aria-label="Select all" ng-model="apiPropertiesCtrl.selectAll" ng-change="apiPropertiesCtrl.toggleSelectAll(apiPropertiesCtrl.selectAll)"></md-checkbox>
+            </th>
             <th md-column md-order-by="name">Name</th>
             <th md-column>Value</th>
             <th md-column hide-gt-xs show-gt-sm>Dynamic</th>
@@ -46,6 +49,7 @@
         </thead>
         <tbody md-body>
           <tr md-row ng-repeat="property in apiPropertiesCtrl.api.properties">
+            <td md-cell><md-checkbox aria-label="Select {{property.key}}" ng-model="apiPropertiesCtrl.selectedProperties[property.key]" ng-change="apiPropertiesCtrl.checkSelectAll()"></md-checkbox></td>
             <td md-cell>{{property.key}}</td>
             <td permission permission-only="'api-definition-u'" md-cell ng-click="apiPropertiesCtrl.editValue($event, property)"
                 ng-class="{'gravitee-placeholder': property.value}">
@@ -64,6 +68,12 @@
         </tbody>
       </table>
     </md-table-container>
+    <div class="md-actions gravitee-api-save-button" layout="row">
+      <md-button class="md-raised md-warn float-right" type="button" ng-click="apiPropertiesCtrl.deleteSelectedProperties()"
+                 permission permission-only="['api-definition-u']" ng-disabled="!apiPropertiesCtrl.hasSelectedProperties()">
+        Delete
+      </md-button>
+    </div>
   </form>
 
   <gravitee-empty-state ng-if="!apiPropertiesCtrl.hasPropertiesDefined()"

@@ -37,6 +37,8 @@ class DictionaryController {
 
   private updateMode: boolean;
 
+  private selectedProperties: any = {};
+
   constructor(
     private $scope: IDictionaryScope,
     private $state: StateService,
@@ -182,11 +184,36 @@ class DictionaryController {
     delete this.dictionary.properties[key];
   }
 
+  deleteSelectedProperties() {
+    _.forEach(this.selectedProperties, (v, k) => {
+      if (v) {
+        this.deleteProperty(k);
+        delete this.selectedProperties[k];
+      }
+    });
+  }
+
   saveProperties() {
     this.DictionaryService.update(this.dictionary).then((response) => {
       this.NotificationService.show('Properties has been updated');
       this.dictionary = response.data;
     });
+  }
+
+  toggleSelectAll(selectAll) {
+    if (selectAll) {
+      _.forEach(this.dictionary.properties, (v, k) => this.selectedProperties[k] = true);
+    } else {
+      this.selectedProperties = {};
+    }
+  }
+
+  checkSelectAll() {
+    this.selectAll = _.filter(this.selectedProperties, (p) => p).length === Object.keys(this.dictionary.properties).length;
+  }
+
+  hasSelectedProperties() {
+    return _.filter(this.selectedProperties, (p) => p).length > 0;
   }
 }
 
