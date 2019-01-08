@@ -48,6 +48,7 @@
     "ngclipboard": "^2.0.0",
     "popper.js": "^1.14.3",
     "read-more": "^0.0.0",
+    "remark": "^10.0.1",
     "satellizer": "^0.15.5",
     "showdown": "^1.8.6",
     "showdown-highlightjs-extension": "^0.1.2",

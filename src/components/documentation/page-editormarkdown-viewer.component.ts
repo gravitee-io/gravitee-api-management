@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as Viewer from "tui-editor/dist/tui-editor-Viewer";
+import * as remark from "remark";
 
 class ComponentCtrl implements ng.IComponentController {
 
@@ -29,11 +30,51 @@ class ComponentCtrl implements ng.IComponentController {
   $onChanges() {
     const initialValue = this.page && this.page.content ? this.page.content : "";
 
+    let ast = remark.parse(initialValue);
+
+    let content = "";
+    let sectionOpen = false;
+    this.three_columns = true;
+
+
+    var sectionValue = "";
+    for (let c = 0; c < ast.children.length; c++) {
+      const child = ast.children[c];
+
+      if (child.type !== 'heading' || child.depth < 2 || child.depth > 2) {
+        continue;
+      }
+
+      if (sectionOpen) {
+        sectionValue += "</section>";
+      }
+
+      let id = child.children[0].value.replace(new RegExp(' ', 'g'), '').toLowerCase();
+      sectionValue += "<section id='" + id + "'>";
+      sectionOpen = true;
+
+      ast.children.splice(c, 0, {
+        type: 'html',
+        value: sectionValue
+      });
+      c++;
+      sectionValue = "";
+    }
+
+    if (sectionOpen) {
+      ast.children.splice(ast.children.length - 1, 0, {
+        type: 'html',
+        value: sectionValue
+      });
+    }
+
+    content = remark.stringify(ast);
+
     new Viewer(Object.assign({
       el: document.querySelector("#viewerSection"),
       viewer: true,
       height: "auto",
-      initialValue: initialValue,
+      initialValue: content,
       useDefaultHTMLSanitizer: false
     }, this.options));
   }
