@@ -39,6 +39,9 @@
 #      password: secret
 
 http:
+  api:
+    # Configure the listening path for the API. Default to /management
+    #entrypoint: /management
   cors:
     # Allows to configure the header Access-Control-Allow-Origin (default value: *)
     # '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
