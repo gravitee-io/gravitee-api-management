@@ -86,6 +86,17 @@ public class MongoAlertRepository implements AlertRepository {
             //Update
             alertMongo.setName(alert.getName());
             alertMongo.setDescription(alert.getDescription());
+            alertMongo.setReferenceType(alert.getReferenceType());
+            alertMongo.setReferenceId(alert.getReferenceId());
+            alertMongo.setType(alert.getType());
+            alertMongo.setMetricType(alert.getMetricType());
+            alertMongo.setMetric(alert.getMetric());
+            alertMongo.setThresholdType(alert.getThresholdType());
+            alertMongo.setThreshold(alert.getThreshold());
+            alertMongo.setPlan(alert.getPlan());
+            alertMongo.setEnabled(alert.isEnabled());
+            alertMongo.setCreatedAt(alert.getCreatedAt());
+            alertMongo.setUpdatedAt(alert.getUpdatedAt());
 
             AlertMongo alertMongoUpdated = internalAlertRepo.save(alertMongo);
             return mapper.map(alertMongoUpdated, Alert.class);
@@ -111,13 +122,7 @@ public class MongoAlertRepository implements AlertRepository {
     public Set<Alert> findAll() {
         final List<AlertMongo> alerts = internalAlertRepo.findAll();
         return alerts.stream()
-                .map(alertMongo -> {
-                    final Alert alert = new Alert();
-                    alert.setId(alertMongo.getId());
-                    alert.setName(alertMongo.getName());
-                    alert.setDescription(alertMongo.getDescription());
-                    return alert;
-                })
+                .map(this::map)
                 .collect(Collectors.toSet());
     }
 
