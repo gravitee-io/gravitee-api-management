@@ -16,7 +16,13 @@
 
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
-    <h1>Documentation</h1>
+    <div class="gv-forms-header">
+        <h1>Documentation</h1>
+        <a permission permission-only="['portal-documentation-c', 'api-documentation-c']"
+           ng-click="$ctrl.importPages()">
+           Import multiple files
+        </a>
+    </div>
     <div class="gv-form">
         <div layout="row" layout-align="space-between center" ng-if="!renameFolder">
             <h2>
@@ -129,7 +135,7 @@
 
             <md-fab-speed-dial md-direction="{{$ctrl.pages.length > 0 ? 'left' : 'down'}}"
                                md-open="false"
-                               ng-class="{'md-fab-bottom-right gravitee-add-button' : $ctrl.pages.length > 0}"
+                               ng-class="{'md-fab-bottom-right md-fab-scrollable' : $ctrl.pages.length > 0}"
                                class="md-scale">
                 <md-fab-trigger>
                     <md-button aria-label="menu" class="md-fab md-success">

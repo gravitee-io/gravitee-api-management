@@ -28,6 +28,15 @@ export class DocumentationQuery {
   root?: boolean;
 }
 
+export class ImportPageEntity {
+  type: string;
+  published: boolean;
+  lastContributor: string;
+  source: any;
+  configuration: any;
+  excluded_groups: string[];
+}
+
 class DocumentationService {
   private folderPromise;
 
@@ -38,11 +47,11 @@ class DocumentationService {
     'ngInject';
   }
 
-  url = (apiId: string, pageId?: string): string => {
+  url = (apiId: string, pageId?: string, importFiles?: boolean): string => {
     if (apiId) {
-      return `${this.Constants.baseURL}apis/${apiId}/pages/` + (pageId ? pageId : '');
+      return `${this.Constants.baseURL}apis/${apiId}/pages/` + (importFiles?'_import':'') + (pageId ? pageId : '');
     }
-    return `${this.Constants.baseURL}portal/pages/` + (pageId ? pageId : '');
+    return `${this.Constants.baseURL}portal/pages/` + (importFiles?'_import':'') + (pageId ? pageId : '');
 
   };
 
@@ -55,7 +64,6 @@ class DocumentationService {
     prop[propKey] = propValue;
     return this.$http.patch(this.url(apiId, pageId), prop);
   };
-
 
   search = (q: DocumentationQuery, apiId?: string): IHttpPromise<any> => {
     let url: string = this.url(apiId);
@@ -125,6 +133,17 @@ class DocumentationService {
       .catch( msg => deferred.reject(msg) );
 
     return deferred.promise;
+  }
+
+  import(newPage: any, apiId?: string): IHttpPromise<any> {
+    let entity = new ImportPageEntity();
+    entity.type = newPage.type;
+    entity.published = newPage.published;
+    entity.lastContributor = newPage.lastContributor;
+    entity.source = newPage.source;
+    entity.configuration = newPage.configuration;
+    entity.excluded_groups = newPage.excluded_groups;
+    return this.$http.post(this.url(apiId, null, true), entity, {timeout: 30000});
   }
 }
 

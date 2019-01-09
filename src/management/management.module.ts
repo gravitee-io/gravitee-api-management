@@ -254,6 +254,8 @@ import PageEditorMarkdownViewerComponent from '../components/documentation/page/
 import PageSidenavDirective from '../components/documentation/page/page-sidenav.directive';
 import NewPageComponent from "./components/documentation/new-page.component";
 import EditPageComponent from "./components/documentation/edit-page.component";
+import ImportPagesComponent from "./components/documentation/import-pages.component";
+
 // Healthcheck
 import ApiHealthCheckConfigureController
   from '../management/api/proxy/backend/healthcheck/healthcheck-configure.controller';
@@ -693,6 +695,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   .component('documentationManagement', DocumentationManagementComponent)
   .component('newPage', NewPageComponent)
+  .component('importPages', ImportPagesComponent)
   .component('editPage', EditPageComponent)
   .component('gvPage', PageComponent)
   .component('gvPageMarkdown', PageMarkdownComponent)

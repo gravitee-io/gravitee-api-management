@@ -21,8 +21,8 @@ class FetcherService {
     this.resourcesURL = `${Constants.baseURL}fetchers/`;
   }
 
-  list() {
-    let url = `${this.resourcesURL}?expand=schema`;
+  list(onlyImportFromDirectory?: boolean) {
+    let url = `${this.resourcesURL}?expand=schema` + (onlyImportFromDirectory ? '&import=true' : '');
     return this.$http.get(url);
   }
 }

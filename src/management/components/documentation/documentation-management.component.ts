@@ -41,11 +41,18 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     this.apiId = $state.params.apiId;
 
     this.$onInit = () => {
+      // remove the ROOT page
+      this.pages = this.filterROOTPages(this.pages);
+
       this.rootDir = $state.params.parent;
       this.supportedTypes = DocumentationService.supportedTypes();
       this.foldersById = _.keyBy(this.folders, 'id');
       this.breadcrumb = this.generateBreadcrumb();
       $scope.renameFolder = false;
+    };
+
+    this.filterROOTPages = (pagesToFilter: any[]) => {
+      return _.filter(pagesToFilter, (p) => p.type !== 'ROOT');
     };
 
     this.toggleRenameFolder = () => {
@@ -150,7 +157,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       } else {
         q.root = true;
       }
-      DocumentationService.search(q, this.apiId).then( (response) => this.pages = response.data);
+      DocumentationService.search(q, this.apiId).then((response) => this.pages = this.filterROOTPages(response.data));
     };
 
     this.togglePublish = (page: any) => {
@@ -218,6 +225,14 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
         } else {
           $state.go('management.settings.editdocumentation', {pageId: page.id});
         }
+      }
+    };
+
+    this.importPages = () => {
+      if (this.apiId) {
+        $state.go('management.apis.detail.portal.importdocumentation', {apiId: this.apiId});
+      } else {
+        $state.go('management.settings.importdocumentation');
       }
     };
   }

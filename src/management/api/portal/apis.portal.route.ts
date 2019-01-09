@@ -283,6 +283,9 @@ function apisPortalRouterConfig($stateProvider) {
       },
       data: {
         menu: null,
+        docs: {
+          page: 'management-api-documentation'
+        },
         perms: {
           only: ['api-documentation-c']
         }
@@ -297,6 +300,32 @@ function apisPortalRouterConfig($stateProvider) {
           type: 'string',
           value: '',
           squash: false
+        }
+      }
+    })
+    .state('management.apis.detail.portal.importdocumentation', {
+      url: '/documentation/import',
+      component: 'importPages',
+      resolve: {
+        resolvedFetchers: (FetcherService: FetcherService) => {
+          return FetcherService.list(true).then(response => {
+            return response.data;
+          })
+        },
+        resolvedRootPage: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = "ROOT";
+          return DocumentationService.search(q, $stateParams.apiId)
+            .then(response => response.data && response.data.length > 0 ? response.data[0] : null);
+        }
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-api-documentation'
+        },
+        perms: {
+          only: ['api-documentation-c']
         }
       }
     })
@@ -319,6 +348,9 @@ function apisPortalRouterConfig($stateProvider) {
       },
       data: {
         menu: null,
+        docs: {
+          page: 'management-api-documentation'
+        },
         perms: {
           only: ['api-documentation-u']
         }
