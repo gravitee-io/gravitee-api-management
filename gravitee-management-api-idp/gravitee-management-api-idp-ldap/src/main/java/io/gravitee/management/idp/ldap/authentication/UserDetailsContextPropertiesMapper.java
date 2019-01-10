@@ -46,17 +46,6 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 
 	private Environment environment;
 
-	private String identifierAttribute = "uid";
-
-	public void afterPropertiesSet() throws Exception {
-		String searchFilter = environment.getProperty("user-search-filter");
-
-		if (searchFilter != null) {
-			// Search filter can be uid={0} or mail={0}
-			identifierAttribute = searchFilter.split("=")[0];
-		}
-	}
-
 	@Override
 	public UserDetails mapUserFromContext(DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
 		List<GrantedAuthority> mappedAuthorities = new ArrayList<>();
@@ -73,7 +62,7 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 
 		io.gravitee.management.idp.api.authentication.UserDetails userDetails =
 				new io.gravitee.management.idp.api.authentication.UserDetails(
-						ctx.getStringAttribute(identifierAttribute), "", mappedAuthorities);
+						username, "", mappedAuthorities);
 
 		userDetails.setFirstname(ctx.getStringAttribute(LDAP_ATTRIBUTE_FIRSTNAME));
 		userDetails.setLastname(ctx.getStringAttribute(LDAP_ATTRIBUTE_LASTNAME));

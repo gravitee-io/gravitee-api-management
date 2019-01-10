@@ -67,9 +67,13 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
     @Autowired
     private Environment environment;
 
-    private String identifierAttribute = "uid";
+    private String identifierAttribute;
 
     private LdapName baseDn;
+
+    private final static String userSearchFilterVariable = "=\\{0\\}";
+
+    private String [] userAttributes;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -77,8 +81,26 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
         LOGGER.debug("Looking for a LDAP user's identifier using search filter [{}]", searchFilter);
 
         if (searchFilter != null) {
-            // Search filter can be uid={0} or mail={0}
-            identifierAttribute = searchFilter.split("=")[0];
+            // Search filter can be uid={0} or mail={0} or may be even more complex like
+            // (&(objectClass=Person)(uid={0})(&(ou=People)(ou=Payroll)))
+
+            identifierAttribute = searchFilter.split(userSearchFilterVariable)[0];
+
+            int idxSep = Math.max(identifierAttribute.lastIndexOf(','),
+                    identifierAttribute.lastIndexOf('('));
+
+            int idx = (idxSep == -1) ? 0 : idxSep + 1;
+            identifierAttribute = identifierAttribute.substring(idx);
+
+            userAttributes = new String [] {
+                    identifierAttribute, LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME,
+                    LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME
+            };
+        } else {
+            userAttributes = new String [] {
+                    LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME,
+                    LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME
+            };
         }
 
         LOGGER.info("User identifier is based on the [{}] attribute", identifierAttribute);
@@ -142,13 +164,7 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-            return ldapTemplate.lookup(
-                    identityReference.getReference(),
-                    new String [] {
-                            identifierAttribute, LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME,
-                            LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME
-                    },
-                    USER_CONTEXT_MAPPER);
+            return ldapTemplate.lookup(identityReference.getReference(), userAttributes, USER_CONTEXT_MAPPER);
         } catch (final NameNotFoundException nnfe) {
             return null;
         } finally {
@@ -165,7 +181,13 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
             user.setLastname(ctx.getStringAttribute(LDAP_ATTRIBUTE_SURNAME));
             user.setEmail(ctx.getStringAttribute(LDAP_ATTRIBUTE_MAIL));
             user.setDisplayName(ctx.getStringAttribute(LDAP_ATTRIBUTE_DISPLAYNAME));
-            user.setUsername(ctx.getStringAttribute(LdapIdentityLookup.this.identifierAttribute));
+
+            if (identifierAttribute != null) {
+                user.setUsername(ctx.getStringAttribute(LdapIdentityLookup.this.identifierAttribute));
+            } else {
+                user.setUsername(ctx.getNameInNamespace());
+            }
+
 
             if (user.getDisplayName() == null) {
                 user.setDisplayName(user.getFirstname() + ' ' + user.getLastname());
