@@ -1,7 +1,6 @@
 gv-contextual-doc {
   -webkit-box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
   box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
-  z-index: 75 ;
 }
 .contextual-doc-container {
   width: 0;
@@ -11,7 +10,7 @@ gv-contextual-doc {
 	-moz-transition: width .40s;
 	-webkit-transition: width .40s;
   -o-transition: width .40s;
-  
+
   &.open {
     width: 300px;
     opacity: 1;
@@ -22,7 +21,7 @@ gv-contextual-doc {
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
-    height: 64px; 
+    height: 64px;
     padding: 0 8px;
     -webkit-align-items: center;
     align-items: center;
