@@ -859,6 +859,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                         planService.create(newPlanEntity);
                     } else if (planEntities.size() == 1) {
                         UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
+                        updatePlanEntity.setId(planEntities.iterator().next().getId());
                         planService.update(updatePlanEntity);
                     } else {
                         LOGGER.error("Not able to identify the plan to update: {}. Too much plan with the same name", planNode.get("name").asText());
