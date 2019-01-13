@@ -245,6 +245,7 @@
           <md-checkbox
             ng-model="endpointCtrl.endpoint.ssl.trustAll"
             aria-label="Enable trust all"
+            disabled="true"
             class="md-warn md-align-top-left" flex>
             Trust all server certificates<br/>
                 <span class="ipsum">
@@ -254,12 +255,12 @@
           </md-checkbox>
         </div>
       </div>
-      <div flex-xs flex="50" ng-if="!endpointCtrl.endpoint.ssl.trustAll">
+      <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
           <label>Type</label>
           <md-select ng-model="endpointCtrl.endpoint.ssl.trustStore.type"
                      ng-required="!endpointCtrl.endpoint.ssl.trustAll"
-                     ng-disabled="endpointCtrl.endpoint.ssl.trustAll">
+                     ng-change="{{endpointCtrl.endpoint.ssl.trustAll = (endpointCtrl.endpoint.ssl.trustStore.type === '')}}">
             <md-option ng-repeat="trustStore in trustStoreTypes" value="{{trustStore.value}}">
               {{trustStore.name}}
             </md-option>

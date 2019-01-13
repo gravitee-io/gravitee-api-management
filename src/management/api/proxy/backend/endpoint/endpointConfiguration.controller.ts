@@ -58,7 +58,12 @@ class ApiEndpointController {
           useCompression : true,
           followRedirects : false
         },
-        ssl: {trustAll: true}
+        ssl: {
+          trustAll: true,
+          trustStore: {
+            type: ''
+          }
+        }
       };
 
       this.creation = true;
