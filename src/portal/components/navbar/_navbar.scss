@@ -3,7 +3,8 @@ md-toolbar.topnavbar {
   height: 54px;
   min-height: 54px;
   position: fixed;
-  z-index: 100;
+  //dialog popup has a zindex value of 80
+  z-index: 75;
 }
 
 .topnavbar-brand {

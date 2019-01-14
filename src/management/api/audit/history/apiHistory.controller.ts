@@ -280,7 +280,6 @@ class ApiHistoryController {
     delete api.picture_url;
     delete api.views;
     delete api.groups;
-    delete api.tags;
     delete api.etag;
     delete api.context_path;
   }

@@ -18,34 +18,25 @@ import UserService from "../../services/user.service";
 import { StateService } from '@uirouter/core';
 
 const TasksComponent: ng.IComponentOptions = {
-  bindings: {
-    tasks: '<'
-  },
   template: require('./tasks.html'),
   controller: function($state: StateService, UserService: UserService) {
     'ngInject';
-    const vm = this;
 
-    vm.$onInit = function() {
-      //in case of refresh
-      if (!this.tasks) {
-        this.tasks = UserService.currentUser.tasks;
-      }
-    };
+    this.tasks = UserService.currentUser.tasks;
 
-    vm.taskMessage = function (task) {
-      const appName = vm.tasks.metadata[task.data.application].name;
-      const planName = vm.tasks.metadata[task.data.plan].name;
-      const apiId = vm.tasks.metadata[task.data.plan].api;
-      const apiName = vm.tasks.metadata[apiId].name;
+    this.taskMessage = (task) => {
+      const appName = this.tasks.metadata[task.data.application].name;
+      const planName = this.tasks.metadata[task.data.plan].name;
+      const apiId = this.tasks.metadata[task.data.plan].api;
+      const apiName = this.tasks.metadata[apiId].name;
       return 'The application "' + appName + '" requests a subscription for API: ' + apiName + ' (plan: ' + planName + ')';
     };
 
-    vm.title = function (task) {
+    this.title = (task) => {
       return _.startCase(task.type);
     };
 
-    vm.go = function(task) {
+    this.go = (task) => {
       $state.go("management.apis.detail.portal.subscriptions.subscription",
         {
           apiId: task.data.api,
