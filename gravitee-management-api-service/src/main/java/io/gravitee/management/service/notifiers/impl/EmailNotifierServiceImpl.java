@@ -33,7 +33,7 @@ import java.util.Map;
 import static io.gravitee.management.service.notification.ApiHook.*;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -82,6 +82,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
         else if (hook.equals(SUBSCRIPTION_ACCEPTED) || hook.equals(SUBSCRIPTION_NEW)) {
             return EmailNotificationBuilder.EmailTemplate.NEW_SUBSCRIPTION;
+        }
+        else if (hook.equals(ApiHook.SUBSCRIPTION_CLOSED)) {
+            return EmailNotificationBuilder.EmailTemplate.CLOSE_SUBSCRIPTION;
         }
         else if (hook.equals(SUBSCRIPTION_PAUSED)) {
             return EmailNotificationBuilder.EmailTemplate.PAUSE_SUBSCRIPTION;

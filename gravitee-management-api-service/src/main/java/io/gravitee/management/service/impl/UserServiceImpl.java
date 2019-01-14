@@ -636,7 +636,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     null);
             emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                     .to(user.getEmail())
-                    .subject("Password reset - " + user.getId())
+                    .subject("Password reset - " + convert(user, false).getDisplayName())
                     .template(EmailNotificationBuilder.EmailTemplate.PASSWORD_RESET)
                     .params(params)
                     .build()
