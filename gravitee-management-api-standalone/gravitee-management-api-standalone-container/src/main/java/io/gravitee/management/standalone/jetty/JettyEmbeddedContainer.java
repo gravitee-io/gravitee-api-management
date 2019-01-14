@@ -27,6 +27,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.AbstractEnvironment;
@@ -49,6 +50,9 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
     private ApplicationContext applicationContext;
 
+    @Value("${http.api.entrypoint:/management}")
+    private String entrypoint;
+
     @Override
     protected void doStart() throws Exception {
         AbstractHandler noContentHandler = new NoContentOutputErrorHandler();
@@ -57,7 +61,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         server.addBean(noContentHandler);
 
         // Create the servlet context
-        final ServletContextHandler context = new ServletContextHandler(server, "/management/*", ServletContextHandler.SESSIONS);
+        final ServletContextHandler context = new ServletContextHandler(server, entrypoint, ServletContextHandler.SESSIONS);
 
         // REST configuration
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);

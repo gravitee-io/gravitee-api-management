@@ -261,7 +261,7 @@ public class SwaggerServiceImpl implements SwaggerService {
     }
 
     private NewApiEntity mapSwagger12ToNewApi(Swagger swagger) {
-        if (swagger == null) {
+        if (swagger == null || swagger.getInfo() == null) {
             return null;
         }
         NewApiEntity apiEntity = new NewApiEntity();
@@ -283,7 +283,7 @@ public class SwaggerServiceImpl implements SwaggerService {
     }
 
     private NewApiEntity mapOpenApiToNewApi(SwaggerParseResult swagger) {
-        if (swagger == null || swagger.getOpenAPI() == null) {
+        if (swagger == null || swagger.getOpenAPI() == null || swagger.getOpenAPI().getInfo() == null) {
             return null;
         }
         NewApiEntity apiEntity = new NewApiEntity();
