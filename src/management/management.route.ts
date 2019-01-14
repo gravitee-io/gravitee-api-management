@@ -123,6 +123,10 @@ function managementRouterConfig($stateProvider) {
         to: {
           type: 'int',
           dynamic: true
+        },
+        q: {
+          type: 'string',
+          dynamic: true
         }
       }
     })

@@ -131,37 +131,6 @@ class ApiProxyController {
     this.api.proxy.cors = this.api.proxy.cors || {allowOrigin: ['*'], allowHeaders: [], allowMethods: [], exposeHeaders: [], maxAge: -1, allowCredentials: false};
   }
 
-  editWeight(event, endpoint) {
-    event.stopPropagation(); // in case autoselect is enabled
-    var _that = this;
-
-    var editDialog = {
-      modelValue: endpoint.weight,
-      placeholder: 'Weight',
-      save: function (input) {
-        endpoint.weight = input.$modelValue;
-        _that.formApi.$setDirty();
-      },
-      targetEvent: event,
-      title: 'Endpoint weight',
-      type: 'number',
-      validators: {
-        'ng-required': 'true',
-        'min': 1,
-        'max': 99
-      }
-    };
-
-    var promise = this.$mdEditDialog.large(editDialog);
-    promise.then(function (ctrl) {
-      var input = ctrl.getInput();
-
-      input.$viewChangeListeners.push(function () {
-        input.$setValidity('test', input.$modelValue !== 'test');
-      });
-    });
-  }
-
   removeEndpoints() {
     var _that = this;
     let that = this;

@@ -55,7 +55,7 @@
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Description</label>
-            <input ng-model="identityProvider.description" type="text" name="description">
+            <input ng-model="$ctrl.identityProvider.description" type="text" name="description">
             <div class="hint" ng-if="formIdentityProvider.description.$valid || formIdentityProvider.description.$pristine">
               Provide a description of the identity provider
             </div>

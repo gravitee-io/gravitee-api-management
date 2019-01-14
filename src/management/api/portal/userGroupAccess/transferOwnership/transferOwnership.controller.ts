@@ -127,13 +127,12 @@ class ApiTransferOwnershipController {
     if (query) {
       return this.UserService.search(query).then((response) => {
         var usersFound = response.data;
-        var filterUsers = _.filter(usersFound, (user:any) => {
-          return _.findIndex(this.members,
+        return _.filter(usersFound, (user:any) => {
+          return user.id === undefined || _.findIndex(this.members,
             function(apiMember: any) {
-              return apiMember.username === user.id && apiMember.role === 'PRIMARY_OWNER';
+              return apiMember.id === user.id && apiMember.role === 'PRIMARY_OWNER';
             }) === -1;
         });
-        return filterUsers;
       });
     } else {
       return _.filter(this.members, (member: any) => { return member.role !== 'PRIMARY_OWNER'; });

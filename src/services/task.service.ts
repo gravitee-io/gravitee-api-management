@@ -17,15 +17,18 @@
 import {User} from "../entities/user";
 import {PagedResult} from "../entities/pagedResult";
 import {IHttpPromise} from "angular";
+import UserService from "./user.service";
 
 class TaskService {
   private URL: string;
   private Constants: any;
+  private UserService: any;
 
-  constructor(private $http: ng.IHttpService, Constants) {
+  constructor(private $http: ng.IHttpService, Constants, UserService: UserService) {
     'ngInject';
     this.Constants = Constants;
     this.URL = this.Constants.baseURL+"user/tasks";
+    this.UserService = UserService;
   }
 
   getTaskSchedulerInSeconds(): number {
@@ -40,10 +43,8 @@ class TaskService {
     return this.$http.get(this.URL, config);
   }
 
-  fillUserTasks(user: User, tasks: PagedResult) {
-    user.tasks.metadata = tasks.metadata;
-    user.tasks.data = tasks.data;
-    user.tasks.page = tasks.page;
+  fillUserTasks(tasks: PagedResult) {
+    return this.UserService.setTasks(tasks);
   }
 }
 
