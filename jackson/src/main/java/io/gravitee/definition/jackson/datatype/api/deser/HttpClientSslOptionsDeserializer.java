@@ -94,11 +94,6 @@ public class HttpClientSslOptionsDeserializer extends AbstractStdScalarDeseriali
             }
         }
 
-        // No trustore defined -> trustAll is enabled
-        if (httpClientSslOptions.getTrustStore() == null) {
-            httpClientSslOptions.setTrustAll(true);
-        }
-
         JsonNode keyStoreNode = node.get("keyStore");
         if (keyStoreNode != null) {
             try {

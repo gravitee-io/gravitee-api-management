@@ -521,10 +521,10 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-null-pem.json", Api.class);
 
         HttpEndpoint endpoint = (HttpEndpoint) api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
-        Assert.assertNotNull(endpoint.getHttpClientOptions());
-        Assert.assertNotNull(endpoint.getHttpClientSslOptions());
-        Assert.assertNull(endpoint.getHttpClientSslOptions().getTrustStore());
-        Assert.assertTrue(endpoint.getHttpClientSslOptions().isTrustAll());
+        Assert.assertNotNull("must have client options", endpoint.getHttpClientOptions());
+        Assert.assertNotNull("must have ssl options", endpoint.getHttpClientSslOptions());
+        Assert.assertNull("must not have truststore", endpoint.getHttpClientSslOptions().getTrustStore());
+        Assert.assertFalse("must not trust all", endpoint.getHttpClientSslOptions().isTrustAll());
     }
 
     @Test
@@ -532,10 +532,10 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-no-trustore.json", Api.class);
 
         HttpEndpoint endpoint = (HttpEndpoint) api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
-        Assert.assertNotNull(endpoint.getHttpClientOptions());
-        Assert.assertNotNull(endpoint.getHttpClientSslOptions());
-        Assert.assertNull(endpoint.getHttpClientSslOptions().getTrustStore());
-        Assert.assertTrue(endpoint.getHttpClientSslOptions().isTrustAll());
+        Assert.assertNotNull("must have client options", endpoint.getHttpClientOptions());
+        Assert.assertNotNull("must have ssl options", endpoint.getHttpClientSslOptions());
+        Assert.assertNull("must not have truststore", endpoint.getHttpClientSslOptions().getTrustStore());
+        Assert.assertFalse("must not trust all", endpoint.getHttpClientSslOptions().isTrustAll());
     }
 
     @Test
