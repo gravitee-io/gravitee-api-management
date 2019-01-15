@@ -59,7 +59,7 @@ class ApiEndpointController {
           followRedirects : false
         },
         ssl: {
-          trustAll: true,
+          trustAll: false,
           trustStore: {
             type: ''
           }
