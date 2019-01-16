@@ -82,22 +82,22 @@ public class SSLPKCS12TrustStoreTest extends AbstractGatewayTest {
         Request request = Request.Get("http://localhost:8082/test/my_team");
         Response response = request.execute();
         HttpResponse returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals("trustAll is defined to true, no need for truststore => 200", HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
 
-        // Second call is calling an endpoint where trustAll is defined to false, without truststore => 200
+        // Second call is calling an endpoint where trustAll is defined to false, without truststore => 502
         request = Request.Get("http://localhost:8082/test/my_team");
         response = request.execute();
         returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals("trustAll is defined to false, without truststore => 502", HttpStatus.SC_BAD_GATEWAY, returnResponse.getStatusLine().getStatusCode());
 
         // Third call is calling an endpoint where trustAll is defined to false, with truststore => 200
         request = Request.Get("http://localhost:8082/test/my_team");
         response = request.execute();
         returnResponse = response.returnResponse();
-        assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
+        assertEquals("trustAll is defined to false, with truststore => 200", HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
 
         // Check that the stub has been successfully invoked by the gateway
-        verify(3, getRequestedFor(urlEqualTo("/team/my_team")));
+        verify(2, getRequestedFor(urlEqualTo("/team/my_team")));
     }
 
     @Override

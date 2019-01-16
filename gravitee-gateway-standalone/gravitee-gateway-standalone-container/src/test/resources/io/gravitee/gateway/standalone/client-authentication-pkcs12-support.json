@@ -35,6 +35,17 @@
             "password": "password"
           }
         }
+      }, {
+        "name": "endpoint-4",
+        "target": "https://localhost:8080/team",
+        "ssl": {
+          "trustAll": true,
+          "keyStore": {
+            "type": "PKCS12",
+            "path": "Defined programmatically",
+            "password": "password"
+          }
+        }
       }
     ],
     "strip_context_path": false
