@@ -44,6 +44,12 @@ class ApiEndpointGroupController {
     this.api = this.$scope.$parent.apiCtrl.api;
     this.group = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
 
+    // Creation mode
+    if (!this.group) {
+      this.group = {};
+      this.creation = true;
+    }
+
     this.serviceDiscoveryJsonSchemaForm = ["*"];
 
     this.types = resolvedServicesDiscovery.data;
@@ -52,12 +58,6 @@ class ApiEndpointGroupController {
     this.discovery = this.discovery || {enabled: false, configuration: {}};
     this.initialDiscovery = _.cloneDeep(this.discovery);
     this.initialGroups = _.cloneDeep(this.api.proxy.groups);
-
-    // Creation mode
-    if (!this.group) {
-      this.group = {};
-      this.creation = true;
-    }
 
     // Keep the initial state in case of form reset
     this.initialGroup = _.cloneDeep(this.group);
