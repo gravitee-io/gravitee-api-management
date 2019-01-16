@@ -23,12 +23,22 @@
         "name": "endpoint-3",
         "target": "https://localhost:8080/team",
         "ssl": {
-          "trustAll": false,
+          "trustAll": true,
           "keyStore": {
             "type": "PEM",
             "path": "Defined programmatically"
           },
           "trustStore": {
+            "type": "PEM",
+            "path": "Defined programmatically"
+          }
+        }
+      }, {
+        "name": "endpoint-4",
+        "target": "https://localhost:8080/team",
+        "ssl": {
+          "trustAll": true,
+          "keyStore": {
             "type": "PEM",
             "path": "Defined programmatically"
           }
