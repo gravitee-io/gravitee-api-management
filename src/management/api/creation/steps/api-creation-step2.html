@@ -19,11 +19,11 @@
   <md-step-body>
     <md-content layout-padding class="api-creation-content">
       <div layout="row" layout-align="end start"><a ng-click="$ctrl.toggleAdvancedMode()">Advanced mode</a></div>
-      <form name="apiGatewayForm">
+      <form name="apiGatewayForm" ng-submit="$ctrl.parent.selectEndpoint(); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[1].data)">
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Backend</label>
-            <input ng-model="$ctrl.parent.endpoint" type="url" required name="endpoint">
+            <input ng-model="$ctrl.parent.endpoint" type="url" required name="endpoint"/>
             <div class="hint" ng-if="apiGatewayForm.endpoint.$valid || apiGatewayForm.endpoint.$pristine">Target backend when a request is received for the API context-path</div>
             <div ng-messages="apiGatewayForm.endpoint.$error">
               <div ng-message="required">Endpoint is required.</div>
@@ -56,7 +56,7 @@
           <md-button ng-click="$ctrl.parent.moveToPreviousStep()">PREVIOUS</md-button>
         </div>
         <div flex layout="row" layout-align="end top">
-          <md-button type="submit" ng-click="$ctrl.parent.selectEndpoint(); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[1].data)" ng-disabled="apiGatewayForm.$invalid">NEXT</md-button>
+          <md-button type="submit" ng-disabled="apiGatewayForm.$invalid">NEXT</md-button>
         </div>
       </md-step-actions>
     </md-content>

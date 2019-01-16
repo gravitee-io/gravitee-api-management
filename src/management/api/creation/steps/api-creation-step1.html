@@ -18,12 +18,12 @@
 <md-step label="General" md-complete="$ctrl.parent.vm.stepData[0].data.completed">
   <md-step-body>
     <md-content layout-padding class="api-creation-general-content api-creation-content">
-      <form name="apiGeneralForm">
+      <form name="apiGeneralForm" ng-submit="$ctrl.parent.validFirstStep($ctrl.parent.vm.stepData[0].data)">
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Name</label>
             <input ng-model="$ctrl.parent.api.name" type="text" required name="name" minlength="4"
-                   md-maxlength="50">
+                   md-maxlength="50" autofocus />
             <div class="hint" ng-if="apiGeneralForm.name.$valid || apiGeneralForm.name.$pristine">API Name</div>
             <div ng-messages="apiGeneralForm.name.$error">
               <div ng-message="required">API Name is required.</div>
@@ -72,10 +72,13 @@
             </div>
           </md-input-container>
         </div>
-      <md-step-actions>
-        <div layout="row" flex layout-align="end top">
-          <md-button ng-disabled="apiGeneralForm.$invalid" ng-click="$ctrl.parent.validFirstStep($ctrl.parent.vm.stepData[0].data)">NEXT</md-button>
-        </div>
+        <md-step-actions layout="row">
+          <div flex>
+            <md-button ng-click="$ctrl.parent.moveToPreviousStep()">CANCEL</md-button>
+          </div>
+          <div layout="row" flex layout-align="end top">
+            <md-button type="submit" ng-disabled="apiGeneralForm.$invalid">NEXT</md-button>
+          </div>
       </md-step-actions>
       </form>
     </md-content>

@@ -163,6 +163,8 @@ class ApiCreationController {
   moveToPreviousStep() {
     if (this.vm.selectedStep > 0) {
       this.vm.selectedStep = this.vm.selectedStep - 1;
+    } else {
+      this.$state.go('management.apis.new');
     }
   }
 
