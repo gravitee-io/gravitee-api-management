@@ -61,7 +61,7 @@ public class AlertRedisRepositoryImpl extends AbstractRedisRepository implements
     public RedisAlert saveOrUpdate(final RedisAlert alert) {
         redisTemplate.executePipelined((RedisConnection connection) ->  {
             final String refKey = getRefKey(alert.getReferenceType(), alert.getReferenceId());
-            redisTemplate.opsForHash().putIfAbsent(REDIS_KEY, alert.getId(), alert);
+            redisTemplate.opsForHash().put(REDIS_KEY, alert.getId(), alert);
             redisTemplate.opsForSet().add(refKey, alert.getId());
             return null;
         });
