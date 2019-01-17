@@ -61,7 +61,8 @@ public class JdbcPlanRepository implements PlanRepository {
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("published_at", Types.TIMESTAMP, Date.class)
             .addColumn("closed_at", Types.TIMESTAMP, Date.class)
-            .build(); 
+            .addColumn("need_redeploy_at", Types.TIMESTAMP, Date.class)
+            .build();
     
     private static final JdbcHelper.ChildAdder<Plan> CHILD_ADDER = (Plan parent, ResultSet rs) -> {
         Set<String> apis = parent.getApis();
