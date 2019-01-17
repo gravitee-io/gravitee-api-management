@@ -603,7 +603,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                     Set<PlanEntity> plans = planService.findByApi(api.getId());
                     sync = plans.stream()
                             .filter(plan -> plan.getStatus() != PlanStatus.STAGING)
-                            .filter(plan -> plan.getUpdatedAt().after(api.getDeployedAt())).count() == 0;
+                            .filter(plan -> plan.getNeedRedeployAt().after(api.getDeployedAt())).count() == 0;
                 }
 
                 return sync;

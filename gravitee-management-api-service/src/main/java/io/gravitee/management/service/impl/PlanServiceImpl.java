@@ -28,6 +28,7 @@ import io.gravitee.management.service.ParameterService;
 import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.SubscriptionService;
 import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.processor.PlanSynchronizationProcessor;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -71,6 +72,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Autowired
     private ParameterService parameterService;
+
+    @Autowired
+    private PlanSynchronizationProcessor planSynchronizationProcessor;
 
     private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST =
             Collections.unmodifiableList(Arrays.asList(
@@ -156,6 +160,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setDescription(newPlan.getDescription());
             plan.setCreatedAt(new Date());
             plan.setUpdatedAt(plan.getCreatedAt());
+            plan.setNeedRedeployAt(plan.getCreatedAt());
             plan.setType(Plan.PlanType.valueOf(newPlan.getType().name()));
             plan.setSecurity(Plan.PlanSecurityType.valueOf(newPlan.getSecurity().name()));
             plan.setSecurityDefinition(newPlan.getSecurityDefinition());
@@ -217,6 +222,12 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             newPlan.setCreatedAt(oldPlan.getCreatedAt());
             newPlan.setPublishedAt(oldPlan.getPublishedAt());
             newPlan.setClosedAt(oldPlan.getClosedAt());
+            // for existing plans, needRedeployAt doesn't exist. We have to initalize it
+            if (oldPlan.getNeedRedeployAt() == null) {
+                newPlan.setNeedRedeployAt(oldPlan.getUpdatedAt());
+            } else {
+                newPlan.setNeedRedeployAt(oldPlan.getNeedRedeployAt());
+            }
 
             // update datas
             newPlan.setName(updatePlan.getName());
@@ -244,6 +255,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 reorderAndSavePlans(newPlan);
                 return null;
             } else {
+                if (!planSynchronizationProcessor.processCheckSynchronization(convert(oldPlan), convert(newPlan))) {
+                    newPlan.setNeedRedeployAt(newPlan.getUpdatedAt());
+                }
                 newPlan = planRepository.update(newPlan);
                 auditService.createApiAuditLog(
                         newPlan.getApis().iterator().next(),
@@ -287,6 +301,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setStatus(Plan.Status.CLOSED);
             plan.setClosedAt(new Date());
             plan.setUpdatedAt(plan.getClosedAt());
+            plan.setNeedRedeployAt(plan.getClosedAt());
 
             // Close active subscriptions and reject pending
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
@@ -411,6 +426,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             plan.setPublishedAt(new Date());
             plan.setUpdatedAt(plan.getPublishedAt());
+            plan.setNeedRedeployAt(plan.getPublishedAt());
 
             // Save plan
             plan = planRepository.update(plan);
@@ -529,6 +545,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
         entity.setSecurityDefinition(plan.getSecurityDefinition());
         entity.setClosedAt(plan.getClosedAt());
+        entity.setNeedRedeployAt(plan.getNeedRedeployAt()==null ? plan.getUpdatedAt() : plan.getNeedRedeployAt());
         entity.setPublishedAt(plan.getPublishedAt());
         entity.setValidation(PlanValidationType.valueOf(plan.getValidation().name()));
         entity.setCharacteristics(plan.getCharacteristics());
