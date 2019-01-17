@@ -147,6 +147,7 @@ import DialogAddMemberApiController from '../management/api/portal/userGroupAcce
 import DialogTransferApiController from '../management/api/portal/userGroupAccess/transferOwnership/transferAPIDialog.controller';
 import DialogApiKeyExpirationController from '../management/api/portal/subscriptions/apikey.expiration.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
+import FileContentDirective from './components/filecontent/filecontent.directive';
 import DocumentationService from '../services/documentation.service';
 import NotificationService from '../services/notification.service';
 
@@ -601,6 +602,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('TopApiService', TopApiService)
   .service('MessageService', MessageService)
 
+  .directive('filecontent', () => FileContentDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())
   .directive('graviteeDiff', () => DiffDirective)

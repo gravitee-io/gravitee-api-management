@@ -200,12 +200,15 @@ class NewApiController {
 
   isSwaggerDescriptor() {
     try {
-      var fileContent = JSON.parse(this.$scope.importAPIFile.content);
-      return fileContent.hasOwnProperty('swagger')
-        || fileContent.hasOwnProperty('swaggerVersion')
-        || fileContent.hasOwnProperty('openapi');
+      if (this.enableFileImport) {
+        var fileContent = JSON.parse(this.$scope.importAPIFile.content);
+        return fileContent.hasOwnProperty('swagger')
+          || fileContent.hasOwnProperty('swaggerVersion')
+          || fileContent.hasOwnProperty('openapi');
+      }
     } catch (e) {
       this.NotificationService.showError("Invalid json file.");
+      this.enableFileImport = false;
     }
   }
 
