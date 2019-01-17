@@ -75,6 +75,8 @@ public class PlanMongo extends Auditable {
 
     private String securityDefinition;
 
+    private Date needRedeployAt;
+
     public String getId() {
         return id;
     }
@@ -193,6 +195,14 @@ public class PlanMongo extends Auditable {
 
     public void setSecurityDefinition(String securityDefinition) {
         this.securityDefinition = securityDefinition;
+    }
+
+    public Date getNeedRedeployAt() {
+        return needRedeployAt;
+    }
+
+    public void setNeedRedeployAt(Date needRedeployAt) {
+        this.needRedeployAt = needRedeployAt;
     }
 
     @Override
