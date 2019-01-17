@@ -126,6 +126,10 @@ public class RedisPlanRepository implements PlanRepository {
         if (redisPlan.getClosedAt() != 0) {
             plan.setClosedAt(new Date(redisPlan.getClosedAt()));
         }
+
+        if (redisPlan.getNeedRedeployAt() != 0) {
+            plan.setNeedRedeployAt(new Date(redisPlan.getNeedRedeployAt()));
+        }
         plan.setSecurityDefinition(redisPlan.getSecurityDefinition());
         return plan;
     }
@@ -172,6 +176,9 @@ public class RedisPlanRepository implements PlanRepository {
 
         if (plan.getPublishedAt() != null) {
             redisPlan.setPublishedAt(plan.getPublishedAt().getTime());
+        }
+        if (plan.getNeedRedeployAt() != null) {
+            redisPlan.setNeedRedeployAt(plan.getNeedRedeployAt().getTime());
         }
         redisPlan.setSecurityDefinition(plan.getSecurityDefinition());
 

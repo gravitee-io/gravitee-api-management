@@ -74,6 +74,8 @@ public class RedisPlan {
      */
     private long closedAt;
 
+    private long needRedeployAt;
+
     private String status;
 
     private String security;
@@ -216,6 +218,14 @@ public class RedisPlan {
 
     public void setSecurityDefinition(String securityDefinition) {
         this.securityDefinition = securityDefinition;
+    }
+
+    public long getNeedRedeployAt() {
+        return needRedeployAt;
+    }
+
+    public void setNeedRedeployAt(long needRedeployAt) {
+        this.needRedeployAt = needRedeployAt;
     }
 
     @Override
