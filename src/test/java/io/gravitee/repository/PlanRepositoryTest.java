@@ -57,6 +57,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertEquals(new Date(1507032062000L), plan.get().getUpdatedAt());
         assertEquals(new Date(1506878460000L), plan.get().getPublishedAt());
         assertEquals(new Date(1507611600000L), plan.get().getClosedAt());
+        assertEquals(new Date(1507611670000L), plan.get().getNeedRedeployAt());
         assertEquals(Arrays.asList("charac 1", "charac 2"), plan.get().getCharacteristics());
         assertEquals("grp1", plan.get().getExcludedGroups().get(0));
     }
