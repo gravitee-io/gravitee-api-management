@@ -32,6 +32,7 @@ import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
+import io.gravitee.gateway.core.endpoint.exceptions.EndpointConfigurationException;
 import io.netty.channel.ConnectTimeoutException;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
@@ -253,8 +254,10 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                             PemTrustOptions pemTrustOptions = new PemTrustOptions();
                             if (pemTrustStore.getPath() != null && !pemTrustStore.getPath().isEmpty()) {
                                 pemTrustOptions.addCertPath(pemTrustStore.getPath());
-                            } else {
+                            } else if (pemTrustStore.getContent() != null && !pemTrustStore.getContent().isEmpty()) {
                                 pemTrustOptions.addCertValue(io.vertx.core.buffer.Buffer.buffer(pemTrustStore.getContent()));
+                            } else {
+                                throw new EndpointConfigurationException("No PEM truststore configuration.");
                             }
                             this.httpClientOptions.setPemTrustOptions(pemTrustOptions);
                             break;
@@ -264,8 +267,10 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                             pfxOptions.setPassword(pkcs12TrustStore.getPassword());
                             if (pkcs12TrustStore.getPath() != null && !pkcs12TrustStore.getPath().isEmpty()) {
                                 pfxOptions.setPath(pkcs12TrustStore.getPath());
-                            } else {
+                            } else if (pkcs12TrustStore.getContent() != null && !pkcs12TrustStore.getContent().isEmpty()) {
                                 pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(pkcs12TrustStore.getContent()));
+                            } else {
+                                throw new EndpointConfigurationException("No PKCS12 truststore configuration.");
                             }
                             this.httpClientOptions.setPfxTrustOptions(pfxOptions);
                             break;
@@ -275,8 +280,10 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                             jksOptions.setPassword(jksTrustStore.getPassword());
                             if (jksTrustStore.getPath() != null && !jksTrustStore.getPath().isEmpty()) {
                                 jksOptions.setPath(jksTrustStore.getPath());
-                            } else {
+                            } else if (jksTrustStore.getContent() != null && !jksTrustStore.getContent().isEmpty()) {
                                 jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(jksTrustStore.getContent()));
+                            } else {
+                                throw new EndpointConfigurationException("No JKS truststore configuration.");
                             }
                             this.httpClientOptions.setTrustStoreOptions(jksOptions);
                             break;
@@ -293,11 +300,15 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                                 pemKeyCertOptions.setCertPath(pemKeyStore.getCertPath());
                             } else if (pemKeyStore.getCertContent() != null && !pemKeyStore.getCertContent().isEmpty()) {
                                 pemKeyCertOptions.setCertValue(io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getCertContent()));
+                            } else {
+                                throw new EndpointConfigurationException("No PEM cert keystore configuration.");
                             }
                             if (pemKeyStore.getKeyPath() != null && !pemKeyStore.getKeyPath().isEmpty()) {
                                 pemKeyCertOptions.setKeyPath(pemKeyStore.getKeyPath());
                             } else if (pemKeyStore.getKeyContent() != null && !pemKeyStore.getKeyContent().isEmpty()) {
                                 pemKeyCertOptions.setKeyValue(io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getKeyContent()));
+                            } else {
+                                throw new EndpointConfigurationException("No PEM key keystore configuration.");
                             }
                             this.httpClientOptions.setPemKeyCertOptions(pemKeyCertOptions);
                             break;
@@ -309,6 +320,8 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                                 pfxOptions.setPath(pkcs12KeyStore.getPath());
                             } else if (pkcs12KeyStore.getContent() != null && !pkcs12KeyStore.getContent().isEmpty()) {
                                 pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(pkcs12KeyStore.getContent()));
+                            } else {
+                                throw new EndpointConfigurationException("No PKCS12 keystore configuration.");
                             }
                             this.httpClientOptions.setPfxKeyCertOptions(pfxOptions);
                             break;
@@ -320,6 +333,8 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                                 jksOptions.setPath(jksKeyStore.getPath());
                             } else if (jksKeyStore.getContent() != null && !jksKeyStore.getContent().isEmpty()) {
                                 jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(jksKeyStore.getContent()));
+                            } else {
+                                throw new EndpointConfigurationException("No JKS keystore configuration.");
                             }
                             this.httpClientOptions.setKeyStoreOptions(jksOptions);
                             break;
