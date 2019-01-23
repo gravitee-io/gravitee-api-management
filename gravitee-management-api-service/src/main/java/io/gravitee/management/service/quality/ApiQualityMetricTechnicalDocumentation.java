@@ -38,7 +38,7 @@ public class ApiQualityMetricTechnicalDocumentation implements ApiQualityMetric 
     @Override
     public boolean isValid(ApiEntity api) {
         return pageService
-                .findApiPagesByApi(api.getId())
+                .findApiPagesByApiAndHomepage(api.getId(), null, Boolean.TRUE)
                 .stream()
                 .anyMatch(pageListItem ->
                         pageListItem.isPublished()
