@@ -4,9 +4,20 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
 
+        - createTable:
+              tableName: page_metadata
+              columns:
+                  - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
+                  - column: {name: k, type: nvarchar(64), constraints: { nullable: false } }
+                  - column: {name: v, type: nvarchar(200), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+              constraintName: pk_page_metadata
+              columnNames: page_id, k, v
+              tableName: page_metadata
         - addColumn:
-            tableName: views
-            columns:
-                - column:
-                    name: picture
-                    type: nclob
+              tableName: views
+              columns:
+                  - column:
+                      name: picture
+                      type: nclob
