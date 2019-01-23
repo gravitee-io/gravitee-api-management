@@ -24,6 +24,7 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.LoadBalancer;
 import io.gravitee.gateway.api.lb.LoadBalancerStrategy;
+import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
 import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
 import io.gravitee.gateway.core.endpoint.lifecycle.EndpointLifecycleManager;
@@ -129,14 +130,19 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
             if (api.getProperties() != null) {
                 context.setProperties(api.getProperties().getValues());
             }
-            io.gravitee.gateway.api.endpoint.Endpoint endpoint = endpointFactory.create(model, context);
-            if (endpoint != null) {
-                endpoint.connector().start();
+            try {
+                io.gravitee.gateway.api.endpoint.Endpoint endpoint = endpointFactory.create(model, context);
+                if (endpoint != null) {
+                    endpoint.connector().start();
 
-                endpoints.add(endpoint);
-                endpointsByName.put(endpoint.name(), endpoint);
+                    endpoints.add(endpoint);
+                    endpointsByName.put(endpoint.name(), endpoint);
 
-                referenceRegister.add(new EndpointReference(endpoint));
+                    referenceRegister.add(new EndpointReference(endpoint));
+                }
+            } catch (EndpointException ee) {
+                logger.error("An endpoint error occurs while configuring or starting endpoint " + model.getName()
+                        + ". Endpoint will not be available to forward requests.", ee);
             }
         } catch (Exception ex) {
             logger.error("Unexpected error while creating endpoint connector", ex);

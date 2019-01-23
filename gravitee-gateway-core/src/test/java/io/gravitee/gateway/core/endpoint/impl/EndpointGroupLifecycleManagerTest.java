@@ -21,6 +21,7 @@ import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.endpoint.Endpoint;
+import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
 import io.gravitee.gateway.core.endpoint.lifecycle.impl.EndpointGroupLifecycleManager;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
@@ -156,6 +157,39 @@ public class EndpointGroupLifecycleManagerTest {
 
         // Verify that the HTTP client is correctly stopped
         verify(httpClientEndpoint.connector(), times(1)).stop();
+
+        assertTrue(endpointLifecycleManager.endpoints().isEmpty());
+    }
+
+    @Test
+    public void shouldNotStartEndpoint_endpointException() throws Exception {
+        io.gravitee.definition.model.Endpoint endpoint = mock(io.gravitee.definition.model.endpoint.HttpEndpoint.class);
+
+        when(endpoint.getName()).thenReturn("endpoint");
+        when(endpoint.isBackup()).thenReturn(false);
+        when(endpoint.getType()).thenReturn(EndpointType.HTTP);
+
+        when(group.getEndpoints()).thenReturn(Collections.singleton(endpoint));
+
+        Endpoint registeredEndpoint = mock(Endpoint.class);
+        Connector connector = mock(Connector.class);
+        when(registeredEndpoint.connector()).thenReturn(connector);
+        when(connector.start()).thenThrow(EndpointException.class);
+        when(registeredEndpoint.name()).thenReturn("endpoint");
+
+        when(endpointFactory.support(any())).thenReturn(true);
+        when(endpointFactory.create(any(), any(EndpointContext.class))).thenReturn(registeredEndpoint);
+
+        endpointLifecycleManager.start();
+
+        Endpoint httpClientEndpoint = endpointLifecycleManager.get("endpoint");
+
+        assertNull(httpClientEndpoint);
+
+        verify(endpointFactory, times(1)).create(eq(endpoint), any(EndpointContext.class));
+        verify(connector, times(1)).start();
+
+        assertNull(endpointLifecycleManager.get("endpoint"));
 
         assertTrue(endpointLifecycleManager.endpoints().isEmpty());
     }
