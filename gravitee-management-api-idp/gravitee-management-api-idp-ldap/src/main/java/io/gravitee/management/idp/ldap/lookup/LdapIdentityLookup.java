@@ -20,6 +20,7 @@ import io.gravitee.management.idp.api.identity.IdentityReference;
 import io.gravitee.management.idp.api.identity.User;
 import io.gravitee.management.idp.ldap.LdapIdentityProvider;
 import io.gravitee.management.idp.ldap.lookup.spring.LdapIdentityLookupConfiguration;
+import io.gravitee.management.idp.ldap.utils.LdapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -71,8 +72,6 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
     private LdapName baseDn;
 
-    private final static String userSearchFilterVariable = "=\\{0\\}";
-
     private String [] userAttributes;
 
     @Override
@@ -81,16 +80,9 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
         LOGGER.debug("Looking for a LDAP user's identifier using search filter [{}]", searchFilter);
 
         if (searchFilter != null) {
-            // Search filter can be uid={0} or mail={0} or may be even more complex like
-            // (&(objectClass=Person)(uid={0})(&(ou=People)(ou=Payroll)))
+            identifierAttribute = LdapUtils.extractAttribute(searchFilter);
 
-            identifierAttribute = searchFilter.split(userSearchFilterVariable)[0];
-
-            int idxSep = Math.max(identifierAttribute.lastIndexOf(','),
-                    identifierAttribute.lastIndexOf('('));
-
-            int idx = (idxSep == -1) ? 0 : idxSep + 1;
-            identifierAttribute = identifierAttribute.substring(idx);
+            LOGGER.info("User identifier is based on the [{}] attribute", identifierAttribute);
 
             userAttributes = new String [] {
                     identifierAttribute, LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME,
@@ -102,8 +94,6 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
                     LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME
             };
         }
-
-        LOGGER.info("User identifier is based on the [{}] attribute", identifierAttribute);
 
         // Base DN to search for users
         baseDn = LdapNameBuilder
@@ -187,8 +177,7 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
             } else {
                 user.setUsername(ctx.getNameInNamespace());
             }
-
-
+            
             if (user.getDisplayName() == null) {
                 user.setDisplayName(user.getFirstname() + ' ' + user.getLastname());
             }
