@@ -32,6 +32,7 @@ import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
+import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.netty.channel.ConnectTimeoutException;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
@@ -253,8 +254,10 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                             PemTrustOptions pemTrustOptions = new PemTrustOptions();
                             if (pemTrustStore.getPath() != null && !pemTrustStore.getPath().isEmpty()) {
                                 pemTrustOptions.addCertPath(pemTrustStore.getPath());
-                            } else {
+                            } else if (pemTrustStore.getContent() != null && !pemTrustStore.getContent().isEmpty()) {
                                 pemTrustOptions.addCertValue(io.vertx.core.buffer.Buffer.buffer(pemTrustStore.getContent()));
+                            } else {
+                                throw new EndpointException("Missing PEM certificate value for endpoint " + endpoint.getName());
                             }
                             this.httpClientOptions.setPemTrustOptions(pemTrustOptions);
                             break;
@@ -264,8 +267,10 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                             pfxOptions.setPassword(pkcs12TrustStore.getPassword());
                             if (pkcs12TrustStore.getPath() != null && !pkcs12TrustStore.getPath().isEmpty()) {
                                 pfxOptions.setPath(pkcs12TrustStore.getPath());
-                            } else {
+                            } else if (pkcs12TrustStore.getContent() != null && !pkcs12TrustStore.getContent().isEmpty()) {
                                 pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(pkcs12TrustStore.getContent()));
+                            } else {
+                                throw new EndpointException("Missing PKCS12 value for endpoint " + endpoint.getName());
                             }
                             this.httpClientOptions.setPfxTrustOptions(pfxOptions);
                             break;
@@ -275,8 +280,10 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                             jksOptions.setPassword(jksTrustStore.getPassword());
                             if (jksTrustStore.getPath() != null && !jksTrustStore.getPath().isEmpty()) {
                                 jksOptions.setPath(jksTrustStore.getPath());
-                            } else {
+                            } else if (jksTrustStore.getContent() != null && !jksTrustStore.getContent().isEmpty()) {
                                 jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(jksTrustStore.getContent()));
+                            } else {
+                                throw new EndpointException("Missing JKS value for endpoint " + endpoint.getName());
                             }
                             this.httpClientOptions.setTrustStoreOptions(jksOptions);
                             break;
