@@ -20,6 +20,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -30,32 +31,20 @@ public class PageMongo extends Auditable {
 
 	@Id
 	private String id;
-
 	private String name;
-
 	private String type;
-
 	private String title;
-
 	private String content;
-
 	private String lastContributor;
-
 	private int order;
-
 	private String api;
-
 	private boolean published;
-
 	private PageSourceMongo source;
-
 	private Map<String, String> configuration;
-
 	private boolean homepage;
-
 	private List<String> excludedGroups;
-
     private String parentId;
+	private Map<String, String> metadata;
 
 	public String getId() {
 		return id;
@@ -165,34 +154,45 @@ public class PageMongo extends Auditable {
 
     public void setParentId(String parentId) { this.parentId = parentId; }
 
-    @Override
+	public Map<String, String> getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(Map<String, String> metadata) {
+		this.metadata = metadata;
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-
+		if (!(o instanceof PageMongo)) return false;
 		PageMongo pageMongo = (PageMongo) o;
-
-		return id.equals(pageMongo.id);
+		return Objects.equals(id, pageMongo.id);
 	}
 
 	@Override
 	public int hashCode() {
-		return id.hashCode();
+		return Objects.hash(id);
 	}
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("Page{");
-		sb.append("name='").append(name).append('\'');
-		sb.append(", type='").append(type).append('\'');
-		sb.append(", title='").append(title).append('\'');
-		sb.append(", order='").append(order).append('\'');
-		sb.append(", lastContributor='").append(lastContributor).append('\'');
-		sb.append(", api='").append(api).append('\'');
-		sb.append(", homepage='").append(homepage).append('\'');
-		sb.append(", excludedGroups='").append(excludedGroups).append('\'');
-        sb.append(", parentId='").append(parentId).append('\'');
-		sb.append('}');
-		return sb.toString();
+		return "PageMongo{" +
+				"id='" + id + '\'' +
+				", name='" + name + '\'' +
+				", type='" + type + '\'' +
+				", title='" + title + '\'' +
+				", content='" + content + '\'' +
+				", lastContributor='" + lastContributor + '\'' +
+				", order=" + order +
+				", api='" + api + '\'' +
+				", published=" + published +
+				", source=" + source +
+				", configuration=" + configuration +
+				", homepage=" + homepage +
+				", excludedGroups=" + excludedGroups +
+				", parentId='" + parentId + '\'' +
+				", metadata=" + metadata +
+				"} " + super.toString();
 	}
 }

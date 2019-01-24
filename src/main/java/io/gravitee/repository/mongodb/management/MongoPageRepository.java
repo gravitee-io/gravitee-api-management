@@ -110,6 +110,7 @@ public class MongoPageRepository implements PageRepository {
                 pageMongo.setSource(null);
             }
             pageMongo.setConfiguration(page.getConfiguration());
+            pageMongo.setMetadata(page.getMetadata());
 
             PageMongo pageMongoUpdated = internalPageRepo.save(pageMongo);
             return mapper.map(pageMongoUpdated, Page.class);
