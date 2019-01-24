@@ -21,7 +21,7 @@
       <ng-md-icon icon="warning" style="fill: #ce4844"></ng-md-icon>
       This page is not published yet and will not be visible to other users
     </div>
-
+    
     <md-button ng-if="$ctrl.page.metadata.edit_url" type="button" style="margin: 25px 6px;float: right;"
                target="_blank" href="{{$ctrl.page.metadata.edit_url}}"
                aria-label="Edit">
@@ -32,7 +32,7 @@
 
       <ng-md-icon ng-if="!$ctrl.logoAvailable($ctrl.page.metadata.provider_name | lowercase)"
                   icon="open_in_new" style="fill: #212121"></ng-md-icon>
-      
+
       Edit on {{$ctrl.page.metadata.provider_name}}
     </md-button>
 
