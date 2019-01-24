@@ -71,14 +71,14 @@
 
 <hr>
 
-<div class="log-table" layout="column" layout-padding>
+<div class="log-table" layout="row" flex layout-padding layout-align="center">
 
-  <div layout="row" layout-padding style="background-color: #f1f8e9; border: 1px solid #dcedc8;">
-    <div flex="5" layout="row" layout-align="center center" style="background-color: #dcedc8;">
-      <span class="vertical-text log-header" style="text-align: center;">REQUEST</span>
+  <div layout="column" layout-padding style="background-color: #f1f8e9; border: 1px solid #dcedc8;" flex="50">
+    <div flex="5" layout="row" style="background-color: #dcedc8;" layout-align="center center">
+      <span class="log-header" style="text-align: center;">REQUEST</span>
     </div>
 
-    <md-table-container flex="30">
+    <md-table-container>
       <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row style="height: 30px;">
@@ -101,7 +101,7 @@
       </table>
     </md-table-container>
 
-    <md-table-container flex="65">
+    <md-table-container>
       <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row ng-repeat="(key, value) in $ctrl.log.request.headers" style="height: 30px;">
@@ -111,14 +111,24 @@
         </tbody>
       </table>
     </md-table-container>
+
+    <br>
+
+    <div ng-if="$ctrl.log.request.body"
+         ui-codemirror
+         ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.request)}"
+         ng-model="$ctrl.log.request.body">
+    </div>
   </div>
 
-  <div layout="row" layout-padding style="background-color: #e1f5fe; margin-top:3px; border: 1px solid #b3e5fc;">
-    <div flex="5" layout="row" layout-align="center center" style="background-color: #b3e5fc;">
-      <span class="vertical-text log-header" style="text-align: center;">RESPONSE</span>
+  <div flex="5" layout="column" layout-align="center center"></div>
+
+  <div layout="column" layout-padding style="background-color: #e1f5fe; margin-top:3px; border: 1px solid #b3e5fc;" flex="50">
+    <div flex="5" layout="row" style="background-color: #b3e5fc;" layout-align="center center">
+      <span class="log-header" style="text-align: center;">RESPONSE</span>
     </div>
 
-    <md-table-container flex="30">
+    <md-table-container>
       <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row style="height: 30px;">
@@ -137,7 +147,7 @@
       </table>
     </md-table-container>
 
-    <md-table-container flex="65">
+    <md-table-container>
       <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row ng-repeat="(key, value) in $ctrl.log.response.headers" style="height: 30px;">
@@ -147,5 +157,11 @@
         </tbody>
       </table>
     </md-table-container>
+
+    <div ng-if="$ctrl.log.response.body"
+         ui-codemirror
+         ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.response)}"
+         ng-model="$ctrl.log.response.body">
+    </div>
   </div>
 </div>
