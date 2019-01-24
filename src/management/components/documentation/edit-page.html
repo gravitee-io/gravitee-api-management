@@ -23,11 +23,18 @@
             <a ng-click="$ctrl.cancel()">Back to Documentation</a>
         </div>
         <div>
-            <md-button type="button"
-                       class="md-raised md-primary"
-                       ng-click="$ctrl.toggleRename()"
-                       aria-label="Edit">
-                Rename</md-button>
+          <md-button type="button"
+                     class="md-raised md-primary"
+                     ng-click="$ctrl.toggleRename()"
+                     aria-label="Rename">
+            Rename
+          </md-button>
+          <md-button ng-if="$ctrl.page.metadata.edit_url" type="button" style="padding: 0 6px;"
+                     target="_blank" href="{{$ctrl.page.metadata.edit_url}}"
+                     aria-label="Edit">
+            <ng-md-icon icon="open_in_new" style="fill: #212121;padding: 0;vertical-align: inherit;"></ng-md-icon>
+            Edit on {{$ctrl.page.metadata.provider_name}}
+          </md-button>
         </div>
     </div>
     <div class="gv-forms-header" layout="row" layout-align="space-between end" ng-if="rename">

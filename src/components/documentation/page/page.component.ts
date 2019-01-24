@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import * as _ from 'lodash';
 const PageComponent: ng.IComponentOptions = {
+  controller: class {
+    private fetchersWithSvg: string[] = ['github', 'gitlab', 'bitbucket'];
+
+    logoAvailable(fetcherName):boolean {
+      return _.includes(this.fetchersWithSvg, fetcherName);
+    }
+  },
   template: require('./page.html'),
   bindings: {
     page: '<',

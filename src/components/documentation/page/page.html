@@ -22,6 +22,20 @@
       This page is not published yet and will not be visible to other users
     </div>
 
+    <md-button ng-if="$ctrl.page.metadata.edit_url" type="button" style="margin: 25px 6px;float: right;"
+               target="_blank" href="{{$ctrl.page.metadata.edit_url}}"
+               aria-label="Edit">
+
+      <md-icon ng-if="$ctrl.logoAvailable($ctrl.page.metadata.provider_name | lowercase)"
+        md-svg-src="./assets/logo_{{$ctrl.page.metadata.provider_name | lowercase}}-fetcher.svg"
+        aria-label="{{$ctrl.page.metadata.provider_name | lowercase}}"></md-icon>
+
+      <ng-md-icon ng-if="!$ctrl.logoAvailable($ctrl.page.metadata.provider_name | lowercase)"
+                  icon="open_in_new" style="fill: #212121"></ng-md-icon>
+      
+      Edit on {{$ctrl.page.metadata.provider_name}}
+    </md-button>
+
     <div ng-switch-when="RAML">
       <div class="gv-page-draft-banner">
         <ng-md-icon icon="warning" style="fill: #ce4844"></ng-md-icon>
@@ -33,5 +47,5 @@
     <gv-page-editor-markdown-viewer page="$ctrl.page" ng-switch-when="MARKDOWN"></gv-page-editor-markdown-viewer>
   </div>
 
-  <gv-page-sidenav ng-if="$ctrl.sidenav" page="$ctrl.page" offset="$ctrl.sidenavoffset" flex="25" hide-xs ></gv-page-sidenav>
+  <gv-page-sidenav ng-if="$ctrl.sidenav" page="$ctrl.page" offset="$ctrl.sidenavoffset" flex="25" hide-xs></gv-page-sidenav>
 </div>
