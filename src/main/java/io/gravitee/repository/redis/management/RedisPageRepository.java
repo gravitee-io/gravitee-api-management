@@ -149,7 +149,7 @@ public class RedisPageRepository implements PageRepository {
         }
 
         page.setConfiguration(redisPage.getConfiguration());
-
+        page.setMetadata(redisPage.getMetadata());
         return page;
     }
 
@@ -175,6 +175,7 @@ public class RedisPageRepository implements PageRepository {
         }
 
         redisPage.setConfiguration(page.getConfiguration());
+        redisPage.setMetadata(page.getMetadata());
         return redisPage;
     }
 }

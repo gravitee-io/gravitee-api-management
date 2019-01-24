@@ -41,6 +41,7 @@ public class RedisPage {
     private boolean homepage;
     private List<String> excludedGroups;
     private String parentId;
+    private Map<String, String> metadata;
 
     public String getApi() {
         return api;
@@ -165,6 +166,14 @@ public class RedisPage {
     public String getParentId() { return parentId; }
 
     public void setParentId(String parentId) { this.parentId = parentId; }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
 
     @Override
     public boolean equals(Object o) {
