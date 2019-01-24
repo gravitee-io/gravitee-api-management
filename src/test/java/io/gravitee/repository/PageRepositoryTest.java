@@ -21,10 +21,7 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -70,13 +67,14 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("configuration show extensions", "true", page.getConfiguration().get("showExtensions"));
         assertEquals("configuration show common extensions", "true", page.getConfiguration().get("showCommonExtensions"));
         assertEquals("configuration maxDisplayedTags", "1234", page.getConfiguration().get("maxDisplayedTags"));
+        assertEquals("metadata edit_url", "http://provider.com/edit/page", page.getMetadata().get("edit_url"));
+        assertEquals("metadata size", "256", page.getMetadata().get("size"));
 
         assertTrue("homepage", page.isHomepage());
         assertEquals("excludedGroups", Arrays.asList("grp1", "grp2"), page.getExcludedGroups());
         assertEquals("created at", new Date(1486771200000L), page.getCreatedAt());
         assertEquals("updated at", new Date(1486771200000L), page.getUpdatedAt());
     }
-
 
     @Test
     public void shouldCreateApiPage() throws Exception {
@@ -92,6 +90,23 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
 
+        final Map<String, String> configuration = new HashMap<>();
+        configuration.put("displayOperationId", "true");
+        configuration.put("docExpansion", "FULL");
+        configuration.put("showCommonExtensions", "true");
+        configuration.put("maxDisplayedTags", "1234");
+        configuration.put("enableFiltering", "true");
+        configuration.put("tryItURL", "http://company.com");
+        configuration.put("showURL", "true");
+        configuration.put("showExtensions", "true");
+        configuration.put("tryIt", "true");
+        page.setConfiguration(configuration);
+
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("edit_url", "url");
+        metadata.put("size", "10");
+        page.setMetadata(metadata);
+
         Optional<Page> optionalBefore = pageRepository.findById("new-page");
         pageRepository.create(page);
         Optional<Page> optionalAfter = pageRepository.findById("new-page");
@@ -106,6 +121,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid homepage flag.", page.isHomepage(), pageSaved.isHomepage());
         assertEquals("Invalid parentId.", page.getParentId(), pageSaved.getParentId());
         assertNull("Invalid page source.", page.getSource());
+        assertEquals("Invalid configuration.", page.getConfiguration(), pageSaved.getConfiguration());
+        assertEquals("Invalid metadata.", page.getMetadata(), pageSaved.getMetadata());
     }
 
     @Test
@@ -148,6 +165,23 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
 
+        final Map<String, String> configuration = new HashMap<>();
+        configuration.put("displayOperationId", "true");
+        configuration.put("docExpansion", "FULL");
+        configuration.put("showCommonExtensions", "true");
+        configuration.put("maxDisplayedTags", "1234");
+        configuration.put("enableFiltering", "true");
+        configuration.put("tryItURL", "http://company.com");
+        configuration.put("showURL", "true");
+        configuration.put("showExtensions", "true");
+        configuration.put("tryIt", "true");
+        page.setConfiguration(configuration);
+
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("edit_url", "url");
+        metadata.put("size", "10");
+        page.setMetadata(metadata);
+
         Optional<Page> optionalBefore = pageRepository.findById("new-portal-page");
         pageRepository.create(page);
         Optional<Page> optionalAfter = pageRepository.findById("new-portal-page");
@@ -162,6 +196,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid parentId.", page.getParentId(), pageSaved.getParentId());
         assertEquals("Invalid homepage flag.", page.isHomepage(), pageSaved.isHomepage());
         assertNull("Invalid page source.", page.getSource());
+        assertEquals("Invalid configuration.", page.getConfiguration(), pageSaved.getConfiguration());
+        assertEquals("Invalid metadata.", page.getMetadata(), pageSaved.getMetadata());
     }
 
     @Test
@@ -210,6 +246,11 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.getConfiguration().put("showCommonExtensions", "true");
         page.getConfiguration().put("maxDisplayedTags", "1234");
 
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("edit_url", "url");
+        metadata.put("size", "10");
+        page.setMetadata(metadata);
+
         pageRepository.update(page);
 
         Optional<Page> optionalUpdated = pageRepository.findById("updatePage");
@@ -225,6 +266,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("configuration show extensions", "true", optionalUpdated.get().getConfiguration().get("showExtensions"));
         assertEquals("configuration show common extensions", "true", optionalUpdated.get().getConfiguration().get("showCommonExtensions"));
         assertEquals("configuration maxDisplayedTags", "1234", optionalUpdated.get().getConfiguration().get("maxDisplayedTags"));
+        assertEquals("metadata edit_url", "url", optionalUpdated.get().getMetadata().get("edit_url"));
+        assertEquals("metadata size", "10", optionalUpdated.get().getMetadata().get("size"));
     }
 
     @Test

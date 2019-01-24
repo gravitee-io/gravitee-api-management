@@ -23,6 +23,10 @@
          "showCommonExtensions": true,
          "maxDisplayedTags": 1234
       },
+      "metadata": {
+         "edit_url": "http://provider.com/edit/page",
+         "size": 256
+      },
       "homepage": true,
       "excludedGroups": [ "grp1", "grp2" ],
       "createdAt": 1486771200000,

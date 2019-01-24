@@ -22,20 +22,17 @@ import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.repository.management.model.PageType;
 import org.mockito.ArgumentMatcher;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.util.collections.Sets.newSet;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -62,6 +59,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         pageSource.setType("sourceType");
         pageSource.setConfiguration("sourceConfiguration");
         when(findApiPage.getSource()).thenReturn(pageSource);
+
         Map<String, String> pageConfiguration = new HashMap<>();
         pageConfiguration.put("tryIt", "true");
         pageConfiguration.put("tryItURL", "http://company.com");
@@ -73,6 +71,12 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         pageConfiguration.put("showCommonExtensions", "true");
         pageConfiguration.put("maxDisplayedTags", "1234");
         when(findApiPage.getConfiguration()).thenReturn(pageConfiguration);
+
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("edit_url", "http://provider.com/edit/page");
+        metadata.put("size", "256");
+        when(findApiPage.getMetadata()).thenReturn(metadata);
+
         when(findApiPage.isHomepage()).thenReturn(true);
         when(findApiPage.getExcludedGroups()).thenReturn(asList("grp1", "grp2"));
         when(findApiPage.getCreatedAt()).thenReturn(new Date(1486771200000L));
@@ -97,6 +101,11 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(createPage.getType()).thenReturn(PageType.MARKDOWN);
         when(createPage.isHomepage()).thenReturn(true);
         when(createPage.getParentId()).thenReturn("2");
+        metadata = new HashMap<>();
+        metadata.put("edit_url", "url");
+        metadata.put("size", "10");
+        when(createPage.getConfiguration()).thenReturn(pageConfiguration);
+        when(createPage.getMetadata()).thenReturn(metadata);
         when(pageRepository.findById("new-page")).thenReturn(empty(), of(createPage));
 
         // shouldCreateApiPageFolder
@@ -117,6 +126,11 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(createPortalPage.getType()).thenReturn(PageType.MARKDOWN);
         when(createPortalPage.isHomepage()).thenReturn(false);
         when(createPortalPage.getParentId()).thenReturn("2");
+        metadata = new HashMap<>();
+        metadata.put("edit_url", "url");
+        metadata.put("size", "10");
+        when(createPortalPage.getConfiguration()).thenReturn(pageConfiguration);
+        when(createPortalPage.getMetadata()).thenReturn(metadata);
         when(pageRepository.findById("new-portal-page")).thenReturn(empty(), of(createPortalPage));
 
         // shouldCreatePortalPageFolder
@@ -154,6 +168,10 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(pageConfigurationMock.get("showCommonExtensions")).thenReturn("true");
         when(pageConfigurationMock.get("maxDisplayedTags")).thenReturn("1234");
         when(updatePageAfter.getConfiguration()).thenReturn(pageConfigurationMock);
+        metadata = new HashMap<>();
+        metadata.put("edit_url", "url");
+        metadata.put("size", "10");
+        when(updatePageAfter.getMetadata()).thenReturn(metadata);
         when(pageRepository.findById("updatePage")).thenReturn(of(updatePageBefore), of(updatePageAfter));
 
         when(pageRepository.update(argThat(new ArgumentMatcher<Page>() {
