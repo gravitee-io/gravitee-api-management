@@ -22,6 +22,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.fetcher.api.Resource;
 import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
@@ -203,10 +204,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			Page page = convert(newPageEntity);
 
 			if (page.getSource() != null) {
-				String fetchedContent = this.getContentFromFetcher(page.getSource());
-				if (fetchedContent != null && !fetchedContent.isEmpty()) {
-					page.setContent(fetchedContent);
-				}
+				fetchPage(page);
 			}
 
 			page.setId(id);
@@ -258,10 +256,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			Page page = convert(newPageEntity);
 
 			if (page.getSource() != null) {
-				String fetchedContent = this.getContentFromFetcher(page.getSource());
-				if (fetchedContent != null && !fetchedContent.isEmpty()) {
-					page.setContent(fetchedContent);
-				}
+				fetchPage(page);
 			}
 
 			page.setId(id);
@@ -333,10 +328,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
             if (page.getSource() != null) {
 				try {
-					String fetchedContent = this.getContentFromFetcher(page.getSource());
-                    if (fetchedContent != null && !fetchedContent.isEmpty()) {
-                    	page.setContent(fetchedContent);
-					}
+					fetchPage(page);
 				} catch (FetcherException e) {
 					throw onUpdateFail(pageId, e);
 				}
@@ -371,36 +363,43 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 	}
 
-	private String getContentFromFetcher(PageSource ps) throws FetcherException {
-		if (ps.getConfiguration().isEmpty()) {
-			return null;
-		}
-		try {
-			FetcherPlugin fetcherPlugin = fetcherPluginManager.get(ps.getType());
-			ClassLoader fetcherCL = fetcherPlugin.fetcher().getClassLoader();
-			Class<? extends FetcherConfiguration> fetcherConfigurationClass = (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(fetcherPlugin.configuration().getName());
-			Class<? extends Fetcher> fetcherClass = (Class<? extends Fetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
-			FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(fetcherConfigurationClass, ps.getConfiguration());
-			Fetcher fetcher = fetcherClass.getConstructor(fetcherConfigurationClass).newInstance(fetcherConfigurationInstance);
-			// Autowire fetcher
-			applicationContext.getAutowireCapableBeanFactory().autowireBean(fetcher);
+	private void fetchPage(final Page page) throws FetcherException {
+		if (!page.getSource().getConfiguration().isEmpty()) {
+			try {
+				final FetcherPlugin fetcherPlugin = fetcherPluginManager.get(page.getSource().getType());
+				final ClassLoader fetcherCL = fetcherPlugin.fetcher().getClassLoader();
+				Class<? extends FetcherConfiguration> fetcherConfigurationClass = (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(fetcherPlugin.configuration().getName());
+				Class<? extends Fetcher> fetcherClass = (Class<? extends Fetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
+				FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(fetcherConfigurationClass, page.getSource().getConfiguration());
+				final Fetcher fetcher = fetcherClass.getConstructor(fetcherConfigurationClass).newInstance(fetcherConfigurationInstance);
+				// Autowire fetcher
+				applicationContext.getAutowireCapableBeanFactory().autowireBean(fetcher);
+				final Resource resource = fetcher.fetch();
 
-			StringBuilder sb = new StringBuilder();
-			try (BufferedReader br = new BufferedReader(new InputStreamReader(fetcher.fetch()))) {
-				String line;
-				while ((line = br.readLine()) != null) {
-					sb.append(line);
-					sb.append("\n");
+				StringBuilder sb = new StringBuilder();
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(resource.getContent()))) {
+					String line;
+					while ((line = br.readLine()) != null) {
+						sb.append(line);
+						sb.append("\n");
+					}
 				}
+
+				page.setContent(sb.toString());
+				page.setMetadata(new HashMap<>(resource.getMetadata().size()));
+				for (Map.Entry<String, Object> entry : resource.getMetadata().entrySet()) {
+					if (!(entry.getValue() instanceof Map)) {
+						page.getMetadata().put(entry.getKey(), String.valueOf(entry.getValue()));
+					}
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+				throw new FetcherException(e.getMessage(), e);
 			}
-			return sb.toString();
-		} catch (Exception e) {
-		    logger.error(e.getMessage(), e);
-            throw new FetcherException(e.getMessage(), e);
 		}
 	}
 
-    private void reorderAndSavePages(final Page pageToReorder) throws TechnicalException {
+	private void reorderAndSavePages(final Page pageToReorder) throws TechnicalException {
 		PageCriteria.Builder q = new PageCriteria.Builder().api(pageToReorder.getApi());
 		if (pageToReorder.getParentId() == null) {
 			q.rootParent(Boolean.TRUE);
@@ -537,10 +536,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			}
 
 			try {
-				String fetchedContent = this.getContentFromFetcher(page.getSource());
-				if (fetchedContent != null && !fetchedContent.isEmpty()) {
-					page.setContent(fetchedContent);
-				}
+				fetchPage(page);
 			} catch (FetcherException e) {
 				throw onUpdateFail(pageId, e);
 			}
@@ -597,15 +593,15 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return page;
 	}
 
-	private static List<PageEntity> convert(List<Page> pages) {
+	private List<PageEntity> convert(List<Page> pages) {
 		if (pages == null) {
 			return emptyList();
 		}
 
-		return pages.stream().map(PageServiceImpl::convert).collect(Collectors.toList());
+		return pages.stream().map(this::convert).collect(Collectors.toList());
 	}
 
-	private static PageEntity convert(Page page) {
+	private PageEntity convert(Page page) {
 		PageEntity pageEntity;
 
 		if (page.getApi() != null) {
@@ -643,6 +639,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 		pageEntity.setExcludedGroups(page.getExcludedGroups());
 		pageEntity.setParentId("".equals(page.getParentId()) ? null : page.getParentId());
+		pageEntity.setMetadata(page.getMetadata());
 		return pageEntity;
 	}
 

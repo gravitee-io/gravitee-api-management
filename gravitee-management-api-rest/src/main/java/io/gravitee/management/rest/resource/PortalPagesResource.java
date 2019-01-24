@@ -65,6 +65,9 @@ public class PortalPagesResource extends AbstractResource {
                 @PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page);
         if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
+            if (!isAuthenticated()) {
+                pageEntity.getMetadata().clear();
+            }
             return pageEntity;
         } else {
             throw new UnauthorizedAccessException();

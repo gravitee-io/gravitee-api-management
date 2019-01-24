@@ -30,33 +30,21 @@ import java.util.Objects;
 public class PageEntity implements Indexable {
 
 	private String id;
-
 	private String name;
-
 	private String type;
-
 	private String content;
-
 	private int order;
-
 	private String lastContributor;
-
 	private boolean published;
-
 	private Date lastModificationDate;
-
 	private String contentType;
-
 	private PageSourceEntity source;
-
 	private Map<String, String> configuration;
-
 	private boolean homepage;
-
 	private String parentId;
-
 	@JsonProperty("excluded_groups")
 	private List<String> excludedGroups;
+	private Map<String, String> metadata;
 
 	public String getId() {
 		return id;
@@ -166,6 +154,14 @@ public class PageEntity implements Indexable {
 
 	public void setParentId(String parentId) { this.parentId = parentId; }
 
+	public Map<String, String> getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(Map<String, String> metadata) {
+		this.metadata = metadata;
+	}
+
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -183,17 +179,22 @@ public class PageEntity implements Indexable {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("Page{");
-		sb.append("id='").append(id).append('\'');
-		sb.append(", name='").append(name).append('\'');
-		sb.append(", type='").append(type).append('\'');
-		sb.append(", order='").append(order).append('\'');
-		sb.append(", homepage='").append(homepage).append('\'');
-		sb.append(", lastContributor='").append(lastContributor).append('\'');
-		sb.append(", published='").append(published).append('\'');
-		sb.append(", lastModificationDate='").append(lastModificationDate).append('\'');
-		sb.append(", excludedGroups='").append(excludedGroups).append('\'');
-		sb.append('}');
-		return sb.toString();
+		return "PageEntity{" +
+				"id='" + id + '\'' +
+				", name='" + name + '\'' +
+				", type='" + type + '\'' +
+				", content='" + content + '\'' +
+				", order=" + order +
+				", lastContributor='" + lastContributor + '\'' +
+				", published=" + published +
+				", lastModificationDate=" + lastModificationDate +
+				", contentType='" + contentType + '\'' +
+				", source=" + source +
+				", configuration=" + configuration +
+				", homepage=" + homepage +
+				", parentId='" + parentId + '\'' +
+				", excludedGroups=" + excludedGroups +
+				", metadata='" + metadata + '\'' +
+				'}';
 	}
 }

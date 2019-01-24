@@ -73,6 +73,9 @@ public class ApiPageResource extends AbstractResource {
             PageEntity pageEntity = pageService.findById(page);
             if (portal) {
                 pageService.transformSwagger(pageEntity);
+                if (!isAuthenticated()) {
+                    pageEntity.getMetadata().clear();
+                }
             }
             if (isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
                 return pageEntity;
