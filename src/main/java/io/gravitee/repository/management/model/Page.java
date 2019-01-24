@@ -30,43 +30,22 @@ public class Page {
 		PAGE_CREATED, PAGE_UPDATED, PAGE_DELETED, PAGE_PUBLISHED
 	}
 
-	/**
-	 * The page ID.
-	 */
 	private String id;
-
 	private String name;
-
 	private PageType type;
-
 	private String content;
-
 	private String lastContributor;
-	
 	private int order;
-
 	private boolean published;
-
 	private PageSource source;
-
 	private Map<String, String> configuration;
-
 	private boolean homepage;
-
-	/**
-	 * The api ID.
-	 */
 	private String api;
-
 	private Date createdAt;
-
 	private Date updatedAt;
-
 	private String parentId;
-	/**
-	 * List of excluded groups
-	 */
 	private List<String> excludedGroups;
+	private Map<String, String> metadata;
 
 	public String getId() {
 		return id;
@@ -184,6 +163,14 @@ public class Page {
 
 	public void setParentId(String parentId) { this.parentId = parentId; }
 
+	public Map<String, String> getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(Map<String, String> metadata) {
+		this.metadata = metadata;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -197,23 +184,25 @@ public class Page {
 		return Objects.hash(id);
 	}
 
+	@Override
 	public String toString() {
 		return "Page{" +
 				"id='" + id + '\'' +
 				", name='" + name + '\'' +
-				", type='" + type + '\'' +
+				", type=" + type +
 				", content='" + content + '\'' +
 				", lastContributor='" + lastContributor + '\'' +
 				", order=" + order +
 				", published=" + published +
-				", api='" + api + '\'' +
 				", source=" + source +
 				", configuration=" + configuration +
 				", homepage=" + homepage +
-				", excludedGroups=" + excludedGroups +
+				", api='" + api + '\'' +
 				", createdAt=" + createdAt +
 				", updatedAt=" + updatedAt +
-				", parentId=" + parentId +
+				", parentId='" + parentId + '\'' +
+				", excludedGroups=" + excludedGroups +
+				", metadata=" + metadata +
 				'}';
 	}
 }
