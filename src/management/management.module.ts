@@ -428,7 +428,7 @@ import DialogImportPathMappingController from "./api/analytics/pathMappings/moda
 import RouterService from "../services/router.service";
 
 import MessageService from "../services/message.service";
-import MessagesComponent from "../components/messages/messages.component";
+import MessagesComponent from "./components/messages/messages.component";
 import apisMessagesRouterConfig from "./api/messages/apis.messages.route";
 
 import ApiPortalHeaderComponent from "../management/configuration/api-portal-header/api-portal-header.component";

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import {StateService} from '@uirouter/core';
-import MessageService from "../../services/message.service";
-import NotificationService from "../../services/notification.service";
+import MessageService from "../../../services/message.service";
+import NotificationService from "../../../services/notification.service";
 import _ = require('lodash');
-import ApiService from "../../services/api.service";
+import ApiService from "../../../services/api.service";
 
 const MessagesComponent: ng.IComponentOptions = {
   bindings: {
@@ -30,9 +30,7 @@ const MessagesComponent: ng.IComponentOptions = {
     $state: StateService,
     NotificationService: NotificationService,
     MessageService: MessageService,
-    ApiService: ApiService,
-    $mdEditDialog,
-    $mdDialog: angular.material.IDialogService
+    ApiService: ApiService
   ) {
     'ngInject';
 
@@ -46,27 +44,21 @@ const MessagesComponent: ng.IComponentOptions = {
       this.channel = "PORTAL";
       this.defaultHttpHeaders = ApiService.defaultHttpHeaders();
       this.httpHeaders = [];
+      this.roleValues = [];
       this.newHttpHeader();
     };
 
     this.send = () => {
-      const title = this.title;
-      const url = this.url;
-      const text = this.text;
-      const channel = this.channel;
-      const roleScope = this.resolvedScope;
-      const useSystemProxy = this.useSystemProxy;
-      const roleValues = [this.role];
       if (this.resolvedApiId) {
         MessageService
-          .sendFromApi(this.resolvedApiId, title, text, channel, roleScope, roleValues, url, useSystemProxy, this.httpHeaders)
+          .sendFromApi(this.resolvedApiId, this.title, this.text, this.channel, this.resolvedScope, this.roleValues, this.url, this.useSystemProxy, this.httpHeaders)
           .then( (response) => {
             NotificationService.show(response.data + ' messages has been sent.');
             this.resetForm();
           });
       } else {
         MessageService
-          .sendFromPortal(title, text, channel, roleScope, roleValues, url, useSystemProxy, this.httpHeaders)
+          .sendFromPortal(this.title, this.text, this.channel, this.resolvedScope, this.roleValues, this.url, this.useSystemProxy, this.httpHeaders)
           .then( (response) => {
             NotificationService.show(response.data + ' messages has been sent.');
             this.resetForm();
@@ -78,6 +70,7 @@ const MessagesComponent: ng.IComponentOptions = {
       this.title = "";
       this.url = "";
       this.text = "";
+      this.roleValues = [];
       this.httpHeaders = [];
       this.newHttpHeader();
       this.formMsg.$setPristine();
