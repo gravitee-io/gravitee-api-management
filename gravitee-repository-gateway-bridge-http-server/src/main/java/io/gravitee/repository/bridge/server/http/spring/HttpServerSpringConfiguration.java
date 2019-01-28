@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class HttpServerSpringConfiguration {
 
-    @Bean
+    @Bean("bridgeRouter")
     public Router router(Vertx vertx) {
         return Router.router(vertx);
     }
@@ -47,7 +47,7 @@ public class HttpServerSpringConfiguration {
         return vertx.createHttpServer(options);
     }
 
-    @Bean
+    @Bean("bridgeAuthProvider")
     public AuthProvider nodeAuthProvider() {
         return new BasicAuthProvider();
     }
