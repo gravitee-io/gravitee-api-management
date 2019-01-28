@@ -27,6 +27,7 @@ import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
 import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
+import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.EndpointStatusDecorator;
 import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
@@ -192,8 +193,10 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
                                     PemTrustOptions pemTrustOptions = new PemTrustOptions();
                                     if (pemTrustStore.getPath() != null && !pemTrustStore.getPath().isEmpty()) {
                                         pemTrustOptions.addCertPath(pemTrustStore.getPath());
-                                    } else {
+                                    } else if (pemTrustStore.getContent() != null && !pemTrustStore.getContent().isEmpty()) {
                                         pemTrustOptions.addCertValue(io.vertx.core.buffer.Buffer.buffer(pemTrustStore.getContent()));
+                                    } else {
+                                        throw new EndpointException("Missing PEM certificate value for endpoint " + endpoint.getName());
                                     }
                                     httpClientOptions.setPemTrustOptions(pemTrustOptions);
                                     break;
@@ -203,8 +206,10 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
                                     pfxOptions.setPassword(pkcs12TrustStore.getPassword());
                                     if (pkcs12TrustStore.getPath() != null && !pkcs12TrustStore.getPath().isEmpty()) {
                                         pfxOptions.setPath(pkcs12TrustStore.getPath());
-                                    } else {
+                                    } else if (pkcs12TrustStore.getContent() != null && !pkcs12TrustStore.getContent().isEmpty()) {
                                         pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(pkcs12TrustStore.getContent()));
+                                    } else {
+                                        throw new EndpointException("Missing PKCS12 value for endpoint " + endpoint.getName());
                                     }
                                     httpClientOptions.setPfxTrustOptions(pfxOptions);
                                     break;
@@ -214,8 +219,10 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
                                     jksOptions.setPassword(jksTrustStore.getPassword());
                                     if (jksTrustStore.getPath() != null && !jksTrustStore.getPath().isEmpty()) {
                                         jksOptions.setPath(jksTrustStore.getPath());
-                                    } else {
+                                    } else if (jksTrustStore.getContent() != null && !jksTrustStore.getContent().isEmpty()) {
                                         jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(jksTrustStore.getContent()));
+                                    } else {
+                                        throw new EndpointException("Missing JKS value for endpoint " + endpoint.getName());
                                     }
                                     httpClientOptions.setTrustStoreOptions(jksOptions);
                                     break;
@@ -394,6 +401,9 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
                 } else {
                     healthRequest.end();
                 }
+            } catch (EndpointException ee) {
+                logger.error("An error occurs while configuring the endpoint " + endpoint.getName() +
+                        ". Healthcheck is skipped for this endpoint.", ee);
             } catch (Exception ex) {
                 logger.error("An unexpected error occurs", ex);
             }
