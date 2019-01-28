@@ -220,6 +220,10 @@ alerts:
   enabled: false
   default:
     enabled: false
-    hazelcast:
-      config:
-        path: ${gravitee.home}/config/hazelcast.xml
+    # must be reachable by other nodes
+    cluster:
+      host: localhost
+      port: 0
+      hazelcast:
+        config:
+          path: ${gravitee.home}/config/hazelcast.xml
