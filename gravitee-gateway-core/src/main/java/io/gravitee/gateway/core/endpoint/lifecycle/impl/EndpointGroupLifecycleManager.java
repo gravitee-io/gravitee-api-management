@@ -19,10 +19,8 @@ import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.util.ChangeListener;
 import io.gravitee.common.util.ObservableCollection;
 import io.gravitee.common.util.ObservableSet;
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.LoadBalancer;
+import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.lb.LoadBalancerStrategy;
 import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
 import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
@@ -104,6 +102,19 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
         endpoints
                 .stream()
                 .filter(filter())
+                .peek(endpoint -> {
+                    if (endpoint instanceof HttpEndpoint) {
+                        final HttpEndpoint httpEndpoint = ((HttpEndpoint) endpoint);
+                        final boolean inherit = endpoint.getInherit() != null && endpoint.getInherit();
+                        // inherit or discovered endpoints
+                        if (inherit || httpEndpoint.getHttpClientOptions() == null) {
+                            httpEndpoint.setHttpClientOptions(group.getHttpClientOptions());
+                            httpEndpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
+                            httpEndpoint.setHttpProxy(group.getHttpProxy());
+                            httpEndpoint.setHeaders(group.getHeaders());
+                        }
+                    }
+                })
                 .forEach(this::start);
     }
 

@@ -53,6 +53,19 @@ public class EndpointHealthcheckResolver {
         Stream<HttpEndpoint> httpEndpoints = api.getProxy().getGroups()
                 .stream()
                 .filter(group -> group.getEndpoints() != null)
+                .peek(group -> group.getEndpoints().forEach(endpoint -> {
+                    if (endpoint instanceof HttpEndpoint) {
+                        final HttpEndpoint httpEndpoint = ((HttpEndpoint) endpoint);
+                        final boolean inherit = endpoint.getInherit() != null && endpoint.getInherit();
+                        // inherit or discovered endpoints
+                        if (inherit || httpEndpoint.getHttpClientOptions() == null) {
+                            httpEndpoint.setHttpClientOptions(group.getHttpClientOptions());
+                            httpEndpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
+                            httpEndpoint.setHttpProxy(group.getHttpProxy());
+                            httpEndpoint.setHeaders(group.getHeaders());
+                        }
+                    }
+                }))
                 .flatMap(group -> group.getEndpoints().stream())
                 .filter(endpoint -> endpoint.getType() == EndpointType.HTTP)
                 .map(endpoint -> (HttpEndpoint) endpoint);
