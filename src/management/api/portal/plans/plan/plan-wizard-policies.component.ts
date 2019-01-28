@@ -13,19 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
 import PolicyService from "../../../../../services/policy.service";
 import ApiEditPlanController from "./edit-plan.controller";
-
-class Policy {
-  id: string;
-  title: string;
-  description: string;
-  enable?: boolean = false;
-  schema?: string;
-  model?: object;
-  form?: ng.IFormController;
-}
 
 const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
   require: {
@@ -33,81 +22,144 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
   },
   template: require("./plan-wizard-policies.html"),
   controller: class {
-    private policies: Policy[];
-    private methods: string[] = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS', 'TRACE', 'CONNECT'];
     private parent: ApiEditPlanController;
+    private selectedPolicy: any;
+    private editablePolicy: any;
+
+    private policyDefinition: any;
+    private policySchema: any;
 
     constructor(
+      private $mdDialog: angular.material.IDialogService,
       private PolicyService: PolicyService) {
       'ngInject';
 
-      this.policies = [
-        {
-          id: 'rate-limit', title: 'Rate-Limiting',
-          description: 'Rate limit how many HTTP requests an application can make in a given period of seconds or minutes'
-        }, {
-          id: 'quota', title: 'Quota',
-          description: 'Rate limit how many HTTP requests an application can make in a given period of hours, days or months'
-        }, {
-          id: 'resource-filtering', title: 'Path Authorization',
-          description: 'Restrict paths according to whitelist and / or blacklist rules'
-        }
-      ];
     }
 
-    $onInit() {
-      if (!this.parent.plan.paths || !this.parent.plan.paths['/']) {
-        this.parent.plan.paths = {'/': []};
+    addPolicy() {
+      this.editablePolicy = null;
+      let policySchema = this.parent.policies.find( policy => policy.id === this.selectedPolicy);
+
+      // Configure the policy with default values
+      let policy = {
+        id: policySchema.id,
+        name: policySchema.name,
+        enabled: true,
+        description: policySchema.description
+      };
+
+      let idx = this.parent.planPolicies.push(policy);
+
+      // Restore selected policy to empty
+      this.selectedPolicy = null;
+      this.editPolicy(idx-1);
+    }
+
+    getPolicyClass(policy) {
+      const classes = [];
+      const selected = this.editablePolicy && this.editablePolicy.$$hashKey === policy.$$hashKey;
+      if (selected) {
+        classes.push("gravitee-policy-card-selected");
       }
 
-      _.each(this.policies, policy => {
-        this.PolicyService.getSchema(policy.id).then(schema => {
-          policy.schema = schema.data;
+      if (!selected && ! policy.enabled) {
+        classes.push("gravitee-policy-card-disabled");
+      }
 
-          let pathPolicy = _.find(this.parent.plan.paths['/'], function(pathPolicy) {
-            return pathPolicy[policy.id] != undefined;
-          });
+      if (!policy.name) {
+        classes.push("gravitee-policy-card-missed");
+      }
+      return classes.join(' ');
+    }
 
-          if (pathPolicy && pathPolicy[policy.id]) {
-            policy.enable = true;
-            policy.model = pathPolicy[policy.id];
-          } else {
-            policy.model = {};
+    editPolicy(index, ev?:any) {
+      if (ev) {
+        ev.stopPropagation();
+      }
+
+      // Manage unselect
+      if (this.editablePolicy === this.parent.planPolicies[index]) {
+        this.editablePolicy = null;
+      } else {
+        this.editablePolicy = this.parent.planPolicies[index];
+
+        let model = this.editablePolicy && this.editablePolicy[this.editablePolicy.id];
+
+        this.policyDefinition = (model) ? model : {};
+        this.editablePolicy[this.editablePolicy.id] = this.policyDefinition;
+
+        this.PolicyService.getSchema(this.editablePolicy.id).then(schema => {
+          this.policySchema = schema.data;
+
+          if (!this.policySchema || Object.keys(this.policySchema).length === 0) {
+            this.policySchema = {
+              "type": "object",
+              "id": "empty",
+              "properties": {"": {}}
+            };
           }
         });
+      }
+    }
+
+    editPolicyDescription(index, path, ev) {
+      ev.stopPropagation();
+      this.editablePolicy = null;
+
+      const policy = this.parent.planPolicies[index];
+
+      this.$mdDialog.show({
+        controller: 'DialogEditPolicyController',
+        controllerAs: 'editPolicyDialogCtrl',
+        template: require('../../../design/policies/dialog/policy.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          description: policy.description
+        }
+      }).then(description => policy.description = description, () => {});
+    }
+
+    removePolicy(index, path, ev) {
+      ev.stopPropagation();
+      let that = this;
+      this.$mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to remove this policy ?',
+          confirmButton: 'Remove'
+        }
+      }).then(function (response) {
+        if (response) {
+          that.editablePolicy = null;
+          that.parent.planPolicies.splice(index, 1);
+        }
       });
     }
 
-    validate() {
-      return ! _.find(this.policies, policy => {
-        return policy.enable && policy.form && policy.form.$invalid;
-      });
+    switchPolicyEnabled(index, path, ev) {
+      ev.stopPropagation();
+      this.editablePolicy = null;
+
+      const policy = this.parent.planPolicies[index];
+      policy.enabled = !policy.enabled;
     }
 
     gotoNextStep() {
-      let root = this.parent.plan.paths['/'];
-      root.length = 0;
+      // Clean policy definition from plan policies
+      let policies = JSON.parse(JSON.stringify(this.parent.planPolicies));
+      policies.forEach(policy => {
+        delete policy.$$hashKey;
+        delete policy.id;
+        delete policy.name;
+      });
 
-      _(this.policies)
-        .filter(policy => policy.enable)
-        .map(policy => {
-          let p = {
-            methods: this.methods,
-            enable: true
-          };
-          p[policy.id] = policy.model;
-
-          return p;
-        })
-        .each(policy => root.push(policy));
-
+      this.parent.plan.paths['/'] = this.parent.restrictionsPolicies.concat(policies);
       this.parent.saveOrUpdate();
     };
   }
 };
-
-
-
-
 
 export default ApiPlanWizardPoliciesComponent;

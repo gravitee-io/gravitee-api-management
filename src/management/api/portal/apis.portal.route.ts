@@ -19,6 +19,7 @@ import GroupService from '../../../services/group.service';
 import DocumentationService, {DocumentationQuery} from "../../../services/documentation.service";
 import {StateParams} from '@uirouter/core';
 import FetcherService from "../../../services/fetcher.service";
+import PolicyService from "../../../services/policy.service";
 
 export default apisPortalRouterConfig;
 
@@ -81,7 +82,8 @@ function apisPortalRouterConfig($stateProvider) {
       url: '/new',
       component: 'editPlan',
       resolve: {
-        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data)
+        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
+        policies: (PolicyService: PolicyService) => PolicyService.list().then(response => response.data)
       },
       data: {
         perms: {
@@ -98,7 +100,8 @@ function apisPortalRouterConfig($stateProvider) {
       resolve: {
         plan: ($stateParams, ApiService: ApiService) =>
           ApiService.getApiPlan($stateParams.apiId, $stateParams.planId).then(response => response.data),
-        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data)
+        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
+        policies: (PolicyService: PolicyService) => PolicyService.list().then(response => response.data)
       },
       data: {
         perms: {

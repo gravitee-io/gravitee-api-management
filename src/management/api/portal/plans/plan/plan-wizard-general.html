@@ -27,8 +27,8 @@
               <label>Name</label>
               <input ng-model="$ctrl.parent.plan.name" type="text" required name="name"
                      md-maxlength="50">
-              <div class="hint" ng-if="planGeneralForm.name.$valid || planGeneralForm.name.$pristine">Plan name</div>
-              <div ng-messages="planGeneralForm.name.$error">
+              <div class="hint" ng-if="$ctrl.planGeneralForm.name.$valid || $ctrl.planGeneralForm.name.$pristine">Plan name</div>
+              <div ng-messages="$ctrl.planGeneralForm.name.$error">
                 <div ng-message="required">Name is required.</div>
                 <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
               </div>
@@ -39,10 +39,10 @@
             <md-input-container class="md-block" flex-gt-sm>
               <label>Description</label>
               <input ng-model="$ctrl.parent.plan.description" type="text" required name="description">
-              <div class="hint" ng-if="planGeneralForm.description.$valid || planGeneralForm.description.$pristine">
+              <div class="hint" ng-if="$ctrl.planGeneralForm.description.$valid || $ctrl.planGeneralForm.description.$pristine">
                 Provide a description of your plan, what it does, ...
               </div>
-              <div ng-messages="planGeneralForm.description.$error">
+              <div ng-messages="$ctrl.planGeneralForm.description.$error">
                 <div ng-message="required">Description is required.</div>
               </div>
             </md-input-container>
@@ -52,7 +52,7 @@
             <div class="md-block" flex-gt-sm>
               <label>Characteristics</label>
               <md-chips ng-model="$ctrl.parent.plan.characteristics" placeholder="Enter a characteristic"
-                        secondary-placeholder="+Characteristic" ng-click="planGeneralForm.$setDirty()"></md-chips>
+                        secondary-placeholder="+Characteristic" ng-click="$ctrl.planGeneralForm.$setDirty()"></md-chips>
             </div>
           </div>
 
@@ -102,11 +102,12 @@
 
       <br />
 
-      <md-step-actions>
-        <div layout="row" flex layout-align="end top">
+      <md-step-actions layout="row">
+        <div flex layout="row" layout-align="end top">
           <md-button ng-disabled="$ctrl.planGeneralForm.$invalid" ng-click="$ctrl.gotoNextStep()">NEXT</md-button>
         </div>
       </md-step-actions>
+
     </md-content>
   </md-step-body>
 </md-step>

@@ -17,7 +17,8 @@ const ApiEditPlanComponent: ng.IComponentOptions = {
   bindings: {
     api: '<',
     plan: '<',
-    groups: '<'
+    groups: '<',
+    policies: '<'
   },
   controller: 'ApiEditPlanController',
   template: require('./edit-plan.html')

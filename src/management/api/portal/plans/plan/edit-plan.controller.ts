@@ -16,13 +16,17 @@
 import _ = require('lodash');
 import ApiService from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
-import { StateService } from '@uirouter/core';
+import {StateService} from '@uirouter/core';
 
 class ApiEditPlanController {
 
   plan: any;
   groups: any[];
   api: any;
+  policies: any[];
+
+  restrictionsPolicies: any[];
+  planPolicies: any[];
 
   vm: {
     selectedStep: number;
@@ -37,6 +41,9 @@ class ApiEditPlanController {
       data: any
     }[]
   };
+
+  invalidPolicies = ['api-key', 'oauth2', 'jwt', 'rate-limit', 'quota', 'resource-filtering', 'xslt', 'xml-json',
+    'rest-to-json', 'json-to-json', 'html-json', 'policy-assign-content'];
 
   constructor(
     private $scope,
@@ -65,6 +72,30 @@ class ApiEditPlanController {
   $onInit() {
     if (!this.plan) {
       this.plan = {characteristics: []};
+    }
+
+    if (!this.plan.paths || !this.plan.paths['/']) {
+      this.plan.paths = {'/': []};
+    }
+
+    this.planPolicies = this.plan.paths['/'];
+
+    // Remove some policies from the "plan" policies scope
+    _.remove(this.policies, (policy) => this.invalidPolicies.indexOf(policy.id) !== -1);
+
+    // Add policy metadata
+    if (this.planPolicies) {
+      this.planPolicies.forEach(policy => {
+        _.forEach(policy, (value, property) => {
+          if (property !== "methods" && property !== "enabled" && property !== "description" && property !== "$$hashKey") {
+            policy.id = property;
+            let policyDef = this.policies.find(policyDef => policyDef.id === policy.id);
+            if (policyDef) {
+              policy.name = policyDef.name;
+            }
+          }
+        });
+      });
     }
 
     if (this.api.visibility === 'private') {
