@@ -49,8 +49,7 @@
           <md-input-container ng-if="$ctrl.metadata.format === 'date'" flex>
             <label>Default value</label>
             <md-datepicker ng-model="$ctrl.metadata.value" gv-metadata-format="$ctrl.metadata.format"
-                           ng-pattern="pattern" gv-metadata-validator></md-datepicker>
-
+                           ng-pattern="pattern"></md-datepicker>
           </md-input-container>
           <md-input-container ng-if="$ctrl.metadata.format !== 'boolean' && $ctrl.metadata.format !== 'date'" flex>
             <label>Default value</label>
