@@ -77,6 +77,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider<Securi
         // set up LDAP mapper
         UserDetailsContextPropertiesMapper userDetailsContextPropertiesMapper = new UserDetailsContextPropertiesMapper();
         userDetailsContextPropertiesMapper.setEnvironment(environment);
+        userDetailsContextPropertiesMapper.afterPropertiesSet();
         ldapAuthenticationProviderConfigurer.userDetailsContextMapper(userDetailsContextPropertiesMapper);
 
         return ldapAuthenticationProviderConfigurer;

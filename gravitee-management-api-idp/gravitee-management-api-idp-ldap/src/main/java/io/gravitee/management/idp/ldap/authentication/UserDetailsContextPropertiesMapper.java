@@ -16,6 +16,7 @@
 package io.gravitee.management.idp.ldap.authentication;
 
 import io.gravitee.management.idp.ldap.LdapIdentityProvider;
+import io.gravitee.management.idp.ldap.utils.LdapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,18 +34,37 @@ import java.util.List;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class UserDetailsContextPropertiesMapper implements UserDetailsContextMapper {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsContextPropertiesMapper.class);
 
+	private final static String LDAP_ATTRIBUTE_UID = "uid";
 	private final static String LDAP_ATTRIBUTE_FIRSTNAME = "givenName";
 	private final static String LDAP_ATTRIBUTE_LASTNAME = "sn";
 	private final static String LDAP_ATTRIBUTE_MAIL = "mail";
 
 	private Environment environment;
+
+	private String identifierAttribute;
+
+	public void afterPropertiesSet() throws Exception {
+		String searchFilter = environment.getProperty("user-search-filter");
+
+		if (searchFilter != null) {
+			// Search filter can be uid={0} or mail={0}
+			identifierAttribute = LdapUtils.extractAttribute(searchFilter);
+		} else {
+			// Use the DN pattern to filter
+			identifierAttribute = LdapUtils.extractAttribute(environment.getProperty("user-dn-pattern"));
+		}
+
+		if (identifierAttribute == null) {
+			identifierAttribute = LDAP_ATTRIBUTE_UID;
+		}
+	}
 
 	@Override
 	public UserDetails mapUserFromContext(DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
@@ -62,7 +82,7 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 
 		io.gravitee.management.idp.api.authentication.UserDetails userDetails =
 				new io.gravitee.management.idp.api.authentication.UserDetails(
-						username, "", mappedAuthorities);
+						ctx.getStringAttribute(identifierAttribute), "", mappedAuthorities);
 
 		userDetails.setFirstname(ctx.getStringAttribute(LDAP_ATTRIBUTE_FIRSTNAME));
 		userDetails.setLastname(ctx.getStringAttribute(LDAP_ATTRIBUTE_LASTNAME));

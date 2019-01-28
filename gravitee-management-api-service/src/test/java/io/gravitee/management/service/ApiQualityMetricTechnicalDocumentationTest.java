@@ -51,7 +51,7 @@ public class ApiQualityMetricTechnicalDocumentationTest {
         PageListItem item = mock(PageListItem.class);
         when(item.isPublished()).thenReturn(Boolean.TRUE);
         when(item.getType()).thenReturn(PageType.SWAGGER);
-        when(mockPageService.findApiPagesByApi(API_ID)).thenReturn(Collections.singletonList(item));
+        when(mockPageService.findApiPagesByApiAndHomepage(API_ID, null, Boolean.TRUE)).thenReturn(Collections.singletonList(item));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
@@ -65,7 +65,7 @@ public class ApiQualityMetricTechnicalDocumentationTest {
         PageListItem item = mock(PageListItem.class);
         when(item.isPublished()).thenReturn(Boolean.FALSE);
         when(item.getType()).thenReturn(PageType.SWAGGER);
-        when(mockPageService.findApiPagesByApi(API_ID)).thenReturn(Collections.singletonList(item));
+        when(mockPageService.findApiPagesByApiAndHomepage(API_ID, null, Boolean.TRUE)).thenReturn(Collections.singletonList(item));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
@@ -79,7 +79,7 @@ public class ApiQualityMetricTechnicalDocumentationTest {
         PageListItem item = mock(PageListItem.class);
         when(item.isPublished()).thenReturn(Boolean.TRUE);
         when(item.getType()).thenReturn(PageType.MARKDOWN);
-        when(mockPageService.findApiPagesByApi(API_ID)).thenReturn(Collections.singletonList(item));
+        when(mockPageService.findApiPagesByApiAndHomepage(API_ID, null, Boolean.TRUE)).thenReturn(Collections.singletonList(item));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
@@ -90,7 +90,7 @@ public class ApiQualityMetricTechnicalDocumentationTest {
 
     @Test
     public void shouldNotBeValidWithEmptyList() {
-        when(mockPageService.findApiPagesByApi(API_ID)).thenReturn(Collections.emptyList());
+        when(mockPageService.findApiPagesByApiAndHomepage(API_ID, null, Boolean.TRUE)).thenReturn(Collections.emptyList());
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
