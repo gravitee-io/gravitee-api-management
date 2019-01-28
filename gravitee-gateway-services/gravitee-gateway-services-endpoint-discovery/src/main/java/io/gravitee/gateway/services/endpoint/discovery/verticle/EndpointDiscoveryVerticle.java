@@ -20,7 +20,6 @@ import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.HttpClientOptions;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.discovery.api.ServiceDiscovery;
 import io.gravitee.discovery.api.event.Handler;
@@ -136,7 +135,6 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
                             endpoints = new HashSet<>();
                         }
                         DiscoveredEndpoint endpoint = createEndpoint(event.service());
-
                         switch (event.type()) {
                             case REGISTER:
                                 endpoints.add(endpoint);
@@ -161,8 +159,6 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
         DiscoveredEndpoint endpoint = new DiscoveredEndpoint(
                 "sd:" + service.id(),
                 scheme + "://" + service.host() + ':' + service.port());
-        endpoint.setHttpClientOptions(new HttpClientOptions());
-
         return endpoint;
     }
 }
