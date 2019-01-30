@@ -54,12 +54,14 @@ public class BridgeService  extends AbstractService {
     private io.vertx.core.http.HttpServer httpServer;
 
     @Autowired
+    @Qualifier("bridgeRouter")
     private Router bridgeRouter;
 
     @Autowired
     private Vertx vertx;
 
     @Autowired
+    @Qualifier("bridgeAuthProvider")
     private AuthProvider authProvider;
 
     @Autowired
