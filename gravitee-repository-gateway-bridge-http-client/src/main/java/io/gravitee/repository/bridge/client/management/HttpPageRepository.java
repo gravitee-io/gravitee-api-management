@@ -17,10 +17,12 @@ package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -51,29 +53,10 @@ public class HttpPageRepository extends AbstractRepository implements PageReposi
     }
 
     @Override
-    public Collection<Page> findApiPageByApiIdAndHomepage(String apiId, boolean isHomepage) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Collection<Page> findApiPageByApiId(String apiId) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
     public Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException {
         throw new IllegalStateException();
     }
 
-    @Override
-    public Collection<Page> findPortalPageByHomepage(boolean isHomepage) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Collection<Page> findPortalPages() throws TechnicalException {
-        throw new IllegalStateException();
-    }
 
     @Override
     public Integer findMaxPortalPageOrder() throws TechnicalException {
@@ -81,7 +64,7 @@ public class HttpPageRepository extends AbstractRepository implements PageReposi
     }
 
     @Override
-    public void removeAllFolderParentWith(String parentId, String apiId) throws TechnicalException {
+    public List<Page> search(PageCriteria pageCriteria) throws TechnicalException {
         throw new IllegalStateException();
     }
 }
