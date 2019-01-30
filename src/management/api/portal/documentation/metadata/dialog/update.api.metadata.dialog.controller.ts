@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import ApiService from '../../../../../../services/api.service';
 function UpdateApiMetadataDialogController(ApiService: ApiService, $mdDialog: angular.material.IDialogService,
                                            apiMetadata, api, metadataFormats) {
@@ -22,7 +21,7 @@ function UpdateApiMetadataDialogController(ApiService: ApiService, $mdDialog: an
   this.api = api;
   this.metadata = apiMetadata;
   if ('date' === this.metadata.format) {
-    this.metadata.value = new Date(this.metadata.value);
+    this.metadata.value = this.metadata.value ? new Date(this.metadata.value) : null;
     this.metadata.defaultValue = new Date(this.metadata.defaultValue);
   }
   this.metadataFormats = metadataFormats;
