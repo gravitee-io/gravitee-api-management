@@ -236,6 +236,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 // Configuration Tenants
                 .antMatchers(HttpMethod.GET, "/configuration/tenants/**").permitAll()
 
+                // Configuration role scopes
+                .antMatchers(HttpMethod.GET, "/configuration/rolescopes/**").permitAll()
+
                 // Configuration
                 .antMatchers("/configuration/**").authenticated()
 
@@ -248,6 +251,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                 // Search
                 .antMatchers(HttpMethod.GET, "/search/users").authenticated()
+
+                // Entrypoints
+                .antMatchers(HttpMethod.GET, "/entrypoints/**").permitAll()
 
                 .anyRequest().authenticated().and();
     }

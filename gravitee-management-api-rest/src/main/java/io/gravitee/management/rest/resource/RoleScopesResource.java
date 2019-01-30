@@ -16,9 +16,10 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.permissions.*;
-import io.gravitee.management.rest.security.Permission;
-import io.gravitee.management.rest.security.Permissions;
+import io.gravitee.management.model.permissions.ApiPermission;
+import io.gravitee.management.model.permissions.ApplicationPermission;
+import io.gravitee.management.model.permissions.ManagementPermission;
+import io.gravitee.management.model.permissions.PortalPermission;
 import io.gravitee.repository.management.model.RoleScope;
 import io.swagger.annotations.Api;
 
@@ -46,9 +47,6 @@ public class RoleScopesResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.MANAGEMENT_ROLE, acls = RolePermissionAction.READ)
-    })
     public Map<String, List<String>> list()  {
         final Map<String, List<String>> roles = new LinkedHashMap<>(4);
         roles.put(RoleScope.MANAGEMENT.name(), stream(ManagementPermission.values()).map(ManagementPermission::getName).sorted().collect(toList()));
