@@ -358,7 +358,8 @@ public class SyncManager {
             // Deploy only published plan
             definition.setPlans(planRepository.findByApi(definition.getId())
                     .stream()
-                    .filter(plan -> plan.getStatus() == io.gravitee.repository.management.model.Plan.Status.PUBLISHED)
+                    .filter(plan -> io.gravitee.repository.management.model.Plan.Status.PUBLISHED.equals(plan.getStatus())
+                                 || io.gravitee.repository.management.model.Plan.Status.DEPRECATED.equals(plan.getStatus()))
                     .map(this::convert)
                     .collect(Collectors.toList()));
         } catch (TechnicalException te) {
