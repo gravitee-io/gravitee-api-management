@@ -20,14 +20,13 @@ class ApiEndpointGroupController {
   private api: any;
   private group: any;
   private initialGroups: any;
-  private initialGroup: any;
   private discovery: any;
-  private initialDiscovery: any;
   private creation: boolean = false;
 
   private serviceDiscoveryJsonSchemaForm: string[];
   private types: any[];
   private serviceDiscoveryJsonSchema: any;
+  private serviceDiscoveryConfigurationForm: any;
 
   constructor (
     private ApiService,
@@ -37,12 +36,15 @@ class ApiEndpointGroupController {
     private $rootScope,
     private resolvedServicesDiscovery,
     private $state,
-    private $stateParams
+    private $stateParams,
+    private $timeout
   ) {
     'ngInject';
+  }
 
+  $onInit() {
     this.api = this.$scope.$parent.apiCtrl.api;
-    this.group = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
+    this.group = _.find(this.api.proxy.groups, { 'name': this.$stateParams.groupName});
 
     // Creation mode
     if (!this.group) {
@@ -50,17 +52,13 @@ class ApiEndpointGroupController {
       this.creation = true;
     }
 
-    this.serviceDiscoveryJsonSchemaForm = ["*"];
+    this.serviceDiscoveryJsonSchemaForm = ['*'];
 
-    this.types = resolvedServicesDiscovery.data;
+    this.types = this.resolvedServicesDiscovery.data;
 
     this.discovery = this.group.services && this.group.services['discovery'];
     this.discovery = this.discovery || {enabled: false, configuration: {}};
-    this.initialDiscovery = _.cloneDeep(this.discovery);
     this.initialGroups = _.cloneDeep(this.api.proxy.groups);
-
-    // Keep the initial state in case of form reset
-    this.initialGroup = _.cloneDeep(this.group);
 
     this.$scope.lbs = [
       {
@@ -77,6 +75,12 @@ class ApiEndpointGroupController {
         value: 'WEIGHTED_RANDOM'
       }];
 
+    if (!this.group.load_balancing) {
+      this.group.load_balancing = {
+        type: this.$scope.lbs[0].value
+      }
+    }
+
     this.retrievePluginSchema();
   }
 
@@ -90,9 +94,6 @@ class ApiEndpointGroupController {
     if (this.discovery.provider !== undefined) {
       this.ServiceDiscoveryService.getSchema(this.discovery.provider).then(({data}) => {
           this.serviceDiscoveryJsonSchema = data;
-          return {
-            schema: data
-          };
         },
         (response) => {
           if (response.status === 404) {
@@ -121,6 +122,20 @@ class ApiEndpointGroupController {
         api.proxy.groups.push(this.group);
       }
     }
+    if (this.group.ssl.trustAll) {
+      delete this.group.ssl.trustStore;
+    }
+    if (this.group.ssl.trustStore && (!this.group.ssl.trustStore.type || this.group.ssl.trustStore.type === '')) {
+      delete this.group.ssl.trustStore;
+    }
+    if (this.group.ssl.keyStore && (!this.group.ssl.keyStore.type || this.group.ssl.keyStore.type === '')) {
+      delete this.group.ssl.keyStore;
+    }
+    if (this.group.headers.length > 0) {
+      this.group.headers = _.mapValues(_.keyBy(this.group.headers, 'name'), 'value');
+    } else {
+      delete this.group.headers;
+    }
 
     this.ApiService.update(api).then((updatedApi) => {
       this.api = updatedApi.data;
@@ -137,8 +152,7 @@ class ApiEndpointGroupController {
   }
 
   reset() {
-    this.$scope.formGroup.$setPristine();
-    this.group = _.cloneDeep(this.initialGroup);
+    this.$state.reload();
   }
 
   backToEndpointsConfiguration() {

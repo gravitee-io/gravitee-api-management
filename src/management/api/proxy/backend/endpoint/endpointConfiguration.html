@@ -23,462 +23,67 @@
       <a ng-click="endpointCtrl.backToEndpointsConfiguration()">Back to endpoints configuration</a>
     </div>
 
-    <div class="gv-form">
-      <h2></h2>
-      <div class="gv-form-content" layout="column">
-
-  <section>
-    <md-subheader>General</md-subheader>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <md-input-container flex="30">
-        <label>Name</label>
-        <input ng-model="endpointCtrl.endpoint.name" type="text" required>
-      </md-input-container>
-      <md-input-container flex="30">
-        <label>Target</label>
-        <input ng-model="endpointCtrl.endpoint.target" type="text" required>
-      </md-input-container>
-      <md-input-container flex="30">
-        <label>Weight</label>
-        <input ng-model="endpointCtrl.endpoint.weight" type="number" min="1" max="99">
-      </md-input-container>
-    </div>
-
-    <div layout="column">
-      <md-input-container class="flex">
-        <label>Tenants</label>
-        <md-select ng-model="endpointCtrl.endpoint.tenants" multiple>
-          <md-option ng-repeat="tenant in endpointCtrl.tenants" ng-value="tenant.id">
-            {{tenant.name}}<span ng-if="tenant.description" class="gravitee-general-description"> - {{tenant.description}}</span>
-          </md-option>
-        </md-select>
-      </md-input-container>
-    </div>
-  </section>
-
-  <br />
-
-  <section ng-if="endpointCtrl.creation === false">
-    <md-subheader>
-      Health-check
-      <ng-md-icon icon="settings" ui-sref="management.apis.detail.proxy.endpointhc({groupName: groupName, endpointName: endpointCtrl.endpoint.name})"></ng-md-icon>
-    </md-subheader>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <div flex-xs flex="50">
-        <div layout-xs="column" flex-xs="100">
+    <md-tabs md-dynamic-height>
+      <md-tab>
+        <md-tab-label>General</md-tab-label>
+        <md-tab-body>
+          <h3></h3>
+          <div layout="column" layout-wrap layout-gt-sm="row">
+            <md-input-container flex="30">
+              <label>Name</label>
+              <input ng-model="endpointCtrl.endpoint.name" type="text" required>
+            </md-input-container>
+            <md-input-container flex="30">
+              <label>Target</label>
+              <input ng-model="endpointCtrl.endpoint.target" type="text" required>
+            </md-input-container>
+            <md-input-container flex="30">
+              <label>Weight</label>
+              <input ng-model="endpointCtrl.endpoint.weight" type="number" min="1" max="99">
+            </md-input-container>
+            <md-input-container class="flex">
+              <label>Tenants</label>
+              <md-select ng-model="endpointCtrl.endpoint.tenants" multiple>
+                <md-option ng-repeat="tenant in endpointCtrl.tenants" ng-value="tenant.id">
+                  {{tenant.name}}<span ng-if="tenant.description" class="gravitee-general-description"> - {{tenant.description}}</span>
+                </md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+          <section ng-if="endpointCtrl.creation === false">
+            <md-subheader>
+              Health-check
+              <ng-md-icon icon="settings" ui-sref="management.apis.detail.proxy.endpointhc({groupName: groupName, endpointName: endpointCtrl.endpoint.name})"></ng-md-icon>
+            </md-subheader>
+          </section>
           <md-checkbox
             ng-model="endpointCtrl.endpoint.backup"
             aria-label="Backup endpoint"
             class="md-align-top-left" flex>
             Backup endpoint<br/>
-                  <span class="ipsum">
-                    A "backup" endpoint is not included in the load-balancing algorithm, meaning that an incoming HTTP
-                    request is never transmitted to the endpoint.
-                  </span>
-          </md-checkbox>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <br/>
-
-        <section>
-          <md-subheader>
-            HTTP Request
-            <div class="hints">Default configuration of HTTP requests emitted by the API gateway to upstream</div>
-          </md-subheader>
-          <div layout="column" layout-wrap layout-gt-sm="row">
-            <div layout="column" layout-sm="column">
-              <h5 style="color: grey;">
-                <span>Headers</span>
-                <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5;" aria-label="Add HTTP header" ng-click="endpointCtrl.addHTTPHeader()">Add headers</ng-md-icon>
-              </h5>
-              <div layout="row" layout-sm="column" layout-align="center center" ng-repeat="header in endpointCtrl.endpoint.headers">
-                <ng-md-icon icon="remove_circle_outline" style="fill: #b1bdc5;" aria-label="Delete header" ng-click="endpointCtrl.removeHTTPHeader($index)"></ng-md-icon>
-
-                <div flex="5" hide-xs hide-sm>
-                  <!-- Spacer //-->
-                </div>
-
-                <md-input-container flex-gt-sm>
-                  <input aria-label="Header name" ng-model="header.name" type="text" placeholder="Header name" ng-required="true">
-                </md-input-container>
-
-                <div flex="5" hide-xs hide-sm>
-                  <!-- Spacer //-->
-                </div>
-
-                <md-input-container flex-gt-sm>
-                  <input aria-label="Header value" ng-model="header.value" type="text" placeholder="Header value" ng-required="true">
-                </md-input-container>
-              </div>
-            </div>
-          </div>
-        </section>
-
-  <br/>
-
-  <section>
-    <md-subheader>HTTP Configuration</md-subheader>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <div flex-xs flex="50">
-        <md-input-container flex-xs flex="50">
-          <label>Connect timeout (ms)</label>
-          <input ng-model="endpointCtrl.endpoint.http.connectTimeout" type="number" required min="0">
-        </md-input-container>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container flex-xs flex="50">
-          <label>Read timeout (ms)</label>
-          <input ng-model="endpointCtrl.endpoint.http.readTimeout" type="number" required min="0">
-        </md-input-container>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container flex-xs flex="50">
-          <label>Idle timeout (ms)</label>
-          <input ng-model="endpointCtrl.endpoint.http.idleTimeout" type="number" required min="0">
-        </md-input-container>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container flex-xs flex="50">
-          <label>Max concurrent connections</label>
-          <input ng-model="endpointCtrl.endpoint.http.maxConcurrentConnections" type="number" required min="10">
-        </md-input-container>
-      </div>
-    </div>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <div flex-xs flex="50">
-        <div layout-xs="column" flex-xs="50">
-          <md-checkbox
-            ng-model="endpointCtrl.endpoint.http.keepAlive"
-            aria-label="Enable keep-alive"
-            class="md-align-top-left" flex>
-            Enable keep-alive<br/>
-                          <span class="ipsum">
-                            Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
-                          </span>
-          </md-checkbox>
-        </div>
-        <div layout-xs="column" flex-xs="50">
-          <md-checkbox
-            ng-model="endpointCtrl.endpoint.http.pipelining"
-            aria-label="HTTP pipe-lining"
-            class="md-align-top-left" flex>
-            HTTP pipe-lining<br/>
-                          <span class="ipsum">
-                            When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.
-                          </span>
-          </md-checkbox>
-        </div>
-        <div layout-xs="column" flex-xs="50">
-          <md-checkbox
-            ng-model="endpointCtrl.endpoint.http.useCompression"
-            aria-label="Enables compression"
-            class="md-align-top-left" flex>
-            Enables compression (gzip, deflate)<br/>
-                          <span class="ipsum">
-                            The gateway can let the remote http server know that it supports compression, and will be able to handle compressed response bodies.
-                          </span>
-          </md-checkbox>
-        </div>
-
-        <div layout-xs="column" flex-xs="50">
-          <md-checkbox
-            ng-model="endpointCtrl.endpoint.http.followRedirects"
-            aria-label="Enables follow HTTP redirections"
-            class="md-align-top-left" flex>
-            Follow HTTP redirections<br/>
             <span class="ipsum">
-              when the client receives an <code>301</code>, <code>302</code>, <code>303</code> or <code>307</code> status code,
-              it follows the redirection provided by the <code>Location</code> response header
-            </span>
+                      A "backup" endpoint is not included in the load-balancing algorithm, meaning that an incoming HTTP
+                      request is never transmitted to the endpoint.
+                    </span>
           </md-checkbox>
-        </div>
-      </div>
-    </div>
-  </section>
+        </md-tab-body>
+      </md-tab>
 
-  <br />
-
-  <section>
-    <md-subheader>
-      <md-checkbox
-        ng-model="endpointCtrl.endpoint.proxy.enabled"
-        aria-label="Enable proxy" flex>
-        <div ng-switch on="endpointCtrl.endpoint.proxy.enabled">
-          HTTP Proxy
-          <span class="proxy-activated" ng-switch-when="true">(active)</span>
-          <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
-          <span class="proxy-deactivated" ng-switch-default>(not active)</span>
-        </div>
-        <div class="hints">Use proxy for client connections</div>
-      </md-checkbox>
-    </md-subheader>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Proxy type</label>
-          <md-select ng-model="endpointCtrl.endpoint.proxy.type" ng-required="endpointCtrl.endpoint.proxy.enabled" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
-            <md-option ng-repeat="proxy in proxies" value="{{proxy.value}}">
-              {{proxy.name}}
-            </md-option>
-          </md-select>
-          <div class="hint">Type of the TCP proxy server</div>
-        </md-input-container>
-      </div>
-    </div>
-    <div layout="column" layout-wrap layout-gt-sm="row">
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Host</label>
-          <input ng-model="endpointCtrl.endpoint.proxy.host" type="text" ng-required="endpointCtrl.endpoint.proxy.enabled" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
-          <div class="hint">Proxy host to connect to</div>
-        </md-input-container>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Port</label>
-          <input ng-model="endpointCtrl.endpoint.proxy.port" type="number" min="0" max="65536" ng-required="endpointCtrl.endpoint.proxy.enabled" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
-          <div class="hint">Proxy port to connect to</div>
-        </md-input-container>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Username</label>
-          <input ng-model="endpointCtrl.endpoint.proxy.username" type="text" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
-          <div class="hint">Optional proxy username</div>
-        </md-input-container>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Password</label>
-          <input ng-model="endpointCtrl.endpoint.proxy.password" type="password" autocomplete="new-password" ng-disabled="!endpointCtrl.endpoint.proxy.enabled">
-          <div class="hint">Optional proxy password</div>
-        </md-input-container>
-      </div>
-    </div>
-  </section>
-
-  <br />
-
-  <section>
-    <md-subheader>SSL / TLS</md-subheader>
-    <div layout="column" layout-wrap>
-      <div flex-xs flex="50">
-        <div layout-xs="column" flex-xs="100">
-          <md-checkbox
-            ng-model="endpointCtrl.endpoint.ssl.trustAll"
-            aria-label="Enable trust all"
-            class="md-warn md-align-top-left" flex>
-            Trust all server certificates<br/>
-                <span class="ipsum">
-                  Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be
-                  encrypted but this mode is vulnerable to 'man in the middle' attacks.
-                </span>
-          </md-checkbox>
-        </div>
-      </div>
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Type</label>
-          <md-select ng-model="endpointCtrl.endpoint.ssl.trustStore.type"
-                     ng-required="!endpointCtrl.endpoint.ssl.trustAll"
-                     ng-disabled="endpointCtrl.endpoint.ssl.trustAll">
-            <md-option ng-repeat="trustStore in trustStoreTypes" value="{{trustStore.value}}">
-              {{trustStore.name}}
-            </md-option>
-          </md-select>
-          <div class="hint">Type of the trust store</div>
-        </md-input-container>
-      </div>
-      <div flex ng-if="!endpointCtrl.endpoint.ssl.trustAll && endpointCtrl.endpoint.ssl.trustStore.type === 'JKS'">
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Path to JKS file</label>
-            <input ng-model="endpointCtrl.endpoint.ssl.trustStore.path" type="text" name="truststore-jks-path"
-                   ng-required="!endpointCtrl.endpoint.ssl.trustStore.content">
-            <div class="hint">Path to the JKS file</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>JKS content</label>
-            <textarea ng-model="endpointCtrl.endpoint.ssl.trustStore.content" name="truststore-jks-content" rows="5"
-                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.trustStore.path"></textarea>
-            <div class="hint">JKS binary content</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Password</label>
-            <input ng-model="endpointCtrl.endpoint.ssl.trustStore.password" type="password" name="truststore-jks-password" required>
-            <div class="hint">Trust store password</div>
-          </md-input-container>
-        </div>
-      </div>
-      <div flex ng-if="!endpointCtrl.endpoint.ssl.trustAll && endpointCtrl.endpoint.ssl.trustStore.type === 'PKCS12'">
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Path to PKCS#12 file</label>
-            <input ng-model="endpointCtrl.endpoint.ssl.trustStore.path" type="text" name="truststore-pkcs12-path"
-                   ng-required="!endpointCtrl.endpoint.ssl.trustStore.content">
-            <div class="hint">Path to the PKCS#12 file (.p12 or .pfx)</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>PKCS#12 content</label>
-            <textarea ng-model="endpointCtrl.endpoint.ssl.trustStore.content" name="truststore-pkcs12-content" rows="5"
-                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.trustStore.path"></textarea>
-            <div class="hint">PKCS#12 binary content</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Password</label>
-            <input ng-model="endpointCtrl.endpoint.ssl.trustStore.password" type="password" name="truststore-pkcs12-password" required>
-            <div class="hint">Trust store password</div>
-          </md-input-container>
-        </div>
-      </div>
-      <div flex ng-if="!endpointCtrl.endpoint.ssl.trustAll && endpointCtrl.endpoint.ssl.trustStore.type === 'PEM'">
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Path to cert file</label>
-            <input ng-model="endpointCtrl.endpoint.ssl.trustStore.path" type="text" name="truststore-pem-path"
-                   ng-required="!endpointCtrl.endpoint.ssl.trustStore.content">
-            <div class="hint">Path to the cert file (.pem)</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Certificate</label>
-            <textarea ng-model="endpointCtrl.endpoint.ssl.trustStore.content" name="truststore-pem-content" rows="5"
-                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.trustStore.path"></textarea>
-            <div class="hint">Certificate</div>
-          </md-input-container>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <br />
-
-  <section>
-    <md-subheader>
-      SSL - Client Authentication
-    </md-subheader>
-    <div layout="column" layout-wrap>
-      <div flex-xs flex="50">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Type</label>
-          <md-select ng-model="endpointCtrl.endpoint.ssl.keyStore.type">
-            <md-option ng-repeat="keyStore in keyStoreTypes" value="{{keyStore.value}}">
-              {{keyStore.name}}
-            </md-option>
-          </md-select>
-          <div class="hint">Type of the key store</div>
-        </md-input-container>
-      </div>
-      <div flex ng-if="endpointCtrl.endpoint.ssl.keyStore.type === 'JKS'">
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Path to JKS file</label>
-            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.path" type="text" name="keystore-jks-path"
-                   ng-required="!endpointCtrl.endpoint.ssl.keyStore.content">
-            <div class="hint">Path to JKS file</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>JKS content</label>
-            <textarea ng-model="endpointCtrl.endpoint.ssl.keyStore.content" name="keystore-jks-content" rows="5"
-                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.keyStore.path"></textarea>
-            <div class="hint">JKS binary content</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Password</label>
-            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.password" type="password" name="keystore-jks-password" required>
-            <div class="hint">Key store password</div>
-          </md-input-container>
-        </div>
-      </div>
-      <div flex ng-if="endpointCtrl.endpoint.ssl.keyStore.type === 'PKCS12'">
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Path to PKCS#12 file</label>
-            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.path" type="text" name="keystore-pkcs12-path"
-                   ng-required="!endpointCtrl.endpoint.ssl.keyStore.content">
-            <div class="hint">Path to the PKCS#12 file (.p12 or .pfx)</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>PKCS#12 content</label>
-            <textarea ng-model="endpointCtrl.endpoint.ssl.keyStore.content" name="keystore-pkcs12-content" rows="5"
-                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.keyStore.path"></textarea>
-            <div class="hint">PKCS#12 binary content</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Password</label>
-            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.password" type="password" name="keystore-pkcs12-password" required>
-            <div class="hint">Key store password</div>
-          </md-input-container>
-        </div>
-      </div>
-      <div flex ng-if="endpointCtrl.endpoint.ssl.keyStore.type === 'PEM'">
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Path to cert file</label>
-            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.certPath" type="text" name="keystore-pem-cert-path"
-                   ng-required="!endpointCtrl.endpoint.ssl.keyStore.certContent">
-            <div class="hint">Path to the cert file (.pem)</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Certificate</label>
-            <textarea ng-model="endpointCtrl.endpoint.ssl.keyStore.certContent" name="keystore-pem-cert-content" rows="5"
-                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.keyStore.certPath"></textarea>
-            <div class="hint">Certificate</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Path to private key file</label>
-            <input ng-model="endpointCtrl.endpoint.ssl.keyStore.keyPath" type="text" name="keystore-pem-key-path"
-                   ng-required="!endpointCtrl.endpoint.ssl.keyStore.keyContent">
-            <div class="hint">Path to the private key file (.pem)</div>
-          </md-input-container>
-        </div>
-        <div flex-xs flex="50">
-          <md-input-container class="md-block" flex-gt-sm>
-            <label>Private Key</label>
-            <textarea ng-model="endpointCtrl.endpoint.ssl.keyStore.keyContent" name="keystore-pem-key-content" rows="5"
-                      md-select-on-focus ng-required="!endpointCtrl.endpoint.ssl.keyStore.keyPath"></textarea>
-            <div class="hint">Private Key</div>
-          </md-input-container>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <br />
-
-  <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button class="md-raised md-primary" type="submit" ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine">
-      Save
-    </md-button>
-    <md-button class="md-raised" type="button" ng-click="endpointCtrl.reset()" ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine">
-      Reset
-    </md-button>
-  </div>
-      </div>
+      <md-tab>
+        <md-tab-label>HTTP configuration</md-tab-label>
+        <md-tab-body>
+          <gv-http-configuration http-configuration="endpointCtrl.endpoint" inherit-http-configuration="endpointCtrl.group"
+                                 form="formEndpoint"></gv-http-configuration>
+        </md-tab-body>
+      </md-tab>
+    </md-tabs>
+    <div class="md-actions gravitee-api-save-button" layout="row">
+      <md-button class="md-raised md-primary" type="submit" ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine">
+        Save
+      </md-button>
+      <md-button class="md-raised" type="button" ng-click="endpointCtrl.reset()" ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine">
+        Reset
+      </md-button>
     </div>
   </div>
 </form>

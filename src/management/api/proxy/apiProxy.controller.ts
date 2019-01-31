@@ -235,6 +235,10 @@ class ApiProxyController {
     return '';
   }
 
+  hasTenants():boolean {
+    return this.tenants && this.tenants.length;
+  }
+
   getGroup(groupId) {
     return _.find(this.groups, { 'id': groupId });
   }

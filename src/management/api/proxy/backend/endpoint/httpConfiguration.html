@@ -1,0 +1,405 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-input-container ng-if="$ctrl.inheritHttpConfiguration" class="md-block">
+  <md-checkbox ng-model="$ctrl.httpConfiguration.inherit" aria-label="Inherit http configuration"
+               class="md-align-top-left" ng-change="$ctrl.toggleInherit($ctrl.httpConfiguration.inherit)" flex>
+    <span>Inherit HTTP configuration from group</span>
+  </md-checkbox>
+</md-input-container>
+
+<div ng-if="!$ctrl.httpConfiguration.inherit">
+  <section>
+    <md-subheader>
+      HTTP Request
+      <div class="hints">Default configuration of HTTP requests emitted by the API gateway to upstream</div>
+    </md-subheader>
+    <div layout="column" layout-wrap layout-gt-sm="row">
+      <div layout="column" layout-sm="column">
+        <h5 style="color: grey;">
+          <span>Headers</span>
+          <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5;" aria-label="Add HTTP header" ng-click="$ctrl.addHTTPHeader()">Add headers</ng-md-icon>
+        </h5>
+        <div layout="row" layout-sm="column" layout-align="center center" ng-repeat="header in $ctrl.httpConfiguration.headers">
+          <ng-md-icon icon="remove_circle_outline" style="fill: #b1bdc5;" aria-label="Delete header" ng-click="$ctrl.removeHTTPHeader($index)"></ng-md-icon>
+
+          <div flex="5" hide-xs hide-sm>
+            <!-- Spacer //-->
+          </div>
+
+          <md-input-container flex-gt-sm>
+            <input aria-label="Header name" ng-model="header.name" type="text" placeholder="Header name" ng-required="true">
+          </md-input-container>
+
+          <div flex="5" hide-xs hide-sm>
+            <!-- Spacer //-->
+          </div>
+
+          <md-input-container flex-gt-sm>
+            <input aria-label="Header value" ng-model="header.value" type="text" placeholder="Header value" ng-required="true">
+          </md-input-container>
+        </div>
+      </div>
+    </div>
+  </section>
+  <br/>
+  <md-subheader>HTTP Configuration</md-subheader>
+
+  <section>
+    <div layout="column" layout-wrap layout-gt-sm="row">
+      <div flex-xs flex="50">
+        <md-input-container flex-xs flex="50">
+          <label>Connect timeout (ms)</label>
+          <input ng-model="$ctrl.httpConfiguration.http.connectTimeout" type="number" required min="0">
+        </md-input-container>
+      </div>
+      <div flex-xs flex="50">
+        <md-input-container flex-xs flex="50">
+          <label>Read timeout (ms)</label>
+          <input ng-model="$ctrl.httpConfiguration.http.readTimeout" type="number" required min="0">
+        </md-input-container>
+      </div>
+      <div flex-xs flex="50">
+        <md-input-container flex-xs flex="50">
+          <label>Idle timeout (ms)</label>
+          <input ng-model="$ctrl.httpConfiguration.http.idleTimeout" type="number" required min="0">
+        </md-input-container>
+      </div>
+      <div flex-xs flex="50">
+        <md-input-container flex-xs flex="50">
+          <label>Max concurrent connections</label>
+          <input ng-model="$ctrl.httpConfiguration.http.maxConcurrentConnections" type="number" required min="10">
+        </md-input-container>
+      </div>
+    </div>
+    <div layout="column" layout-wrap layout-gt-sm="row">
+      <div flex-xs flex="50">
+        <div layout-xs="column" flex-xs="50">
+          <md-checkbox
+            ng-model="$ctrl.httpConfiguration.http.keepAlive"
+            aria-label="Enable keep-alive"
+            class="md-align-top-left" flex>
+            Enable keep-alive<br/>
+            <span class="ipsum">
+                          Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
+                        </span>
+          </md-checkbox>
+        </div>
+        <div layout-xs="column" flex-xs="50">
+          <md-checkbox
+            ng-model="$ctrl.httpConfiguration.http.pipelining"
+            aria-label="HTTP pipe-lining"
+            class="md-align-top-left" flex>
+            HTTP pipe-lining<br/>
+            <span class="ipsum">
+                          When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.
+                        </span>
+          </md-checkbox>
+        </div>
+        <div layout-xs="column" flex-xs="50">
+          <md-checkbox
+            ng-model="$ctrl.httpConfiguration.http.useCompression"
+            aria-label="Enables compression"
+            class="md-align-top-left" flex>
+            Enables compression (gzip, deflate)<br/>
+            <span class="ipsum">
+                          The gateway can let the remote http server know that it supports compression, and will be able to handle compressed response bodies.
+                        </span>
+          </md-checkbox>
+        </div>
+
+        <div layout-xs="column" flex-xs="50">
+          <md-checkbox
+            ng-model="$ctrl.httpConfiguration.http.followRedirects"
+            aria-label="Enables follow HTTP redirections"
+            class="md-align-top-left" flex>
+            Follow HTTP redirections<br/>
+            <span class="ipsum">
+            when the client receives an <code>301</code>, <code>302</code>, <code>303</code> or <code>307</code> status code,
+            it follows the redirection provided by the <code>Location</code> response header
+          </span>
+          </md-checkbox>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <md-subheader>
+      <md-checkbox
+        ng-model="$ctrl.httpConfiguration.proxy.enabled"
+        aria-label="Enable proxy" flex>
+        <div ng-switch on="$ctrl.httpConfiguration.proxy.enabled">
+          HTTP Proxy
+          <span class="proxy-activated" ng-switch-when="true">(active)</span>
+          <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
+          <span class="proxy-deactivated" ng-switch-default>(not active)</span>
+        </div>
+        <div class="hints">Use proxy for client connections</div>
+      </md-checkbox>
+    </md-subheader>
+    <div layout="column" layout-wrap layout-gt-sm="row">
+      <div flex-xs flex="50">
+        <md-input-container class="md-block" flex-gt-sm>
+          <label>Proxy type</label>
+          <md-select ng-model="$ctrl.httpConfiguration.proxy.type" ng-required="$ctrl.httpConfiguration.proxy.enabled" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+            <md-option ng-repeat="proxy in $ctrl.proxies" value="{{proxy.value}}">
+              {{proxy.name}}
+            </md-option>
+          </md-select>
+          <div class="hint">Type of the TCP proxy server</div>
+        </md-input-container>
+      </div>
+    </div>
+    <div layout="column" layout-wrap layout-gt-sm="row">
+      <div flex-xs flex="50">
+        <md-input-container class="md-block" flex-gt-sm>
+          <label>Host</label>
+          <input ng-model="$ctrl.httpConfiguration.proxy.host" type="text" ng-required="$ctrl.httpConfiguration.proxy.enabled" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+          <div class="hint">Proxy host to connect to</div>
+        </md-input-container>
+      </div>
+      <div flex-xs flex="50">
+        <md-input-container class="md-block" flex-gt-sm>
+          <label>Port</label>
+          <input ng-model="$ctrl.httpConfiguration.proxy.port" type="number" min="0" max="65536" ng-required="$ctrl.httpConfiguration.proxy.enabled" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+          <div class="hint">Proxy port to connect to</div>
+        </md-input-container>
+      </div>
+      <div flex-xs flex="50">
+        <md-input-container class="md-block" flex-gt-sm>
+          <label>Username</label>
+          <input ng-model="$ctrl.httpConfiguration.proxy.username" type="text" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+          <div class="hint">Optional proxy username</div>
+        </md-input-container>
+      </div>
+      <div flex-xs flex="50">
+        <md-input-container class="md-block" flex-gt-sm>
+          <label>Password</label>
+          <input ng-model="$ctrl.httpConfiguration.proxy.password" type="password" autocomplete="new-password" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+          <div class="hint">Optional proxy password</div>
+        </md-input-container>
+      </div>
+    </div>
+  </section>
+
+  <br />
+
+  <section>
+    <md-subheader>SSL / TLS</md-subheader>
+    <div layout="column" layout-wrap>
+      <div flex-xs flex="50">
+        <div layout-xs="column" flex-xs="100">
+          <md-checkbox
+            ng-model="$ctrl.httpConfiguration.ssl.trustAll"
+            aria-label="Enable trust all"
+            class="md-warn md-align-top-left" flex>
+            Trust all server certificates<br/>
+            <span class="ipsum">
+                    Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be
+                    encrypted but this mode is vulnerable to 'man in the middle' attacks.
+                  </span>
+          </md-checkbox>
+        </div>
+      </div>
+      <div flex-xs flex="50">
+        <md-input-container class="md-block" flex-gt-sm>
+          <label>Type</label>
+          <md-select ng-model="$ctrl.httpConfiguration.ssl.trustStore.type" ng-disabled="$ctrl.httpConfiguration.ssl.trustAll">
+            <md-option ng-repeat="trustStore in $ctrl.trustStoreTypes" value="{{trustStore.value}}">
+              {{trustStore.name}}
+            </md-option>
+          </md-select>
+          <div class="hint">Type of the trust store</div>
+        </md-input-container>
+      </div>
+      <div flex ng-if="!$ctrl.httpConfiguration.ssl.trustAll && $ctrl.httpConfiguration.ssl.trustStore.type === 'JKS'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to JKS file</label>
+            <input ng-model="$ctrl.httpConfiguration.ssl.trustStore.path" type="text" name="truststore-jks-path"
+                   ng-required="!$ctrl.httpConfiguration.ssl.trustStore.content">
+            <div class="hint">Path to the JKS file</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>JKS content</label>
+            <textarea ng-model="$ctrl.httpConfiguration.ssl.trustStore.content" name="truststore-jks-content" rows="5"
+                      md-select-on-focus ng-required="!$ctrl.httpConfiguration.ssl.trustStore.path"></textarea>
+            <div class="hint">JKS binary content</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Password</label>
+            <input ng-model="$ctrl.httpConfiguration.ssl.trustStore.password" type="password" name="truststore-jks-password" required>
+            <div class="hint">Trust store password</div>
+          </md-input-container>
+        </div>
+      </div>
+      <div flex ng-if="!$ctrl.httpConfiguration.ssl.trustAll && $ctrl.httpConfiguration.ssl.trustStore.type === 'PKCS12'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to PKCS#12 file</label>
+            <input ng-model="$ctrl.httpConfiguration.ssl.trustStore.path" type="text" name="truststore-pkcs12-path"
+                   ng-required="!$ctrl.httpConfiguration.ssl.trustStore.content">
+            <div class="hint">Path to the PKCS#12 file (.p12 or .pfx)</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>PKCS#12 content</label>
+            <textarea ng-model="$ctrl.httpConfiguration.ssl.trustStore.content" name="truststore-pkcs12-content" rows="5"
+                      md-select-on-focus ng-required="!$ctrl.httpConfiguration.ssl.trustStore.path"></textarea>
+            <div class="hint">PKCS#12 binary content</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Password</label>
+            <input ng-model="$ctrl.httpConfiguration.ssl.trustStore.password" type="password" name="truststore-pkcs12-password" required>
+            <div class="hint">Trust store password</div>
+          </md-input-container>
+        </div>
+      </div>
+      <div flex ng-if="!$ctrl.httpConfiguration.ssl.trustAll && $ctrl.httpConfiguration.ssl.trustStore.type === 'PEM'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to cert file</label>
+            <input ng-model="$ctrl.httpConfiguration.ssl.trustStore.path" type="text" name="truststore-pem-path"
+                   ng-required="!$ctrl.httpConfiguration.ssl.trustStore.content">
+            <div class="hint">Path to the cert file (.pem)</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Certificate</label>
+            <textarea ng-model="$ctrl.httpConfiguration.ssl.trustStore.content" name="truststore-pem-content" rows="5"
+                      md-select-on-focus ng-required="!$ctrl.httpConfiguration.ssl.trustStore.path"></textarea>
+            <div class="hint">Certificate</div>
+          </md-input-container>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <br />
+
+  <section>
+    <md-subheader>
+      SSL - Client Authentication
+    </md-subheader>
+    <div layout="column" layout-wrap>
+      <div flex-xs flex="50">
+        <md-input-container class="md-block" flex-gt-sm>
+          <label>Type</label>
+          <md-select ng-model="$ctrl.httpConfiguration.ssl.keyStore.type">
+            <md-option ng-repeat="keyStore in $ctrl.keyStoreTypes" value="{{keyStore.value}}">
+              {{keyStore.name}}
+            </md-option>
+          </md-select>
+          <div class="hint">Type of the key store</div>
+        </md-input-container>
+      </div>
+      <div flex ng-if="$ctrl.httpConfiguration.ssl.keyStore.type === 'JKS'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to JKS file</label>
+            <input ng-model="$ctrl.httpConfiguration.ssl.keyStore.path" type="text" name="keystore-jks-path"
+                   ng-required="!$ctrl.httpConfiguration.ssl.keyStore.content">
+            <div class="hint">Path to JKS file</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>JKS content</label>
+            <textarea ng-model="$ctrl.httpConfiguration.ssl.keyStore.content" name="keystore-jks-content" rows="5"
+                      md-select-on-focus ng-required="!$ctrl.httpConfiguration.ssl.keyStore.path"></textarea>
+            <div class="hint">JKS binary content</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Password</label>
+            <input ng-model="$ctrl.httpConfiguration.ssl.keyStore.password" type="password" name="keystore-jks-password" required>
+            <div class="hint">Key store password</div>
+          </md-input-container>
+        </div>
+      </div>
+      <div flex ng-if="$ctrl.httpConfiguration.ssl.keyStore.type === 'PKCS12'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to PKCS#12 file</label>
+            <input ng-model="$ctrl.httpConfiguration.ssl.keyStore.path" type="text" name="keystore-pkcs12-path"
+                   ng-required="!$ctrl.httpConfiguration.ssl.keyStore.content">
+            <div class="hint">Path to the PKCS#12 file (.p12 or .pfx)</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>PKCS#12 content</label>
+            <textarea ng-model="$ctrl.httpConfiguration.ssl.keyStore.content" name="keystore-pkcs12-content" rows="5"
+                      md-select-on-focus ng-required="!$ctrl.httpConfiguration.ssl.keyStore.path"></textarea>
+            <div class="hint">PKCS#12 binary content</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Password</label>
+            <input ng-model="$ctrl.httpConfiguration.ssl.keyStore.password" type="password" name="keystore-pkcs12-password" required>
+            <div class="hint">Key store password</div>
+          </md-input-container>
+        </div>
+      </div>
+      <div flex ng-if="$ctrl.httpConfiguration.ssl.keyStore.type === 'PEM'">
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to cert file</label>
+            <input ng-model="$ctrl.httpConfiguration.ssl.keyStore.certPath" type="text" name="keystore-pem-cert-path"
+                   ng-required="!$ctrl.httpConfiguration.ssl.keyStore.certContent">
+            <div class="hint">Path to the cert file (.pem)</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Certificate</label>
+            <textarea ng-model="$ctrl.httpConfiguration.ssl.keyStore.certContent" name="keystore-pem-cert-content" rows="5"
+                      md-select-on-focus ng-required="!$ctrl.httpConfiguration.ssl.keyStore.certPath"></textarea>
+            <div class="hint">Certificate</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Path to private key file</label>
+            <input ng-model="$ctrl.httpConfiguration.ssl.keyStore.keyPath" type="text" name="keystore-pem-key-path"
+                   ng-required="!$ctrl.httpConfiguration.ssl.keyStore.keyContent">
+            <div class="hint">Path to the private key file (.pem)</div>
+          </md-input-container>
+        </div>
+        <div flex-xs flex="50">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Private Key</label>
+            <textarea ng-model="$ctrl.httpConfiguration.ssl.keyStore.keyContent" name="keystore-pem-key-content" rows="5"
+                      md-select-on-focus ng-required="!$ctrl.httpConfiguration.ssl.keyStore.keyPath"></textarea>
+            <div class="hint">Private Key</div>
+          </md-input-container>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

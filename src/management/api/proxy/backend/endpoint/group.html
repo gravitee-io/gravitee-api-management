@@ -16,78 +16,83 @@
 
 -->
 <form name="formGroup" ng-submit="groupCtrl.update(groupCtrl.api)" novalidate autocomplete="false">
-    <div class="gv-forms" layout="column">
-        <div class="gv-forms-header">
-            <h1>Group configuration</h1>
-            <a ng-click="groupCtrl.backToEndpointsConfiguration()">Back to endpoints configuration</a>
-        </div>
+  <div class="gv-forms" layout="column">
+    <div class="gv-forms-header">
+      <h1>Group configuration</h1>
+      <a ng-click="groupCtrl.backToEndpointsConfiguration()">Back to endpoints configuration</a>
+    </div>
 
-        <div class="gv-form">
-            <h2>Details</h2>
-            <div class="gv-form-content" layout="column">
-                <md-input-container flex="30">
-                    <label>Name</label>
-                    <input ng-model="groupCtrl.group.name" type="text" required>
-                </md-input-container>
-                <md-input-container class="md-block" flex-gt-sm>
-                    <label>Load balancing algorithm</label>
-                    <md-select ng-model="groupCtrl.group.load_balancing.type">
-                        <md-option ng-repeat="lb in lbs" value="{{lb.value}}">
-                            {{lb.name}}
-                        </md-option>
-                    </md-select>
-                </md-input-container>
-            </div>
-        </div>
+    <md-tabs md-dynamic-height>
+      <md-tab>
+        <md-tab-label>General</md-tab-label>
+        <md-tab-body>
+          <h3></h3>
+          <md-input-container flex="30">
+            <label>Name</label>
+            <input ng-model="groupCtrl.group.name" type="text" required>
+          </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Load balancing algorithm</label>
+            <md-select ng-model="groupCtrl.group.load_balancing.type">
+              <md-option ng-repeat="lb in lbs" value="{{lb.value}}">
+                {{lb.name}}
+              </md-option>
+            </md-select>
+          </md-input-container>
+        </md-tab-body>
+      </md-tab>
 
-        <div class="gv-form">
-          <div class="gv-forms-header">
-            <h2>Service Discovery</h2>
-            <div ng-switch on="groupCtrl.discovery.enabled">
-              <span class="proxy-activated" ng-switch-when="true">(active)</span>
-              <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
-              <span class="proxy-deactivated" ng-switch-default>(not active)</span>
-            </div>
-          </div>
-          <div class="gv-form-content">
-            <md-checkbox
-              ng-model="groupCtrl.discovery.enabled"
-              aria-label="Enable service discovery" flex>Enabled service discovery
-              <div class="ipsum">By enabling service discovery, endpoints will be dynamically added or removed (without downtime).</div>
-            </md-checkbox>
-            <div ng-if="groupCtrl.discovery.enabled">
-              <md-content layout="column">
-                <md-input-container class="md-block" flex-gt-xs>
-                  <label>Type</label>
-                  <md-select ng-model="groupCtrl.discovery.provider" placeholder="Type" required ng-required="true"
-                             ng-change="groupCtrl.onTypeChange()">
-                    <md-option ng-repeat="type in groupCtrl.types" ng-value="type.id">{{type.name}}</md-option>
-                  </md-select>
-                </md-input-container>
-              </md-content>
-              <div layout="column">
-                <form name="serviceDiscoveryConfigurationForm"
+      <md-tab>
+        <md-tab-label>HTTP configuration</md-tab-label>
+        <md-tab-body>
+          <gv-http-configuration http-configuration="groupCtrl.group" form="formGroup"></gv-http-configuration>
+        </md-tab-body>
+      </md-tab>
+
+      <md-tab>
+        <md-tab-label>Service Discovery
+          <span ng-switch on="groupCtrl.discovery.enabled">
+            <span class="proxy-activated" ng-switch-when="true">(active)</span>
+            <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
+            <span class="proxy-deactivated" ng-switch-default>(not active)</span>
+          </span>
+        </md-tab-label>
+        <md-tab-body>
+          <h3></h3>
+          <md-checkbox ng-model="groupCtrl.discovery.enabled" aria-label="Enable service discovery"
+                       ng-disabled="!groupCtrl.types || groupCtrl.types.length === 0" flex>Enabled service discovery
+            <div class="ipsum">By enabling service discovery, endpoints will be dynamically added or removed (without downtime).</div>
+          </md-checkbox>
+          <div ng-show="groupCtrl.discovery.enabled">
+            <md-content layout="column">
+              <md-input-container class="md-block" flex-gt-xs>
+                <label>Type</label>
+                <md-select ng-model="groupCtrl.discovery.provider" placeholder="Type" required ng-required="true"
+                           ng-change="groupCtrl.onTypeChange()">
+                  <md-option ng-repeat="type in groupCtrl.types" ng-value="type.id">{{type.name}}</md-option>
+                </md-select>
+              </md-input-container>
+              <div ng-form="groupCtrl.serviceDiscoveryConfigurationForm"
                     sf-schema="groupCtrl.serviceDiscoveryJsonSchema"
                     sf-form="groupCtrl.serviceDiscoveryJsonSchemaForm"
                     sf-model="groupCtrl.discovery.configuration"
-                    sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }" novalidate></form>
-                <form name="serviceDiscoveryConfigurationForm"
-                      sf-schema="groupCtrl.serviceDiscoveryJsonSchema"
-                      sf-form="groupCtrl.serviceDiscoveryJsonSchemaForm"
-                      sf-model="groupCtrl.discovery.configuration"
-                      sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }" novalidate></form>
+                    sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }" novalidate>
               </div>
-            </div>
+            </md-content>
           </div>
+        </md-tab-body>
+      </md-tab>
+    </md-tabs>
 
-          <div class="md-actions gravitee-api-save-button" layout="row">
-            <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit" ng-disabled="serviceDiscoveryConfigurationForm.$invalid || formGroup.$invalid || formGroup.$pristine">
-              Save
-            </md-button>
-            <md-button permission permission-only="'api-definition-u'" class="md-raised" type="button" ng-click="groupCtrl.reset()" ng-disabled="formGroup.$pristine">
-              Reset
-            </md-button>
-          </div>
-        </div>
+    <div class="md-actions gravitee-api-save-button" layout="row">
+      <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit"
+                 ng-disabled="groupCtrl.serviceDiscoveryConfigurationForm.$invalid || formGroup.$invalid || formGroup.$pristine">
+        Save
+      </md-button>
+      <md-button permission permission-only="'api-definition-u'" class="md-raised" type="button"
+                 ng-click="groupCtrl.reset()" ng-disabled="formGroup.$pristine">
+        Reset
+      </md-button>
     </div>
+  </div>
 </form>

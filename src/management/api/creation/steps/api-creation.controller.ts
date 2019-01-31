@@ -273,7 +273,8 @@ class ApiCreationController {
     var endpoint = {
       name: 'default',
       target: this.endpoint,
-      tenants: this.selectedTenants
+      tenants: this.selectedTenants,
+      inherit: true
     };
 
     this.api.proxy.endpoints.push(endpoint);
