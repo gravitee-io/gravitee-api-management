@@ -17,6 +17,7 @@ package io.gravitee.definition.model;
 
 import io.gravitee.definition.model.services.Services;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -26,12 +27,13 @@ import java.util.Set;
 public class EndpointGroup {
 
     private String name;
-
     private Set<Endpoint> endpoints;
-
     private LoadBalancer loadBalancer = new LoadBalancer();
-
     private Services services = new Services();
+    private HttpProxy httpProxy;
+    private HttpClientOptions httpClientOptions;
+    private HttpClientSslOptions httpClientSslOptions;
+    private Map<String, String> headers;
 
     public Set<Endpoint> getEndpoints() {
         return endpoints;
@@ -63,6 +65,38 @@ public class EndpointGroup {
 
     public void setServices(Services services) {
         this.services = services;
+    }
+
+    public HttpProxy getHttpProxy() {
+        return httpProxy;
+    }
+
+    public void setHttpProxy(HttpProxy httpProxy) {
+        this.httpProxy = httpProxy;
+    }
+
+    public HttpClientOptions getHttpClientOptions() {
+        return httpClientOptions;
+    }
+
+    public void setHttpClientOptions(HttpClientOptions httpClientOptions) {
+        this.httpClientOptions = httpClientOptions;
+    }
+
+    public HttpClientSslOptions getHttpClientSslOptions() {
+        return httpClientSslOptions;
+    }
+
+    public void setHttpClientSslOptions(HttpClientSslOptions httpClientSslOptions) {
+        this.httpClientSslOptions = httpClientSslOptions;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
     }
 
     @Override

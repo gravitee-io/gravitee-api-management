@@ -45,5 +45,8 @@ public abstract class EndpointSerializer<T extends Endpoint> extends StdScalarSe
         jgen.writeNumberField("weight", endpoint.getWeight());
         jgen.writeBooleanField("backup", endpoint.isBackup());
         jgen.writeStringField("type", endpoint.getType().name());
+        if (endpoint.getInherit() != null) {
+            jgen.writeObjectField("inherit", endpoint.getInherit());
+        }
     }
 }

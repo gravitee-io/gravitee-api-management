@@ -37,12 +37,8 @@ public class EndpointGroupSerializer extends StdScalarSerializer<EndpointGroup> 
     @Override
     public void serialize(EndpointGroup group, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
-
         jgen.writeStringField("name", group.getName());
-
-
         final Set<Endpoint> endpoints = group.getEndpoints();
-
         if (endpoints != null) {
             jgen.writeArrayFieldStart("endpoints");
             endpoints.forEach(endpoint -> {
@@ -58,9 +54,20 @@ public class EndpointGroupSerializer extends StdScalarSerializer<EndpointGroup> 
         if (group.getLoadBalancer() != null) {
             jgen.writeObjectField("load_balancing", group.getLoadBalancer());
         }
-
         if (group.getServices() != null && ! group.getServices().isEmpty()) {
             jgen.writeObjectField("services", group.getServices());
+        }
+        if (group.getHttpProxy() != null) {
+            jgen.writeObjectField("proxy", group.getHttpProxy());
+        }
+        if (group.getHttpClientOptions() != null) {
+            jgen.writeObjectField("http", group.getHttpClientOptions());
+        }
+        if (group.getHttpClientSslOptions() != null) {
+            jgen.writeObjectField("ssl", group.getHttpClientSslOptions());
+        }
+        if (group.getHeaders() != null && !group.getHeaders().isEmpty()) {
+            jgen.writeObjectField("headers", group.getHeaders());
         }
 
         jgen.writeEndObject();

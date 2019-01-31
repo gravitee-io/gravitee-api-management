@@ -27,13 +27,9 @@ import java.util.Map;
 public class HttpEndpoint extends Endpoint {
 
     private HttpProxy httpProxy;
-
     private HttpClientOptions httpClientOptions;
-
     private HttpClientSslOptions httpClientSslOptions;
-
     private Map<String, String> headers;
-
     private EndpointHealthCheckService healthCheck;
 
     public HttpEndpoint(String name, String target) {

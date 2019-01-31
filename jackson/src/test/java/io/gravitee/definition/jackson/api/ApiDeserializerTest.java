@@ -28,6 +28,7 @@ import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -555,5 +556,23 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertEquals("header1", ((HttpEndpoint) endpoint).getHeaders().get("x-header1"));
         Assert.assertEquals("header2", ((HttpEndpoint) endpoint).getHeaders().get("x-header2"));
         Assert.assertEquals("host", ((HttpEndpoint) endpoint).getHeaders().get(HttpHeaders.HOST));
+    }
+
+    @Test
+    public void definition_withEndpointGroupInherited() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-endpointgroup.json", Api.class);
+
+        final EndpointGroup endpointGroup = api.getProxy().getGroups().iterator().next();
+        Assert.assertNotNull(endpointGroup.getHttpClientOptions());
+        Assert.assertTrue(endpointGroup.getHttpClientOptions().isFollowRedirects());
+
+        final Iterator<Endpoint> iterator = endpointGroup.getEndpoints().iterator();
+        final HttpEndpoint firstEndpoint = (HttpEndpoint) iterator.next();
+        Assert.assertTrue(firstEndpoint.getInherit());
+        Assert.assertNull(firstEndpoint.getHttpClientOptions());
+
+        final HttpEndpoint secondEndpoint = (HttpEndpoint) iterator.next();
+        Assert.assertNotNull(secondEndpoint.getHttpClientOptions());
+        Assert.assertFalse(secondEndpoint.getHttpClientOptions().isFollowRedirects());
     }
 }

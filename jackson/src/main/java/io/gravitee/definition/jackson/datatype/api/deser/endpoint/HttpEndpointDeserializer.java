@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.Boolean.FALSE;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -63,50 +65,53 @@ public class HttpEndpointDeserializer extends EndpointDeserializer<HttpEndpoint>
         HttpEndpoint endpoint = new HttpEndpoint(name, target);
         deserialize(endpoint, jp, node, ctxt);
 
-        JsonNode httpProxyNode = node.get("proxy");
-        if (httpProxyNode != null) {
-            HttpProxy httpProxy = httpProxyNode.traverse(jp.getCodec()).readValueAs(HttpProxy.class);
-            endpoint.setHttpProxy(httpProxy);
-        }
-
-        JsonNode httpClientOptionsNode = node.get("http");
-        if (httpClientOptionsNode != null) {
-            HttpClientOptions httpClientOptions = httpClientOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientOptions.class);
-            endpoint.setHttpClientOptions(httpClientOptions);
-        } else {
-            endpoint.setHttpClientOptions(new HttpClientOptions());
-        }
-
-        JsonNode httpClientSslOptionsNode = node.get("ssl");
-        if (httpClientSslOptionsNode != null) {
-            HttpClientSslOptions httpClientSslOptions = httpClientSslOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientSslOptions.class);
-            endpoint.setHttpClientSslOptions(httpClientSslOptions);
-        }
-
-        JsonNode hostHeaderNode = node.get("hostHeader");
-        if (hostHeaderNode != null) {
-            String hostHeader = hostHeaderNode.asText();
-            if (! hostHeader.trim().isEmpty()) {
-                Map<String, String> headers = new HashMap<>();
-                headers.put(HttpHeaders.HOST, hostHeader);
-                endpoint.setHeaders(headers);
-            }
-        }
-
         JsonNode healthcheckNode = node.get("healthcheck");
         if (healthcheckNode != null && healthcheckNode.isObject()) {
             EndpointHealthCheckService healthCheckService = healthcheckNode.traverse(jp.getCodec()).readValueAs(EndpointHealthCheckService.class);
             endpoint.setHealthCheck(healthCheckService);
         }
 
-        JsonNode headersNode = node.get("headers");
-        if (headersNode != null) {
-            Map<String, String> headers = headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {});
-            if (headers != null && ! headers.isEmpty()) {
-                if (endpoint.getHeaders() == null) {
+        if (endpoint.getInherit() == null || endpoint.getInherit().equals(FALSE)) {
+            JsonNode httpProxyNode = node.get("proxy");
+            if (httpProxyNode != null) {
+                HttpProxy httpProxy = httpProxyNode.traverse(jp.getCodec()).readValueAs(HttpProxy.class);
+                endpoint.setHttpProxy(httpProxy);
+            }
+
+            JsonNode httpClientOptionsNode = node.get("http");
+            if (httpClientOptionsNode != null) {
+                HttpClientOptions httpClientOptions = httpClientOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientOptions.class);
+                endpoint.setHttpClientOptions(httpClientOptions);
+            } else {
+                endpoint.setHttpClientOptions(new HttpClientOptions());
+            }
+
+            JsonNode httpClientSslOptionsNode = node.get("ssl");
+            if (httpClientSslOptionsNode != null) {
+                HttpClientSslOptions httpClientSslOptions = httpClientSslOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientSslOptions.class);
+                endpoint.setHttpClientSslOptions(httpClientSslOptions);
+            }
+
+            JsonNode hostHeaderNode = node.get("hostHeader");
+            if (hostHeaderNode != null) {
+                String hostHeader = hostHeaderNode.asText();
+                if (!hostHeader.trim().isEmpty()) {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put(HttpHeaders.HOST, hostHeader);
                     endpoint.setHeaders(headers);
-                } else {
-                    headers.forEach(endpoint.getHeaders()::putIfAbsent);
+                }
+            }
+
+            JsonNode headersNode = node.get("headers");
+            if (headersNode != null && !headersNode.isEmpty(null)) {
+                Map<String, String> headers = headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {
+                });
+                if (headers != null && !headers.isEmpty()) {
+                    if (endpoint.getHeaders() == null) {
+                        endpoint.setHeaders(headers);
+                    } else {
+                        headers.forEach(endpoint.getHeaders()::putIfAbsent);
+                    }
                 }
             }
         }

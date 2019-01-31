@@ -273,4 +273,12 @@ public class ApiSerializerTest extends AbstractTest {
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assert.assertNotNull(generatedJsonDefinition);
     }
+
+    @Test
+    public void definition_withEndpointGroup() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-endpointgroup.json", Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+    }
 }

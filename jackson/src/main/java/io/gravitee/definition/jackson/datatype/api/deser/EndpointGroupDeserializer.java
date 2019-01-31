@@ -17,18 +17,19 @@ package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.EndpointType;
-import io.gravitee.definition.model.LoadBalancer;
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -92,6 +93,48 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
         if (servicesNode != null) {
             Services services = servicesNode.traverse(jp.getCodec()).readValueAs(Services.class);
             group.getServices().set(services.getAll());
+        }
+
+        JsonNode httpProxyNode = node.get("proxy");
+        if (httpProxyNode != null) {
+            HttpProxy httpProxy = httpProxyNode.traverse(jp.getCodec()).readValueAs(HttpProxy.class);
+            group.setHttpProxy(httpProxy);
+        }
+
+        JsonNode httpClientOptionsNode = node.get("http");
+        if (httpClientOptionsNode != null) {
+            HttpClientOptions httpClientOptions = httpClientOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientOptions.class);
+            group.setHttpClientOptions(httpClientOptions);
+        } else {
+            group.setHttpClientOptions(new HttpClientOptions());
+        }
+
+        JsonNode httpClientSslOptionsNode = node.get("ssl");
+        if (httpClientSslOptionsNode != null) {
+            HttpClientSslOptions httpClientSslOptions = httpClientSslOptionsNode.traverse(jp.getCodec()).readValueAs(HttpClientSslOptions.class);
+            group.setHttpClientSslOptions(httpClientSslOptions);
+        }
+
+        JsonNode hostHeaderNode = node.get("hostHeader");
+        if (hostHeaderNode != null) {
+            String hostHeader = hostHeaderNode.asText();
+            if (!hostHeader.trim().isEmpty()) {
+                Map<String, String> headers = new HashMap<>();
+                headers.put(HttpHeaders.HOST, hostHeader);
+                group.setHeaders(headers);
+            }
+        }
+
+        JsonNode headersNode = node.get("headers");
+        if (headersNode != null && !headersNode.isEmpty(null)) {
+            Map<String, String> headers = headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {});
+            if (headers != null && !headers.isEmpty()) {
+                if (group.getHeaders() == null) {
+                    group.setHeaders(headers);
+                } else {
+                    headers.forEach(group.getHeaders()::putIfAbsent);
+                }
+            }
         }
 
         return group;

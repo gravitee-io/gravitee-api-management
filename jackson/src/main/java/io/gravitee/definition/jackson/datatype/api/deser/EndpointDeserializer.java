@@ -70,5 +70,10 @@ public abstract class EndpointDeserializer<T extends Endpoint> extends StdScalar
 
             endpoint.setTenants(tenants);
         }
+
+        JsonNode inheritNode = node.get("inherit");
+        if (inheritNode != null) {
+            endpoint.setInherit(inheritNode.asBoolean());
+        }
     }
 }

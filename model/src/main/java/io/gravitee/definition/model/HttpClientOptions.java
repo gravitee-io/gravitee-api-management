@@ -31,19 +31,12 @@ public class HttpClientOptions {
     public static boolean DEFAULT_FOLLOW_REDIRECTS = false;
 
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
-
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
-
     private boolean keepAlive = DEFAULT_KEEP_ALIVE;
-
     private long readTimeout = DEFAULT_READ_TIMEOUT;
-
     private boolean pipelining = DEFAULT_PIPELINING;
-
     private int maxConcurrentConnections = DEFAULT_MAX_CONCURRENT_CONNECTIONS;
-
     private boolean useCompression = DEFAULT_USE_COMPRESSION;
-
     private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
 
     public long getConnectTimeout() {

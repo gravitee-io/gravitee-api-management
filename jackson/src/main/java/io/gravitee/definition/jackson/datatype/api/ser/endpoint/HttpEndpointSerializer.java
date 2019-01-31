@@ -23,6 +23,8 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 
 import java.io.IOException;
 
+import static java.lang.Boolean.FALSE;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -41,18 +43,6 @@ public class HttpEndpointSerializer extends EndpointSerializer<HttpEndpoint>  {
             jgen.writeObjectField("healthcheck", endpoint.getHealthCheck());
         }
 
-        HttpClientOptions options =
-                (endpoint.getHttpClientOptions() != null) ? endpoint.getHttpClientOptions() : new HttpClientOptions();
-        jgen.writeObjectField("http", options);
-
-        if (endpoint.getHttpProxy() != null) {
-            jgen.writeObjectField("proxy", endpoint.getHttpProxy());
-        }
-
-        if (endpoint.getHttpClientSslOptions() != null) {
-            jgen.writeObjectField("ssl", endpoint.getHttpClientSslOptions());
-        }
-
         if (endpoint.getTenants() != null) {
             jgen.writeArrayFieldStart("tenants");
             endpoint.getTenants().forEach(tenant -> {
@@ -66,8 +56,22 @@ public class HttpEndpointSerializer extends EndpointSerializer<HttpEndpoint>  {
             jgen.writeEndArray();
         }
 
-        if (endpoint.getHeaders() != null && !endpoint.getHeaders().isEmpty()) {
-            jgen.writeObjectField("headers", endpoint.getHeaders());
+        if (endpoint.getInherit() == null || endpoint.getInherit().equals(FALSE)) {
+            HttpClientOptions options =
+                    (endpoint.getHttpClientOptions() != null) ? endpoint.getHttpClientOptions() : new HttpClientOptions();
+            jgen.writeObjectField("http", options);
+
+            if (endpoint.getHttpProxy() != null) {
+                jgen.writeObjectField("proxy", endpoint.getHttpProxy());
+            }
+
+            if (endpoint.getHttpClientSslOptions() != null) {
+                jgen.writeObjectField("ssl", endpoint.getHttpClientSslOptions());
+            }
+
+            if (endpoint.getHeaders() != null && !endpoint.getHeaders().isEmpty()) {
+                jgen.writeObjectField("headers", endpoint.getHeaders());
+            }
         }
     }
 }

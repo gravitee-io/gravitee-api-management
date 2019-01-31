@@ -24,20 +24,14 @@ import java.util.List;
 public abstract class Endpoint {
 
     public static int DEFAULT_WEIGHT = 1;
-
     private String name;
-
     private String target;
-
     private int weight = DEFAULT_WEIGHT;
-
     private boolean backup;
-
     private Status status = Status.UP;
-
     private List<String> tenants;
-
     private final EndpointType type;
+    private Boolean inherit;
 
     public Endpoint(EndpointType type, String name, String target) {
         this.type = type;
@@ -95,6 +89,14 @@ public abstract class Endpoint {
 
     public EndpointType getType() {
         return type;
+    }
+
+    public Boolean getInherit() {
+        return inherit;
+    }
+
+    public void setInherit(Boolean inherit) {
+        this.inherit = inherit;
     }
 
     @Override
