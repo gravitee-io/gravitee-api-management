@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.management.idp.api.identity.SearchableUser;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -550,6 +549,5 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
         verify(planService, times(1)).update(any(UpdatePlanEntity.class));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
-
     }
 }
