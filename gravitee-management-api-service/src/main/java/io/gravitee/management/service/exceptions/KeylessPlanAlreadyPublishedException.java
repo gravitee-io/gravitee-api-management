@@ -31,7 +31,7 @@ public class KeylessPlanAlreadyPublishedException extends AbstractManagementExce
 
     @Override
     public String getMessage() {
-        return "A key-less plan is already published!";
+        return "A key-less plan is already published (or has been deprecate) !";
     }
 
     @Override
