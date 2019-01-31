@@ -109,6 +109,11 @@ class ApiEndpointGroupController {
   }
 
   update(api) {
+    // include discovery service
+    this.group.services = {
+      discovery: this.discovery
+    };
+
     if (!_.includes(api.proxy.groups, this.group)) {
       if (!api.proxy.groups) {
         api.proxy.groups = [this.group];
