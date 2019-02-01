@@ -78,7 +78,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     public void shouldUpdate() throws Exception {
         Optional<Api> optional = apiRepository.findById("api-to-update");
         assertTrue("API to update not found", optional.isPresent());
-        assertEquals("Invalid saved api name.", "api-to-update", optional.get().getName());
+        assertEquals("Invalid saved api name.", "api-to-update name", optional.get().getName());
 
         final Api api = optional.get();
         api.setName("New API name");
@@ -124,7 +124,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Find api by name return no result ", optional.isPresent());
 
         Api api = optional.get();
-        assertEquals("Invalid api name", "api-to-findById", api.getName());
+        assertEquals("Invalid api name", "api-to-findById name", api.getName());
         assertEquals("Invalid api version", "1", api.getVersion());
         assertEquals("Invalid api visibility", PUBLIC, api.getVisibility());
         assertEquals("Invalid api lifecycle state", STOPPED, api.getLifecycleState());
@@ -144,6 +144,16 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(apis);
         assertFalse("Api list is empty", apis.isEmpty());
+        assertNotNull("Api is null", apis.iterator().next());
+    }
+
+    @Test
+    public void findAllTestCriteriaEmpty() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().build());
+
+        assertNotNull(apis);
+        assertFalse("Api list is empty", apis.isEmpty());
+        assertNotNull("Api is null", apis.iterator().next());
     }
 
     @Test
@@ -200,7 +210,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByName() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -263,7 +273,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByNameAndVersion() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").version("1").build());
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -272,7 +282,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByNameAndVersionWithoutDefinition() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").version("1").build(),
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
                 new ApiFieldExclusionFilter.Builder().excludeDefinition().build());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());

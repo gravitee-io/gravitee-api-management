@@ -55,7 +55,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
 
         final Api apiToUpdate = mock(Api.class);
         when(apiToUpdate.getId()).thenReturn("api-to-update");
-        when(apiToUpdate.getName()).thenReturn("api-to-update");
+        when(apiToUpdate.getName()).thenReturn("api-to-update name");
         final Api apiUpdated = mock(Api.class);
         when(apiUpdated.getName()).thenReturn("New API name");
         when(apiUpdated.getDescription()).thenReturn("New description");
@@ -93,7 +93,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         final Api apiToFindById = mock(Api.class);
         when(apiToFindById.getId()).thenReturn("api-to-findById");
         when(apiToFindById.getVersion()).thenReturn("1");
-        when(apiToFindById.getName()).thenReturn("api-to-findById");
+        when(apiToFindById.getName()).thenReturn("api-to-findById name");
         when(apiToFindById.getLifecycleState()).thenReturn(LifecycleState.STOPPED);
         when(apiToFindById.getVisibility()).thenReturn(PUBLIC);
         when(apiToFindById.getDefinition()).thenReturn(null);
@@ -103,6 +103,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiRepository.findById("api-to-findById")).thenReturn(of(apiToFindById));
 
         when(apiRepository.search(null)).thenReturn(asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class)));
+        when(apiRepository.search(new ApiCriteria.Builder().build())).thenReturn(asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class)));
 
         when(apiRepository.search(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build())).
                 thenReturn(asList(apiToUpdate, apiToDelete));
@@ -114,10 +115,10 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
             }
         }))).thenThrow(new IllegalStateException());
 
-        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").build())).thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build())).thenReturn(singletonList(apiToFindById));
         when(apiRepository.search(new ApiCriteria.Builder().view("my-view").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").version("1").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById").version("1").build(),
+        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build())).thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
                 new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(apiToFindById));
         when(apiRepository.search(new ApiCriteria.Builder().groups("api-group", "unknown").build())).thenReturn(singletonList(groupedApi));
         when(apiRepository.search(new ApiCriteria.Builder().version("1").build())).thenReturn(asList(apiToFindById,
