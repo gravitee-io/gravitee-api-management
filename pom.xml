@@ -90,6 +90,14 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<!--  Logging -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<!-- Unit Tests -->
 		<dependency>
 			<groupId>junit</groupId>

@@ -21,7 +21,6 @@ import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.redis.management.internal.ApiRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApi;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -81,13 +80,15 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
             addCriteria("state", criteria.getState(), filterKeys, tempDestination);
             addCriteria("version", criteria.getVersion(), filterKeys, tempDestination);
         }
-
-        filterKeys.add(REDIS_KEY + ":name");
-
-        redisTemplate.opsForZSet().intersectAndStore(null, filterKeys, tempDestination);
-
-        Set<Object> keys = redisTemplate.opsForZSet().rangeByScore(tempDestination,
-                0, Long.MAX_VALUE);
+        if (filterKeys.isEmpty()) {
+            filterKeys.add(REDIS_KEY + ":id");
+            redisTemplate.opsForZSet().unionAndStore(null, filterKeys, tempDestination);
+            filterKeys.clear();
+            filterKeys.add(tempDestination);
+        } else {
+            redisTemplate.opsForZSet().intersectAndStore(null, filterKeys, tempDestination);
+        }
+        Set<Object> keys = redisTemplate.opsForZSet().rangeByScore(tempDestination, 0, Long.MAX_VALUE);
 
         long total = keys.size();
         if (pageable != null) {
@@ -126,56 +127,53 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
     @Override
     public RedisApi saveOrUpdate(RedisApi api) {
         RedisApi oldApi = find(api.getId());
-        redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
-            redisTemplate.opsForHash().put(REDIS_KEY, api.getId(), api);
+        redisTemplate.opsForHash().put(REDIS_KEY, api.getId(), api);
 
-            if (oldApi != null) {
-                redisTemplate.opsForSet().remove(REDIS_KEY + ":visibility:" + oldApi.getVisibility(), api.getId());
-                redisTemplate.opsForSet().remove(REDIS_KEY + ":id:" + oldApi.getId(), api.getId());
-                redisTemplate.opsForSet().remove(REDIS_KEY + ":state:" + oldApi.getLifecycleState(), api.getId());
-                redisTemplate.opsForSet().remove(REDIS_KEY + ":name:" + oldApi.getName(), api.getId());
-                redisTemplate.opsForSet().remove(REDIS_KEY + ":version:" + oldApi.getVersion(), api.getId());
-                if(oldApi.getGroups() != null) {
-                    for (String groupId : oldApi.getGroups()) {
-                        redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + groupId, api.getId());
-                    }
+        if (oldApi != null) {
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":visibility:" + oldApi.getVisibility(), api.getId());
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":id:" + oldApi.getId(), api.getId());
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":state:" + oldApi.getLifecycleState(), api.getId());
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":name:" + oldApi.getName(), api.getId());
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":version:" + oldApi.getVersion(), api.getId());
+            if(oldApi.getGroups() != null) {
+                for (String groupId : oldApi.getGroups()) {
+                    redisTemplate.opsForSet().remove(REDIS_KEY + ":group:" + groupId, api.getId());
                 }
-                if(oldApi.getLabels() != null) {
-                    for (String label : oldApi.getLabels()) {
-                        redisTemplate.opsForSet().remove(REDIS_KEY + ":label:" + label, api.getId());
-                    }
-                }
-                if(oldApi.getViews() != null) {
-                    for (String view : oldApi.getViews()) {
-                        redisTemplate.opsForSet().remove(REDIS_KEY + ":view:" + view, api.getId());
-                    }
-                }
-                redisTemplate.opsForSet().remove(REDIS_KEY + ":name", oldApi.getName());
             }
+            if(oldApi.getLabels() != null) {
+                for (String label : oldApi.getLabels()) {
+                    redisTemplate.opsForSet().remove(REDIS_KEY + ":label:" + label, api.getId());
+                }
+            }
+            if(oldApi.getViews() != null) {
+                for (String view : oldApi.getViews()) {
+                    redisTemplate.opsForSet().remove(REDIS_KEY + ":view:" + view, api.getId());
+                }
+            }
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":id", oldApi.getId());
+        }
 
-            redisTemplate.opsForSet().add(REDIS_KEY + ":visibility:" + api.getVisibility(), api.getId());
-            redisTemplate.opsForSet().add(REDIS_KEY + ":id:" + api.getId(), api.getId());
-            redisTemplate.opsForSet().add(REDIS_KEY + ":state:" + api.getLifecycleState(), api.getId());
-            redisTemplate.opsForSet().add(REDIS_KEY + ":version:" + api.getVersion(), api.getId());
-            redisTemplate.opsForSet().add(REDIS_KEY + ":name:" + api.getName(), api.getId());
-            if(api.getGroups() != null) {
-                for (String groupId : api.getGroups()) {
-                    redisTemplate.opsForSet().add(REDIS_KEY + ":group:" + groupId, api.getId());
-                }
+        redisTemplate.opsForSet().add(REDIS_KEY + ":visibility:" + api.getVisibility(), api.getId());
+        redisTemplate.opsForSet().add(REDIS_KEY + ":id:" + api.getId(), api.getId());
+        redisTemplate.opsForSet().add(REDIS_KEY + ":state:" + api.getLifecycleState(), api.getId());
+        redisTemplate.opsForSet().add(REDIS_KEY + ":version:" + api.getVersion(), api.getId());
+        redisTemplate.opsForSet().add(REDIS_KEY + ":name:" + api.getName(), api.getId());
+        if(api.getGroups() != null) {
+            for (String groupId : api.getGroups()) {
+                redisTemplate.opsForSet().add(REDIS_KEY + ":group:" + groupId, api.getId());
             }
-            if(api.getLabels() != null) {
-                for (String label : api.getLabels()) {
-                    redisTemplate.opsForSet().add(REDIS_KEY + ":label:" + label, api.getId());
-                }
+        }
+        if(api.getLabels() != null) {
+            for (String label : api.getLabels()) {
+                redisTemplate.opsForSet().add(REDIS_KEY + ":label:" + label, api.getId());
             }
-            if(api.getViews() != null) {
-                for (String view : api.getViews()) {
-                    redisTemplate.opsForSet().add(REDIS_KEY + ":view:" + view, api.getId());
-                }
+        }
+        if(api.getViews() != null) {
+            for (String view : api.getViews()) {
+                redisTemplate.opsForSet().add(REDIS_KEY + ":view:" + view, api.getId());
             }
-            redisTemplate.opsForSet().add(REDIS_KEY + ":name", api.getName());
-            return null;
-        });
+        }
+        redisTemplate.opsForSet().add(REDIS_KEY + ":id", api.getId());
         return api;
     }
 
@@ -205,7 +203,6 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
                 redisTemplate.opsForSet().remove(REDIS_KEY + ":view:" + view, apiId);
             }
         }
-        redisTemplate.opsForSet().remove(REDIS_KEY + ":name", api.getName());
     }
 
 }
