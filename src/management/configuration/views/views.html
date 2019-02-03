@@ -19,8 +19,16 @@
 <div class="gv-forms gv-forms-fluid" layout="column">
   <h1>Views</h1>
   <div class="gv-form">
-    <h2></h2>
     <div class="gv-form-content" layout="column">
+      <md-input-container class="gv-input-container-dense">
+        <md-switch ng-model="$ctrl.Constants.portal.apis.viewMode.enabled" aria-label="View Mode" ng-change="$ctrl.toggleDisplayMode();">
+          Enable View Mode
+        </md-switch>
+        <div class="hint">
+          Switch on to enable View mode and automatically replace API gallery by View gallery. Switch off to disable this option.
+        </div>
+      </md-input-container>
+
       <md-table-container>
         <table md-table>
           <thead md-head>

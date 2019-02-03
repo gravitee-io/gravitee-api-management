@@ -17,10 +17,13 @@
 -->
 <md-content gv-theme-element="portal.apisList">
   <div id="main-content" layout="row" layout-align="center start" flex="100" style="padding-top: 70px; padding-bottom: 50px;">
-    <div layout="column" flex="60" class="portal-view-container">
-      <h3>{{viewCtrl.view.name}}</h3>
+    <div layout="column" flex="70" class="portal-view-container">
       <div layout="row" layout-align="center start">
-        <div class="portal-view-description" flex="40">
+        <div class="portal-view-description" layout="column" flex="40">
+          <div layout="row" layout-align="start center" class="portal-view-description-title">
+            <img ng-src="{{::viewCtrl.view.picture_url}}" alt="view-logo"/>
+            <span>{{viewCtrl.view.name}}</span>
+          </div>
           <p>
             <span ng-if="!viewCtrl.view.description" translate="view.defaultDescription" translate-values="{viewName: viewCtrl.view.name}" ></span>
             {{viewCtrl.view.description}}

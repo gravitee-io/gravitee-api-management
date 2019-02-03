@@ -23,37 +23,44 @@
   <div class="gv-form">
     <h2>General</h2>
     <div class="gv-form-content" layout="column">
-<form name="$ctrl.viewForm">
-  <div layout-gt-sm="row">
-    <md-input-container class="md-block" flex-gt-sm>
-      <label>Name</label>
-      <input ng-model="$ctrl.view.name" type="text" required name="name" maxlength="50">
-      <div class="hint" ng-if="$ctrl.viewForm.name.$valid || $ctrl.viewForm.name.$pristine">View Name</div>
-      <div ng-messages="$ctrl.viewForm.name.$error">
-        <div ng-message="required">View name is required.</div>
-        <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
-      </div>
-    </md-input-container>
-  </div>
+      <form name="$ctrl.viewForm">
+        <div layout="row">
+          <div layout="column" flex>
+            <div layout-gt-sm="row">
+              <md-input-container class="md-block" flex-gt-sm>
+                <label>Name</label>
+                <input ng-model="$ctrl.view.name" type="text" required name="name" maxlength="50">
+                <div class="hint" ng-if="$ctrl.viewForm.name.$valid || $ctrl.viewForm.name.$pristine">View Name</div>
+                <div ng-messages="$ctrl.viewForm.name.$error">
+                  <div ng-message="required">View name is required.</div>
+                  <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
+                </div>
+              </md-input-container>
+            </div>
 
-  <div layout-gt-sm="row">
-    <md-input-container class="md-block" flex-gt-sm>
-      <label>Description</label>
-      <input ng-model="$ctrl.view.description" type="text" name="description">
-      <div class="hint" ng-if="$ctrl.viewForm.description.$valid || $ctrl.viewForm.description.$pristine">
-        Provide a description of your view
-      </div>
-    </md-input-container>
-  </div>
+            <div layout-gt-sm="row">
+              <md-input-container class="md-block" flex-gt-sm>
+                <label>Description</label>
+                <input ng-model="$ctrl.view.description" type="text" name="description">
+                <div class="hint" ng-if="$ctrl.viewForm.description.$valid || $ctrl.viewForm.description.$pristine">
+                  Provide a description of your view
+                </div>
+              </md-input-container>
+            </div>
 
-  <div layout-gt-sm="row" class="new-view-form-input-action">
-    <md-input-container class="md-block" flex-gt-sm>
-      <label>Visibility</label>
-      <ng-md-icon icon="visibility{{$ctrl.view.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility()"></ng-md-icon>
-      <div class="hint" ng-if="$ctrl.viewForm.name.$valid || $ctrl.viewForm.name.$pristine">Choose to display or hide the view</div>
-    </md-input-container>
-  </div>
-</form>
+            <div layout-gt-sm="row" class="new-view-form-input-action">
+              <md-input-container class="md-block" flex-gt-sm>
+                <label>Visibility</label>
+                <ng-md-icon icon="visibility{{$ctrl.view.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility()"></ng-md-icon>
+                <div class="hint" ng-if="$ctrl.viewForm.name.$valid || $ctrl.viewForm.name.$pristine">Choose to display or hide the view</div>
+              </md-input-container>
+            </div>
+          </div>
+          <div>
+            <gravitee-image image="$ctrl.view.picture" image-url="$ctrl.view.picture_url || 'assets/GRAVITEE_LOGOsstxtclair-05.png'"></gravitee-image>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -124,7 +131,7 @@
     </md-table-container>
 
 <div layout="row">
-  <md-button ng-disabled="$ctrl.viewForm.$invalid || $ctrl.viewForm.$pristine"
+  <md-button ng-disabled="$ctrl.viewForm.$invalid || $ctrl.viewForm.$pristine && !$ctrl.formChanged"
              ng-click="$ctrl.save()"
              permission permission-only="['portal-view-c', 'portal-view-u']"
              class="md-raised md-primary">

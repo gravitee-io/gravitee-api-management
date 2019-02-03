@@ -12,6 +12,19 @@
       font-weight: 400;
       line-height: 24px;
     }
+    .portal-view-description-title {
+      img {
+        max-width: 120px;
+        max-height: 60px;
+        width: auto;
+        height: auto;
+      }
+      span {
+        color: #333333;
+        font-size: 26px;
+        padding-left: 24px;
+      }
+    }
   }
 
   .portal-view-highlight-api {

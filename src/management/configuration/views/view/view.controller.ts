@@ -18,6 +18,7 @@ import NotificationService from '../../../../services/notification.service';
 import ApiService from "../../../../services/api.service";
 import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
+import {IScope} from "angular";
 
 class ViewController {
   private createMode: boolean = false;
@@ -29,6 +30,7 @@ class ViewController {
   private deletedAPIs: any[];
   public searchText: string = "";
   public viewForm: any;
+  private formChanged: boolean = false;
 
   constructor(
     private ApiService: ApiService,
@@ -38,7 +40,8 @@ class ViewController {
     private $filter: ng.IFilterService,
     private $state: StateService,
     private $location: ng.ILocationService,
-    private $mdDialog: angular.material.IDialogService) {
+    private $mdDialog: angular.material.IDialogService,
+    private $scope: IScope) {
     'ngInject';
     this.createMode = $location.path().endsWith('new');
   }
@@ -47,6 +50,11 @@ class ViewController {
     this.deletedAPIs = [];
     this.addedAPIs = [];
     this.selectedAPIs = (this.viewApis) ? this.viewApis.slice(0) : [];
+    let self = this;
+    this.$scope.$on("apiPictureChangeSuccess", function(event, args) {
+      self.view.picture = args.image;
+      self.formChanged = true;
+    });
   }
 
   save() {
@@ -94,6 +102,7 @@ class ViewController {
       });
     }
     this.searchText = "";
+    this.formChanged = true;
     setTimeout(function () {
       document.getElementById('new-view-apis-autocomplete-id').blur();
     },0);
@@ -110,7 +119,6 @@ class ViewController {
     }).then(function (deleteApi) {
       if (deleteApi) {
         that.deletedAPIs.push(api);
-        debugger;
         if (that.viewApis.some(a => a.id === api.id)) {
           // we need to retrieve the API to get the all information required for the update
           that.ApiService.get(api.id).then(response => {

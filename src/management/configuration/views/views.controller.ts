@@ -17,20 +17,23 @@ import * as _ from 'lodash';
 import ViewService from '../../../services/view.service';
 import NotificationService from '../../../services/notification.service';
 import { StateService } from '@uirouter/core';
+import PortalConfigService from "../../../services/portalConfig.service";
 
 class ViewsController {
   private viewsToUpdate: any[];
   private views: any[];
+  private Constants: any;
 
   constructor(
     private ViewService: ViewService,
     private NotificationService: NotificationService,
     private $q: ng.IQService,
-    private $mdEditDialog,
     private $mdDialog: angular.material.IDialogService,
-    private $state: StateService) {
+    private $state: StateService,
+    private PortalConfigService: PortalConfigService,
+    Constants: any) {
     'ngInject';
-
+    this.Constants = Constants;
     this.viewsToUpdate = [];
   }
 
@@ -70,6 +73,12 @@ class ViewsController {
     if (index < _.size(this.views) - 1 ) {
       this.reorder(index, index + 1);
     }
+  }
+
+  toggleDisplayMode() {
+    this.PortalConfigService.save(null).then( () => {
+      this.NotificationService.show("Display mode saved!");
+    });
   }
 
   private reorder(from, to) {
