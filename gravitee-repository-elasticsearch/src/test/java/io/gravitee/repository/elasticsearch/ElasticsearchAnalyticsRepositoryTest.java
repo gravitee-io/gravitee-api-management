@@ -165,5 +165,48 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
                         .build());
 
         Assert.assertNotNull(response);
+        Assert.assertEquals(3, response.getCount());
+    }
+
+    @Test
+    public void testCountByPath() throws Exception {
+        Assert.assertNotNull(analyticsRepository);
+
+        CountResponse response = analyticsRepository.query(
+                count()
+                        .timeRange(lastDays(30), hours(1))
+                        .query("(path:/mypath)")
+                        .build());
+
+        Assert.assertNotNull(response);
+        Assert.assertEquals(1, response.getCount());
+    }
+
+    @Test
+    public void testCountByHost() throws Exception {
+        Assert.assertNotNull(analyticsRepository);
+
+        CountResponse response = analyticsRepository.query(
+                count()
+                        .timeRange(lastDays(30), hours(1))
+                        .query("(host:localhost:8082)")
+                        .build());
+
+        Assert.assertNotNull(response);
+        Assert.assertEquals(1, response.getCount());
+    }
+
+    @Test
+    public void testCountByHostAndPath() throws Exception {
+        Assert.assertNotNull(analyticsRepository);
+
+        CountResponse response = analyticsRepository.query(
+                count()
+                        .timeRange(lastDays(30), hours(1))
+                        .query("((path:/mypath) AND (host:localhost:8082))")
+                        .build());
+
+        Assert.assertNotNull(response);
+        Assert.assertEquals(1, response.getCount());
     }
 }
