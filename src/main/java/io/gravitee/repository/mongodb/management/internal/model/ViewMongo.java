@@ -36,6 +36,7 @@ public class ViewMongo extends Auditable{
 	private boolean hidden;
 	private int order;
 	private String highlightApi;
+	private String picture;
 
 	public String getId() {
 		return id;
@@ -85,6 +86,14 @@ public class ViewMongo extends Auditable{
 
 	public void setHighlightApi(String highlightApi) {
 		this.highlightApi = highlightApi;
+	}
+
+	public String getPicture() {
+		return picture;
+	}
+
+	public void setPicture(String picture) {
+		this.picture = picture;
 	}
 
 	@Override
