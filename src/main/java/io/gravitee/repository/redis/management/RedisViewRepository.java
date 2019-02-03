@@ -61,7 +61,7 @@ public class RedisViewRepository implements ViewRepository {
         if (viewRedis == null) {
             throw new IllegalStateException(String.format("No view found with name [%s]", view.getId()));
         }
-        
+
         final RedisView redisView = viewRedisRepository.saveOrUpdate(convert(view));
         return convert(redisView);
     }
@@ -92,6 +92,7 @@ public class RedisViewRepository implements ViewRepository {
         view.setHidden(redisView.isHidden());
         view.setOrder(redisView.getOrder());
         view.setHighlightApi(redisView.getHighlightApi());
+        view.setPicture(redisView.getPicture());
         if (redisView.getCreatedAt() > 0) {
             view.setCreatedAt(new Date(redisView.getCreatedAt()));
         }
@@ -113,6 +114,7 @@ public class RedisViewRepository implements ViewRepository {
         redisView.setHidden(view.isHidden());
         redisView.setOrder(view.getOrder());
         redisView.setHighlightApi(view.getHighlightApi());
+        redisView.setPicture(view.getPicture());
         if (view.getCreatedAt() != null) {
             redisView.setCreatedAt(view.getCreatedAt().getTime());
         }
