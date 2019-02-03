@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
@@ -38,6 +40,9 @@ public class ViewEntity {
     private Date updatedAt;
     private long totalApis;
     private String highlightApi;
+    private String picture;
+    @JsonProperty(value = "picture_url")
+    private String pictureUrl;
 
     public String getId() {
         return id;
@@ -101,6 +106,22 @@ public class ViewEntity {
 
     public void setHighlightApi(String highlightApi) {
         this.highlightApi = highlightApi;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 
     public Date getCreatedAt() {

@@ -32,6 +32,7 @@ public class NewViewEntity {
     private boolean hidden;
     private int order;
     private String highlightApi;
+    private String picture;
 
     public String getName() {
         return name;
@@ -71,6 +72,14 @@ public class NewViewEntity {
 
     public void setHighlightApi(String highlightApi) {
         this.highlightApi = highlightApi;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     @Override

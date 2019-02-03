@@ -16,9 +16,11 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.management.model.InlinePictureEntity;
 import io.gravitee.management.model.NewViewEntity;
 import io.gravitee.management.model.UpdateViewEntity;
 import io.gravitee.management.model.ViewEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.ViewService;
@@ -28,11 +30,16 @@ import io.gravitee.management.service.exceptions.ViewNotFoundException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.model.View;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.DatatypeConverter;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,6 +55,9 @@ import static io.gravitee.repository.management.model.View.AuditEvent.*;
 public class ViewServiceImpl extends TransactionalService implements ViewService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ViewServiceImpl.class);
+
+    @Value("${configuration.default-icon:${gravitee.home}/assets/default_api_logo.png}")
+    private String defaultIcon;
 
     @Autowired
     private ViewRepository viewRepository;
@@ -127,6 +137,12 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
             }
 
             View view = convert(viewEntity);
+
+            // check if picture has been set
+            if (viewEntity.getPicture() == null) {
+                view.setPicture(optViewToUpdate.get().getPicture());
+            }
+
             ViewEntity updatedView = convert(viewRepository.update(view));
             auditService.createPortalAuditLog(
                     Collections.singletonMap(VIEW, view.getId()),
@@ -209,6 +225,32 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         }
     }
 
+    @Override
+    public InlinePictureEntity getPicture(String viewId) {
+        ViewEntity viewEntity = findById(viewId);
+        InlinePictureEntity imageEntity = new InlinePictureEntity();
+        if (viewEntity.getPicture() == null) {
+            imageEntity.setType("image/png");
+            imageEntity.setContent(getDefaultPicture());
+        } else {
+            String[] parts = viewEntity.getPicture().split(";", 2);
+            imageEntity.setType(parts[0].split(":")[1]);
+            String base64Content = viewEntity.getPicture().split(",", 2)[1];
+            imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
+        }
+
+        return imageEntity;
+    }
+
+    private byte[] getDefaultPicture() {
+        try {
+            return IOUtils.toByteArray(new FileInputStream(defaultIcon));
+        } catch (IOException ioe) {
+            LOGGER.error("Default icon for View does not exist", ioe);
+        }
+        return null;
+    }
+
     private View convert(final NewViewEntity viewEntity) {
         final View view = new View();
         view.setId(IdGenerator.generate(viewEntity.getName()));
@@ -217,6 +259,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         view.setOrder(viewEntity.getOrder());
         view.setHidden(viewEntity.isHidden());
         view.setHighlightApi(viewEntity.getHighlightApi());
+        view.setPicture(viewEntity.getPicture());
         return view;
     }
 
@@ -229,6 +272,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         view.setOrder(viewEntity.getOrder());
         view.setHidden(viewEntity.isHidden());
         view.setHighlightApi(viewEntity.getHighlightApi());
+        view.setPicture(viewEntity.getPicture());
         return view;
     }
 
@@ -241,6 +285,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
         viewEntity.setOrder(view.getOrder());
         viewEntity.setHidden(view.isHidden());
         viewEntity.setHighlightApi(view.getHighlightApi());
+        viewEntity.setPicture(view.getPicture());
         viewEntity.setUpdatedAt(view.getUpdatedAt());
         viewEntity.setCreatedAt(view.getCreatedAt());
         return viewEntity;

@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service;
 
+import io.gravitee.management.model.InlinePictureEntity;
 import io.gravitee.management.model.NewViewEntity;
 import io.gravitee.management.model.UpdateViewEntity;
 import io.gravitee.management.model.ViewEntity;
@@ -41,4 +42,6 @@ public interface ViewService {
     void delete(String viewId);
 
     void createDefaultView();
+
+    InlinePictureEntity getPicture(String viewId);
 }

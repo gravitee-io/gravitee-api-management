@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Api(tags = {"Views"})
-public class ViewsResource extends AbstractResource  {
+public class ViewsResource extends AbstractViewResource  {
 
     @Context
     private ResourceContext resourceContext;
@@ -77,6 +77,8 @@ public class ViewsResource extends AbstractResource  {
                 .stream()
                 .filter(v -> viewAll || !v.isHidden())
                 .sorted(Comparator.comparingInt(ViewEntity::getOrder))
+                // set picture
+                .map(v -> setPicture(v, true))
                 .map(v -> viewEnhancer.enhance(apis).apply(v))
                 .collect(Collectors.toList());
     }
