@@ -48,6 +48,7 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
         when(newView.isHidden()).thenReturn(true);
         when(newView.getOrder()).thenReturn(1);
         when(newView.isDefaultView()).thenReturn(true);
+        when(newView.getPicture()).thenReturn("New picture");
 
 
         final View viewProducts = new View();
@@ -68,6 +69,7 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
         when(viewProductsUpdated.getOrder()).thenReturn(10);
         when(viewProductsUpdated.isDefaultView()).thenReturn(true);
         when(viewProductsUpdated.getHighlightApi()).thenReturn("new Highlighted API");
+        when(viewProductsUpdated.getPicture()).thenReturn("New picture");
 
         final Set<View> views = newSet(newView, viewProducts, mock(View.class));
         final Set<View> viewsAfterDelete = newSet(newView, viewProducts);

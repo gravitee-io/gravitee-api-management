@@ -24,6 +24,10 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class ViewRepositoryTest extends AbstractRepositoryTest {
 
     @Override
@@ -50,6 +54,7 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         view.setHidden(true);
         view.setOrder(1);
         view.setDefaultView(true);
+        view.setPicture("New picture");
 
         int nbViewsBeforeCreation = viewRepository.findAll().size();
         viewRepository.create(view);
@@ -68,6 +73,7 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid view hidden.", view.isHidden(), viewSaved.isHidden());
         Assert.assertEquals("Invalid view order.", view.getOrder(), viewSaved.getOrder());
         Assert.assertEquals("Invalid view defaultView.", view.isDefaultView(), viewSaved.isDefaultView());
+        Assert.assertEquals("Invalid view picture.", "New picture", viewSaved.getPicture());
     }
 
     @Test
@@ -85,6 +91,7 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         view.setCreatedAt(new Date(1486771200000L));
         view.setUpdatedAt(new Date(1486771200000L));
         view.setHighlightApi("new Highlighted API");
+        view.setPicture("New picture");
 
         int nbViewsBeforeUpdate = viewRepository.findAll().size();
         viewRepository.update(view);
@@ -104,6 +111,7 @@ public class ViewRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid view order.", view.getOrder(), viewUpdated.getOrder());
         Assert.assertEquals("Invalid view defaultView.", view.isDefaultView(), viewUpdated.isDefaultView());
         Assert.assertEquals("Invalid view highlight API.", view.getHighlightApi(), viewUpdated.getHighlightApi());
+        Assert.assertEquals("Invalid view picture.", "New picture", viewUpdated.getPicture());
     }
 
     @Test
