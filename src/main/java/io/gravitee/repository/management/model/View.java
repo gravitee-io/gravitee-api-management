@@ -36,6 +36,7 @@ public class View {
     private boolean hidden;
     private int order;
     private String highlightApi;
+    private String picture;
     private Date createdAt;
     private Date updatedAt;
 
@@ -93,6 +94,14 @@ public class View {
 
     public void setHighlightApi(String highlightApi) {
         this.highlightApi = highlightApi;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     public Date getCreatedAt() {
