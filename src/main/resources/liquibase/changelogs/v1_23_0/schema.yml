@@ -1,0 +1,12 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.23.0
+        author: GraviteeSource Team
+        changes:
+
+        - addColumn:
+            tableName: views
+            columns:
+                - column:
+                    name: picture
+                    type: nclob

@@ -38,6 +38,7 @@ public class JdbcViewRepository extends JdbcAbstractCrudRepository<View, String>
             .addColumn("hidden", Types.BIT, boolean.class)
             .addColumn("order", Types.INTEGER, int.class)
             .addColumn("highlight_api", Types.NVARCHAR, String.class)
+            .addColumn("picture", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
