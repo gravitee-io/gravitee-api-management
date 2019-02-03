@@ -49,7 +49,7 @@
   ,"tenant":"${metrics.getTenant()}"
   </#if>
   <#if metrics.getMessage()??>
-  ,"message":"${metrics.getMessage()}"
+  ,"message":"${metrics.getMessage()?j_string}"
   </#if>
   <#if metrics.getPath()??>
   ,"path":"${metrics.getPath()}"
