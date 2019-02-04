@@ -18,15 +18,37 @@
 <md-step label="Gateway" md-complete="$ctrl.parent.vm.stepData[1].data.completed" ng-disabled="$ctrl.parent.vm.stepProgress < 2">
   <md-step-body>
     <md-content layout-padding class="api-creation-content">
+      <div layout="row" layout-align="end start"><a ng-click="$ctrl.toggleAdvancedMode()">Advanced mode</a></div>
       <form name="apiGatewayForm">
-        <md-input-container class="md-block" flex-gt-sm>
-          <label>Backend</label>
-          <input ng-model="$ctrl.parent.endpoint" type="url" required name="endpoint">
-          <div class="hint" ng-if="apiGatewayForm.endpoint.$valid || apiGatewayForm.endpoint.$pristine">Target backend when a request is received for the API context-path</div>
-          <div ng-messages="apiGatewayForm.endpoint.$error">
-            <div ng-message="required">Endpoint is required.</div>
-            <div ng-message="url">Endpoint is not a valid URL.</div>
-          </div>
+        <div layout-gt-sm="row">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Backend</label>
+            <input ng-model="$ctrl.parent.endpoint" type="url" required name="endpoint">
+            <div class="hint" ng-if="apiGatewayForm.endpoint.$valid || apiGatewayForm.endpoint.$pristine">Target backend when a request is received for the API context-path</div>
+            <div ng-messages="apiGatewayForm.endpoint.$error">
+              <div ng-message="required">Endpoint is required.</div>
+              <div ng-message="url">Endpoint is not a valid URL.</div>
+            </div>
+          </md-input-container>
+
+          <md-input-container class="md-block" flex-gt-sm flex="25" ng-if="$ctrl.advancedMode">
+            <label>Tenants</label>
+            <md-select ng-model="$ctrl.parent.selectedTenants" multiple>
+              <md-option ng-repeat="tenant in $ctrl.parent.tenants" ng-value="tenant.id">
+                {{tenant.name}}<span ng-if="tenant.description" class="gravitee-general-description"> - {{tenant.description}}</span>
+              </md-option>
+            </md-select>
+            <div class="hint">Select tenants you want to use for this backend.</div>
+          </md-input-container>
+        </div>
+        <md-input-container class="md-block" ng-if="$ctrl.advancedMode">
+          <label>Sharding tags</label>
+          <md-select ng-model="$ctrl.parent.api.tags" multiple>
+            <md-option ng-repeat="tag in $ctrl.parent.tags" ng-value="tag.id">
+              {{tag.name}}<span ng-if="tag.description" class="gravitee-general-description"> - {{tag.description}}</span>
+            </md-option>
+          </md-select>
+          <div class="hint">Select sahrding tags you want to use for this backend.</div>
         </md-input-container>
       </form>
       <md-step-actions layout="row">

@@ -13,11 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import ApiCreationController from "./api-creation.controller";
+
 const ApiCreationStep2Component: ng.IComponentOptions = {
   require: {
     parent: '^apiCreation'
   },
-  template: require("./api-creation-step2.html")
+  template: require("./api-creation-step2.html"),
+  controller: class {
+    private parent: ApiCreationController;
+    private advancedMode: boolean;
+
+    constructor() {
+      'ngInject';
+      this.advancedMode = false;
+    };
+
+    toggleAdvancedMode = () => {
+      this.advancedMode = !this.advancedMode;
+      if (!this.advancedMode) {
+        this.parent["api"]["tags"] = [];
+        this.parent["selectedTenants"] = [];
+      }
+    };
+  }
 };
 
 export default ApiCreationStep2Component;

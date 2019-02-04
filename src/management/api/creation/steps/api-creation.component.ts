@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 const ApiCreationComponent: ng.IComponentOptions = {
+  bindings: {
+    tags: '<',
+    tenants: '<'
+  },
   template: require('./api-creation.html'),
   controller: 'ApiCreationController'
 };

@@ -21,6 +21,7 @@ import * as _ from 'lodash';
 import NotificationSettingsService from '../../services/notificationSettings.service';
 import {Scope} from '../../entities/scope';
 import ApiService from "../../services/api.service";
+import TenantService from "../../services/tenant.service";
 
 export default apisRouterConfig;
 
@@ -90,6 +91,10 @@ function apisRouterConfig($stateProvider) {
     .state('management.apis.create', {
       url: '/new/create',
       component: 'apiCreation',
+      resolve: {
+        tenants: (TenantService: TenantService) => TenantService.list().then(response => response.data),
+        tags: (TagService: TagService) => TagService.list().then(response => response.data)
+      },
       data: {
         perms: {
           only: ['management-api-c']

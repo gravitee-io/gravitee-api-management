@@ -50,6 +50,9 @@ class ApiCreationController {
   private endpoint: any;
   private rateLimit: any;
   private quota: any;
+  private tags: any[];
+  private tenants: any[];
+  private selectedTenants: any[];
 
   constructor(private $scope,
               private $timeout,
@@ -67,6 +70,7 @@ class ApiCreationController {
     this.api.proxy.endpoints = [];
     this.api.pages = [];
     this.api.plans = [];
+    this.api.tags = [];
 
     this.plan = {
       characteristics: []
@@ -268,7 +272,8 @@ class ApiCreationController {
     this.api.proxy.endpoints = [];
     var endpoint = {
       name: 'default',
-      target: this.endpoint
+      target: this.endpoint,
+      tenants: this.selectedTenants
     };
 
     this.api.proxy.endpoints.push(endpoint);
