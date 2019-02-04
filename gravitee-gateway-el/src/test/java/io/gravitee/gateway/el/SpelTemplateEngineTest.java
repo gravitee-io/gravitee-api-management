@@ -71,6 +71,27 @@ public class SpelTemplateEngineTest {
     }
 
     @Test
+    public void shouldTransformWithRequestHeader_getValue() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setAll(new HashMap<String, String>() {
+            {
+                put("X-Gravitee-Endpoint", "my_api_host");
+            }
+        });
+
+        when(request.headers()).thenReturn(headers);
+        when(request.path()).thenReturn("/stores/99/products/123456");
+
+        SpelTemplateEngine engine = new SpelTemplateEngine();
+        engine.getTemplateContext().setVariable("request", new EvaluableRequest(request));
+
+        EvaluableRequest value = engine.getValue("{#request}", EvaluableRequest.class);
+        HttpHeaders headersValue = engine.getValue("{#request.headers}", HttpHeaders.class);
+        Assert.assertEquals("my_api_host", value.getHeaders().getFirst("X-Gravitee-Endpoint"));
+        Assert.assertEquals("my_api_host", headersValue.getFirst("X-Gravitee-Endpoint"));
+    }
+
+    @Test
     public void shouldTransformWithRequestQueryParameter() {
         final MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.put("param", Collections.singletonList("myparam"));
@@ -86,6 +107,23 @@ public class SpelTemplateEngineTest {
     }
 
     @Test
+    public void shouldTransformWithRequestQueryParameter_getValue() {
+        final MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.put("param", Collections.singletonList("myparam"));
+
+        when(request.parameters()).thenReturn(parameters);
+        when(request.path()).thenReturn("/stores/99/products/123456");
+
+        SpelTemplateEngine engine = new SpelTemplateEngine();
+        engine.getTemplateContext().setVariable("request", new EvaluableRequest(request));
+
+        EvaluableRequest value = engine.getValue("{#request}", EvaluableRequest.class);
+        MultiValueMap<String, String> paramsValue = engine.getValue("{#request.params}", MultiValueMap.class);
+        Assert.assertEquals("myparam", value.getParams().getFirst("param"));
+        Assert.assertEquals("myparam", paramsValue.getFirst("param"));
+    }
+
+    @Test
     public void shouldTransformWithRequestQueryParameterMultipleValues() {
         final MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.put("param", Arrays.asList("myparam", "myparam2"));
@@ -98,6 +136,23 @@ public class SpelTemplateEngineTest {
 
         String value = engine.convert("{#request.params['param'][1]}");
         Assert.assertEquals("myparam2", value);
+    }
+
+    @Test
+    public void shouldTransformWithRequestQueryParameterMultipleValues_getValue() {
+        final MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.put("param", Arrays.asList("myparam", "myparam2"));
+
+        when(request.parameters()).thenReturn(parameters);
+        when(request.path()).thenReturn("/stores/99/products/123456");
+
+        SpelTemplateEngine engine = new SpelTemplateEngine();
+        engine.getTemplateContext().setVariable("request", new EvaluableRequest(request));
+
+        EvaluableRequest value = engine.getValue("{#request}", EvaluableRequest.class);
+        MultiValueMap<String, String> paramsValue = engine.getValue("{#request.params}", MultiValueMap.class);
+        Assert.assertEquals("myparam2", value.getParams().get("param").get(1));
+        Assert.assertEquals("myparam2", paramsValue.get("param").get(1));
     }
 
     @Test

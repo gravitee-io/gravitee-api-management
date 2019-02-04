@@ -29,8 +29,8 @@ public class SpelTemplateEngine implements TemplateEngine {
     private final io.gravitee.el.spel.SpelTemplateEngine delegate = new io.gravitee.el.spel.SpelTemplateEngine();
 
     @Override
-    public String convert(String expression) {
-        return delegate.convert(expression);
+    public <T> T getValue(String expression, Class<T> clazz) {
+        return delegate.getValue(expression, clazz);
     }
 
     @Override
