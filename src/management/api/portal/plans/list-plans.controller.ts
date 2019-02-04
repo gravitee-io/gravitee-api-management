@@ -161,9 +161,9 @@ class ApiListPlansController {
       template: require('../../../../components/dialog/confirmWarning.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Would you like to depreciate plan "' + plan.name + '" ?',
-        msg: 'By depreciating this plan, users will no more being able to subscribe it.',
-        confirmButton: 'Depreciate'
+        title: 'Would you like to deprecate plan "' + plan.name + '" ?',
+        msg: 'By deprecating this plan, users will no more be able to subscribe to it.',
+        confirmButton: 'Deprecate'
       }
     }).then( (response) => {
       if (response) {
