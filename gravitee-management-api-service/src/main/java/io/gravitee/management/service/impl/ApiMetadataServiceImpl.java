@@ -274,10 +274,12 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
         metadata.setName(metadataEntity.getName());
         metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(metadataEntity.getFormat().name()));
 
-        if (MetadataFormat.DATE.equals(metadataEntity.getFormat())) {
-            metadata.setValue(metadataEntity.getValue().substring(0, 10));
-        } else {
-            metadata.setValue(metadataEntity.getValue());
+        if (metadataEntity.getValue() != null) {
+            if (MetadataFormat.DATE.equals(metadataEntity.getFormat())) {
+                metadata.setValue(metadataEntity.getValue().substring(0, 10));
+            } else {
+                metadata.setValue(metadataEntity.getValue());
+            }
         }
         return metadata;
     }
@@ -288,10 +290,12 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
         metadata.setName(metadataEntity.getName());
         metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(metadataEntity.getFormat().name()));
 
-        if (MetadataFormat.DATE.equals(metadataEntity.getFormat())) {
-            metadata.setValue(metadataEntity.getValue().substring(0, 10));
-        } else {
-            metadata.setValue(metadataEntity.getValue());
+        if (metadataEntity.getValue() != null) {
+            if (MetadataFormat.DATE.equals(metadataEntity.getFormat())) {
+                metadata.setValue(metadataEntity.getValue().substring(0, 10));
+            } else {
+                metadata.setValue(metadataEntity.getValue());
+            }
         }
 
         metadata.setReferenceId(metadataEntity.getApiId());
@@ -306,10 +310,12 @@ public class ApiMetadataServiceImpl implements ApiMetadataService {
         metadata.setName(metadataEntity.getName());
         metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(metadataEntity.getFormat().name()));
 
-        if (MetadataFormat.DATE.equals(metadataEntity.getFormat())) {
-            metadata.setValue(metadataEntity.getValue().substring(0, 10));
-        } else {
-            metadata.setValue(metadataEntity.getValue());
+        if (metadataEntity.getValue() != null) {
+            if (MetadataFormat.DATE.equals(metadataEntity.getFormat())) {
+                metadata.setValue(metadataEntity.getValue().substring(0, 10));
+            } else {
+                metadata.setValue(metadataEntity.getValue());
+            }
         }
 
         metadata.setReferenceId(metadataEntity.getApiId());

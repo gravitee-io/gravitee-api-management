@@ -345,7 +345,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             if (optPlan.get().getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
                 int subscriptions = subscriptionService.findByPlan(plan).size();
-                if (optPlan.get().getStatus() == Plan.Status.PUBLISHED && subscriptions > 0) {
+                if ((optPlan.get().getStatus() == Plan.Status.PUBLISHED || optPlan.get().getStatus() == Plan.Status.DEPRECATED)
+                        && subscriptions > 0) {
                     throw new PlanWithSubscriptionsException();
                 }
             }
@@ -394,7 +395,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 // Look to other plans if there is already a keyless-published plan
                 long count = plans
                         .stream()
-                        .filter(plan1 -> plan1.getStatus() == Plan.Status.PUBLISHED)
+                        .filter(plan1 -> plan1.getStatus() == Plan.Status.PUBLISHED || plan1.getStatus() == Plan.Status.DEPRECATED)
                         .filter(plan1 -> plan1.getSecurity() == Plan.PlanSecurityType.KEY_LESS)
                         .count();
 
