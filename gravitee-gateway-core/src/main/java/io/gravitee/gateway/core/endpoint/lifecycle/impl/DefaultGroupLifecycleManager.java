@@ -65,17 +65,17 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
     @Override
     public LoadBalancedEndpointGroup get(String groupName) {
         EndpointGroupLifecycleManager group = groups.get(groupName);
-        return (group != null) ? group.getGroup() : null;
+        return (group != null) ? group.getLBGroup() : null;
     }
 
     @Override
     public LoadBalancedEndpointGroup getDefault() {
-        return defaultGroup.getGroup();
+        return defaultGroup.getLBGroup();
     }
 
     @Override
     public Collection<LoadBalancedEndpointGroup> groups() {
-        return groups.values().stream().map(EndpointGroupLifecycleManager::getGroup).collect(Collectors.toSet());
+        return groups.values().stream().map(EndpointGroupLifecycleManager::getLBGroup).collect(Collectors.toSet());
     }
 
     @Override
@@ -114,9 +114,9 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
                         public void accept(EndpointGroupLifecycleManager groupLifecycleManager) {
                             try {
                                 groupLifecycleManager.start();
-                                referenceRegister.add(new GroupReference(groupLifecycleManager.getGroup()));
+                                referenceRegister.add(new GroupReference(groupLifecycleManager.getLBGroup()));
                             } catch (Exception ex) {
-                                logger.error("An error occurs while starting a group of endpoints: name[{}]", groupLifecycleManager);
+                                logger.error("An error occurs while starting a group of endpoints: " + groupLifecycleManager.getGroup().getName(), ex);
                             }
                         }
                     });

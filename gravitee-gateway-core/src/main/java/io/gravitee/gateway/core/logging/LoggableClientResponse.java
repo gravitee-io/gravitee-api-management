@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.reporter.api.log.Log;
 
@@ -86,5 +87,16 @@ public class LoggableClientResponse implements Response {
     @Override
     public HttpHeaders headers() {
         return response.headers();
+    }
+
+    @Override
+    public WriteStream<Buffer> drainHandler(Handler<Void> drainHandler) {
+        response.drainHandler(drainHandler);
+        return this;
+    }
+
+    @Override
+    public boolean writeQueueFull() {
+        return response.writeQueueFull();
     }
 }

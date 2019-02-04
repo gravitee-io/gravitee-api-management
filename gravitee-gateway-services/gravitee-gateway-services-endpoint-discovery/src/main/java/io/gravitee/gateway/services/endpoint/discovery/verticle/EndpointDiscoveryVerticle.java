@@ -132,6 +132,9 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
                     public void handle(io.gravitee.discovery.api.event.Event event) {
                         LOGGER.info("Receiving a service discovery event id[{}] type[{}]", event.service().id(), event.type());
                         Set<Endpoint> endpoints = group.getEndpoints();
+                        if (endpoints == null) {
+                            endpoints = new HashSet<>();
+                        }
                         DiscoveredEndpoint endpoint = createEndpoint(event.service());
 
                         switch (event.type()) {
