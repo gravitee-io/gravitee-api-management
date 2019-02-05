@@ -181,6 +181,7 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
     public void delete(String apiId) {
         RedisApi api = find(apiId);
         redisTemplate.opsForHash().delete(REDIS_KEY, apiId);
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":id",  apiId);
         redisTemplate.opsForSet().remove(REDIS_KEY + ":id:" + apiId, apiId);
         redisTemplate.opsForSet().remove(REDIS_KEY + ":state:" + api.getLifecycleState(), apiId);
         redisTemplate.opsForSet().remove(REDIS_KEY + ":version:" + api.getVersion(), apiId);
