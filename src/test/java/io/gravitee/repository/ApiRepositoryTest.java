@@ -47,12 +47,12 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void createApiTest() throws Exception {
-        String apiName = "sample-new";
+    public void createAndDeleteApiTest() throws Exception {
+        String apiId = "sample-new";
 
         Api api = new Api();
-        api.setId(apiName);
-        api.setName(apiName);
+        api.setId(apiId);
+        api.setName("sample-new name");
         api.setVersion("1");
         api.setLifecycleState(STOPPED);
         api.setVisibility(Visibility.PRIVATE);
@@ -62,7 +62,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
         apiRepository.create(api);
 
-        Optional<Api> optional = apiRepository.findById(apiName);
+        Optional<Api> optional = apiRepository.findById(apiId);
         assertTrue("Api saved not found", optional.isPresent());
 
         Api apiSaved = optional.get();
@@ -72,6 +72,13 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid api definition.", api.getDefinition(), apiSaved.getDefinition());
         assertEquals("Invalid api createdAt.", api.getCreatedAt(), apiSaved.getCreatedAt());
         assertEquals("Invalid api updateAt.", api.getUpdatedAt(), apiSaved.getUpdatedAt());
+
+        // test delete
+        int nbApplicationBefore = apiRepository.search(null).size();
+        apiRepository.delete(apiId);
+        int nbApplicationAfter = apiRepository.search(null).size();
+        assertFalse("api was deleted", apiRepository.findById(apiId).isPresent());
+        assertEquals("Invalid number of apis after deletion", nbApplicationBefore - 1, nbApplicationAfter);
     }
 
     @Test

@@ -25,6 +25,8 @@ import io.gravitee.repository.management.model.Visibility;
 import org.mockito.ArgumentMatcher;
 import org.mockito.internal.util.collections.Sets;
 
+import java.util.List;
+
 import static io.gravitee.repository.management.model.LifecycleState.STARTED;
 import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
@@ -83,7 +85,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(newApi.getDefinition()).thenReturn("{}");
         when(newApi.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(newApi.getUpdatedAt()).thenReturn(parse("12/02/2016"));
-        when(apiRepository.findById("sample-new")).thenReturn(of(newApi));
+        when(apiRepository.findById("sample-new")).thenReturn(of(newApi), empty());
 
         final Api groupedApi = mock(Api.class);
         when(groupedApi.getGroups()).thenReturn(singleton("api-group"));
@@ -102,7 +104,9 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiToFindById.getLabels()).thenReturn(asList("label 1", "label 2"));
         when(apiRepository.findById("api-to-findById")).thenReturn(of(apiToFindById));
 
-        when(apiRepository.search(null)).thenReturn(asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class)));
+        final List<Api> searchedApis = asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class));
+        final List<Api> searchedApisAfterDeletion = asList(mock(Api.class), mock(Api.class), mock(Api.class));
+        when(apiRepository.search(null)).thenReturn(searchedApis, searchedApis, searchedApis, searchedApisAfterDeletion);
         when(apiRepository.search(new ApiCriteria.Builder().build())).thenReturn(asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class)));
 
         when(apiRepository.search(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build())).
