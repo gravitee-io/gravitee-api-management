@@ -13,32 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.fetcher;
+package io.gravitee.management.model.descriptor;
 
-import io.gravitee.fetcher.api.FetcherConfiguration;
-import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
+import java.util.List;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-public class DummyFetcherConfiguration implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
+public class GraviteeDescriptorDocumentationEntity {
+    private List<GraviteeDescriptorPageEntity> pages;
 
-    private int value;
-
-    public int getValue() {
-        return value;
+    public List<GraviteeDescriptorPageEntity> getPages() {
+        return pages;
     }
 
-    public void setValue(int value) {
-        this.value = value;
-    }
-
-    public String getFilepath() {
-        return null;
-    }
-
-    public void setFilepath(String filepath) {
-
+    public void setPages(List<GraviteeDescriptorPageEntity> pages) {
+        this.pages = pages;
     }
 }

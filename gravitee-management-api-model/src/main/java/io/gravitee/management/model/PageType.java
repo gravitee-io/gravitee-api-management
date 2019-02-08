@@ -15,16 +15,32 @@
  */
 package io.gravitee.management.model;
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableList;
+
 /**
  * @author Ludovic Dussart (ludovic.dussart at gmail.com)
- * @author Guillaume GILLON 
+ * @author Guillaume GILLON
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * Managed types for page documentation
  *
  */
 public enum PageType {
 
-	MARKDOWN,
-	RAML,
-	SWAGGER,
-	FOLDER
+	MARKDOWN(unmodifiableList(asList("md", "markdown"))),
+	SWAGGER(unmodifiableList(asList("json", "yaml", "yml"))),
+	FOLDER(emptyList()),
+	ROOT(emptyList());
+
+	List<String> extensions;
+	PageType(List<String> extensions) {
+		this.extensions = extensions;
+	}
+
+	public List<String> extensions() {
+		return extensions;
+	}
 }

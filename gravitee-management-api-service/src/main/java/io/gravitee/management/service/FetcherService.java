@@ -22,11 +22,13 @@ import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface FetcherService {
 
     Set<FetcherEntity> findAll();
+    Set<FetcherEntity> findAll(boolean onlyFilesFetchers);
 
     FetcherEntity findById(String fetcher);
 

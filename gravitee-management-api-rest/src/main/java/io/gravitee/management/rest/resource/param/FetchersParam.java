@@ -13,32 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.fetcher;
+package io.gravitee.management.rest.resource.param;
 
-import io.gravitee.fetcher.api.FetcherConfiguration;
-import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
+import javax.ws.rs.QueryParam;
+import java.util.List;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DummyFetcherConfiguration implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
+public class FetchersParam {
 
-    private int value;
+    @QueryParam("expand")
+    List<String> expand;
+    @QueryParam("import")
+    private boolean onlyFilesFetchers;
 
-    public int getValue() {
-        return value;
+    public List<String> getExpand() {
+        return expand;
     }
 
-    public void setValue(int value) {
-        this.value = value;
+    public void setExpand(List<String> expand) {
+        this.expand = expand;
     }
 
-    public String getFilepath() {
-        return null;
+    public boolean isOnlyFilesFetchers() {
+        return onlyFilesFetchers;
     }
 
-    public void setFilepath(String filepath) {
-
+    public void setOnlyFilesFetchers(boolean onlyFilesFetchers) {
+        this.onlyFilesFetchers = onlyFilesFetchers;
     }
 }

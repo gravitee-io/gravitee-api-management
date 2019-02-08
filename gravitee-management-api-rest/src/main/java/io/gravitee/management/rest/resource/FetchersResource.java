@@ -18,18 +18,17 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.FetcherEntity;
 import io.gravitee.management.model.FetcherListItem;
+import io.gravitee.management.rest.resource.param.FetchersParam;
 import io.gravitee.management.service.FetcherService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,11 +51,11 @@ public class FetchersResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List fetchers")
-    public Collection<FetcherListItem> list(@QueryParam("expand") List<String> expand) {
-        Stream<FetcherListItem> stream = fetcherService.findAll().stream().map(this::convert);
+    public Collection<FetcherListItem> list(@BeanParam FetchersParam params) {
+        Stream<FetcherListItem> stream = fetcherService.findAll(params.isOnlyFilesFetchers()).stream().map(this::convert);
 
-        if(expand!=null && !expand.isEmpty()) {
-            for (String s : expand) {
+        if(params != null && params.getExpand() != null && !params.getExpand().isEmpty()) {
+            for (String s : params.getExpand()) {
                 switch (s) {
                     case "schema":
                         stream = stream.map(fetcherListItem -> {
@@ -70,7 +69,7 @@ public class FetchersResource {
         }
 
         return stream
-                .sorted((o1, o2) -> o1.getName().compareTo(o2.getName()))
+                .sorted(Comparator.comparing(FetcherListItem::getName))
                 .collect(Collectors.toList());
     }
 

@@ -37,9 +37,9 @@ public interface PageService {
 
 	void transformSwagger(PageEntity pageEntity, String apiId);
 
-	PageEntity createApiPage(String apiId, NewPageEntity page);
+	PageEntity createPage(String apiId, NewPageEntity page);
 
-	PageEntity createPortalPage(NewPageEntity page);
+	PageEntity createPage(NewPageEntity page);
 	
 	PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
 
@@ -54,4 +54,8 @@ public interface PageService {
 	boolean isDisplayable(ApiEntity api, boolean isPagePublished, String username);
 
 	PageEntity fetch(String pageId, String contributor);
+
+	List<PageEntity> importFiles(ImportPageEntity pageEntity);
+
+	List<PageEntity> importFiles(String apiId, ImportPageEntity pageEntity);
 }

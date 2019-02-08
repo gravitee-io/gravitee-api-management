@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.fetcher;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.fetcher.api.FetcherConfiguration;
-import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DummyFetcherConfiguration implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
+public class GraviteeDescriptorVersionException extends AbstractManagementException {
 
-    private int value;
+    private final String message;
 
-    public int getValue() {
-        return value;
+    public GraviteeDescriptorVersionException(String message) {
+        this.message = message;
     }
 
-    public void setValue(int value) {
-        this.value = value;
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.INTERNAL_SERVER_ERROR_500;
     }
 
-    public String getFilepath() {
-        return null;
-    }
-
-    public void setFilepath(String filepath) {
-
+    @Override
+    public String getMessage() {
+        return message;
     }
 }

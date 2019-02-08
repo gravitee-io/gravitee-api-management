@@ -283,7 +283,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 source.setType("http-fetcher");
                 source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
             }
-            pageService.createApiPage(createdApi.getId(), page);
+            pageService.createPage(createdApi.getId(), page);
         }
         return createdApi;
     }
@@ -1022,7 +1022,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                             build();
                     List<PageEntity> pageEntities = pageService.search(query);
                     if (pageEntities == null || pageEntities.isEmpty()) {
-                        pageService.createApiPage(createdOrUpdatedApiEntity.getId(), objectMapper.readValue(pageNode.toString(), NewPageEntity.class));
+                        pageService.createPage(createdOrUpdatedApiEntity.getId(), objectMapper.readValue(pageNode.toString(), NewPageEntity.class));
                     } else if (pageEntities.size() == 1) {
                         UpdatePageEntity updatePageEntity = objectMapper.readValue(pageNode.toString(), UpdatePageEntity.class);
                         pageService.update(pageEntities.get(0).getId(), updatePageEntity);

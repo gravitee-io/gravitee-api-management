@@ -141,7 +141,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
 
-        verify(pageService, times(1)).createApiPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(pageService, times(1)).update(any(), any(UpdatePageEntity.class));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
@@ -202,7 +202,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
 
-        verify(pageService, never()).createApiPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipUser(admin.getId(), null),
@@ -231,7 +231,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
 
-        verify(pageService, never()).createApiPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipUser(admin.getId(), null),
@@ -263,7 +263,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
 
-        verify(pageService, never()).createApiPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never()).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipUser(admin.getId(), null),
@@ -301,7 +301,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
 
-        verify(pageService, times(1)).createApiPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(pageService, times(1)).update(any(), any(UpdatePageEntity.class));
         verify(membershipRepository, never()).create(any());
         verify(apiRepository, times(1)).update(any());
@@ -330,7 +330,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
 
-        verify(pageService, never()).createApiPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipRepository, never()).create(any());
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
@@ -373,7 +373,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
-        verify(pageService, times(2)).createApiPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, times(2)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipUser(admin.getId(), null),
@@ -423,7 +423,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
-        verify(pageService, never()).createApiPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, times(1)).addOrUpdateMember(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipUser(admin.getId(), null),
@@ -462,7 +462,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
-        verify(pageService, times(2)).createApiPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, times(2)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
@@ -495,7 +495,7 @@ public class ApiService_CreateOrUpdateWithDefinitionTest {
 
         apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
 
-        verify(pageService, never()).createApiPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipRepository, times(1)).create(po);
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());

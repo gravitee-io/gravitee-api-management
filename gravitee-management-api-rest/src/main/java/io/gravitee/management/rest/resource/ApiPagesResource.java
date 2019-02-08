@@ -16,10 +16,7 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.NewPageEntity;
-import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.PageType;
-import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.permissions.RolePermission;
@@ -115,7 +112,7 @@ public class ApiPagesResource extends AbstractResource {
         int order = pageService.findMaxApiPageOrderByApi(api) + 1;
         newPageEntity.setOrder(order);
         newPageEntity.setLastContributor(getAuthenticatedUser());
-        PageEntity newPage = pageService.createApiPage(api, newPageEntity);
+        PageEntity newPage = pageService.createPage(api, newPageEntity);
         if (newPage != null) {
             return Response
                     .created(URI.create("/apis/" + api + "/pages/" + newPage.getId()))
@@ -153,6 +150,44 @@ public class ApiPagesResource extends AbstractResource {
     @Path("{page}")
     public ApiPageResource getApiPageResource() {
         return resourceContext.getResource(ApiPageResource.class);
+    }
+
+    @POST
+    @Path("/_import")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Import pages",
+            notes = "User must be ADMIN to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE)
+    })
+    public List<PageEntity> importFiles(
+            @PathParam("api") String api,
+            @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity pageEntity) {
+        pageEntity.setLastContributor(getAuthenticatedUser());
+        return pageService.importFiles(api, pageEntity);
+    }
+
+    @PUT
+    @Path("/_import")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Import pages",
+            notes = "User must be ADMIN to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE)
+    })
+    public List<PageEntity> updateImportFiles(
+            @PathParam("api") String api,
+            @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity pageEntity) {
+        pageEntity.setLastContributor(getAuthenticatedUser());
+        return pageService.importFiles(api, pageEntity);
     }
 
     private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {

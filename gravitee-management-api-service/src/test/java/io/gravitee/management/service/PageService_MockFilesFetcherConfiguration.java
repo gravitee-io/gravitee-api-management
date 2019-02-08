@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.fetcher;
+package io.gravitee.management.service;
 
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
@@ -22,22 +22,14 @@ import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DummyFetcherConfiguration implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
+public class PageService_MockFilesFetcherConfiguration implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
 
-    private int value;
-
-    public int getValue() {
-        return value;
-    }
-
-    public void setValue(int value) {
-        this.value = value;
-    }
-
+    @Override
     public String getFilepath() {
-        return null;
+        return "/";
     }
 
+    @Override
     public void setFilepath(String filepath) {
 
     }

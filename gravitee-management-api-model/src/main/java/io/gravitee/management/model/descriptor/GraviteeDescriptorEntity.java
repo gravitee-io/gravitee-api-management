@@ -13,28 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
-
-import io.gravitee.common.http.HttpStatusCode;
+package io.gravitee.management.model.descriptor;
 
 /**
- * @author Titouan COMPIEGNE
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author GraviteeSource Team
  */
-public class PageAlreadyExistsException extends AbstractManagementException {
+public class GraviteeDescriptorEntity {
+    private int version;
+    private GraviteeDescriptorDocumentationEntity documentation;
 
-    private final String pagename;
-
-    public PageAlreadyExistsException(String pagename) {
-        this.pagename = pagename;
+    public int getVersion() {
+        return version;
     }
 
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
+    public void setVersion(int version) {
+        this.version = version;
     }
 
-    @Override
-    public String getMessage() {
-        return "A page with name " + pagename + " already exists.";
+    public GraviteeDescriptorDocumentationEntity getDocumentation() {
+        return documentation;
+    }
+
+    public void setDocumentation(GraviteeDescriptorDocumentationEntity documentation) {
+        this.documentation = documentation;
     }
 }

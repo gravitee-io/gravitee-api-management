@@ -17,6 +17,7 @@ package io.gravitee.management.service.impl.upgrade;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.common.PageableImpl;
@@ -65,8 +66,11 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
             List<PageEntity> apiPages = pageService.search(new PageQuery.Builder().api(apiEntity.getId()).published(true).build());
             apiPages.forEach(page -> {
                 try {
-                    pageService.transformSwagger(page, apiEntity.getId());
-                    searchEngineService.index(page);
+                    if (!PageType.FOLDER.name().equals(page.getType())
+                            && !PageType.ROOT.name().equals(page.getType())) {
+                        pageService.transformSwagger(page, apiEntity.getId());
+                        searchEngineService.index(page);
+                    }
                 } catch (Exception ignored) {}
             });
         });

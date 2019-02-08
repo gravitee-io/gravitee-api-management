@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.impl;
 
+import io.gravitee.fetcher.api.FilesFetcher;
 import io.gravitee.management.model.FetcherEntity;
 import io.gravitee.management.model.PluginEntity;
 import io.gravitee.management.service.FetcherService;
@@ -29,12 +30,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -48,11 +49,24 @@ public class FetcherServiceImpl extends TransactionalService implements FetcherS
     @Autowired
     private ConfigurablePluginManager<FetcherPlugin> fetcherPluginManager;
 
+
     @Override
     public Set<FetcherEntity> findAll() {
+        return findAll(false);
+    }
+
+    @Override
+    public Set<FetcherEntity> findAll(boolean onlyFilesFetchers) {
         try {
             LOGGER.debug("List all fetchers");
-            final Collection<FetcherPlugin> fetcherDefinitions = fetcherPluginManager.findAll();
+            List<FetcherPlugin> fetcherDefinitions = new ArrayList<>(fetcherPluginManager.findAll());
+            if (onlyFilesFetchers) {
+                Class<?> filesFetcherClass = FilesFetcher.class;
+                fetcherDefinitions = fetcherDefinitions.stream()
+                        .filter(fetcherPlugin ->
+                                filesFetcherClass.isAssignableFrom(fetcherPlugin.fetcher()))
+                        .collect(Collectors.toList());
+            }
 
             return fetcherDefinitions.stream()
                     .map(fetcherDefinition -> convert(fetcherDefinition, false))
