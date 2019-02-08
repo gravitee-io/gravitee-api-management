@@ -120,7 +120,6 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
                                 .stream()
                                 .filter(Rule::isEnabled)
                                 .map(Rule::getPolicy)
-                                .distinct()
                                 .collect(Collectors.toSet())));
 
         // Load policies from Plans
@@ -155,19 +154,24 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
                                         .stream()
                                         .filter(Rule::isEnabled)
                                         .map(Rule::getPolicy)
-                                        .distinct()
                                         .collect(Collectors.toSet())));
             }});
 
         return policies;
     }
 
+    private Map<String, Object> properties;
+
     @Override
     public Map<String, Object> properties() {
-        io.gravitee.definition.model.Properties properties = getProperties();
-        if (properties != null && properties.getProperties() != null && !properties.getProperties().isEmpty()) {
-            return properties.getProperties().stream().collect(
-                    Collectors.toMap(Property::getKey, Property::getValue));
+        io.gravitee.definition.model.Properties apiProperties = getProperties();
+        if (apiProperties != null && apiProperties.getProperties() != null && !apiProperties.getProperties().isEmpty()) {
+            if (properties == null) {
+                properties = apiProperties.getProperties().stream().collect(
+                        Collectors.toMap(Property::getKey, Property::getValue));
+            }
+
+            return properties;
         }
 
         return Collections.emptyMap();
