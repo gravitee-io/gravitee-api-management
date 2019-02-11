@@ -94,7 +94,8 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "views",
             "alerts",
             "entrypoints",
-            "page_metadata"
+            "page_metadata",
+            "invitations"
     );
 
     private static final List<String> tablesToDrop = concatenate(tablesToTruncate

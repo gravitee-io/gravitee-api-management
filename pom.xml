@@ -220,7 +220,7 @@
                             <skip>true</skip>
                         </configuration>
                     </execution>
-                    <!--<execution>
+                    <execution>
                         <id>postgresql</id>
                         <goals>
                             <goal>test</goal>
@@ -252,7 +252,7 @@
                                 <jdbcType>mariadb</jdbcType>
                             </systemPropertyVariables>
                         </configuration>
-                    </execution>-->
+                    </execution>
                 </executions>
             </plugin>
         </plugins>

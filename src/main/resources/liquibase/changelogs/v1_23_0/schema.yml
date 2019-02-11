@@ -3,7 +3,6 @@ databaseChangeLog:
         id: 1.23.0
         author: GraviteeSource Team
         changes:
-
         - createTable:
               tableName: page_metadata
               columns:
@@ -15,9 +14,46 @@ databaseChangeLog:
               constraintName: pk_page_metadata
               columnNames: page_id, k, v
               tableName: page_metadata
+
         - addColumn:
               tableName: views
               columns:
                   - column:
                       name: picture
                       type: nclob
+
+        - addColumn:
+            tableName: groups
+            columns:
+              - column:
+                  name: max_invitation
+                  type: int
+              - column:
+                  name: lock_api_role
+                  type: boolean
+              - column:
+                  name: lock_application_role
+                  type: boolean
+              - column:
+                  name: system_invitation
+                  type: boolean
+              - column:
+                  name: email_invitation
+                  type: boolean
+
+        - createTable:
+            tableName: invitations
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: email, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: api_role, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: application_role, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_invitations
+            columnNames: id
+            tableName: invitations

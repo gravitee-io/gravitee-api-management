@@ -57,6 +57,11 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("max_invitation", Types.INTEGER, Integer.class)
+            .addColumn("lock_api_role", Types.BIT, boolean.class)
+            .addColumn("lock_application_role", Types.BIT, boolean.class)
+            .addColumn("system_invitation", Types.BIT, boolean.class)
+            .addColumn("email_invitation", Types.BIT, boolean.class)
             .build();
 
     @Override
@@ -218,6 +223,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             Set<Group> groups = new HashSet<>();
             for (Group group : rows) {
                 addGroupEvents(group);
+                addRoles(group);
                 groups.add(group);
             }
             return groups;
