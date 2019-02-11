@@ -50,32 +50,29 @@ class ApiPoliciesController {
     this.httpMethods = ['GET','POST','PUT','DELETE','HEAD','PATCH','OPTIONS','TRACE','CONNECT'];
     this.httpMethodsFilter = _.clone(this.httpMethods);
 
-    this.listAllPoliciesWithSchema().then( (policiesWithSchema) => {
-      _.forEach(policiesWithSchema, ({policy}) => {
-      this.policiesToCopy.push(policy);
-      this.policiesMap[policy.policyId] = policy;
+    this.listAllPolicies().then((policies) => {
+      _.forEach(policies, ({policy}) => {
+        this.policiesToCopy.push(policy);
+        this.policiesMap[policy.policyId] = policy;
+      });
+      _.forEach(this.$scope.$parent.apiCtrl.api.paths, (policies, path) => {
+        this.apiPoliciesByPath[path] = _.cloneDeep(policies);
+      });
+      this.completeApiPolicies(this.apiPoliciesByPath);
+      this.initDragular();
+      this.pathsToCompare = this.generatePathsToCompare();
     });
-    _.forEach(this.$scope.$parent.apiCtrl.api.paths, (policies, path) => {
-      this.apiPoliciesByPath[path] = _.cloneDeep(policies);
-    });
-    this.completeApiPolicies(this.apiPoliciesByPath);
-    this.initDragular();
-    this.pathsToCompare = this.generatePathsToCompare();
-  });
 
     const that = this;
     this.$scope.$on('dragulardrop', function(event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
-
       if (dropzoneObjList !== null) {
-        var policy = dropzoneObjList[dropzoneIndex];
-
         // Automatically display the configuration associated to the dragged policy
-        that.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value, event);
-
-        // Automatically save if there is no json schema configuration attached to the dragged policy.
-        if (policy.schema === undefined || policy.schema === '') {
-          that.savePaths();
-        }
+        that.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value).then((schema) => {
+          // Automatically save if there is no json schema configuration attached to the dragged policy.
+          if (schema.id === 'empty') {
+            that.savePaths();
+          }
+        });
       } else {
         that.savePaths();
       }
@@ -156,46 +153,21 @@ class ApiPoliciesController {
     }
   }
 
-  listAllPoliciesWithSchema() {
-    return this.PolicyService.list({expandSchema: true}).then( (policyServiceListResponse) => {
-
-        const promises = _.map(policyServiceListResponse.data, (originalPolicy: {id: number}) => {
-            return this.PolicyService.getSchema(originalPolicy.id).then( ({data}) => {
-              return {
-                schema: data,
-                originalPolicy
-              };
-  },
-    (response) => {
-      if ( response.status === 404) {
-        return {
-          schema: {},
-          originalPolicy
-        };
-      } else {
-        //todo manage errors
-      }
+  listAllPolicies() {
+    return this.PolicyService.list({expandSchema: true}).then((policies) => {
+       return _.map(policies.data, (originalPolicy: { id: number }) => {
+         const policy = {
+           policyId: originalPolicy.id,
+           methods: this.httpMethods,
+           version: originalPolicy.version,
+           name: originalPolicy.name,
+           type: originalPolicy.type,
+           description: originalPolicy.description,
+           enabled: originalPolicy.enabled || true
+         };
+         return {policy};
+      });
     });
-  });
-
-    return this.$q.all(promises).then( (policySchemaResponses) => {
-        return _.map(policySchemaResponses, ({schema, originalPolicy}) => {
-          const policy = {
-            policyId: originalPolicy.id,
-            methods: this.httpMethods,
-            version: originalPolicy.version,
-            name: originalPolicy.name,
-            type: originalPolicy.type,
-            description: originalPolicy.description,
-            enabled: originalPolicy.enabled || true,
-            schema
-          };
-    policy[originalPolicy.id] = {};
-
-    return {policy};
-  });
-  });
-  });
   }
 
   acceptDragDrop(el, target, source) {
@@ -203,18 +175,32 @@ class ApiPoliciesController {
     return (source === draggable || source === target);
   }
 
-  editPolicy(index, path, ev) {
-    ev.stopPropagation();
+  editPolicy(index, path) {
+    this.$scope.policyJsonSchemaForm = ["*"];
     this.selectedApiPolicy = this.apiPoliciesByPath[path][index];
-    this.$scope.policyJsonSchema = this.selectedApiPolicy.schema;
+    if (this.selectedApiPolicy.schema === undefined) {
+      return this.PolicyService.getSchema(this.selectedApiPolicy.policyId).then((response) => {
+        this.$scope.policyJsonSchema = this.selectedApiPolicy.schema = response.data;
+        this.selectedApiPolicy[this.selectedApiPolicy.policyId] = this.selectedApiPolicy[this.selectedApiPolicy.policyId] || {};
+        this.checkEmptySchema();
+        return this.$scope.policyJsonSchema;
+      });
+    } else {
+      return this.$q(() => {
+        this.$scope.policyJsonSchema = this.selectedApiPolicy.schema;
+        this.checkEmptySchema();
+      });
+    }
+  }
+
+  private checkEmptySchema() {
     if (!this.$scope.policyJsonSchema || Object.keys(this.$scope.policyJsonSchema).length === 0) {
       this.$scope.policyJsonSchema = {
         "type": "object",
         "id": "empty",
-        "properties": {"" : {}}
+        "properties": {"": {}}
       };
     }
-    this.$scope.policyJsonSchemaForm = ["*"];
   }
 
   getHttpMethodClass(method, methods) {
@@ -450,10 +436,6 @@ class ApiPoliciesController {
     el.$commitViewValue();
     // TODO: check editPathForm on form
     (document.forms as any).editPathForm['path'+index].value = this.sortedPaths()[index];
-  }
-
-  hasProperties(apiPolicy) {
-    return _.keys(apiPolicy).length;
   }
 }
 
