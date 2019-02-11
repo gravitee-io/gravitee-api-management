@@ -28,35 +28,18 @@ public class Group {
     public enum AuditEvent implements Audit.AuditEvent {
         GROUP_CREATED, GROUP_UPDATED, GROUP_DELETED
     }
-    /**
-     * The group ID.
-     */
+
     private String id;
-
-    /**
-     * the group name
-     */
     private String name;
-
-    /**
-     * events
-     */
     private List<GroupEventRule> eventRules;
-
-    /**
-     * Roles
-     */
     private Map<Integer, String> roles;
-
-    /**
-     * Creation date
-     */
     private Date createdAt;
-
-    /**
-     * Last updated date
-     */
     private Date updatedAt;
+    private Integer maxInvitation;
+    private boolean lockApiRole;
+    private boolean lockApplicationRole;
+    private boolean systemInvitation;
+    private boolean emailInvitation;
 
     public String getId() {
         return id;
@@ -104,5 +87,45 @@ public class Group {
 
     public void setRoles(Map<Integer, String> roles) {
         this.roles = roles;
+    }
+
+    public Integer getMaxInvitation() {
+        return maxInvitation;
+    }
+
+    public void setMaxInvitation(Integer maxInvitation) {
+        this.maxInvitation = maxInvitation;
+    }
+
+    public boolean isLockApiRole() {
+        return lockApiRole;
+    }
+
+    public void setLockApiRole(boolean lockApiRole) {
+        this.lockApiRole = lockApiRole;
+    }
+
+    public boolean isLockApplicationRole() {
+        return lockApplicationRole;
+    }
+
+    public void setLockApplicationRole(boolean lockApplicationRole) {
+        this.lockApplicationRole = lockApplicationRole;
+    }
+
+    public boolean isSystemInvitation() {
+        return systemInvitation;
+    }
+
+    public void setSystemInvitation(boolean systemInvitation) {
+        this.systemInvitation = systemInvitation;
+    }
+
+    public boolean isEmailInvitation() {
+        return emailInvitation;
+    }
+
+    public void setEmailInvitation(boolean emailInvitation) {
+        this.emailInvitation = emailInvitation;
     }
 }
