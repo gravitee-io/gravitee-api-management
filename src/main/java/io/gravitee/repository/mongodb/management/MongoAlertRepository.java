@@ -79,7 +79,7 @@ public class MongoAlertRepository implements AlertRepository {
         final AlertMongo alertMongo = internalAlertRepo.findById(alert.getId()).orElse(null);
 
         if (alertMongo == null) {
-            throw new IllegalStateException(String.format("No alert found with name [%s]", alert.getId()));
+            throw new IllegalStateException(String.format("No alert found with id [%s]", alert.getId()));
         }
 
         try {

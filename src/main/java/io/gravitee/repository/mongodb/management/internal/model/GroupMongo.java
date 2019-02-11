@@ -32,6 +32,11 @@ public class GroupMongo extends Auditable {
     private List<String> administrators;
     private List<GroupEventRuleMongo> eventRules;
     private List<String> roles;
+    private Integer maxInvitation;
+    private boolean lockApiRole;
+    private boolean lockApplicationRole;
+    private boolean systemInvitation;
+    private boolean emailInvitation;
 
     public String getId() {
         return id;
@@ -71,5 +76,45 @@ public class GroupMongo extends Auditable {
 
     public void setRoles(List<String> roles) {
         this.roles = roles;
+    }
+
+    public Integer getMaxInvitation() {
+        return maxInvitation;
+    }
+
+    public void setMaxInvitation(Integer maxInvitation) {
+        this.maxInvitation = maxInvitation;
+    }
+
+    public boolean isLockApiRole() {
+        return lockApiRole;
+    }
+
+    public void setLockApiRole(boolean lockApiRole) {
+        this.lockApiRole = lockApiRole;
+    }
+
+    public boolean isLockApplicationRole() {
+        return lockApplicationRole;
+    }
+
+    public void setLockApplicationRole(boolean lockApplicationRole) {
+        this.lockApplicationRole = lockApplicationRole;
+    }
+
+    public boolean isSystemInvitation() {
+        return systemInvitation;
+    }
+
+    public void setSystemInvitation(boolean systemInvitation) {
+        this.systemInvitation = systemInvitation;
+    }
+
+    public boolean isEmailInvitation() {
+        return emailInvitation;
+    }
+
+    public void setEmailInvitation(boolean emailInvitation) {
+        this.emailInvitation = emailInvitation;
     }
 }
