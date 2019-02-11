@@ -13,32 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.permissions;
+package io.gravitee.management.service.exceptions;
+
+import io.gravitee.common.http.HttpStatusCode;
+
+import static java.lang.String.format;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum GroupPermission implements Permission {
-    MEMBER("MEMBER", 1000),
-    INVITATION("INVITATION", 1100);
+public class GroupMembersLimitationExceededException extends AbstractManagementException {
 
-    String name;
-    int mask;
+    private final int limit;
 
-    GroupPermission(String name, int mask) {
-        this.name = name;
-        this.mask = mask;
+    public GroupMembersLimitationExceededException(int limit) {
+        this.limit = limit;
     }
 
     @Override
-    public String getName() {
-        return name;
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
     }
 
     @Override
-    public int getMask() {
-        return mask;
+    public String getMessage() {
+        return format("Limitation of %d members exceeded", limit);
     }
-
 }

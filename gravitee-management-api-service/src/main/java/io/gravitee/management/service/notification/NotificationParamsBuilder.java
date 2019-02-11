@@ -19,7 +19,6 @@ import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.repository.management.model.ApiKey;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,10 +44,12 @@ public class NotificationParamsBuilder {
     public static final String PARAM_REGISTRATION_URL = "registrationUrl";
     public static final String PARAM_EXPIRATION_DATE = "expirationDate";
 
+    public static final String REGISTRATION_PATH = "/#!/registration/confirm/";
+    public static final String RESET_PASSWORD_PATH = "/#!/resetPassword/";
 
 
     public Map<String, Object> build() {
-        return Collections.unmodifiableMap(params);
+        return params;
     }
 
     public NotificationParamsBuilder application(ApplicationEntity app) {

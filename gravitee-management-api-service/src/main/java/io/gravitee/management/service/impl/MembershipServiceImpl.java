@@ -28,7 +28,6 @@ import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
@@ -45,8 +44,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.management.model.permissions.SystemRole.PRIMARY_OWNER;
+import static io.gravitee.management.service.notification.PortalHook.GROUP_INVITATION;
 import static io.gravitee.repository.management.model.Membership.AuditEvent.*;
 import static io.gravitee.repository.management.model.MembershipReferenceType.*;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -59,42 +60,30 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Autowired
     private UserService userService;
-
     @Autowired
     private EmailService emailService;
-
     @Autowired
     private IdentityService identityService;
-
     @Autowired
     private MembershipRepository membershipRepository;
-
     @Autowired
     private RoleService roleService;
-
     @Autowired
     private ApplicationService applicationService;
-
     @Autowired
     private ApiService apiService;
-
     @Autowired
     private GroupService groupService;
-
     @Autowired
     private AuditService auditService;
-
-    @Autowired
-    private NotifierService notifierService;
-
-    @Autowired
-    private GroupRepository groupRepository;
-
     @Autowired
     private ApiRepository apiRepository;
-
     @Autowired
     private ApplicationRepository applicationRepository;
+    @Autowired
+    private NotifierService notifierService;
+    @Autowired
+    private InvitationService invitationService;
 
     @Override
     public Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope) {
@@ -288,17 +277,19 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 createAuditLog(MEMBERSHIP_UPDATED, updatedMembership.getUpdatedAt(), previousMembership, updatedMembership);
             } else {
                 Membership membership = new Membership(userEntity.getId(), reference.getId(), reference.getType());
-                membership.setRoles(Collections.singletonMap(role.getScope().getId(), role.getName()));
+                membership.setRoles(singletonMap(role.getScope().getId(), role.getName()));
                 membership.setCreatedAt(updateDate);
                 membership.setUpdatedAt(updateDate);
                 returnedMembership = membershipRepository.create(membership);
                 createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
-
                 if (userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
                     EmailNotification emailNotification = buildEmailNotification(userEntity, reference.getType(), reference.getId());
                     if (emailNotification != null) {
                         emailService.sendAsyncEmailNotification(emailNotification);
                     }
+                }
+                if (GROUP.equals(reference.getType())) {
+                    notifierService.trigger(GROUP_INVITATION, singletonMap("group", groupService.findById(reference.getId())));
                 }
             }
 
@@ -527,6 +518,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             LOGGER.error("An error occurs while trying to get user membership metadata", ex);
             throw new TechnicalManagementException("An error occurs while trying to get user membership metadata", ex);
         }
+    }
+
+    @Override
+    public int getNumberOfMembers(final MembershipReferenceType referenceType, final String referenceId, final RoleScope roleScope) {
+        return getMembers(referenceType, referenceId, roleScope).size() +
+                invitationService.findByReference(InvitationReferenceType.valueOf(referenceType.name()), referenceId).size();
     }
 
     private Map<String, char[]> getMemberPermissions(MembershipReferenceType membershipReferenceType, String referenceId, String userId, Set<String> groups, RoleScope roleScope) {

@@ -13,32 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.permissions;
+package io.gravitee.management.service.exceptions;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum GroupPermission implements Permission {
-    MEMBER("MEMBER", 1000),
-    INVITATION("INVITATION", 1100);
+public class GroupInvitationForbiddenException extends AbstractNotFoundException {
 
-    String name;
-    int mask;
+    public enum Type {EMAIL,SYSTEM}
 
-    GroupPermission(String name, int mask) {
-        this.name = name;
-        this.mask = mask;
+    private final Type type;
+    private final String group;
+
+    public GroupInvitationForbiddenException(Type type, String group) {
+        this.type = type;
+        this.group = group;
     }
 
     @Override
-    public String getName() {
-        return name;
+    public String getMessage() {
+        return "Invitation " + type.name().toLowerCase() + " is forbidden for group [" + group + "]";
     }
-
-    @Override
-    public int getMask() {
-        return mask;
-    }
-
 }

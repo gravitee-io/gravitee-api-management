@@ -32,37 +32,23 @@ import java.util.Set;
 public interface MembershipService {
 
     MemberEntity getMember(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope);
-
     RoleEntity getRole(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope);
-
     Set<RoleEntity> getRoles(MembershipReferenceType referenceType, Set<String> referenceIds, String userId, RoleScope roleScope);
-
     Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope);
-
     Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope, String roleName);
-
     MemberEntity addOrUpdateMember(MembershipReference reference, MembershipUser user, MembershipRole role);
-
     void deleteMember(MembershipReferenceType referenceType, String referenceId, String userId);
-
     void transferApiOwnership(String apiId, MembershipUser user, RoleEntity newPrimaryOwnerRole);
-
     void transferApplicationOwnership(String applicationId, MembershipUser user, RoleEntity newPrimaryOwnerRole);
-
     Map<String, char[]> getMemberPermissions(ApiEntity api, String userId);
-
     Map<String, char[]> getMemberPermissions(ApplicationEntity application, String userId);
-
     Map<String, char[]> getMemberPermissions(GroupEntity group, String userId);
-
     boolean removeRole(MembershipReferenceType referenceType, String referenceId, String userId, RoleScope roleScope);
-
     void removeRoleUsage(RoleScope roleScope, String roleName, String newName);
-
     void removeUser(String userId);
-
     List<UserMembership> findUserMembership(String userId, MembershipReferenceType type);
     Metadata findUserMembershipMetadata(List<UserMembership> memberships, MembershipReferenceType type);
+    int getNumberOfMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope);
 
     class MembershipReference {
         private final MembershipReferenceType type;

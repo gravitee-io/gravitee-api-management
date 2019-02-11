@@ -17,6 +17,7 @@ package io.gravitee.management.service.builder;
 
 import io.gravitee.management.service.EmailNotification;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -53,6 +54,9 @@ public class EmailNotificationBuilder {
     }
 
     public EmailNotificationBuilder param(String key, Object value) {
+        if (this.emailNotification.getParams() == null) {
+            this.emailNotification.setParams(new HashMap<>());
+        }
         this.emailNotification.getParams().put(key, value);
         return this;
     }
@@ -101,7 +105,8 @@ public class EmailNotificationBuilder {
         API_STOPPED("apiStopped.html"),
         NEW_RATING("newRating.html"),
         NEW_RATING_ANSWER("newRatingAnswer.html"),
-        GENERIC_MESSAGE("genericMessage.html");
+        GENERIC_MESSAGE("genericMessage.html"),
+        GROUP_INVITATION("groupInvitation.html");
 
         private String template;
 

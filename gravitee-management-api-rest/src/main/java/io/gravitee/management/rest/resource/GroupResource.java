@@ -17,14 +17,15 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.UpdateGroupEntity;
-import io.gravitee.management.model.api.ApiQuery;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.model.permissions.RoleScope;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.ApplicationService;
 import io.gravitee.management.service.GroupService;
+import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -33,12 +34,10 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import java.util.Collections;
-
 import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
+import static io.gravitee.management.model.permissions.RolePermissionAction.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -83,6 +82,7 @@ public class GroupResource extends AbstractResource {
             @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = RolePermissionAction.DELETE)
     })
     public Response delete(@PathParam("group") String group) {
+        checkRights(group);
         groupService.delete(group);
         return Response.noContent().build();
     }
@@ -99,8 +99,23 @@ public class GroupResource extends AbstractResource {
             @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE)
     })
     public GroupEntity update(
-            @PathParam("group")String group,
-            @ApiParam(name = "group", required = true)@Valid @NotNull final UpdateGroupEntity updateGroupEntity) {
+            @PathParam("group") String group,
+            @ApiParam(name = "group", required = true) @Valid @NotNull final UpdateGroupEntity updateGroupEntity) {
+        final GroupEntity groupEntity = checkRights(group);
+        // check if user is a 'simple group admin' or a platform admin
+        if (!permissionService.hasPermission(RolePermission.MANAGEMENT_GROUP, null, CREATE, UPDATE, DELETE)) {
+            updateGroupEntity.setMaxInvitation(groupEntity.getMaxInvitation());
+            updateGroupEntity.setLockApiRole(groupEntity.isLockApiRole());
+            updateGroupEntity.setLockApplicationRole(groupEntity.isLockApplicationRole());
+            updateGroupEntity.setSystemInvitation(groupEntity.isSystemInvitation());
+            updateGroupEntity.setEmailInvitation(groupEntity.isEmailInvitation());
+            if (groupEntity.isLockApiRole()) {
+                updateGroupEntity.getRoles().put(RoleScope.API, groupEntity.getRoles().get(RoleScope.API));
+            }
+            if (groupEntity.isLockApplicationRole()) {
+                updateGroupEntity.getRoles().put(RoleScope.APPLICATION, groupEntity.getRoles().get(RoleScope.APPLICATION));
+            }
+        }
         return groupService.update(group, updateGroupEntity);
     }
 
@@ -125,9 +140,21 @@ public class GroupResource extends AbstractResource {
         return Response.noContent().build();
     }
 
+    private GroupEntity checkRights(final String group) {
+        final GroupEntity groupEntity = get(group);
+        if (!groupEntity.isManageable()) {
+            throw new ForbiddenAccessException();
+        }
+        return groupEntity;
+    }
+
     @Path("members")
     public GroupMembersResource groupMembersResource() {
         return resourceContext.getResource(GroupMembersResource.class);
     }
 
+    @Path("invitations")
+    public GroupInvitationsResource groupInvitationsResource() {
+        return resourceContext.getResource(GroupInvitationsResource.class);
+    }
 }

@@ -36,14 +36,10 @@ public class GroupMemberEntity {
     }
 
     private String id;
-
     private String displayName;
-
     private Map<String, String> roles;
-
     @JsonProperty("created_at")
     private Date createdAt;
-
     @JsonProperty("updated_at")
     private Date updatedAt;
 

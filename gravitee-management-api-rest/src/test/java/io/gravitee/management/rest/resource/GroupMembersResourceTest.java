@@ -16,10 +16,12 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.GroupEntity;
+import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.MemberRoleEntity;
+import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.rest.model.GroupMembership;
 import io.gravitee.management.service.MembershipService;
-import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Test;
@@ -29,6 +31,8 @@ import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static io.gravitee.management.model.permissions.RolePermission.MANAGEMENT_GROUP;
+import static io.gravitee.management.model.permissions.RolePermissionAction.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -36,7 +40,7 @@ import static org.mockito.Mockito.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
-public class GroupMemberResourceTest extends AbstractResourceTest {
+public class GroupMembersResourceTest extends AbstractResourceTest {
 
     private static final String GROUP_ID = "group-id";
     private static final String USERNAME = "user";
@@ -63,6 +67,7 @@ public class GroupMemberResourceTest extends AbstractResourceTest {
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setId(USERNAME);
         when(membershipService.addOrUpdateMember(any(), any(), any())).thenReturn(memberEntity);
+        when(permissionService.hasPermission(MANAGEMENT_GROUP, null, CREATE, UPDATE, DELETE)).thenReturn(true);
     }
 
     @Test

@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.permissions;
+package io.gravitee.management.service.exceptions;
+
+import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum GroupPermission implements Permission {
-    MEMBER("MEMBER", 1000),
-    INVITATION("INVITATION", 1100);
+public class MemberEmailAlreadyExistsException extends AbstractManagementException {
 
-    String name;
-    int mask;
+    private final String email;
 
-    GroupPermission(String name, int mask) {
-        this.name = name;
-        this.mask = mask;
+    public MemberEmailAlreadyExistsException(String email) {
+        this.email = email;
     }
 
     @Override
-    public String getName() {
-        return name;
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
     }
 
     @Override
-    public int getMask() {
-        return mask;
+    public String getMessage() {
+        return "A member with the email [" + email + "] already exists.";
     }
-
 }

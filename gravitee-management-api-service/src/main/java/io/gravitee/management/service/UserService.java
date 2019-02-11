@@ -18,8 +18,10 @@ package io.gravitee.management.service;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.common.Pageable;
+import io.gravitee.management.service.common.JWTHelper.ACTION;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -43,4 +45,5 @@ public interface UserService {
     PictureEntity getPicture(String id);
     void delete(String id);
     void resetPassword(String id);
+    Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action);
 }

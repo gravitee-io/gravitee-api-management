@@ -41,8 +41,6 @@ import java.util.Map;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 /**
@@ -59,24 +57,20 @@ public class MembershipService_AddOrUpdateMemberTest {
 
     @Mock
     private MembershipRepository membershipRepository;
-
     @Mock
     private UserService userService;
-
     @Mock
     private EmailService emailService;
-
     @Mock
     private RoleService roleService;
-
     @Mock
     private GroupService groupService;
-
     @Mock
     private AuditService auditService;
-
     @Mock
     private IdentityService identityService;
+    @Mock
+    private NotifierService notifierService;
 
     @Test
     public void shouldAddApiGroupMembership() throws Exception {

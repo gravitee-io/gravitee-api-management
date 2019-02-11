@@ -21,6 +21,10 @@ package io.gravitee.management.service.common;
  */
 public interface JWTHelper {
 
+    public enum ACTION {
+        RESET_PASSWORD, USER_REGISTRATION, GROUP_INVITATION
+    }
+
     interface Claims {
         String ISSUER = "iss";
         String SUBJECT = "sub";
@@ -28,6 +32,7 @@ public interface JWTHelper {
         String EMAIL = "email";
         String FIRSTNAME = "firstname";
         String LASTNAME = "lastname";
+        String ACTION = "action";
     }
 
     interface DefaultValues {

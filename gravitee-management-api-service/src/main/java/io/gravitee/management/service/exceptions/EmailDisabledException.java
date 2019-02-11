@@ -13,32 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.permissions;
+package io.gravitee.management.service.exceptions;
+
+import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum GroupPermission implements Permission {
-    MEMBER("MEMBER", 1000),
-    INVITATION("INVITATION", 1100);
+public class EmailDisabledException extends AbstractManagementException {
 
-    String name;
-    int mask;
-
-    GroupPermission(String name, int mask) {
-        this.name = name;
-        this.mask = mask;
+    @Override
+    public int getHttpStatusCode() {
+        return SERVICE_UNAVAILABLE_503;
     }
 
     @Override
-    public String getName() {
-        return name;
+    public String getMessage() {
+        return "Email service is disabled";
     }
-
-    @Override
-    public int getMask() {
-        return mask;
-    }
-
 }

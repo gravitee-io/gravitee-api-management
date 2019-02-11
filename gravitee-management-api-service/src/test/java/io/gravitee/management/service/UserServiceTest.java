@@ -42,12 +42,14 @@ import org.springframework.util.StringUtils;
 
 import java.util.*;
 
+import static io.gravitee.management.service.common.JWTHelper.ACTION.USER_REGISTRATION;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -102,6 +104,8 @@ public class UserServiceTest {
     private ParameterService mockParameterService;
     @Mock
     private SearchEngineService searchEngineService;
+    @Mock
+    private InvitationService invitationService;
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
@@ -222,7 +226,7 @@ public class UserServiceTest {
 
     @Test
     public void shouldCreateDefaultApplication() throws TechnicalException {
-        userService.setDefaultApplicationForFirstConnection(true);
+        setField(userService, "defaultApplicationForFirstConnection", true);
         when(user.getLastConnectionAt()).thenReturn(null);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
@@ -233,7 +237,7 @@ public class UserServiceTest {
 
     @Test
     public void shouldNotCreateDefaultApplicationBecauseDisabled() throws TechnicalException {
-        userService.setDefaultApplicationForFirstConnection(false);
+        setField(userService, "defaultApplicationForFirstConnection", false);
         when(user.getLastConnectionAt()).thenReturn(null);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
@@ -252,11 +256,15 @@ public class UserServiceTest {
         verify(applicationService, never()).create(any(), eq(USER_NAME));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateUserIfRegistrationIsDisabled() {
         when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.FALSE);
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
 
-        userService.create(new RegisterUserEntity());
+        RegisterUserEntity userEntity = new RegisterUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));
+
+        userService.create(userEntity);
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -353,6 +361,7 @@ public class UserServiceTest {
         claims.put(JWTHelper.Claims.EMAIL, EMAIL);
         claims.put(JWTHelper.Claims.FIRSTNAME, FIRST_NAME);
         claims.put(JWTHelper.Claims.LASTNAME, LAST_NAME);
+        claims.put(JWTHelper.Claims.ACTION, USER_REGISTRATION);
         claims.put("exp", expirationSeconds);
         return new JWTSigner(JWT_SECRET).sign(claims);
     }

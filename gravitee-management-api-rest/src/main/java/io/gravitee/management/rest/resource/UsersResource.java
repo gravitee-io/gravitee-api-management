@@ -29,7 +29,6 @@ import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -92,7 +91,7 @@ public class UsersResource extends AbstractResource {
 
         return Response.serverError().build();
     }
-    
+
     @POST
     public Response createUser(@Valid RegisterUserEntity registerUserEntity) {
         UserEntity newUser = userService.create(registerUserEntity);

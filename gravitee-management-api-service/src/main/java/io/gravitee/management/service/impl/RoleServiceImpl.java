@@ -33,17 +33,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.gravitee.management.model.permissions.RolePermissionAction.*;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ROLE;
-import static io.gravitee.repository.management.model.Role.AuditEvent.ROLE_CREATED;
-import static io.gravitee.repository.management.model.Role.AuditEvent.ROLE_DELETED;
-import static io.gravitee.repository.management.model.Role.AuditEvent.ROLE_UPDATED;
+import static io.gravitee.repository.management.model.Role.AuditEvent.*;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -85,7 +82,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             LOGGER.debug("Find all Roles");
             return roleRepository.findAll()
                     .stream()
-                    .map(this::convert).collect(Collectors.toList());
+                    .map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all roles", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all roles", ex);
@@ -240,9 +237,10 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     public List<RoleEntity> findByScope(RoleScope scope) {
         try {
             LOGGER.debug("Find Roles by scope");
-            return roleRepository.findByScope(scope)
-                    .stream()
-                    .map(this::convert).collect(Collectors.toList());
+            return roleRepository.findByScope(scope).stream()
+                    .map(this::convert)
+                    .sorted(comparing(RoleEntity::getName))
+                    .collect(toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find roles by scope", ex);
             throw new TechnicalManagementException("An error occurs while trying to find roles by scope", ex);
@@ -260,7 +258,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                                 stream().
                                 filter(Role::isDefaultRole).
                                 map(this::convert).
-                                collect(Collectors.toList())
+                                collect(toList())
                 );
             }
             return roles;
@@ -294,7 +292,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         List<Role> roles = roleRepository.findByScope(scope).
                 stream().
                 filter(Role::isDefaultRole).
-                collect(Collectors.toList());
+                collect(toList());
         for (Role role : roles) {
             if(!role.getName().equals(newDefaultRoleName)) {
                 Role previousRole = new Role(role);

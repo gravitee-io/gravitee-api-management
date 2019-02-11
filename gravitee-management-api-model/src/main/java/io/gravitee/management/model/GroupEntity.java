@@ -33,19 +33,22 @@ public class GroupEntity {
     private String name;
     @JsonProperty("event_rules")
     private List<GroupEventRuleEntity> eventRules;
-
     boolean manageable;
-
-    /**
-     * Roles
-     */
     private Map<RoleScope, String> roles;
-
     @JsonProperty("created_at")
     private Date createdAt;
-
     @JsonProperty("updated_at")
     private Date updatedAt;
+    @JsonProperty("max_invitation")
+    private Integer maxInvitation;
+    @JsonProperty("lock_api_role")
+    private boolean lockApiRole;
+    @JsonProperty("lock_application_role")
+    private boolean lockApplicationRole;
+    @JsonProperty("system_invitation")
+    private boolean systemInvitation;
+    @JsonProperty("email_invitation")
+    private boolean emailInvitation;
 
     public String getId() {
         return id;
@@ -103,6 +106,46 @@ public class GroupEntity {
         this.roles = roles;
     }
 
+    public Integer getMaxInvitation() {
+        return maxInvitation;
+    }
+
+    public void setMaxInvitation(Integer maxInvitation) {
+        this.maxInvitation = maxInvitation;
+    }
+
+    public boolean isLockApiRole() {
+        return lockApiRole;
+    }
+
+    public void setLockApiRole(boolean lockApiRole) {
+        this.lockApiRole = lockApiRole;
+    }
+
+    public boolean isLockApplicationRole() {
+        return lockApplicationRole;
+    }
+
+    public void setLockApplicationRole(boolean lockApplicationRole) {
+        this.lockApplicationRole = lockApplicationRole;
+    }
+
+    public boolean isSystemInvitation() {
+        return systemInvitation;
+    }
+
+    public void setSystemInvitation(boolean systemInvitation) {
+        this.systemInvitation = systemInvitation;
+    }
+
+    public boolean isEmailInvitation() {
+        return emailInvitation;
+    }
+
+    public void setEmailInvitation(boolean emailInvitation) {
+        this.emailInvitation = emailInvitation;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -121,9 +164,16 @@ public class GroupEntity {
         return "GroupEntity{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
-                ", eventRules='" + eventRules + '\'' +
+                ", eventRules=" + eventRules +
+                ", manageable=" + manageable +
+                ", roles=" + roles +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
-                "}";
+                ", maxInvitation=" + maxInvitation +
+                ", lockApiRole=" + lockApiRole +
+                ", lockApplicationRole=" + lockApplicationRole +
+                ", systemInvitation=" + systemInvitation +
+                ", emailInvitation=" + emailInvitation +
+                '}';
     }
 }

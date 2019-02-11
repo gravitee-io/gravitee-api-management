@@ -13,32 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.permissions;
+package io.gravitee.management.model;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum GroupPermission implements Permission {
-    MEMBER("MEMBER", 1000),
-    INVITATION("INVITATION", 1100);
-
-    String name;
-    int mask;
-
-    GroupPermission(String name, int mask) {
-        this.name = name;
-        this.mask = mask;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public int getMask() {
-        return mask;
-    }
-
+public enum InvitationReferenceType {
+    API, APPLICATION, GROUP
 }

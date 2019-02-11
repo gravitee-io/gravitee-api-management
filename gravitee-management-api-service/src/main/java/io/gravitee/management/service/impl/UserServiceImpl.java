@@ -24,6 +24,7 @@ import io.gravitee.management.model.common.Pageable;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
+import io.gravitee.management.service.common.JWTHelper.ACTION;
 import io.gravitee.management.service.common.JWTHelper.Claims;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.search.SearchResult;
@@ -58,9 +59,13 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.management.service.common.JWTHelper.ACTION.*;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+import static io.gravitee.management.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
+import static io.gravitee.management.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -73,49 +78,37 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    /**
-     * A default source used for user registration.
-     */
+    /** A default source used for user registration.*/
     private final static String IDP_SOURCE_GRAVITEE = "gravitee";
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private ConfigurableEnvironment environment;
-
     @Autowired
     private EmailService emailService;
-
     @Autowired
     private ApplicationService applicationService;
-
     @Autowired
     private RoleService roleService;
-
     @Autowired
     private MembershipService membershipService;
-
     @Autowired
     private AuditService auditService;
-
     @Autowired
     private NotifierService notifierService;
-
     @Autowired
     private ApiService apiService;
-
     @Autowired
     private ParameterService parameterService;
+    @Autowired
+    private SearchEngineService searchEngineService;
+    @Autowired
+    private InvitationService invitationService;
 
     @Value("${user.avatar:${gravitee.home}/assets/default_user_avatar.png}")
     private String defaultAvatar;
-
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
-
-    @Autowired
-    private SearchEngineService searchEngineService;
 
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -257,22 +250,59 @@ public class UserServiceImpl extends AbstractService implements UserService {
      */
     @Override
     public UserEntity create(final RegisterUserEntity registerUserEntity) {
-        checkUserRegistrationEnabled();
         try {
             final String jwtSecret = environment.getProperty("jwt.secret");
             if (jwtSecret == null || jwtSecret.isEmpty()) {
                 throw new IllegalStateException("JWT secret is mandatory");
             }
-
             final Map<String, Object> claims = new JWTVerifier(jwtSecret).verify(registerUserEntity.getToken());
-            String username = claims.get(Claims.SUBJECT).toString();
+            final String action = claims.get(Claims.ACTION).toString();
+            if (USER_REGISTRATION.name().equals(action)) {
+                checkUserRegistrationEnabled();
+            } else if (GROUP_INVITATION.name().equals(action)) {
+                // check invitations
+                final String email = claims.get(Claims.EMAIL).toString();
+                final List<InvitationEntity> invitations = invitationService.findAll();
+                final List<InvitationEntity> userInvitations = invitations.stream()
+                        .filter(invitation -> invitation.getEmail().equals(email))
+                        .collect(toList());
+                if (userInvitations.isEmpty()) {
+                    throw new IllegalStateException("Invitation has been canceled");
+                }
+            }
+            final Object subject = claims.get(Claims.SUBJECT);
+            User user;
+            if (subject == null) {
+                final NewExternalUserEntity externalUser = new NewExternalUserEntity();
+                final String email = claims.get(Claims.EMAIL).toString();
+                externalUser.setSource(IDP_SOURCE_GRAVITEE);
+                externalUser.setSourceId(email);
+                externalUser.setFirstname(registerUserEntity.getFirstname());
+                externalUser.setLastname(registerUserEntity.getLastname());
+                externalUser.setEmail(email);
+                user = convert(create(externalUser, true));
+            } else {
+                final String username = subject.toString();
+                LOGGER.debug("Create an internal user {}", username);
+                Optional<User> checkUser = userRepository.findById(username);
+                user = checkUser.orElseThrow(() -> new UserNotFoundException(username));
+                if (StringUtils.isNotBlank(user.getPassword())) {
+                    throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, username);
+                }
+            }
 
-            LOGGER.debug("Create an internal user {}", username);
-            Optional<User> checkUser = userRepository.findById(username);
-            User user = checkUser.orElseThrow(() -> new UserNotFoundException(username));
-
-            if (StringUtils.isNotBlank(user.getPassword())) {
-                throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, username);
+            if (GROUP_INVITATION.name().equals(action)) {
+                // check invitations
+                final String email = user.getEmail();
+                final String userId = user.getId();
+                final List<InvitationEntity> invitations = invitationService.findAll();
+                invitations.stream()
+                        .filter(invitation -> invitation.getEmail().equals(email))
+                        .forEach(invitation -> {
+                            invitationService.addMember(invitation.getReferenceType().name(), invitation.getReferenceId(),
+                                    userId, invitation.getApiRole(), invitation.getApplicationRole());
+                            invitationService.delete(invitation.getId(), invitation.getReferenceId());
+                        });
             }
 
             // Set date fields
@@ -432,7 +462,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         newExternalUserEntity.setSourceId(newExternalUserEntity.getEmail());
 
         final UserEntity userEntity = create(newExternalUserEntity, true);
-        final Map<String, Object> params = getTokenRegistrationParams(userEntity, "/#!/registration/confirm/");
+        final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, USER_REGISTRATION);
 
         notifierService.trigger(PortalHook.USER_REGISTERED, params);
 
@@ -447,7 +477,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
         return userEntity;
     }
 
-    private Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri) {
+    @Override
+    public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri,
+                                                          final ACTION action) {
         // generate a JWT to store user's information and for security purpose
         final Map<String, Object> claims = new HashMap<>();
         claims.put(Claims.ISSUER, environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER));
@@ -456,6 +488,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         claims.put(Claims.EMAIL, userEntity.getEmail());
         claims.put(Claims.FIRSTNAME, userEntity.getFirstname());
         claims.put(Claims.LASTNAME, userEntity.getLastname());
+        claims.put(Claims.ACTION, action);
 
         final JWTSigner.Options options = new JWTSigner.Options();
         options.setExpirySeconds(environment.getProperty("user.creation.token.expire-after",
@@ -560,7 +593,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 List<UserEntity> entities = users.getContent()
                         .stream()
                         .map(u -> convert(u, false))
-                        .collect(Collectors.toList());
+                        .collect(toList());
 
                 return new Page<>(entities,
                         users.getPageNumber() + 1,
@@ -624,7 +657,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             userRepository.update(user);
 
             final Map<String, Object> params = getTokenRegistrationParams(convert(user, false),
-                    "/#!/resetPassword/");
+                    RESET_PASSWORD_PATH, RESET_PASSWORD);
 
             notifierService.trigger(PortalHook.PASSWORD_RESET, params);
 
@@ -648,22 +681,30 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
     }
 
-    public void setDefaultApplicationForFirstConnection(boolean defaultApplicationForFirstConnection) {
-        this.defaultApplicationForFirstConnection = defaultApplicationForFirstConnection;
-    }
-
-    private static User convert(NewExternalUserEntity newExternalUserEntity) {
+    private User convert(NewExternalUserEntity newExternalUserEntity) {
         if (newExternalUserEntity == null) {
             return null;
         }
         User user = new User();
-
         user.setEmail(newExternalUserEntity.getEmail());
         user.setFirstname(newExternalUserEntity.getFirstname());
         user.setLastname(newExternalUserEntity.getLastname());
         user.setSource(newExternalUserEntity.getSource());
         user.setSourceId(newExternalUserEntity.getSourceId());
+        return user;
+    }
 
+    private User convert(UserEntity userEntity) {
+        if (userEntity == null) {
+            return null;
+        }
+        User user = new User();
+        user.setId(userEntity.getId());
+        user.setEmail(userEntity.getEmail());
+        user.setFirstname(userEntity.getFirstname());
+        user.setLastname(userEntity.getLastname());
+        user.setSource(userEntity.getSource());
+        user.setSourceId(userEntity.getSourceId());
         return user;
     }
 

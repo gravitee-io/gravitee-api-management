@@ -21,10 +21,11 @@ package io.gravitee.management.service.notification;
  */
 public enum PortalHook implements Hook {
 
-    USER_REGISTERED("User Registered", "Triggered when a User is registered for the first time.", "USER"),
-    USER_FIRST_LOGIN("First Login", "Triggered when a user log in for the first time.", "USER"),
-    PASSWORD_RESET("Password Reset", "Triggered when a password is reset.", "USER"),
+    USER_REGISTERED("User Registered", "Triggered when a User is registered for the first time", "USER"),
+    USER_FIRST_LOGIN("First Login", "Triggered when a user log in for the first time", "USER"),
+    PASSWORD_RESET("Password Reset", "Triggered when a password is reset", "USER"),
     NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT"),
+    GROUP_INVITATION("Group invitation", "Triggered when a user is invited in a group", "GROUP"),
     MESSAGE(null, null, null, true);
 
     private String label;

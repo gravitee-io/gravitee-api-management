@@ -59,22 +59,16 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
     @Autowired
     private GroupRepository groupRepository;
-
     @Autowired
     private ApiRepository apiRepository;
-
     @Autowired
     private ApplicationRepository applicationRepository;
-
     @Autowired
     private MembershipRepository membershipRepository;
-
     @Autowired
     private MembershipService membershipService;
-
     @Autowired
     private AuditService auditService;
-
     @Autowired
     private PermissionService permissionService;
 
@@ -84,13 +78,13 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.debug("Find all groups");
             Set<Group> all = groupRepository.findAll();
             logger.debug("Find all groups - DONE");
-            List<GroupEntity> result = all.stream()
+            final List<GroupEntity> groups = all.stream()
                     .map(this::map)
                     .sorted(Comparator.comparing(GroupEntity::getName))
                     .collect(Collectors.toList());
 
             if (permissionService.hasPermission(RolePermission.MANAGEMENT_GROUP, null, CREATE, UPDATE, DELETE)) {
-                result.forEach(groupEntity -> groupEntity.setManageable(true));
+                groups.forEach(groupEntity -> groupEntity.setManageable(true));
             } else {
                 List<String> groupIds = membershipRepository.findByUserAndReferenceTypeAndRole(
                         getAuthenticatedUsername(),
@@ -100,9 +94,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         .stream()
                         .map(Membership::getReferenceId)
                         .collect(Collectors.toList());
-                result.forEach(groupEntity -> groupEntity.setManageable(groupIds.contains(groupEntity.getId())));
+                groups.forEach(groupEntity -> groupEntity.setManageable(groupIds.contains(groupEntity.getId())));
             }
-            return result;
+            return groups;
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find all groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
@@ -166,6 +160,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             updatedGroupEntity.setUpdatedAt(new Date());
             updatedGroupEntity.setEventRules(group.getEventRules());
             updatedGroupEntity.setRoles(group.getRoles());
+            updatedGroupEntity.setMaxInvitation(group.getMaxInvitation());
+            updatedGroupEntity.setLockApiRole(group.isLockApiRole());
+            updatedGroupEntity.setLockApplicationRole(group.isLockApplicationRole());
+            updatedGroupEntity.setSystemInvitation(group.isSystemInvitation());
+            updatedGroupEntity.setEmailInvitation(group.isEmailInvitation());
 
             Group updatedGroup = this.map(updatedGroupEntity);
             GroupEntity grp = this.map(groupRepository.update(updatedGroup));
@@ -178,7 +177,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     updatedGroupEntity.getUpdatedAt(),
                     previousGroup,
                     updatedGroup);
-            return grp;
+            return findById(groupId);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to update a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to update a group", ex);
@@ -476,6 +475,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
         group.setCreatedAt(entity.getCreatedAt());
         group.setUpdatedAt(entity.getUpdatedAt());
+        group.setMaxInvitation(entity.getMaxInvitation());
+        group.setLockApiRole(entity.isLockApiRole());
+        group.setLockApplicationRole(entity.isLockApplicationRole());
+        group.setSystemInvitation(entity.isSystemInvitation());
+        group.setEmailInvitation(entity.isEmailInvitation());
 
         return group;
     }
@@ -496,6 +500,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             group.setEventRules(groupEventRules);
         }
+        entity.setMaxInvitation(group.getMaxInvitation());
+        entity.setLockApiRole(group.isLockApiRole());
+        entity.setLockApplicationRole(group.isLockApplicationRole());
+        entity.setSystemInvitation(group.isSystemInvitation());
+        entity.setEmailInvitation(group.isEmailInvitation());
         return group;
     }
 
@@ -531,6 +540,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
         entity.setCreatedAt(group.getCreatedAt());
         entity.setUpdatedAt(group.getUpdatedAt());
+        entity.setMaxInvitation(group.getMaxInvitation());
+        entity.setLockApiRole(group.isLockApiRole());
+        entity.setLockApplicationRole(group.isLockApplicationRole());
+        entity.setSystemInvitation(group.isSystemInvitation());
+        entity.setEmailInvitation(group.isEmailInvitation());
 
         return entity;
     }
