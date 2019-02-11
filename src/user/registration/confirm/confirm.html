@@ -27,27 +27,29 @@
 
         <md-input-container class="md-icon-float">
           <label>First name</label>
-          <input ng-model="user.firstname" type="text" ng-disabled="true" required>
+          <input ng-if="registrationMode" ng-model="user.firstname" ng-disabled="registrationMode" type="text" required>
+          <input ng-if="!registrationMode" ng-model="user.firstname" type="text" required autofocus>
         </md-input-container>
 
         <md-input-container class="md-icon-float">
           <label>Last name</label>
-          <input ng-model="user.lastname" type="text" ng-disabled="true" required>
+          <input ng-model="user.lastname" ng-disabled="registrationMode" type="text" required>
         </md-input-container>
 
         <md-input-container class="md-icon-float">
           <label>Email</label>
-          <input ng-model="user.email" type="email" ng-disabled="true" required>
+          <input ng-model="user.email" type="email" disabled required>
         </md-input-container>
 
         <md-input-container class="md-icon-float" ng-class="{'md-input-invalid': isInvalidPassword()}">
           <label>Password</label>
-          <input ng-model="user.password" type="password" ng-required="true" autofocus>
+          <input ng-if="registrationMode" ng-model="user.password" type="password" required autofocus>
+          <input ng-if="!registrationMode" ng-model="user.password" type="password" required>
         </md-input-container>
 
         <md-input-container class="md-icon-float" ng-class="{'md-input-invalid': isInvalidPassword()}">
           <label>Confirm password</label>
-          <input ng-model="confirmPassword" type="password" ng-required="true">
+          <input ng-model="confirmPassword" type="password" required>
         </md-input-container>
 
         <label style="color: red !important;" ng-if="isInvalidPassword()">The confirm password is different!</label>

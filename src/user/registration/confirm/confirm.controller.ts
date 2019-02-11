@@ -24,15 +24,21 @@ class ConfirmController {
         $scope.error = 'Your registration is expired!';
       } else {
         $scope.user = jwtHelper.decodeToken($state.params.token);
+        if ($scope.user.firstname) {
+          $scope.registrationMode = true;
+        }
       }
     } catch (e) {
       $scope.error = e.toString();
     }
 
     $scope.confirmRegistration = function () {
-      UserService.create({token: $state.params.token, password: $scope.confirmPassword}).then(function () {
+      UserService.create({
+        token: $state.params.token, password: $scope.confirmPassword,
+        firstname: $scope.user.firstname, lastname: $scope.user.lastname
+      }).then(function () {
         $scope.formConfirm.$setPristine();
-        NotificationService.show('Your password has been initialized successfully, you can now login...');
+        NotificationService.show('Your account has been created successfully, you can now login...');
         $state.go('login');
       });
     };

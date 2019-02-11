@@ -17,6 +17,7 @@ import GroupService from "../../../services/group.service";
 import NotificationService from "../../../services/notification.service";
 import { StateService } from '@uirouter/core';
 import _ = require('lodash');
+import UserService from "../../../services/user.service";
 
 interface IGroupDetailComponentScope extends ng.IScope {
   groupApis: any[],
@@ -30,7 +31,8 @@ const GroupComponent: ng.IComponentOptions = {
     group: '<',
     members: '<',
     apiRoles: '<',
-    applicationRoles: '<'
+    applicationRoles: '<',
+    invitations: '<'
   },
   template: require("./group.html"),
   controller: function (
@@ -38,9 +40,12 @@ const GroupComponent: ng.IComponentOptions = {
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
     $state: StateService,
-    $scope: IGroupDetailComponentScope
+    $scope: IGroupDetailComponentScope,
+    UserService: UserService,
+    $rootScope
   ) {
     'ngInject';
+    this.$rootScope = $rootScope;
 
     this.$onInit = () => {
       $scope.groupApis = [];
@@ -55,12 +60,12 @@ const GroupComponent: ng.IComponentOptions = {
 
     this.updateRole = (member: any) => {
       GroupService.addOrUpdateMember(this.group.id, [member]).then((response) => {
-        NotificationService.show('User updated.');
+        NotificationService.show('Member successfully updated');
         $state.reload();
       });
     };
 
-    this.updateDefaultRole = () => {
+    this.update = () => {
       let roles = {};
 
       if ($scope.selectedApiRole) {
@@ -76,8 +81,11 @@ const GroupComponent: ng.IComponentOptions = {
       }
 
       this.group.roles = roles;
-      GroupService.update(this.group).then(() => {
-        NotificationService.show('Default roles for group ' + this.group.name + ' have been updated.');
+      GroupService.update(this.group).then((response) => {
+        this.group = response.data;
+        this.$onInit();
+        $scope.formGroup.$setPristine();
+        NotificationService.show('Group \'' + this.group.name + '\' has been updated');
       });
     };
 
@@ -90,13 +98,13 @@ const GroupComponent: ng.IComponentOptions = {
         clickOutsideToClose: true,
         locals: {
           msg: '',
-          title: 'Would you like to remove the user "' + member.displayName + '" ?',
+          title: 'Are you sure you want to remove the user "' + member.displayName + '"?',
           confirmButton: 'Remove'
         }
       }).then( (response) => {
         if (response) {
           GroupService.deleteMember(this.group.id, member.id).then((response) => {
-            NotificationService.show('User ' + member.displayName + ' has been removed.');
+            NotificationService.show('Member ' + member.displayName + ' has been successfully removed');
             GroupService.getMembers(this.group.id).then(response =>
               this.members = response.data
             );
@@ -105,10 +113,10 @@ const GroupComponent: ng.IComponentOptions = {
       });
     };
 
-    this.showAddMemberModal = (ev) => {
+    this.showAddMemberModal = () => {
       $mdDialog.show({
         controller: 'DialogAddGroupMemberController',
-        controllerAs: 'ctrl',
+        controllerAs: '$ctrl',
         template: require('./addMember.dialog.html'),
         clickOutsideToClose: true,
         locals: {
@@ -116,12 +124,14 @@ const GroupComponent: ng.IComponentOptions = {
           defaultApplicationRole: $scope.selectedApplicationRole,
           group: this.group,
           apiRoles: this.apiRoles,
-          applicationRoles: this.applicationRoles
+          applicationRoles: this.applicationRoles,
+          canChangeDefaultApiRole: this.canChangeDefaultApiRole,
+          canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole
         }
       }).then( (members) => {
         if (members) {
           GroupService.addOrUpdateMember(this.group.id, members).then((response) => {
-              NotificationService.show('Users added.');
+              NotificationService.show('Member(s) successfully added');
               $state.reload();
           });
         }
@@ -142,6 +152,113 @@ const GroupComponent: ng.IComponentOptions = {
           $scope.groupApplications = _.sortBy(response.data, "name");
         }
       );
+    };
+
+    this.reset = () => {
+      $state.reload();
+    };
+
+    this.canChangeDefaultApiRole = () => {
+      return this.isSuperAdmin() || !this.group.lock_api_role;
+    };
+
+    this.canChangeDefaultApplicationRole = () => {
+      return this.isSuperAdmin()|| !this.group.lock_application_role;
+    };
+
+    this.canAddMembers = () => {
+      if (this.isSuperAdmin()) {
+        return true;
+      } else if (this.group.manageable) {
+        const numberOfMembers = this.members ? this.members.length : 0;
+        const numberOfInvitations = this.invitations ? this.invitations.length : 0;
+        const numberOfSlots = numberOfMembers + numberOfInvitations;
+        return !this.group.max_invitation || (numberOfSlots < this.group.max_invitation);
+      } else {
+        return false;
+      }
+    };
+
+    this.isSuperAdmin = () => {
+      return UserService.isUserHasPermissions(['management-group-u']);
+    };
+
+    this.canSave = () => {
+      return this.group.manageable;
+    };
+
+    this.updateInvitation = (invitation: any) => {
+      GroupService.updateInvitation(this.group.id, invitation).then(() => {
+        NotificationService.show('Invitation successfully updated');
+        $state.reload();
+      });
+    };
+
+    this.showInviteMemberModal = () => {
+      $mdDialog.show({
+        controller: function($mdDialog, group, apiRoles, applicationRoles, defaultApiRole, defaultApplicationRole,
+                             canChangeDefaultApiRole, canChangeDefaultApplicationRole) {
+          'ngInject';
+          this.group = group;
+          this.group.api_role = group.api_role || defaultApiRole;
+          this.group.application_role = group.application_role || defaultApplicationRole;
+          this.apiRoles = apiRoles;
+          this.applicationRoles = applicationRoles;
+          this.canChangeDefaultApiRole = canChangeDefaultApiRole;
+          this.canChangeDefaultApplicationRole = canChangeDefaultApplicationRole;
+          this.hide = function () {$mdDialog.hide();};
+          this.save = function () {$mdDialog.hide(this.email);};
+        },
+        controllerAs: '$ctrl',
+        template: require('./inviteMember.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          defaultApiRole: $scope.selectedApiRole,
+          defaultApplicationRole: $scope.selectedApplicationRole,
+          group: this.group,
+          apiRoles: this.apiRoles,
+          applicationRoles: this.applicationRoles,
+          canChangeDefaultApiRole: this.canChangeDefaultApiRole,
+          canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole
+        }
+      }).then((email) => {
+        if (email) {
+          GroupService.inviteMember(this.group, email).then((response) => {
+            if (response.data.id) {
+              NotificationService.show('Invitation successfully sent');
+            } else {
+              NotificationService.show('Member successfully added');
+            }
+            $state.reload();
+          });
+        }
+      },
+        // you cancelled the dialog
+        () => {});
+    };
+
+    this.removeInvitation = (ev, invitation: any) => {
+      ev.stopPropagation();
+      $mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          msg: '',
+          title: 'Are you sure you want to remove the invitation for "' + invitation.email + '"?',
+          confirmButton: 'Remove'
+        }
+      }).then((response) => {
+          if (response) {
+            GroupService.deleteInvitation(this.group.id, invitation.id).then(() => {
+              NotificationService.show('Invitation for ' + invitation.email + ' has been successfully removed');
+              $state.reload();
+            });
+          }
+        },
+        // you cancelled the dialog
+        () => {});
     };
   }
 };

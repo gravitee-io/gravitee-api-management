@@ -24,6 +24,7 @@ class ContextualDocController {
     // init contextual page visibility
     if ($window.localStorage.getItem(this.contextualDocVisibilityKey) !== null) {
       this.isOpen = JSON.parse($window.localStorage.getItem(this.contextualDocVisibilityKey));
+      this.$rootScope.helpDisplayed = this.isOpen;
     } else {
       this.setDocumentationVisibility();
     }
@@ -60,6 +61,7 @@ class ContextualDocController {
 
   private setDocumentationVisibility() {
     this.$window.localStorage.setItem(this.contextualDocVisibilityKey, this.isOpen);
+    this.$rootScope.helpDisplayed = this.isOpen;
   }
 
 }

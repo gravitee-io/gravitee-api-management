@@ -192,13 +192,9 @@ function configurationRouterConfig($stateProvider) {
       component: 'group',
       resolve: {
         group: (GroupService: GroupService, $stateParams) =>
-          GroupService.get($stateParams.groupId).then(response =>
-            response.data
-          ),
+          GroupService.get($stateParams.groupId).then(response => response.data),
         members: (GroupService: GroupService, $stateParams) =>
-          GroupService.getMembers($stateParams.groupId).then(response =>
-            response.data
-          ),
+          GroupService.getMembers($stateParams.groupId).then(response => response.data),
         apiRoles: (RoleService: RoleService) =>
           RoleService.list("API").then( (roles) =>
             [{"scope":"API", "name": "", "system":false}].concat(roles)
@@ -206,7 +202,9 @@ function configurationRouterConfig($stateProvider) {
         applicationRoles: (RoleService: RoleService) =>
           RoleService.list("APPLICATION").then( (roles) =>
             [{"scope":"APPLICATION", "name": "", "system":false}].concat(roles)
-          )
+          ),
+        invitations: (GroupService: GroupService, $stateParams) =>
+          GroupService.getInvitations($stateParams.groupId).then(response => response.data)
       },
       data: {
         menu: null,

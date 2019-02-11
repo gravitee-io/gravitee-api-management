@@ -30,7 +30,8 @@ class ResetPasswordController {
     }
 
     $scope.changePassword = function () {
-      UserService.create({token: $state.params.token, password: $scope.confirmPassword}).then(function () {
+      UserService.create({token: $state.params.token, password: $scope.confirmPassword,
+        firstname: $scope.user.firstname, lastname: $scope.user.lastname}).then(function () {
         $scope.formConfirm.$setPristine();
         NotificationService.show('Your password has been initialized successfully, you can now login...');
         $state.go('login');

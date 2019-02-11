@@ -28,7 +28,9 @@ function DialogAddGroupMemberController(
   defaultApiRole: string,
   defaultApplicationRole: string,
   apiRoles: Role[],
-  applicationRoles: Role[]
+  applicationRoles: Role[],
+  canChangeDefaultApiRole,
+  canChangeDefaultApplicationRole
   ) {
   'ngInject';
 
@@ -42,6 +44,9 @@ function DialogAddGroupMemberController(
   this.searchText = "";
   this.defaultApiRole = (defaultApiRole) ? defaultApiRole : _.find(apiRoles, {default: true}).name;
   this.defaultApplicationRole = (defaultApplicationRole) ? defaultApplicationRole : _.find(applicationRoles, {default: true}).name;
+
+  this.canChangeDefaultApiRole = canChangeDefaultApiRole;
+  this.canChangeDefaultApplicationRole = canChangeDefaultApplicationRole;
 
   this.hide = () => {
     $mdDialog.cancel();

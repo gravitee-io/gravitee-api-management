@@ -611,3 +611,11 @@ md-progress-circular {
   line-height: 14px;
   color: grey;
 }
+
+.md-fab-scrollable {
+  position: fixed !important;
+
+  &.gv-help-displayed {
+    left: calc(100vw - 500px) !important;
+  }
+}

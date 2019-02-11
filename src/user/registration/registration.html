@@ -24,17 +24,17 @@
       <form name="formRegistration" ng-submit="register()" layout="column">
         <md-input-container class="md-icon-float">
           <label>First name</label>
-          <input ng-model="user.firstname" type="text" ng-required="true" autofocus>
+          <input ng-model="user.firstname" type="text" required autofocus>
         </md-input-container>
 
         <md-input-container class="md-icon-float">
           <label>Last name</label>
-          <input ng-model="user.lastname" type="text" ng-required="true">
+          <input ng-model="user.lastname" type="text" required>
         </md-input-container>
 
         <md-input-container class="md-icon-float">
           <label>Email</label>
-          <input ng-model="user.email" type="email" ng-required="true">
+          <input ng-model="user.email" type="email" required>
         </md-input-container>
 
         <md-button type="submit" class="md-raised md-primary"

@@ -102,6 +102,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
           vm.notificationSettings[idx] = response.data;
         }
         NotificationService.show('Notifications saved with success');
+        vm.formNotification.$setPristine();
       });
     };
 
