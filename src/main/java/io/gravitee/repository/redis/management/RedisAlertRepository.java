@@ -59,7 +59,7 @@ public class RedisAlertRepository implements AlertRepository {
         final RedisAlert redisAlert = alertRedisRepository.findById(alert.getId());
 
         if (redisAlert == null) {
-            throw new IllegalStateException(String.format("No alert found with name [%s]", alert.getId()));
+            throw new IllegalStateException(String.format("No alert found with id [%s]", alert.getId()));
         }
 
         final RedisAlert redisAlertUpdated = alertRedisRepository.saveOrUpdate(convert(alert));

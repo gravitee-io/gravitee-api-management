@@ -107,6 +107,11 @@ public class RedisGroupRepository implements GroupRepository{
             }
             group.setRoles(roles);
         }
+        group.setLockApiRole(redisGroup.isLockApiRole());
+        group.setLockApplicationRole(redisGroup.isLockApplicationRole());
+        group.setSystemInvitation(redisGroup.isSystemInvitation());
+        group.setEmailInvitation(redisGroup.isEmailInvitation());
+        group.setMaxInvitation(redisGroup.getMaxInvitation());
         return group;
     }
 
@@ -133,6 +138,11 @@ public class RedisGroupRepository implements GroupRepository{
             }
             redisGroup.setRoles(roles);
         }
+        redisGroup.setLockApiRole(group.isLockApiRole());
+        redisGroup.setLockApplicationRole(group.isLockApplicationRole());
+        redisGroup.setSystemInvitation(group.isSystemInvitation());
+        redisGroup.setEmailInvitation(group.isEmailInvitation());
+        redisGroup.setMaxInvitation(group.getMaxInvitation());
         return redisGroup;
     }
 
