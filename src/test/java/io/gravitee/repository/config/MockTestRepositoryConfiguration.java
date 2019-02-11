@@ -167,4 +167,9 @@ public class MockTestRepositoryConfiguration {
     public EntrypointRepositoryMock entrypointRepositoryMock() throws Exception {
         return new EntrypointRepositoryMock();
     }
+
+    @Bean
+    public InvitationRepositoryMock invitationRepositoryMock() throws Exception {
+        return new InvitationRepositoryMock();
+    }
 }

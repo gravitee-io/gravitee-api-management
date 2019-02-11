@@ -42,12 +42,23 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         Group group = new Group();
         group.setId("1");
         group.setName("my group");
+        group.setLockApiRole(true);
+        group.setLockApplicationRole(true);
+        group.setSystemInvitation(true);
+        group.setEmailInvitation(true);
+        group.setMaxInvitation(10);
 
         Group group1 = groupRepository.create(group);
 
         assertNotNull(group1);
         assertNotNull(group1.getId());
         assertEquals(group.getId(), group1.getId());
+        assertEquals(group.getName(), group1.getName());
+        assertEquals(group.isLockApiRole(), group1.isLockApiRole());
+        assertEquals(group.isLockApplicationRole(), group1.isLockApplicationRole());
+        assertEquals(group.isSystemInvitation(), group1.isSystemInvitation());
+        assertEquals(group.isEmailInvitation(), group1.isEmailInvitation());
+        assertEquals(group.getMaxInvitation(), group1.getMaxInvitation());
     }
 
     @Test
@@ -57,7 +68,12 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(group);
         assertTrue(group.isPresent());
         assertEquals("group-application-1", group.get().getId());
-        assertEquals("group-application-1", group.get().getName());
+        assertEquals("group-application-1 name", group.get().getName());
+        assertTrue(group.get().isLockApiRole());
+        assertTrue(group.get().isLockApplicationRole());
+        assertTrue(group.get().isSystemInvitation());
+        assertTrue(group.get().isEmailInvitation());
+        assertEquals(99, group.get().getMaxInvitation().intValue());
         assertEquals(2, group.get().getEventRules().size());
         assertEquals(2, group.get().getRoles().size());
     }
@@ -76,12 +92,22 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         group.setId("group-application-1");
         group.setName("Modified Name");
         group.setUpdatedAt(new Date(1000000000000L));
+        group.setLockApiRole(true);
+        group.setLockApplicationRole(true);
+        group.setSystemInvitation(true);
+        group.setEmailInvitation(true);
+        group.setMaxInvitation(1000);
 
         Group update = groupRepository.update(group);
 
         assertEquals(group.getId(), update.getId());
         assertEquals(group.getName(), update.getName());
         assertEquals(new Date(1000000000000L), update.getUpdatedAt());
+        assertTrue(group.isLockApiRole());
+        assertTrue(group.isLockApplicationRole());
+        assertTrue(group.isSystemInvitation());
+        assertTrue(group.isEmailInvitation());
+        assertEquals(1000, group.getMaxInvitation().intValue());
     }
 
     @Test
@@ -91,6 +117,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(groups);
         assertFalse("not empty", groups.isEmpty());
         assertEquals(2, groups.size());
+        assertEquals(2, groups.stream().filter(group -> "group-application-1".equals(group.getId())).findAny().get().getRoles().size());
     }
 
     @Test

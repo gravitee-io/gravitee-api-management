@@ -115,6 +115,8 @@ public abstract class AbstractRepositoryTest {
     protected AlertRepository alertRepository;
     @Inject
     protected EntrypointRepository entrypointRepository;
+    @Inject
+    protected InvitationRepository invitationRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -224,6 +226,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof Entrypoint) {
             entrypointRepository.create((Entrypoint) object);
+        }
+        else if (object instanceof Invitation) {
+            invitationRepository.create((Invitation) object);
         }
     }
 

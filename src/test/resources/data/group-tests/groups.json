@@ -1,7 +1,12 @@
 [
   {
     "id": "group-application-1",
-    "name": "group-application-1",
+    "name": "group-application-1 name",
+    "lockApiRole": true,
+    "lockApplicationRole": true,
+    "systemInvitation": true,
+    "emailInvitation": true,
+    "maxInvitation": 99,
     "eventRules": [
       {
         "event": "API_CREATE"
@@ -17,7 +22,7 @@
   },
   {
     "id": "group-api-to-delete",
-    "name": "group-api-to-delete",
+    "name": "group-api-to-delete name",
     "roles" : {
       "3": "OWNER"
     }

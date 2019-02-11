@@ -51,11 +51,22 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
     void prepare(GroupRepository groupRepository) throws Exception {
         final Group createGroup = new Group();
         createGroup.setId("1");
+        createGroup.setName("my group");
+        createGroup.setLockApiRole(true);
+        createGroup.setLockApplicationRole(true);
+        createGroup.setSystemInvitation(true);
+        createGroup.setEmailInvitation(true);
+        createGroup.setMaxInvitation(10);
         when(groupRepository.create(any())).thenReturn(createGroup);
 
         final Group group_application_1 = new Group();
         group_application_1.setId("group-application-1");
-        group_application_1.setName("group-application-1");
+        group_application_1.setName("group-application-1 name");
+        group_application_1.setLockApiRole(true);
+        group_application_1.setLockApplicationRole(true);
+        group_application_1.setSystemInvitation(true);
+        group_application_1.setEmailInvitation(true);
+        group_application_1.setMaxInvitation(99);
         GroupEventRule eventRule1 = new GroupEventRule();
         eventRule1.setEvent(GroupEvent.API_CREATE);
         GroupEventRule eventRule2 = new GroupEventRule();
