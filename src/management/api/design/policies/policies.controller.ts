@@ -190,7 +190,9 @@ class ApiPoliciesController {
     } else {
       return this.$q(() => {
         this.$scope.policyJsonSchema = this.schemaByPolicyId[this.selectedApiPolicy.policyId];
+        this.selectedApiPolicy[this.selectedApiPolicy.policyId] = this.selectedApiPolicy[this.selectedApiPolicy.policyId] || {};
         this.checkEmptySchema();
+        return this.$scope.policyJsonSchema;
       });
     }
   }
