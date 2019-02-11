@@ -132,7 +132,6 @@ class NewApiController {
     });
   }
 
-
   convertApiEntityToApiDefinition(apiEntity: ApiEntity, swagger: any) {
     let apiDefinition = {
       name: apiEntity.name,
