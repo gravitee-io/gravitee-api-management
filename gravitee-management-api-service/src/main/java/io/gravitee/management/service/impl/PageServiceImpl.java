@@ -386,10 +386,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				}
 
 				page.setContent(sb.toString());
-				page.setMetadata(new HashMap<>(resource.getMetadata().size()));
-				for (Map.Entry<String, Object> entry : resource.getMetadata().entrySet()) {
-					if (!(entry.getValue() instanceof Map)) {
-						page.getMetadata().put(entry.getKey(), String.valueOf(entry.getValue()));
+				if (resource.getMetadata() != null) {
+					page.setMetadata(new HashMap<>(resource.getMetadata().size()));
+					for (Map.Entry<String, Object> entry : resource.getMetadata().entrySet()) {
+						if (!(entry.getValue() instanceof Map)) {
+							page.getMetadata().put(entry.getKey(), String.valueOf(entry.getValue()));
+						}
 					}
 				}
 			} catch (Exception e) {
