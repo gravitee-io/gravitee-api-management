@@ -37,7 +37,7 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
     @Override
     public void handle(HttpServerRequest httpServerRequest) {
         final Request request = new VertxHttpServerRequest(httpServerRequest);
-        final Response response = new VertxHttpServerResponse(httpServerRequest.response(), request.metrics());
+        final Response response = new VertxHttpServerResponse(httpServerRequest, request.metrics());
 
         reactor.route(request, response, __ -> {});
     }
