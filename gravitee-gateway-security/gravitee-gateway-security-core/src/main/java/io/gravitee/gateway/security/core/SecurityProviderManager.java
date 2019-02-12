@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -35,7 +34,7 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityProviderManager {
+public class SecurityProviderManager implements InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(SecurityProviderManager.class);
 
@@ -62,8 +61,7 @@ public class SecurityProviderManager {
         return null;
     }
 
-    @PostConstruct
-    public void initializeSecurityProviders() {
+    public void afterPropertiesSet() {
         logger.debug("Loading security providers...");
         List<AuthenticationHandler> availableSecurityProviders =
                 securityProviderLoader.getSecurityProviders();

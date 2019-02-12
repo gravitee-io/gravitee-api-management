@@ -31,5 +31,5 @@ public interface PluginAuthenticationPolicy extends AuthenticationPolicy {
     /**
      * The configuration (json) of the policy.
      */
-    default String configuration() { return null; };
+    default String configuration() { return null; }
 }

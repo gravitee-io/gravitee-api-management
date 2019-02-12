@@ -27,12 +27,10 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.ArgumentMatcher;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 
@@ -80,12 +78,6 @@ public class CheckSubscriptionPolicyTest {
 
         SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
         when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
-
-        Subscription subscription = mock(Subscription.class);
-        when(subscription.getClientId()).thenReturn("my-bad-client-id");
-
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class)))
-                .thenReturn(Collections.singletonList(subscription));
 
         policy.onRequest(request, response, policyChain, executionContext);
 
@@ -142,14 +134,7 @@ public class CheckSubscriptionPolicyTest {
         verify(policyChain, times(1)).doNext(request, response);
     }
 
-    Matcher<PolicyResult> statusCode(int statusCode) {
-        return new TypeSafeMatcher<PolicyResult>() {
-            public boolean matchesSafely(PolicyResult item) {
-                return item.httpStatusCode() == statusCode;
-            }
-            public void describeTo(Description description) {
-                description.appendText("HTTP status code " + statusCode);
-            }
-        };
+    ArgumentMatcher<PolicyResult> statusCode(int statusCode) {
+        return argument -> argument.httpStatusCode() == statusCode;
     }
 }

@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 
@@ -70,7 +70,6 @@ public class TargetEndpointResolverTest {
         when(executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT)).thenReturn(targetUri);
 
         Endpoint endpoint = mock(Endpoint.class);
-        when(endpoint.name()).thenReturn("endpoint");
         when(endpoint.target()).thenReturn("http://endpoint:8080/test");
         when(endpoint.available()).thenReturn(true);
 
@@ -89,7 +88,6 @@ public class TargetEndpointResolverTest {
         when(executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT)).thenReturn(targetUri);
 
         Endpoint endpoint = mock(Endpoint.class);
-        when(endpoint.name()).thenReturn("endpoint");
         when(endpoint.target()).thenReturn("http://host:8080/test");
         when(endpoint.available()).thenReturn(true);
 

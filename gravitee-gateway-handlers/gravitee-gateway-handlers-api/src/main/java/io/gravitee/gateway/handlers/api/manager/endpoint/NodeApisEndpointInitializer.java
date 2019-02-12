@@ -16,15 +16,14 @@
 package io.gravitee.gateway.handlers.api.manager.endpoint;
 
 import io.gravitee.node.management.http.endpoint.ManagementEndpointManager;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NodeApisEndpointInitializer {
+public class NodeApisEndpointInitializer implements InitializingBean {
 
     @Autowired
     private ManagementEndpointManager managementEndpointManager;
@@ -34,8 +33,7 @@ public class NodeApisEndpointInitializer {
     @Autowired
     private ApiManagementEndpoint apiManagementEndpoint;
 
-    @PostConstruct
-    protected void init() {
+    public void afterPropertiesSet() {
         managementEndpointManager.register(apisManagementEndpoint);
         managementEndpointManager.register(apiManagementEndpoint);
     }

@@ -24,7 +24,7 @@ package io.gravitee.gateway.policy.impl;
  */
 class DelegatingClassLoader extends ClassLoader {
 
-    private final ClassLoader delegates[];
+    private final ClassLoader[] delegates;
     private final ClassLoader mParentLoader;
 
     /**
@@ -73,7 +73,7 @@ class DelegatingClassLoader extends ClassLoader {
             }
         }
         catch (ClassNotFoundException cnfe) {
-            ; // ignore
+            // ignore
         }
 
         // Send it to the parent classloader
@@ -85,7 +85,7 @@ class DelegatingClassLoader extends ClassLoader {
             return class2Load;
         }
         catch (ClassNotFoundException cnfe) {
-            ; // ignore
+            // ignore
         }
 
         //  All efforts are in vain - class was not found

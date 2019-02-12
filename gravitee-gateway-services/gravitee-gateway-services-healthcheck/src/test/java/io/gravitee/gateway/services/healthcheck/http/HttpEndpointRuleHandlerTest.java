@@ -61,7 +61,10 @@ public class HttpEndpointRuleHandlerTest {
 
     @Test
     public void shouldNotValidate_invalidEndpoint(TestContext context) {
-        // Prepare
+        // Prepare HTTP endpoint
+        stubFor(get(urlEqualTo("/"))
+                .willReturn(notFound()));
+
         EndpointRule rule = mock(EndpointRule.class);
         when(rule.endpoint()).thenReturn(createEndpoint());
 
@@ -85,6 +88,7 @@ public class HttpEndpointRuleHandlerTest {
             @Override
             public void handle(EndpointStatus status) {
                 Assert.assertFalse(status.isSuccess());
+                verify(getRequestedFor(urlEqualTo("/")));
                 async.complete();
             }
         });
@@ -100,9 +104,7 @@ public class HttpEndpointRuleHandlerTest {
     public void shouldValidate(TestContext context) throws InterruptedException {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody("{\"status\": \"green\"}")));
+                .willReturn(ok("{\"status\": \"green\"}")));
 
         // Prepare
         EndpointRule rule = mock(EndpointRule.class);
@@ -128,6 +130,7 @@ public class HttpEndpointRuleHandlerTest {
             @Override
             public void handle(EndpointStatus status) {
                 Assert.assertTrue(status.isSuccess());
+                verify(getRequestedFor(urlEqualTo("/")));
                 async.complete();
             }
         });
@@ -143,9 +146,7 @@ public class HttpEndpointRuleHandlerTest {
     public void shouldNotValidate_invalidResponseBody(TestContext context) throws InterruptedException {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody("{\"status\": \"yellow\"}")));
+                .willReturn(ok("{\"status\": \"yellow\"}")));
 
         // Prepare
         EndpointRule rule = mock(EndpointRule.class);
@@ -171,6 +172,7 @@ public class HttpEndpointRuleHandlerTest {
             @Override
             public void handle(EndpointStatus status) {
                 Assert.assertFalse(status.isSuccess());
+                verify(getRequestedFor(urlEqualTo("/")));
 
                 // When health-check is false, we store both request and response
                 Step result = status.getSteps().get(0);
@@ -192,9 +194,7 @@ public class HttpEndpointRuleHandlerTest {
     public void shouldValidateFromRoot(TestContext context) throws InterruptedException {
         // Prepare HTTP endpoint
         stubFor(get(urlEqualTo("/"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody("{\"status\": \"green\"}")));
+                .willReturn(ok()));
 
         // Prepare
         EndpointRule rule = mock(EndpointRule.class);
@@ -222,6 +222,8 @@ public class HttpEndpointRuleHandlerTest {
         runner.setStatusHandler(new Handler<EndpointStatus>() {
             @Override
             public void handle(EndpointStatus status) {
+                verify(getRequestedFor(urlEqualTo("/")));
+                verify(0, getRequestedFor(urlEqualTo("/additional-but-unused-path-for-hc")));
                 Assert.assertTrue(status.isSuccess());
                 async.complete();
             }

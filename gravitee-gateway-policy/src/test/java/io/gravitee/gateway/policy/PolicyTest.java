@@ -33,7 +33,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Set;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.reflections.ReflectionUtils.withAnnotation;
 import static org.reflections.ReflectionUtils.withModifier;
@@ -132,7 +132,7 @@ public class PolicyTest {
 
         policy.onRequest(mockRequest, mockResponse);
 
-        verify(policyInst, atLeastOnce()).onRequest(any(PolicyChain.class), eq(mockRequest), eq(mockResponse));
+        verify(policyInst, atLeastOnce()).onRequest(nullable(PolicyChain.class), eq(mockRequest), eq(mockResponse));
     }
 
     @Test
@@ -152,7 +152,7 @@ public class PolicyTest {
 
         policy.onResponse(mockRequest, mockResponse);
 
-        verify(policyInst, atLeastOnce()).onResponse(eq(mockRequest), eq(mockResponse), any(PolicyChain.class));
+        verify(policyInst, atLeastOnce()).onResponse(eq(mockRequest), eq(mockResponse), nullable(PolicyChain.class));
     }
 
     private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {

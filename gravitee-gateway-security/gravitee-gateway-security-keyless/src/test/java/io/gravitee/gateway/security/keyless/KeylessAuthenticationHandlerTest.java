@@ -15,21 +15,19 @@
  */
 package io.gravitee.gateway.security.keyless;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,7 +42,6 @@ public class KeylessAuthenticationHandlerTest {
     @Test
     public void shouldHandleRequest() {
         Request request = mock(Request.class);
-        when(request.headers()).thenReturn(new HttpHeaders());
 
         boolean handle = authenticationHandler.canHandle(request);
         Assert.assertTrue(handle);

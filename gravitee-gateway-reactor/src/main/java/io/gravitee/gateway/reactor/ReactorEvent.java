@@ -21,5 +21,5 @@ package io.gravitee.gateway.reactor;
  */
 public enum ReactorEvent {
 
-    DEPLOY, UPDATE, UNDEPLOY;
+    DEPLOY, UPDATE, UNDEPLOY
 }

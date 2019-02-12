@@ -20,15 +20,14 @@ import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.node.api.Node;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NodeTemplateVariableProvider implements TemplateVariableProvider {
+public class NodeTemplateVariableProvider implements TemplateVariableProvider, InitializingBean {
 
     @Autowired
     private GatewayConfiguration gatewayConfiguration;
@@ -38,7 +37,6 @@ public class NodeTemplateVariableProvider implements TemplateVariableProvider {
 
     private NodeProperties nodeProperties;
 
-    @PostConstruct
     public void afterPropertiesSet() {
         nodeProperties = new NodeProperties();
         nodeProperties.setId(node.id());

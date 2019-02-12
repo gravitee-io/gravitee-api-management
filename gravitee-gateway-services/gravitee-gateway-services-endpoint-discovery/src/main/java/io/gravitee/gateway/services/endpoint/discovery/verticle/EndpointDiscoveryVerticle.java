@@ -156,9 +156,8 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
 
     private DiscoveredEndpoint createEndpoint(Service service) {
         final String scheme = (service.port() == 443) ? "https" : "http";
-        DiscoveredEndpoint endpoint = new DiscoveredEndpoint(
+        return new DiscoveredEndpoint(
                 "sd:" + service.id(),
                 scheme + "://" + service.host() + ':' + service.port());
-        return endpoint;
     }
 }
