@@ -23,7 +23,9 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.reporter.api.http.Metrics;
 import io.netty.buffer.ByteBuf;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.HttpVersion;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,8 +39,11 @@ class VertxHttpServerResponse implements Response {
 
     private final Metrics metrics;
 
-    VertxHttpServerResponse(final HttpServerResponse httpServerResponse, final Metrics metrics) {
-        this.httpServerResponse = httpServerResponse;
+    private final HttpVersion version;
+
+    VertxHttpServerResponse(final HttpServerRequest httpServerRequest, final Metrics metrics) {
+        this.httpServerResponse = httpServerRequest.response();
+        version = httpServerRequest.version();
         this.metrics = metrics;
     }
 
@@ -111,6 +116,15 @@ class VertxHttpServerResponse implements Response {
     }
 
     private void writeHeaders() {
-        headers.forEach(httpServerResponse::putHeader);
+        // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
+        // connection-specific header fields must be remove from response headers
+        headers.forEach((headerName, headerValues) -> {
+            if (version == HttpVersion.HTTP_1_0 || version == HttpVersion.HTTP_1_1
+                    || (!headerName.equalsIgnoreCase(HttpHeaders.CONNECTION)
+                    && !headerName.equalsIgnoreCase(HttpHeaders.KEEP_ALIVE)
+                    && !headerName.equalsIgnoreCase(HttpHeaders.TRANSFER_ENCODING))) {
+                httpServerResponse.putHeader(headerName, headerValues);
+            }
+        });
     }
 }
