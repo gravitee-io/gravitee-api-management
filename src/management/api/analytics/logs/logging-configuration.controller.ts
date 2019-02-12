@@ -52,6 +52,10 @@ class ApiLoggingConfigurationController {
         name: 'Client and proxy',
         value: 'CLIENT_PROXY'
       }];
+
+    this.$scope.$on('apiChangeSuccess', (event, args) => {
+      this.api = args.api;
+    });
   }
 
   update() {
