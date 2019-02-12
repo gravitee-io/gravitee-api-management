@@ -61,7 +61,7 @@ public class SecurityProviderManagerTest {
         when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(
                 securityProvider1, securityProvider2));
 
-        securityManager.initializeSecurityProviders();
+        securityManager.afterPropertiesSet();
         List<AuthenticationHandler> securityProviders = securityManager.getSecurityProviders();
 
         assertEquals(2, securityProviders.size());
@@ -86,7 +86,7 @@ public class SecurityProviderManagerTest {
         when(securityProviderFilter.filter(securityProviderLoader.getSecurityProviders()))
                 .thenReturn(Collections.singletonList(securityProvider1));
         securityManager.setSecurityProviderFilter(securityProviderFilter);
-        securityManager.initializeSecurityProviders();
+        securityManager.afterPropertiesSet();
         List<AuthenticationHandler> securityProviders = securityManager.getSecurityProviders();
 
         assertEquals(1, securityProviders.size());
@@ -99,7 +99,7 @@ public class SecurityProviderManagerTest {
                 Collections.emptyList());
 
         Request request = mock(Request.class);
-        securityManager.initializeSecurityProviders();
+        securityManager.afterPropertiesSet();
         AuthenticationHandler securityProvider = securityManager.resolve(request);
         assertNull(securityProvider);
     }
@@ -119,7 +119,7 @@ public class SecurityProviderManagerTest {
 
         when(securityProviderLoader.getSecurityProviders()).thenReturn(
                 Arrays.asList(securityProvider1, securityProvider2));
-        securityManager.initializeSecurityProviders();
+        securityManager.afterPropertiesSet();
 
         AuthenticationHandler securityProvider = securityManager.resolve(request);
         assertEquals(securityProvider1, securityProvider);
@@ -141,7 +141,7 @@ public class SecurityProviderManagerTest {
         when(securityProviderLoader.getSecurityProviders()).thenReturn(
                 Arrays.asList(securityProvider1, securityProvider2));
 
-        securityManager.initializeSecurityProviders();
+        securityManager.afterPropertiesSet();
 
         AuthenticationHandler securityProvider = securityManager.resolve(request);
         assertEquals(securityProvider2, securityProvider);

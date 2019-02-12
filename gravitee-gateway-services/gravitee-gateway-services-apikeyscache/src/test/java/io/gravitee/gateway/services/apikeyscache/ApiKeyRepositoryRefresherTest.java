@@ -27,10 +27,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
+
+import static org.mockito.ArgumentMatchers.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -69,16 +71,10 @@ public class ApiKeyRepositoryRefresherTest {
         refresher.initialize();
         refresher.run();
 
-        Mockito.verify(apiKeyRepository).findByCriteria(Matchers.argThat(new ArgumentMatcher<ApiKeyCriteria>() {
-            @Override
-            public boolean matches(Object arg) {
-                ApiKeyCriteria criteria = (ApiKeyCriteria) arg;
-                return !criteria.isIncludeRevoked() &&
-                        criteria.getFrom() == 0 &&
-                        criteria.getTo() == 0 &&
-                        criteria.getPlans().size() == 1;
-            }
-        }));
+        Mockito.verify(apiKeyRepository).findByCriteria(ArgumentMatchers.argThat(criteria -> !criteria.isIncludeRevoked() &&
+                criteria.getFrom() == 0 &&
+                criteria.getTo() == 0 &&
+                criteria.getPlans().size() == 1));
     }
 
     @Test
@@ -90,20 +86,14 @@ public class ApiKeyRepositoryRefresherTest {
         refresher.initialize();
         refresher.run();
 
-        Mockito.verify(apiKeyRepository).findByCriteria(Matchers.argThat(new ArgumentMatcher<ApiKeyCriteria>() {
-            @Override
-            public boolean matches(Object arg) {
-                ApiKeyCriteria criteria = (ApiKeyCriteria) arg;
-                return !criteria.isIncludeRevoked() &&
-                        criteria.getFrom() == 0 &&
-                        criteria.getTo() == 0 &&
-                        criteria.getPlans().size() == 1;
-            }
-        }));
+        Mockito.verify(apiKeyRepository).findByCriteria(ArgumentMatchers.argThat(criteria -> !criteria.isIncludeRevoked() &&
+                criteria.getFrom() == 0 &&
+                criteria.getTo() == 0 &&
+                criteria.getPlans().size() == 1));
     }
 
     @Test
-    public void shouldNotRefreshKeylessPlan() throws TechnicalException {
+    public void shouldNotRefreshKeylessPlan() {
         Mockito.when(plan.getSecurity()).thenReturn(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS.name());
         List<Plan> plans = Collections.singletonList(plan);
         Mockito.when(api.getPlans()).thenReturn(plans);
@@ -126,27 +116,15 @@ public class ApiKeyRepositoryRefresherTest {
 
         InOrder inOrder = Mockito.inOrder(apiKeyRepository, apiKeyRepository);
 
-        inOrder.verify(apiKeyRepository).findByCriteria(Matchers.argThat(new ArgumentMatcher<ApiKeyCriteria>() {
-                    @Override
-                    public boolean matches(Object arg) {
-                        ApiKeyCriteria criteria = (ApiKeyCriteria) arg;
-                        return !criteria.isIncludeRevoked() &&
-                                criteria.getFrom() == 0 &&
-                                criteria.getTo() == 0 &&
-                                criteria.getPlans().size() == 1;
-                    }
-                }));
+        inOrder.verify(apiKeyRepository).findByCriteria(ArgumentMatchers.argThat(criteria -> !criteria.isIncludeRevoked() &&
+                criteria.getFrom() == 0 &&
+                criteria.getTo() == 0 &&
+                criteria.getPlans().size() == 1));
 
-        inOrder.verify(apiKeyRepository).findByCriteria(Matchers.argThat(new ArgumentMatcher<ApiKeyCriteria>() {
-            @Override
-            public boolean matches(Object arg) {
-                ApiKeyCriteria criteria = (ApiKeyCriteria) arg;
-                return criteria.isIncludeRevoked() &&
-                        criteria.getFrom() != 0 &&
-                        criteria.getTo() != 0 &&
-                        criteria.getPlans().size() == 1;
-            }
-        }));
+        inOrder.verify(apiKeyRepository).findByCriteria(ArgumentMatchers.argThat(criteria -> criteria.isIncludeRevoked() &&
+                criteria.getFrom() != 0 &&
+                criteria.getTo() != 0 &&
+                criteria.getPlans().size() == 1));
     }
 
     @Test
@@ -167,29 +145,17 @@ public class ApiKeyRepositoryRefresherTest {
 
         InOrder inOrder = Mockito.inOrder(apiKeyRepository, apiKeyRepository);
 
-        inOrder.verify(apiKeyRepository).findByCriteria(Matchers.argThat(new ArgumentMatcher<ApiKeyCriteria>() {
-            @Override
-            public boolean matches(Object arg) {
-                ApiKeyCriteria criteria = (ApiKeyCriteria) arg;
-                return !criteria.isIncludeRevoked() &&
-                        criteria.getFrom() == 0 &&
-                        criteria.getTo() == 0 &&
-                        criteria.getPlans().size() == 1;
-            }
-        }));
+        inOrder.verify(apiKeyRepository).findByCriteria(ArgumentMatchers.argThat(criteria -> !criteria.isIncludeRevoked() &&
+                criteria.getFrom() == 0 &&
+                criteria.getTo() == 0 &&
+                criteria.getPlans().size() == 1));
 
-        inOrder.verify(apiKeyRepository).findByCriteria(Matchers.argThat(new ArgumentMatcher<ApiKeyCriteria>() {
-            @Override
-            public boolean matches(Object arg) {
-                ApiKeyCriteria criteria = (ApiKeyCriteria) arg;
-                return criteria.isIncludeRevoked() &&
-                        criteria.getFrom() != 0 &&
-                        criteria.getTo() != 0 &&
-                        criteria.getPlans().size() == 1;
-            }
-        }));
+        inOrder.verify(apiKeyRepository).findByCriteria(ArgumentMatchers.argThat(criteria -> criteria.isIncludeRevoked() &&
+                criteria.getFrom() != 0 &&
+                criteria.getTo() != 0 &&
+                criteria.getPlans().size() == 1));
 
-        Mockito.verify(cache, Mockito.times(2)).put(Matchers.any(Element.class));
+        Mockito.verify(cache, Mockito.times(2)).put(ArgumentMatchers.any(Element.class));
     }
 
     @Test
@@ -218,31 +184,19 @@ public class ApiKeyRepositoryRefresherTest {
 
         InOrder inOrder = Mockito.inOrder(apiKeyRepository, apiKeyRepository);
 
-        inOrder.verify(apiKeyRepository).findByCriteria(Matchers.argThat(new ArgumentMatcher<ApiKeyCriteria>() {
-            @Override
-            public boolean matches(Object arg) {
-                ApiKeyCriteria criteria = (ApiKeyCriteria) arg;
-                return !criteria.isIncludeRevoked() &&
-                        criteria.getFrom() == 0 &&
-                        criteria.getTo() == 0 &&
-                        criteria.getPlans().size() == 1;
-            }
-        }));
+        inOrder.verify(apiKeyRepository).findByCriteria(ArgumentMatchers.argThat(criteria -> !criteria.isIncludeRevoked() &&
+                criteria.getFrom() == 0 &&
+                criteria.getTo() == 0 &&
+                criteria.getPlans().size() == 1));
 
-        inOrder.verify(apiKeyRepository).findByCriteria(Matchers.argThat(new ArgumentMatcher<ApiKeyCriteria>() {
-            @Override
-            public boolean matches(Object arg) {
-                ApiKeyCriteria criteria = (ApiKeyCriteria) arg;
-                return criteria.isIncludeRevoked() &&
-                        criteria.getFrom() != 0 &&
-                        criteria.getTo() != 0 &&
-                        criteria.getPlans().size() == 1;
-            }
-        }));
+        inOrder.verify(apiKeyRepository).findByCriteria(ArgumentMatchers.argThat(criteria -> criteria.isIncludeRevoked() &&
+                criteria.getFrom() != 0 &&
+                criteria.getTo() != 0 &&
+                criteria.getPlans().size() == 1));
 
         InOrder inOrderCache = Mockito.inOrder(cache, cache);
 
-        inOrderCache.verify(cache).put(Matchers.any(Element.class));
+        inOrderCache.verify(cache).put(any(Element.class));
         inOrderCache.verify(cache).remove(apiKey);
     }
 }

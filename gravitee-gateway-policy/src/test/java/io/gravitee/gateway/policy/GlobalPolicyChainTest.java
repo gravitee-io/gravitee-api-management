@@ -15,23 +15,22 @@
  */
 package io.gravitee.gateway.policy;
 
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.MockitoAnnotations.initMocks;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.policy.impl.PolicyChain;
+import io.gravitee.gateway.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Spy;
 
-import io.gravitee.gateway.policy.impl.PolicyChain;
-import io.gravitee.gateway.policy.impl.RequestPolicyChain;
-import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -66,11 +65,11 @@ public class GlobalPolicyChainTest {
         requestChain.doNext(null, null);
         responseChain.doNext(null, null);
 
-        requestOrder.verify(policy).onRequest(anyVararg());
-        requestOrder.verify(policy2).onRequest(anyVararg());
+        requestOrder.verify(policy).onRequest(any());
+        requestOrder.verify(policy2).onRequest(any());
 
-        responseOrder.verify(policy2).onResponse(anyVararg());
-        responseOrder.verify(policy).onResponse(anyVararg());
+        responseOrder.verify(policy2).onResponse(any());
+        responseOrder.verify(policy).onResponse(any());
     }
 
     private List<Policy> policies2() {

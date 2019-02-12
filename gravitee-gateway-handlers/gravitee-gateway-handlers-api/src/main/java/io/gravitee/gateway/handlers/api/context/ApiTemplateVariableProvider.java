@@ -18,25 +18,24 @@ package io.gravitee.gateway.handlers.api.context;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiTemplateVariableProvider implements TemplateVariableProvider {
+public class ApiTemplateVariableProvider implements TemplateVariableProvider, InitializingBean {
 
     @Autowired
     private Api api;
 
     private ApiProperties apiProperties;
 
-    @PostConstruct
     public void afterPropertiesSet() {
         apiProperties = new ApiProperties(api);
     }
+
     @Override
     public void provide(TemplateContext templateContext) {
         // Keep this variable for backward compatibility

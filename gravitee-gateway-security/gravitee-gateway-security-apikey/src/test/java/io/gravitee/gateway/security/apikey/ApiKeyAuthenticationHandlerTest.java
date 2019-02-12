@@ -21,8 +21,8 @@ import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.AuthenticationContext;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
@@ -120,9 +120,6 @@ public class ApiKeyAuthenticationHandlerTest {
         headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
         when(request.headers()).thenReturn(headers);
 
-        MultiValueMap<String, String> parameters = mock(MultiValueMap.class);
-        when(request.parameters()).thenReturn(parameters);
-
         AuthenticationContext authenticationContext = mock(AuthenticationContext.class);
         when(authenticationContext.getId()).thenReturn("wrong-plan-id");
 
@@ -141,9 +138,6 @@ public class ApiKeyAuthenticationHandlerTest {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
         when(request.headers()).thenReturn(headers);
-
-        MultiValueMap<String, String> parameters = mock(MultiValueMap.class);
-        when(request.parameters()).thenReturn(parameters);
 
         AuthenticationContext authenticationContext = mock(AuthenticationContext.class);
         when(authenticationContext.getId()).thenReturn("plan-id");

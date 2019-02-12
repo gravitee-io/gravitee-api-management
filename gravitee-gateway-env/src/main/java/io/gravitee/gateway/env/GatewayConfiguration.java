@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.env;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +27,7 @@ import java.util.Optional;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class GatewayConfiguration {
+public class GatewayConfiguration implements InitializingBean {
 
     static final String SHARDING_TAGS_SYSTEM_PROPERTY = "tags";
     private static final String SHARDING_TAGS_SEPARATOR = ",";
@@ -42,7 +42,6 @@ public class GatewayConfiguration {
     @Autowired
     private Environment environment;
 
-    @PostConstruct
     public void afterPropertiesSet() {
         this.initShardingTags();
         this.initTenant();

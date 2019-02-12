@@ -275,9 +275,7 @@ public class SyncManager {
                         .map(tag -> tag.substring(1))
                         .collect(Collectors.toList());
 
-                if (inclusionTags.stream()
-                        .filter(exclusionTags::contains)
-                        .count() > 0) {
+                if (inclusionTags.stream().anyMatch(exclusionTags::contains)) {
                     throw new IllegalArgumentException("You must not configure a tag to be included and excluded");
                 }
 

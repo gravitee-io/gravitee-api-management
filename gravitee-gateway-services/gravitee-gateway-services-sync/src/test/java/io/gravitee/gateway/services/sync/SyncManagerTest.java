@@ -35,10 +35,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -46,7 +45,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -137,7 +136,6 @@ public class SyncManagerTest {
         final Api apiDefinition = new Api(mockApi);
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
         apiDefinition.setDeployedAt(api.getDeployedAt());
-        when(apiManager.get(api.getId())).thenReturn(apiDefinition);
 
         syncManager.refresh();
 
@@ -179,13 +177,7 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, times(2)).deploy(argThat(new ArgumentMatcher<Api>() {
-            @Override
-            public boolean matches(Object argument) {
-                final Api api = (Api) argument;
-                return api.getId().equals(mockApi.getId()) || api2.getId().equals(mockApi2.getId());
-            }
-        }));
+        verify(apiManager, times(2)).deploy(argThat(api1 -> api1.getId().equals(mockApi.getId()) || api2.getId().equals(mockApi2.getId())));
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
@@ -219,13 +211,7 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, times(2)).deploy(argThat(new ArgumentMatcher<Api>() {
-            @Override
-            public boolean matches(Object argument) {
-                final Api api = (Api) argument;
-                return api.getId().equals(mockApi.getId()) || api2.getId().equals(mockApi2.getId());
-            }
-        }));
+        verify(apiManager, times(2)).deploy(argThat(api1 -> api1.getId().equals(mockApi.getId()) || api2.getId().equals(mockApi2.getId())));
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(api.getId());
         verify(apiManager, never()).undeploy(api2.getId());
@@ -360,7 +346,6 @@ public class SyncManagerTest {
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList(tags.split(","))));
         when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(any(EventCriteria.class), any(Pageable.class)))
@@ -406,7 +391,6 @@ public class SyncManagerTest {
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("!test", "toto")));
         when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(
@@ -509,13 +493,7 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(argThat(new ArgumentMatcher<Api>() {
-            @Override
-            public boolean matches(Object argument) {
-                final Api api = (Api) argument;
-                return api.getId().equals(mockApi.getId());
-            }
-        }));
+        verify(apiManager).deploy(argThat(api1 -> api1.getId().equals(mockApi.getId())));
         verify(apiManager, never()).update(any(Api.class));
         verify(apiManager, never()).undeploy(any(String.class));
     }
@@ -633,7 +611,6 @@ public class SyncManagerTest {
         )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
         when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
 
         syncManager.refresh();
 

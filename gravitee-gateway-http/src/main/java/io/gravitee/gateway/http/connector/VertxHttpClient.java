@@ -42,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Resource;
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
 import java.net.URI;
@@ -80,7 +79,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         HOP_HEADERS = Collections.unmodifiableSet(hopHeaders);
     }
 
-    @Resource
+    @Autowired
     private Vertx vertx;
 
     private final HttpEndpoint endpoint;
