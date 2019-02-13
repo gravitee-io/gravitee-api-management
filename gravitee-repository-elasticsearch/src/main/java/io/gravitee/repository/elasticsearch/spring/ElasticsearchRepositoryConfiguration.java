@@ -70,16 +70,17 @@ public class ElasticsearchRepositoryConfiguration {
     public FreeMarkerComponent freeMarckerComponent() {
         return new FreeMarkerComponent();
     }
-    
+
     @Bean
     public Client client(RepositoryConfiguration repositoryConfiguration) {
         HttpClientConfiguration clientConfiguration = new HttpClientConfiguration();
         clientConfiguration.setEndpoints(repositoryConfiguration.getEndpoints());
         clientConfiguration.setUsername(repositoryConfiguration.getUsername());
         clientConfiguration.setPassword(repositoryConfiguration.getPassword());
+        clientConfiguration.setRequestTimeout(repositoryConfiguration.getRequestTimeout());
         return new HttpClient(clientConfiguration);
     }
-    
+
     @Bean
     public IndexNameGenerator indexNameGenerator(RepositoryConfiguration repositoryConfiguration, Client client) {
         // Wait for a connection to ES and retry each 5 seconds

@@ -9,3 +9,5 @@ analytics:
       mapping:
         tenant1: cluster1
         tenant2: cluster2
+    client:
+      timeout: 30000

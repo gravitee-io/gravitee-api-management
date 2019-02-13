@@ -57,4 +57,10 @@ public class ElasticsearchRepositoryConfigurationTest {
         Assert.assertTrue(configuration.hasCrossClusterMapping());
         Assert.assertEquals("cluster1", configuration.getCrossClusterMapping().get("tenant1"));
     }
+
+    @Test
+    public void shouldHaveClientTimeout() {
+        Assert.assertNotNull(configuration.getRequestTimeout());
+        Assert.assertEquals(30000, configuration.getRequestTimeout().longValue());
+    }
 }

@@ -39,7 +39,7 @@ public class RepositoryConfiguration {
 
 	@Autowired
 	private Environment environment;
-	
+
 	/**
 	 * Prefix index name. 
 	 */
@@ -57,7 +57,7 @@ public class RepositoryConfiguration {
 	 */
 	@Value("${analytics.elasticsearch.security.username:#{null}}")
 	private String username;
-	
+
 	/**
 	 * Elasticsearch basic oauth password. 
 	 */
@@ -65,12 +65,18 @@ public class RepositoryConfiguration {
 	private String password;
 
 	/**
+	 * Configurable request timeout for http requests to elasticsearch
+	 */
+	@Value("${analytics.elasticsearch.client.timeout:10000}")
+	private Long requestTimeout;
+
+	/**
 	 * Elasticsearch endpoints
 	 */
 	private List<Endpoint> endpoints;
 
 	private Map<String, String> crossClusterMapping;
-	
+
 	public String getUsername() {
 		return username;
 	}
@@ -85,6 +91,11 @@ public class RepositoryConfiguration {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public Long getRequestTimeout()
+	{
+		return requestTimeout;
 	}
 
 	public List<Endpoint> getEndpoints() {
