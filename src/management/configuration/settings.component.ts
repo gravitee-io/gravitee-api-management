@@ -32,6 +32,11 @@ const SettingsComponent: ng.IComponentOptions = {
     this.$state = $state;
     this.settingsMenu = {
       // PORTAL
+      analytics: {
+        perm: UserService.isUserHasPermissions(
+          ['portal-settings-r']),
+        goTo: 'management.settings.analytics'
+      },
       apiPortalHeader: {
         perm: UserService.isUserHasPermissions(
           ['portal-api_header-c', 'portal-api_header-r', 'portal-api_header-u', 'portal-api_header-d']),

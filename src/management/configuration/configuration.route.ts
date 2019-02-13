@@ -592,6 +592,21 @@ function configurationRouterConfig($stateProvider) {
         }
       }
     })
+    .state('management.settings.analytics', {
+      url: '/analytics',
+      component: 'analyticsSettings',
+      resolve: {
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-analytics'
+        },
+        perms: {
+          only: ['portal-settings-r']
+        }
+      }
+    })
     .state('management.settings.apiPortalHeader', {
       url: '/apiportalheader',
       component: 'configApiPortalHeader',

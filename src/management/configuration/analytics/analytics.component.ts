@@ -17,11 +17,10 @@ import NotificationService from "../../../services/notification.service";
 import PortalConfigService from "../../../services/portalConfig.service";
 import { StateService } from '@uirouter/core';
 
-const PortalSettingsComponent: ng.IComponentOptions = {
+const AnalyticsSettingsComponent: ng.IComponentOptions = {
   bindings: {
-    tags: '<'
   },
-  template: require('./portal.html'),
+  template: require('./analytics.html'),
   controller: function(
     NotificationService: NotificationService,
     PortalConfigService: PortalConfigService,
@@ -30,6 +29,13 @@ const PortalSettingsComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
     this.Constants = Constants;
+
+    this.widgets = [
+      {'id': 'geo_country', 'label': 'Hits by country'},
+      {'id': 'geo_city', 'label': 'Hits by city'},
+      {'id': 'host', 'label': 'Hits by HTTP Host header'},
+      {'id': 'user_agent_name', 'label': 'Hits by user agent'},
+      {'id': 'os_name', 'label': 'Hits by OS'}];
 
     this.save = () => {
       PortalConfigService.save().then( () => {
@@ -47,4 +53,4 @@ const PortalSettingsComponent: ng.IComponentOptions = {
   }
 };
 
-export default PortalSettingsComponent;
+export default AnalyticsSettingsComponent;

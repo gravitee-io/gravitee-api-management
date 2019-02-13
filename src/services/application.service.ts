@@ -39,10 +39,12 @@ interface IMembership {
 
 class ApplicationService {
   private applicationsURL: string;
+  private analyticsHttpTimeout: number;
 
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
     this.applicationsURL = `${Constants.baseURL}applications/`;
+    this.analyticsHttpTimeout = Constants.analyticsHttpTimeout as number
   }
 
   private subscriptionsURL(applicationId: string): string {
@@ -162,7 +164,7 @@ class ApplicationService {
       }
     });
 
-    return this.$http.get(url, {timeout: 30000});
+    return this.$http.get(url, {timeout: this.analyticsHttpTimeout});
   }
 
   /*

@@ -369,6 +369,7 @@ import MoveToFolderDialogController from "./components/documentation/movetofolde
 import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
+import AnalyticsSettingsComponent from "./configuration/analytics/analytics.component";
 
 (<any>window).traverse = traverse;
 
@@ -630,6 +631,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('roleMembers', RoleMembersComponent)
   .component('topApis', TopApisComponent)
   .component('portalSettings', PortalSettingsComponent)
+  .component('analyticsSettings', AnalyticsSettingsComponent)
   .directive('gvMetadataValidator', () => MetadataValidatorDirective)
 
   .component('instances', InstancesComponent)
