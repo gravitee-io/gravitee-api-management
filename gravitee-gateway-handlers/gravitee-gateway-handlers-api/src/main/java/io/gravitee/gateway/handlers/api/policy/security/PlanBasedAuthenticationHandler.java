@@ -18,9 +18,10 @@ package io.gravitee.gateway.handlers.api.policy.security;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.handlers.api.definition.Plan;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
-import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
+import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 
 import java.util.List;
 import java.util.function.Function;
@@ -34,15 +35,17 @@ public class PlanBasedAuthenticationHandler implements AuthenticationHandler {
 
     private final AuthenticationHandler wrapper;
     private final Plan plan;
+    private final AuthenticationContext authenticationContext;
 
     PlanBasedAuthenticationHandler(final AuthenticationHandler wrapper, final Plan plan) {
         this.wrapper = wrapper;
         this.plan = plan;
+        this.authenticationContext = convert(plan);
     }
 
     @Override
-    public boolean canHandle(Request request) {
-        return wrapper.canHandle(request);
+    public boolean canHandle(Request request, AuthenticationContext authenticationContext) {
+        return wrapper.canHandle(request, this.authenticationContext);
     }
 
     @Override
@@ -83,5 +86,11 @@ public class PlanBasedAuthenticationHandler implements AuthenticationHandler {
                     }
                 })
                 .collect(Collectors.toList());
+    }
+
+    private AuthenticationContext convert(Plan plan) {
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        authenticationContext.setId(plan.getId());
+        return authenticationContext;
     }
 }
