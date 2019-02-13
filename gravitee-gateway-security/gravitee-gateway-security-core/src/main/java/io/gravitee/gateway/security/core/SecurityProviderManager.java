@@ -19,6 +19,7 @@ package io.gravitee.gateway.security.core;
 import io.gravitee.gateway.api.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -66,6 +67,16 @@ public class SecurityProviderManager {
         logger.debug("Loading security providers...");
         List<AuthenticationHandler> availableSecurityProviders =
                 securityProviderLoader.getSecurityProviders();
+
+        availableSecurityProviders.forEach(authenticationHandler -> {
+            if (authenticationHandler instanceof InitializingBean) {
+                try {
+                    ((InitializingBean) authenticationHandler).afterPropertiesSet();
+                } catch (Exception e) {
+                    logger.debug("An error occurs while loading Security Provider [{}]", authenticationHandler.name(), e);
+                }
+            }
+        });
 
         // Sort by order
         Collections.sort(availableSecurityProviders, Comparator.comparingInt(AuthenticationHandler::order));

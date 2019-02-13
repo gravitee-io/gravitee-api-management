@@ -46,7 +46,18 @@ public interface AuthenticationHandler {
      * @param request Incoming HTTP request.
      * @return Flag indicating that the incoming request can be handled by the authentication system.
      */
-    boolean canHandle(Request request);
+    default boolean canHandle(Request request) {
+        return canHandle(request, null);
+    }
+
+    /**
+     * Check that the incoming HTTP request can be handle by the underlying authentication system.
+     *
+     * @param request Incoming HTTP request.
+     * @param authenticationContext context data upon which incoming HTTP request can be handled.
+     * @return Flag indicating that the incoming request can be handled by the authentication system.
+     */
+    boolean canHandle(Request request, AuthenticationContext authenticationContext);
 
     /**
      * Policies which will be run for each request after authentication method selection

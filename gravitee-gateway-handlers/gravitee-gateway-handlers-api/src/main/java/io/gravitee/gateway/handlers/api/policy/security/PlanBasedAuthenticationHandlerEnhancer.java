@@ -47,14 +47,15 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
 
         // Look into all plans for required authentication providers.
         Collection<Plan> plans = api.getPlans();
-        securityProviders.forEach(provider -> {
-            Optional<Plan> first = plans
+        plans.forEach(plan -> {
+            Optional<AuthenticationHandler> optionalProvider = securityProviders
                     .stream()
-                    .filter(plan -> provider.name().equalsIgnoreCase(plan.getSecurity()))
+                    .filter(provider -> provider.name().equalsIgnoreCase(plan.getSecurity()))
                     .findFirst();
-            if (first.isPresent()) {
-                logger.debug("Security provider [{}] is required by, at least, one plan. Installing...", provider.name());
-                providers.add(new PlanBasedAuthenticationHandler(provider, first.get()));
+            if (optionalProvider.isPresent()) {
+                AuthenticationHandler provider = optionalProvider.get();
+                logger.debug("Security provider [{}] is required by the plan [{}]. Installing...", provider.name(), plan.getName());
+                providers.add(new PlanBasedAuthenticationHandler(provider, plan));
             }
         });
 

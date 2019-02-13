@@ -18,15 +18,23 @@ package io.gravitee.gateway.security.apikey;
 import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
-import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
+import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.ApiKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * An api-key based {@link AuthenticationHandler}.
@@ -34,7 +42,7 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiKeyAuthenticationHandler implements AuthenticationHandler {
+public class ApiKeyAuthenticationHandler implements AuthenticationHandler, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(ApiKeyAuthenticationHandler.class);
 
@@ -46,10 +54,20 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler {
     @Value("${policy.api-key.param:api-key}")
     private String apiKeyQueryParameter = "api-key";
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    private ApiKeyRepository apiKeyRepository;
+
     @Override
-    public boolean canHandle(Request request) {
+    public void afterPropertiesSet() {
+        apiKeyRepository = applicationContext.getBean(ApiKeyRepository.class);
+    }
+
+    @Override
+    public boolean canHandle(Request request, AuthenticationContext authenticationContext) {
         final String apiKey = lookForApiKey(request);
-        return apiKey != null;
+        return apiKey != null && isMatchingCriteria(apiKey, authenticationContext);
     }
 
     @Override
@@ -80,5 +98,24 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler {
         }
 
         return apiKey;
+    }
+
+    private boolean isMatchingCriteria(String apiKey, AuthenticationContext authenticationContext) {
+        if (apiKeyRepository == null || authenticationContext == null) {
+            // unable to determine matching criteria, select this plan
+            return true;
+        }
+
+        try {
+            Optional<ApiKey> apiKeyOptional = apiKeyRepository.findById(apiKey);
+            if (!apiKeyOptional.isPresent()) {
+                // no api-key found, any API key plan can be selected, the request will be rejected by the API Key policy whatsoever
+                return true;
+            }
+            return apiKeyOptional.get().getPlan().equals(authenticationContext.getId());
+        } catch (TechnicalException e) {
+            // technical exception, any API key plan can be selected, the request will be rejected by the API Key policy whatsoever
+            return true;
+        }
     }
 }
