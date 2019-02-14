@@ -15,14 +15,8 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApiModelEntity;
-import io.gravitee.management.model.EventType;
-import io.gravitee.management.model.InlinePictureEntity;
-import io.gravitee.management.model.Visibility;
-import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.model.api.ApiQuery;
-import io.gravitee.management.model.api.NewApiEntity;
-import io.gravitee.management.model.api.UpdateApiEntity;
+import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.*;
 import io.gravitee.management.model.api.header.ApiHeaderEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 
@@ -46,6 +40,7 @@ public interface ApiService {
     Set<ApiEntity> findByVisibility(Visibility visibility);
 
     ApiEntity create(NewApiEntity api, String userId);
+    ApiEntity create(NewSwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     ApiEntity update(String apiId, UpdateApiEntity api);
 

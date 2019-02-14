@@ -24,16 +24,13 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.management.idp.api.identity.SearchableUser;
-import io.gravitee.management.model.*;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.PageType;
-import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.model.api.ApiQuery;
-import io.gravitee.management.model.api.NewApiEntity;
-import io.gravitee.management.model.api.UpdateApiEntity;
+import io.gravitee.management.model.*;
+import io.gravitee.management.model.api.*;
 import io.gravitee.management.model.api.header.ApiHeaderEntity;
 import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.notification.GenericNotificationConfigEntity;
@@ -56,9 +53,9 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +74,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.gravitee.management.model.EventType.PUBLISH_API;
+import static io.gravitee.management.model.ImportSwaggerDescriptorEntity.Type.INLINE;
 import static io.gravitee.management.model.PageType.SWAGGER;
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
@@ -126,8 +124,6 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     @Autowired
     private AuditService auditService;
     @Autowired
-    private IdentityService identityService;
-    @Autowired
     private TopApiService topApiService;
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
@@ -148,7 +144,27 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
 
     @Override
-    public ApiEntity create(NewApiEntity newApiEntity, String userId) throws ApiAlreadyExistsException {
+    public ApiEntity create(final NewApiEntity newApiEntity, final String userId) throws ApiAlreadyExistsException {
+        return create(newApiEntity, userId, null, null);
+    }
+
+    @Override
+    public ApiEntity create(final NewSwaggerApiEntity swaggerApiEntity, final String userId,
+                            final ImportSwaggerDescriptorEntity swaggerDescriptor) throws ApiAlreadyExistsException {
+
+        final NewApiEntity newApiEntity = new NewApiEntity();
+        newApiEntity.setVersion(swaggerApiEntity.getVersion());
+        newApiEntity.setName(swaggerApiEntity.getName());
+        newApiEntity.setContextPath(swaggerApiEntity.getContextPath());
+        newApiEntity.setDescription(swaggerApiEntity.getDescription());
+        newApiEntity.setEndpoint(swaggerApiEntity.getEndpoint());
+        newApiEntity.setGroups(swaggerApiEntity.getGroups());
+
+        return create(newApiEntity, userId, swaggerDescriptor, swaggerApiEntity.getPaths());
+    }
+
+    private ApiEntity create(final NewApiEntity newApiEntity, final String userId,
+    final ImportSwaggerDescriptorEntity swaggerDescriptor, final List<SwaggerPath> swaggerPaths) throws ApiAlreadyExistsException {
         UpdateApiEntity apiEntity = new UpdateApiEntity();
 
         apiEntity.setName(newApiEntity.getName());
@@ -187,7 +203,115 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         apiEntity.setPaths(paths);
         apiEntity.setPathMappings(new HashSet<>(declaredPaths));
 
-        return create0(apiEntity, userId);
+        if (swaggerDescriptor != null) {
+            if (!swaggerDescriptor.isWithPolicyPaths()) {
+                final Path path = new Path();
+                path.setPath("/");
+                apiEntity.setPaths(singletonMap("/", path));
+            } else if (swaggerPaths != null && !swaggerPaths.isEmpty()) {
+                final Map<String, Path> pathWithMocks = new HashMap<>(swaggerPaths.size());
+                swaggerPaths.forEach(swaggerPath -> {
+                    final Path path = new Path();
+                    path.setPath(swaggerPath.getPath());
+
+                    if (swaggerDescriptor.isWithPolicyMocks()) {
+                        final List<Rule> rules = new ArrayList<>();
+                        swaggerPath.getVerbs().forEach(swaggerVerb -> {
+                            final Rule rule = new Rule();
+                            rule.setEnabled(true);
+                            rule.setDescription(swaggerVerb.getDescription());
+                            rule.setMethods(singleton(HttpMethod.valueOf(swaggerVerb.getVerb())));
+                            final Policy policy = new Policy();
+                            policy.setName("mock");
+
+                            final Map<String, Object> configuration = new HashMap<>();
+
+                            String responseStatus = swaggerVerb.getResponseStatus();
+                            try {
+                                Integer.parseInt(responseStatus);
+                            } catch (final NumberFormatException nfe) {
+                                responseStatus = "200";
+                            }
+                            configuration.put("status", responseStatus);
+                            final Map<Object, Object> header = new HashMap<>(2);
+                            header.put("name", "Content-Type");
+                            header.put("value", "application/json");
+                            configuration.put("headers", singletonList(header));
+                            try {
+                                if (swaggerVerb.getResponseType() != null || swaggerVerb.getResponseExample() != null) {
+                                    final Object mockContent = swaggerVerb.getResponseExample() == null ?
+                                            generateMockContent(swaggerVerb.getResponseType(), swaggerVerb.getResponseProperties()) : swaggerVerb.getResponseExample();
+                                    configuration.put("content", objectMapper.writeValueAsString(mockContent));
+                                }
+                                policy.setConfiguration(objectMapper.writeValueAsString(configuration));
+                            } catch (final JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
+
+                            rule.setPolicy(policy);
+                            rules.add(rule);
+                        });
+
+                        path.setRules(rules);
+                    }
+                    pathWithMocks.put(swaggerPath.getPath(), path);
+                });
+                apiEntity.setPaths(pathWithMocks);
+            }
+            if (!swaggerDescriptor.isWithPathMapping()) {
+                apiEntity.setPathMappings(null);
+            }
+        }
+
+        final ApiEntity createdApi = create0(apiEntity, userId);
+
+        if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
+            final NewPageEntity page = new NewPageEntity();
+            page.setName("Swagger");
+            page.setType(SWAGGER);
+            page.setOrder(1);
+            if (INLINE.equals(swaggerDescriptor.getType())) {
+                page.setContent(swaggerDescriptor.getPayload());
+            } else {
+                final PageSourceEntity source = new PageSourceEntity();
+                page.setSource(source);
+                source.setType("http-fetcher");
+                source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
+            }
+            pageService.createApiPage(createdApi.getId(), page);
+        }
+        return createdApi;
+    }
+
+    private Object generateMockContent(final String responseType, final Map<String, Object> responseProperties) {
+        final Random random = new Random();
+        switch (responseType) {
+            case "string":
+                return "Mocked " + (responseProperties == null ? "response" : responseProperties.getOrDefault("key", "response"));
+            case "boolean":
+                return random.nextBoolean();
+            case "integer":
+                return random.nextInt(1000);
+            case "number":
+                return random.nextDouble();
+            case "array":
+                return responseProperties == null ? emptyList() : singletonList(generateMockContent("object", responseProperties));
+            case "object":
+                if (responseProperties == null) {
+                    return emptyMap();
+                }
+                final Map<String, Object> mock = new HashMap<>(responseProperties.size());
+                responseProperties.forEach((k, v) -> {
+                    if (v instanceof Map) {
+                        mock.put(k, generateMockContent("object", (Map) v));
+                    } else {
+                        mock.put(k, generateMockContent((String) v, singletonMap("key", k)));
+                    }
+                });
+                return mock;
+            default:
+                return emptyMap();
+        }
     }
 
     private ApiEntity create0(UpdateApiEntity api, String userId) throws ApiAlreadyExistsException {
@@ -1059,8 +1183,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         if (SWAGGER.name().equals(pageEntity.getType())) {
             final ImportSwaggerDescriptorEntity importSwaggerDescriptorEntity = new ImportSwaggerDescriptorEntity();
             importSwaggerDescriptorEntity.setPayload(pageEntity.getContent());
-            final NewApiEntity newApiEntity = swaggerService.prepare(importSwaggerDescriptorEntity);
-            apiEntity.getPathMappings().addAll(newApiEntity.getPaths());
+            final NewSwaggerApiEntity newSwaggerApiEntity = swaggerService.prepare(importSwaggerDescriptorEntity);
+            apiEntity.getPathMappings().addAll(newSwaggerApiEntity.getPaths().stream().map(SwaggerPath::getPath).collect(toList()));
         }
 
         return update(apiEntity.getId(), ApiService.convert(apiEntity));

@@ -79,36 +79,28 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Autowired
 	private PageRepository pageRepository;
-
 	@Autowired
 	private ApiService apiService;
-
 	@Autowired
 	private SwaggerService swaggerService;
-
 	@Autowired
 	private PluginManager<FetcherPlugin> fetcherPluginManager;
-
 	@Autowired
 	private FetcherConfigurationFactory fetcherConfigurationFactory;
-
 	@Autowired
 	private Configuration freemarkerConfiguration;
-
 	@Autowired
 	private ApplicationContext applicationContext;
-
 	@Autowired
 	private MembershipService membershipService;
-
 	@Autowired
 	private RoleService roleService;
-
 	@Autowired
 	private AuditService auditService;
-
 	@Autowired
 	private SearchEngineService searchEngineService;
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@Override
 	public PageEntity findById(String pageId) {
@@ -715,13 +707,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		return source;
 	}
 
-	private static PageSourceEntity convert(PageSource pageSource) {
+	private PageSourceEntity convert(PageSource pageSource) {
 		PageSourceEntity entity = null;
 		if (pageSource != null) {
 			entity = new PageSourceEntity();
 			entity.setType(pageSource.getType());
 			try {
-				entity.setConfiguration((new ObjectMapper()).readTree(pageSource.getConfiguration()));
+				entity.setConfiguration(objectMapper.readTree(pageSource.getConfiguration()));
 			} catch (IOException e) {
 			    logger.error(e.getMessage(), e);
 			}

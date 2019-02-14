@@ -16,8 +16,8 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
-import io.gravitee.management.model.api.NewApiEntity;
 import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.api.NewSwaggerApiEntity;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,7 +32,7 @@ public interface SwaggerService {
      * @param swaggerDescriptor Swagger descriptor
      * @return The API from the Swagger descriptor
      */
-    NewApiEntity prepare(ImportSwaggerDescriptorEntity swaggerDescriptor);
+    NewSwaggerApiEntity prepare(ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     void transform(PageEntity page);
 }

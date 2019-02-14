@@ -16,20 +16,32 @@
 package io.gravitee.management.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.api.NewApiEntity;
+import io.gravitee.management.model.api.NewSwaggerApiEntity;
+import io.gravitee.management.model.api.SwaggerPath;
+import io.gravitee.management.model.api.SwaggerVerb;
 import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.exceptions.SwaggerDescriptorException;
-import io.swagger.models.Scheme;
-import io.swagger.models.Swagger;
+import io.swagger.models.*;
+import io.swagger.models.properties.ObjectProperty;
+import io.swagger.models.properties.Property;
+import io.swagger.models.properties.RefProperty;
 import io.swagger.parser.SwaggerCompatConverter;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.parser.util.RemoteUrl;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.ComposedSchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.slf4j.Logger;
@@ -37,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -45,23 +58,27 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class SwaggerServiceImpl implements SwaggerService {
 
-    /**
-     * Logger.
-     */
     private final Logger logger = LoggerFactory.getLogger(SwaggerServiceImpl.class);
 
     @Value("${swagger.scheme:https}")
     private String defaultScheme;
+    @Inject
+    private ObjectMapper mapper;
 
     static {
         System.setProperty(String.format("%s.trustAll", RemoteUrl.class.getName()), Boolean.TRUE.toString());
@@ -69,8 +86,8 @@ public class SwaggerServiceImpl implements SwaggerService {
     }
 
     @Override
-    public NewApiEntity prepare(ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        NewApiEntity apiEntity;
+    public NewSwaggerApiEntity prepare(ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        NewSwaggerApiEntity apiEntity;
 
         // try to read swagger in version 2
         apiEntity = prepareV2(swaggerDescriptor);
@@ -92,22 +109,22 @@ public class SwaggerServiceImpl implements SwaggerService {
         return apiEntity;
     }
 
-    private NewApiEntity prepareV1(ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        NewApiEntity apiEntity;
+    private NewSwaggerApiEntity prepareV1(ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        NewSwaggerApiEntity apiEntity;
         try {
             logger.info("Loading an old Swagger descriptor from {}", swaggerDescriptor.getPayload());
             if (swaggerDescriptor.getType() == ImportSwaggerDescriptorEntity.Type.INLINE) {
                 File temp = null;
                 try {
                     temp = createTmpSwagger1File(swaggerDescriptor.getPayload());
-                    apiEntity = mapSwagger12ToNewApi(new SwaggerCompatConverter().read(temp.getAbsolutePath()));
+                    apiEntity = mapSwagger12ToNewApi(new SwaggerCompatConverter().read(temp.getAbsolutePath()), swaggerDescriptor.isWithPolicyMocks());
                 } finally {
                     if (temp != null) {
                         temp.delete();
                     }
                 }
             } else {
-                apiEntity = mapSwagger12ToNewApi(new SwaggerCompatConverter().read(swaggerDescriptor.getPayload()));
+                apiEntity = mapSwagger12ToNewApi(new SwaggerCompatConverter().read(swaggerDescriptor.getPayload()), swaggerDescriptor.isWithPolicyMocks());
             }
         } catch (IOException ioe) {
             logger.error("Can not read old Swagger specification", ioe);
@@ -116,24 +133,24 @@ public class SwaggerServiceImpl implements SwaggerService {
         return apiEntity;
     }
 
-    private NewApiEntity prepareV2(ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        NewApiEntity apiEntity;
+    private NewSwaggerApiEntity prepareV2(ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        NewSwaggerApiEntity apiEntity;
         logger.info("Trying to loading a Swagger descriptor in v2");
         if (swaggerDescriptor.getType() == ImportSwaggerDescriptorEntity.Type.INLINE) {
-            apiEntity = mapSwagger12ToNewApi(new SwaggerParser().parse(swaggerDescriptor.getPayload()));
+            apiEntity = mapSwagger12ToNewApi(new SwaggerParser().parse(swaggerDescriptor.getPayload()), swaggerDescriptor.isWithPolicyMocks());
         } else {
-            apiEntity = mapSwagger12ToNewApi(new SwaggerParser().read(swaggerDescriptor.getPayload()));
+            apiEntity = mapSwagger12ToNewApi(new SwaggerParser().read(swaggerDescriptor.getPayload()), swaggerDescriptor.isWithPolicyMocks());
         }
         return apiEntity;
     }
 
-    private NewApiEntity prepareV3(ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        NewApiEntity apiEntity;
+    private NewSwaggerApiEntity prepareV3(ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        NewSwaggerApiEntity apiEntity;
         logger.info("Trying to loading an OpenAPI descriptor");
         if (swaggerDescriptor.getType() == ImportSwaggerDescriptorEntity.Type.INLINE) {
-            apiEntity = mapOpenApiToNewApi(new OpenAPIV3Parser().readContents(swaggerDescriptor.getPayload()));
+            apiEntity = mapOpenApiToNewApi(new OpenAPIV3Parser().readContents(swaggerDescriptor.getPayload()), swaggerDescriptor.isWithPolicyMocks());
         } else {
-            apiEntity = mapOpenApiToNewApi(new OpenAPIV3Parser().readWithInfo(swaggerDescriptor.getPayload(), null));
+            apiEntity = mapOpenApiToNewApi(new OpenAPIV3Parser().readWithInfo(swaggerDescriptor.getPayload(), null), swaggerDescriptor.isWithPolicyMocks());
         }
         return apiEntity;
     }
@@ -266,47 +283,225 @@ public class SwaggerServiceImpl implements SwaggerService {
         }
     }
 
-    private NewApiEntity mapSwagger12ToNewApi(Swagger swagger) {
+    private NewSwaggerApiEntity mapSwagger12ToNewApi(final Swagger swagger, final boolean isWithPolicyMocks) {
         if (swagger == null || swagger.getInfo() == null) {
             return null;
         }
-        NewApiEntity apiEntity = new NewApiEntity();
+        final NewSwaggerApiEntity apiEntity = new NewSwaggerApiEntity();
         apiEntity.setName(swagger.getInfo().getTitle());
-        apiEntity.setDescription(swagger.getInfo().getDescription());
+        apiEntity.setContextPath(apiEntity.getName().replaceAll("\\s+", "").toLowerCase());
+        apiEntity.setDescription(swagger.getInfo().getDescription() == null ? "Description of " + apiEntity.getName() :
+                swagger.getInfo().getDescription());
         apiEntity.setVersion(swagger.getInfo().getVersion());
 
         String scheme = (swagger.getSchemes() == null || swagger.getSchemes().isEmpty()) ? defaultScheme :
                 swagger.getSchemes().iterator().next().toValue();
 
         apiEntity.setEndpoint(scheme + "://" + swagger.getHost() + swagger.getBasePath());
-        apiEntity.setPaths(new ArrayList<>(
-                swagger.getPaths().keySet()
-                        .stream()
-                        .map(path -> path.replaceAll("\\{(.[^/]*)\\}", ":$1"))
-                        .collect(Collectors.toList())));
-
+        apiEntity.setPaths(swagger.getPaths().entrySet().stream()
+                .map(entry -> {
+                    final SwaggerPath swaggerPath = new SwaggerPath();
+                    swaggerPath.setPath(entry.getKey().replaceAll("\\{(.[^/]*)\\}", ":$1"));
+                    if (isWithPolicyMocks) {
+                        final ArrayList<SwaggerVerb> verbs = new ArrayList<>();
+                        entry.getValue().getOperationMap().forEach((key, operation) -> {
+                            final SwaggerVerb swaggerVerb = new SwaggerVerb();
+                            swaggerVerb.setVerb(key.name());
+                            swaggerVerb.setDescription(operation.getSummary() == null ?
+                                    (operation.getOperationId() == null ? operation.getDescription() : operation.getOperationId()) :
+                                    operation.getSummary());
+                            final Map.Entry<String, Response> responseEntry = operation.getResponses().entrySet().iterator().next();
+                            swaggerVerb.setResponseStatus(responseEntry.getKey());
+                            final Model responseSchema = responseEntry.getValue().getResponseSchema();
+                            if (responseSchema != null) {
+                                if (responseSchema instanceof ArrayModel) {
+                                    final ArrayModel arrayModel = (ArrayModel) responseSchema;
+                                    swaggerVerb.setResponseType(arrayModel.getType());
+                                    if (arrayModel.getItems() instanceof RefProperty) {
+                                        final String simpleRef = ((RefProperty) arrayModel.getItems()).getSimpleRef();
+                                        swaggerVerb.setResponseProperties(getResponseFromSimpleRef(swagger, simpleRef));
+                                    } else if (arrayModel.getItems() instanceof ObjectProperty) {
+                                        swaggerVerb.setResponseProperties(getResponseProperties(swagger, ((ObjectProperty) arrayModel.getItems()).getProperties()));
+                                    }
+                                } else if (responseSchema instanceof RefModel) {
+                                    swaggerVerb.setResponseType("object");
+                                    final String simpleRef = ((RefModel) responseSchema).getSimpleRef();
+                                    swaggerVerb.setResponseProperties(getResponseFromSimpleRef(swagger, simpleRef));
+                                } else if (responseSchema instanceof ModelImpl) {
+                                    final ModelImpl model = (ModelImpl) responseSchema;
+                                    swaggerVerb.setResponseType(model.getType());
+                                    if ("object".equals(model.getType())) {
+                                        if (model.getAdditionalProperties() != null) {
+                                            swaggerVerb.setResponseProperties(Collections.singletonMap("additionalProperty", model.getAdditionalProperties().getType()));
+                                        }
+                                    } else {
+                                        swaggerVerb.setResponseType(model.getType());
+                                    }
+                                }
+                            }
+                            verbs.add(swaggerVerb);
+                        });
+                        swaggerPath.setVerbs(verbs);
+                    }
+                    return swaggerPath;
+                })
+                .collect(toCollection(ArrayList::new)));
         return apiEntity;
     }
 
-    private NewApiEntity mapOpenApiToNewApi(SwaggerParseResult swagger) {
+    private Map<String, Object> getResponseFromSimpleRef(Swagger swagger, String simpleRef) {
+        final Map<String, Property> properties = swagger.getDefinitions().get(simpleRef).getProperties();
+        if (properties == null) {
+            return emptyMap();
+        }
+        return getResponseProperties(swagger, properties);
+    }
+
+    private Map<String, Object> getResponseProperties(Swagger swagger, Map<String, Property> properties) {
+        return properties.entrySet()
+                .stream()
+                .collect(toMap(Map.Entry::getKey, e -> {
+                    final Property property = e.getValue();
+                    if (property instanceof RefProperty) {
+                        return this.getResponseFromSimpleRef(swagger, ((RefProperty) property).getSimpleRef());
+                    }
+                    return property.getType();
+                }));
+    }
+
+    private NewSwaggerApiEntity mapOpenApiToNewApi(final SwaggerParseResult swagger, final boolean isWithPolicyMocks) {
         if (swagger == null || swagger.getOpenAPI() == null || swagger.getOpenAPI().getInfo() == null) {
             return null;
         }
-        NewApiEntity apiEntity = new NewApiEntity();
+        final NewSwaggerApiEntity apiEntity = new NewSwaggerApiEntity();
         apiEntity.setName(swagger.getOpenAPI().getInfo().getTitle());
-        apiEntity.setDescription(swagger.getOpenAPI().getInfo().getDescription());
+        apiEntity.setContextPath(apiEntity.getName().replaceAll("\\s+", "").toLowerCase());
+        apiEntity.setDescription(swagger.getOpenAPI().getInfo().getDescription() == null ? "Description of " + apiEntity.getName() :
+                swagger.getOpenAPI().getInfo().getDescription());
         apiEntity.setVersion(swagger.getOpenAPI().getInfo().getVersion());
 
         if (!swagger.getOpenAPI().getServers().isEmpty()) {
             apiEntity.setEndpoint(swagger.getOpenAPI().getServers().get(0).getUrl());
         }
-
-        apiEntity.setPaths(new ArrayList<>(
-                swagger.getOpenAPI().getPaths().keySet()
-                        .stream()
-                        .map(path -> path.replaceAll("\\{(.[^/]*)\\}", ":$1"))
-                        .collect(Collectors.toList())));
+        apiEntity.setPaths(swagger.getOpenAPI().getPaths().entrySet().stream()
+                .map(entry -> {
+                    final SwaggerPath swaggerPath = new SwaggerPath();
+                    swaggerPath.setPath(entry.getKey().replaceAll("\\{(.[^/]*)\\}", ":$1"));
+                    if (isWithPolicyMocks) {
+                        final ArrayList<SwaggerVerb> verbs = new ArrayList<>();
+                        final PathItem pathItem = entry.getValue();
+                        if (pathItem.getGet() != null)
+                            verbs.add(getSwaggerVerb(swagger, pathItem.getGet(), "GET"));
+                        if (pathItem.getPut() != null)
+                            verbs.add(getSwaggerVerb(swagger, pathItem.getPut(), "PUT"));
+                        if (pathItem.getPost() != null)
+                            verbs.add(getSwaggerVerb(swagger, pathItem.getPost(), "POST"));
+                        if (pathItem.getDelete() != null)
+                            verbs.add(getSwaggerVerb(swagger, pathItem.getDelete(), "DELETE"));
+                        if (pathItem.getPatch() != null)
+                            verbs.add(getSwaggerVerb(swagger, pathItem.getPatch(), "PATCH"));
+                        if (pathItem.getHead() != null)
+                            verbs.add(getSwaggerVerb(swagger, pathItem.getHead(), "HEAD"));
+                        if (pathItem.getOptions() != null)
+                            verbs.add(getSwaggerVerb(swagger, pathItem.getOptions(), "OPTIONS"));
+                        if (pathItem.getTrace() != null)
+                            verbs.add(getSwaggerVerb(swagger, pathItem.getTrace(), "TRACE"));
+                        swaggerPath.setVerbs(verbs);
+                    }
+                    return swaggerPath;
+                })
+                .collect(toCollection(ArrayList::new)));
         return apiEntity;
     }
 
+    private SwaggerVerb getSwaggerVerb(final SwaggerParseResult swagger, final Operation operation, final String verb) {
+        final SwaggerVerb swaggerVerb = new SwaggerVerb();
+        swaggerVerb.setVerb(verb);
+        swaggerVerb.setDescription(operation.getSummary() == null ?
+                (operation.getOperationId() == null ? operation.getDescription() : operation.getOperationId()) :
+                operation.getSummary());
+        final Map.Entry<String, ApiResponse> responseEntry = operation.getResponses().entrySet().iterator().next();
+        swaggerVerb.setResponseStatus(responseEntry.getKey());
+        if (responseEntry.getValue().getContent() != null) {
+            final io.swagger.v3.oas.models.media.MediaType mediaType =
+                    responseEntry.getValue().getContent().entrySet().iterator().next().getValue();
+            if (mediaType.getExample() != null) {
+                swaggerVerb.setResponseExample(mapper.convertValue(mediaType.getExample(), Map.class));
+            } else if (mediaType.getExamples() != null) {
+                swaggerVerb.setResponseExample(mediaType.getExamples().entrySet().iterator().next().getValue().getValue());
+            } else {
+                final Schema responseSchema = mediaType.getSchema();
+                if (responseSchema != null) {
+                    if (responseSchema instanceof ArraySchema) {
+                        final ArraySchema arraySchema = (ArraySchema) responseSchema;
+                        processResponseSchema(swagger, swaggerVerb, "array", arraySchema.getItems());
+                    } else {
+                        processResponseSchema(swagger, swaggerVerb, responseSchema.getType() == null ? "object" :
+                                responseSchema.getType(), responseSchema);
+                    }
+                }
+            }
+        }
+        return swaggerVerb;
+    }
+
+    private void processResponseSchema(SwaggerParseResult swagger, SwaggerVerb swaggerVerb, String type, Schema responseSchema) {
+        if (responseSchema.getProperties() == null) {
+            swaggerVerb.setResponseType(type);
+            if (responseSchema.getAdditionalProperties() != null) {
+                swaggerVerb.setResponseProperties(Collections.singletonMap("additionalProperty", ((ObjectSchema) responseSchema.getAdditionalProperties()).getType()));
+            } else if (responseSchema.get$ref() != null) {
+                if (!"array".equals(type)) {
+                    swaggerVerb.setResponseType(getTypeByRef(swagger, responseSchema.get$ref()));
+                }
+                swaggerVerb.setResponseProperties(getResponseFromSimpleRef(swagger, responseSchema.get$ref()));
+            }
+        } else {
+            swaggerVerb.setResponseExample(getResponseExample(responseSchema.getProperties()));
+        }
+    }
+
+    private String getTypeByRef(SwaggerParseResult swagger, String ref) {
+        final String simpleRef = ref.substring(ref.lastIndexOf('/') + 1);
+        return swagger.getOpenAPI().getComponents().getSchemas().get(simpleRef).getType();
+    }
+
+    private Map<String, Object> getResponseFromSimpleRef(SwaggerParseResult swagger, String ref) {
+        final String simpleRef = ref.substring(ref.lastIndexOf('/') + 1);
+        final Schema schema = swagger.getOpenAPI().getComponents().getSchemas().get(simpleRef);
+
+        if (schema instanceof ArraySchema) {
+            return getResponseFromSimpleRef(swagger, ((ArraySchema) schema).getItems().get$ref());
+        } else if (schema instanceof ComposedSchema) {
+            final Map<String, Object> response = new HashMap<>();
+            ((ComposedSchema) schema).getAllOf().forEach(composedSchema -> {
+                if (composedSchema.get$ref() != null) {
+                    response.putAll(getResponseFromSimpleRef(swagger, composedSchema.get$ref()));
+                }
+                if (composedSchema.getProperties() != null) {
+                    response.putAll(getResponseProperties(swagger, composedSchema.getProperties()));
+                }
+            });
+            return response;
+        }
+
+        if (schema == null || schema.getProperties() == null) {
+            return emptyMap();
+        }
+        return getResponseProperties(swagger, schema.getProperties());
+    }
+
+    private Map<String, Object> getResponseProperties(final SwaggerParseResult swagger, final Map<String, Schema> properties) {
+        return properties.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> {
+            if (e.getValue().getType() != null) {
+                return e.getValue().getType();
+            } else {
+                return getResponseFromSimpleRef(swagger, e.getValue().get$ref());
+            }
+        }));
+    }
+
+    private Map<String, Object> getResponseExample(final Map<String, Schema> properties) {
+        return properties.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().getExample()));
+    }
 }

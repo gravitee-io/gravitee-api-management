@@ -186,14 +186,18 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create an API definition from a Swagger descriptor")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "API definition from Swagger descriptor", response = NewApiEntity.class),
+            @ApiResponse(code = 200, message = "API definition from Swagger descriptor", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE)
     })
-    public NewApiEntity importSwagger(
+    public Response importSwagger(
             @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        return swaggerService.prepare(swaggerDescriptor);
+        final ApiEntity api = apiService.create(swaggerService.prepare(swaggerDescriptor), getAuthenticatedUser(), swaggerDescriptor);
+        return Response
+                .created(URI.create("/apis/" + api.getId()))
+                .entity(api)
+                .build();
     }
 
     @POST
