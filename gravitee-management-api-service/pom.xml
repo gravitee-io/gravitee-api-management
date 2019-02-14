@@ -26,6 +26,7 @@
 		<json-patch.version>1.9</json-patch.version>
 		<swagger-compat-spec-parser.version>1.0.34</swagger-compat-spec-parser.version>
 		<swagger-parser.version>2.0.0-SNAPSHOT</swagger-parser.version>
+		<powermock.version>1.6.6</powermock.version>
 	</properties>
 
 	<parent>
@@ -214,6 +215,18 @@
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

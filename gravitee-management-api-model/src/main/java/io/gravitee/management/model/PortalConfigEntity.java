@@ -23,7 +23,7 @@ import io.gravitee.management.model.parameters.Key;
 import java.util.List;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties(value={ "baseURL" })
@@ -38,6 +38,7 @@ public class PortalConfigEntity {
     private Theme theme;
     private Plan plan;
     private ApiQualityMetrics apiQualityMetrics;
+    private Logging logging;
 
     public PortalConfigEntity() {
         company = new Company();
@@ -49,6 +50,7 @@ public class PortalConfigEntity {
         theme = new Theme();
         plan = new Plan();
         apiQualityMetrics = new ApiQualityMetrics();
+        logging = new Logging();
     }
 
     public Company getCompany() {
@@ -112,6 +114,13 @@ public class PortalConfigEntity {
     }
     public void setApiQualityMetrics(ApiQualityMetrics apiQualityMetrics) {
         this.apiQualityMetrics = apiQualityMetrics;
+    }
+
+    public Logging getLogging() {
+        return logging;
+    }
+    public void setLogging(Logging logging) {
+        this.logging = logging;
     }
 
     public class Company {
@@ -785,6 +794,19 @@ public class PortalConfigEntity {
 
         public void setLabelsWeight(Integer labelsWeight) {
             this.labelsWeight = labelsWeight;
+        }
+    }
+
+    public class Logging {
+        @ParameterKey(Key.LOGGING_DEFAULT_MAX_DURATION)
+        private Long maxDurationMillis;
+
+        public Long getMaxDurationMillis() {
+            return maxDurationMillis;
+        }
+
+        public void setMaxDurationMillis(Long maxDurationMillis) {
+            this.maxDurationMillis = maxDurationMillis;
         }
     }
 }

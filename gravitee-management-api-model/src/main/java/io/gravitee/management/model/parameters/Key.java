@@ -76,7 +76,9 @@ public enum Key {
     API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH("api.quality.metrics.description.min.length", "100"),
     API_QUALITY_METRICS_LOGO_WEIGHT("api.quality.metrics.logo.weight", "0"),
     API_QUALITY_METRICS_VIEWS_WEIGHT("api.quality.metrics.views.weight", "0"),
-    API_QUALITY_METRICS_LABELS_WEIGHT("api.quality.metrics.labels.weight", "0");
+    API_QUALITY_METRICS_LABELS_WEIGHT("api.quality.metrics.labels.weight", "0"),
+
+    LOGGING_DEFAULT_MAX_DURATION("logging.default.max.duration", "0");
 
     String key;
     String defaultValue;

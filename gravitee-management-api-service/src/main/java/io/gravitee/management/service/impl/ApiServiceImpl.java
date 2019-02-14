@@ -24,9 +24,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.Path;
-import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.management.idp.api.identity.SearchableUser;
 import io.gravitee.management.model.*;
@@ -39,6 +37,7 @@ import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.api.header.ApiHeaderEntity;
 import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.model.notification.GenericNotificationConfigEntity;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.plan.PlanQuery;
 import io.gravitee.management.service.*;
@@ -57,6 +56,7 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Visibility;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -70,6 +70,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -139,6 +140,11 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private ApiHeaderService apiHeaderService;
     @Autowired
     private Configuration freemarkerConfiguration;
+    @Autowired
+    private ParameterService parameterService;
+
+    private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
+    private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
 
     @Override
     public ApiEntity create(NewApiEntity newApiEntity, String userId) throws ApiAlreadyExistsException {
@@ -194,6 +200,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
             // Format context-path and check if context path is unique
             checkContextPath(api.getProxy().getContextPath());
+
+            addLoggingMaxDuration(api.getProxy().getLogging());
 
             Api repoApi = convert(id, api);
 
@@ -294,6 +302,39 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 });
         if (contextPathExists) {
             throw new ApiContextPathAlreadyExistsException(newSubContextPath);
+        }
+    }
+
+    private void addLoggingMaxDuration(Logging logging) {
+        if (logging != null && !LoggingMode.NONE.equals(logging.getMode())) {
+            Optional<Long> optionalMaxDuration = parameterService.findAll(Key.LOGGING_DEFAULT_MAX_DURATION, Long::valueOf).stream().findFirst();
+            if (optionalMaxDuration.isPresent() && optionalMaxDuration.get() > 0) {
+
+                long maxEndDate = System.currentTimeMillis() + optionalMaxDuration.get();
+
+                // if no condition set, add one
+                if (logging.getCondition() == null || logging.getCondition().isEmpty()) {
+                    logging.setCondition(String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate));
+                } else {
+                    Matcher matcher = LOGGING_MAX_DURATION_PATTERN.matcher(logging.getCondition());
+                    if (matcher.matches()) {
+                        String currentDurationAsStr = matcher.group("timestamp");
+                        String before = matcher.group("before");
+                        String after = matcher.group("after");
+                        try {
+                            Long currentDuration = Long.valueOf(currentDurationAsStr);
+                            if (currentDuration > maxEndDate) {
+                                logging.setCondition(before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after);
+                            }
+                        } catch (NumberFormatException nfe) {
+                            LOGGER.error("Wrong format of the logging condition. Add the default one", nfe);
+                            logging.setCondition(before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after);
+                        }
+                    } else {
+                        logging.setCondition(String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + " && " + logging.getCondition());
+                    }
+                }
+            }
         }
     }
 
@@ -414,6 +455,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
             // Check if context path is unique
             checkContextPath(updateApiEntity.getProxy().getContextPath(), apiId);
+
+            addLoggingMaxDuration(updateApiEntity.getProxy().getLogging());
 
             // check the existence of groups
             if (updateApiEntity.getGroups() != null && !updateApiEntity.getGroups().isEmpty()) {
