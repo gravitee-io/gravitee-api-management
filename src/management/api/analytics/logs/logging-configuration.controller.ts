@@ -24,6 +24,7 @@ class ApiLoggingConfigurationController {
   private initialApi: any;
   private api: any;
   private formLogging: any;
+  private maxDuration: any;
 
   constructor(
     private ApiService: ApiService,
@@ -31,12 +32,14 @@ class ApiLoggingConfigurationController {
     private $mdDialog: angular.material.IDialogService,
     private $stateParams,
     private $rootScope,
-    private $scope
+    private $scope,
+    private Constants
   ) {
   'ngInject';
 
     this.initialApi = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
+    this.maxDuration = Constants.logging.maxDurationMillis;
 
     this.$scope.loggingModes = [
       {

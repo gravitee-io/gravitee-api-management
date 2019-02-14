@@ -25,10 +25,13 @@
     <div class="gv-form">
       <h2>Configuration</h2>
       <div class="gv-form-content">
-        <div class="hints" style="color: #EF3B3A">Use logging with caution and only for development purpose since it can have impact on API performances and is requiring more spaces for analytics storage.</div>
-
-        <br />
-
+        <p>
+          Use logging with caution and only for development purpose. It can have an impact on API performances and is requiring more spaces for analytics storage.
+          <div class="gv-page-draft-banner" ng-if="loggingCtrl.maxDuration && loggingCtrl.maxDuration > 0">
+            <ng-md-icon icon="warning" style="fill: #ce4844"></ng-md-icon>
+            A maximum duration of <code>{{loggingCtrl.maxDuration}}</code>milliseconds will be applied to your condition.
+          </div>
+        </p>
         <div layout="column" layout-wrap layout-gt-sm="row">
             <div flex-xs flex="50">
               <div layout-xs="column" flex-xs="50">
@@ -44,9 +47,13 @@
                 <div layout="row" flex-xs="50">
                   <md-input-container class="md-block" flex-gt-sm>
                     <label>Condition</label>
-                    <input ng-model="loggingCtrl.api.proxy.logging.condition" type="text" ng-required="loggingCtrl.api.proxy.logging.mode !== 'NONE'">
+                    <input ng-model="loggingCtrl.api.proxy.logging.condition" type="text"
+                           ng-required="loggingCtrl.api.proxy.logging.mode !== 'NONE'"
+                           ng-disabled="loggingCtrl.api.proxy.logging.mode === 'NONE'">
                   </md-input-container>
-                  <md-button md-no-ink class="md-primary" ng-click="loggingCtrl.showConditionEditor()">Show editor</md-button>
+                  <md-button  md-no-ink class="md-primary"
+                              ng-click="loggingCtrl.showConditionEditor()"
+                              ng-disabled="loggingCtrl.api.proxy.logging.mode === 'NONE'">Show editor</md-button>
                 </div>
               </div>
             </div>
