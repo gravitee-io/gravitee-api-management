@@ -26,6 +26,7 @@ class ApiPoliciesController {
   private pathsToCompare: any;
   private dndEnabled: boolean;
   private pathsInitialized: any;
+  private schemaByPolicyId: any;
 
   constructor (
     private ApiService,
@@ -49,6 +50,7 @@ class ApiPoliciesController {
     this.selectedApiPolicy = {};
     this.httpMethods = ['GET','POST','PUT','DELETE','HEAD','PATCH','OPTIONS','TRACE','CONNECT'];
     this.httpMethodsFilter = _.clone(this.httpMethods);
+    this.schemaByPolicyId = {};
 
     this.listAllPolicies().then((policies) => {
       _.forEach(policies, ({policy}) => {
@@ -178,16 +180,16 @@ class ApiPoliciesController {
   editPolicy(index, path) {
     this.$scope.policyJsonSchemaForm = ["*"];
     this.selectedApiPolicy = this.apiPoliciesByPath[path][index];
-    if (this.selectedApiPolicy.schema === undefined) {
+    if (this.schemaByPolicyId[this.selectedApiPolicy.policyId] === undefined) {
       return this.PolicyService.getSchema(this.selectedApiPolicy.policyId).then((response) => {
-        this.$scope.policyJsonSchema = this.selectedApiPolicy.schema = response.data;
+        this.$scope.policyJsonSchema = this.schemaByPolicyId[this.selectedApiPolicy.policyId] = response.data;
         this.selectedApiPolicy[this.selectedApiPolicy.policyId] = this.selectedApiPolicy[this.selectedApiPolicy.policyId] || {};
         this.checkEmptySchema();
         return this.$scope.policyJsonSchema;
       });
     } else {
       return this.$q(() => {
-        this.$scope.policyJsonSchema = this.selectedApiPolicy.schema;
+        this.$scope.policyJsonSchema = this.schemaByPolicyId[this.selectedApiPolicy.policyId];
         this.checkEmptySchema();
       });
     }

@@ -41,6 +41,7 @@ class NewApiController {
   private importCreateDocumentation: boolean;
   private importCreatePolicyPaths: boolean;
   private importCreatePathMapping: boolean;
+  private importCreateMocks: boolean;
 
   constructor(
     private $scope: INewApiScope,
@@ -105,88 +106,26 @@ class NewApiController {
   }
 
   importSwagger() {
-    let _this = this;
-    let swagger;
-
-    if (this.importFileMode) {
-      swagger = {
-        type: 'INLINE',
-        payload: this.$scope.importAPIFile.content,
-      }
-    } else {
-      swagger = {
-        type: 'URL',
-        payload: this.apiDescriptorURL,
-      }
-    }
-
-    this.ApiService.importSwagger(swagger).then(function (api) {
-      var importedAPI = api.data;
-      importedAPI.contextPath = importedAPI.name.replace(/\s+/g, '').toLowerCase();
-      importedAPI.description = (importedAPI.description) ? importedAPI.description : "Default API description";
-
-      _this.ApiService.import(null, _this.convertApiEntityToApiDefinition(importedAPI, swagger)).then(function(api) {
-        _this.NotificationService.show('API created');
-        _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
-      });
-    });
-  }
-
-  convertApiEntityToApiDefinition(apiEntity: ApiEntity, swagger: any) {
-    let apiDefinition = {
-      name: apiEntity.name,
-      version: apiEntity.version,
-      description: apiEntity.description,
-      proxy: {
-        context_path: apiEntity.contextPath,
-      }
+    let swagger = {
+      with_documentation: this.importCreateDocumentation,
+      with_path_mapping: this.importCreatePathMapping,
+      with_policy_paths: this.importCreatePolicyPaths,
+      with_policy_mocks: this.importCreateMocks
     };
 
-    if (apiEntity.endpoint) {
-      apiDefinition.proxy["groups"] = [{
-        name: "default-group",
-        endpoints: [{
-          name: "default",
-          target: apiEntity.endpoint
-        }]
-      }];
+
+    if (this.importFileMode) {
+      swagger.type = 'INLINE';
+      swagger.payload = this.$scope.importAPIFile.content;
+    } else {
+      swagger.type = 'URL';
+      swagger.payload = this.apiDescriptorURL;
     }
 
-    if (this.importCreateDocumentation) {
-      if ("INLINE" === swagger.type) {
-        apiDefinition["pages"] = [{
-          name: "swagger",
-          type: "SWAGGER",
-          content: swagger.payload,
-          order: 1
-        }]
-      } else {
-        apiDefinition["pages"] = [{
-          name: "swagger",
-          type: "SWAGGER",
-          source: {
-            type: "http-fetcher",
-            configuration: {
-              url: swagger.payload
-            }
-          },
-          order: 1
-        }]
-      }
-    }
-
-    if (this.importCreatePolicyPaths && apiEntity.paths) {
-      apiDefinition["paths"] = {};
-      for (let path of apiEntity.paths) {
-        apiDefinition["paths"][path] = [];
-      }
-    }
-
-    if (this.importCreatePathMapping && apiEntity.paths) {
-      apiDefinition["path_mappings"] = apiEntity.paths;
-    }
-
-    return JSON.stringify(apiDefinition);
+    this.ApiService.importSwagger(swagger).then((api) => {
+      this.NotificationService.show('API successfully imported');
+      this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
+    });
   }
 
   enableImport() {

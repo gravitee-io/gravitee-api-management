@@ -160,7 +160,7 @@
               sf-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId]"
               sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }" novalidate></form>
 
-        <div ng-if="apiPoliciesCtrl.selectedApiPolicy.schema">
+        <div ng-if="apiPoliciesCtrl.schemaByPolicyId[apiPoliciesCtrl.selectedApiPolicy.policyId]">
           <md-divider></md-divider>
           <md-button permission permission-only="'api-definition-u'" class="md-raised"
                      ng-disabled="policyConfigurationForm.$invalid || policyConfigurationForm.$pristine"
@@ -171,7 +171,6 @@
     </div>
   </div>
 </div>
-
 
 <md-button permission permission-only="'api-definition-d'" class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="apiPoliciesCtrl.showAddPathModal($event)">
   <ng-md-icon icon="add"></ng-md-icon>
