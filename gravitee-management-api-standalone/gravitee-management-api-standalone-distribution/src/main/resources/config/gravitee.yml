@@ -153,6 +153,8 @@ analytics:
 #  API_CONSUMER: Can create and manage Applications
 #  ADMIN: Can manage global system
 security:
+  # When using an authentication providers, use trustAll mode for TLS connections
+  # trustAll: false
   providers:  # authentication providers
     - type: memory
       # password encoding/hashing algorithm. One of:

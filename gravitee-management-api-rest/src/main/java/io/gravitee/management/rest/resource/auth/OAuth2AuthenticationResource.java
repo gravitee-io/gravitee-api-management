@@ -17,7 +17,6 @@ package io.gravitee.management.rest.resource.auth;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.ReadContext;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.el.TemplateEngine;
@@ -26,6 +25,7 @@ import io.gravitee.management.model.*;
 import io.gravitee.management.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.management.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.management.model.configuration.identity.SocialIdentityProviderEntity;
+import io.gravitee.management.rest.utils.BlindTrustManager;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.RoleService;
@@ -41,10 +41,15 @@ import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -56,6 +61,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**
@@ -82,14 +89,26 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private RoleService roleService;
 
     @Autowired
-    protected MembershipService membershipService;
+    private MembershipService membershipService;
+
+    @Autowired
+    private Environment environment;
 
     private Client client;
 
     private static final String ACCESS_TOKEN_PROPERTY = "access_token";
 
-    public OAuth2AuthenticationResource() {
-        this.client = ClientBuilder.newClient();
+    @PostConstruct
+    public void initClient() throws NoSuchAlgorithmException, KeyManagementException {
+        final boolean trustAllEnabled = environment.getProperty("security.trustAll", Boolean.class, false);
+        final ClientBuilder builder = ClientBuilder.newBuilder();
+        if (trustAllEnabled) {
+            SSLContext sc = SSLContext.getInstance("ssl");
+            sc.init(null, new TrustManager[]{new BlindTrustManager()}, null);
+            builder.sslContext(sc);
+        }
+
+        this.client = builder.build();
     }
 
     @POST
