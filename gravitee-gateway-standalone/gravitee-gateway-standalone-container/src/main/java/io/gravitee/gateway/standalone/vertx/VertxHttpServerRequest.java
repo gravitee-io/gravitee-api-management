@@ -29,7 +29,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.net.SocketAddress;
 
-import java.time.Instant;
+import javax.net.ssl.SSLSession;
 import java.util.Map;
 
 /**
@@ -172,6 +172,11 @@ class VertxHttpServerRequest implements Request {
     public String localAddress() {
         SocketAddress address = httpServerRequest.localAddress();
         return (address != null) ? address.host() : null;
+    }
+
+    @Override
+    public SSLSession sslSession() {
+        return httpServerRequest.sslSession();
     }
 
     @Override
