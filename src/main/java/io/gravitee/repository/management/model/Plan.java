@@ -89,6 +89,11 @@ public class Plan {
      */
     private List<String> excludedGroups;
 
+    /**
+     * last time modification introduced an api redeployment
+     */
+    private Date needRedeployAt;
+
     private boolean commentRequired;
 
     public Plan() {
@@ -111,6 +116,7 @@ public class Plan {
         this.definition = cloned.getDefinition();
         this.characteristics = cloned.getCharacteristics();
         this.excludedGroups = cloned.getExcludedGroups();
+        this.needRedeployAt = cloned.getNeedRedeployAt();
     }
 
 
@@ -248,6 +254,14 @@ public class Plan {
 
     public void setExcludedGroups(List<String> excludedGroups) {
         this.excludedGroups = excludedGroups;
+    }
+
+    public Date getNeedRedeployAt() {
+        return needRedeployAt;
+    }
+
+    public void setNeedRedeployAt(Date needRedeployAt) {
+        this.needRedeployAt = needRedeployAt;
     }
 
     public boolean isCommentRequired() {
