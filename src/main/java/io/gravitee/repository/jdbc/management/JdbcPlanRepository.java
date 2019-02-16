@@ -61,6 +61,7 @@ public class JdbcPlanRepository implements PlanRepository {
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("published_at", Types.TIMESTAMP, Date.class)
             .addColumn("closed_at", Types.TIMESTAMP, Date.class)
+            .addColumn("need_redeploy_at", Types.TIMESTAMP, Date.class)
             .addColumn("comment_required", Types.BOOLEAN, boolean.class)
             .build(); 
     
