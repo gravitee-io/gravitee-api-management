@@ -37,5 +37,9 @@
             <artifactId>gravitee-gateway-security-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.repository</groupId>
+            <artifactId>gravitee-repository</artifactId>
+        </dependency>
     </dependencies>
 </project>

@@ -20,16 +20,22 @@ import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.ApiKey;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -43,6 +49,9 @@ public class ApiKeyAuthenticationHandlerTest {
 
     @InjectMocks
     private ApiKeyAuthenticationHandler authenticationHandler = new ApiKeyAuthenticationHandler();
+
+    @Mock
+    private ApiKeyRepository apiKeyRepository;
 
     @Test
     public void shouldNotHandleRequest() {
@@ -102,5 +111,49 @@ public class ApiKeyAuthenticationHandlerTest {
     @Test
     public void shouldReturnOrder() {
         Assert.assertEquals(500, authenticationHandler.order());
+    }
+
+    @Test
+    public void shouldNotHandleRequest_wrongCriteria() throws TechnicalException {
+        Request request = mock(Request.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
+        when(request.headers()).thenReturn(headers);
+
+        MultiValueMap<String, String> parameters = mock(MultiValueMap.class);
+        when(request.parameters()).thenReturn(parameters);
+
+        AuthenticationContext authenticationContext = mock(AuthenticationContext.class);
+        when(authenticationContext.getId()).thenReturn("wrong-plan-id");
+
+        ApiKey apiKey = mock(ApiKey.class);
+        when(apiKey.getPlan()).thenReturn("plan-id");
+
+        when(apiKeyRepository.findById("xxxxx-xxxx-xxxxx")).thenReturn(Optional.of(apiKey));
+
+        boolean handle = authenticationHandler.canHandle(request, authenticationContext);
+        Assert.assertFalse(handle);
+    }
+
+    @Test
+    public void shouldHandleRequest_withCriteria() throws TechnicalException {
+        Request request = mock(Request.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
+        when(request.headers()).thenReturn(headers);
+
+        MultiValueMap<String, String> parameters = mock(MultiValueMap.class);
+        when(request.parameters()).thenReturn(parameters);
+
+        AuthenticationContext authenticationContext = mock(AuthenticationContext.class);
+        when(authenticationContext.getId()).thenReturn("plan-id");
+
+        ApiKey apiKey = mock(ApiKey.class);
+        when(apiKey.getPlan()).thenReturn("plan-id");
+
+        when(apiKeyRepository.findById("xxxxx-xxxx-xxxxx")).thenReturn(Optional.of(apiKey));
+
+        boolean handle = authenticationHandler.canHandle(request, authenticationContext);
+        Assert.assertTrue(handle);
     }
 }

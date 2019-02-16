@@ -18,10 +18,7 @@ package io.gravitee.gateway.security.jwt;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.security.core.AuthenticationHandler;
-import io.gravitee.gateway.security.core.AuthenticationPolicy;
-import io.gravitee.gateway.security.core.HookAuthenticationPolicy;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
+import io.gravitee.gateway.security.core.*;
 import io.gravitee.gateway.security.jwt.policy.CheckSubscriptionPolicy;
 import org.springframework.util.StringUtils;
 
@@ -43,7 +40,7 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
     static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
     @Override
-    public boolean canHandle(Request request) {
+    public boolean canHandle(Request request, AuthenticationContext authenticationContext) {
         List<String> authorizationHeaders = request.headers().get(HttpHeaders.AUTHORIZATION);
 
         if (authorizationHeaders == null || authorizationHeaders.isEmpty()) {
