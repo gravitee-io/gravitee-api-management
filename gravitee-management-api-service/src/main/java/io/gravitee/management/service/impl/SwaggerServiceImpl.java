@@ -18,14 +18,15 @@ package io.gravitee.management.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
-import io.gravitee.management.model.api.NewApiEntity;
 import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.api.NewApiEntity;
 import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.exceptions.SwaggerDescriptorException;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerCompatConverter;
 import io.swagger.parser.SwaggerParser;
+import io.swagger.parser.util.RemoteUrl;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -61,6 +62,11 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     @Value("${swagger.scheme:https}")
     private String defaultScheme;
+
+    static {
+        System.setProperty(String.format("%s.trustAll", RemoteUrl.class.getName()), Boolean.TRUE.toString());
+        System.setProperty(String.format("%s.trustAll", io.swagger.v3.parser.util.RemoteUrl.class.getName()), Boolean.TRUE.toString());
+    }
 
     @Override
     public NewApiEntity prepare(ImportSwaggerDescriptorEntity swaggerDescriptor) {
