@@ -17,6 +17,7 @@ package io.gravitee.management.model.analytics.query;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class AbstractQuery {
@@ -46,6 +47,10 @@ public abstract class AbstractQuery {
     }
 
     public void setTo(long to) {
+        long now = System.currentTimeMillis();
+        if (to > now) {
+            this.to = now;
+        }
         this.to = to;
     }
 

@@ -60,9 +60,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     private ApiKeyGenerator apiKeyGenerator;
 
     @Autowired
-    private EmailService emailService;
-
-    @Autowired
     private ApplicationService applicationService;
 
     @Autowired
@@ -313,7 +310,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     private void setExpiration(Date expirationDate, ApiKey key) throws TechnicalException {
-        if (!key.isRevoked() && key.getExpireAt() == null) {
+        if (!key.isRevoked()) {
             ApiKey oldkey = new ApiKey(key);
 
             key.setUpdatedAt(new Date());

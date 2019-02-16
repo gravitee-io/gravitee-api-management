@@ -86,6 +86,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                             f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, defaultValue)));
                         } else if (Integer.class.isAssignableFrom(f.getType())) {
                             f.set(o, Integer.valueOf(getFirstValueOrDefault(values, defaultValue)));
+                        } else if (Long.class.isAssignableFrom(f.getType())) {
+                            f.set(o, Long.valueOf(getFirstValueOrDefault(values, defaultValue)));
                         } else if (List.class.isAssignableFrom(f.getType())) {
                             if (values == null || values.isEmpty()) {
                                 f.set(o, emptyList());
@@ -210,7 +212,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                 portalConfigEntity.getTheme(),
                 portalConfigEntity.getPlan(),
                 portalConfigEntity.getPlan().getSecurity(),
-                portalConfigEntity.getApiQualityMetrics()
+                portalConfigEntity.getApiQualityMetrics(),
+                portalConfigEntity.getLogging()
         };
     }
 }
