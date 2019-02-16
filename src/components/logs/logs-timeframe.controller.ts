@@ -26,7 +26,6 @@ interface Timeframe {
 }
 
 class LogsTimeframeController {
-  private now: Date;
   private timeframes: Timeframe[];
   private timeframe: Timeframe;
   private pickerStartDate: Moment;
@@ -40,8 +39,6 @@ class LogsTimeframeController {
     private $state: StateService,
     private $timeout: ng.ITimeoutService) {
     'ngInject';
-
-    this.now = moment().toDate();
 
     let that = this;
 
@@ -130,16 +127,13 @@ class LogsTimeframeController {
   }
 
   $onInit() {
-    let updated = false;
     if (this.$state.params['from'] && this.$state.params['to']) {
-      updated = true;
-
       this.update({
         from: this.$state.params['from'],
         to: this.$state.params['to']
       });
     } else {
-      this.setTimeframe(this.$state.params['timeframe'] || '1d', !updated);
+      this.setTimeframe(this.$state.params['timeframe'] || '1d', true);
     }
   };
 
@@ -170,18 +164,16 @@ class LogsTimeframeController {
   }
 
   setTimeframe(timeframeId, update) {
-    var that = this;
-
     this.timeframe = _.find(this.timeframes, function (timeframe: Timeframe) {
       return timeframe.id === timeframeId;
     });
 
     if (update) {
-      var now = Date.now();
+      const now = Date.now();
 
       this.update({
-        interval: that.timeframe.interval,
-        from: now - that.timeframe.range,
+        interval: this.timeframe.interval,
+        from: now - this.timeframe.range,
         to: now
       });
     }
