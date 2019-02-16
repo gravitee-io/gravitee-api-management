@@ -76,7 +76,7 @@ const GroupsComponent: ng.IComponentOptions = {
       });
     };
 
-    this.showRenameGroupModal = (ev, groupId, name, event_rules) => {
+    this.showRenameGroupModal = (ev, group) => {
       ev.stopPropagation();
       $mdDialog.show({
         controller: 'DialogAddGroupController',
@@ -84,15 +84,16 @@ const GroupsComponent: ng.IComponentOptions = {
         template: require('./add-group.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          currentName: name,
-          currentDefaultApi: this.apiByDefault[groupId],
-          currentDefaultApplication: this.applicationByDefault[groupId],
+          currentName: group.name,
+          currentDefaultApi: this.apiByDefault[group.id],
+          currentDefaultApplication: this.applicationByDefault[group.id],
           action: 'Edit'
         }
       }).then( (updatedGroup) => {
         if (updatedGroup && updatedGroup.name) {
-          GroupService.update(groupId, updatedGroup).then(() => {
-            NotificationService.show('Group ' + updatedGroup.name + ' has been updated.');
+          group.name = updatedGroup.name;
+          GroupService.update(group).then(() => {
+            NotificationService.show('Group ' + group.name + ' has been updated.');
             GroupService.list().then( (response) => {
               this.groups = _.filter(response.data, 'manageable');
                 this.initEventRules();
@@ -130,11 +131,8 @@ const GroupsComponent: ng.IComponentOptions = {
 
     this.saveEventRules = (group: any) => {
       if (group.manageable) {
-        GroupService.update(group.id, {
-          name: group.name,
-          defaultApi: this.apiByDefault[group.id],
-          defaultApplication: this.applicationByDefault[group.id]
-        }).then(() => {
+        GroupService.updateEventRules(group, this.apiByDefault[group.id], this.applicationByDefault[group.id]);
+        GroupService.update(group).then(() => {
           NotificationService.show('Group ' + group.name + ' has been updated.');
         });
       }
