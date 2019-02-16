@@ -71,6 +71,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(plan2.getUpdatedAt()).thenReturn(new Date(1507032062000L));
         when(plan2.getPublishedAt()).thenReturn(new Date(1506878460000L));
         when(plan2.getClosedAt()).thenReturn(new Date(1507611600000L));
+        when(plan2.getNeedRedeployAt()).thenReturn(new Date(1507611670000L));
         when(plan2.getCharacteristics()).thenReturn(asList("charac 1", "charac 2"));
         when(plan2.getExcludedGroups()).thenReturn(singletonList("grp1"));
         when(plan2.isCommentRequired()).thenReturn(true);
