@@ -175,6 +175,14 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
 
         // Application Hook
+        else if (hook.equals(ApplicationHook.SUBSCRIPTION_NEW)) {
+            Object api = params.get(NotificationParamsBuilder.PARAM_API);
+            Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
+            if (api != null && plan != null) {
+                String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
+                return "New subscription to " + apiName + " with plan " + ((PlanEntity)plan).getName();
+            }
+        }
         else if (hook.equals(ApplicationHook.SUBSCRIPTION_ACCEPTED)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);

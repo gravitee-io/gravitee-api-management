@@ -352,5 +352,4 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         return metadata;
     }
-
 }

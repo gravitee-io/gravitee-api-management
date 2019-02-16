@@ -81,7 +81,9 @@ public enum Key {
     API_QUALITY_METRICS_VIEWS_WEIGHT("api.quality.metrics.views.weight", "0"),
     API_QUALITY_METRICS_LABELS_WEIGHT("api.quality.metrics.labels.weight", "0"),
 
-    ALERT_ENABLED("alert.enabled", "false");
+    ALERT_ENABLED("alert.enabled", "false"),
+
+    LOGGING_DEFAULT_MAX_DURATION("logging.default.max.duration", "0");
 
     String key;
     String defaultValue;
