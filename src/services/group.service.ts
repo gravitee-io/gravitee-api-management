@@ -42,35 +42,37 @@ class GroupService {
     }
   }
 
-  update(groupId, updatedGroup): ng.IPromise<any> {
-    if(groupId && updatedGroup) {
+  update(updatedGroup): ng.IPromise<any> {
+    if(updatedGroup.id && updatedGroup) {
       let grpEntity = GroupService._mapToEntity(updatedGroup);
-      return this.$http.put( [this.groupsURL, groupId].join("/"), grpEntity);
+      return this.$http.put( [this.groupsURL, updatedGroup.id].join("/"), grpEntity);
     }
   }
 
   static _mapToEntity(grp) {
-    let grpEntity = {
+    return {
       name: grp.name,
-      roles: grp.roles
+      roles: grp.roles,
+      event_rules: grp.event_rules
     };
-    let eventRules = [];
-    if (grp.defaultApi) {
-      eventRules.push({event: "API_CREATE"});
-    }
-    if (grp.defaultApplication) {
-      eventRules.push({event: "APPLICATION_CREATE"});
-    }
-    if (eventRules.length > 0) {
-      grpEntity["event_rules"] = eventRules;
-    }
-    
-    return grpEntity;
   }
 
   remove(groupId): ng.IPromise<any> {
     if(groupId) {
       return this.$http.delete([this.groupsURL, groupId].join("/"));
+    }
+  }
+
+  updateEventRules(group, defaultApi, defaultApplication) {
+    let eventRules = [];
+    if (defaultApi) {
+      eventRules.push({event: "API_CREATE"});
+    }
+    if (defaultApplication) {
+      eventRules.push({event: "APPLICATION_CREATE"});
+    }
+    if (eventRules.length > 0) {
+      group["event_rules"] = eventRules;
     }
   }
 

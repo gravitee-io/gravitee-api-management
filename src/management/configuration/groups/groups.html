@@ -53,7 +53,7 @@
             <td md-cell ng-click="$event.stopPropagation()" layout="row" style="padding: 10px 0;">
               <span ng-if="group.manageable">
                 <md-tooltip md-direction="top">edit</md-tooltip>
-                <ng-md-icon icon="mode_edit" ng-click="$ctrl.showRenameGroupModal($event, group.id, group.name, group.event_rules)" aria-label="rename-group"></ng-md-icon>
+                <ng-md-icon icon="mode_edit" ng-click="$ctrl.showRenameGroupModal($event, group)" aria-label="rename-group"></ng-md-icon>
               </span>
               <span ng-if="group.manageable">
                 <md-tooltip md-direction="top">delete</md-tooltip>

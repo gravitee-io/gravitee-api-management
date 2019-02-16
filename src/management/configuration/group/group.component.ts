@@ -75,12 +75,8 @@ const GroupComponent: ng.IComponentOptions = {
         delete roles['APPLICATION'];
       }
 
-      GroupService.update(this.group.id, {
-        name: this.group.name,
-        roles: roles,
-        defaultApi: 'defaultApi',
-        defaultApplication: 'defaultApplication',
-      }).then(() => {
+      this.group.roles = roles;
+      GroupService.update(this.group).then(() => {
         NotificationService.show('Default roles for group ' + this.group.name + ' have been updated.');
       });
     };

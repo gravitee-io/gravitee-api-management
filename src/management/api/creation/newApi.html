@@ -50,7 +50,7 @@
           </md-tab>
         </md-tabs>
 
-        <div style="margin-top:24px;" layout="column" ng-if="newApiCtrl.isSwaggerImport()">
+        <div style="margin-top:24px;" layout="column" ng-if="newApiCtrl.importURLMode || newApiCtrl.isSwaggerImport()">
           <h4>Swagger import configurations:</h4>
           <md-checkbox
                   ng-model="newApiCtrl.importCreateDocumentation"
