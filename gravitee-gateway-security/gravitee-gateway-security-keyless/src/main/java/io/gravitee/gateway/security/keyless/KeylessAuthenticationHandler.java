@@ -17,9 +17,10 @@ package io.gravitee.gateway.security.keyless;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
-import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
+import io.gravitee.gateway.security.core.AuthenticationPolicy;
+import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +37,7 @@ public class KeylessAuthenticationHandler implements AuthenticationHandler {
     static final String KEYLESS_POLICY = "key-less";
 
     @Override
-    public boolean canHandle(Request request) {
+    public boolean canHandle(Request request, AuthenticationContext authenticationContext) {
         return true;
     }
 
