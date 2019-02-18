@@ -188,9 +188,14 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         proxy.setGroups(singleton(group));
         apiEntity.setProxy(proxy);
 
-        List<String> declaredPaths = (newApiEntity.getPaths() != null) ? newApiEntity.getPaths() : new ArrayList<>();
+        final List<String> declaredPaths;
+        if (swaggerPaths != null) {
+            declaredPaths = swaggerPaths.stream().map(SwaggerPath::getPath).collect(toList());
+        } else {
+            declaredPaths = newApiEntity.getPaths() != null ? newApiEntity.getPaths() : new ArrayList<>();
+        }
         if (!declaredPaths.contains("/")) {
-            declaredPaths.add(0, "/");
+          declaredPaths.add(0, "/");
         }
 
         // Initialize with a default path and provided paths
