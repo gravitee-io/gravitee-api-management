@@ -30,7 +30,7 @@
     "angular-ui-validate": "^1.2.3",
     "angulartics": "^1.6.0",
     "angulartics-google-analytics": "^0.5.0",
-    "bootstrap": "3.3.7",
+    "bootstrap": "3.4.1",
     "codemirror": "^5.39.0",
     "diff": "^3.5.0",
     "dragular": "^4.5.0",
