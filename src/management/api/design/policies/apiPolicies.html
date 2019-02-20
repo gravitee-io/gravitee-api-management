@@ -160,7 +160,7 @@
 
         <div ng-if="apiPoliciesCtrl.hasProperties(apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId])">
           <md-divider></md-divider>
-          <md-button permission permission-only="'api-definition-u'" class="md-raised" ng-disabled="policyConfigurationForm.$invalid || policyConfigurationForm.$pristine" ng-click="apiPoliciesCtrl.savePaths();">Save</md-button>
+          <md-button permission permission-only="'api-definition-u'" class="md-raised" ng-disabled="!apiPoliciesCtrl.httpMethodsUpdated && (policyConfigurationForm.$invalid || policyConfigurationForm.$pristine)" ng-click="apiPoliciesCtrl.savePaths();">Save</md-button>
         </div>
       </div>
     </div>
