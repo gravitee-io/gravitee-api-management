@@ -281,6 +281,21 @@ public class SwaggerService_PrepareTest {
         assertEquals("string", findPets.getResponseProperties().get("name"));
         assertEquals("string", findPets.getResponseProperties().get("tag"));
         assertEquals("integer", findPets.getResponseProperties().get("id"));
+
+        final List<SwaggerVerb> petsIdVerbs = petsId.getVerbs();
+        assertNotNull(petsIdVerbs);
+        assertEquals(2, petsIdVerbs.size());
+        final SwaggerVerb findPetsId = petsIdVerbs.iterator().next();
+        assertEquals("find pet by id", findPetsId.getDescription());
+        assertEquals("GET", findPetsId.getVerb());
+        assertEquals("200", findPetsId.getResponseStatus());
+        assertEquals("object", findPetsId.getResponseType());
+        assertNull(findPetsId.getResponseExample());
+        assertNotNull(findPetsId.getResponseProperties());
+        assertEquals(3, findPetsId.getResponseProperties().size());
+        assertEquals("string", findPetsId.getResponseProperties().get("name"));
+        assertEquals("string", findPetsId.getResponseProperties().get("tag"));
+        assertEquals("integer", findPetsId.getResponseProperties().get("id"));
     }
 
     @Test

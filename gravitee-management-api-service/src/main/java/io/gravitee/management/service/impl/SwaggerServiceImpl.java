@@ -452,7 +452,10 @@ public class SwaggerServiceImpl implements SwaggerService {
                 swaggerVerb.setResponseProperties(Collections.singletonMap("additionalProperty", ((ObjectSchema) responseSchema.getAdditionalProperties()).getType()));
             } else if (responseSchema.get$ref() != null) {
                 if (!"array".equals(type)) {
-                    swaggerVerb.setResponseType(getTypeByRef(swagger, responseSchema.get$ref()));
+                    final String typeByRef = getTypeByRef(swagger, responseSchema.get$ref());
+                    if (typeByRef != null) {
+                        swaggerVerb.setResponseType(typeByRef);
+                    }
                 }
                 swaggerVerb.setResponseProperties(getResponseFromSimpleRef(swagger, responseSchema.get$ref()));
             }
