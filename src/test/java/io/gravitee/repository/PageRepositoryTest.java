@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static io.gravitee.repository.management.model.PageType.SWAGGER;
 import static org.junit.Assert.*;
 
 /**
@@ -235,6 +236,16 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         final Page page = optionalBefore.get();
         page.setName("New name");
         page.setContent("New content");
+        page.setApi("new api");
+        page.setType(SWAGGER);
+        page.setOrder(1);
+        page.setUpdatedAt(new Date(1486771200000L));
+        page.setCreatedAt(new Date(1486772200000L));
+        page.setParentId("parent-123");
+        page.setHomepage(true);
+        page.setExcludedGroups(Collections.singletonList("excluded"));
+        page.setLastContributor("me");
+        page.setPublished(true);
         page.setConfiguration(new HashMap<>());
         page.getConfiguration().put("tryIt", "true");
         page.getConfiguration().put("tryItURL", "http://company.com");
@@ -257,6 +268,17 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Page to update not found", optionalUpdated.isPresent());
         assertEquals("Invalid saved page name.", "New name", optionalUpdated.get().getName());
         assertEquals("Invalid page content.", "New content", optionalUpdated.get().getContent());
+        assertEquals("Invalid api.", "new api", optionalUpdated.get().getApi());
+        assertEquals("Invalid type.", SWAGGER, optionalUpdated.get().getType());
+        assertEquals("Invalid order.", 1, optionalUpdated.get().getOrder());
+        assertEquals("Invalid updatedAt.", new Date(1486771200000L), optionalUpdated.get().getUpdatedAt());
+        assertEquals("Invalid createdAt.", new Date(1486772200000L), optionalUpdated.get().getCreatedAt());
+        assertEquals("Invalid parent id.", "parent-123", optionalUpdated.get().getParentId());
+        assertTrue("Invalid homepage.", optionalUpdated.get().isHomepage());
+        assertTrue("Invalid excluded groups.", optionalUpdated.get().isHomepage());
+        assertEquals("Invalid last contributor.", "me", optionalUpdated.get().getLastContributor());
+        assertTrue("Invalid published.", optionalUpdated.get().isPublished());
+
         assertEquals("configuration try it", "true", optionalUpdated.get().getConfiguration().get("tryIt"));
         assertEquals("configuration try it URL", "http://company.com", optionalUpdated.get().getConfiguration().get("tryItURL"));
         assertEquals("configuration show URL", "true", optionalUpdated.get().getConfiguration().get("showURL"));

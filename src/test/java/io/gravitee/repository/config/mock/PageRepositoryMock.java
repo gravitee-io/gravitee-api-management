@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.repository.management.model.PageType;
 import org.mockito.ArgumentMatcher;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -157,6 +158,16 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(updatePageAfter.getId()).thenReturn("updatePage");
         when(updatePageAfter.getName()).thenReturn("New name");
         when(updatePageAfter.getContent()).thenReturn("New content");
+        when(updatePageAfter.getApi()).thenReturn("new api");
+        when(updatePageAfter.getType()).thenReturn(PageType.SWAGGER);
+        when(updatePageAfter.getOrder()).thenReturn(1);
+        when(updatePageAfter.getUpdatedAt()).thenReturn(new Date(1486771200000L));
+        when(updatePageAfter.getCreatedAt()).thenReturn(new Date(1486772200000L));
+        when(updatePageAfter.getParentId()).thenReturn("parent-123");
+        when(updatePageAfter.isHomepage()).thenReturn(true);
+        when(updatePageAfter.getExcludedGroups()).thenReturn(Collections.singletonList("excluded"));
+        when(updatePageAfter.getLastContributor()).thenReturn("me");
+        when(updatePageAfter.isPublished()).thenReturn(true);
         Map<String, String> pageConfigurationMock = mock(HashMap.class);
         when(pageConfigurationMock.get("tryIt")).thenReturn("true");
         when(pageConfigurationMock.get("tryItURL")).thenReturn("http://company.com");
