@@ -67,7 +67,7 @@
             <md-content layout="column">
               <md-input-container class="md-block" flex-gt-xs>
                 <label>Type</label>
-                <md-select ng-model="groupCtrl.discovery.provider" placeholder="Type" required ng-required="true"
+                <md-select ng-model="groupCtrl.discovery.provider" placeholder="Type" ng-required="groupCtrl.discovery.enabled"
                            ng-change="groupCtrl.onTypeChange()">
                   <md-option ng-repeat="type in groupCtrl.types" ng-value="type.id">{{type.name}}</md-option>
                 </md-select>
