@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -111,21 +112,26 @@ public class TargetEndpointResolver implements EndpointResolver {
             if (encodedTarget.startsWith(GroupReference.REFERENCE_PREFIX) ||
                     encodedTarget.startsWith(EndpointReference.REFERENCE_PREFIX)) {
                 // Get the full reference
-                String sRef = segments[0].substring(0, segments[0].length() - 1);
-                final Reference reference = referenceRegister.get(sRef);
+                Optional<Reference> optReference = referenceRegister.references()
+                        .stream()
+                        .filter(reference -> target.startsWith(reference.key()))
+                        .findFirst();
 
                 // A null reference has been found (unknown reference ?), returning null to the caller
-                if (reference == null) {
+                if (!optReference.isPresent()) {
                     return null;
                 }
+
+                final Reference reference = optReference.get();
+
+                //the reference key does not contain the `:` separator. That's why we need to add 1
+                final String encodedPath = this.encodePath(target.substring(reference.key().length() + 1));
 
                 // Get next endpoint from reference
                 Endpoint endpoint = reference.endpoint();
 
-                int pathSepIdx = encodedTarget.indexOf('/');
-                return createEndpoint(endpoint,
-                        (pathSepIdx == -1) ? endpoint.target() : endpoint.target() + encodedTarget.substring(pathSepIdx));
-            } else if (encodedTarget.startsWith(Reference.UNKNOWN_REFERENCE)) {
+                return createEndpoint(endpoint, endpoint.target() + encodedPath);
+            } else if (target.startsWith(Reference.UNKNOWN_REFERENCE)) {
                 return null;
             } else {
                 // When the user selected endpoint which is not defined (according to the given target), the gateway
@@ -140,6 +146,18 @@ public class TargetEndpointResolver implements EndpointResolver {
                 return (reference != null) ? createEndpoint(reference.endpoint(), encodedTarget) : null;
             }
         }
+    }
+
+    private String encodePath(String path) {
+        // Path segments must be encoded to avoid bad URI syntax
+        String [] segments = path.split(URI_PATH_SEPARATOR);
+        StringBuilder builder = new StringBuilder();
+
+        for(String pathSeg : segments) {
+            builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
+        }
+
+        return builder.substring(0, builder.length() - 1);
     }
 
     private ResolvedEndpoint createEndpoint(Endpoint endpoint, String uri) {
