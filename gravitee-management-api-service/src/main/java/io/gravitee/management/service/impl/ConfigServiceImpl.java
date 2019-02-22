@@ -174,6 +174,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                                 parameterService.save(parameterKey.value(), Boolean.toString((Boolean) f.get(o)));
                             } else if (Integer.class.isAssignableFrom(f.getType())) {
                                 parameterService.save(parameterKey.value(), Integer.toString((Integer) f.get(o)));
+                            } else if (Long.class.isAssignableFrom(f.getType())) {
+                                parameterService.save(parameterKey.value(), Long.toString((Long) f.get(o)));
                             } else if (List.class.isAssignableFrom(f.getType())) {
                                 parameterService.save(parameterKey.value(), (List) f.get(o));
                             } else if (Map.class.isAssignableFrom(f.getType())) {
