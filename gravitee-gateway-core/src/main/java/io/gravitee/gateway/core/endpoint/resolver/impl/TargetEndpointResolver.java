@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.endpoint.resolver.impl;
 
 import com.google.common.net.UrlEscapers;
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -80,38 +81,24 @@ public class TargetEndpointResolver implements EndpointResolver {
      * Select an endpoint according to the URI passed in the execution request attribute.
      */
     private ResolvedEndpoint selectUserDefinedEndpoint(Request serverRequest, String target) {
-        QueryStringDecoder decoder = new QueryStringDecoder(target);
-        Map<String, List<String>> queryParameters = decoder.parameters();
-
-        // Merge query parameters from user target into incoming request query parameters
-        for(Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
-            serverRequest.parameters().put(param.getKey(), param.getValue());
-        }
-
-        // Path segments must be encoded to avoid bad URI syntax
-        String [] segments = decoder.path().split(URI_PATH_SEPARATOR);
-        StringBuilder builder = new StringBuilder();
-
-        for(String pathSeg : segments) {
-            builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
-        }
-
-        String encodedTarget = builder.substring(0, builder.length() - 1);
-
         // Do we have a relative or an absolute path ?
-        if (encodedTarget.startsWith(URI_PATH_SEPARATOR)) {
+        if (target.startsWith(URI_PATH_SEPARATOR)) {
             // Get the first group
             LoadBalancedEndpointGroup group = groupManager.getDefault();
 
             // Resolve to the next endpoint from group LB
             Endpoint endpoint = group.next();
 
-            return createEndpoint(endpoint, (endpoint != null) ? endpoint.target() + encodedTarget : null);
+            return createEndpoint(endpoint, (endpoint != null) ? endpoint.target() +
+                    encode(target, serverRequest.parameters()) : null);
         } else {
-            if (encodedTarget.startsWith(GroupReference.REFERENCE_PREFIX) ||
-                    encodedTarget.startsWith(EndpointReference.REFERENCE_PREFIX)) {
+            if (target.startsWith(GroupReference.REFERENCE_PREFIX) ||
+                    target.startsWith(EndpointReference.REFERENCE_PREFIX)) {
+                int first = target.indexOf((int) ':');
+                int last = target.indexOf((int) ':', first + 1);
+
                 // Get the full reference
-                String sRef = segments[0].substring(0, segments[0].length() - 1);
+                String sRef = target.substring(0, last);
                 final Reference reference = referenceRegister.get(sRef);
 
                 // A null reference has been found (unknown reference ?), returning null to the caller
@@ -122,10 +109,9 @@ public class TargetEndpointResolver implements EndpointResolver {
                 // Get next endpoint from reference
                 Endpoint endpoint = reference.endpoint();
 
-                int pathSepIdx = encodedTarget.indexOf('/');
-                return createEndpoint(endpoint,
-                        (pathSepIdx == -1) ? endpoint.target() : endpoint.target() + encodedTarget.substring(pathSepIdx));
-            } else if (encodedTarget.startsWith(Reference.UNKNOWN_REFERENCE)) {
+                String encodedTarget = encode(endpoint.target() + target.substring(last+1), serverRequest.parameters());
+                return createEndpoint(endpoint, encodedTarget);
+            } else if (target.startsWith(Reference.UNKNOWN_REFERENCE)) {
                 return null;
             } else {
                 // When the user selected endpoint which is not defined (according to the given target), the gateway
@@ -133,13 +119,33 @@ public class TargetEndpointResolver implements EndpointResolver {
                 Collection<Reference> endpoints = referenceRegister.referencesByType(EndpointReference.class);
                 Reference reference = endpoints
                         .stream()
-                        .filter(endpointEntry -> encodedTarget.startsWith(endpointEntry.endpoint().target()))
+                        .filter(endpointEntry -> target.startsWith(endpointEntry.endpoint().target()))
                         .findFirst()
                         .orElse(endpoints.iterator().next());
 
-                return (reference != null) ? createEndpoint(reference.endpoint(), encodedTarget) : null;
+                return (reference != null) ? createEndpoint(reference.endpoint(), encode(target, serverRequest.parameters())) : null;
             }
         }
+    }
+
+    private String encode(String uri, MultiValueMap<String, String> parameters) {
+        QueryStringDecoder decoder = new QueryStringDecoder(uri);
+        Map<String, List<String>> queryParameters = decoder.parameters();
+
+        // Merge query parameters from user target into incoming request query parameters
+        for(Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
+            parameters.put(param.getKey(), param.getValue());
+        }
+
+        // Path segments must be encoded to avoid bad URI syntax
+        String [] segments = decoder.path().split(URI_PATH_SEPARATOR);
+        StringBuilder builder = new StringBuilder();
+
+        for(String pathSeg : segments) {
+            builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
+        }
+
+        return builder.substring(0, builder.length() - 1);
     }
 
     private ResolvedEndpoint createEndpoint(Endpoint endpoint, String uri) {
