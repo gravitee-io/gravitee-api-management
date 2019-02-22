@@ -57,3 +57,13 @@ databaseChangeLog:
             constraintName: pk_invitations
             columnNames: id
             tableName: invitations
+
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: name
+            tableName: pages
+
+        - modifyDataType:
+            tableName: pages
+            columnName: source_configuration
+            newDataType: nvarchar(512)

@@ -72,8 +72,8 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             configuration = new HashMap<>();
             parent.setConfiguration(configuration);
         }
-        if (rs.getString("k") != null) {
-            configuration.put(rs.getString("k"), rs.getString("v"));
+        if (rs.getString("pc_k") != null) {
+            configuration.put(rs.getString("pc_k"), rs.getString("pc_v"));
         }
 
         Map<String, String> metadata = parent.getMetadata();
@@ -81,8 +81,8 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             metadata = new HashMap<>();
             parent.setMetadata(metadata);
         }
-        if (rs.getString("k") != null) {
-            metadata.put(rs.getString("k"), rs.getString("v"));
+        if (rs.getString("pm_k") != null) {
+            metadata.put(rs.getString("pm_k"), rs.getString("pm_v"));
         }
     };
 
@@ -215,30 +215,6 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         page.setExcludedGroups(excludedGroups);
     }
 
-    private void addConfiguration(Page page) {
-        final Map<String, String> configuration = new HashMap<>();
-        jdbcTemplate.query("select k, v from page_configuration where page_id = ?",
-                (ResultSetExtractor<Map>) rs -> {
-                    while (rs.next()) {
-                        configuration.put(rs.getString("k"), rs.getString("v"));
-                    }
-                    return configuration;
-                }, page.getId());
-        page.setConfiguration(configuration);
-    }
-
-    private void addMetadata(Page page) {
-        final Map<String, String> metadata = new HashMap<>();
-        jdbcTemplate.query("select k, v from page_metadata where page_id = ?",
-                (ResultSetExtractor<Map>) rs -> {
-                    while (rs.next()) {
-                        metadata.put(rs.getString("k"), rs.getString("v"));
-                    }
-                    return metadata;
-                }, page.getId());
-        page.setMetadata(metadata);
-    }
-
     private List<String> getExcludedGroups(String pageId) {
         return jdbcTemplate.query("select excluded_group from page_excluded_groups where page_id = ?"
                 , (ResultSet rs, int rowNum) -> rs.getString(1)
@@ -318,16 +294,18 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         LOGGER.debug("JdbcPageRepository.findById({})", id);
         try {
             JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from pages p left join page_configuration pc on p.id = pc.page_id left join page_metadata pm on p.id = pc.page_id where p.id = ?"
+            jdbcTemplate.query("select p.*, " +
+                            "pm.k as pm_k, pm.v as pm_v, " +
+                            "pc.k as pc_k, pc.v as pc_v " +
+                            "from pages p " +
+                            "left join page_configuration pc on p.id = pc.page_id " +
+                            "left join page_metadata pm on p.id = pc.page_id " +
+                            "where p.id = ?"
                     , rowMapper
                     , id
             );
             Optional<Page> result = rowMapper.getRows().stream().findFirst();
-            if (result.isPresent()) {
-                addExcludedGroups(result.get());
-                addConfiguration(result.get());
-                addMetadata(result.get());
-            }
+            result.ifPresent(this::addExcludedGroups);
             LOGGER.debug("JdbcPageRepository.findById({}) = {}", id, result);
             return result;
         } catch (final Exception ex) {
@@ -401,7 +379,13 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         try {
             JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
 
-            String select = "select * from pages p left join page_configuration pc on p.id = pc.page_id left join page_metadata pm on p.id = pc.page_id where";
+            String select = "select p.*, " +
+                    "pm.k as pm_k, pm.v as pm_v, " +
+                    "pc.k as pc_k, pc.v as pc_v " +
+                    "from pages p " +
+                    "left join page_configuration pc on p.id = pc.page_id " +
+                    "left join page_metadata pm on p.id = pm.page_id " +
+                    "where";
             StringJoiner where = new StringJoiner(" and ", " ", " ");
             List<Object> params = new ArrayList<>();
 
