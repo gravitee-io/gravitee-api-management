@@ -124,6 +124,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         final Elements imageElements = document.getElementsByTag("img");
         resources.addAll(imageElements.stream()
                 .filter(imageElement -> imageElement.hasAttr("src"))
+                .filter(imageElement -> !imageElement.attr("src").startsWith("http"))
                 .map(imageElement -> {
                     final String src = imageElement.attr("src");
                     imageElement.attr("src", "cid:" + src);
