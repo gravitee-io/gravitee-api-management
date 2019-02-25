@@ -42,7 +42,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
     @Test
     public void shoudGetNoFetchersFromEmptyList() {
         Mockito.reset(fetcherService);
-        when(fetcherService.findAll()).thenReturn(Collections.emptySet());
+        when(fetcherService.findAll(false)).thenReturn(Collections.emptySet());
 
         final Response response = target().request().get();
 
@@ -50,7 +50,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         assertThat(response.readEntity(Set.class)).isEmpty();
 
-        verify(fetcherService, times(1)).findAll();
+        verify(fetcherService, times(1)).findAll(false);
         verify(fetcherService, times(0)).getSchema(anyString());
     }
 
@@ -60,7 +60,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         FetcherEntity fetcherEntity = new FetcherEntity();
         fetcherEntity.setId("my-id");
 
-        when(fetcherService.findAll()).thenReturn(Collections.singleton(fetcherEntity));
+        when(fetcherService.findAll(false)).thenReturn(Collections.singleton(fetcherEntity));
         when(fetcherService.getSchema(anyString())).thenReturn("schema");
 
         final Response response = target().request().get();
@@ -77,7 +77,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         assertThat(elt).hasSize(1);
         assertThat(elt.get("id")).isEqualTo("my-id");
 
-        verify(fetcherService, times(1)).findAll();
+        verify(fetcherService, times(1)).findAll(false);
         verify(fetcherService, times(0)).getSchema(anyString());
     }
 
@@ -87,7 +87,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         FetcherEntity fetcherEntity = new FetcherEntity();
         fetcherEntity.setId("my-id");
 
-        when(fetcherService.findAll()).thenReturn(Collections.singleton(fetcherEntity));
+        when(fetcherService.findAll(false)).thenReturn(Collections.singleton(fetcherEntity));
         when(fetcherService.getSchema(anyString())).thenReturn("my-schema");
 
         final Response response = target().queryParam("expand", "schema").request().get();
@@ -105,7 +105,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         assertThat(elt.get("id")).isEqualTo("my-id");
         assertThat(elt.get("schema")).isEqualTo("my-schema");
 
-        verify(fetcherService, times(1)).findAll();
+        verify(fetcherService, times(1)).findAll(false);
         verify(fetcherService, times(1)).getSchema(anyString());
     }
 
@@ -115,7 +115,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         FetcherEntity fetcherEntity = new FetcherEntity();
         fetcherEntity.setId("my-id");
 
-        when(fetcherService.findAll()).thenReturn(Collections.singleton(fetcherEntity));
+        when(fetcherService.findAll(false)).thenReturn(Collections.singleton(fetcherEntity));
         when(fetcherService.getSchema(anyString())).thenReturn("my-schema");
 
         final Response response = target().queryParam("expand", "unknown").request().get();
@@ -132,7 +132,7 @@ public class FetchersResourceTest extends AbstractResourceTest {
         assertThat(elt).hasSize(1);
         assertThat(elt.get("id")).isEqualTo("my-id");
 
-        verify(fetcherService, times(1)).findAll();
+        verify(fetcherService, times(1)).findAll(false);
         verify(fetcherService, times(0)).getSchema(anyString());
     }
 }
