@@ -63,6 +63,7 @@ class VertxHttpServerRequest implements Request {
         this.metrics.setRemoteAddress(remoteAddress());
         this.metrics.setHost(httpServerRequest.host());
         this.metrics.setUri(uri());
+        this.metrics.setUserAgent(httpServerRequest.getHeader(HttpHeaders.USER_AGENT));
     }
 
     @Override
