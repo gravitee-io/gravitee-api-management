@@ -32,7 +32,8 @@
     <div layout="column" layout-wrap layout-gt-sm="row">
       <md-input-container flex="30">
         <label>Name</label>
-        <input ng-model="endpointCtrl.endpoint.name" type="text" required>
+        <input ng-model="endpointCtrl.endpoint.name" type="text" required ng-change="endpointCtrl.checkEndpointNameUniqueness()">
+        <div class="hint" style="color:rgb(221,44,0);" ng-if="duplicateEndpointNames">This name is used by another endpoint and/or an endpoint group.</div>
       </md-input-container>
       <md-input-container flex="30">
         <label>Target</label>
@@ -447,7 +448,7 @@
   <br />
 
   <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button class="md-raised md-primary" type="submit" ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine">
+    <md-button class="md-raised md-primary" type="submit" ng-disabled="duplicateEndpointNames || formEndpoint.$invalid || formEndpoint.$pristine">
       Save
     </md-button>
     <md-button class="md-raised" type="button" ng-click="endpointCtrl.reset()" ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine">

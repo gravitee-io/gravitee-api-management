@@ -27,7 +27,8 @@
             <div class="gv-form-content" layout="column">
                 <md-input-container flex="30">
                     <label>Name</label>
-                    <input ng-model="groupCtrl.group.name" type="text" required>
+                    <input ng-model="groupCtrl.group.name" type="text" required ng-change="groupCtrl.checkEndpointNameUniqueness()">
+                    <div class="hint" style="color:rgb(221,44,0);" ng-if="duplicateEndpointNames">This name is used by another endpoint and/or an endpoint group.</div>
                 </md-input-container>
                 <md-input-container class="md-block" flex-gt-sm>
                     <label>Load balancing algorithm</label>
@@ -39,7 +40,7 @@
                 </md-input-container>
             </div>
             <div class="md-actions gravitee-api-save-button" layout="row">
-                <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit" ng-disabled="formGroup.$invalid || formGroup.$pristine">
+                <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit" ng-disabled="duplicateEndpointNames || formGroup.$invalid || formGroup.$pristine">
                     Save
                 </md-button>
                 <md-button permission permission-only="'api-definition-u'" class="md-raised" type="button" ng-click="groupCtrl.reset()" ng-disabled="formGroup.$pristine">

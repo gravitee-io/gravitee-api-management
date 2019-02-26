@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 import _ = require('lodash');
+import ApiService from "../../../../../services/api.service";
+import NotificationService from "../../../../../services/notification.service";
+import {StateParams, StateService} from '@uirouter/core';
 
 class ApiEndpointController {
 
@@ -26,12 +29,12 @@ class ApiEndpointController {
   private creation: boolean = false;
 
   constructor(
-    private ApiService,
-    private NotificationService,
+    private ApiService: ApiService,
+    private NotificationService: NotificationService,
     private $scope,
-    private $rootScope,
-    private $state,
-    private $stateParams,
+    private $rootScope: ng.IRootScopeService,
+    private $state: StateService,
+    private $stateParams: StateParams,
     private resolvedTenants) {
     'ngInject';
 
@@ -39,6 +42,7 @@ class ApiEndpointController {
     this.tenants = resolvedTenants.data;
 
     this.$scope.groupName = $stateParams.groupName;
+    this.$scope.duplicateEndpointNames = false;
 
     this.group = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
     this.endpoint = _.find(this.group.endpoints, { 'name': $stateParams.endpointName});
@@ -157,12 +161,17 @@ class ApiEndpointController {
   reset() {
     this.$scope.formEndpoint.$setPristine();
     this.endpoint = _.cloneDeep(this.initialEndpoint);
+    this.$scope.duplicateEndpointNames = false;
   }
 
   backToEndpointsConfiguration() {
     let group: any = _.find(this.api.proxy.groups, { 'name': this.$stateParams.groupName});
     group.endpoints = _.cloneDeep(this.initialEndpoints);
     this.$state.go('management.apis.detail.proxy.endpoints');
+  }
+
+  checkEndpointNameUniqueness() {
+    this.$scope.duplicateEndpointNames = this.ApiService.isEndpointNameAlreadyUsed(this.api, this.endpoint.name, this.creation);
   }
 }
 
