@@ -32,6 +32,58 @@ class ApplicationAnalyticsController {
 
     this.applicationDashboard = [{
       col: 0,
+      row: 0,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Top paths',
+      subhead: 'Hits repartition by path',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Mapped path', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'path',
+          size: 1000
+        }
+      }
+    }, {
+      col: 2,
+      row: 0,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Top mapped paths',
+      subhead: 'Hits repartition by mapped path',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Mapped path', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'mapped-path',
+          size: 1000
+        }
+      }
+    }, {
+      col: 4,
+      row: 0,
+      sizeY: 1,
+      sizeX: 2,
+      title: "Status",
+      chart: {
+        type: 'pie',
+        request: {
+          type: "group_by",
+          field: "status",
+          ranges: "100:199%3B200:299%3B300:399%3B400:499%3B500:599"
+        },
+        labels: ["1xx", "2xx", "3xx", "4xx", "5xx"],
+        colors: ['#42a5f5', '#66bb6a', '#ffee58', '#ff8f2d', '#ef5350']
+      }
+    }, {
+      col: 0,
       row: 1,
       sizeY: 1,
       sizeX: 2,
@@ -88,61 +140,9 @@ class ApplicationAnalyticsController {
       }
     }, {
       col: 0,
-      row: 0,
+      row: 4,
       sizeY: 1,
-      sizeX: 2,
-      title: "Status",
-      chart: {
-        type: 'pie',
-        request: {
-          type: "group_by",
-          field: "status",
-          ranges: "100:199%3B200:299%3B300:399%3B400:499%3B500:599"
-        },
-        labels: ["1xx", "2xx", "3xx", "4xx", "5xx"],
-        colors: ['#42a5f5', '#66bb6a', '#ffee58', '#ff8f2d', '#ef5350']
-      }
-    }, {
-      col: 0,
-      row: 2,
-      sizeY: 1,
-      sizeX: 3,
-      title: 'Top paths',
-      subhead: 'Hits repartition by path',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['Mapped path', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'path',
-          size: 1000
-        }
-      }
-    }, {
-      col: 3,
-      row: 2,
-      sizeY: 1,
-      sizeX: 3,
-      title: 'Top mapped paths',
-      subhead: 'Hits repartition by mapped path',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['Mapped path', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'mapped-path',
-          size: 1000
-        }
-      }
-    }, {
-      col: 2,
-      row: 0,
-      sizeY: 1,
-      sizeX: 4,
+      sizeX: 6,
       title: "Response Status",
       subhead: "Hits repartition by HTTP Status",
       chart: {
@@ -158,7 +158,7 @@ class ApplicationAnalyticsController {
       }
     }, {
       col: 0,
-      row: 4,
+      row: 5,
       sizeY: 1,
       sizeX: 6,
       title: "Response times",
@@ -174,7 +174,7 @@ class ApplicationAnalyticsController {
       }
     }, {
       col: 0,
-      row: 5,
+      row: 6,
       sizeY: 1,
       sizeX: 6,
       title: "Hits by API",
@@ -193,16 +193,18 @@ class ApplicationAnalyticsController {
     }];
 
     if (Constants.portal.dashboard && Constants.portal.dashboard.widgets) {
-
+      let initialDashboardLength = this.applicationDashboard.length;
       for (let i = 0; i < Constants.portal.dashboard.widgets.length; i++) {
-
+        let nbWidget = this.applicationDashboard.length - initialDashboardLength;
+        let row = nbWidget > 2 ? 4 : 3;
+        let col = nbWidget > 2 ? (nbWidget - 3) * 2 : nbWidget * 2;
         switch (Constants.portal.dashboard.widgets[i]) {
-          case 'geo_country':
-          this.applicationDashboard.push({
-              col: i * 3,
-              row: 5,
+            case 'geo_country':
+            this.applicationDashboard.push({
+              row: row,
+              col: col,
               sizeY: 1,
-              sizeX: 3,
+              sizeX: 2,
               title: 'Geolocation by country',
               subhead: 'Hits repartition by country',
               chart: {
@@ -222,10 +224,10 @@ class ApplicationAnalyticsController {
             break;
           case 'geo_city':
             this.applicationDashboard.push({
-              col: i * 3,
-              row: 5,
+              row: row,
+              col: col,
               sizeY: 1,
-              sizeX: 3,
+              sizeX: 2,
               title: 'Geolocation by city',
               subhead: 'Hits repartition by city',
               chart: {
@@ -243,10 +245,55 @@ class ApplicationAnalyticsController {
               }
             });
           break;
-        }
-      };
-    }
+          case 'user_agent_name':
+            this.applicationDashboard.push({
+              row: row,
+              col: col,
+              sizeY: 1,
+              sizeX: 2,
+              title: 'Hits by user agent',
+              subhead: 'Hits repartition by user agent name',
+              chart: {
+                type: 'table',
+                selectable: true,
+                columns: ['User agent name', 'Hits'],
+                paging: 5,
+                request: {
+                  type: 'group_by',
+                  field: 'user_agent.name',
+                  fieldLabel: 'User agent name',
+                  size: 20
 
+                }
+              }
+            });
+            break;
+          case 'os_name':
+            this.applicationDashboard.push({
+              row: row,
+              col: col,
+              sizeY: 1,
+              sizeX: 2,
+              title: 'Hits by OS',
+              subhead: 'Hits repartition by OS name',
+              chart: {
+                type: 'table',
+                selectable: true,
+                columns: ['OS name', 'Hits'],
+                paging: 5,
+                request: {
+                  type: 'group_by',
+                  field: 'user_agent.os_name',
+                  fieldLabel: 'OS name',
+                  size: 20
+
+                }
+              }
+            });
+            break;
+        }
+      }
+    }
   }
 
   $onInit() {

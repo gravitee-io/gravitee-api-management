@@ -174,14 +174,16 @@ class ApiAnalyticsController {
     }];
 
     if (Constants.portal.dashboard && Constants.portal.dashboard.widgets) {
-
+      let initialDashboardLength = this.$scope.apiDashboard.length;
       for (let i = 0; i < Constants.portal.dashboard.widgets.length; i++) {
-
+        let nbWidget = this.$scope.apiDashboard.length - initialDashboardLength;
+        let row = nbWidget > 2 ? 4 : 3;
+        let col = nbWidget > 2 ? (nbWidget - 3) * 2 : nbWidget * 2;
         switch (Constants.portal.dashboard.widgets[i]) {
           case 'geo_country':
             this.$scope.apiDashboard.push({
-              row: 4,
-              col: i * 2,
+              row: row,
+              col: col,
               sizeY: 1,
               sizeX: 2,
               title: 'Geolocation by country',
@@ -203,8 +205,8 @@ class ApiAnalyticsController {
             break;
           case 'geo_city':
             this.$scope.apiDashboard.push({
-              row: 4,
-              col: i * 2,
+              row: row,
+              col: col,
               sizeY: 1,
               sizeX: 2,
               title: 'Geolocation by city',
@@ -226,8 +228,8 @@ class ApiAnalyticsController {
             break;
           case 'host':
             this.$scope.apiDashboard.push({
-              row: 4,
-              col: i * 2,
+              row: row,
+              col: col,
               sizeY: 1,
               sizeX: 2,
               title: 'Hits by Host ',
@@ -246,7 +248,53 @@ class ApiAnalyticsController {
                 }
               }
             });
-          break;
+            break;
+          case 'user_agent_name':
+            this.$scope.apiDashboard.push({
+              row: row,
+              col: col,
+              sizeY: 1,
+              sizeX: 2,
+              title: 'Hits by user agent',
+              subhead: 'Hits repartition by user agent name',
+              chart: {
+                type: 'table',
+                selectable: true,
+                columns: ['User agent name', 'Hits'],
+                paging: 5,
+                request: {
+                  type: 'group_by',
+                  field: 'user_agent.name',
+                  fieldLabel: 'User agent name',
+                  size: 20
+
+                }
+              }
+            });
+            break;
+          case 'os_name':
+            this.$scope.apiDashboard.push({
+              row: row,
+              col: col,
+              sizeY: 1,
+              sizeX: 2,
+              title: 'Hits by OS',
+              subhead: 'Hits repartition by OS name',
+              chart: {
+                type: 'table',
+                selectable: true,
+                columns: ['OS name', 'Hits'],
+                paging: 5,
+                request: {
+                  type: 'group_by',
+                  field: 'user_agent.os_name',
+                  fieldLabel: 'OS name',
+                  size: 20
+
+                }
+              }
+            });
+            break;
         }
       }
     }
