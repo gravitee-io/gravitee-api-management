@@ -55,4 +55,7 @@
   <#if metrics.getMappedPath()??>
   ,"mapped-path":"${metrics.getMappedPath()}"
   </#if>
+  <#if metrics.getUserAgent()??>
+  ,"user-agent":"${metrics.getUserAgent()}"
+  </#if>
 }</@compress>

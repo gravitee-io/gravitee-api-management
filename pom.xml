@@ -37,7 +37,7 @@
 		<!-- Gravitee's project versions -->
 		<gravitee-gateway-api.version>1.13.0</gravitee-gateway-api.version>
 		<gravitee-common.version>1.13.0</gravitee-common.version>
-		<gravitee-reporter-api.version>1.12.0</gravitee-reporter-api.version>
+		<gravitee-reporter-api.version>1.13.0-SNAPSHOT</gravitee-reporter-api.version>
 		<gravitee-policy-api.version>1.3.0</gravitee-policy-api.version>
 		<gravitee-repository.version>1.23.0</gravitee-repository.version>
 		<gravitee-node.version>1.2.2</gravitee-node.version>
