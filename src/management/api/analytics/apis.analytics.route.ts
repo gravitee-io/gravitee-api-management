@@ -117,6 +117,9 @@ function apisAnalyticsRouterConfig($stateProvider) {
       data: {
         perms: {
           only: ['api-log-r']
+        },
+        docs: {
+          page: 'management-api-log'
         }
       }
     })

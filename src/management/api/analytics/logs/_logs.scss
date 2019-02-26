@@ -3,6 +3,17 @@ tr.log-error {
   color: #c7254e;
 }
 
+.gv-request-response-table {
+  height: 270px;
+  > div {
+    height: 100%;
+
+    md-table-container {
+      height: 100%;
+    }
+  }
+}
+
 .log-table {
   table {
     margin-bottom: 0;
@@ -30,4 +41,61 @@ tr.log-error {
   md-input-container.md-block {
     margin-top: 0px;
   }
+}
+
+@mixin logHeader($color) {
+  border: 1px solid $color;
+  border-radius: 5px;
+}
+
+@mixin logResponsePanel($lighterColor, $darkerColor) {
+  background-color: $lighterColor;
+  border: 1px solid $darkerColor;
+  > div:first-child {
+    background-color: $darkerColor;
+  }
+}
+
+.gv-log-request-header {
+  @include logHeader(#b3e5fc);
+}
+
+.gv-log-response-header-1 {
+  @include logHeader(black);
+}
+
+.gv-log-response-header-2 {
+  @include logHeader(green);
+}
+
+.gv-log-response-header-3 {
+  @include logHeader(yellow);
+}
+
+.gv-log-response-header-4 {
+  @include logHeader(orange);
+}
+
+.gv-log-response-header-5 {
+  @include logHeader(red);
+}
+
+.gv-log-response-panel-1 {
+  @include logResponsePanel(#dadada, #cccccc);
+}
+
+.gv-log-response-panel-2 {
+  @include logResponsePanel(#f1f8e9, #dcedc8);
+}
+
+.gv-log-response-panel-3 {
+  @include logResponsePanel(#ffffc9, #ffff54);
+}
+
+.gv-log-response-panel-4 {
+  @include logResponsePanel(#faddad, #ffc15a);
+}
+
+.gv-log-response-panel-5 {
+  @include logResponsePanel(#ff9e9e, #f55d5d);
 }

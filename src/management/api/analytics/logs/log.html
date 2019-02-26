@@ -25,109 +25,141 @@
     <h2>Details</h2>
     <div class="gv-form-content" layout="column">
 
+    <div ng-model="$ctrl.displayContext"
+         ng-if="!$ctrl.displayContext" ng-click="$ctrl.displayContext=true">
+      <a>Show context</a>
+    </div>
+    <div ng-model="$ctrl.displayContext"
+         ng-if="$ctrl.displayContext" ng-click="$ctrl.displayContext=false">
+      <a>Hide context</a>
+    </div>
 
-<div class="log-table" layout="row" flex layout-padding layout-align="space-around start">
-  <div layout="column" flex="50">
-    <span class="log-header" style="text-align: center">Request</span>
-    <md-table-container>
-      <table md-table class="gv-table-dense">
-        <tbody md-body>
-        <tr md-row style="height: 30px;">
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Date</td>
-          <td md-cell>{{$ctrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
-        </tr>
-        <tr md-row style="height: 30px;" ng-if="$ctrl.log.host">
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Host</td>
-          <td md-cell>{{$ctrl.log.host}}</td>
-        </tr>
-        <tr md-row>
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Request</td>
-          <td md-cell>
-            <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected">
-                  {{$ctrl.log.method | uppercase}}
-            </span>
-            <span>{{$ctrl.log.uri}}</span>
-          </td>
-        </tr>
-        <tr md-row>
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Content-length</td>
-          <td md-cell>{{$ctrl.log.requestContentLength}} / {{$ctrl.log.responseContentLength}} (in / out)</td>
-        </tr>
-        <tr md-row>
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Status</td>
-          <td md-cell><span class="gv-statuscode-{{$ctrl.log.status / 100 | number:0}}xx">{{$ctrl.log.status}}</span></td>
-        </tr>
-        <tr md-row>
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Response time</td>
-          <td md-cell>{{$ctrl.log.responseTime | number}} ms (api: {{$ctrl.log.apiResponseTime | number}} ms / lat.: {{$ctrl.log.responseTime - $ctrl.log.apiResponseTime | number}} ms)</td>
-        </tr>
-        <tr md-row>
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Request ID</td>
-          <td md-cell>{{$ctrl.log.id}}</td>
-        </tr>
-        <tr md-row>
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Transaction ID</td>
-          <td md-cell>{{$ctrl.log.transactionId}}</td>
-        </tr>
-        <tr md-row>
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Remote IP</td>
-          <td md-cell>{{$ctrl.log.remoteAddress}}</td>
-        </tr>
-        </tbody>
-      </table>
-    </md-table-container>
+    <div ng-if="$ctrl.displayContext" layout="row" class="log-table" flex layout-padding layout-align="space-around start">
+        <div layout="column" flex="50">
+          <span class="log-header" style="text-align: center">Context</span>
+          <md-table-container>
+            <table md-table class="gv-table-dense">
+              <tbody md-body>
+              <tr md-row ng-if="$ctrl.log.apiKey">
+                <td md-cell style="width: 1%; font-weight: bold;" nowrap>API Key</td>
+                <td md-cell>{{$ctrl.log.apiKey}}</td>
+              </tr>
+              <tr md-row ng-if="$ctrl.log.application">
+                <td md-cell style="width: 1%; font-weight: bold;" nowrap>Application</td>
+                <td md-cell>{{$ctrl.log.metadata[$ctrl.log.application].name}}</td>
+              </tr>
+              <tr md-row ng-if="$ctrl.log.plan">
+                <td md-cell style="width: 1%; font-weight: bold;" nowrap>Plan</td>
+                <td md-cell>{{$ctrl.log.metadata[$ctrl.log.plan].name}}</td>
+              </tr>
+              <tr md-row>
+                <td md-cell style="width: 1%; font-weight: bold;" nowrap>Endpoint</td>
+                <td md-cell>{{$ctrl.log.endpoint}}</td>
+              </tr>
+              <tr md-row ng-if="$ctrl.log.subscription">
+                <td md-cell></td>
+                <td md-cell><a ui-sref="management.apis.detail.portal.subscriptions.subscription({subscriptionId: $ctrl.log.subscription})">Go to subscription</a></td>
+              </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+        </div>
+        <div layout="column" flex="50">
+          <span class="log-header" style="text-align: center">Gateway</span>
+          <md-table-container>
+            <table md-table class="gv-table-dense">
+              <tbody md-body>
+              <tr md-row>
+                <td md-cell style="width: 1%; font-weight: bold;" nowrap>Host</td>
+                <td md-cell>{{$ctrl.log.metadata[$ctrl.log.gateway].hostname}}</td>
+              </tr>
+              <tr md-row>
+                <td md-cell style="width: 1%; font-weight: bold;" nowrap>IP</td>
+                <td md-cell>{{$ctrl.log.metadata[$ctrl.log.gateway].ip}}</td>
+              </tr>
+              <tr md-row ng-if="$ctrl.log.tenant">
+                <td md-cell style="width: 1%; font-weight: bold;" nowrap>Tenant</td>
+                <td md-cell>{{$ctrl.log.tenant}}</td>
+              </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+        </div>
+      </div>
+
+  <div layout="row" class="log-table gv-request-response-table" flex layout-padding layout-align="space-around start">
+    <div layout="column" flex="50">
+      <span class="log-header" style="text-align: center">Request</span>
+      <md-table-container class="gv-log-request-header">
+        <table md-table class="gv-table-dense">
+          <tbody md-body>
+          <tr md-row style="height: 30px;">
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>Date</td>
+            <td md-cell>{{$ctrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
+          </tr>
+          <tr md-row style="height: 30px;" ng-if="$ctrl.log.host">
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>Host</td>
+            <td md-cell>{{$ctrl.log.host}}</td>
+          </tr>
+          <tr md-row>
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>Request</td>
+            <td md-cell>
+              <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected">
+                    {{$ctrl.log.method | uppercase}}
+              </span>
+              <span>{{$ctrl.log.uri}}</span>
+            </td>
+          </tr>
+          <tr md-row>
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>Content-length</td>
+            <td md-cell>{{$ctrl.log.requestContentLength}}</td>
+          </tr>
+          <tr md-row>
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>Request ID</td>
+            <td md-cell>{{$ctrl.log.id}}</td>
+          </tr>
+          <tr md-row>
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>Transaction ID</td>
+            <td md-cell>{{$ctrl.log.transactionId}}</td>
+          </tr>
+          <tr md-row>
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>Remote IP</td>
+            <td md-cell>{{$ctrl.log.remoteAddress}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+    </div>
+    <div layout="column" flex="50">
+      <span class="log-header" style="text-align: center">Response</span>
+      <md-table-container ng-class="{'gv-log-response-header-{{$ctrl.log.status / 100 | number:0}}': true}">
+        <table md-table class="gv-table-dense">
+          <tbody md-body>
+          <tr md-row>
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>Status</td>
+            <td md-cell><span class="gv-statuscode-{{$ctrl.log.status / 100 | number:0}}xx">{{$ctrl.log.status}}</span></td>
+          </tr>
+          <tr md-row>
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>Global response time</td>
+            <td md-cell>{{$ctrl.log.responseTime | number}} ms</td>
+          </tr>
+          <tr md-row>
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>API response time</td>
+            <td md-cell>{{$ctrl.log.apiResponseTime | number}} ms</td>
+          </tr>
+          <tr md-row>
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>Latency</td>
+            <td md-cell>{{$ctrl.log.responseTime - $ctrl.log.apiResponseTime | number}} ms</td>
+          </tr>
+          <tr md-row>
+            <td md-cell style="width: 1%; font-weight: bold;" nowrap>Content-length</td>
+            <td md-cell>{{$ctrl.log.responseContentLength}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+    </div>
   </div>
-
-  <div layout="column" flex="50">
-    <span class="log-header" style="text-align: center">Context</span>
-    <md-table-container>
-      <table md-table class="gv-table-dense">
-        <tbody md-body>
-        <tr md-row ng-if="$ctrl.log.apiKey">
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>API Key</td>
-          <td md-cell>{{$ctrl.log.apiKey}}</td>
-        </tr>
-        <tr md-row ng-if="$ctrl.log.application">
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Application</td>
-          <td md-cell>{{$ctrl.log.metadata[$ctrl.log.application].name}}</td>
-        </tr>
-        <tr md-row ng-if="$ctrl.log.plan">
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Plan</td>
-          <td md-cell>{{$ctrl.log.metadata[$ctrl.log.plan].name}}</td>
-        </tr>
-        <tr md-row>
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Endpoint</td>
-          <td md-cell>{{$ctrl.log.endpoint}}</td>
-        </tr>
-        <tr md-row ng-if="$ctrl.log.subscription">
-          <td md-cell></td>
-          <td md-cell><a ui-sref="management.apis.detail.portal.subscriptions.subscription({subscriptionId: $ctrl.log.subscription})">Go to subscription</a></td>
-        </tr>
-        </tbody>
-      </table>
-    </md-table-container>
-
-    <span class="log-header" style="text-align: center">Gateway</span>
-    <md-table-container>
-      <table md-table class="gv-table-dense">
-        <tbody md-body>
-        <tr md-row>
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Host</td>
-          <td md-cell>{{$ctrl.log.metadata[$ctrl.log.gateway].hostname}}</td>
-        </tr>
-        <tr md-row>
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>IP</td>
-          <td md-cell>{{$ctrl.log.metadata[$ctrl.log.gateway].ip}}</td>
-        </tr>
-        <tr md-row ng-if="$ctrl.log.tenant">
-          <td md-cell style="width: 1%; font-weight: bold;" nowrap>Tenant</td>
-          <td md-cell>{{$ctrl.log.tenant}}</td>
-        </tr>
-        </tbody>
-      </table>
-    </md-table-container>
-  </div>
-</div>
     </div>
   </div>
 
@@ -162,8 +194,8 @@
     </div>
   </div>
 
-  <div layout="row" layout-padding style="background-color: #f1f8e9; border: 1px solid #dcedc8;">
-    <div flex="5" layout="row" layout-align="center center" style="background-color: #dcedc8;">
+  <div layout="row" layout-padding style="background-color: #e1f5fe; border: 1px solid #b3e5fc;">
+    <div flex="5" layout="row" layout-align="center center" style="background-color: #b3e5fc;">
       <span class="vertical-text log-header" style="text-align: center;">REQUEST</span>
     </div>
 
@@ -200,7 +232,7 @@
 
       <div ng-if="$ctrl.log.clientRequest.body"
         ui-codemirror
-        ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.clientRequest)}"
+        ui-codemirror-opts="{lineNumbers: false, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.clientRequest)}"
         ng-model="$ctrl.log.clientRequest.body">
       </div>
     </div>
@@ -249,7 +281,7 @@
 
       <div ng-if="$ctrl.log.proxyRequest.body"
         ui-codemirror
-        ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.proxyRequest)}"
+        ui-codemirror-opts="{lineNumbers: false, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.proxyRequest)}"
         ng-model="$ctrl.log.proxyRequest.body">
       </div>
     </div>
@@ -260,8 +292,8 @@
     </div>
   </div>
 
-  <div layout="row" layout-padding style="background-color: #e1f5fe; margin-top:3px; border: 1px solid #b3e5fc;">
-    <div flex="5" layout="row" layout-align="center center" style="background-color: #b3e5fc;">
+  <div layout="row" layout-padding ng-class="{'gv-log-response-panel-{{$ctrl.log.status / 100 | number:0}}': true}" style="margin-top:3px;">
+    <div flex="5" layout="row" layout-align="center center">
       <span class="vertical-text log-header" style="text-align: center;">RESPONSE</span>
     </div>
 
@@ -294,7 +326,7 @@
 
       <div ng-if="$ctrl.log.clientResponse.body"
           ui-codemirror
-          ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.clientResponse)}"
+          ui-codemirror-opts="{lineNumbers: false, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.clientResponse)}"
           ng-model="$ctrl.log.clientResponse.body">
         </div>
     </div>
@@ -339,7 +371,7 @@
 
       <div ng-if="$ctrl.log.proxyResponse.body"
         ui-codemirror
-        ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.proxyResponse)}"
+        ui-codemirror-opts="{lineNumbers: false, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.proxyResponse)}"
         ng-model="$ctrl.log.proxyResponse.body">
       </div>
     </div>
