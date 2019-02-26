@@ -73,7 +73,7 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
                 if (endpoint != null) {
                     boolean added = endpoints.add(endpoint);
                     if (!added) {
-                        throw ctxt.mappingException("[api] API must have single endpoint names");
+                        throw ctxt.mappingException("[api] API endpoint names must be unique");
                     }
                 }
             }

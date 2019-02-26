@@ -6,7 +6,7 @@
     "context_path": "/team",
     "groups": [
       {
-        "name": "default",
+        "name": "group-default",
         "endpoints": [
           {
             "name": "default",

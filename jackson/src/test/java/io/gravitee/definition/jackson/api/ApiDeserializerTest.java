@@ -402,6 +402,24 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.fail("should throw deser exception");
     }
 
+    @Test(expected = JsonMappingException.class)
+    public void shouldFailWithSameEndpointNamesInDifferentGroup() throws Exception {
+        load("/io/gravitee/definition/jackson/api-multiplesameendpointsindifferentgroups.json", Api.class);
+        Assert.fail("should throw deser exception");
+    }
+
+    @Test(expected = JsonMappingException.class)
+    public void shouldFailWithSameGroupEndpointNames() throws Exception {
+        load("/io/gravitee/definition/jackson/api-multiplesamegroupendpoints.json", Api.class);
+        Assert.fail("should throw deser exception");
+    }
+
+    @Test(expected = JsonMappingException.class)
+    public void shouldFailWithSameGroupEndpointNamesAndEndpointNames() throws Exception {
+        load("/io/gravitee/definition/jackson/api-multiplesamegroupendpointsandendpoints.json", Api.class);
+        Assert.fail("should throw deser exception");
+    }
+
     @Test
     public void definition_hostHeader_empty() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-empty-hostHeader.json", Api.class);
