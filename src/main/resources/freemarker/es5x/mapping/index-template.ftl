@@ -101,6 +101,9 @@
                 },
                 "host": {
                     "type": "keyword"
+                },
+                "user-agent": {
+                    "type": "keyword"
                 }
             }
         },

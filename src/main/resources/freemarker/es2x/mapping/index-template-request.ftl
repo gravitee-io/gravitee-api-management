@@ -117,6 +117,10 @@
                 "host": {
                     "index": "not_analyzed",
                     "type": "string"
+                },
+                "user-agent": {
+                    "index": "not_analyzed",
+                    "type": "string"
                 }
             }
         }

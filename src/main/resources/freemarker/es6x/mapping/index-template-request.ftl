@@ -107,6 +107,21 @@
                 },
                 "host": {
                     "type": "keyword"
+                },
+                "user-agent": {
+                    "type": "keyword"
+                },
+                "user_agent": {
+                    "properties": {
+                        "name": {
+                            "type": "keyword",
+                            "index": true
+                        },
+                        "os_name": {
+                            "type": "keyword",
+                            "index": true
+                        }
+                    }
                 }
             }
         }

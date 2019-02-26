@@ -23,13 +23,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toSet;
+
 /**
  *
  * @author Guillaume Gillon
  */
 public class PipelineConfiguration {
 
-    private static final List<String> INGEST_PLUGINS = Collections.singletonList("geoip");
+    private static final List<String> INGEST_PLUGINS = Arrays.asList("geoip", "user_agent");
 
     @Value("${reporters.elasticsearch.pipeline.plugins.ingest:#{null}}")
     private String ingestorPlugins;
@@ -46,7 +48,7 @@ public class PipelineConfiguration {
 
     public String createPipeline() {
         if (ingestorPlugins != null && ! ingestorPlugins.isEmpty()) {
-            final Set<String> configuredPlugin = Stream.of(ingestorPlugins.split(",")).collect(Collectors.toSet());
+            final Set<String> configuredPlugin = Stream.of(ingestorPlugins.split(",")).map(String::trim).collect(toSet());
             configuredPlugin.retainAll(INGEST_PLUGINS);
 
             final String processors =

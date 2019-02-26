@@ -60,4 +60,7 @@
   <#if metrics.getHost()??>
   ,"host":"${metrics.getHost()}"
   </#if>
+  <#if metrics.getUserAgent()??>
+  ,"user-agent":"${metrics.getUserAgent()}"
+  </#if>
 }</@compress>
