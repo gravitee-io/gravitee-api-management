@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import InstancesService from "../../services/instances.service";
 
 interface IInstancesScope extends ng.IScope {
 
@@ -25,29 +26,36 @@ interface IInstancesScope extends ng.IScope {
 class InstancesController {
   private instances: any;
   private startedInstances: any;
+  private allInstances: any;
   private _displayEmptyMode: boolean;
   private searchGatewayInstances: string;
 
   constructor(
-    private $scope: IInstancesScope) {
+    private $scope: IInstancesScope,
+    private InstancesService: InstancesService) {
 		'ngInject';
 	}
 
   $onInit() {
     this.searchGatewayInstances = '';
-    this.startedInstances = _.filter(this.instances, { 'state': 'started'});
+    this.instances = this.startedInstances = _.clone(_.filter(this.instances, { 'state': 'started'}));
     this._displayEmptyMode = this.startedInstances.length === 0;
 
     this.$scope.displayAllInstances = false;
 
-    let that = this;
-    this.$scope.switchDisplayInstances = function() {
-      that.$scope.displayAllInstances = !that.$scope.displayAllInstances;
+    this.$scope.switchDisplayInstances = () => {
+      this.$scope.displayAllInstances = !this.$scope.displayAllInstances;
 
-      if (!that.$scope.displayAllInstances) {
-        that._displayEmptyMode = that.startedInstances.length === 0;
+      if (this.$scope.displayAllInstances) {
+        this._displayEmptyMode = this.instances.length === 0;
+        if (this.allInstances) {
+          this.instances = this.allInstances;
+        } else {
+          this.InstancesService.list(true).then(response => this.instances = this.allInstances = response.data);
+        }
       } else {
-        that._displayEmptyMode = that.instances.length === 0;
+        this._displayEmptyMode = this.startedInstances.length === 0;
+        this.instances = this.startedInstances;
       }
     };
   }

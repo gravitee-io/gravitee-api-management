@@ -21,8 +21,8 @@ class InstancesService {
     this.instancesURL = `${Constants.baseURL}instances/`;
   }
 
-  list() {
-    return this.$http.get(this.instancesURL + '?includeStopped=true');
+  list(includeStopped?: boolean) {
+    return this.$http.get(this.instancesURL + '?includeStopped=' + (includeStopped === undefined ? false : includeStopped));
   }
 
   get(id) {

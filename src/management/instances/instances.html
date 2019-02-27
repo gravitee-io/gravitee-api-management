@@ -32,8 +32,7 @@
                    style="padding: 0; overflow-y: auto;">
     <div layout="row" layout-wrap class="inset">
       <div class="gravitee-instances-box"
-           ng-repeat="instance in $ctrl.instances | filter:displayAllInstances?{}:{state: 'started'}
-             | filter:$ctrl.searchGatewayInstances | orderBy:'-started_at'">
+           ng-repeat="instance in $ctrl.instances | filter:$ctrl.searchGatewayInstances | orderBy:'-started_at'">
         <a ui-sref="management.instances.detail.environment({instanceId: instance.event})">
           <md-card class="gravitee-instances-box gravitee-card gravitee-api-card">
             <md-card-header layout="row" layout-align="end start">
