@@ -58,7 +58,7 @@ class NewPageController {
       autoCloseTags: true,
       mode: "javascript"
     };
-
+    this.$scope.pageContentFile = {content: '', name : ''};
     this.$scope.$watch('pageContentFile.content', (data) => {
       if (data) {
         this.page.content = data;
