@@ -17,7 +17,12 @@
 -->
   <div layout="row">
     <div class="gv-sub-menu menu"  ng-style="$ctrl.api || $ctrl.application ? '' : {'margin': '0 0 0 -32px', 'padding-top': '70px'}">
-      <div ng-if="$ctrl.api" class="md-headline">{{$ctrl.api.name}} ({{$ctrl.api.version}})</div>
+      <div ng-if="$ctrl.api" class="md-headline">
+        <span>
+          {{$ctrl.api.name}} ({{$ctrl.api.version}})
+          <md-tooltip md-direction="bottom">{{$ctrl.api.name}} ({{$ctrl.api.version}})</md-tooltip>
+        </span>
+      </div>
       <div class="aui-nav-heading">
         <strong>Settings</strong>
       </div>
