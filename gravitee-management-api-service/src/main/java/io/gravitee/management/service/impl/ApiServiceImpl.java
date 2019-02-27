@@ -201,6 +201,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             // Format context-path and check if context path is unique
             checkContextPath(api.getProxy().getContextPath());
 
+            // check endpoints name
+            checkEndpointsName(api);
+
             addLoggingMaxDuration(api.getProxy().getLogging());
 
             Api repoApi = convert(id, api);
@@ -302,6 +305,25 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 });
         if (contextPathExists) {
             throw new ApiContextPathAlreadyExistsException(newSubContextPath);
+        }
+    }
+
+    private void checkEndpointsName(UpdateApiEntity api) {
+        if (api.getProxy() != null && api.getProxy().getGroups() != null) {
+            for (EndpointGroup group : api.getProxy().getGroups()) {
+                assertEndpointNameNotContainsInvalidCharacters(group.getName());
+                if (group.getEndpoints() != null) {
+                    for (Endpoint endpoint : group.getEndpoints()) {
+                        assertEndpointNameNotContainsInvalidCharacters(endpoint.getName());
+                    }
+                }
+            }
+        }
+    }
+
+    private void assertEndpointNameNotContainsInvalidCharacters(String name) {
+        if (name != null && name.contains(":")) {
+            throw new EndpointNameInvalidException(name);
         }
     }
 
@@ -455,6 +477,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
             // Check if context path is unique
             checkContextPath(updateApiEntity.getProxy().getContextPath(), apiId);
+
+            // check endpoints name
+            checkEndpointsName(updateApiEntity);
 
             addLoggingMaxDuration(updateApiEntity.getProxy().getLogging());
 
