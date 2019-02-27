@@ -27,8 +27,11 @@
             <div class="gv-form-content" layout="column">
                 <md-input-container flex="30">
                     <label>Name</label>
-                    <input ng-model="groupCtrl.group.name" type="text" required ng-change="groupCtrl.checkEndpointNameUniqueness()">
+                    <input ng-model="groupCtrl.group.name" name="groupName" type="text" required ng-change="groupCtrl.checkEndpointNameUniqueness()" ng-pattern="/^[^:]*$/">
                     <div class="hint" style="color:rgb(221,44,0);" ng-if="duplicateEndpointNames">This name is used by another endpoint and/or an endpoint group.</div>
+                    <div ng-messages="formGroup.groupName.$error">
+                        <div ng-message="pattern">Group name does not support <code>:</code> in its name.</div>
+                    </div>
                 </md-input-container>
                 <md-input-container class="md-block" flex-gt-sm>
                     <label>Load balancing algorithm</label>

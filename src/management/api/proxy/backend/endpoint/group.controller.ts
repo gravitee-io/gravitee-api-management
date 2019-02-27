@@ -97,6 +97,7 @@ class ApiEndpointGroupController {
   }
 
   backToEndpointsConfiguration() {
+    this.reset();
     this.api.proxy.groups = _.cloneDeep(this.initialGroups);
     this.$state.go('management.apis.detail.proxy.endpoints');
   }
