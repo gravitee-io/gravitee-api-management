@@ -49,6 +49,7 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
     private ApplicationContext applicationContext;
 
     private final Map<String, io.gravitee.resource.api.Resource> resources = new HashMap<>();
+    private final Map<String, PluginClassLoader> classloaders = new HashMap<>();
 
     @Override
     protected void doStart() throws Exception {
@@ -114,7 +115,9 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
                 throw new IllegalStateException("Resource ["+resource.getType()+"] can not be found in plugin registry");
             }
 
-            PluginClassLoader resourceClassLoader = rclf.getOrCreateClassLoader(resourcePlugin, rh.classloader());
+            PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(
+                    resourcePlugin.id(), s -> rclf.getOrCreateClassLoader(resourcePlugin, rh.classloader()));
+            
             logger.debug("Loading resource {} for {}", resource.getName(), rh);
 
             try {
