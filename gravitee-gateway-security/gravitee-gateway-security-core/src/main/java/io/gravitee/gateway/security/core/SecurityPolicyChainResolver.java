@@ -24,7 +24,8 @@ import io.gravitee.gateway.policy.impl.PolicyChain;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -50,6 +51,23 @@ public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
                 List<AuthenticationPolicy> policies = securityProvider.handle(executionContext);
 
                 return RequestPolicyChain.create(createAuthenticationChain(policies), executionContext);
+            }
+
+            // No authentication method selected. use the first one with the lowest oder number to create an unauthorized response:
+            final List<AuthenticationHandler> securityProviders = this.securityManager.getSecurityProviders();
+            if (securityProviders != null && !securityProviders.isEmpty()) {
+                Collections.sort(securityProviders, Comparator.comparingInt(AuthenticationHandler::order));
+                final AuthenticationHandler authenticationHandler = securityProviders.get(0);
+
+                if (this.logger.isDebugEnabled()) {
+                    this.logger.debug(
+                            "No security provider has been selected to process request {}. Using first security provider {} to return an unauthorized status",
+                            request.id(),
+                            authenticationHandler.name());
+                }
+
+                final List<AuthenticationPolicy> policies = authenticationHandler.handle(executionContext);
+                return RequestPolicyChain.create(this.createAuthenticationChain(policies), executionContext);
             }
 
             // No authentication method selected, must send a 401
