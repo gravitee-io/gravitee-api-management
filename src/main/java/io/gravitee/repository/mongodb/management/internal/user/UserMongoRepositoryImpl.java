@@ -41,7 +41,7 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
     @Override
     public Page<UserMongo> search(Pageable pageable) {
         Query query = new Query();
-        query.with(new Sort(Sort.Direction.ASC, "lastname", "username"));
+        query.with(new Sort(Sort.Direction.ASC, "lastname", "firstname"));
         if (pageable != null) {
             query.with(new PageRequest(pageable.pageNumber(), pageable.pageSize()));
         }
