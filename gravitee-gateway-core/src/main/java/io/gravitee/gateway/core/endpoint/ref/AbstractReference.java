@@ -28,11 +28,11 @@ public abstract class AbstractReference implements Reference {
 
         AbstractReference that = (AbstractReference) o;
 
-        return key().equals(that.key());
+        return name().equals(that.name());
     }
 
     @Override
     public int hashCode() {
-        return key().hashCode();
+        return name().hashCode();
     }
 }

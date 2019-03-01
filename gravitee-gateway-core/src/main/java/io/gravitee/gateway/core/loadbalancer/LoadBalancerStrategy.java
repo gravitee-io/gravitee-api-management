@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.endpoint;
+package io.gravitee.gateway.core.loadbalancer;
 
 import io.gravitee.gateway.api.endpoint.Endpoint;
-
-import java.util.Collection;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EndpointManager {
+@FunctionalInterface
+public interface LoadBalancerStrategy {
 
-    Endpoint get(String endpointName);
-
-    Collection<Endpoint> endpoints();
+    /**
+     * Select next endpoint and return the endpoint name.
+     * If no endpoint can be selected (no endpoint with the UP state), the value
+     * <code>null</code> is returned.
+     *
+     * @return Endpoint name or <code>null</code> if none can be selected.
+     */
+    Endpoint next();
 }

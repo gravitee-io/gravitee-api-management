@@ -24,19 +24,10 @@ import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
  */
 public class GroupReference extends AbstractReference {
 
-    public static final String REFERENCE_PREFIX = "group:";
-
     private final LoadBalancedEndpointGroup group;
-    private final String key;
 
     public GroupReference(final LoadBalancedEndpointGroup group) {
         this.group = group;
-        this.key = REFERENCE_PREFIX + group.getName();
-    }
-
-    @Override
-    public String key() {
-        return key;
     }
 
     @Override

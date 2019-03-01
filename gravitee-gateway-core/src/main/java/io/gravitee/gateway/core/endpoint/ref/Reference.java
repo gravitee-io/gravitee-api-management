@@ -25,8 +25,6 @@ public interface Reference {
 
     String UNKNOWN_REFERENCE = "ref:unknown";
 
-    String key();
-
     String name();
 
     Endpoint endpoint();

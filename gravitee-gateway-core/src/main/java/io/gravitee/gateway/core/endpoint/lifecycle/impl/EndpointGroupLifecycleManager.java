@@ -19,9 +19,11 @@ import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.util.ChangeListener;
 import io.gravitee.common.util.ObservableCollection;
 import io.gravitee.common.util.ObservableSet;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.LoadBalancer;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.gateway.api.lb.LoadBalancerStrategy;
 import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
 import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
@@ -29,10 +31,7 @@ import io.gravitee.gateway.core.endpoint.lifecycle.EndpointLifecycleManager;
 import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
 import io.gravitee.gateway.core.endpoint.ref.EndpointReference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
-import io.gravitee.gateway.core.loadbalancer.RandomLoadBalancer;
-import io.gravitee.gateway.core.loadbalancer.RoundRobinLoadBalancer;
-import io.gravitee.gateway.core.loadbalancer.WeightedRandomLoadBalancer;
-import io.gravitee.gateway.core.loadbalancer.WeightedRoundRobinLoadBalancer;
+import io.gravitee.gateway.core.loadbalancer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -175,7 +174,7 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
         if (endpoint != null) {
             try {
                 endpoints.remove(endpoint);
-                referenceRegister.remove(EndpointReference.REFERENCE_PREFIX + endpoint.name());
+                referenceRegister.remove(endpoint.name());
                 endpoint.connector().stop();
             } catch (Exception ex) {
                 logger.error("Unexpected error while closing endpoint connector", ex);
@@ -207,12 +206,10 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
         return false;
     }
 
-    @Override
     public io.gravitee.gateway.api.endpoint.Endpoint get(String endpointName) {
         return endpointsByName.get(endpointName);
     }
 
-    @Override
     public Collection<io.gravitee.gateway.api.endpoint.Endpoint> endpoints() {
         return endpoints;
     }
