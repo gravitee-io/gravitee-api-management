@@ -110,9 +110,8 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     public Page<User> search(Pageable pageable) throws TechnicalException {
             LOGGER.debug("JdbcAbstractCrudRepository<{}>.findAll()", getOrm().getTableName());
             try {
-                return getResultAsPage(
-                        pageable,
-                        jdbcTemplate.query(getOrm().getSelectAllSql(), getRowMapper()));
+                return getResultAsPage(pageable,
+                        jdbcTemplate.query(getOrm().getSelectAllSql() + "order by lastname, firstname", getRowMapper()));
             } catch (final Exception ex) {
                 LOGGER.error("Failed to find all {} items:", getOrm().getTableName(), ex);
                 throw new TechnicalException("Failed to find all " + getOrm().getTableName() + " items", ex);
