@@ -18,7 +18,6 @@ package io.gravitee.repository;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.User;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Date;
@@ -54,7 +53,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
         Optional<User> optional = userRepository.findBySource("gravitee", "createuser1");
 
-        Assert.assertTrue("Unable to find saved user", optional.isPresent());
+        assertTrue("Unable to find saved user", optional.isPresent());
         User userFound = optional.get();
 
         assertEquals("Invalid saved user name.", user.getId(), userFound.getId());
@@ -64,7 +63,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldUpdate() throws Exception {
         Optional<User> optional = userRepository.findById("id2update");
-        Assert.assertTrue("userRepository to update not found", optional.isPresent());
+        assertTrue("userRepository to update not found", optional.isPresent());
 
         final User user = optional.get();
         user.setSource("sourceUpdated");
@@ -89,7 +88,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertEquals(nbUsersBeforeUpdate, nbUsersAfterUpdate);
 
         Optional<User> optionalUpdated = userRepository.findById("id2update");
-        Assert.assertTrue("User to update not found", optionalUpdated.isPresent());
+        assertTrue("User to update not found", optionalUpdated.isPresent());
 
         final User userUpdated = optionalUpdated.get();
         assertEquals("Invalid saved source", "sourceUpdated", userUpdated.getSource());
@@ -105,19 +104,27 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldSearchAll() throws Exception {
+    public void shouldSearch() throws Exception {
         List<User> users = userRepository.search(
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
         ).getContent();
 
-        Assert.assertNotNull(users);
-        assertEquals("Invalid user numbers in find all", 8, users.size());
+        assertNotNull(users);
+        assertEquals("Invalid user numbers in search", 8, users.size());
+        assertEquals("user0", users.get(0).getId());
+        assertEquals("user1", users.get(1).getId());
+        assertEquals("user3", users.get(2).getId());
+        assertEquals("user5", users.get(3).getId());
+        assertEquals("user2", users.get(4).getId());
+        assertEquals("user4", users.get(5).getId());
+        assertEquals("id2update", users.get(6).getId());
+        assertEquals("user2delete", users.get(7).getId());
     }
 
     @Test
     public void findUserBySourceTest() throws Exception {
         Optional<User> user = userRepository.findBySource("gravitee", "user1");
-        Assert.assertTrue(user.isPresent());
+        assertTrue(user.isPresent());
     }
 
     @Test(expected = IllegalStateException.class)

@@ -41,12 +41,12 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
     @Override
     void prepare(UserRepository userRepository) throws Exception {
         final User user = mock(User.class);
+        when(user.getId()).thenReturn("createuser1");
         when(user.getPassword()).thenReturn("New pwd");
-        final User user4 = mock(User.class);
+        when(user.getEmail()).thenReturn("createuser1@gravitee.io");
 
         final User userUpdated = mock(User.class);
         when(userUpdated.getId()).thenReturn("id2update");
-//        when(userUpdated.getUsername()).thenReturn("usernameUpdated");
         when(userUpdated.getSource()).thenReturn("sourceUpdated");
         when(userUpdated.getSourceId()).thenReturn("sourceIdUpdated");
         when(userUpdated.getPassword()).thenReturn("passwordUpdated");
@@ -58,19 +58,29 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
         when(userUpdated.getUpdatedAt()).thenReturn(new Date(1439042010883L));
         when(userUpdated.getLastConnectionAt()).thenReturn(new Date(1439052010883L));
 
+        final User user0 = mock(User.class);
+        when(user0.getId()).thenReturn("user0");
+        final User user1 = mock(User.class);
+        when(user1.getId()).thenReturn("user1");
+        final User user2 = mock(User.class);
+        when(user2.getId()).thenReturn("user2");
+        final User user3 = mock(User.class);
+        when(user3.getId()).thenReturn("user3");
+        final User user4 = mock(User.class);
+        when(user4.getId()).thenReturn("user4");
+        final User user5 = mock(User.class);
+        when(user5.getId()).thenReturn("user5");
+        final User id2update = mock(User.class);
+        when(id2update.getId()).thenReturn("id2update");
+        final User user2delete = mock(User.class);
+        when(user2delete.getId()).thenReturn("user2delete");
         io.gravitee.common.data.domain.Page<User> searchResult = new io.gravitee.common.data.domain.Page<>(
-                asList(user, mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class)),0, 0, 8);
+                asList(user0, user1, user3, user5, user2, user4, id2update, user2delete),0, 0, 8);
 
         when(userRepository.search(any())).thenReturn(searchResult);
         when(userRepository.create(any(User.class))).thenReturn(user);
         when(userRepository.findById("user0")).thenReturn(of(user));
         when(userRepository.findById("id2update")).thenReturn(of(userUpdated));
-
-//        when(userRepository.findByUsername("createuser1")).thenReturn(of(user));
-//        when(userRepository.findByUsername("user0 name")).thenReturn(of(user));
-//        when(user.getUsername()).thenReturn("createuser1");
-        when(user.getId()).thenReturn("createuser1");
-        when(user.getEmail()).thenReturn("createuser1@gravitee.io");
 
         when(userRepository.findBySource("gravitee", "createuser1")).thenReturn(of(user));
 
@@ -86,12 +96,6 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
                 return o == null || (o instanceof User && "unknown".equals(((User) o).getId()));
             }
         }))).thenThrow(new IllegalStateException());
-
-        final User user1 = mock(User.class);
-        when(user1.getId()).thenReturn("user1");
-
-        final User user5 = mock(User.class);
-        when(user5.getId()).thenReturn("user5");
 
         when(userRepository.findBySource("gravitee", "user1")).thenReturn(of(user1));
         when(userRepository.findById("user1")).thenReturn(of(user1));
