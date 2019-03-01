@@ -33,7 +33,7 @@ class ConfirmController {
     }
 
     $scope.confirmRegistration = function () {
-      UserService.create({
+      UserService.finalizeRegistration({
         token: $state.params.token, password: $scope.confirmPassword,
         firstname: $scope.user.firstname, lastname: $scope.user.lastname
       }).then(function () {

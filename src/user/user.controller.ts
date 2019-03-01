@@ -18,6 +18,7 @@ import { User } from "../entities/user";
 import {IScope} from 'angular';
 import UserService from "../services/user.service";
 import { StateService } from '@uirouter/core';
+import StringService from "../services/string.service";
 
 interface IUserScope extends ng.IScope {
   formUser: any;
@@ -45,19 +46,17 @@ class UserController {
   }
 
   save() {
-    let that = this;
     this.UserService.save(this.user).then((response) => {
-      that.$rootScope.$broadcast('graviteeUserRefresh');
-      that.$scope.formUser.$setPristine();
-      //that.originalPicture = response.data["picture"];
-      //that.user.picture = response.data["picture"];
-      that.NotificationService.show("User has been updated successfully");
+      this.user = response.data;
+      this.$rootScope.$broadcast('graviteeUserRefresh');
+      this.$scope.formUser.$setPristine();
+      this.NotificationService.show("User has been updated successfully");
     });
   }
 
   cancel() {
-    this.$scope.formUser.$setPristine();
-    //this.user.picture = this.originalPicture;
+    delete this.user.picture;
+    this.$state.reload();
   }
 
   getUserPicture() {

@@ -512,6 +512,19 @@ function configurationRouterConfig($stateProvider) {
         }
       }
     })
+    .state('management.settings.newuser', {
+      url: '/users/new',
+      component: 'newUser',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-create-user'
+        },
+        perms: {
+          only: ['management-user-c']
+        }
+      }
+    })
     .state('management.settings.portal', {
       url: '/portal',
       component: 'portalSettings',

@@ -16,7 +16,7 @@ You can also configure a page by clicking on the *settings* button. Page's confi
 
 (+) button let you create a new documentation page.
 
-Another possibility is to add a whole directory. Click on the wheel at the top of the screen and import a directory.
+Another possibility is to add a whole directory. Click on the link at the top of the screen and import a directory.
 If this directory contains a gravitee descriptor (a file named `.gravitee.json`) we will add the content according to the descriptor.
 
 Here is a descriptor sample : 

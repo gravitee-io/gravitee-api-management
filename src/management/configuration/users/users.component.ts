@@ -74,7 +74,11 @@ const UsersComponent: ng.IComponentOptions = {
 
     this.search = () => {
       $state.go('.', {q: this.query});
-    }
+    };
+
+    this.newUser = () => {
+      $state.go('management.settings.newuser');
+    };
   }
 };
 

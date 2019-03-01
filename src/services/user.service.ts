@@ -54,8 +54,8 @@ class UserService {
     this.userURL = `${Constants.baseURL}user/`;
   }
 
-  list(query?: string, page = 1): ng.IPromise<any> {
-    let url = `${this.usersURL}?page=${page}`;
+  list(query?: string, page = 1, size = 10): ng.IPromise<any> {
+    let url = `${this.usersURL}?page=${page}&size=${size}`;
 
     if (query) {
       url += '&q=' + query;
@@ -78,6 +78,10 @@ class UserService {
 
   register(user): ng.IPromise<any> {
     return this.$http.post(`${this.usersURL}register`, user);
+  }
+
+  finalizeRegistration(user): ng.IPromise<any> {
+    return this.$http.post(`${this.usersURL}register/finalize`, user);
   }
 
 	search(query): ng.IPromise<any> {
