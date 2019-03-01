@@ -17,7 +17,6 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.management.model.NewExternalUserEntity;
-import io.gravitee.management.model.RegisterUserEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.rest.model.Pageable;
@@ -35,6 +34,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
+import static io.gravitee.management.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.management.model.permissions.RolePermissionAction.READ;
 
 /**
@@ -74,27 +74,17 @@ public class UsersResource extends AbstractResource {
         return new PagedResult<>(users, pageable.getSize());
     }
 
-    /**
-     * Register a new user.
-     * Generate a token and send it in an email to allow a user to create an account.
-     */
     @POST
-    @Path("/register")
-    public Response registerUser(@Valid NewExternalUserEntity newExternalUserEntity) {
-        UserEntity newUser = userService.register(newExternalUserEntity);
-        if (newUser != null) {
-            return Response
-                    .ok()
-                    .entity(newUser)
-                    .build();
-        }
-
-        return Response.serverError().build();
-    }
-
-    @POST
-    public Response createUser(@Valid RegisterUserEntity registerUserEntity) {
-        UserEntity newUser = userService.create(registerUserEntity);
+    @Permissions(@Permission(value = RolePermission.MANAGEMENT_USERS, acls = CREATE))
+    @ApiOperation(
+            value = "Create a user",
+            notes = "User must have the MANAGEMENT_USERS[CREATE] permission to use this service"
+    )
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List users matching the query criteria", response = UserEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response createUser(@Valid NewExternalUserEntity newExternalUserEntity) {
+        UserEntity newUser = userService.create(newExternalUserEntity);
         if (newUser != null) {
             return Response
                     .ok()
@@ -108,5 +98,10 @@ public class UsersResource extends AbstractResource {
     @Path("{id}")
     public UserResource getUserResource() {
         return resourceContext.getResource(UserResource.class);
+    }
+
+    @Path("register")
+    public UsersRegisterResource getUsersRegisterResource() {
+        return resourceContext.getResource(UsersRegisterResource.class);
     }
 }

@@ -214,8 +214,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.GET, "/platform/**").authenticated()
 
                 // User management
-                .antMatchers(HttpMethod.POST, "/users").permitAll()
-                .antMatchers(HttpMethod.POST, "/users/register").permitAll()
+                .antMatchers(HttpMethod.POST, "/users/register/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/users").authenticated()
                 .antMatchers(HttpMethod.GET, "/users/**").authenticated()
                 .antMatchers(HttpMethod.PUT, "/users/**").authenticated()

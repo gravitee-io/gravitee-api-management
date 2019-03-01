@@ -37,13 +37,14 @@ public interface UserService {
     UserEntity findByIdWithRoles(String id);
     UserEntity findBySource(String source, String sourceId, boolean loadRoles);
     Set<UserEntity> findByIds(List<String> ids);
-    UserEntity create(RegisterUserEntity registerUserEntity);
     UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
     UserEntity update(String userId, UpdateUserEntity updateUserEntity);
     Page<UserEntity> search(String query, Pageable pageable);
     UserEntity register(NewExternalUserEntity newExternalUserEntity);
+    UserEntity finalizeRegistration(RegisterUserEntity registerUserEntity);
     PictureEntity getPicture(String id);
     void delete(String id);
     void resetPassword(String id);
     Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action);
+    UserEntity create(NewExternalUserEntity newExternalUserEntity);
 }

@@ -62,9 +62,9 @@ import java.util.stream.Collectors;
 import static io.gravitee.management.service.common.JWTHelper.ACTION.*;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.management.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
-import static io.gravitee.management.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
-import static io.gravitee.management.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
+import static io.gravitee.management.service.notification.NotificationParamsBuilder.*;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -249,7 +249,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
      * @return the user
      */
     @Override
-    public UserEntity create(final RegisterUserEntity registerUserEntity) {
+    public UserEntity finalizeRegistration(final RegisterUserEntity registerUserEntity) {
         try {
             final String jwtSecret = environment.getProperty("jwt.secret");
             if (jwtSecret == null || jwtSecret.isEmpty()) {
@@ -364,7 +364,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     /**
-     * Allows to pre-create a user.
+     * Allows to create a user.
      * @param newExternalUserEntity
      * @return
      */
@@ -434,13 +434,21 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
     }
 
-    /**
-     * Allows to pre-create a user and send an email notification to finalize its creation.
-     */
     @Override
     public UserEntity register(final NewExternalUserEntity newExternalUserEntity) {
         checkUserRegistrationEnabled();
+        return createAndSendEmail(newExternalUserEntity, USER_REGISTRATION);
+    }
 
+    @Override
+    public UserEntity create(final NewExternalUserEntity newExternalUserEntity) {
+        return createAndSendEmail(newExternalUserEntity, USER_CREATION);
+    }
+
+    /**
+     * Allows to create an user and send an email notification to finalize its creation.
+     */
+    private UserEntity createAndSendEmail(final NewExternalUserEntity newExternalUserEntity, final ACTION action) {
         try {
             new InternetAddress(newExternalUserEntity.getEmail()).validate();
         } catch (final AddressException ex) {
@@ -454,7 +462,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail());
             }
         } catch (final TechnicalException e) {
-            LOGGER.error("An error occurs while trying to register user {}", newExternalUserEntity.getEmail(), e);
+            LOGGER.error("An error occurs while trying to create user {}", newExternalUserEntity.getEmail(), e);
             throw new TechnicalManagementException(e.getMessage(), e);
         }
 
@@ -462,13 +470,12 @@ public class UserServiceImpl extends AbstractService implements UserService {
         newExternalUserEntity.setSourceId(newExternalUserEntity.getEmail());
 
         final UserEntity userEntity = create(newExternalUserEntity, true);
-        final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, USER_REGISTRATION);
 
+        final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action);
         notifierService.trigger(PortalHook.USER_REGISTERED, params);
-
         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                 .to(userEntity.getEmail())
-                .subject("User registration - " + userEntity.getDisplayName())
+                .subject(format("User %s - %s", USER_REGISTRATION.equals(action)?"registration":"creation", userEntity.getDisplayName()))
                 .template(EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION)
                 .params(params)
                 .build()
@@ -616,7 +623,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     .count();
             long applicationCount = applicationService.findByUser(id)
                     .stream()
-                    .filter(entity -> entity.getPrimaryOwner().getId().equals(id))
+                    .filter(app -> app.getPrimaryOwner() != null)
+                    .filter(app -> app.getPrimaryOwner().getId().equals(id))
                     .count();
             if (apiCount > 0 || applicationCount > 0) {
                 throw new StillPrimaryOwnerException(apiCount, applicationCount);

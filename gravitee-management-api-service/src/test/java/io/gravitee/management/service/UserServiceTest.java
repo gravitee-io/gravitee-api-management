@@ -254,7 +254,7 @@ public class UserServiceTest {
         RegisterUserEntity userEntity = new RegisterUserEntity();
         userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));
 
-        userService.create(userEntity);
+        userService.finalizeRegistration(userEntity);
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -266,7 +266,7 @@ public class UserServiceTest {
         userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));
         userEntity.setPassword(PASSWORD);
 
-        userService.create(userEntity);
+        userService.finalizeRegistration(userEntity);
 
     }
 
@@ -287,7 +287,7 @@ public class UserServiceTest {
         userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));
         userEntity.setPassword(PASSWORD);
 
-        userService.create(userEntity);
+        userService.finalizeRegistration(userEntity);
 
         verify(userRepository).update(argThat(userToCreate -> "CUSTOM_LONG_ID".equals(userToCreate.getId()) &&
                 EMAIL.equals(userToCreate.getEmail()) &&
@@ -306,7 +306,7 @@ public class UserServiceTest {
 
         verify(userRepository, never()).findBySource(USER_SOURCE, USER_NAME);
 
-        userService.create(userEntity);
+        userService.finalizeRegistration(userEntity);
     }
 
     @Test
