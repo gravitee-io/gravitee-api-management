@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.healthcheck.eval.assertion;
 
-import io.gravitee.gateway.el.function.JsonPathFunction;
+import io.gravitee.el.spel.function.JsonPathFunction;
 import io.gravitee.gateway.services.healthcheck.eval.Evaluation;
 import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
 import org.springframework.beans.BeanUtils;

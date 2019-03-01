@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.core.endpoint.ref.impl;
 
-import io.gravitee.gateway.api.expression.TemplateContext;
-import io.gravitee.gateway.api.expression.TemplateVariableProvider;
+import io.gravitee.el.TemplateContext;
+import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.endpoint.ref.Reference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 

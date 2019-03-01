@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactor.handler.context;
 
-import io.gravitee.gateway.api.expression.TemplateVariableProvider;
+import io.gravitee.el.TemplateVariableProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.support.SpringFactoriesLoader;
