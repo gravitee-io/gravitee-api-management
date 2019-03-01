@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.dictionary;
 
-import io.gravitee.gateway.api.expression.TemplateContext;
-import io.gravitee.gateway.api.expression.TemplateVariableProvider;
+import io.gravitee.el.TemplateContext;
+import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

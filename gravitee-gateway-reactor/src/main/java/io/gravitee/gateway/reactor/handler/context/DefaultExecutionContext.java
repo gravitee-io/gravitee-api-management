@@ -15,13 +15,12 @@
  */
 package io.gravitee.gateway.reactor.handler.context;
 
+import io.gravitee.el.TemplateContext;
+import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.expression.TemplateContext;
-import io.gravitee.gateway.api.expression.TemplateEngine;
-import io.gravitee.gateway.api.expression.TemplateVariableProvider;
-import io.gravitee.gateway.el.SpelTemplateEngine;
 import org.springframework.context.ApplicationContext;
 
 import java.util.*;
@@ -46,7 +45,7 @@ public class DefaultExecutionContext implements ExecutionContext {
 
     private Collection<TemplateVariableProvider> providers;
 
-    private SpelTemplateEngine spelTemplateEngine;
+    private TemplateEngine templateEngine;
 
     DefaultExecutionContext(final Request request, final Response response, ApplicationContext applicationContext) {
         this.request = request;
@@ -83,10 +82,10 @@ public class DefaultExecutionContext implements ExecutionContext {
 
     @Override
     public TemplateEngine getTemplateEngine() {
-        if (spelTemplateEngine == null) {
-            spelTemplateEngine = new SpelTemplateEngine();
+        if (templateEngine == null) {
+            templateEngine = TemplateEngine.templateEngine();
 
-            TemplateContext templateContext = spelTemplateEngine.getTemplateContext();
+            TemplateContext templateContext = templateEngine.getTemplateContext();
             templateContext.setVariable(TEMPLATE_ATTRIBUTE_REQUEST, new EvaluableRequest(request));
             templateContext.setVariable(TEMPLATE_ATTRIBUTE_RESPONSE, new EvaluableResponse(response));
             templateContext.setVariable(TEMPLATE_ATTRIBUTE_CONTEXT, new EvaluableExecutionContext(this));
@@ -96,7 +95,7 @@ public class DefaultExecutionContext implements ExecutionContext {
             }
         }
 
-        return spelTemplateEngine;
+        return templateEngine;
     }
 
     public Map<String, Object> getAttributes() {
@@ -110,11 +109,11 @@ public class DefaultExecutionContext implements ExecutionContext {
     private class AttributeMap extends HashMap<String, Object> {
 
         /**
-         * In the most general case, the context will not store more than 10 elements in the Map.
+         * In the most general case, the context will not store more than 20 elements in the Map.
          * Then, the initial capacity must be set to limit size in memory.
          */
         AttributeMap() {
-            super(12, 1.0f);
+            super(20, 1.0f);
         }
 
         @Override
