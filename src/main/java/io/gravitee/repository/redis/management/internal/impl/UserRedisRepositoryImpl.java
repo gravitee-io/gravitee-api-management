@@ -24,6 +24,9 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -33,6 +36,7 @@ import java.util.stream.Collectors;
 public class UserRedisRepositoryImpl extends AbstractRedisRepository implements UserRedisRepository {
 
     private final static String REDIS_KEY = "user";
+    private static Comparator<String> nullSafeStringComparator = Comparator.nullsFirst(String::compareToIgnoreCase);
 
     @Override
     public RedisUser findBySource(String sourceId, String userId) {
@@ -72,26 +76,18 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
 
     @Override
     public Page<RedisUser> search(Pageable pageable) {
-        Set<Object> keys = redisTemplate
-                .opsForHash()
-                .keys(REDIS_KEY);
-
-        Set<Object> subKeys = keys.stream()
+        final List<RedisUser> users = redisTemplate.opsForHash().entries(REDIS_KEY).values().stream()
+                .filter(Objects::nonNull)
+                .map(u -> convert(u, RedisUser.class))
+                .sorted(comparing(RedisUser::getLastname, nullSafeStringComparator).thenComparing(RedisUser::getFirstname, nullSafeStringComparator))
                 .skip(pageable.from())
                 .limit(pageable.pageSize())
-                .collect(Collectors.toSet());
-
-        List<Object> usersObject = redisTemplate
-                .opsForHash()
-                .multiGet(REDIS_KEY, subKeys);
-
+                .collect(toList());
         return new Page<>(
-                usersObject.stream()
-                        .map(u -> convert(u, RedisUser.class))
-                        .collect(Collectors.toList()),
+                users,
                 pageable.pageNumber(),
-                subKeys.size(),
-                keys.size());
+                users.size() > pageable.pageSize() ? pageable.pageSize() : users.size(),
+                users.size());
     }
 
     @Override
