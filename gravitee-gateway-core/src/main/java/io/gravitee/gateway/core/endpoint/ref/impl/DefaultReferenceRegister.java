@@ -17,6 +17,8 @@ package io.gravitee.gateway.core.endpoint.ref.impl;
 
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.gateway.api.endpoint.Endpoint;
+import io.gravitee.gateway.api.endpoint.EndpointManager;
 import io.gravitee.gateway.core.endpoint.ref.Reference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 
@@ -33,7 +35,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultReferenceRegister implements ReferenceRegister, TemplateVariableProvider {
+public class DefaultReferenceRegister implements EndpointManager, ReferenceRegister, TemplateVariableProvider {
 
     private final static String TEMPLATE_VARIABLE_KEY = "endpoints";
 
@@ -41,7 +43,7 @@ public class DefaultReferenceRegister implements ReferenceRegister, TemplateVari
 
     @Override
     public void add(Reference reference) {
-        references.put(reference.key(), reference);
+        references.put(reference.name(), reference);
     }
 
     @Override
@@ -50,7 +52,7 @@ public class DefaultReferenceRegister implements ReferenceRegister, TemplateVari
     }
 
     @Override
-    public Reference get(String reference) {
+    public Reference lookup(String reference) {
         return references.get(reference);
     }
 
@@ -60,10 +62,11 @@ public class DefaultReferenceRegister implements ReferenceRegister, TemplateVari
     }
 
     @Override
-    public Collection<Reference> referencesByType(Class<? extends Reference> refClass) {
+    public  <T extends Reference> Collection<T> referencesByType(Class<T> refClass) {
         return references()
                 .stream()
                 .filter(reference -> reference.getClass().equals(refClass))
+                .map(reference -> (T) reference)
                 .collect(Collectors.toSet());
     }
 
@@ -76,6 +79,12 @@ public class DefaultReferenceRegister implements ReferenceRegister, TemplateVari
                         entry -> entry.getKey() + ':'));
 
         context.setVariable(TEMPLATE_VARIABLE_KEY, new EndpointReferenceMap(refs));
+    }
+
+    @Override
+    public Endpoint get(String name) {
+        Reference reference = lookup(name);
+        return (reference != null) ? reference.endpoint() : null;
     }
 
     private static class EndpointReferenceMap implements Map<String, String> {

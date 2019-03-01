@@ -15,7 +15,8 @@
  */
 package io.gravitee.gateway.core.endpoint.lifecycle;
 
-import io.gravitee.gateway.api.lb.LoadBalancerStrategy;
+import io.gravitee.gateway.api.endpoint.Endpoint;
+import io.gravitee.gateway.core.loadbalancer.LoadBalancerStrategy;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,7 +34,7 @@ public class LoadBalancedEndpointGroup implements LoadBalancerStrategy {
     }
 
     @Override
-    public io.gravitee.gateway.api.endpoint.Endpoint next() {
+    public Endpoint next() {
         return strategy.next();
     }
 

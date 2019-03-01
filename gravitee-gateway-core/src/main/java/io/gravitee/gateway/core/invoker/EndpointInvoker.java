@@ -18,7 +18,6 @@ package io.gravitee.gateway.core.invoker;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.MultiValueMap;
-import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
@@ -47,9 +46,6 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class EndpointInvoker implements Invoker {
-
-    @Autowired
-    protected Api api;
 
     @Autowired
     private EndpointResolver endpointResolver;

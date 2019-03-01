@@ -23,7 +23,6 @@ import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.core.endpoint.GroupManager;
 import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
 import io.gravitee.gateway.core.endpoint.ref.EndpointReference;
-import io.gravitee.gateway.core.endpoint.ref.GroupReference;
 import io.gravitee.gateway.core.endpoint.ref.Reference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.gateway.core.endpoint.resolver.EndpointResolver;
@@ -45,6 +44,10 @@ public class TargetEndpointResolver implements EndpointResolver {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
 
     private static final String URI_PATH_SEPARATOR = "/";
+
+    private static final String URI_HTTP_PREFIX = "http://";
+
+    private static final String URI_HTTPS_PREFIX = "https://";
 
     @Autowired
     private ReferenceRegister referenceRegister;
@@ -84,22 +87,33 @@ public class TargetEndpointResolver implements EndpointResolver {
         Map<String, List<String>> queryParameters = decoder.parameters();
 
         // Merge query parameters from user target into incoming request query parameters
-        for(Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
+        for (Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
             serverRequest.parameters().put(param.getKey(), param.getValue());
         }
 
         // Path segments must be encoded to avoid bad URI syntax
-        String [] segments = decoder.path().split(URI_PATH_SEPARATOR);
+        String[] segments = decoder.path().split(URI_PATH_SEPARATOR);
         StringBuilder builder = new StringBuilder();
 
-        for(String pathSeg : segments) {
+        for (String pathSeg : segments) {
             builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
         }
 
         String encodedTarget = builder.substring(0, builder.length() - 1);
 
         // Do we have a relative or an absolute path ?
-        if (encodedTarget.startsWith(URI_PATH_SEPARATOR)) {
+        if (encodedTarget.startsWith(URI_HTTP_PREFIX) || encodedTarget.startsWith(URI_HTTPS_PREFIX)) {
+            // When the user selected endpoint which is not defined (according to the given target), the gateway
+            // is always returning the first endpoints reference and took into account its configuration.
+            Collection<EndpointReference> endpoints = referenceRegister.referencesByType(EndpointReference.class);
+            Reference reference = endpoints
+                    .stream()
+                    .filter(endpointEntry -> encodedTarget.startsWith(endpointEntry.endpoint().target()))
+                    .findFirst()
+                    .orElse(endpoints.iterator().next());
+
+            return (reference != null) ? createEndpoint(reference.endpoint(), encodedTarget) : null;
+        } else if (encodedTarget.startsWith(URI_PATH_SEPARATOR)) {
             // Get the first group
             LoadBalancedEndpointGroup group = groupManager.getDefault();
 
@@ -107,38 +121,24 @@ public class TargetEndpointResolver implements EndpointResolver {
             Endpoint endpoint = group.next();
 
             return createEndpoint(endpoint, (endpoint != null) ? endpoint.target() + encodedTarget : null);
+        } else if (encodedTarget.startsWith(Reference.UNKNOWN_REFERENCE)) {
+            return null;
         } else {
-            if (encodedTarget.startsWith(GroupReference.REFERENCE_PREFIX) ||
-                    encodedTarget.startsWith(EndpointReference.REFERENCE_PREFIX)) {
-                // Get the full reference
-                String sRef = segments[0].substring(0, segments[0].length() - 1);
-                final Reference reference = referenceRegister.get(sRef);
+            // Get the full reference
+            String sRef = segments[0].substring(0, segments[0].length() - 1);
+            final Reference reference = referenceRegister.lookup(sRef);
 
-                // A null reference has been found (unknown reference ?), returning null to the caller
-                if (reference == null) {
-                    return null;
-                }
-
-                // Get next endpoint from reference
-                Endpoint endpoint = reference.endpoint();
-
-                int pathSepIdx = encodedTarget.indexOf('/');
-                return createEndpoint(endpoint,
-                        (pathSepIdx == -1) ? endpoint.target() : endpoint.target() + encodedTarget.substring(pathSepIdx));
-            } else if (encodedTarget.startsWith(Reference.UNKNOWN_REFERENCE)) {
+            // A null reference has been found (unknown reference ?), returning null to the caller
+            if (reference == null) {
                 return null;
-            } else {
-                // When the user selected endpoint which is not defined (according to the given target), the gateway
-                // is always returning the first endpoints reference and took into account its configuration.
-                Collection<Reference> endpoints = referenceRegister.referencesByType(EndpointReference.class);
-                Reference reference = endpoints
-                        .stream()
-                        .filter(endpointEntry -> encodedTarget.startsWith(endpointEntry.endpoint().target()))
-                        .findFirst()
-                        .orElse(endpoints.iterator().next());
-
-                return (reference != null) ? createEndpoint(reference.endpoint(), encodedTarget) : null;
             }
+
+            // Get next endpoint from reference
+            Endpoint endpoint = reference.endpoint();
+
+            int pathSepIdx = encodedTarget.indexOf('/');
+            return createEndpoint(endpoint,
+                    (pathSepIdx == -1) ? endpoint.target() : endpoint.target() + encodedTarget.substring(pathSepIdx));
         }
     }
 

@@ -17,7 +17,6 @@ package io.gravitee.gateway.core.failover;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.Failover;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -45,6 +44,12 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
     private Vertx vertx;
 
     private CircuitBreaker circuitBreaker;
+
+    private final FailoverOptions options;
+
+    public FailoverInvoker(final FailoverOptions options) {
+        this.options = options;
+    }
 
     @Override
     public Request invoke(ExecutionContext executionContext, Request serverRequest, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
@@ -79,13 +84,11 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        Failover failover = api.getProxy().getFailover();
-
-        circuitBreaker = CircuitBreaker.create("cb-" + api.getId(),
+        circuitBreaker = CircuitBreaker.create("cb-" + options.hashCode(),
                 vertx,
                 new CircuitBreakerOptions()
-                        .setMaxRetries(failover.getMaxAttempts()) // number of failure before opening the circuit
-                        .setTimeout(failover.getRetryTimeout()) // consider a failure if the operation does not succeed in time
+                        .setMaxRetries(options.getMaxAttempts()) // number of failure before opening the circuit
+                        .setTimeout(options.getRetryTimeout()) // consider a failure if the operation does not succeed in time
                         .setResetTimeout(10000L) // time spent in open state before attempting to re-try
                         .setNotificationAddress(null));
     }

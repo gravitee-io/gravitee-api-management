@@ -13,23 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.endpoint.ref;
-
-import java.util.Collection;
+package io.gravitee.gateway.core.failover;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReferenceRegister {
+public class FailoverOptions {
 
-    void add(Reference reference);
+    private int maxAttempts = 1;
 
-    void remove(String reference);
+    private long retryTimeout = 10000L;
 
-    Reference lookup(String reference);
+    public FailoverOptions setMaxAttempts(int maxAttempts) {
+        this.maxAttempts = maxAttempts;
+        return this;
+    }
 
-    Collection<Reference> references();
+    public FailoverOptions setRetryTimeout(long retryTimeout) {
+        this.retryTimeout = retryTimeout;
+        return this;
+    }
 
-    <T extends Reference> Collection<T> referencesByType(Class<T> refClass);
+    public int getMaxAttempts() {
+        return maxAttempts;
+    }
+
+    public long getRetryTimeout() {
+        return retryTimeout;
+    }
 }
