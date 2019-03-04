@@ -115,7 +115,7 @@ public class WebClientFactory implements FactoryBean<WebClient> {
         return true;
     }
 
-    private class ReadTimeoutInterceptor implements Handler<HttpContext> {
+    private class ReadTimeoutInterceptor implements Handler<HttpContext<?>> {
         private final long timeout;
 
         ReadTimeoutInterceptor() {
@@ -129,7 +129,7 @@ public class WebClientFactory implements FactoryBean<WebClient> {
         }
     }
 
-    private class BasicAuthorizationInterceptor implements Handler<HttpContext> {
+    private class BasicAuthorizationInterceptor implements Handler<HttpContext<?>> {
         private final String credentials;
 
         BasicAuthorizationInterceptor(String username, String password) {
