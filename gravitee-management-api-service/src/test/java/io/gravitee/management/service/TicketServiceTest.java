@@ -31,14 +31,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static io.gravitee.management.service.builder.EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET;
-import static org.mockito.Matchers.anyMap;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -118,9 +118,6 @@ public class TicketServiceTest {
     public void shouldNotCreateIfDefaultEmailSupportHasNotBeenChanged() {
         when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
-        when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
-        when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
-        when(newTicketEntity.getContent()).thenReturn(EMAIL_CONTENT);
 
         when(userService.findById(USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);

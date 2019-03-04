@@ -15,16 +15,16 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.NewTopApiEntity;
 import io.gravitee.management.model.TopApiEntity;
 import io.gravitee.management.model.UpdateTopApiEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.impl.TopApiServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.List;
 
@@ -32,8 +32,8 @@ import static io.gravitee.management.model.parameters.Key.PORTAL_TOP_APIS;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 

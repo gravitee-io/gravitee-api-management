@@ -15,7 +15,8 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.RoleEntity;
+import io.gravitee.management.model.UpdateRoleEntity;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.service.exceptions.RoleNotFoundException;
 import io.gravitee.management.service.impl.RoleServiceImpl;
@@ -27,14 +28,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;
 
 import static io.gravitee.management.model.permissions.PortalPermission.DOCUMENTATION;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -87,9 +88,6 @@ public class RoleService_UpdateTest {
         UpdateRoleEntity updateRoleEntityMock = mock(UpdateRoleEntity.class);
         when(updateRoleEntityMock.getName()).thenReturn("update mock role");
         when(updateRoleEntityMock.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.PORTAL);
-        when(updateRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(
-                DOCUMENTATION.getName(),
-                new char[]{RolePermissionAction.CREATE.getId()}));
 
         when(mockRoleRepository.findById(RoleScope.PORTAL, "update mock role")).thenReturn(Optional.empty());
 

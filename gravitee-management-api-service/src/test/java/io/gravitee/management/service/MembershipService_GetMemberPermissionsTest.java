@@ -15,7 +15,9 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.GroupEntity;
+import io.gravitee.management.model.RoleEntity;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -28,7 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 
@@ -103,7 +105,6 @@ public class MembershipService_GetMemberPermissionsTest {
         doReturn(API_ID).when(membership).getReferenceId();
         doReturn(USERNAME).when(membership).getUserId();
         GroupEntity group = mock(GroupEntity.class);
-        doReturn(GROUP_ID1).when(group).getId();
         doReturn(Collections.singleton(group)).when(api).getGroups();
         doReturn(of(membership)).when(membershipRepository).findById(USERNAME, MembershipReferenceType.API, API_ID);
         UserEntity userEntity = mock(UserEntity.class);
@@ -168,7 +169,6 @@ public class MembershipService_GetMemberPermissionsTest {
         doReturn(MembershipReferenceType.GROUP).when(membership1).getReferenceType();
         doReturn(GROUP_ID1).when(membership1).getReferenceId();
         doReturn(USERNAME).when(membership1).getUserId();
-        doReturn(empty()).when(membershipRepository).findById(USERNAME, MembershipReferenceType.API, API_ID);
         doReturn(of(membership1)).when(membershipRepository).findById(USERNAME, MembershipReferenceType.GROUP, GROUP_ID1);
 
         Membership membership2 = mock(Membership.class);

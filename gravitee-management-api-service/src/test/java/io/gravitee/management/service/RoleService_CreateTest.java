@@ -15,7 +15,8 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.NewRoleEntity;
+import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.service.exceptions.RoleReservedNameException;
 import io.gravitee.management.service.impl.RoleServiceImpl;
@@ -27,14 +28,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Optional;
 
 import static io.gravitee.management.model.permissions.PortalPermission.DOCUMENTATION;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -98,10 +101,6 @@ public class RoleService_CreateTest {
     public void shouldNotCreateBecauseOfReservedRoleName() throws TechnicalException {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
         when(newRoleEntityMock.getName()).thenReturn("admin");
-        when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.PORTAL);
-        when(newRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(
-                DOCUMENTATION.getName(),
-                new char[]{RolePermissionAction.UPDATE.getId()}));
 
         roleService.create(newRoleEntityMock);
 

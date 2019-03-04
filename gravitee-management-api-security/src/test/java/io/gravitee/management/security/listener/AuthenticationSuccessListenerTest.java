@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -78,7 +78,6 @@ public class AuthenticationSuccessListenerTest {
         when(authenticationMock.getPrincipal()).thenReturn(userDetailsMock);
         when(userDetailsMock.getSource()).thenReturn(USERSOURCE);
         when(userDetailsMock.getSourceId()).thenReturn(USERSOURCEID);
-        when(userServiceMock.create(any())).thenReturn(userEntity);
         when(userServiceMock.findBySource(userDetailsMock.getSource(), userDetailsMock.getSourceId(), false)).thenReturn(new UserEntity());
 
         listener.onApplicationEvent(eventMock);

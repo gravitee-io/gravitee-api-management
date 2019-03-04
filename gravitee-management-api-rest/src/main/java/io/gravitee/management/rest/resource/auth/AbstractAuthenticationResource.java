@@ -29,7 +29,6 @@ import io.gravitee.management.service.common.JWTHelper;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
-import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
@@ -39,6 +38,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotBlank;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.HashMap;

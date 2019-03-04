@@ -15,15 +15,14 @@
  */
 package io.gravitee.management.service;
 
-import java.util.UUID;
-
+import io.gravitee.management.service.impl.UUIDApiKeyGenerator;
+import io.gravitee.repository.exceptions.TechnicalException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import io.gravitee.management.service.impl.UUIDApiKeyGenerator;
-import io.gravitee.repository.exceptions.TechnicalException;
+import java.util.UUID;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)

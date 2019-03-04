@@ -24,13 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 /**
@@ -41,16 +42,17 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
 
     private final static Logger LOGGER = LoggerFactory.getLogger(RepositoryPluginHandler.class);
 
-    @Resource
+    @Autowired
     private Environment environment;
 
-    @Resource
+    @Autowired
     private PluginContextFactory pluginContextFactory;
 
-    @Resource(name = "pluginClassLoaderFactory")
+    @Autowired
+    @Qualifier("pluginClassLoaderFactory")
     private PluginClassLoaderFactory pluginClassLoaderFactory;
 
-    @Resource
+    @Autowired
     private ApplicationContext applicationContext;
 
     private final Map<Scope, Repository> repositories = new HashMap<>();

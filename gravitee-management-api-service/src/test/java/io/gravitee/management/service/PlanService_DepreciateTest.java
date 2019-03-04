@@ -16,7 +16,10 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.SubscriptionEntity;
-import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.exceptions.PlanAlreadyClosedException;
+import io.gravitee.management.service.exceptions.PlanAlreadyDeprecatedException;
+import io.gravitee.management.service.exceptions.PlanNotYetPublishedException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.PlanServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -25,7 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;

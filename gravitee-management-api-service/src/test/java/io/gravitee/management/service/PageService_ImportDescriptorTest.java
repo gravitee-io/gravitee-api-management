@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
@@ -40,7 +40,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -50,7 +50,6 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PageService_ImportDescriptorTest {
-
 
     @InjectMocks
     private PageServiceImpl pageService = new PageServiceImpl();
@@ -103,13 +102,11 @@ public class PageService_ImportDescriptorTest {
         when(pageRepository.create(any())).thenReturn(newPage);
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
         when(graviteeDescriptorService.read(anyString())).thenCallRealMethod();
-        when(mockMapper.valueToTree(anyString())).thenCallRealMethod();
 
         List<PageEntity> pageEntities = pageService.importFiles(pageEntity);
 
 
         assertNotNull(pageEntities);
         assertEquals(8, pageEntities.size());
-
     }
 }

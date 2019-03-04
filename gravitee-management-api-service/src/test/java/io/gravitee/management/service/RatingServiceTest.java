@@ -35,7 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -161,13 +161,6 @@ public class RatingServiceTest {
 
     @Test
     public void shouldCreateAnswer() throws TechnicalException {
-        final Rating updatedRating = mock(Rating.class);
-        when(updatedRating.getApi()).thenReturn(API_ID);
-        when(updatedRating.getTitle()).thenReturn(TITLE);
-        when(updatedRating.getComment()).thenReturn(COMMENT);
-        when(updatedRating.getRate()).thenReturn(RATE);
-        when(updatedRating.getUser()).thenReturn(USER);
-
         when(ratingAnswer.getUser()).thenReturn(USER);
         when(ratingAnswer.getComment()).thenReturn(ANSWER);
         when(ratingAnswer.getCreatedAt()).thenReturn(new Date());
@@ -268,7 +261,6 @@ public class RatingServiceTest {
 
     @Test(expected = RatingNotFoundException.class)
     public void shouldNotDeleteBecauseUnknownRating() throws TechnicalException {
-        when(updateRatingEntity.getId()).thenReturn(UNKNOWN_RATING_ID);
         when(ratingRepository.findById(UNKNOWN_RATING_ID)).thenReturn(empty());
 
         ratingService.delete(UNKNOWN_RATING_ID);

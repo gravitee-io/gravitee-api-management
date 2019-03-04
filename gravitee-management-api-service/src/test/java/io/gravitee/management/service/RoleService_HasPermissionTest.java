@@ -15,22 +15,19 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.service.impl.RoleServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

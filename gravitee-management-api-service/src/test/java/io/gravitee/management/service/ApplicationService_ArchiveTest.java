@@ -16,7 +16,6 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.ApiKeyEntity;
-import io.gravitee.management.model.PlanEntity;
 import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
@@ -29,7 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;

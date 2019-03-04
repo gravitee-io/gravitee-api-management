@@ -31,12 +31,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -86,7 +86,6 @@ public class EventServiceTest {
         when(event.getType()).thenReturn(EventType.PUBLISH_API);
         when(event.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event.getProperties()).thenReturn(EVENT_PROPERTIES);
-        when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.empty());
         when(eventRepository.create(any())).thenReturn(event);
 
         when(newEvent.getType()).thenReturn(io.gravitee.management.model.EventType.PUBLISH_API);
@@ -130,7 +129,6 @@ public class EventServiceTest {
     
     @Test
     public void shouldDelete() throws TechnicalException {
-        when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
         eventService.delete(EVENT_ID);
 
         verify(eventRepository).delete(EVENT_ID);

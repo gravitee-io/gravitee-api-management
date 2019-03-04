@@ -37,7 +37,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Set;
@@ -46,7 +46,7 @@ import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
@@ -109,7 +109,6 @@ public class ApiService_FindByUserTest {
         when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(emptyList());
         when(membershipRepository.findByUserAndReferenceType(anyString(), any(MembershipReferenceType.class)))
                 .thenReturn(Collections.emptySet());
-        when(apiRepository.search(new ApiCriteria.Builder().ids(USER_NAME).build())).thenReturn(emptyList());
 
         final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null);
 

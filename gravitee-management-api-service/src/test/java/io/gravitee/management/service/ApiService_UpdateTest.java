@@ -42,7 +42,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -50,7 +50,7 @@ import java.util.Optional;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -124,7 +124,6 @@ public class ApiService_UpdateTest {
     @Test(expected = ApiNotFoundException.class)
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
-        when(apiRepository.update(any())).thenReturn(api);
 
         apiService.update(API_ID, existingApi);
     }
@@ -195,14 +194,6 @@ public class ApiService_UpdateTest {
         when(apiRepository.search(null)).thenReturn(singletonList(api));
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
 
-        Membership po1 = new Membership("admin", API_ID, MembershipReferenceType.API);
-        po1.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferencesAndRole(
-                MembershipReferenceType.API,
-                singletonList(API_ID),
-                RoleScope.API,
-                SystemRole.PRIMARY_OWNER.name()))
-                .thenReturn(Collections.singleton(po1));
         Membership po2 = new Membership("admin", API_ID2, MembershipReferenceType.API);
         po2.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(

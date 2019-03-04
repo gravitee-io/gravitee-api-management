@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -78,7 +78,6 @@ public class PlanService_CloseTest {
     public void shouldNotCloseBecauseAlreadyClosed() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
 
         planService.close(PLAN_ID, USER);
     }
@@ -100,7 +99,6 @@ public class PlanService_CloseTest {
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getStatus()).thenReturn(SubscriptionStatus.ACCEPTED);
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
-        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
         when(plan.getApis()).thenReturn(Collections.singleton("id"));
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
@@ -122,7 +120,6 @@ public class PlanService_CloseTest {
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getStatus()).thenReturn(SubscriptionStatus.PENDING);
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
-        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
         when(plan.getApis()).thenReturn(Collections.singleton("id"));
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
@@ -141,10 +138,8 @@ public class PlanService_CloseTest {
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getStatus()).thenReturn(SubscriptionStatus.CLOSED);
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
-        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
         when(plan.getApis()).thenReturn(Collections.singleton("id"));
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 

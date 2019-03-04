@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -114,17 +114,14 @@ public class ApiKeyServiceTest {
         // Verify
         verify(apiKeyRepository, times(1)).create(any());
         assertEquals(API_KEY, apiKey.getKey());
-        assertEquals(false, apiKey.isRevoked());
+        assertFalse(apiKey.isRevoked());
         assertEquals(subscription.getEndingAt(), apiKey.getExpireAt());
         assertEquals(subscription.getId(), apiKey.getSubscription());
     }
 
     @Test(expected = TechnicalManagementException.class)
-    public void shouldNotGenerateBecauseTechnicalException() throws TechnicalException {
-        // Generated API Key
-        when(apiKeyGenerator.generate()).thenReturn(API_KEY);
-
-        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenThrow(TechnicalException.class);
+    public void shouldNotGenerateBecauseTechnicalException() {
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenThrow(TechnicalManagementException.class);
 
         apiKeyService.generate(SUBSCRIPTION_ID);
     }
@@ -147,7 +144,6 @@ public class ApiKeyServiceTest {
 
         // Stub
         when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
-        when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
         when(applicationService.findById(subscription.getApplication())).thenReturn(application);
         when(planService.findById(subscription.getPlan())).thenReturn(plan);
         when(apiService.findByIdForTemplates(any())).thenReturn(api);
@@ -161,10 +157,6 @@ public class ApiKeyServiceTest {
 
     @Test
     public void shouldNotRevokeBecauseAlreadyRevoked() throws Exception {
-        // Stub
-        when(apiKey.isRevoked()).thenReturn(true);
-        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
-
         // Verify
         verify(apiKeyRepository, never()).update(any());
         verify(emailService, never()).sendEmailNotification(any());
@@ -205,7 +197,6 @@ public class ApiKeyServiceTest {
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);
-        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
         when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
         when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
         when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));

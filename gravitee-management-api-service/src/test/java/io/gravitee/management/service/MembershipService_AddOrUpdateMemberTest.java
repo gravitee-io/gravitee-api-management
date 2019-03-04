@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -120,13 +120,10 @@ public class MembershipService_AddOrUpdateMemberTest {
         newMembership.setUserId(userEntity.getId());
         newMembership.setReferenceType(MembershipReferenceType.GROUP);
         newMembership.setReferenceId(GROUP_ID);
-        GroupEntity groupEntityMock = mock(GroupEntity.class);
-        when(groupEntityMock.getName()).thenReturn("foo");
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.API);
         when(roleService.findById(any(), any())).thenReturn(role);
         when(userService.findById(userEntity.getId())).thenReturn(userEntity);
-        when(groupService.findById(GROUP_ID)).thenReturn(groupEntityMock);
         when(membershipRepository.findById(userEntity.getId(), MembershipReferenceType.GROUP, GROUP_ID)).thenReturn(of(membership));
         when(membershipRepository.update(any())).thenReturn(newMembership);
 

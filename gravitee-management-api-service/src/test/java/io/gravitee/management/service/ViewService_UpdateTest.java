@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Date;
 import java.util.List;
@@ -35,7 +35,7 @@ import java.util.Optional;
 import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_UPDATED;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -72,7 +72,6 @@ public class ViewService_UpdateTest {
     @Test(expected = ViewNotFoundException.class)
     public void shouldNotUpdateUnknownView_single_mode() throws TechnicalException {
         UpdateViewEntity mockView = mock(UpdateViewEntity.class);
-        when(mockView.getId()).thenReturn("unknown");
         when(mockViewRepository.findById("unknown")).thenReturn(Optional.empty());
 
         viewService.update("unknown", mockView);

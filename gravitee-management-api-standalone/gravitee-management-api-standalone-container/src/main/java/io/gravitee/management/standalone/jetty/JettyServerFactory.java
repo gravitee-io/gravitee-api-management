@@ -117,12 +117,9 @@ public class JettyServerFactory implements FactoryBean<Server> {
         }
 
         if (jettyConfiguration.isAccessLogEnabled()) {
-            AsyncNCSARequestLog requestLog = new AsyncNCSARequestLog(
-                    jettyConfiguration.getAccessLogPath());
-            requestLog.setRetainDays(90);
-            requestLog.setExtended(true);
-            requestLog.setLogLatency(true);
-            requestLog.setLogTimeZone("GMT");
+            CustomRequestLog requestLog = new CustomRequestLog(
+                    new AsyncRequestLogWriter(jettyConfiguration.getAccessLogPath()),
+                    CustomRequestLog.EXTENDED_NCSA_FORMAT);
 
             server.setRequestLog(requestLog);
         }

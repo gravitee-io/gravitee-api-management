@@ -16,7 +16,10 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.SubscriptionEntity;
-import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.exceptions.KeylessPlanAlreadyPublishedException;
+import io.gravitee.management.service.exceptions.PlanAlreadyClosedException;
+import io.gravitee.management.service.exceptions.PlanAlreadyPublishedException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.PlanServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -25,7 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -117,8 +120,6 @@ public class PlanService_PublishTest {
         when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
-        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
 
         planService.publish(PLAN_ID);
     }
@@ -131,7 +132,6 @@ public class PlanService_PublishTest {
         when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
 
         planService.publish(PLAN_ID);
 

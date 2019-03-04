@@ -26,18 +26,14 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.Optional;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 /**
@@ -83,7 +79,6 @@ public class PageService_CreateTest {
         when(page1.getOrder()).thenReturn(1);
         when(page1.getContent()).thenReturn(content);
 
-        when(pageRepository.findById(anyString())).thenReturn(Optional.empty());
         when(pageRepository.create(any())).thenReturn(page1);
 
         when(newPage.getName()).thenReturn(name);
@@ -94,20 +89,15 @@ public class PageService_CreateTest {
 
         final PageEntity createdPage = pageService.createPage(API_ID, newPage);
 
-        verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToCreate = (Page) argument;
-                return pageToCreate.getId().split("-").length == 5 &&
-                    API_ID.equals(pageToCreate.getApi()) &&
-                    name.equals(pageToCreate.getName()) &&
-                    contrib.equals(pageToCreate.getLastContributor()) &&
-                    content.equals(pageToCreate.getContent()) &&
-                    io.gravitee.management.model.PageType.SWAGGER.name().equals(pageToCreate.getType().name()) &&
-                    pageToCreate.getCreatedAt() != null &&
-                    pageToCreate.getUpdatedAt() != null &&
-                    pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt());
-            }
-        }));
+        verify(pageRepository).create(argThat(pageToCreate -> pageToCreate.getId().split("-").length == 5 &&
+            API_ID.equals(pageToCreate.getApi()) &&
+            name.equals(pageToCreate.getName()) &&
+            contrib.equals(pageToCreate.getLastContributor()) &&
+            content.equals(pageToCreate.getContent()) &&
+            io.gravitee.management.model.PageType.SWAGGER.name().equals(pageToCreate.getType().name()) &&
+            pageToCreate.getCreatedAt() != null &&
+            pageToCreate.getUpdatedAt() != null &&
+            pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt())));
         assertNotNull(createdPage);
         assertEquals(5, createdPage.getId().split("-").length);
         assertEquals(1, createdPage.getOrder());
@@ -121,7 +111,6 @@ public class PageService_CreateTest {
         final String name = "PAGE_NAME";
         when(newPage.getName()).thenReturn(name);
 
-        when(pageRepository.findById(anyString())).thenReturn(Optional.empty());
         when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
 
         pageService.createPage(API_ID, newPage);

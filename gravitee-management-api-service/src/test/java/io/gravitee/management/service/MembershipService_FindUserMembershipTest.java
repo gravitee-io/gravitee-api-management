@@ -16,7 +16,6 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.UserMembership;
-import io.gravitee.management.model.UserMembershipList;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.ApiQuery;
 import io.gravitee.management.service.impl.MembershipServiceImpl;
@@ -28,14 +27,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**

@@ -31,7 +31,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.core.Authentication;
@@ -44,7 +44,7 @@ import java.util.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -479,7 +479,6 @@ public class SubscriptionServiceTest {
     public void shouldNotSubscribe_applicationWithoutClientId() throws Exception {
         // Prepare data
         when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
-        when(plan.getValidation()).thenReturn(PlanValidationType.AUTO);
         when(plan.getSecurity()).thenReturn(PlanSecurityType.OAUTH2);
 
         // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
@@ -539,7 +538,6 @@ public class SubscriptionServiceTest {
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
-        when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
 
         // Run
         subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
@@ -570,7 +568,6 @@ public class SubscriptionServiceTest {
 
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
 
         // Run
         subscriptionService.update(updatedSubscription);
@@ -737,7 +734,7 @@ public class SubscriptionServiceTest {
 
         verify(apiKeyService).revoke("api-key", false);
         verify(notifierService).trigger(eq(ApiHook.SUBSCRIPTION_CLOSED), anyString(), anyMap());
-        verify(notifierService).trigger(eq(ApplicationHook.SUBSCRIPTION_CLOSED), anyString(), anyMap());
+        verify(notifierService).trigger(eq(ApplicationHook.SUBSCRIPTION_CLOSED), nullable(String.class), anyMap());
     }
 
     @Test(expected = SubscriptionNotFoundException.class)
@@ -776,7 +773,7 @@ public class SubscriptionServiceTest {
 
         verify(apiKeyService).update(apiKey);
         verify(notifierService).trigger(eq(ApiHook.SUBSCRIPTION_PAUSED), anyString(), anyMap());
-        verify(notifierService).trigger(eq(ApplicationHook.SUBSCRIPTION_PAUSED), anyString(), anyMap());
+        verify(notifierService).trigger(eq(ApplicationHook.SUBSCRIPTION_PAUSED), nullable(String.class), anyMap());
     }
 
     @Test
@@ -797,7 +794,6 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
-        when(apiService.findById(API_ID)).thenReturn(apiEntity);
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
 
         // Run
@@ -856,24 +852,11 @@ public class SubscriptionServiceTest {
 
     @Test(expected = PlanNotSubscribableException.class)
     public void shouldNotCreateBecauseExistingSubscription_oauth2() throws Exception {
-        Subscription sub1 = mock(Subscription.class);
-        when(sub1.getStatus()).thenReturn(Subscription.Status.ACCEPTED);
-        when(sub1.getPlan()).thenReturn("my-plan-2");
-
-        PlanEntity plan2 = mock(PlanEntity.class);
-        when(plan2.getId()).thenReturn("my-plan-2");
-        when(plan2.getSecurity()).thenReturn(PlanSecurityType.OAUTH2);
         when(plan.getSecurity()).thenReturn(PlanSecurityType.OAUTH2);
         when(plan.getStatus()).thenReturn(PlanStatus.PUBLISHED);
 
-        /*
-        when(subscriptionRepository.findByApplication(APPLICATION_ID)).thenReturn(
-                new HashSet<>(Collections.singleton(sub1)));
-                */
-
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(planService.findById("my-plan-2")).thenReturn(plan2);
 
         // Run
         subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));

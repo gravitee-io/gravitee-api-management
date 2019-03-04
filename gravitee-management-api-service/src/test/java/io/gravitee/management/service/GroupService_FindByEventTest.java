@@ -16,32 +16,23 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.GroupEntity;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.RoleEntity;
-import io.gravitee.management.model.UserEntity;
-import io.gravitee.management.service.exceptions.NotAuthorizedMembershipException;
-import io.gravitee.management.service.exceptions.RoleNotFoundException;
 import io.gravitee.management.service.impl.GroupServiceImpl;
-import io.gravitee.management.service.impl.MembershipServiceImpl;
 import io.gravitee.repository.management.api.GroupRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.*;
-import org.junit.Assert;
+import io.gravitee.repository.management.model.Group;
+import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.repository.management.model.GroupEventRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.GroupEvent.API_CREATE;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

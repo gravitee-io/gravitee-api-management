@@ -29,16 +29,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Set;
 
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -175,8 +173,6 @@ public class MessageService_GetRecipientIdsTest {
         messageEntity.setRecipient(messageRecipientEntity);
         Membership membership = new Membership();
         membership.setUserId("user-id");
-        when(mockApiRepository.findById("api-id"))
-                .thenReturn(of(api));
         Subscription subscription = new Subscription();
         subscription.setApplication("app-id");
         when(mockSubscriptionRepository.search(any()))
@@ -210,8 +206,6 @@ public class MessageService_GetRecipientIdsTest {
         membershipGroup.setUserId("user-group-id");
         Membership membership = new Membership();
         membership.setUserId("user-id");
-        when(mockApiRepository.findById("api-id"))
-                .thenReturn(of(api));
         Subscription subscription = new Subscription();
         subscription.setApplication("app-id");
         when(mockSubscriptionRepository.search(any()))

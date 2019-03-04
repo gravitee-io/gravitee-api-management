@@ -16,39 +16,30 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.permissions.SystemRole;
-import io.gravitee.management.service.exceptions.ClientIdAlreadyExistsException;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.management.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -102,13 +93,8 @@ public class ApplicationService_UpdateTest {
 
         final ApplicationEntity applicationEntity = applicationService.update(APPLICATION_ID, existingApplication);
 
-        verify(applicationRepository).update(argThat(new ArgumentMatcher<Application>() {
-            public boolean matches(Object argument) {
-                final Application application = (Application) argument;
-                return APPLICATION_NAME.equals(application.getName()) &&
-                    application.getUpdatedAt() != null;
-            }
-        }));
+        verify(applicationRepository).update(argThat(application -> APPLICATION_NAME.equals(application.getName()) &&
+            application.getUpdatedAt() != null));
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
@@ -117,7 +103,6 @@ public class ApplicationService_UpdateTest {
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
-        when(applicationRepository.update(any())).thenReturn(application);
 
         applicationService.update(APPLICATION_ID, existingApplication);
     }
@@ -136,7 +121,6 @@ public class ApplicationService_UpdateTest {
     @Test
     public void shouldUpdateBecauseSameApplication() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
-        when(applicationRepository.findByClientId(CLIENT_ID)).thenReturn(Optional.of(application));
         when(application.getId()).thenReturn(APPLICATION_ID);
         when(application.getClientId()).thenReturn(CLIENT_ID);
         when(existingApplication.getClientId()).thenReturn(CLIENT_ID);
@@ -152,13 +136,8 @@ public class ApplicationService_UpdateTest {
 
         final ApplicationEntity applicationEntity = applicationService.update(APPLICATION_ID, existingApplication);
 
-        verify(applicationRepository).update(argThat(new ArgumentMatcher<Application>() {
-            public boolean matches(Object argument) {
-                final Application application = (Application) argument;
-                return APPLICATION_NAME.equals(application.getName()) &&
-                        application.getUpdatedAt() != null;
-            }
-        }));
+        verify(applicationRepository).update(argThat(application -> APPLICATION_NAME.equals(application.getName()) &&
+                application.getUpdatedAt() != null));
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());

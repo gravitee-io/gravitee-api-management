@@ -30,10 +30,9 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
@@ -41,7 +40,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -50,7 +49,6 @@ import static org.mockito.Mockito.*;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PageService_ImportDirectoryTest {
-
 
     @InjectMocks
     private PageServiceImpl pageService = new PageServiceImpl();
@@ -109,99 +107,49 @@ public class PageService_ImportDirectoryTest {
         // //////////////////////
         // check Folder creation
         // //////////////////////
-        verify(pageRepository, times(3)).create(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToCreate = (Page) argument;
-                return PageType.FOLDER.equals(pageToCreate.getType());
-            }
-        }));
+        verify(pageRepository, times(3)).create(argThat(pageToCreate -> PageType.FOLDER.equals(pageToCreate.getType())));
 
         // /src
-        verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToCreate = (Page) argument;
-                return "src".equals(pageToCreate.getName())
-                        && PageType.FOLDER.equals(pageToCreate.getType())
-                        && null == pageToCreate.getParentId();
-            }
-        }));
+        verify(pageRepository).create(argThat(pageToCreate -> "src".equals(pageToCreate.getName())
+                && PageType.FOLDER.equals(pageToCreate.getType())
+                && null == pageToCreate.getParentId()));
         // /src/doc
-        verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToCreate = (Page) argument;
-                return "doc".equals(pageToCreate.getName())
-                        && PageType.FOLDER.equals(pageToCreate.getType())
-                        && null != pageToCreate.getParentId();
-            }
-        }));
+        verify(pageRepository).create(argThat(pageToCreate -> "doc".equals(pageToCreate.getName())
+                && PageType.FOLDER.equals(pageToCreate.getType())
+                && null != pageToCreate.getParentId()));
         // /src/folder.with.dot/
-        verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToCreate = (Page) argument;
-                return "folder.with.dot".equals(pageToCreate.getName())
-                        && PageType.FOLDER.equals(pageToCreate.getType())
-                        && null != pageToCreate.getParentId();
-            }
-        }));
+        verify(pageRepository).create(argThat(pageToCreate -> "folder.with.dot".equals(pageToCreate.getName())
+                && PageType.FOLDER.equals(pageToCreate.getType())
+                && null != pageToCreate.getParentId()));
 
         // //////////////////////
         // verify files creation
         // //////////////////////
-        verify(pageRepository, times(5)).create(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToCreate = (Page) argument;
-                return pageToCreate.getType() != null && !PageType.FOLDER.equals(pageToCreate.getType());
-            }
-        }));
+        verify(pageRepository, times(5)).create(argThat(pageToCreate -> pageToCreate.getType() != null && !PageType.FOLDER.equals(pageToCreate.getType())));
 
         // /src/doc/m1.md
-        verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToCreate = (Page) argument;
-                return "m1".equals(pageToCreate.getName())
-                        && PageType.MARKDOWN.equals(pageToCreate.getType())
-                        && null != pageToCreate.getParentId();
-            }
-        }));
+        verify(pageRepository).create(argThat(pageToCreate -> "m1".equals(pageToCreate.getName())
+                && PageType.MARKDOWN.equals(pageToCreate.getType())
+                && null != pageToCreate.getParentId()));
 
         // /swagger.json
-        verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToCreate = (Page) argument;
-                return "swagger".equals(pageToCreate.getName())
-                        && PageType.SWAGGER.equals(pageToCreate.getType())
-                        && null == pageToCreate.getParentId();
-            }
-        }));
+        verify(pageRepository).create(argThat(pageToCreate -> "swagger".equals(pageToCreate.getName())
+                && PageType.SWAGGER.equals(pageToCreate.getType())
+                && null == pageToCreate.getParentId()));
 
         // /src/doc/sub.m11.md
-        verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToCreate = (Page) argument;
-                return "sub.m11".equals(pageToCreate.getName())
-                        && PageType.MARKDOWN.equals(pageToCreate.getType())
-                        && null != pageToCreate.getParentId();
-            }
-        }));
+        verify(pageRepository).create(argThat(pageToCreate -> "sub.m11".equals(pageToCreate.getName())
+                && PageType.MARKDOWN.equals(pageToCreate.getType())
+                && null != pageToCreate.getParentId()));
 
         // /src/doc/m2.yaml
-        verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToCreate = (Page) argument;
-                return "m2".equals(pageToCreate.getName())
-                        && PageType.SWAGGER.equals(pageToCreate.getType())
-                        && null != pageToCreate.getParentId();
-            }
-        }));
+        verify(pageRepository).create(argThat(pageToCreate -> "m2".equals(pageToCreate.getName())
+                && PageType.SWAGGER.equals(pageToCreate.getType())
+                && null != pageToCreate.getParentId()));
         // /src/folder.with.dot/m2.MD
-        verify(pageRepository).create(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToCreate = (Page) argument;
-                return "m2".equals(pageToCreate.getName())
-                        && PageType.MARKDOWN.equals(pageToCreate.getType())
-                        && null != pageToCreate.getParentId();
-            }
-        }));
+        verify(pageRepository).create(argThat(pageToCreate -> "m2".equals(pageToCreate.getName())
+                && PageType.MARKDOWN.equals(pageToCreate.getType())
+                && null != pageToCreate.getParentId()));
 
     }
 }

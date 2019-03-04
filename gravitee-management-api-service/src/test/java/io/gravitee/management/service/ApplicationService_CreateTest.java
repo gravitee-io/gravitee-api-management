@@ -31,15 +31,15 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
-import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -81,7 +81,6 @@ public class ApplicationService_CreateTest {
     public void shouldCreateForUser() throws TechnicalException {
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
-        when(applicationRepository.findById(anyString())).thenReturn(Optional.empty());
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
@@ -98,10 +97,7 @@ public class ApplicationService_CreateTest {
     public void shouldNotCreateBecauseClientIdExists() throws TechnicalException {
         when(applicationRepository.findAll(ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(application));
         when(application.getClientId()).thenReturn(CLIENT_ID);
-
-        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getClientId()).thenReturn(CLIENT_ID);
-        when(newApplication.getDescription()).thenReturn("My description");
 
         applicationService.create(newApplication, USER_NAME);
     }
@@ -109,9 +105,7 @@ public class ApplicationService_CreateTest {
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateForUserBecauseTechnicalException() throws TechnicalException {
         when(applicationRepository.findAll(ApplicationStatus.ACTIVE)).thenThrow(TechnicalException.class);
-        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getClientId()).thenReturn(CLIENT_ID);
-        when(newApplication.getDescription()).thenReturn("My description");
 
         applicationService.create(newApplication, USER_NAME);
     }

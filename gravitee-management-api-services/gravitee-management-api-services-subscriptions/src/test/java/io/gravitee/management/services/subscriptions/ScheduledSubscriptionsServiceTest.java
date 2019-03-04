@@ -15,9 +15,9 @@
  */
 package io.gravitee.management.services.subscriptions;
 
-import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.model.SubscriptionStatus;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.SubscriptionService;
@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -90,7 +90,6 @@ public class ScheduledSubscriptionsServiceTest {
     private SubscriptionEntity createSubscription(String id, SubscriptionStatus status, Date endingDate) {
         SubscriptionEntity subscriptionEntity = mock(SubscriptionEntity.class);
         when(subscriptionEntity.getId()).thenReturn(id);
-        when(subscriptionEntity.getStatus()).thenReturn(status);
         when(subscriptionEntity.getEndingAt()).thenReturn(endingDate);
         return subscriptionEntity;
     }

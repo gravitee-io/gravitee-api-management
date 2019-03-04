@@ -35,7 +35,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -121,7 +121,6 @@ public class ApiService_DeleteTest {
         when(planEntity.getId()).thenReturn(PLAN_ID);
         when(planEntity.getStatus()).thenReturn(PlanStatus.CLOSED);
         when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
 
         apiService.delete(API_ID);
 
@@ -135,7 +134,6 @@ public class ApiService_DeleteTest {
         when(planEntity.getId()).thenReturn(PLAN_ID);
         when(planEntity.getStatus()).thenReturn(PlanStatus.STAGING);
         when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
-        when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
 
         apiService.delete(API_ID);
 

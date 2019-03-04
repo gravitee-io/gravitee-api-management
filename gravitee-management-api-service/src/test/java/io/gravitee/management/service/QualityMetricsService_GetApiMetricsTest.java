@@ -28,14 +28,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyListOf;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -61,8 +61,6 @@ public class QualityMetricsService_GetApiMetricsTest {
     @Mock
     ApiQualityMetricViews apiQualityMetricViews;
 
-    private static final String API_ID = "123";
-
     @Before
     public void setup() {
         when(apiQualityMetricLoader.getApiQualityMetrics()).thenReturn(Arrays.asList(apiQualityMetricLogo, apiQualityMetricViews));
@@ -74,7 +72,6 @@ public class QualityMetricsService_GetApiMetricsTest {
     public void shouldThrowExceptionIfDisabled() {
         when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED)).thenReturn(Boolean.FALSE);
         ApiEntity api = mock(ApiEntity.class);
-        when(api.getId()).thenReturn(API_ID);
 
         srv.getMetrics(api);
 
@@ -84,9 +81,8 @@ public class QualityMetricsService_GetApiMetricsTest {
     @Test
     public void shouldReturnEmptyEntityWithoutConfiguration() {
         when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED)).thenReturn(Boolean.TRUE);
-        when(parameterService.findAll(anyListOf(Key.class), any())).thenReturn(Collections.emptyMap());
+        when(parameterService.findAll(anyList(), any())).thenReturn(Collections.emptyMap());
         ApiEntity api = mock(ApiEntity.class);
-        when(api.getId()).thenReturn(API_ID);
 
         ApiQualityMetricsEntity metrics = srv.getMetrics(api);
 
@@ -100,9 +96,8 @@ public class QualityMetricsService_GetApiMetricsTest {
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
         map.put(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key(), singletonList(1));
-        when(parameterService.findAll(anyListOf(Key.class), any())).thenReturn(map);
+        when(parameterService.findAll(anyList(), any())).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
-        when(api.getId()).thenReturn(API_ID);
         when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
         when(apiQualityMetricViews.isValid(any())).thenReturn(Boolean.FALSE);
 
@@ -120,9 +115,8 @@ public class QualityMetricsService_GetApiMetricsTest {
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
         map.put(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key(), singletonList(1));
-        when(parameterService.findAll(anyListOf(Key.class), any())).thenReturn(map);
+        when(parameterService.findAll(anyList(), any())).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
-        when(api.getId()).thenReturn(API_ID);
         when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
         when(apiQualityMetricViews.isValid(any())).thenReturn(Boolean.TRUE);
 
@@ -140,9 +134,8 @@ public class QualityMetricsService_GetApiMetricsTest {
         Map<String, List<Object>> map = new HashMap<>();
         map.put(Key.API_QUALITY_METRICS_LOGO_WEIGHT.key(), singletonList(1));
         map.put(Key.API_QUALITY_METRICS_VIEWS_WEIGHT.key(), singletonList(2));
-        when(parameterService.findAll(anyListOf(Key.class), any())).thenReturn(map);
+        when(parameterService.findAll(anyList(), any())).thenReturn(map);
         ApiEntity api = mock(ApiEntity.class);
-        when(api.getId()).thenReturn(API_ID);
         when(apiQualityMetricLogo.isValid(any())).thenReturn(Boolean.TRUE);
         when(apiQualityMetricViews.isValid(any())).thenReturn(Boolean.FALSE);
 

@@ -29,7 +29,7 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.StandardEnvironment;
 
@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static io.gravitee.management.model.alert.AlertReferenceType.API;
 import static io.gravitee.management.model.alert.AlertType.HEALTH_CHECK;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -69,7 +69,6 @@ public class AlertTriggerServiceTest {
     public void init() {
         setField(alertTriggerService, "alertEnabled", true);
         setField(alertTriggerService, "subject", "[Gravitee.io] %s");
-        when(api.getId()).thenReturn("123");
         when(api.getPrimaryOwner()).thenReturn(primaryOwner);
         when(primaryOwner.getEmail()).thenReturn("test@email.com");
         when(alert.getId()).thenReturn("alert-id");
@@ -84,13 +83,7 @@ public class AlertTriggerServiceTest {
     public void shouldTriggerAlert() {
         alertTriggerService.trigger(alert);
 
-        verify(alertEngineService).send(argThat(new ArgumentMatcher<Trigger>() {
-            @Override
-            public boolean matches(Object argument) {
-                final Trigger trigger = (Trigger) argument;
-                return ".type == \"HEALTH_CHECK\" and .props.API == \"123\"".equals(trigger.getCondition());
-            }
-        }));
+        verify(alertEngineService).send(argThat((ArgumentMatcher<Trigger>) trigger -> ".type == \"HEALTH_CHECK\" and .props.API == \"123\"".equals(trigger.getCondition())));
     }
 
     @Test
@@ -112,13 +105,7 @@ public class AlertTriggerServiceTest {
         alertTriggerService.trigger(alert);
         alertTriggerService.disable(alert);
 
-        verify(alertEngineService).send(argThat(new ArgumentMatcher<Trigger>() {
-            @Override
-            public boolean matches(Object argument) {
-                final Trigger trigger = (Trigger) argument;
-                return alert.getId().equals(trigger.getId()) && trigger.getEnabled() != null && !trigger.getEnabled();
-            }
-        }));
+        verify(alertEngineService).send(argThat((ArgumentMatcher<Trigger>) trigger -> alert.getId().equals(trigger.getId()) && trigger.getEnabled() != null && !trigger.getEnabled()));
     }
 
     @Test

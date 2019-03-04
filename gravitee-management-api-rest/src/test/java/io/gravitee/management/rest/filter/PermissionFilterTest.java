@@ -42,7 +42,7 @@ import javax.ws.rs.core.UriInfo;
 import java.security.Principal;
 import java.util.Collections;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 

@@ -33,10 +33,9 @@ import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.management.model.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.util.StringUtils;
 
@@ -46,8 +45,8 @@ import static io.gravitee.management.service.common.JWTHelper.ACTION.USER_REGIST
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -161,7 +160,6 @@ public class UserServiceTest {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(io.gravitee.management.model.permissions.RoleScope.PORTAL);
         when(role.getName()).thenReturn("USER");
-        when(roleService.findDefaultRoleByScopes(RoleScope.MANAGEMENT, RoleScope.PORTAL)).thenReturn(Collections.singletonList(role));
         when(membershipService.getRole(
                 MembershipReferenceType.PORTAL,
                 MembershipDefaultReferenceId.DEFAULT.name(),
@@ -170,19 +168,14 @@ public class UserServiceTest {
 
         final UserEntity createdUserEntity = userService.create(newUser, false);
 
-        verify(userRepository).create(argThat(new ArgumentMatcher<User>() {
-            public boolean matches(final Object argument) {
-                final User userToCreate = (User) argument;
-                return USER_NAME.equals(userToCreate.getSourceId()) &&
-                    USER_SOURCE.equals(userToCreate.getSource()) &&
-                    EMAIL.equals(userToCreate.getEmail()) &&
-                    FIRST_NAME.equals(userToCreate.getFirstname()) &&
-                    LAST_NAME.equals(userToCreate.getLastname()) &&
-                    userToCreate.getCreatedAt() != null &&
-                    userToCreate.getUpdatedAt() != null &&
-                    userToCreate.getCreatedAt().equals(userToCreate.getUpdatedAt());
-            }
-        }));
+        verify(userRepository).create(argThat(userToCreate -> USER_NAME.equals(userToCreate.getSourceId()) &&
+            USER_SOURCE.equals(userToCreate.getSource()) &&
+            EMAIL.equals(userToCreate.getEmail()) &&
+            FIRST_NAME.equals(userToCreate.getFirstname()) &&
+            LAST_NAME.equals(userToCreate.getLastname()) &&
+            userToCreate.getCreatedAt() != null &&
+            userToCreate.getUpdatedAt() != null &&
+            userToCreate.getCreatedAt().equals(userToCreate.getUpdatedAt())));
 
         assertEquals(USER_NAME, createdUserEntity.getId());
         assertEquals(FIRST_NAME, createdUserEntity.getFirstname());
@@ -196,8 +189,7 @@ public class UserServiceTest {
 
     @Test(expected = UserAlreadyExistsException.class)
     public void shouldNotCreateBecauseExists() throws TechnicalException {
-//        when(newUser.getUsername()).thenReturn(USER_NAME);
-        when(userRepository.findBySource(anyString(), anyString())).thenReturn(of(new User()));
+        when(userRepository.findBySource(nullable(String.class), nullable(String.class))).thenReturn(of(new User()));
 
         userService.create(newUser, false);
 
@@ -206,8 +198,6 @@ public class UserServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateBecauseTechnicalException() throws TechnicalException {
-//        when(newUser.getUsername()).thenReturn(USER_NAME);
-        when(userRepository.findBySource(anyString(), anyString())).thenReturn(Optional.empty());
         when(userRepository.create(any(User.class))).thenThrow(TechnicalException.class);
 
         userService.create(newUser, false);
@@ -271,8 +261,6 @@ public class UserServiceTest {
     public void createNewRegistrationUserThatIsNotCreatedYet() throws TechnicalException {
         when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
-        when(userRepository.findBySource(USER_SOURCE, USER_NAME)).thenReturn(Optional.empty());
-        when(userRepository.create(any(User.class))).thenReturn(user);
 
         RegisterUserEntity userEntity = new RegisterUserEntity();
         userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));
@@ -301,21 +289,15 @@ public class UserServiceTest {
 
         userService.create(userEntity);
 
-        verify(userRepository).update(argThat(new ArgumentMatcher<User>() {
-            public boolean matches(final Object argument) {
-                final User userToCreate = (User) argument;
-                return "CUSTOM_LONG_ID".equals(userToCreate.getId()) &&
-                        EMAIL.equals(userToCreate.getEmail()) &&
-                        FIRST_NAME.equals(userToCreate.getFirstname()) &&
-                        LAST_NAME.equals(userToCreate.getLastname()) &&
-                        !StringUtils.isEmpty(userToCreate.getPassword());
-            }
-        }));
+        verify(userRepository).update(argThat(userToCreate -> "CUSTOM_LONG_ID".equals(userToCreate.getId()) &&
+                EMAIL.equals(userToCreate.getEmail()) &&
+                FIRST_NAME.equals(userToCreate.getFirstname()) &&
+                LAST_NAME.equals(userToCreate.getLastname()) &&
+                !StringUtils.isEmpty(userToCreate.getPassword())));
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldValidateJWTokenAndFail() throws TechnicalException {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
 
         RegisterUserEntity userEntity = new RegisterUserEntity();
@@ -348,7 +330,6 @@ public class UserServiceTest {
 
     @Test(expected = UserNotInternallyManagedException.class)
     public void shouldNotResetPasswordCauseUserNotInternallyManaged() throws TechnicalException {
-        when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("external");
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 

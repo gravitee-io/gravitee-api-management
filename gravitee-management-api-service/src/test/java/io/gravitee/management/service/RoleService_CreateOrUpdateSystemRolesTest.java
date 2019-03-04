@@ -22,16 +22,15 @@ import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleScope;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -92,23 +91,13 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
         roleService.createOrUpdateSystemRoles();
 
         verify(mockRoleRepository, times(5)).findById(any(), anyString());
-        verify(mockRoleRepository, times(1)).update(argThat(new ArgumentMatcher<Role>() {
-            @Override
-            public boolean matches(Object o) {
-                return ((Role) o).getScope().equals(RoleScope.MANAGEMENT) &&
-                        Arrays.stream(((Role) o).getPermissions()).reduce(Math::addExact).orElse(0)
-                                == Arrays.stream(mgmtAdminPermissions).reduce(Math::addExact).orElse(0);
-            }
-        }));
-        verify(mockRoleRepository, times(4)).create(argThat(new ArgumentMatcher<Role>() {
-            @Override
-            public boolean matches(Object o) {
-                return ((Role) o).getScope().equals(RoleScope.API)
-                        || ((Role) o).getScope().equals(RoleScope.APPLICATION)
-                        || ((Role) o).getScope().equals(RoleScope.PORTAL)
-                        || ((Role) o).getScope().equals(RoleScope.GROUP);
-            }
-        }));
+        verify(mockRoleRepository, times(1)).update(argThat(o -> o.getScope().equals(RoleScope.MANAGEMENT) &&
+                Arrays.stream(o.getPermissions()).reduce(Math::addExact).orElse(0)
+                        == Arrays.stream(mgmtAdminPermissions).reduce(Math::addExact).orElse(0)));
+        verify(mockRoleRepository, times(4)).create(argThat(o -> o.getScope().equals(RoleScope.API)
+                || o.getScope().equals(RoleScope.APPLICATION)
+                || o.getScope().equals(RoleScope.PORTAL)
+                || o.getScope().equals(RoleScope.GROUP)));
     }
 
     @Test
@@ -126,14 +115,9 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
         verify(mockRoleRepository, times(5)).findById(any(), anyString());
         verify(mockRoleRepository, never()).update(any());
-        verify(mockRoleRepository, times(4)).create(argThat(new ArgumentMatcher<Role>() {
-            @Override
-            public boolean matches(Object o) {
-                return ((Role) o).getScope().equals(RoleScope.API)
-                        || ((Role) o).getScope().equals(RoleScope.APPLICATION)
-                        || ((Role) o).getScope().equals(RoleScope.PORTAL)
-                        || ((Role) o).getScope().equals(RoleScope.GROUP);
-            }
-        }));
+        verify(mockRoleRepository, times(4)).create(argThat(o -> o.getScope().equals(RoleScope.API)
+                || o.getScope().equals(RoleScope.APPLICATION)
+                || o.getScope().equals(RoleScope.PORTAL)
+                || o.getScope().equals(RoleScope.GROUP)));
     }
 }

@@ -15,9 +15,9 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.impl.GroupServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,7 +36,7 @@ import java.util.HashSet;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -80,11 +80,8 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         verify(groupRepository, never()).findAll();
     }
 
-
     @Test
     public void shouldBeAuthorizedForPublicApiWithoutRestriction() throws TechnicalException {
-        when(api.getVisibility()).thenReturn(Visibility.PUBLIC);
-
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, Collections.emptyList(), "user");
 
         assertTrue(userAuthorizedToAccess);
@@ -106,9 +103,6 @@ public class GroupService_IsUserAuthorizedToAccessTest {
 
     @Test
     public void shouldBeAuthorizedForPrivateApiWithoutExcludedGroups() throws TechnicalException {
-        when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
-        when(api.getGroups()).thenReturn(Collections.singleton("grp1"));
-
         boolean userAuthorizedToAccess = groupService.isUserAuthorizedToAccessApiData(api, null, "user");
 
         assertTrue(userAuthorizedToAccess);
@@ -118,9 +112,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
 
     @Test
     public void shouldBeAuthorizedForPrivateApiWithDirectMember() throws TechnicalException {
-        when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(api.getId()).thenReturn("apiId");
-        when(api.getGroups()).thenReturn(Collections.singleton("grp1"));
         when(membershipService.getMember(
                 MembershipReferenceType.API,
                 api.getId(),
@@ -222,7 +214,6 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         grp1.setId("grp1");
         grp2.setId("grp2");
         when(groupRepository.findAll()).thenReturn(new HashSet<>(Arrays.asList(grp1, grp2)));
-        when(api.getGroups()).thenReturn(new HashSet<>(Arrays.asList("grp1", "grp2")));
         when(membershipService.getMember(
                 MembershipReferenceType.API,
                 api.getId(),

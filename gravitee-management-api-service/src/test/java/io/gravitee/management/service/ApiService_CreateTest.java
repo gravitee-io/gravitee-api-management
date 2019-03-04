@@ -20,7 +20,6 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.NewApiEntity;
-import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -29,13 +28,15 @@ import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -43,7 +44,7 @@ import java.util.Optional;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
@@ -184,14 +185,6 @@ public class ApiService_CreateTest {
 
         when(newApi.getContextPath()).thenReturn(contextPathToCreate);
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
-        Membership po = new Membership("admin", API_ID, MembershipReferenceType.API);
-        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferencesAndRole(
-                MembershipReferenceType.API,
-                Collections.singletonList(API_ID),
-                RoleScope.API,
-                SystemRole.PRIMARY_OWNER.name()))
-                .thenReturn(Collections.singleton(po));
 
         apiService.create(newApi, USER_NAME);
     }

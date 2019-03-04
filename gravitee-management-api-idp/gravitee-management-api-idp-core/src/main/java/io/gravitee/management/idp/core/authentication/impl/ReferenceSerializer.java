@@ -29,7 +29,6 @@ import org.springframework.context.ApplicationContextAware;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.lang.reflect.Field;
 import java.util.Base64;
 
 /**
@@ -44,6 +43,13 @@ public class ReferenceSerializer implements ApplicationContextAware {
 
     private SecretKey secretKey;
 
+    /*
+    Per JDK-8170157, the unlimited cryptographic policy is now enabled by default.
+
+    Specific versions from the JIRA issue:
+    * Java 9: Any official release!
+    * Java 8u161 or later
+
     //this code allows to break limit if client jdk/jre has no unlimited policy files for JCE.
     //it should be run once. So this static section is always execute during the class loading process.
     //this code is useful when working with Bouncycastle library.
@@ -55,6 +61,7 @@ public class ReferenceSerializer implements ApplicationContextAware {
         } catch (Exception ex) {
         }
     }
+    */
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {

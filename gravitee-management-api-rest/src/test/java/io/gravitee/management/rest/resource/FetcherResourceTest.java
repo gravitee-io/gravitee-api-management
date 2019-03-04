@@ -17,7 +17,6 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.model.FetcherEntity;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -25,10 +24,8 @@ import javax.ws.rs.core.Response;
 import java.util.LinkedHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com) 

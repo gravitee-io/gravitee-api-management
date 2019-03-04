@@ -16,7 +16,6 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.PageEntity;
-import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.quality.ApiQualityMetricTechnicalDocumentation;
@@ -24,13 +23,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -51,8 +50,6 @@ public class ApiQualityMetricTechnicalDocumentationTest {
     @Test
     public void shouldBeValidWithSwaggerPublished() {
         PageEntity item = mock(PageEntity.class);
-        when(item.isPublished()).thenReturn(Boolean.TRUE);
-        when(item.getType()).thenReturn(PageType.SWAGGER.name());
         when(mockPageService.search(any())).thenReturn(Collections.singletonList(item));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);

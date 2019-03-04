@@ -16,7 +16,6 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.UpdateViewEntity;
-import io.gravitee.management.model.ViewEntity;
 import io.gravitee.management.service.impl.ViewServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ViewRepository;
@@ -25,17 +24,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.List;
 import java.util.Optional;
 
 import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_DELETED;
 import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_UPDATED;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -60,7 +55,6 @@ public class ViewService_DeleteTest {
     @Test
     public void shouldNotDeleteUnknownView() throws TechnicalException {
         UpdateViewEntity mockView = mock(UpdateViewEntity.class);
-        when(mockView.getId()).thenReturn("unknown");
         when(mockViewRepository.findById("unknown")).thenReturn(Optional.empty());
 
         viewService.delete("unknown");
@@ -74,7 +68,6 @@ public class ViewService_DeleteTest {
     @Test
     public void shouldDeleteView() throws TechnicalException {
         UpdateViewEntity mockView = mock(UpdateViewEntity.class);
-        when(mockView.getId()).thenReturn("known");
         when(mockViewRepository.findById("known")).thenReturn(Optional.of(new View()));
 
         viewService.delete("known");

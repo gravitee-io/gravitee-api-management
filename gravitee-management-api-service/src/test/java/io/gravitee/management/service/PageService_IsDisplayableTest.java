@@ -15,9 +15,9 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.impl.PageServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.MembershipReferenceType;
@@ -26,13 +26,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -49,7 +49,6 @@ public class PageService_IsDisplayableTest {
 
     @Mock
     private MembershipService membershipServiceMock;
-
 
     /**
      * *************************

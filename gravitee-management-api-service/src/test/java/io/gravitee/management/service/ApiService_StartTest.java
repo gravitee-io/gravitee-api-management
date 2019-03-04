@@ -21,10 +21,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.EventEntity;
+import io.gravitee.management.model.EventQuery;
 import io.gravitee.management.model.EventType;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.mixin.ApiMixin;
-import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
@@ -33,20 +34,22 @@ import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.LifecycleState;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 
 import static io.gravitee.management.model.EventType.PUBLISH_API;
 import static java.util.Collections.singleton;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -90,7 +93,6 @@ public class ApiService_StartTest {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         UserEntity u = mock(UserEntity.class);
-        when(u.getId()).thenReturn(USER_NAME);
         when(userService.findById(any())).thenReturn(u);
     }
 
@@ -104,10 +106,6 @@ public class ApiService_StartTest {
         query.setApi(API_ID);
         query.setTypes(singleton(PUBLISH_API));
         when(eventService.search(query)).thenReturn(singleton(event));
-        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
-        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
-                .thenReturn(singleton(po));
 
         apiService.start(API_ID, USER_NAME);
 

@@ -17,17 +17,17 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.permissions.RolePermissionAction;
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.management.service.impl.RoleServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleScope;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Optional;

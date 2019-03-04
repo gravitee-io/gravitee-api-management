@@ -17,28 +17,23 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.permissions.SystemRole;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -111,8 +106,6 @@ public class ApplicationService_FindByUserTest {
     public void shouldNotFindByUserBecauseOfArchived() throws Exception {
         when(appMembership.getReferenceId()).
                 thenReturn(APPLICATION_ID);
-        when(application.getId()).
-                thenReturn(APPLICATION_ID);
         when(application.getStatus()).
                 thenReturn(ApplicationStatus.ARCHIVED);
         when(membershipRepository.findByUserAndReferenceType(USERNAME, MembershipReferenceType.APPLICATION)).
@@ -123,11 +116,6 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(Collections.emptySet());
         when(applicationRepository.findByGroups(Collections.emptyList(), ApplicationStatus.ACTIVE)).
                 thenReturn(Collections.emptySet());
-        Membership po = new Membership(USERNAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
-        po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferencesAndRole(any(), any(), eq(RoleScope.APPLICATION), any()))
-                .thenReturn(Collections.singleton(po));
-//        when(userService.findByUsername(USERNAME, false)).thenReturn(new UserEntity());
 
         Set<ApplicationEntity> apps = applicationService.findByUser(USERNAME);
 

@@ -22,20 +22,18 @@ import io.gravitee.management.service.impl.PageServiceImpl;
 import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
-import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 /**
@@ -74,13 +72,8 @@ public class PageService_UpdateTest {
 
         pageService.update(PAGE_ID, existingPage);
 
-        verify(pageRepository).update(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToUpdate = (Page) argument;
-                return PAGE_ID.equals(pageToUpdate.getId()) &&
-                    pageToUpdate.getUpdatedAt() != null;
-            }
-        }));
+        verify(pageRepository).update(argThat(pageToUpdate -> PAGE_ID.equals(pageToUpdate.getId()) &&
+            pageToUpdate.getUpdatedAt() != null));
     }
 
     @Test
@@ -102,13 +95,7 @@ public class PageService_UpdateTest {
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(pageOrder1));
 
-        when(pageRepository.search(argThat(new ArgumentMatcher<PageCriteria>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof PageCriteria && ((PageCriteria) o).getApi().equals(API_ID));
-            }
-
-        }))).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
+        when(pageRepository.search(argThat(o -> o == null || o.getApi().equals(API_ID)))).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
         when(pageRepository.update(any(Page.class))).thenReturn(pageOrder1);
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
@@ -116,21 +103,17 @@ public class PageService_UpdateTest {
 
         pageService.update(PAGE_ID, updatePageEntity);
 
-        verify(pageRepository, times(3)).update(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToUpdate = (Page) argument;
-
-                if (PAGE_ID.equals(pageToUpdate.getId())) {
-                    return pageToUpdate.getOrder() == 2;
-                }
-                if ("2".equals(pageToUpdate.getId())) {
-                    return pageToUpdate.getOrder() == 1;
-                }
-                if ("3".equals(pageToUpdate.getId())) {
-                    return pageToUpdate.getOrder() == 3;
-                }
-                return false;
+        verify(pageRepository, times(3)).update(argThat(pageToUpdate -> {
+            if (PAGE_ID.equals(pageToUpdate.getId())) {
+                return pageToUpdate.getOrder() == 2;
             }
+            if ("2".equals(pageToUpdate.getId())) {
+                return pageToUpdate.getOrder() == 1;
+            }
+            if ("3".equals(pageToUpdate.getId())) {
+                return pageToUpdate.getOrder() == 3;
+            }
+            return false;
         }));
     }
 
@@ -153,13 +136,7 @@ public class PageService_UpdateTest {
 
         when(pageRepository.findById("3")).thenReturn(Optional.of(pageOrder3));
 
-        when(pageRepository.search(argThat(new ArgumentMatcher<PageCriteria>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof PageCriteria && ((PageCriteria) o).getApi().equals(API_ID));
-            }
-
-        }))).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
+        when(pageRepository.search(argThat(o -> o == null || o.getApi().equals(API_ID)))).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
         when(pageRepository.update(any(Page.class))).thenReturn(pageOrder1);
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
@@ -167,21 +144,17 @@ public class PageService_UpdateTest {
 
         pageService.update("3", updatePageEntity);
 
-        verify(pageRepository, times(3)).update(argThat(new ArgumentMatcher<Page>() {
-            public boolean matches(Object argument) {
-                final Page pageToUpdate = (Page) argument;
-
-                if (PAGE_ID.equals(pageToUpdate.getId())) {
-                    return pageToUpdate.getOrder() == 2;
-                }
-                if ("2".equals(pageToUpdate.getId())) {
-                    return pageToUpdate.getOrder() == 3;
-                }
-                if ("3".equals(pageToUpdate.getId())) {
-                    return pageToUpdate.getOrder() == 1;
-                }
-                return false;
+        verify(pageRepository, times(3)).update(argThat(pageToUpdate -> {
+            if (PAGE_ID.equals(pageToUpdate.getId())) {
+                return pageToUpdate.getOrder() == 2;
             }
+            if ("2".equals(pageToUpdate.getId())) {
+                return pageToUpdate.getOrder() == 3;
+            }
+            if ("3".equals(pageToUpdate.getId())) {
+                return pageToUpdate.getOrder() == 1;
+            }
+            return false;
         }));
     }
 

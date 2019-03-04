@@ -15,41 +15,24 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.idp.api.authentication.UserDetails;
-import io.gravitee.management.model.*;
-import io.gravitee.management.service.exceptions.*;
-import io.gravitee.management.service.impl.SubscriptionServiceImpl;
+import io.gravitee.management.model.RoleEntity;
+import io.gravitee.management.model.TaskEntity;
 import io.gravitee.management.service.impl.TaskServiceImpl;
-import io.gravitee.management.service.notification.ApiHook;
-import io.gravitee.management.service.notification.ApplicationHook;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.api.SubscriptionRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.repository.management.model.Subscription;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
