@@ -120,7 +120,7 @@ public class HttpClient implements Client {
                         this.configuration.getPassword());
             }
 
-            ((WebClientInternal) this.httpClient.getDelegate()).addInterceptor(new Handler<HttpContext>() {
+            ((WebClientInternal) this.httpClient.getDelegate()).addInterceptor(new Handler<HttpContext<?>>() {
                 @Override
                 public void handle(HttpContext context) {
                     context.request()
