@@ -17,7 +17,6 @@ package io.gravitee.repository.mongodb;
 
 import com.mongodb.MongoClient;
 import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -32,8 +31,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
     @Bean
-    public MongodForTestsFactory factory() throws Exception {
-            return MongodForTestsFactory.with(Version.Main.DEVELOPMENT);
+    public MongoTestFactory factory() throws Exception {
+        return MongoTestFactory.with(Version.Main.V3_6);
     }
 
     @Override
