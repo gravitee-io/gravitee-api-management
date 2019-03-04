@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee</groupId>
 		<artifactId>gravitee-parent</artifactId>
-		<version>14</version>
+		<version>15</version>
 	</parent>
 
 	<groupId>io.gravitee.reporter</groupId>
@@ -107,7 +107,7 @@
 		</dependency>
 		<dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
+            <artifactId>mockito-core</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
