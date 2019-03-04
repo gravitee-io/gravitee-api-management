@@ -19,7 +19,6 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Subscription;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Collections;
 import java.util.Date;
@@ -94,12 +93,7 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
         when(subscriptionRepository.findById("sub2")).thenReturn(empty());
         when(subscriptionRepository.update(sub1)).thenReturn(sub1);
 
-        when(subscriptionRepository.update(argThat(new ArgumentMatcher<Subscription>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Subscription && ((Subscription) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(subscriptionRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()

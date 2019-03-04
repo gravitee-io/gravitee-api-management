@@ -16,14 +16,8 @@
 package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.RoleRepository;
-import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.repository.management.model.View;
-import org.mockito.ArgumentMatcher;
-
-import java.util.Date;
-import java.util.Set;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -84,11 +78,6 @@ public class RoleRepositoryMock extends AbstractRepositoryMock<RoleRepository> {
         when(roleRepository.findByScope(RoleScope.PORTAL)).thenReturn(newSet(findByScope1, findByScope2));
         when(roleRepository.update(any())).thenReturn(toUpdate);
 
-        when(roleRepository.update(argThat(new ArgumentMatcher<Role>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Role && ((Role) o).getName().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(roleRepository.update(argThat(o -> o == null || o.getName().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 }

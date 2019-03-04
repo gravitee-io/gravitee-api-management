@@ -16,11 +16,9 @@
 package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.PageRepository;
-import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.repository.management.model.PageType;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Collections;
 import java.util.Date;
@@ -84,12 +82,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(findApiPage.getUpdatedAt()).thenReturn(new Date(1486771200000L));
 
         // shouldFindApiPageByApiId
-        when(pageRepository.search(argThat(new ArgumentMatcher<PageCriteria>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof PageCriteria && ((PageCriteria) o).getApi().equals("my-api"));
-            }
-        }))).thenReturn(singletonList(findApiPage));
+        when(pageRepository.search(argThat(o -> o == null || o.getApi().equals("my-api")))).thenReturn(singletonList(findApiPage));
 
         // shouldFindApiPageById
         when(pageRepository.findById("FindApiPage")).thenReturn(of(findApiPage));
@@ -185,12 +178,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(updatePageAfter.getMetadata()).thenReturn(metadata);
         when(pageRepository.findById("updatePage")).thenReturn(of(updatePageBefore), of(updatePageAfter));
 
-        when(pageRepository.update(argThat(new ArgumentMatcher<Page>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Page && ((Page) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(pageRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         // should Update Page folder
         Page updatePageFolderBefore = mock(Page.class);
@@ -208,52 +196,17 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         //Find api pages
         final Page homepage = mock(Page.class);
         when(homepage.getId()).thenReturn("home");
-        when(pageRepository.search(argThat(new ArgumentMatcher<PageCriteria>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof PageCriteria &&
-                        ((PageCriteria) o).getApi().equals("my-api-2")
-                        && ((PageCriteria) o).getHomepage().equals(Boolean.TRUE)
-                );
-            }
-        }))).thenReturn(singletonList(homepage));
-        when(pageRepository.search(argThat(new ArgumentMatcher<PageCriteria>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof PageCriteria &&
-                        ((PageCriteria) o).getApi().equals("my-api-2")
-                        && ((PageCriteria) o).getHomepage().equals(Boolean.FALSE)
-                );
-            }
-        }))).thenReturn(asList(mock(Page.class), mock(Page.class)));
+        when(pageRepository.search(argThat(o -> o == null || o.getApi().equals("my-api-2") && o.getHomepage().equals(Boolean.TRUE)))).thenReturn(singletonList(homepage));
+        when(pageRepository.search(argThat(o -> o == null || o.getApi().equals("my-api-2") && o.getHomepage().equals(Boolean.FALSE)))).thenReturn(asList(mock(Page.class), mock(Page.class)));
 
         //Find portal pages
         final Page portalHomepage = mock(Page.class);
         when(portalHomepage.getId()).thenReturn("FindPortalPage-homepage");
         final Page portalNotHomepage = mock(Page.class);
         when(portalNotHomepage.getId()).thenReturn("FindPortalPage-nothomepage");
-        when(pageRepository.search(argThat(new ArgumentMatcher<PageCriteria>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof PageCriteria && ((PageCriteria) o).getApi() == null);
-            }
-        }))).thenReturn(asList(portalHomepage, portalNotHomepage));
-        when(pageRepository.search(argThat(new ArgumentMatcher<PageCriteria>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof PageCriteria && ((PageCriteria) o).getApi() == null)
-                        && ((PageCriteria) o).getHomepage()!= null
-                        && ((PageCriteria) o).getHomepage().equals(Boolean.TRUE);
-            }
-        }))).thenReturn(singletonList(portalHomepage));
-        when(pageRepository.search(argThat(new ArgumentMatcher<PageCriteria>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof PageCriteria && ((PageCriteria) o).getApi() == null)
-                        && ((PageCriteria) o).getHomepage()!= null
-                        && ((PageCriteria) o).getHomepage().equals(Boolean.FALSE);
-            }
-        }))).thenReturn(singletonList(portalNotHomepage));
+        when(pageRepository.search(argThat(o -> o == null || o.getApi() == null))).thenReturn(asList(portalHomepage, portalNotHomepage));
+        when(pageRepository.search(argThat(o -> o == null || o.getApi() == null && o.getHomepage() != null && o.getHomepage().equals(Boolean.TRUE)))).thenReturn(singletonList(portalHomepage));
+        when(pageRepository.search(argThat(o -> o == null || o.getApi() == null && o.getHomepage() != null && o.getHomepage().equals(Boolean.FALSE)))).thenReturn(singletonList(portalNotHomepage));
 
         // Find max api page order
         when(pageRepository.findMaxApiPageOrderByApiId("my-api-2")).thenReturn(2);

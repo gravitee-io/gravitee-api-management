@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>14</version>
+        <version>15</version>
     </parent>
 
     <groupId>io.gravitee.repository</groupId>
@@ -37,7 +37,6 @@
         <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
         <javax.inject.version>1</javax.inject.version>
         <junit.version>4.12</junit.version>
-        <mockito.version>1.10.19</mockito.version>
     </properties>
 
     <dependencies>
@@ -64,7 +63,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -76,8 +74,7 @@
 
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${mockito.version}</version>
+            <artifactId>mockito-core</artifactId>
         </dependency>
 
         <dependency>
@@ -98,6 +95,17 @@
             <version>${spring.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.1.2</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -17,7 +17,6 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.InvitationRepository;
 import io.gravitee.repository.management.model.Invitation;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Date;
 import java.util.Set;
@@ -91,15 +90,9 @@ public class InvitationRepositoryMock extends AbstractRepositoryMock<InvitationR
         when(invitationRepository.create(any(Invitation.class))).thenReturn(invitation);
 
         when(invitationRepository.findById("new-invitation")).thenReturn(of(invitation));
-//        when(invitationRepository.findById("health-check")).thenReturn(of(invitation2));
         when(invitationRepository.findById("e6d5e6d0-17e9-4606-83c3-cfef8b91d5ce")).thenReturn(of(invitationBeforUpdate), of(invitation2Updated));
 
-        when(invitationRepository.update(argThat(new ArgumentMatcher<Invitation>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Invitation && ((Invitation) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(invitationRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(invitationRepository.findByReference("API", "api-id")).thenReturn(singletonList(invitation));
     }

@@ -17,7 +17,6 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Set;
 
@@ -63,11 +62,6 @@ public class EntrypointRepositoryMock extends AbstractRepositoryMock<EntrypointR
         when(entrypointRepository.findById("new-entrypoint")).thenReturn(of(entrypoint));
         when(entrypointRepository.findById("fa29c012-a0d2-4721-a9c0-12a0d26721db")).thenReturn(of(entrypoint2), of(entrypoint2Updated));
 
-        when(entrypointRepository.update(argThat(new ArgumentMatcher<Entrypoint>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Entrypoint && ((Entrypoint) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(entrypointRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 }

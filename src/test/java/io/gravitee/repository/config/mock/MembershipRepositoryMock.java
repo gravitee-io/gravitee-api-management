@@ -19,7 +19,6 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Collections;
 import java.util.Date;
@@ -91,12 +90,7 @@ public class MembershipRepositoryMock extends AbstractRepositoryMock<MembershipR
         when(membershipRepository.findByUser("user_findByIds")).
                 thenReturn(new HashSet<>(asList(api1_findByIds, api2_findByIds)));
 
-        when(membershipRepository.update(argThat(new ArgumentMatcher<Membership>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Membership && ((Membership) o).getReferenceId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(membershipRepository.update(argThat(o -> o == null || o.getReferenceId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(membershipRepository.findByRole(RoleScope.APPLICATION, "USER")).thenReturn(new HashSet<>(asList(mock(Membership.class), mock(Membership.class))));
     }

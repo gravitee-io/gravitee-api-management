@@ -17,7 +17,6 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -84,18 +83,8 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
 
         when(userRepository.findBySource("gravitee", "createuser1")).thenReturn(of(user));
 
-        when(userRepository.update(argThat(new ArgumentMatcher<User>() {
-            @Override
-            public boolean matches(Object o) {
-                return o instanceof User && "id2update".equals(((User) o).getId());
-            }
-        }))).thenReturn(userUpdated);
-        when(userRepository.update(argThat(new ArgumentMatcher<User>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof User && "unknown".equals(((User) o).getId()));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(userRepository.update(argThat(o -> o != null && "id2update".equals(o.getId())))).thenReturn(userUpdated);
+        when(userRepository.update(argThat(o -> o == null || "unknown".equals(o.getId())))).thenThrow(new IllegalStateException());
 
         when(userRepository.findBySource("gravitee", "user1")).thenReturn(of(user1));
         when(userRepository.findById("user1")).thenReturn(of(user1));

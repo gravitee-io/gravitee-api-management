@@ -21,7 +21,6 @@ import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.GroupEventRule;
 import io.gravitee.repository.management.model.RoleScope;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -89,30 +88,15 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
         when(groupRepository.findById("group-application-1")).thenReturn(of(group_application_1));
         when(groupRepository.findById("unknown")).thenReturn(empty());
         when(groupRepository.findById("group-api-to-delete")).thenReturn(empty());
-        when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
-            @Override
-            public boolean matches(Object o) {
-                return o != null && o instanceof Group && ((Group) o).getId().equals("unknown");
-            }
-        }))).thenThrow(new TechnicalException());
+        when(groupRepository.update(argThat(o -> o != null && o.getId().equals("unknown")))).thenThrow(new TechnicalException());
 
-        when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
-            @Override
-            public boolean matches(Object o) {
-                return o != null && o instanceof Group && ((Group) o).getId().equals("group-application-1");
-            }
-        }))).thenReturn(group_updated);
+        when(groupRepository.update(argThat(o -> o != null && o.getId().equals("group-application-1")))).thenReturn(group_updated);
 
         when(groupRepository.findByIds(new HashSet<>(asList("group-application-1", "group-api-to-delete", "unknown")))).
                 thenReturn(new HashSet<>(asList(group_application_1, group_api_to_delete)));
         when(groupRepository.findByIds(emptySet())).
                 thenReturn(emptySet());
 
-        when(groupRepository.update(argThat(new ArgumentMatcher<Group>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Group && ((Group) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(groupRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 }

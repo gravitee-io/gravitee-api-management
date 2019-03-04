@@ -22,7 +22,6 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import org.mockito.ArgumentMatcher;
 import org.mockito.internal.util.collections.Sets;
 
 import java.util.List;
@@ -112,12 +111,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiRepository.search(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build())).
                 thenReturn(asList(apiToUpdate, apiToDelete));
 
-        when(apiRepository.update(argThat(new ArgumentMatcher<Api>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Api && ((Api) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(apiRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build())).thenReturn(singletonList(apiToFindById));
         when(apiRepository.search(new ApiCriteria.Builder().view("my-view").build())).thenReturn(singletonList(apiToFindById));

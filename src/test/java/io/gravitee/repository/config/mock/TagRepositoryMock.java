@@ -17,7 +17,6 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.TagRepository;
 import io.gravitee.repository.management.model.Tag;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Set;
 
@@ -61,11 +60,6 @@ public class TagRepositoryMock extends AbstractRepositoryMock<TagRepository> {
         when(tagRepository.findById("new-tag")).thenReturn(of(tag));
         when(tagRepository.findById("products")).thenReturn(of(tag2), of(tag2Updated));
 
-        when(tagRepository.update(argThat(new ArgumentMatcher<Tag>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Tag && ((Tag) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(tagRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 }

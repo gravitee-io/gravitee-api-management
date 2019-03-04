@@ -16,20 +16,10 @@
 package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.ParameterRepository;
-import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Parameter;
-import io.gravitee.repository.management.model.Plan;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
 
-import static io.gravitee.repository.utils.DateUtils.parse;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
@@ -63,12 +53,7 @@ public class ParameterRepositoryMock extends AbstractRepositoryMock<ParameterRep
         when(parameterRepository.findById("management.oAuth.clientId")).thenReturn(of(parameter2), empty());
         when(parameterRepository.findById("portal.top-apis")).thenReturn(of(parameter2), of(parameter2Updated));
 
-        when(parameterRepository.update(argThat(new ArgumentMatcher<Parameter>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Parameter && ((Parameter) o).getKey().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(parameterRepository.update(argThat(o -> o == null || o.getKey().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(parameterRepository.findAll(any())).thenReturn(Arrays.asList(mock(Parameter.class), mock(Parameter.class)));
     }

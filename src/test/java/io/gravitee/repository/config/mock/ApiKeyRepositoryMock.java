@@ -16,9 +16,7 @@
 package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
-import org.mockito.ArgumentMatcher;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
@@ -54,12 +52,7 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
         when(apiKeyRepository.findById("apiKey")).thenReturn(of(apiKey));
         when(apiKeyRepository.findBySubscription("subscription1")).thenReturn(newSet(apiKey, mock(ApiKey.class)));
 
-        when(apiKeyRepository.update(argThat(new ArgumentMatcher<ApiKey>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof ApiKey && ((ApiKey) o).getKey().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(apiKeyRepository.update(argThat(o -> o == null || o.getKey().equals("unknown")))).thenThrow(new IllegalStateException());
 
         ApiKey mockCriteria1 = mock(ApiKey.class);
         ApiKey mockCriteria1Revoked = mock(ApiKey.class);
@@ -67,23 +60,8 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
         when(mockCriteria1.getKey()).thenReturn("findByCriteria1");
         when(mockCriteria1Revoked.getKey()).thenReturn("findByCriteria1Revoked");
         when(mockCriteria2.getKey()).thenReturn("findByCriteria2");
-        when(apiKeyRepository.findByCriteria(argThat(new ArgumentMatcher<ApiKeyCriteria>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).getFrom() == 0);
-            }
-        }))).thenReturn(asList(mockCriteria1, mockCriteria2));
-        when(apiKeyRepository.findByCriteria(argThat(new ArgumentMatcher<ApiKeyCriteria>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).getTo() == 1486771400000L);
-            }
-        }))).thenReturn(singletonList(mockCriteria1));
-        when(apiKeyRepository.findByCriteria(argThat(new ArgumentMatcher<ApiKeyCriteria>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof ApiKeyCriteria && ((ApiKeyCriteria)o).isIncludeRevoked());
-            }
-        }))).thenReturn(asList(mockCriteria2,mockCriteria1Revoked,mockCriteria1));
+        when(apiKeyRepository.findByCriteria(argThat(o -> o == null || o.getFrom() == 0))).thenReturn(asList(mockCriteria1, mockCriteria2));
+        when(apiKeyRepository.findByCriteria(argThat(o -> o == null || o.getTo() == 1486771400000L))).thenReturn(singletonList(mockCriteria1));
+        when(apiKeyRepository.findByCriteria(argThat(o -> o == null || o.isIncludeRevoked()))).thenReturn(asList(mockCriteria2,mockCriteria1Revoked,mockCriteria1));
     }
 }

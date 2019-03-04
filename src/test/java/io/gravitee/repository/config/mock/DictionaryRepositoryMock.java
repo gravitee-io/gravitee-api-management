@@ -15,23 +15,13 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
-import io.gravitee.repository.management.model.Application;
-import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.DictionaryType;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
-import static io.gravitee.repository.utils.DateUtils.parse;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
@@ -83,11 +73,6 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
         when(dictionaryRepository.findById("unknown")).thenReturn(empty());
         when(dictionaryRepository.findById("dic-1")).thenReturn(of(dic1), of(dictionaryUpdated));
 
-        when(dictionaryRepository.update(argThat(new ArgumentMatcher<Dictionary>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Dictionary && ((Dictionary) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(dictionaryRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 }

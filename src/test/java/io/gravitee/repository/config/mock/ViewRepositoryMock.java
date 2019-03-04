@@ -17,7 +17,6 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.model.View;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Date;
 import java.util.Set;
@@ -83,11 +82,6 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
         when(viewRepository.findById("unknown")).thenReturn(empty());
         when(viewRepository.findById("products")).thenReturn(of(viewProducts), of(viewProductsUpdated));
 
-        when(viewRepository.update(argThat(new ArgumentMatcher<View>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof View && ((View) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(viewRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 }

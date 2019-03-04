@@ -17,7 +17,6 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.AlertRepository;
 import io.gravitee.repository.management.model.Alert;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Date;
 import java.util.Set;
@@ -101,15 +100,9 @@ public class AlertRepositoryMock extends AbstractRepositoryMock<AlertRepository>
         when(alertRepository.create(any(Alert.class))).thenReturn(alert);
 
         when(alertRepository.findById("new-alert")).thenReturn(of(alert));
-//        when(alertRepository.findById("health-check")).thenReturn(of(alert2));
         when(alertRepository.findById("quota80")).thenReturn(of(alertBeforUpdate), of(alert2Updated));
 
-        when(alertRepository.update(argThat(new ArgumentMatcher<Alert>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Alert && ((Alert) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(alertRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(alertRepository.findByReference("API", "api-id")).thenReturn(singletonList(alert));
     }

@@ -16,20 +16,14 @@
 package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.MetadataRepository;
-import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataFormat;
 import io.gravitee.repository.management.model.MetadataReferenceType;
-import io.gravitee.repository.management.model.User;
-import org.mockito.ArgumentMatcher;
 
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
@@ -80,11 +74,6 @@ public class MetadataRepositoryMock extends AbstractRepositoryMock<MetadataRepos
         when(metadataRepository.findById("new-metadata", "_", MetadataReferenceType.DEFAULT)).thenReturn(of(stringMetadata));
         when(metadataRepository.findById("boolean", "_", MetadataReferenceType.DEFAULT)).thenReturn(of(booleanMetadata), of(metadata2Updated));
 
-        when(metadataRepository.update(argThat(new ArgumentMatcher<Metadata>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Metadata && ((Metadata) o).getKey().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(metadataRepository.update(argThat(o -> o == null || o.getKey().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 }

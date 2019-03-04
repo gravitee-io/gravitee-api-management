@@ -16,15 +16,10 @@
 package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.TenantRepository;
-import io.gravitee.repository.management.api.ViewRepository;
 import io.gravitee.repository.management.model.Tenant;
-import io.gravitee.repository.management.model.View;
-import org.mockito.ArgumentMatcher;
 
-import java.util.Date;
 import java.util.Set;
 
-import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
@@ -65,11 +60,6 @@ public class TenantRepositoryMock extends AbstractRepositoryMock<TenantRepositor
         when(tenantRepository.findById("new-tenant")).thenReturn(of(tenant));
         when(tenantRepository.findById("asia")).thenReturn(of(tenant2), of(tenant2Updated));
 
-        when(tenantRepository.update(argThat(new ArgumentMatcher<Tenant>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Tenant && ((Tenant) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(tenantRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 }

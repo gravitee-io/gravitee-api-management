@@ -18,9 +18,11 @@ package io.gravitee.repository.config.mock;
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.management.model.IdentityProviderType;
-import org.mockito.ArgumentMatcher;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -82,12 +84,7 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
         when(identityProviderRepository.findById("idp-1")).thenReturn(of(identityProvider1), of(identityProviderUpdated));
         when(identityProviderRepository.findById("idp-3")).thenReturn(of(identityProvider3));
 
-        when(identityProviderRepository.update(argThat(new ArgumentMatcher<IdentityProvider>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof IdentityProvider && ((IdentityProvider) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(identityProviderRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 
     private IdentityProvider createMock() {

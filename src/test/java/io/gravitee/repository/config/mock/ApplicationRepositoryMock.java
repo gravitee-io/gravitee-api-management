@@ -18,7 +18,6 @@ package io.gravitee.repository.config.mock;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
-import org.mockito.ArgumentMatcher;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -116,12 +115,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         when(applicationRepository.findByIds(asList("application-sample", "updated-app", "unknown"))).
                 thenReturn(new HashSet<>(asList(application, updatedApplication)));
 
-        when(applicationRepository.update(argThat(new ArgumentMatcher<Application>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Application && ((Application) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(applicationRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
 
         final Application applicationWithClientId = mock(Application.class);

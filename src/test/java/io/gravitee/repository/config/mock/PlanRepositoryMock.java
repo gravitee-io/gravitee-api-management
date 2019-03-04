@@ -17,7 +17,6 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -134,11 +133,6 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
 
         when(planRepository.findById("unknown")).thenReturn(empty());
 
-        when(planRepository.update(argThat(new ArgumentMatcher<Plan>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Plan && ((Plan) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(planRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 }

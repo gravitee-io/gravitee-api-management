@@ -20,7 +20,6 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import org.mockito.ArgumentMatcher;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -182,11 +181,6 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
                 new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(
                 new io.gravitee.common.data.domain.Page<>(Collections.emptyList(), 0, 2, 0));
 
-        when(eventRepository.update(argThat(new ArgumentMatcher<Event>() {
-            @Override
-            public boolean matches(Object o) {
-                return o == null || (o instanceof Event && ((Event) o).getId().equals("unknown"));
-            }
-        }))).thenThrow(new IllegalStateException());
+        when(eventRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 }
