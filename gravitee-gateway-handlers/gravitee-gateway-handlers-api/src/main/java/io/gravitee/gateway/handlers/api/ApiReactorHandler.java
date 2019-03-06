@@ -91,10 +91,15 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
     @Autowired
     private Node node;
+
     @Value("${http.port:8082}")
     private String port;
+
     @Value("${alerts.enabled:false}")
     private boolean alertEnabled;
+
+    @Value("${reporters.logging.max_size:-1}")
+    private int maxSizeLogMessage;
 
     @Override
     protected void doHandle(Request serverRequest, Response serverResponse, ExecutionContext executionContext, Handler<Response> handler) {
@@ -315,7 +320,13 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
         if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
             requestProcessors.add(new InstanceCreatorAwareProcessorProvider(
-                    (Function<Void, Processor>) useless -> new ApiLoggableRequestProcessor(api.getProxy().getLogging())));
+                    (Function<Void, Processor>) useless -> {
+                        ApiLoggableRequestProcessor apiLoggableRequestProcessor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
+                        // log max size limit is in MB format
+                        // -1 means no limit
+                        apiLoggableRequestProcessor.setMaxSizeLogMessage((maxSizeLogMessage <= - 1) ? -1 : maxSizeLogMessage * (1024 * 1024));
+                        return apiLoggableRequestProcessor;
+                    }));
         }
 
         requestProcessors.add(planPolicyResolver);

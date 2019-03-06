@@ -46,9 +46,11 @@ public class LoggableClientResponse implements Response {
             buffer = Buffer.buffer();
         }
 
-        buffer.appendBuffer(content);
+        response.write(content);
 
-        return response.write(content);
+        appendLog(buffer, content);
+
+        return response;
     }
 
     @Override
@@ -98,5 +100,9 @@ public class LoggableClientResponse implements Response {
     @Override
     public boolean writeQueueFull() {
         return response.writeQueueFull();
+    }
+
+    protected void appendLog(Buffer buffer, Buffer chunk) {
+        buffer.appendBuffer(chunk);
     }
 }

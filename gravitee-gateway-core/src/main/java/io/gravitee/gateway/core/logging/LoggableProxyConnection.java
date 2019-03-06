@@ -69,7 +69,7 @@ public class LoggableProxyConnection implements ProxyConnection {
 
     @Override
     public ProxyConnection responseHandler(Handler<ProxyResponse> responseHandler) {
-        return proxyConnection.responseHandler(new LoggableProxyConnection.LoggableProxyResponseHandler(responseHandler));
+        return responseHandler(proxyConnection, responseHandler);
     }
 
     @Override
@@ -86,9 +86,20 @@ public class LoggableProxyConnection implements ProxyConnection {
         if (buffer == null) {
             buffer = Buffer.buffer();
         }
-        buffer.appendBuffer(chunk);
 
-        return proxyConnection.write(chunk);
+        proxyConnection.write(chunk);
+
+        appendLog(buffer, chunk);
+
+        return proxyConnection;
+    }
+
+    protected void appendLog(Buffer buffer, Buffer chunk) {
+        buffer.appendBuffer(chunk);
+    }
+
+    protected ProxyConnection responseHandler(ProxyConnection proxyConnection, Handler<ProxyResponse> responseHandler) {
+        return proxyConnection.responseHandler(new LoggableProxyConnection.LoggableProxyResponseHandler(responseHandler));
     }
 
     class LoggableProxyResponseHandler implements Handler<ProxyResponse> {
@@ -100,6 +111,10 @@ public class LoggableProxyConnection implements ProxyConnection {
 
         @Override
         public void handle(ProxyResponse proxyResponse) {
+            handle(responseHandler, proxyResponse);
+        }
+
+        protected void handle(Handler<ProxyResponse> responseHandler, ProxyResponse proxyResponse) {
             responseHandler.handle(new LoggableProxyConnection.LoggableProxyResponse(proxyResponse));
         }
     }
@@ -123,8 +138,8 @@ public class LoggableProxyConnection implements ProxyConnection {
                     buffer = Buffer.buffer();
                 }
 
-                buffer.appendBuffer(chunk);
                 bodyHandler.handle(chunk);
+                appendLog(buffer, chunk);
             });
         }
 

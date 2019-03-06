@@ -15,9 +15,12 @@
  */
 package io.gravitee.gateway.core.logging.processor;
 
+import io.gravitee.gateway.core.logging.LimitedLoggableClientRequest;
+import io.gravitee.gateway.core.logging.LimitedLoggableClientResponse;
 import io.gravitee.gateway.core.logging.LoggableClientRequest;
 import io.gravitee.gateway.core.logging.LoggableClientResponse;
 import io.gravitee.gateway.core.logging.condition.evaluation.ConditionEvaluator;
+import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.core.processor.ProcessorContext;
 import org.slf4j.Logger;
@@ -43,8 +46,14 @@ public class LoggableRequestProcessor extends AbstractProcessor {
             boolean condition = evaluate(context);
 
             if (condition) {
-                context.setRequest(new LoggableClientRequest(context.getRequest()));
-                context.setResponse(new LoggableClientResponse(context.getRequest(), context.getResponse()));
+                int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context.getContext());
+
+                context.setRequest(maxSizeLogMessage == - 1 ?
+                        new LoggableClientRequest(context.getRequest()) :
+                        new LimitedLoggableClientRequest(context.getRequest(), maxSizeLogMessage));
+                context.setResponse(maxSizeLogMessage == - 1 ?
+                        new LoggableClientResponse(context.getRequest(), context.getResponse()) :
+                        new LimitedLoggableClientResponse(context.getRequest(), context.getResponse(), maxSizeLogMessage));
             }
         } catch (Exception ex) {
             logger.warn("Unexpected error while evaluating logging condition: {}", ex.getMessage());

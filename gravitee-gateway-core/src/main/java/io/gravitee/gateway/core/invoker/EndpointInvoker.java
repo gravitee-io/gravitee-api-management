@@ -28,7 +28,9 @@ import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.core.endpoint.resolver.EndpointResolver;
+import io.gravitee.gateway.core.logging.LimitedLoggableProxyConnection;
 import io.gravitee.gateway.core.logging.LoggableProxyConnection;
+import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.core.proxy.DirectProxyConnection;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +90,10 @@ public class EndpointInvoker implements Invoker {
                 // Enable logging at proxy level
                 Object loggingAttr = executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy");
                 if (loggingAttr != null && ((boolean) loggingAttr)) {
-                    proxyConnection = new LoggableProxyConnection(proxyConnection, proxyRequest);
+                    int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(executionContext);
+                    proxyConnection = maxSizeLogMessage == -1 ?
+                            new LoggableProxyConnection(proxyConnection, proxyRequest) :
+                            new LimitedLoggableProxyConnection(proxyConnection, proxyRequest, maxSizeLogMessage);
                 }
 
                 connectionHandler.handle(proxyConnection);
