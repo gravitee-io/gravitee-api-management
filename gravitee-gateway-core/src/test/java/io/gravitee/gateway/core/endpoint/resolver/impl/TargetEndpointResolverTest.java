@@ -43,6 +43,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -76,6 +77,16 @@ public class TargetEndpointResolverTest {
     }
 
     @Test
+    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_selectFirstEndpoint() {
+        resolveUserDefinedEndpoint(
+                "http://host:8080/test/",
+                "http://host:8080/test/",
+                "endpoint",
+                "http://endpoint:8080/test/"
+        );
+    }
+
+    @Test
     public void shouldResolveUserDefinedEndpoint_selectFirstEndpoint() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test",
@@ -96,6 +107,16 @@ public class TargetEndpointResolverTest {
     }
 
     @Test
+    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withEncodedTargetURI() {
+        resolveUserDefinedEndpoint(
+                "http://host:8080/test/%20toto%20%20t%C3%A9t%C3%A9/titi",
+                "http://host:8080/test/ toto  tété/titi",
+                "endpoint",
+                "http://host:8080/test"
+        );
+    }
+
+    @Test
     public void shouldResolveUserDefinedEndpoint_startingWithSlash() {
         resolveUserDefinedEndpoint(
                 "http://endpoint:8080/test/myendpoint",
@@ -106,12 +127,32 @@ public class TargetEndpointResolverTest {
     }
 
     @Test
+    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_startingWithSlash() {
+        resolveUserDefinedEndpoint(
+                "http://endpoint:8080/test/myendpoint",
+                "/myendpoint",
+                "endpoint",
+                "http://endpoint:8080/test/"
+        );
+    }
+
+    @Test
     public void shouldResolveUserDefinedEndpoint_withDynamicRouting() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test",
                 "endpoint:local:",
                 "local",
                 "http://host:8080/test"
+        );
+    }
+
+    @Test
+    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withDynamicRouting() {
+        resolveUserDefinedEndpoint(
+                "http://host:8080/test/",
+                "endpoint:local:",
+                "local",
+                "http://host:8080/test/"
         );
     }
 
@@ -136,7 +177,7 @@ public class TargetEndpointResolverTest {
     }
 
     @Test
-    @Ignore
+    @Ignore // : is forbidden thanks to https://github.com/gravitee-io/issues/issues/1939
     public void shouldResolveUserDefinedEndpoint_withPointsInName() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test",
@@ -191,6 +232,16 @@ public class TargetEndpointResolverTest {
         resolveUserDefinedEndpoint(
                 "http://host:8080/method",
                 "endpoint:local:/method",
+                "local",
+                "http://host:8080/"
+        );
+    }
+
+    @Test
+    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withSlashInTargetAndPath() {
+        resolveUserDefinedEndpoint(
+                "http://host:8080/method/",
+                "endpoint:local:/method/",
                 "local",
                 "http://host:8080/"
         );
