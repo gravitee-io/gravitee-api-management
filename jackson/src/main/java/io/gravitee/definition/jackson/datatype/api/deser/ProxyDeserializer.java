@@ -24,8 +24,10 @@ import io.gravitee.definition.model.*;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -57,8 +59,28 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         if (nodeEndpoints != null && nodeEndpoints.isArray()) {
             createDefaultEndpointGroup(node, jp.getCodec(), proxy);
         } else if (nodeGroups != null && nodeGroups.isArray()) {
-            createEndpointGroups(node, jp.getCodec(), proxy);
+            createEndpointGroups(node, jp.getCodec(), proxy, ctxt);
         }
+
+        //check that endpoint groups and endpoints don't have the same name
+        //deser have already check that group names are unique
+        // and endpoint names too (in the same group)
+        if (proxy.getGroups() != null && !proxy.getGroups().isEmpty()) {
+            Set<String> endpointNames = proxy.getGroups().stream()
+                    .map(EndpointGroup::getName)
+                    .collect(Collectors.toSet());
+            for (EndpointGroup group : proxy.getGroups()) {
+                if (group.getEndpoints() != null) {
+                    for (Endpoint endpoint : group.getEndpoints()) {
+                        if (endpointNames.contains(endpoint.getName())) {
+                            throw ctxt.mappingException("[api] API endpoint names and group names must be unique");
+                        }
+                        endpointNames.add(endpoint.getName());
+                    }
+                }
+            }
+        }
+
 
         JsonNode stripContextNode = node.get("strip_context_path");
         if (stripContextNode != null) {
@@ -100,14 +122,17 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         proxy.setGroups(Collections.singleton(group));
     }
 
-    private void createEndpointGroups(JsonNode node, ObjectCodec codec, Proxy proxy) throws IOException {
+    private void createEndpointGroups(JsonNode node, ObjectCodec codec, Proxy proxy, DeserializationContext ctxt) throws IOException {
         final JsonNode nodeGroups = node.get("groups");
 
         Set<EndpointGroup> groups = new LinkedHashSet<>(nodeGroups.size());
 
         for (JsonNode jsonNode : nodeGroups) {
             EndpointGroup group = jsonNode.traverse(codec).readValueAs(EndpointGroup.class);
-            groups.add(group);
+            boolean added = groups.add(group);
+            if (!added) {
+                throw ctxt.mappingException("[api] API must have single endpoint group names");
+            }
         }
 
         proxy.setGroups(groups);
