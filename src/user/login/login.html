@@ -58,7 +58,7 @@
           </div>
         </form>
 
-        <button class="btn btn-block btn-{{provider.icon}}" style="background-color: {{provider.color}}; color: #fff;" data-ng-repeat="provider in $ctrl.providers" ng-click="$ctrl.authenticate(provider.id)">
+        <button class="btn btn-block btn-{{provider.icon}}" ng-style="{'background-color': provider.color}" style="color: #fff;" data-ng-repeat="provider in $ctrl.providers" ng-click="$ctrl.authenticate(provider.id)">
           <ng-md-icon icon="{{provider.icon}}" size="20" style="fill: white;margin-right: 5px"></ng-md-icon>Sign in with {{provider.name}}
         </button>
       </div>
