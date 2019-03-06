@@ -83,7 +83,8 @@ public enum Key {
 
     ALERT_ENABLED("alert.enabled", "false"),
 
-    LOGGING_DEFAULT_MAX_DURATION("logging.default.max.duration", "0");
+    LOGGING_DEFAULT_MAX_DURATION("logging.default.max.duration", "0"),
+    LOGGING_AUDIT_ENABLED("logging.audit.enabled", "false");
 
     String key;
     String defaultValue;

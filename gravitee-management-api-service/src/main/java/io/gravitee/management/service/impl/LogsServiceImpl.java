@@ -21,6 +21,7 @@ import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.log.*;
 import io.gravitee.management.model.log.extended.Request;
 import io.gravitee.management.model.log.extended.Response;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.analytics.AnalyticsException;
@@ -29,6 +30,7 @@ import io.gravitee.repository.analytics.query.IntervalBuilder;
 import io.gravitee.repository.analytics.query.QueryBuilders;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.log.api.LogRepository;
+import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
@@ -39,6 +41,9 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static io.gravitee.repository.log.model.Log.AuditEvent.LOG_READ;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.REQUEST_ID;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,24 +61,22 @@ public class LogsServiceImpl implements LogsService {
 
     @Autowired
     private LogRepository logRepository;
-
     @Autowired
     private ApiService apiService;
-
     @Autowired
     private ApplicationService applicationService;
-
     @Autowired
     private PlanService planService;
-
     @Autowired
     private InstanceService instanceService;
-
     @Autowired
     private ApiKeyService apiKeyService;
-
     @Autowired
     private SubscriptionService subscriptionService;
+    @Autowired
+    private AuditService auditService;
+    @Autowired
+    private ParameterService parameterService;
 
     @Override
     public SearchLogResponse findByApi(String api, LogQuery query) {
@@ -126,7 +129,16 @@ public class LogsServiceImpl implements LogsService {
     @Override
     public ApiRequest findApiLog(String id, Long timestamp) {
         try {
-            return toApiRequest(logRepository.findById(id, timestamp));
+            final ExtendedLog log = logRepository.findById(id, timestamp);
+            if (parameterService.findAsBoolean(Key.LOGGING_AUDIT_ENABLED)) {
+                auditService.createApiAuditLog(log.getApi(),
+                        Collections.singletonMap(REQUEST_ID, id),
+                        LOG_READ,
+                        new Date(),
+                        null,
+                        null);
+            }
+            return toApiRequest(log);
         } catch (AnalyticsException ae) {
             logger.error("Unable to retrieve log: " + id, ae);
             throw new TechnicalManagementException("Unable to retrieve log: " + id, ae);

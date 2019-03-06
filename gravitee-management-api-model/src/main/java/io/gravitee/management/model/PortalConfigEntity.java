@@ -834,6 +834,7 @@ public class PortalConfigEntity {
     public class Logging {
         @ParameterKey(Key.LOGGING_DEFAULT_MAX_DURATION)
         private Long maxDurationMillis;
+        private Audit audit = new Audit();
 
         public Long getMaxDurationMillis() {
             return maxDurationMillis;
@@ -841,6 +842,27 @@ public class PortalConfigEntity {
 
         public void setMaxDurationMillis(Long maxDurationMillis) {
             this.maxDurationMillis = maxDurationMillis;
+        }
+
+        public Audit getAudit() {
+            return audit;
+        }
+
+        public void setAudit(Audit audit) {
+            this.audit = audit;
+        }
+
+        public class Audit {
+            @ParameterKey(Key.LOGGING_AUDIT_ENABLED)
+            private Boolean enabled;
+
+            public Boolean getEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(Boolean enabled) {
+                this.enabled = enabled;
+            }
         }
     }
 }
