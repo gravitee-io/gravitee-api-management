@@ -78,6 +78,7 @@ const PageSwaggerComponent: ng.IComponentOptions = {
           return req;
         },
         spec: contentAsJson,
+        oauth2RedirectUrl: window.location.origin + window.location.pathname + (window.location.pathname.substr(-1) != '/' ? '/' : '') + 'swagger-oauth2-redirect.html',
       };
 
       if (!_.isNil(this.page.configuration)) {
@@ -100,7 +101,6 @@ const PageSwaggerComponent: ng.IComponentOptions = {
         cfg["showCommonExtensions"] =
           _.isNil(this.page.configuration.showCommonExtensions)
             ? false : this.page.configuration.showCommonExtensions === "true";
-        cfg["oauth2RedirectUrl"] = window.location.origin + '/swagger-oauth2-redirect.html';
         cfg["maxDisplayedTags"] =
           _.isNaN(Number(this.page.configuration.maxDisplayedTags)) || this.page.configuration.maxDisplayedTags === "-1"
             ? undefined : Number(this.page.configuration.maxDisplayedTags);
