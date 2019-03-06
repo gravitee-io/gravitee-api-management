@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class TargetEndpointResolver implements EndpointResolver {
@@ -46,6 +47,7 @@ public class TargetEndpointResolver implements EndpointResolver {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
 
     private static final String URI_PATH_SEPARATOR = "/";
+    private static final char URI_PATH_SEPARATOR_CHAR = '/';
 
     @Autowired
     private ReferenceRegister referenceRegister;
@@ -138,14 +140,19 @@ public class TargetEndpointResolver implements EndpointResolver {
         }
 
         // Path segments must be encoded to avoid bad URI syntax
-        String [] segments = decoder.path().split(URI_PATH_SEPARATOR);
+        String path = decoder.path();
+        String [] segments = path.split(URI_PATH_SEPARATOR);
         StringBuilder builder = new StringBuilder();
 
         for(String pathSeg : segments) {
             builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
         }
 
-        return builder.substring(0, builder.length() - 1);
+        if (path.charAt(path.length() - 1) == URI_PATH_SEPARATOR_CHAR) {
+            return builder.toString();
+        } else {
+            return builder.substring(0, builder.length() - 1);
+        }
     }
 
     private ResolvedEndpoint createEndpoint(Endpoint endpoint, String uri) {
