@@ -78,7 +78,7 @@
       </md-card>
     </div>
     <div layout="row">
-      <md-card flex="50">
+      <md-card flex>
         <div class="widget-card" flex>
           <md-card-title>
             <md-card-title-text>
@@ -129,7 +129,7 @@
         </div>
       </md-card>
 
-      <md-card flex="50">
+      <md-card flex="50" ng-if="healthCheckCtrl.displayGatewayHC()">
         <div class="widget-card" flex>
           <md-card-title>
             <md-card-title-text>
@@ -149,7 +149,7 @@
                 <div flex="15"><h5>Last week</h5></div>
                 <div flex="15"><h5>Last month</h5></div>
               </div>
-              <div layout="row"  ng-repeat="(gateway, metrics)  in healthCheckCtrl.gateway.availabilities.data.buckets">
+              <div layout="row"  ng-repeat="(gateway, metrics) in healthCheckCtrl.gateway.availabilities.data.buckets">
                 <div layout="row" layout-padding ng-if="healthCheckCtrl.gateway.availabilities.data.metadata[gateway].deleted !== 'true'" flex>
                   <div layout="column" flex="25">
                     <span style="font-weight: bold">{{healthCheckCtrl.gateway.availabilities.data.metadata[gateway].hostname}}</span>

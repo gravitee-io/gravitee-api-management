@@ -17,6 +17,7 @@ import ApiService, { LogsQuery } from '../../../../../services/api.service';
 import * as moment from 'moment';
 import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
+import UserService from '../../../../../services/user.service';
 
 class ApiHealthCheckController {
   private api: any;
@@ -32,7 +33,8 @@ class ApiHealthCheckController {
     private $scope,
     private $state: StateService,
     private ChartService,
-    private $q
+    private $q,
+    private UserService: UserService
   ) {
     'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
@@ -58,11 +60,13 @@ class ApiHealthCheckController {
     this.ApiService.apiHealth(this.api.id, 'response_time')
       .then(response => {this.endpoint.responsetimes.data = response.data;});
 
-    this.ApiService.apiHealth(this.api.id, 'availability', 'gateway')
-      .then(response => {this.gateway.availabilities.data = response.data;});
+    if (this.displayGatewayHC()) {
+      this.ApiService.apiHealth(this.api.id, 'availability', 'gateway')
+        .then(response => {this.gateway.availabilities.data = response.data;});
 
-    this.ApiService.apiHealth(this.api.id, 'response_time', 'gateway')
-      .then(response => {this.gateway.responsetimes.data = response.data;});
+      this.ApiService.apiHealth(this.api.id, 'response_time', 'gateway')
+        .then(response => {this.gateway.responsetimes.data = response.data;});
+    }
 
     this.refresh();
   }
@@ -179,6 +183,10 @@ class ApiHealthCheckController {
 
   viewLog(log) {
     this.$state.go('management.apis.detail.proxy.healthcheck.log', log);
+  }
+
+  displayGatewayHC() {
+    return this.UserService.currentUser.isAdmin();
   }
 }
 
