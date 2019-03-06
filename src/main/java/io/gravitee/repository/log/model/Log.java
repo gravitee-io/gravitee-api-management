@@ -16,53 +16,37 @@
 package io.gravitee.repository.log.model;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.management.model.Audit;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Log {
+    public enum AuditEvent implements Audit.AuditEvent {
+        LOG_READ
+    }
 
     private String id;
-
     private long timestamp;
-
     private String transactionId;
-
     private String uri;
-
     private HttpMethod method;
-
     private int status;
-
     private long responseTime;
-
     private long apiResponseTime;
-
     private long requestContentLength;
-
     private long responseContentLength;
-
     private String apiKey;
-
     private String plan;
-
     private String api;
-
     private String application;
-
     private String localAddress;
-
     private String remoteAddress;
-
     private String endpoint;
-
     private String tenant;
-
     private String message;
-
     private String gateway;
-
     private String host;
 
     public String getId() {
