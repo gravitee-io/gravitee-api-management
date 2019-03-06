@@ -659,5 +659,22 @@ function configurationRouterConfig($stateProvider) {
           only: ['portal-identity_provider-r', 'portal-identity_provider-u', 'portal-identity_provider-d']
         }
       }
+    })
+    .state('management.settings.api_logging', {
+      url: '/api_logging',
+      component: 'apiLogging',
+      resolve: {
+        dictionaries: (DictionaryService: DictionaryService) =>
+          DictionaryService.list().then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-apilogging'
+        },
+        perms: {
+          only: ['portal-settings-r']
+        }
+      }
     });
 }

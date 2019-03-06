@@ -69,6 +69,11 @@ const SettingsComponent: ng.IComponentOptions = {
       },
 
       // GATEWAYS
+      api_logging: {
+        perm: UserService.isUserHasPermissions(
+          ['portal-settings-c']),
+        goTo: 'management.settings.api_logging'
+      },
       dictionaries: {
         perm: UserService.isUserHasPermissions(
           ['management-dictionary-c', 'management-dictionary-r', 'management-dictionary-u', 'management-dictionary-d']),

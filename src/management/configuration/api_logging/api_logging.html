@@ -1,0 +1,45 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-sub-content">
+  <div class="gv-forms" layout="column">
+    <form name="$ctrl.formApiLogging" ng-submit="$ctrl.save()" novalidate>
+      <h1>API logging</h1>
+      <div class="gv-form">
+        <md-input-container class="md-block" flex-gt-xs>
+          <md-checkbox ng-model="$ctrl.Constants.logging.audit.enabled" aria-label="Audit on API Logging">
+            Enable audit on API Logging consultation
+          </md-checkbox>
+        </md-input-container>
+        <div class="gv-form-content" layout="column">
+          <md-input-container class="md-block" flex-gt-xs>
+            <label>Maximum duration (in milliseconds) when a logging mode is activated (0 means no max duration)</label>
+            <input type="number" min="0" ng-model="$ctrl.Constants.logging.maxDurationMillis">
+          </md-input-container>
+        </div>
+      </div>
+      <div class="md-actions gravitee-api-save-button" layout="row">
+        <md-button class="md-raised"
+                   type="submit"
+                   permission permission-only="['portal-settings-c', 'portal-settings-u']"
+                   ng-disabled="$ctrl.formApiLogging.$pristine || $ctrl.formApiLogging.$invalid">
+          Save
+        </md-button>
+      </div>
+    </form>
+  </div>
+</div>

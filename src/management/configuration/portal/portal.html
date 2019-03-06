@@ -240,16 +240,6 @@
         </div>
     </div>
 
-    <div class="gv-form">
-        <h2>API Logging</h2>
-        <div class="gv-form-content" layout="column">
-            <md-input-container class="md-block" flex-gt-xs>
-                <label>Maximum duration (in milliseconds) when a logging mode is activated (0 means no max duration)</label>
-                <input type="number" min="0" ng-model="$ctrl.Constants.logging.maxDurationMillis">
-            </md-input-container>
-        </div>
-    </div>
-
     <md-card-actions>
         <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
                    permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Save</md-button>

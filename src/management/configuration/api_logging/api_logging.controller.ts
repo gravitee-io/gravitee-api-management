@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import NotificationService from '../../../services/notification.service';
+import PortalConfigService from '../../../services/portalConfig.service';
 
-class PortalConfigService {
-  private portalURL: string;
-  private Constants: any;
+class ApiLoggingController {
+  private formApiLogging: any;
 
-  constructor(private $http, private $q, Constants) {
+  constructor(private PortalConfigService: PortalConfigService,
+              private NotificationService: NotificationService,
+              private Constants: any) {
     'ngInject';
-    this.portalURL = `${Constants.baseURL}portal/`;
     this.Constants = Constants;
   }
 
-  save(config?) {
-    return this.$http.post(this.portalURL, config ? config : this.Constants);
-  }
-
-  get() {
-    return this.$http.get(this.portalURL);
+  save() {
+    this.PortalConfigService.save().then( () => {
+      this.NotificationService.show("API logging saved");
+      this.formApiLogging.$setPristine();
+    });
   }
 }
 
-export default PortalConfigService;
+export default ApiLoggingController;

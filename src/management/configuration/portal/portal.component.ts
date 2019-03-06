@@ -39,8 +39,8 @@ const PortalSettingsComponent: ng.IComponentOptions = {
       {'id': 'os_name', 'label': 'Hits by OS'}];
 
     this.save = () => {
-      PortalConfigService.save(null).then( () => {
-        NotificationService.show("Configuration saved!");
+      PortalConfigService.save().then( () => {
+        NotificationService.show("Configuration saved");
         this.formSettings.$setPristine();
       });
     };

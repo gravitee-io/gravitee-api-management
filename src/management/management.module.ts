@@ -275,6 +275,9 @@ import AuditComponent from '../components/audit/audit.component';
 // Configuration
 import SettingsComponent from '../management/configuration/settings.component';
 import PortalConfigService from '../services/portalConfig.service';
+import ApiLoggingComponent from '../management/configuration/api_logging/api_logging.component';
+import ApiLoggingController from '../management/configuration/api_logging/api_logging.controller';
+
 // Users
 import UsersComponent from '../management/configuration/users/users.component';
 import UserDetailComponent from '../management/configuration/user/userdetail.component';
@@ -731,6 +734,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   // Configuration
   .component('settings', SettingsComponent)
   .service("PortalConfigService", PortalConfigService)
+  .component('apiLogging', ApiLoggingComponent)
+  .controller('ApiLoggingController', ApiLoggingController)
 
   // Users
   .component('users', UsersComponent)

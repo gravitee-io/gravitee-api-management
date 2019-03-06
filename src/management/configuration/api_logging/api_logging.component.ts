@@ -13,24 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const ApiLoggingComponent: ng.IComponentOptions = {
+  controller: 'ApiLoggingController',
+  template: require('./api_logging.html')
+};
 
-class PortalConfigService {
-  private portalURL: string;
-  private Constants: any;
-
-  constructor(private $http, private $q, Constants) {
-    'ngInject';
-    this.portalURL = `${Constants.baseURL}portal/`;
-    this.Constants = Constants;
-  }
-
-  save(config?) {
-    return this.$http.post(this.portalURL, config ? config : this.Constants);
-  }
-
-  get() {
-    return this.$http.get(this.portalURL);
-  }
-}
-
-export default PortalConfigService;
+export default ApiLoggingComponent;

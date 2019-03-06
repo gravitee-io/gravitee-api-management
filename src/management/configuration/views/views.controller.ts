@@ -76,7 +76,7 @@ class ViewsController {
   }
 
   toggleDisplayMode() {
-    this.PortalConfigService.save(null).then( () => {
+    this.PortalConfigService.save().then( () => {
       this.NotificationService.show("Display mode saved!");
     });
   }
