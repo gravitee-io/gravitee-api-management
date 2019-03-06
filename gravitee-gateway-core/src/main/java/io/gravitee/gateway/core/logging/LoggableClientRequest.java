@@ -53,8 +53,8 @@ public class LoggableClientRequest extends RequestWrapper {
             if (buffer == null) {
                 buffer = Buffer.buffer();
             }
-            buffer.appendBuffer(chunk);
             bodyHandler.handle(chunk);
+            appendLog(buffer, chunk);
         });
 
         return this;
@@ -71,5 +71,9 @@ public class LoggableClientRequest extends RequestWrapper {
         });
 
         return this;
+    }
+
+    protected void appendLog(Buffer buffer, Buffer chunk) {
+        buffer.appendBuffer(chunk);
     }
 }

@@ -59,9 +59,13 @@ public class BufferImpl implements Buffer {
     @Override
     public Buffer appendBuffer(Buffer buff) {
         ByteBuf cb = (ByteBuf) buff.getNativeBuffer();
-        buffer.writeBytes(cb);
-        cb.readerIndex(0); // Need to reset readerindex since Netty write modifies readerIndex of source!
-        return this;
+        return appendBuf(cb, cb.readableBytes());
+    }
+
+    @Override
+    public Buffer appendBuffer(Buffer buff, int length) {
+        ByteBuf cb = (ByteBuf) buff.getNativeBuffer();
+        return appendBuf(cb, Math.min(buff.length(), length));
     }
 
     @Override
@@ -77,6 +81,12 @@ public class BufferImpl implements Buffer {
     private Buffer append(String str, Charset charset) {
         byte[] bytes = str.getBytes(charset);
         buffer.writeBytes(bytes);
+        return this;
+    }
+
+    private Buffer appendBuf(ByteBuf cb, int length) {
+        buffer.writeBytes(cb, length);
+        cb.readerIndex(0); // Need to reset readerindex since Netty write modifies readerIndex of source!
         return this;
     }
 
