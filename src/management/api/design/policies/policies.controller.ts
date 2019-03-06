@@ -26,6 +26,7 @@ class ApiPoliciesController {
   private pathsToCompare: any;
   private dndEnabled: boolean;
   private pathsInitialized: any;
+  private httpMethodsUpdated: boolean;
 
   constructor (
     private ApiService,
@@ -49,6 +50,7 @@ class ApiPoliciesController {
     this.selectedApiPolicy = {};
     this.httpMethods = ['GET','POST','PUT','DELETE','HEAD','PATCH','OPTIONS','TRACE','CONNECT'];
     this.httpMethodsFilter = _.clone(this.httpMethods);
+    this.httpMethodsUpdated = false;
 
     this.listAllPoliciesWithSchema().then( (policiesWithSchema) => {
       _.forEach(policiesWithSchema, ({policy}) => {
@@ -215,6 +217,7 @@ class ApiPoliciesController {
       };
     }
     this.$scope.policyJsonSchemaForm = ["*"];
+    this.httpMethodsUpdated = false;
   }
 
   getHttpMethodClass(method, methods) {
@@ -246,6 +249,7 @@ class ApiPoliciesController {
   }
 
   toggleHttpMethod(method, methods) {
+    this.httpMethodsUpdated = true;
     const index = methods.indexOf(method);
     if ( index > -1 ) {
       methods.splice(index, 1);
@@ -350,6 +354,7 @@ class ApiPoliciesController {
       that.NotificationService.show('API \'' + updatedApi.data.name + '\' saved');
       that.pathsToCompare = that.generatePathsToCompare();
 
+      that.httpMethodsUpdated = false;
       that.$rootScope.$broadcast('apiChangeSuccess', {api: updatedApi.data});
     });
   }
