@@ -80,6 +80,7 @@ final class LogBuilder {
     private final static String FIELD_HOST = "host";
 
     private final static String FIELD_MESSAGE = "message";
+    private final static String FIELD_USER = "user";
 
     static Log createLog(final SearchHit hit) {
         return createLog(hit, new Log());
@@ -168,6 +169,11 @@ final class LogBuilder {
         final JsonNode hostNode = source.get(FIELD_HOST);
         if (hostNode != null && ! hostNode.isNull()) {
             log.setHost(hostNode.asText());
+        }
+
+        final JsonNode userNode = source.get(FIELD_USER);
+        if (userNode != null && ! userNode.isNull()) {
+            log.setUser(userNode.asText());
         }
 
         return log;
