@@ -100,8 +100,8 @@ public class UsersResource extends AbstractResource {
         return resourceContext.getResource(UserResource.class);
     }
 
-    @Path("register")
-    public UsersRegisterResource getUsersRegisterResource() {
-        return resourceContext.getResource(UsersRegisterResource.class);
+    @Path("registration")
+    public UsersRegistrationResource getUsersRegistrationResource() {
+        return resourceContext.getResource(UsersRegistrationResource.class);
     }
 }

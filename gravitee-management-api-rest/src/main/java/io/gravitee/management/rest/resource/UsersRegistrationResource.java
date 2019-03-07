@@ -42,10 +42,10 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Users", "Register"})
+@Api(tags = {"Users", "Registration"})
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
-public class UsersRegisterResource extends AbstractResource {
+public class UsersRegistrationResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
