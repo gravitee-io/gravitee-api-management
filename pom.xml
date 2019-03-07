@@ -309,7 +309,6 @@
         </dependency>
     </dependencies>
 
-    <!-- allow snapshot only for openApi until the final release -->
     <build>
         <pluginManagement>
             <plugins>
@@ -321,10 +320,6 @@
                         <rules>
                             <requireReleaseDeps>
                                 <message>No Snapshots Allowed!</message>
-                                <excludes>
-                                    <exclude>io.swagger.core.v3:*</exclude>
-                                    <exclude>io.swagger.parser.v3:*</exclude>
-                                </excludes>
                             </requireReleaseDeps>
                             <requireReleaseVersion>
                                 <message>No Snapshots Allowed!</message>
@@ -335,18 +330,4 @@
             </plugins>
         </pluginManagement>
     </build>
-    <profiles>
-        <profile>
-            <id>allow-snapshots-for-swagger3</id>
-            <activation><activeByDefault>true</activeByDefault></activation>
-            <repositories>
-                <repository>
-                    <id>snapshots-repo</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                    <releases><enabled>false</enabled></releases>
-                    <snapshots><enabled>true</enabled></snapshots>
-                </repository>
-            </repositories>
-        </profile>
-    </profiles>
 </project>

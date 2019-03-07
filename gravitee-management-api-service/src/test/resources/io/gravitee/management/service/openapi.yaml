@@ -80,6 +80,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 components:
+  securitySchemes:
+    oauth2Scheme:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: "https://example.com/authorize"
+          tokenUrl: "https://example.com/token"
+          scopes:
+            user: "simple user rights"
   schemas:
     Pet:
       required:

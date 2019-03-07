@@ -21,8 +21,9 @@ import com.google.common.io.Resources;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.service.impl.SwaggerServiceImpl;
-import io.swagger.util.Json;
-import io.swagger.util.Yaml;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.Yaml;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -127,5 +128,6 @@ public class SwaggerService_TransformTest {
         assertEquals("1.2.3", node.get("info").get("version").asText());
         assertEquals("Gravitee.io Swagger API", node.get("info").get("title").asText());
         assertEquals("https://my.domain.com/v1", node.get("servers").get(0).get("url").asText());
+        assertEquals("oauth2", node.get("components").get("securitySchemes").get("oauth2Scheme").get("type").asText());
     }
 }
