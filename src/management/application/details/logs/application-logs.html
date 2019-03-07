@@ -33,6 +33,7 @@
       <th md-column width="1%" nowrap>Date</th>
       <th md-column width="1%" nowrap>Status</th>
       <th md-column width="1%" nowrap>API</th>
+      <th ng-if="$ctrl.Constants.logging.user.displayed" md-column width="1%" nowrap>User</th>
       <th md-column width="1%" nowrap>Plan</th>
       <th md-column width="1%" nowrap>Method</th>
       <th md-column>Path</th>
@@ -54,6 +55,7 @@
       <td md-cell nowrap>{{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}}</td>
       <td md-cell nowrap><span class="gv-statuscode-{{log.status / 100 | number:0}}xx">{{log.status}}</span></td>
       <td md-cell nowrap>{{$ctrl.logs.metadata[log.api].name}}</td>
+      <td ng-if="$ctrl.Constants.logging.user.displayed" md-cell nowrap>{{log.user}}</td>
       <td md-cell nowrap>{{$ctrl.logs.metadata[log.plan].name}}</td>
       <td md-cell nowrap style="text-align: center">
         <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{log.method | uppercase}}-selected">

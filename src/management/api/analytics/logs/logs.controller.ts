@@ -35,7 +35,8 @@ class ApiLogsController {
     private applications: any,
     private tenants: any,
     private $scope,
-    private $state: StateService
+    private $state: StateService,
+    private Constants: any
   ) {
   'ngInject';
     this.ApiService = ApiService;

@@ -69,7 +69,7 @@ tr.log-error {
 }
 
 .gv-log-response-header-3 {
-  @include logHeader(yellow);
+  @include logHeader(#dbdb0a);
 }
 
 .gv-log-response-header-4 {
@@ -89,7 +89,7 @@ tr.log-error {
 }
 
 .gv-log-response-panel-3 {
-  @include logResponsePanel(#ffffc9, #ffff54);
+  @include logResponsePanel(#ffffc9, #dbdb0a);
 }
 
 .gv-log-response-panel-4 {

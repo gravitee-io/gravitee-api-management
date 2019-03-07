@@ -26,7 +26,7 @@
 <div class="log-table" layout="row" flex layout-padding layout-align="space-around center">
   <div layout="column" flex="33">
     <span class="log-header" style="text-align: center">Request</span>
-    <md-table-container>
+    <md-table-container class="gv-log-request-header">
       <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row style="height: 30px;">
@@ -48,7 +48,7 @@
 
   <div layout="column" flex="33">
     <span class="log-header" style="text-align: center">Context</span>
-    <md-table-container>
+    <md-table-container ng-class="{'gv-log-response-header-{{$ctrl.log.status / 100 | number:0}}': true}">
       <table md-table class="gv-table-dense">
         <tbody md-body>
         <tr md-row style="height: 30px;" ng-if="$ctrl.log.apiKey">
@@ -63,6 +63,10 @@
           <td md-cell><span style="font-weight: bold">Plan</span></td>
           <td md-cell>{{$ctrl.log.metadata[$ctrl.log.plan].name}}</td>
         </tr>
+        <tr md-row style="height: 30px;" ng-if="$ctrl.log.user && $ctrl.Constants.logging.user.displayed">
+          <td md-cell><span style="font-weight: bold">User</span></td>
+          <td md-cell>{{$ctrl.log.user}}</td>
+        </tr>
         </tbody>
       </table>
     </md-table-container>
@@ -73,8 +77,8 @@
 
 <div class="log-table" layout="row" flex layout-padding layout-align="center">
 
-  <div layout="column" layout-padding style="background-color: #f1f8e9; border: 1px solid #dcedc8;" flex="50">
-    <div flex="5" layout="row" style="background-color: #dcedc8;" layout-align="center center">
+  <div layout="column" layout-padding style="background-color: #e1f5fe; border: 1px solid #b3e5fc;" flex="50">
+    <div flex="5" layout="row" style="background-color: #b3e5fc;" layout-align="center center">
       <span class="log-header" style="text-align: center;">REQUEST</span>
     </div>
 
@@ -123,8 +127,8 @@
 
   <div flex="5" layout="column" layout-align="center center"></div>
 
-  <div layout="column" layout-padding style="background-color: #e1f5fe; margin-top:3px; border: 1px solid #b3e5fc;" flex="50">
-    <div flex="5" layout="row" style="background-color: #b3e5fc;" layout-align="center center">
+  <div layout="column" layout-padding ng-class="{'gv-log-response-panel-{{$ctrl.log.status / 100 | number:0}}': true}" style="margin-top:3px;" flex="50">
+    <div flex="5" layout="row" layout-align="center center">
       <span class="log-header" style="text-align: center;">RESPONSE</span>
     </div>
 

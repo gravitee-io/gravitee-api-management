@@ -19,8 +19,9 @@ const ApplicationLogComponent: ng.IComponentOptions = {
   bindings: {
     log: '<'
   },
-  controller: function($state: StateService) {
+  controller: function($state: StateService, Constants: any) {
     'ngInject';
+    this.Constants = Constants;
     this.backStateParams = {
       from: $state.params['from'],
       to: $state.params['to'],

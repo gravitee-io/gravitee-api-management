@@ -20,8 +20,8 @@
 }
 .gv-statuscode-3xx {
   @extend %gv-statuscode;
-  color: yellow;
-  border-color: yellow;
+  color: #dbdb0a;
+  border-color: #dbdb0a;
 }
 .gv-statuscode-4xx {
   @extend %gv-statuscode;

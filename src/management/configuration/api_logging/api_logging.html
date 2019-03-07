@@ -25,6 +25,11 @@
             Enable audit on API Logging consultation
           </md-checkbox>
         </md-input-container>
+        <md-input-container class="md-block" flex-gt-xs>
+          <md-checkbox ng-model="$ctrl.Constants.logging.user.displayed" aria-label="End user on API Logging">
+            Display end user on API Logging (in case of OAuth2/JWT plan)
+          </md-checkbox>
+        </md-input-container>
         <div class="gv-form-content" layout="column">
           <md-input-container class="md-block" flex-gt-xs>
             <label>Maximum duration (in milliseconds) when a logging mode is activated (0 means no max duration)</label>

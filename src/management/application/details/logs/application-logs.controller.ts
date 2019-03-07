@@ -30,6 +30,7 @@ class ApplicationLogsController {
   constructor(
     private ApplicationService: ApplicationService,
     private $state: StateService,
+    private Constants: any
   ) {
   'ngInject';
     this.ApplicationService = ApplicationService;
