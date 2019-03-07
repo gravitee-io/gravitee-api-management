@@ -28,36 +28,22 @@ import java.util.Map;
 public class ApplicationRequest {
 
     private String id;
-
     private long timestamp;
-
     private String transactionId;
-
     private String path;
-
     private HttpMethod method;
-
     private int status;
-
     private long responseTime;
-
     private long requestContentLength;
-
     private long responseContentLength;
-
     private String apiKey;
-
     private String plan;
-
     private String api;
-
     private Request request;
-
     private Response response;
-
     private Map<String, Map<String, String>> metadata;
-
     private String host;
+    private String user;
 
     public String getId() {
         return id;
@@ -185,6 +171,14 @@ public class ApplicationRequest {
 
     public void setHost(String host) {
         this.host = host;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 
     @Override

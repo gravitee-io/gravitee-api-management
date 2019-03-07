@@ -24,18 +24,13 @@ import io.gravitee.common.http.HttpMethod;
 public class ApplicationRequestItem extends LogItem {
 
     private String transactionId;
-
     private String path;
-
     private HttpMethod method;
-
     private int status;
-
     private long responseTime;
-
     private String plan;
-
     private String api;
+    private String user;
 
     public String getTransactionId() {
         return transactionId;
@@ -91,5 +86,13 @@ public class ApplicationRequestItem extends LogItem {
 
     public void setApi(String api) {
         this.api = api;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 }

@@ -28,53 +28,31 @@ import java.util.Map;
 public class ApiRequest {
 
     private String id;
-
     private long timestamp;
-
     private String transactionId;
-
     private String uri;
-
     private String path;
-
     private HttpMethod method;
-
     private int status;
-
     private long responseTime;
-
     private long apiResponseTime;
-
     private long requestContentLength;
-
     private long responseContentLength;
-
     private String apiKey;
-
     private String plan;
-
     private String application;
-
     private String localAddress;
-
     private String remoteAddress;
-
     private String endpoint;
-
     private String tenant;
-
     private Request clientRequest, proxyRequest;
     private Response clientResponse, proxyResponse;
-
     private String message;
-
     private String gateway;
-
     private String subscription;
-
     private Map<String, Map<String, String>> metadata;
-
     private String host;
+    private String user;
 
     public String getId() {
         return id;
@@ -290,6 +268,14 @@ public class ApiRequest {
 
     public void setHost(String host) {
         this.host = host;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 
     @Override

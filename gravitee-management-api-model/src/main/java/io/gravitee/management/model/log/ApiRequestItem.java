@@ -31,6 +31,7 @@ public class ApiRequestItem extends LogItem {
     private String plan;
     private String application;
     private boolean endpoint;
+    private String user;
 
     public String getTransactionId() {
         return transactionId;
@@ -94,5 +95,13 @@ public class ApiRequestItem extends LogItem {
 
     public void setEndpoint(boolean endpoint) {
         this.endpoint = endpoint;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 }
