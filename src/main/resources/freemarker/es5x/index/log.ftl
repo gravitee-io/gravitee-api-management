@@ -9,8 +9,10 @@
 { "index" : { "_index" : "${index}", "_type" : "${type}", "_id" : "${log.getRequestId()}" } }
 <@compress single_line=true>
 {
+  "@timestamp":"${@timestamp}",
+  "api":"${log.getApi()}"
   <#if log.getClientRequest()??>
-  "client-request": {
+  ,"client-request": {
   "method":"${log.getClientRequest().getMethod()}",
   "uri":"${log.getClientRequest().getUri()}"
     <#if log.getClientRequest().getBody()??>

@@ -9,6 +9,12 @@
     "mappings": {
         "log": {
             "properties": {
+                "@timestamp": {
+                    "type": "date"
+                },
+                "api": {
+                    "type": "keyword"
+                },
                 "client-request": {
                     "type": "object",
                     "enabled": false

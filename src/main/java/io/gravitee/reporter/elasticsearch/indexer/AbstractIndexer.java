@@ -177,10 +177,6 @@ public abstract class AbstractIndexer implements Indexer {
         data.put(Fields.GATEWAY, node.id());
 
         data.put("log", log);
-        data.put("clientRequest", log.getClientRequest());
-        data.put("clientResponse", log.getClientResponse());
-        data.put("proxyRequest", log.getProxyRequest());
-        data.put("proxyResponse", log.getProxyResponse());
 
         return generateData("log.ftl", data);
     }
