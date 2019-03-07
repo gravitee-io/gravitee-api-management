@@ -50,6 +50,7 @@ public class ReporterHandler implements Handler<Response> {
             reporterService.report(serverRequest.metrics());
 
             if (serverRequest.metrics().getLog() != null) {
+                serverRequest.metrics().getLog().setApi(serverRequest.metrics().getApi());
                 reporterService.report(serverRequest.metrics().getLog());
 
                 // Dispose the log reference since it must not be used anymore
