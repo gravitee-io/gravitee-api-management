@@ -63,4 +63,7 @@
   <#if metrics.getUserAgent()??>
   ,"user-agent":"${metrics.getUserAgent()}"
   </#if>
+  <#if metrics.getUser()??>
+  ,"user":"${metrics.getUser()}"
+  </#if>
 }</@compress>

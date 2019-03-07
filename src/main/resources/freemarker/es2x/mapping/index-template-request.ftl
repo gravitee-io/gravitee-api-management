@@ -121,6 +121,10 @@
                 "user-agent": {
                     "index": "not_analyzed",
                     "type": "string"
+                },
+                "user": {
+                    "index": "not_analyzed",
+                    "type": "string"
                 }
             }
         }

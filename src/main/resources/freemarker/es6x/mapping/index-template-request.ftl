@@ -122,6 +122,9 @@
                             "index": true
                         }
                     }
+                },
+                "user": {
+                    "type": "keyword"
                 }
             }
         }
