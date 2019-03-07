@@ -48,6 +48,7 @@ public class Log {
     private String message;
     private String gateway;
     private String host;
+    private String user;
 
     public String getId() {
         return id;
@@ -215,6 +216,14 @@ public class Log {
 
     public void setHost(String host) {
         this.host = host;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 
     @Override
