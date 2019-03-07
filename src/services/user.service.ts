@@ -77,11 +77,11 @@ class UserService {
   }
 
   register(user): ng.IPromise<any> {
-    return this.$http.post(`${this.usersURL}register`, user);
+    return this.$http.post(`${this.usersURL}registration`, user);
   }
 
   finalizeRegistration(user): ng.IPromise<any> {
-    return this.$http.post(`${this.usersURL}register/finalize`, user);
+    return this.$http.post(`${this.usersURL}registration/finalize`, user);
   }
 
 	search(query): ng.IPromise<any> {
