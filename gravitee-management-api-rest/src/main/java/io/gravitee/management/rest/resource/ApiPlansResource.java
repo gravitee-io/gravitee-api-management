@@ -18,6 +18,7 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.rest.resource.param.PlanSecurityParam;
 import io.gravitee.management.rest.resource.param.PlanStatusParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
@@ -74,7 +75,8 @@ public class ApiPlansResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<PlanEntity> listPlans(
             @PathParam("api") final String api,
-            @QueryParam("status") @DefaultValue("published") final PlanStatusParam wishedStatus) {
+            @QueryParam("status") @DefaultValue("published") final PlanStatusParam wishedStatus,
+            @QueryParam("security") final PlanSecurityParam security) {
 
         ApiEntity apiEntity = apiService.findById(api);
         PlanStatusParam status;
@@ -101,6 +103,7 @@ public class ApiPlansResource extends AbstractResource {
                     .filter(plan -> status.getStatuses().contains(plan.getStatus())
                             && ( (isAuthenticated() && isAdmin()) || groupService.
                             isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())))
+                    .filter(plan -> security == null || security.getSecurities().contains(plan.getSecurity()))
                     .sorted(Comparator.comparingInt(PlanEntity::getOrder))
                     .collect(Collectors.toList());
         }

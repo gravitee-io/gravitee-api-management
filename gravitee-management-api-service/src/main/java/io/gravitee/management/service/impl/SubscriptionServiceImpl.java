@@ -733,6 +733,70 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         }
     }
 
+    @Override
+    public SubscriptionEntity transfer(final TransferSubscriptionEntity transferSubscription, String userId) {
+        try {
+            logger.debug("Subscription {} transferred by {}", transferSubscription.getId(), userId);
+
+            Optional<Subscription> optSubscription = subscriptionRepository.findById(transferSubscription.getId());
+            if (!optSubscription.isPresent()) {
+                throw new SubscriptionNotFoundException(transferSubscription.getId());
+            }
+
+            PlanEntity planEntity = planService.findById(transferSubscription.getPlan());
+
+            Subscription subscription = optSubscription.get();
+            if (planEntity.getStatus() != PlanStatus.PUBLISHED ||
+                    !planEntity.getSecurity().equals(planService.findById(subscription.getPlan()).getSecurity())) {
+                throw new TransferNotAllowedException(planEntity.getId());
+            }
+
+            Subscription previousSubscription = new Subscription(subscription);
+
+            subscription.setUpdatedAt(new Date());
+            subscription.setPlan(transferSubscription.getPlan());
+
+            subscription = subscriptionRepository.update(subscription);
+            final Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+            for (final ApiKeyEntity apiKey : apiKeys) {
+                apiKey.setPlan(transferSubscription.getPlan());
+                apiKeyService.update(apiKey);
+            }
+
+            final ApplicationEntity application = applicationService.findById(subscription.getApplication());
+            final PlanEntity plan = planService.findById(subscription.getPlan());
+            final String apiId = plan.getApis().iterator().next();
+            final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
+            final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+            createAudit(
+                    apiId,
+                    subscription.getApplication(),
+                    SUBSCRIPTION_UPDATED,
+                    subscription.getUpdatedAt(),
+                    previousSubscription,
+                    subscription);
+
+            SubscriptionEntity subscriptionEntity = convert(subscription);
+
+            final Map<String, Object> params = new NotificationParamsBuilder()
+                    .owner(owner)
+                    .application(application)
+                    .api(api)
+                    .plan(plan)
+                    .subscription(subscriptionEntity)
+                    .build();
+            notifierService.trigger(ApiHook.SUBSCRIPTION_TRANSFERRED, apiId, params);
+            notifierService.trigger(ApplicationHook.SUBSCRIPTION_TRANSFERRED, application.getId(), params);
+            return subscriptionEntity;
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to transfer subscription {} by {}",
+                    transferSubscription.getId(), userId, ex);
+            throw new TechnicalManagementException(String.format(
+                    "An error occurs while trying to transfer subscription %s by %s",
+                    transferSubscription.getId(), userId), ex);
+        }
+    }
+
     public Metadata getMetadata(List<SubscriptionEntity> subscriptions) {
         Metadata metadata = new Metadata();
 

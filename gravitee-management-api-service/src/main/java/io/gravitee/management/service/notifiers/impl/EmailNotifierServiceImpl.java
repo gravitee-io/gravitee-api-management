@@ -92,6 +92,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         else if (hook.equals(ApiHook.SUBSCRIPTION_RESUMED)) {
             return EmailNotificationBuilder.EmailTemplate.RESUME_SUBSCRIPTION;
         }
+        else if (hook.equals(SUBSCRIPTION_TRANSFERRED)) {
+            return EmailNotificationBuilder.EmailTemplate.TRANSFER_SUBSCRIPTION;
+        }
         else if (hook.equals(ApiHook.NEW_SUPPORT_TICKET)) {
             return EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET_NOTIFICATION;
         }
@@ -126,6 +129,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
         else if (hook.equals(ApplicationHook.SUBSCRIPTION_RESUMED)) {
             return EmailNotificationBuilder.EmailTemplate.RESUME_SUBSCRIPTION;
+        }
+        else if (hook.equals(ApplicationHook.SUBSCRIPTION_TRANSFERRED)) {
+            return EmailNotificationBuilder.EmailTemplate.TRANSFER_SUBSCRIPTION;
         }
         else if (hook.equals(ApplicationHook.NEW_SUPPORT_TICKET)) {
             return EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET_NOTIFICATION;
@@ -186,6 +192,14 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
                 return "Subscription for " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been resumed";
+            }
+        }
+        else if (hook.equals(SUBSCRIPTION_TRANSFERRED)) {
+            Object api = params.get(NotificationParamsBuilder.PARAM_API);
+            Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
+            if (api != null && plan != null) {
+                String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
+                return "Subscription for " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been transferred";
             }
         }
         else if (hook.equals(ApiHook.NEW_SUPPORT_TICKET)) {
@@ -251,6 +265,14 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
                 return "Your subscription to " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been resumed";
+            }
+        }
+        else if (hook.equals(ApplicationHook.SUBSCRIPTION_TRANSFERRED)) {
+            Object api = params.get(NotificationParamsBuilder.PARAM_API);
+            Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
+            if (api != null && plan != null) {
+                String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
+                return "Your subscription to " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been transferred";
             }
         }
         else if (hook.equals(ApplicationHook.NEW_SUPPORT_TICKET)) {

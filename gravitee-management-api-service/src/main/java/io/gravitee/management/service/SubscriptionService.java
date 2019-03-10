@@ -16,10 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.management.model.NewSubscriptionEntity;
-import io.gravitee.management.model.ProcessSubscriptionEntity;
-import io.gravitee.management.model.SubscriptionEntity;
-import io.gravitee.management.model.UpdateSubscriptionEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.common.Pageable;
 import io.gravitee.management.model.pagedresult.Metadata;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
@@ -52,7 +49,7 @@ public interface SubscriptionService {
 
     SubscriptionEntity update(UpdateSubscriptionEntity subscription, String clientId);
 
-    SubscriptionEntity process(ProcessSubscriptionEntity processSubscription, String validator);
+    SubscriptionEntity process(ProcessSubscriptionEntity processSubscription, String userId);
 
     SubscriptionEntity pause(String subscription);
 
@@ -67,4 +64,5 @@ public interface SubscriptionService {
     Page<SubscriptionEntity> search(SubscriptionQuery query, Pageable pageable);
 
     Metadata getMetadata(List<SubscriptionEntity> subscriptions);
+    SubscriptionEntity transfer(TransferSubscriptionEntity transferSubscription, String userId);
 }

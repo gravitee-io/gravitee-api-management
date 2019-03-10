@@ -30,6 +30,7 @@ public enum ApiHook implements Hook {
     SUBSCRIPTION_PAUSED("Subscription Paused", "Triggered when a Subscription is paused.", "SUBSCRIPTION"),
     SUBSCRIPTION_RESUMED("Subscription Resumed", "Triggered when a Subscription is resumed.", "SUBSCRIPTION"),
     SUBSCRIPTION_REJECTED("Subscription Rejected", "Triggered when a Subscription is rejected.", "SUBSCRIPTION"),
+    SUBSCRIPTION_TRANSFERRED("Subscription Transferred", "Triggered when a Subscription is transferred.", "SUBSCRIPTION"),
     NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT"),
     API_STARTED("API Started", "Triggered when an API is started", "LIFECYCLE"),
     API_STOPPED("API Stopped", "Triggered when an API is stopped", "LIFECYCLE"),

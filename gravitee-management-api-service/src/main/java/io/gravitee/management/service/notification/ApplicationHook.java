@@ -27,6 +27,7 @@ public enum ApplicationHook implements Hook {
     SUBSCRIPTION_PAUSED("Subscription Paused", "Triggered when a Subscription is paused.", "SUBSCRIPTION"),
     SUBSCRIPTION_RESUMED("Subscription Resumed", "Triggered when a Subscription is resumed.", "SUBSCRIPTION"),
     SUBSCRIPTION_REJECTED("Subscription Rejected", "Triggered when a Subscription is rejected.", "SUBSCRIPTION"),
+    SUBSCRIPTION_TRANSFERRED("Subscription Transferred", "Triggered when a Subscription is transferred.", "SUBSCRIPTION"),
     NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT");
 
     private String label;

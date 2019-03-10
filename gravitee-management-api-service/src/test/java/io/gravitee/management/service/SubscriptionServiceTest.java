@@ -58,7 +58,7 @@ public class SubscriptionServiceTest {
     private static final String APPLICATION_ID = "my-application";
     private static final String PLAN_ID = "my-plan";
     private static final String API_ID = "my-api";
-    private static final String SUBSCRIPTION_VALIDATOR = "validator";
+    private static final String USER_ID = "user";
 
     @InjectMocks
     private SubscriptionService subscriptionService = new SubscriptionServiceImpl();
@@ -797,12 +797,12 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
 
         // Run
-        final SubscriptionEntity subscriptionEntity = subscriptionService.process(processSubscription, SUBSCRIPTION_VALIDATOR);
+        final SubscriptionEntity subscriptionEntity = subscriptionService.process(processSubscription, USER_ID);
 
         // Verify
         verify(apiKeyService, never()).generate(any());
         assertEquals(SubscriptionStatus.REJECTED, subscriptionEntity.getStatus());
-        assertEquals(SUBSCRIPTION_VALIDATOR, subscriptionEntity.getProcessedBy());
+        assertEquals(USER_ID, subscriptionEntity.getProcessedBy());
         assertNotNull(subscriptionEntity.getProcessedAt());
     }
 
@@ -825,7 +825,7 @@ public class SubscriptionServiceTest {
         when(planService.findById(PLAN_ID)).thenReturn(plan);
 
         // Run
-        subscriptionService.process(processSubscription, SUBSCRIPTION_VALIDATOR);
+        subscriptionService.process(processSubscription, USER_ID);
     }
 
     @Test(expected = PlanNotSubscribableException.class)
@@ -860,5 +860,30 @@ public class SubscriptionServiceTest {
 
         // Run
         subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+    }
+
+    @Test
+    public void shouldTransferSubscription() throws Exception {
+        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+        transferSubscription.setId(SUBSCRIPTION_ID);
+        transferSubscription.setPlan(PLAN_ID);
+
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscription.getStatus()).thenReturn(Subscription.Status.ACCEPTED);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenReturn(subscription);
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(plan.getStatus()).thenReturn(PlanStatus.PUBLISHED);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
+        when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
+
+        subscriptionService.transfer(transferSubscription, USER_ID);
+
+        verify(notifierService).trigger(eq(ApiHook.SUBSCRIPTION_TRANSFERRED), anyString(), anyMap());
+        verify(notifierService).trigger(eq(ApplicationHook.SUBSCRIPTION_TRANSFERRED), nullable(String.class), anyMap());
+        verify(subscription).setUpdatedAt(any());
+
     }
 }

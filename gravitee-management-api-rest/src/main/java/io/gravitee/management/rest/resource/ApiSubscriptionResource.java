@@ -240,6 +240,37 @@ public class ApiSubscriptionResource extends AbstractResource {
                 .build();
     }
 
+    @POST
+    @Path("/_transfer")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Transfer a subscription",
+            notes = "User must have the API_SUBSCRIPTION update permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Update a subscription", response = Subscription.class),
+            @ApiResponse(code = 400, message = "Bad subscription format"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = UPDATE)
+    })
+    public Response transferApiSubscription(
+            @PathParam("api") String api,
+            @PathParam("subscription") String subscription,
+            @ApiParam(name = "subscription", required = true) @Valid @NotNull TransferSubscriptionEntity transferSubscriptionEntity) {
+
+        if (transferSubscriptionEntity.getId() != null && ! subscription.equals(transferSubscriptionEntity.getId())) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("'subscription' parameter does not correspond to the subscription to process")
+                    .build();
+        }
+
+        // Force subscription ID
+        transferSubscriptionEntity.setId(subscription);
+
+        SubscriptionEntity subscriptionEntity = subscriptionService.transfer(transferSubscriptionEntity, getAuthenticatedUser());
+        return Response.ok(convert(subscriptionEntity)).build();
+    }
+
     private Subscription convert(SubscriptionEntity subscriptionEntity) {
         Subscription subscription = new Subscription();
 

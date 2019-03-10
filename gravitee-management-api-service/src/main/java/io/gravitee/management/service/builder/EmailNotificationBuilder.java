@@ -92,6 +92,7 @@ public class EmailNotificationBuilder {
         PAUSE_SUBSCRIPTION("subscriptionPaused.html"),
         RESUME_SUBSCRIPTION("subscriptionResumed.html"),
         REJECT_SUBSCRIPTION("subscriptionRejected.html"),
+        TRANSFER_SUBSCRIPTION("subscriptionTransferred.html"),
         USER_REGISTRATION("userRegistration.html"),
         USER_REGISTERED("userRegistered.html"),
         APPLICATION_MEMBER_SUBSCRIPTION("applicationMember.html"),

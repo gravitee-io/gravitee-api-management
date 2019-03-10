@@ -423,8 +423,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         final boolean contextPathExists = apiRepository.search(null).stream()
                 .filter(api -> !api.getId().equals(apiId))
-                .anyMatch(api -> {
-                    final String contextPath = convert(api, null).getProxy().getContextPath();
+                .map(api -> convert(api, null).getProxy())
+                .filter(Objects::nonNull)
+                .anyMatch(proxy -> {
+                    final String contextPath = proxy.getContextPath();
                     final int indexOfEndOfSubContextPath = contextPath.lastIndexOf('/', 1);
                     final String subContextPath = contextPath.substring(0, indexOfEndOfSubContextPath <= 0 ?
                             contextPath.length() : indexOfEndOfSubContextPath) + '/';
