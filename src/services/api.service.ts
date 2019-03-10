@@ -221,8 +221,8 @@ class ApiService {
   /*
    * API plans
    */
-  getApiPlans(apiId): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + apiId + '/plans?status=staging,published,closed,deprecated');
+  getApiPlans(apiId, status?, security?): ng.IPromise<any> {
+    return this.$http.get(this.apisURL + apiId + '/plans?status=' + (status?status:'staging,published,closed,deprecated') + (security?'&security='+security:''));
   }
 
   getApiPlan(apiId, planId): ng.IPromise<any> {
@@ -306,6 +306,13 @@ class ApiService {
 
   processSubscription(apiId, subscriptionId, processSubscription): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/_process', processSubscription);
+  }
+
+  transferSubscription(apiId, subscriptionId, transferSubscription): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/_transfer', {
+      id: transferSubscription.id,
+      plan: transferSubscription.plan
+    });
   }
 
   getPlanSubscriptions(apiId, planId): ng.IPromise<any> {

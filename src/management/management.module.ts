@@ -172,6 +172,8 @@ import DialogSubscriptionAcceptController
   from '../management/api/portal/subscriptions/subscription.accept.dialog.controller';
 import DialogSubscriptionCreateController
   from '../management/api/portal/subscriptions/subscription.create.dialog.controller';
+import DialogSubscriptionTransferController
+  from '../management/api/portal/subscriptions/subscription.transfer.dialog.controller';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import DialogClosePlanController from '../management/api/portal/plans/closePlanDialog.controller';
 import DialogPublishPlanController from '../management/api/portal/plans/publishPlanDialog.controller';
@@ -554,6 +556,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DialogSubscriptionRejectController', DialogSubscriptionRejectController)
   .controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController)
   .controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController)
+  .controller('DialogSubscriptionTransferController', DialogSubscriptionTransferController)
   .controller('DialogClosePlanController', DialogClosePlanController)
   .controller('DialogPublishPlanController', DialogPublishPlanController)
   .controller('TagsController', TagsController)

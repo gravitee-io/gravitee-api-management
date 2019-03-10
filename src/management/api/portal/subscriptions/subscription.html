@@ -100,6 +100,12 @@
     </div>
 
     <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.subscription.status === 'accepted' || $ctrl.subscription.status === 'paused'">
+      <md-button class="md-raised md-primary" ng-click="$ctrl.transfer()"
+                 permission permission-only="'api-subscription-u'" ng-disabled="$ctrl.plans.length === 0">
+        <ng-md-icon icon="compare_arrows" style="fill: white"></ng-md-icon>
+        Transfer
+      </md-button>
+
       <md-button class="md-raised md-primary" ng-click="$ctrl.pause()"
                  permission permission-only="'api-subscription-u'"
                  ng-if="$ctrl.subscription.status === 'accepted'">

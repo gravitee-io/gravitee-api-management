@@ -27,6 +27,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     private subscription:any;
     private keys:any[];
     private api: any;
+    private plans: any[];
 
     constructor(
       private $rootScope: ng.IRootScopeService,
@@ -39,6 +40,13 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
 
     $onInit() {
       this.listApiKeys();
+      this.getApiPlans();
+    }
+
+    private getApiPlans() {
+      this.ApiService.getApiPlans(this.api.id, 'published', this.subscription.plan.security).then(response => {
+        this.plans = _.filter(response.data, plan => plan.id !== this.subscription.plan.id);
+      });
     }
 
     listApiKeys() {
@@ -160,7 +168,16 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
           if (processSubscription.accepted) {
             this.listApiKeys();
           }
-      });
+        });
+    }
+
+    transferSubscription(transferSubscription) {
+      this.ApiService.transferSubscription(this.api.id, this.subscription.id, transferSubscription)
+        .then( (response) => {
+          this.NotificationService.show('The subscription has been successfully transferred');
+          this.subscription = response.data;
+          this.getApiPlans();
+        });
     }
 
     renewApiKey() {
@@ -222,6 +239,21 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     onCopyApiKeySuccess(e) {
       this.NotificationService.show('API Key has been copied to clipboard');
       e.clearSelection();
+    }
+
+    transfer() {
+      this.$mdDialog.show({
+        controller: 'DialogSubscriptionTransferController',
+        controllerAs: '$ctrl',
+        template: require('./subscription.transfer.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          plans: this.plans
+        }
+      }).then(plan => {
+        this.subscription.plan = plan;
+        this.transferSubscription(this.subscription);
+      });
     }
   }
 };
