@@ -194,7 +194,7 @@ class VertxHttpServerRequest implements Request {
 
     @Override
     public Request endHandler(Handler<Void> endHandler) {
-        if (! httpServerRequest.isEnded()) {
+        if (! ended()) {
             httpServerRequest.endHandler(endHandler::handle);
         }
         return this;
@@ -215,5 +215,10 @@ class VertxHttpServerRequest implements Request {
     @Override
     public Metrics metrics() {
         return metrics;
+    }
+
+    @Override
+    public boolean ended() {
+        return httpServerRequest.isEnded();
     }
 }
