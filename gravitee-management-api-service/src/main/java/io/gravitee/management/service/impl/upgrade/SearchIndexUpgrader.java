@@ -18,6 +18,7 @@ package io.gravitee.management.service.impl.upgrade;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageListItem;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.documentation.PageQuery;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.search.SearchEngineService;
@@ -32,6 +33,7 @@ import java.util.function.Consumer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -51,24 +53,18 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         // Index APIs
         Set<ApiEntity> apis = apiService.findAll();
         apis.stream()
-                .forEach(new Consumer<ApiEntity>() {
-                    @Override
-                    public void accept(ApiEntity apiEntity) {
-                        searchEngineService.index(apiEntity);
+                .forEach(apiEntity -> {
+                    searchEngineService.index(apiEntity);
 
-                        List<PageListItem> apiPages = pageService.findApiPagesByApi(apiEntity.getId());
-                        apiPages.stream().forEach(new Consumer<PageListItem>() {
-                            @Override
-                            public void accept(PageListItem pageListItem) {
-                                try {
-                                    PageEntity page = pageService.findById(pageListItem.getId(), true);
-                                    searchEngineService.index(page);
-                                } catch (Exception ex) {
+                    List<PageEntity> apiPages = pageService.search(new PageQuery.Builder().api(apiEntity.getId()).published(true).build());
+                    apiPages.stream().forEach(pageListItem -> {
+                        try {
+                            PageEntity page = pageService.findById(pageListItem.getId(), true);
+                            searchEngineService.index(page);
+                        } catch (Exception ex) {
 
-                                }
-                            }
-                        });
-                    }
+                        }
+                    });
                 });
 
         return true;

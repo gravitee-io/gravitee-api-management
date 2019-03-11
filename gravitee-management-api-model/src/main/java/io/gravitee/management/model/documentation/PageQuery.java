@@ -25,12 +25,14 @@ public class PageQuery {
 
     private String api;
     private String name;
+    private Boolean published;
     private PageType type;
 
     private PageQuery(Builder builder) {
         api = builder.api;
         name = builder.name;
         type = builder.type;
+        published = builder.published;
     }
 
     public String getApi() {
@@ -45,9 +47,14 @@ public class PageQuery {
         return type;
     }
 
+    public Boolean getPublished() {
+        return published;
+    }
+
     public static class Builder {
         private String api;
         private String name;
+        private Boolean published;
         private PageType type;
 
         public PageQuery build() {
@@ -66,6 +73,11 @@ public class PageQuery {
 
         public Builder type(PageType type) {
             this.type = type;
+            return this;
+        }
+
+        public Builder published(boolean published) {
+            this.published = published;
             return this;
         }
     }
