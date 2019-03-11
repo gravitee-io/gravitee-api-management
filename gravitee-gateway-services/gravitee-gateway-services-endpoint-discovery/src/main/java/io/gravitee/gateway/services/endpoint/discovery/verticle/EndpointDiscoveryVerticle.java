@@ -36,7 +36,6 @@ import io.vertx.core.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 import java.util.*;
 
@@ -57,9 +56,6 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
 
     @Autowired
     private ServiceDiscoveryFactory serviceDiscoveryFactory;
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     private final Map<Api, List<ServiceDiscovery>> apiServiceDiscoveries = new HashMap<>();
 
@@ -117,9 +113,6 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
         if (serviceDiscoveryPlugin != null) {
             ServiceDiscovery serviceDiscovery = serviceDiscoveryFactory.create(
                     serviceDiscoveryPlugin, discoveryService.getConfiguration());
-
-            // Autowire fetcher
-            applicationContext.getAutowireCapableBeanFactory().autowireBean(serviceDiscovery);
 
             List<ServiceDiscovery> discoveries = apiServiceDiscoveries.getOrDefault(api, new ArrayList<>());
             discoveries.add(serviceDiscovery);
