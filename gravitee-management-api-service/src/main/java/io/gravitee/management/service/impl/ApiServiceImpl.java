@@ -26,10 +26,12 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.management.idp.api.identity.IdentityReference;
 import io.gravitee.management.idp.api.identity.SearchableUser;
-import io.gravitee.management.model.*;
+import io.gravitee.management.idp.core.authentication.impl.ReferenceSerializer;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.PageType;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.ApiQuery;
 import io.gravitee.management.model.api.NewApiEntity;
@@ -55,6 +57,8 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Visibility;
@@ -140,6 +144,8 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     private ApiHeaderService apiHeaderService;
     @Autowired
     private Configuration freemarkerConfiguration;
+    @Autowired
+    private ReferenceSerializer referenceSerializer;
     @Autowired
     private ParameterService parameterService;
 
@@ -839,54 +845,87 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             }
 
             ApiEntity createdOrUpdatedApiEntity;
-            Set<MemberToImport> members;
             if (apiEntity == null || apiEntity.getId() == null) {
                 createdOrUpdatedApiEntity = create0(importedApi, userId);
-                members = Collections.emptySet();
             } else {
                 createdOrUpdatedApiEntity = update(apiEntity.getId(), importedApi);
-                members = membershipService.getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API)
-                        .stream()
-                        .map(member -> new MemberToImport(member.getUsername(), member.getRole())).collect(Collectors.toSet());
             }
 
             // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
 
             // Members
-            final JsonNode membersDefinition = jsonNode.path("members");
-            if (membersDefinition != null && membersDefinition.isArray()) {
-                MemberEntity memberAsPrimaryOwner = null;
+            final JsonNode membersToImport = jsonNode.path("members");
+            if (membersToImport != null && membersToImport.isArray()) {
+                // get current members of the api
+                Set<MemberToImport> membersAlreadyPresent = membershipService
+                        .getMembers(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId(), RoleScope.API)
+                        .stream()
+                        .map(member -> new MemberToImport(member.getUsername(), member.getRole())).collect(Collectors.toSet());
+                // get the current PO
+                MemberToImport currentPo = membersAlreadyPresent.stream()
+                        .filter(memberToImport -> SystemRole.PRIMARY_OWNER.name().equals(memberToImport.getRole()))
+                        .findFirst()
+                        .orElse(new MemberToImport());
 
-                for (final JsonNode memberNode : membersDefinition) {
-                    MemberToImport memberEntity = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
-                    Collection<SearchableUser> idpUsers = identityService.search(memberEntity.getUsername());
+                String roleUsedInTransfert = null;
+                String futurePO = null;
 
-                    if (!idpUsers.isEmpty()) {
-                        SearchableUser user = idpUsers.iterator().next();
+                // upsert members
+                for (final JsonNode memberNode : membersToImport) {
+                    MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
+                    boolean presentWithSameRole = membersAlreadyPresent
+                            .stream()
+                            .anyMatch(m -> m.getRole().equals(memberToImport.getRole())
+                                    && m.getUsername().equals(memberToImport.getUsername()));
 
-                        if (!members.contains(memberEntity)
-                                || members.stream().anyMatch(m ->
-                                m.getUsername().equals(memberEntity.getUsername())
-                                        && !m.getRole().equals(memberEntity.getRole()))) {
-                            MemberEntity membership = membershipService.addOrUpdateMember(
+                    // add/update members if :
+                    //  - not already present with the same role
+                    //  - not the new PO
+                    //  - not the current PO
+                    if (!presentWithSameRole
+                            && !SystemRole.PRIMARY_OWNER.name().equals(memberToImport.getRole())
+                            && !memberToImport.getUsername().equals(currentPo.getUsername())) {
+                        Collection<SearchableUser> idpUsers = identityService.search(memberToImport.getUsername());
+                        if (!idpUsers.isEmpty()) {
+                            SearchableUser user = idpUsers.iterator().next();
+                            membershipService.addOrUpdateMember(
                                     new MembershipService.MembershipReference(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId()),
                                     new MembershipService.MembershipUser(user.getId(), user.getReference()),
-                                    new MembershipService.MembershipRole(RoleScope.API, memberEntity.getRole()));
-                            if (SystemRole.PRIMARY_OWNER.name().equals(memberEntity.getRole())) {
-                                // Get the identifier of the primary owner
-                                memberAsPrimaryOwner = membership;
-                            }
+                                    new MembershipService.MembershipRole(RoleScope.API, memberToImport.getRole()));
                         }
+                    }
+
+                    // get the future role of the current PO
+                    if (currentPo.getUsername().equals(memberToImport.getUsername())
+                            && !SystemRole.PRIMARY_OWNER.name().equals(memberToImport.getRole())) {
+                        roleUsedInTransfert = memberToImport.getRole();
+                    }
+
+                    if (SystemRole.PRIMARY_OWNER.name().equals(memberToImport.getRole())) {
+                        futurePO = memberToImport.getUsername();
                     }
                 }
 
-                // Transfer ownership if necessary
-                if (memberAsPrimaryOwner != null && !userId.equals(memberAsPrimaryOwner.getId())) {
-                    membershipService.transferApiOwnership(createdOrUpdatedApiEntity.getId(),
-                            new MembershipService.MembershipUser(memberAsPrimaryOwner.getId(), null),
-                            null);
+                // transfer the ownership
+                if (futurePO != null && !currentPo.getUsername().equals(futurePO)) {
+                    Collection<SearchableUser> idpUsers = identityService.search(futurePO);
+                    if (!idpUsers.isEmpty()) {
+                        SearchableUser user = idpUsers.iterator().next();
+                        RoleEntity roleEntity = null;
+                        if (roleUsedInTransfert!=null) {
+                            roleEntity = new RoleEntity();
+                            roleEntity.setName(roleUsedInTransfert);
+                            roleEntity.setScope(io.gravitee.management.model.permissions.RoleScope.API);
+                        }
+                        membershipService.transferApiOwnership(
+                                createdOrUpdatedApiEntity.getId(),
+                                new MembershipService.MembershipUser(user.getId(), user.getReference()),
+                                roleEntity);
+                    }
                 }
+
+
             }
 
             //Pages
