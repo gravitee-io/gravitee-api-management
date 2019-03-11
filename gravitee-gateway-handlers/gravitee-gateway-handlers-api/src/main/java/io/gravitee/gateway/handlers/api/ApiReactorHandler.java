@@ -157,9 +157,17 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         processorContext.setRequest(invokeRequest);
 
         // Plug server request stream to request processor stream
-        invokeRequest
-                .bodyHandler(processor::write)
-                .endHandler(aVoid -> processor.end());
+        invokeRequest.bodyHandler(processor::write);
+
+        if (invokeRequest.ended()) {
+            // since Vert.x 3.6.0 it can happen that requests without body (e.g. a GET) are ended even while in paused-State
+            // Setting the endHandler would then lead to an Exception
+            // see also https://github.com/eclipse-vertx/vert.x/issues/2763
+            // so we now check if the request already is ended before installing an endHandler
+            processor.end();
+        } else {
+            invokeRequest.endHandler(result -> processor.end());
+        }
     }
 
     private void handleProxyResponse(final ProcessorContext processorContext, final ProxyResponse proxyResponse, final long serviceInvocationStart, final Handler<Response> handler) {
