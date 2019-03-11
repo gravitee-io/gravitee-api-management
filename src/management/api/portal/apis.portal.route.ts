@@ -330,7 +330,7 @@ function apisPortalRouterConfig($stateProvider) {
       }
     })
     .state('management.apis.detail.portal.editdocumentation', {
-      url: '/documentation/:pageId',
+      url: '/documentation/:pageId?:tab',
       component: 'editPage',
       resolve: {
         resolvedPage: (DocumentationService: DocumentationService, $stateParams: StateParams) =>

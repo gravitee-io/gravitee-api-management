@@ -25,6 +25,7 @@ interface IPageScope extends IScope {
   fetcherJsonSchema: string;
   rename: boolean;
   editorReadonly: boolean;
+  currentTab: string;
 }
 const EditPageComponent: ng.IComponentOptions = {
   bindings: {
@@ -41,8 +42,10 @@ const EditPageComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
     this.apiId = $state.params.apiId;
-    this.selectedTab=0;
-
+    this.tabs = ["content", "config", "fetchers", "access-control"];
+    const indexOfTab = this.tabs.indexOf($state.params.tab);
+    this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
+    this.currentTab = this.tabs[this.selectedTab];
 
     $scope.rename = false;
 
@@ -122,9 +125,9 @@ const EditPageComponent: ng.IComponentOptions = {
         .then( (response) => {
           NotificationService.show("'" + this.page.name + "' has been updated");
           if (this.apiId) {
-            $state.go("management.apis.detail.portal.editdocumentation", {pageId: this.page.id}, {reload: true});
+            $state.go("management.apis.detail.portal.editdocumentation", {pageId: this.page.id, tab: this.currentTab}, {reload: true});
           } else {
-            $state.go("management.settings.editdocumentation", {pageId: this.page.id}, {reload: true});
+            $state.go("management.settings.editdocumentation", {pageId: this.page.id, tab: this.currentTab}, {reload: true});
           }
       });
     };
@@ -172,6 +175,16 @@ const EditPageComponent: ng.IComponentOptions = {
 
     this.goToExternalSource = () => {
       this.selectedTab = 2
+    };
+
+    this.selectTab = (idx: number) => {
+      this.selectedTab = idx;
+      this.currentTab = this.tabs[this.selectedTab];
+      if (this.apiId) {
+        $state.transitionTo("management.apis.detail.portal.editdocumentation", {apiId: this.apiId, pageId: this.page.id, tab: this.currentTab}, {notify: false});
+      } else {
+        $state.transitionTo("management.settings.editdocumentation", {pageId: this.page.id, tab: this.currentTab}, {notify: false});
+      }
     };
   }
 };

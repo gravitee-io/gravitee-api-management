@@ -313,7 +313,7 @@ function configurationRouterConfig($stateProvider) {
       }
     })
     .state('management.settings.editdocumentation', {
-      url: '/pages/:pageId',
+      url: '/pages/:pageId?:tab',
       component: 'editPage',
       resolve: {
         resolvedPage: (DocumentationService: DocumentationService, $stateParams: StateParams) =>

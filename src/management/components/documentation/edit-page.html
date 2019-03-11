@@ -64,7 +64,7 @@
             </div>
             <md-tabs md-dynamic-height md-selected="$ctrl.selectedTab">
 
-                <md-tab md-on-select="currentTab='content'">
+                <md-tab md-on-select="currentTab=$ctrl.selectTab(0)">
                     <md-tab-label>Page</md-tab-label>
                     <md-tab-body>
 
@@ -100,7 +100,7 @@
                     </md-tab-body>
                 </md-tab>
 
-                <md-tab md-on-select="currentTab='config'">
+                <md-tab md-on-select="currentTab=$ctrl.selectTab(1)">
                     <md-tab-label>Configuration</md-tab-label>
                     <md-tab-body>
                         <h3>General</h3>
@@ -163,7 +163,7 @@
                     </md-tab-body>
                 </md-tab>
 
-                <md-tab md-on-select="currentTab='fetchers'">
+                <md-tab md-on-select="currentTab=$ctrl.selectTab(2)">
                     <md-tab-label>External Source</md-tab-label>
                     <md-tab-body>
                         <div style="display: inline-block;">
@@ -183,7 +183,7 @@
                     </md-tab-body>
                 </md-tab>
 
-                <md-tab md-on-select="currentTab='access-control'">
+                <md-tab md-on-select="currentTab=$ctrl.selectTab(3)">
                     <md-tab-label>Access Control</md-tab-label>
                     <md-tab-body>
                         <h3>Groups Authorizations</h3>
@@ -206,7 +206,7 @@
                 <md-button class="md-raised" type="button" ng-click="$ctrl.reset()">
                     Reset
                 </md-button>
-                <md-button class="md-flat md-warn" type="button" ng-if="currentTab === 'fetchers' && $ctrl.page.source" ng-click="$ctrl.removeFetcher()">
+                <md-button class="md-flat md-warn" type="button" ng-if="$ctrl.currentTab === 'fetchers' && $ctrl.page.source" ng-click="$ctrl.removeFetcher()">
                     Remove External Source Configuration
                 </md-button>
             </div>
