@@ -172,6 +172,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         Proxy proxy = new Proxy();
         proxy.setContextPath(newApiEntity.getContextPath());
         EndpointGroup group = new EndpointGroup();
+        group.setName("default-group");
         group.setEndpoints(singleton(new HttpEndpoint("default", newApiEntity.getEndpoint())));
         proxy.setGroups(singleton(group));
         apiEntity.setProxy(proxy);
