@@ -56,7 +56,7 @@ public class FreeMarkerComponent {
         this.configuration.setDateFormat("iso_utc");
         this.configuration.setLocale(Locale.ENGLISH);
         this.configuration.setNumberFormat("computer");
-        this.configuration.setClassLoaderForTemplateLoading(Thread.currentThread().getContextClassLoader(), DIRECTORY_NAME);
+        this.configuration.setClassLoaderForTemplateLoading(FreeMarkerComponent.class.getClassLoader(), DIRECTORY_NAME);
     }
 
     /**
