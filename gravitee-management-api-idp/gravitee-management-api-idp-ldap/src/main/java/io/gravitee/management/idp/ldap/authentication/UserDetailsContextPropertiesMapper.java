@@ -33,8 +33,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
+ * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class UserDetailsContextPropertiesMapper implements UserDetailsContextMapper {
@@ -51,14 +52,11 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 	private String identifierAttribute;
 
 	public void afterPropertiesSet() throws Exception {
-		String searchFilter = environment.getProperty("user-search-filter");
+		String searchFilter = environment.getProperty("authentication.user.filter");
 
 		if (searchFilter != null) {
 			// Search filter can be uid={0} or mail={0}
 			identifierAttribute = LdapUtils.extractAttribute(searchFilter);
-		} else {
-			// Use the DN pattern to filter
-			identifierAttribute = LdapUtils.extractAttribute(environment.getProperty("user-dn-pattern"));
 		}
 
 		if (identifierAttribute == null) {
@@ -71,7 +69,7 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 		List<GrantedAuthority> mappedAuthorities = new ArrayList<>();
 		try {
 			for (GrantedAuthority granted : authorities) {
-				String mappedAuthority = environment.getProperty("role-mapper."+granted.getAuthority());
+				String mappedAuthority = environment.getProperty("authentication.group.role.mapper."+granted.getAuthority());
 				if (!StringUtils.isEmpty(mappedAuthority)) {
 					mappedAuthorities.add(new SimpleGrantedAuthority(mappedAuthority));
 				}

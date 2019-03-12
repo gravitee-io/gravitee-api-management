@@ -46,6 +46,7 @@ import java.util.Collections;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Import(LdapIdentityLookupConfiguration.class)
@@ -53,14 +54,12 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
     private final Logger LOGGER = LoggerFactory.getLogger(LdapIdentityLookup.class);
 
-    private final static String LDAP_DEFAULT_OBJECT_CLASS = "person";
-
-    private final static String LDAP_ATTRIBUTE_COMMONNAME = "cn";
-    private final static String LDAP_ATTRIBUTE_USERID = "uid";
     private final static String LDAP_ATTRIBUTE_GIVENNAME = "givenName";
     private final static String LDAP_ATTRIBUTE_SURNAME = "sn";
     private final static String LDAP_ATTRIBUTE_MAIL = "mail";
     private final static String LDAP_ATTRIBUTE_DISPLAYNAME = "displayName";
+    private final static String LDAP_DEFAULT_LOOKUP_FILTER ="(&(objectClass=Person)(|(cn=*{0}*)(uid={0})))";
+
 
     @Autowired
     private LdapTemplate ldapTemplate;
@@ -76,7 +75,7 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        String searchFilter = environment.getProperty("user-search-filter");
+        String searchFilter = environment.getProperty("lookup.user.filter");
         LOGGER.debug("Looking for a LDAP user's identifier using search filter [{}]", searchFilter);
 
         if (searchFilter != null) {
@@ -97,8 +96,8 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
         // Base DN to search for users
         baseDn = LdapNameBuilder
-                .newInstance(environment.getProperty("context-source-base"))
-                .add(environment.getProperty("user-search-base"))
+                .newInstance(environment.getProperty("context.base"))
+                .add(environment.getProperty("lookup.user.base", ""))
                 .build();
 
         LOGGER.info("User search is based on DN [{}]", baseDn);
@@ -109,14 +108,8 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-            Filter classFilter = new EqualsFilter("objectclass",
-                    environment.getProperty(
-                            "user-search-objectclass",
-                            LDAP_DEFAULT_OBJECT_CLASS));
-
-            Filter queryFilter = new OrFilter()
-                    .or(new WhitespaceWildcardsFilter(LDAP_ATTRIBUTE_COMMONNAME, query))
-                    .or(new EqualsFilter(LDAP_ATTRIBUTE_USERID, query));
+            String usersSearchFilter = environment.getProperty("lookup.user.filter", LDAP_DEFAULT_LOOKUP_FILTER);
+            String hardcodedFilter = usersSearchFilter.replaceAll("\\{0}", LdapUtils.addWhitespaceWildcards(query));
 
             LdapQuery ldapQuery = LdapQueryBuilder
                     .query()
@@ -129,8 +122,7 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
                             LDAP_ATTRIBUTE_SURNAME,
                             LDAP_ATTRIBUTE_MAIL,
                             LDAP_ATTRIBUTE_DISPLAYNAME)
-                    .filter(new AndFilter().and(classFilter).and(queryFilter));
-
+                    .filter(new HardcodedFilter(hardcodedFilter));
 
             return ldapTemplate.search(ldapQuery, USER_CONTEXT_MAPPER);
         } catch(LimitExceededException lee) {

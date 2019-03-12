@@ -48,4 +48,11 @@ public final class LdapUtils {
 
         return null;
     }
+
+    public static String addWhitespaceWildcards(String str) {
+        if (str == null) {
+            return null;
+        }
+        return str.replaceAll(" ", "*");
+    }
 }

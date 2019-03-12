@@ -27,7 +27,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSource> {
@@ -48,16 +49,16 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
         ContextSourceBuilder contextSourceBuilder = new ContextSourceBuilder();
 
         contextSourceBuilder
-                .root(environment.getProperty("context-source-base"));
+                .root(environment.getProperty("context.base"));
 
         // set up embedded mode
         if (environment.getProperty("embedded", boolean.class, false)) {
             contextSourceBuilder.ldif("classpath:/ldap/gravitee-io-management-rest-api-ldap-test.ldif");
         } else {
             contextSourceBuilder
-                    .managerDn(environment.getProperty("context-source-username"))
-                    .managerPassword(environment.getProperty("context-source-password"))
-                    .url(environment.getProperty("context-source-url"));
+                    .managerDn(environment.getProperty("context.username"))
+                    .managerPassword(environment.getProperty("context.password"))
+                    .url(environment.getProperty("context.url"));
         }
 
         ldapContextSource = contextSourceBuilder.build();
