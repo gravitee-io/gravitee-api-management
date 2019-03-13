@@ -50,6 +50,7 @@ class DashboardController {
       subhead: 'Ordered by API calls',
       chart: {
         type: 'table',
+        selectable: true,
         link: 'api',
         columns: ['API', 'Hits'],
         paging: 5,
@@ -68,6 +69,7 @@ class DashboardController {
       subhead: 'Ordered by application calls',
       chart: {
         type: 'table',
+        selectable: true,
         link: 'application',
         columns: ['Application', 'Hits'],
         paging: 5,
@@ -192,14 +194,12 @@ class DashboardController {
     }
   }];
 
-    var _that = this;
-
-    _.forEach(this.$scope.platformDashboard, function (widget) {
+    _.forEach(this.$scope.platformDashboard, (widget) => {
       _.merge(widget, {
         chart: {
           service: {
-            caller: _that.AnalyticsService,
-            function: _that.AnalyticsService.analytics
+            caller: this.AnalyticsService,
+            function: this.AnalyticsService.analytics
           }
         }
       });
@@ -214,16 +214,6 @@ class DashboardController {
 
     this.initPagination();
     this.searchEvents = this.searchEvents.bind(this);
-
-    // Refresh widget on each timeframe change
-    /*
-    this.$scope.$on('timeframeChange', function (event, timeframe) {
-      _that.lastFrom = timeframe.from;
-      _that.lastTo = timeframe.to;
-
-      _that.searchEvents();
-    });
-    */
   }
 
   onTimeframeChange(timeframe) {
@@ -231,24 +221,6 @@ class DashboardController {
     this.lastTo = timeframe.to;
 
     this.searchEvents();
-  }
-
-  undoAPI() {
-    this.updateCharts();
-    this.searchEvents();
-  }
-
-  selectAPI() {
-    this.updateCharts();
-    this.searchEvents();
-  }
-
-  undoApplication() {
-    this.updateCharts();
-  }
-
-  selectApplication() {
-    this.updateCharts();
   }
 
   selectEvent(eventType) {
@@ -280,28 +252,6 @@ class DashboardController {
     });
   }
 
-  searchAPI(query) {
-    if (query) {
-      return this.ApiService.list().then(function(response) {
-        return _.filter(response.data,
-          function(api: any) {
-            return api.name.toUpperCase().indexOf(query.toUpperCase()) > -1;
-          });
-      });
-    }
-  }
-
-  searchApplication(query) {
-    if (query) {
-      return this.ApplicationService.list().then(function(response) {
-        return _.filter(response.data,
-          function(application: any) {
-            return application.name.toUpperCase().indexOf(query.toUpperCase()) > -1;
-          });
-      });
-    }
-  }
-
   initPagination() {
     this.query = {
       limit: 10,
@@ -311,60 +261,6 @@ class DashboardController {
 
   getEventLabel(label) {
     return this.eventLabels[label];
-  }
-
-  updateCharts() {
-    var _this = this;
-    var i;
-
-    var queryFilter = '';
-    if (this.selectedAPIs.length) {
-      queryFilter = ' AND(';
-      for (i = 0; i < this.selectedAPIs.length; i++) {
-        queryFilter += 'api:' + this.selectedAPIs[i].id + (this.selectedAPIs.length - 1 === i ? ')' : ' OR ');
-      }
-    }
-
-    if (this.selectedApplications.length) {
-      queryFilter = ' AND(';
-      for (i = 0; i < this.selectedApplications.length; i++) {
-        queryFilter += 'application:' + this.selectedApplications[i].id + (this.selectedApplications.length - 1 === i ? ')' : ' OR ');
-      }
-    }
-
-    _.forEach(this.analyticsData.tops, function (top) {
-      _this.$scope.fetchData = true;
-      var request = top.request.call(_this.AnalyticsService,
-        _this.analyticsData.range.from,
-        _this.analyticsData.range.to,
-        _this.analyticsData.range.interval,
-        top.key,
-        top.query + queryFilter,
-        top.field,
-        top.orderField,
-        top.orderDirection,
-        top.orderType,
-        top.size);
-
-      request.then(response => {
-        if (response.data && response.data.values) {
-          if (Object.keys(response.data.values).length) {
-            top.results = _.map(response.data.values, function (value, key) {
-              return {
-                topKey: key,
-                topValue: value,
-                model: top.field,
-                metadata: (response.data) ? response.data.metadata[key] : undefined
-              };
-            });
-            _this.$scope.paging[top.key] = 1;
-          } else {
-            delete top.results;
-          }
-        }
-        _this.$scope.fetchData = false;
-      });
-    });
   }
 }
 
