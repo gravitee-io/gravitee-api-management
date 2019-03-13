@@ -88,7 +88,11 @@ export class PortalApiListController {
   }
 
   search() {
-    this.$state.go('.', {q: this.query, view: 'results'});
+    if (this.query === undefined || this.query.length === 0) {
+      this.$state.go('.', {q: this.query, view: 'all'});
+    } else {
+      this.$state.go('.', {q: this.query, view: 'results'});
+    }
   }
 
   goToApi(api) {

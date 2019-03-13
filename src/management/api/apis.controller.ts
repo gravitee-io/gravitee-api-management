@@ -77,7 +77,7 @@ export class ApisController {
     $scope.$watch('$ctrl.query', (query, previousQuery) => {
       $timeout.cancel(timer);
       timer = $timeout(() => {
-        if (query !== previousQuery) {
+        if (query !== undefined && query !== previousQuery) {
           this.search();
         }
       }, 300);
