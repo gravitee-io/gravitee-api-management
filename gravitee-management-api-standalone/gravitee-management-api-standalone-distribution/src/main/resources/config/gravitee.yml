@@ -132,6 +132,12 @@ services:
         users:
           admin: adminadmin
 
+  # metrics service
+  metrics:
+    enabled: false
+    prometheus:
+      enabled: true
+
 # Analytics repository is used to store all reporting, metrics, healthchecks stored by gateway instances
 # This is the default configuration using Elasticearch
 analytics:
