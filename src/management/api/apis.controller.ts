@@ -46,7 +46,8 @@ export class ApisController {
               private graviteeUser,
               private $filter,
               private $transitions,
-              private $stateParams) {
+              private $stateParams,
+              private $timeout) {
     'ngInject';
 
     this.graviteeUser = graviteeUser;
@@ -70,6 +71,16 @@ export class ApisController {
 
     $transitions.onStart({to: $state.current.name}, () => {
       $scope.apisLoading = true;
+    });
+
+    let timer;
+    $scope.$watch('$ctrl.query', (query, previousQuery) => {
+      $timeout.cancel(timer);
+      timer = $timeout(() => {
+        if (query !== previousQuery) {
+          this.search();
+        }
+      }, 300);
     });
   }
 
