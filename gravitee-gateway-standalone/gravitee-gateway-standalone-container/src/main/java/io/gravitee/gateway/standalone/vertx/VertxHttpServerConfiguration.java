@@ -60,6 +60,12 @@ public class VertxHttpServerConfiguration {
     @Value("${http.tcpKeepAlive:true}")
     private boolean tcpKeepAlive;
 
+    @Value("${http.maxHeaderSize:8192}")
+    private int maxHeaderSize;
+
+    @Value("${http.maxChunkSize:8192}")
+    private int maxChunkSize;
+
     public int getPort() {
         return port;
     }
@@ -154,5 +160,21 @@ public class VertxHttpServerConfiguration {
 
     public void setAlpn(boolean alpn) {
         this.alpn = alpn;
+    }
+
+    public int getMaxHeaderSize() {
+        return maxHeaderSize;
+    }
+
+    public void setMaxHeaderSize(int maxHeaderSize) {
+        this.maxHeaderSize = maxHeaderSize;
+    }
+
+    public int getMaxChunkSize() {
+        return maxChunkSize;
+    }
+
+    public void setMaxChunkSize(int maxChunkSize) {
+        this.maxChunkSize = maxChunkSize;
     }
 }
