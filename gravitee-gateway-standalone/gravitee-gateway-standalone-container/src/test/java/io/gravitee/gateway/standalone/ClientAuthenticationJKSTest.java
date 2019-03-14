@@ -53,6 +53,7 @@ public class ClientAuthenticationJKSTest extends AbstractGatewayTest {
     @Override
     protected WireMockRule getWiremockRule() {
         return new WireMockRule(wireMockConfig()
+                .dynamicPort()
                 .dynamicHttpsPort()
                 .needClientAuth(true)
                 .trustStorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/truststore01.jks"))
