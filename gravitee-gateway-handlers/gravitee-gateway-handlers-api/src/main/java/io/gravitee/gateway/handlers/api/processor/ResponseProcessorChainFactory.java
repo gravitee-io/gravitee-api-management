@@ -17,26 +17,34 @@ package io.gravitee.gateway.handlers.api.processor;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.core.processor.StreamableProcessorDecorator;
 import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
 import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
+import io.gravitee.gateway.core.processor.provider.spring.SpringBasedProcessorSupplier;
 import io.gravitee.gateway.handlers.api.policy.api.ApiResponsePolicyChainResolver;
 import io.gravitee.gateway.handlers.api.processor.alert.AlertProcessor;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.policy.PolicyChainResolver;
+import io.gravitee.plugin.alert.AlertEngineService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
+
+    @Autowired
+    private AlertEngineService alertEngineService;
 
     private final List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers = new ArrayList<>();
 
@@ -55,8 +63,10 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
                     new StreamableProcessorDecorator<>(new PathMappingProcessor(api.getPathMappings()))));
         }
 
-        providers.add(new ProcessorSupplier<>(() ->
-                new StreamableProcessorDecorator<>(new AlertProcessor())));
+        if (alertEngineService != null) {
+            providers.add(new ProcessorSupplier<>(() ->
+                    new StreamableProcessorDecorator<>(new SpringBasedProcessorSupplier<>(applicationContext, AlertProcessor.class).get())));
+        }
     }
 
     @Override
