@@ -66,7 +66,7 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
                                         subscription.getEndingAt().after(new Date(request.timestamp())))) {
 
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
-                    executionContext.setAttribute(ExecutionContext.ATTR_USER_ID, subscription.getId());
+                    executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
                     executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
 
                     policyChain.doNext(request, response);
