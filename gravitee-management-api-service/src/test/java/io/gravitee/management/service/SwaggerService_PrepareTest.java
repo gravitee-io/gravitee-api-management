@@ -149,6 +149,7 @@ public class SwaggerService_PrepareTest {
         final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/api-with-examples.yaml", true);
         assertEquals("2.0.0", api.getVersion());
         assertEquals("Simple API overview", api.getName());
+        assertEquals("simpleapioverview", api.getContextPath());
         assertEquals("/", api.getEndpoint());
         assertEquals(2, api.getPaths().size());
         assertTrue(api.getPaths().stream().map(SwaggerPath::getPath).collect(toList()).containsAll(asList("/", "/v2")));
@@ -168,6 +169,7 @@ public class SwaggerService_PrepareTest {
         final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/callback-example.yaml", true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Callback Example", api.getName());
+        assertEquals("callbackexample", api.getContextPath());
         assertEquals("/", api.getEndpoint());
         assertEquals(1, api.getPaths().size());
         assertTrue(api.getPaths().stream().map(SwaggerPath::getPath).collect(toList()).contains("/streams"));
@@ -188,6 +190,7 @@ public class SwaggerService_PrepareTest {
         final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/link-example.yaml", true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Link Example", api.getName());
+        assertEquals("linkexample", api.getContextPath());
         assertEquals("/", api.getEndpoint());
         assertEquals(6, api.getPaths().size());
         final SwaggerPath usersUsername = api.getPaths().get(0);
@@ -231,6 +234,7 @@ public class SwaggerService_PrepareTest {
     public void shouldPrepareAPIFromSwaggerV3WithPetstore() throws IOException {
         final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/petstore.yaml", true);
         assertEquals("1.0.0", api.getVersion());
+        assertEquals("/v1", api.getContextPath());
         assertEquals("Swagger Petstore", api.getName());
         assertEquals("http://petstore.swagger.io/v1", api.getEndpoint());
         assertEquals(2, api.getPaths().size());
@@ -260,6 +264,7 @@ public class SwaggerService_PrepareTest {
         final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/petstore-expanded.yaml", true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Swagger Petstore", api.getName());
+        assertEquals("/api", api.getContextPath());
         assertEquals("http://petstore.swagger.io/api", api.getEndpoint());
         assertEquals(2, api.getPaths().size());
         final SwaggerPath pets = api.getPaths().get(0);
@@ -303,6 +308,7 @@ public class SwaggerService_PrepareTest {
         final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/uspto.yaml", true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("USPTO Data Set API", api.getName());
+        assertEquals("/ds-api", api.getContextPath());
         assertEquals("{scheme}://developer.uspto.gov/ds-api", api.getEndpoint());
         assertEquals(3, api.getPaths().size());
         final SwaggerPath metadata = api.getPaths().get(0);

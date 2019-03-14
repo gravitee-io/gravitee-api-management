@@ -57,11 +57,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toCollection;
@@ -291,7 +287,13 @@ public class SwaggerServiceImpl implements SwaggerService {
         }
         final NewSwaggerApiEntity apiEntity = new NewSwaggerApiEntity();
         apiEntity.setName(swagger.getInfo().getTitle());
-        apiEntity.setContextPath(apiEntity.getName().replaceAll("\\s+", "").toLowerCase());
+
+        if (swagger.getBasePath() != null && !swagger.getBasePath().isEmpty()) {
+            apiEntity.setContextPath(swagger.getBasePath());
+        } else {
+            apiEntity.setContextPath(apiEntity.getName().replaceAll("\\s+", "").toLowerCase());
+        }
+
         apiEntity.setDescription(swagger.getInfo().getDescription() == null ? "Description of " + apiEntity.getName() :
                 swagger.getInfo().getDescription());
         apiEntity.setVersion(swagger.getInfo().getVersion());
@@ -377,7 +379,19 @@ public class SwaggerServiceImpl implements SwaggerService {
         }
         final NewSwaggerApiEntity apiEntity = new NewSwaggerApiEntity();
         apiEntity.setName(swagger.getOpenAPI().getInfo().getTitle());
-        apiEntity.setContextPath(apiEntity.getName().replaceAll("\\s+", "").toLowerCase());
+
+        String contextPath = null;
+        if (!swagger.getOpenAPI().getServers().isEmpty()) {
+            contextPath = swagger.getOpenAPI().getServers().get(0).getUrl();
+            contextPath = URI.create(contextPath.replace("{scheme}", "http")).getPath();
+        }
+
+        if (contextPath == null || contextPath.equals("/")) {
+            contextPath = apiEntity.getName().replaceAll("\\s+", "").toLowerCase();
+        }
+
+        apiEntity.setContextPath(contextPath);
+
         apiEntity.setDescription(swagger.getOpenAPI().getInfo().getDescription() == null ? "Description of " + apiEntity.getName() :
                 swagger.getOpenAPI().getInfo().getDescription());
         apiEntity.setVersion(swagger.getOpenAPI().getInfo().getVersion());
