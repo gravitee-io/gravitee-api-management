@@ -148,6 +148,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     private void handleProxyResponse(final ExecutionContext context, final ProxyResponse proxyResponse) {
         if (proxyResponse == null || proxyResponse instanceof EmptyProxyResponse) {
             context.response().status((proxyResponse == null) ? HttpStatusCode.SERVICE_UNAVAILABLE_503 : proxyResponse.status());
+            context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
+                    context.request().metrics().getApiResponseTimeMs());
             handler.handle(context);
         } else {
             handleClientResponse(context, proxyResponse);
@@ -181,10 +183,9 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
                                     context.response().drainHandler(aVoid -> proxyResponse.resume());
                                 }
                             }).endHandler(__ -> {
-                                chain.end();
-
                                 context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
-                                        context.request().metrics().getApiResponseTimeMs());
+                                    context.request().metrics().getApiResponseTimeMs());
+                                chain.end();
                             });
 
                     // Resume response read

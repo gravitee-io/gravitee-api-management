@@ -61,42 +61,39 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
     @Override
     public void handle(ExecutionContext context) {
         try {
-            if (alertEngineService != null) {
-                final Event.Builder event = new Event.Builder()
-                        .timestamp(context.request().timestamp())
-                        .context(CONTEXT_GATEWAY, node.id())
-                        .context(CONTEXT_HOSTNAME, node.hostname())
-                        .context(CONTEXT_PORT, port)
-                        .type(REQUEST_TYPE)
-                        .prop(PROP_REQUEST_ID, context.request().id())
-                        .prop(PROP_CONTEXT_PATH, context.getAttribute(ExecutionContext.ATTR_CONTEXT_PATH))
-                        .prop(PROP_API, context.getAttribute(ExecutionContext.ATTR_API))
-                        .prop(PROP_APPLICATION, context.getAttribute(ExecutionContext.ATTR_APPLICATION))
-                        .prop(PROP_PLAN, context.getAttribute(ExecutionContext.ATTR_PLAN))
-                        .prop(PROP_RESPONSE_STATUS, context.response().status())
-                        .prop(PROP_LATENCY, context.request().metrics().getProxyLatencyMs());
+            final Event.Builder event = new Event.Builder()
+                    .timestamp(context.request().timestamp())
+                    .context(CONTEXT_GATEWAY, node.id())
+                    .context(CONTEXT_HOSTNAME, node.hostname())
+                    .context(CONTEXT_PORT, port)
+                    .type(REQUEST_TYPE)
+                    .prop(PROP_REQUEST_ID, context.request().id())
+                    .prop(PROP_CONTEXT_PATH, context.getAttribute(ExecutionContext.ATTR_CONTEXT_PATH))
+                    .prop(PROP_API, context.getAttribute(ExecutionContext.ATTR_API))
+                    .prop(PROP_APPLICATION, context.getAttribute(ExecutionContext.ATTR_APPLICATION))
+                    .prop(PROP_PLAN, context.getAttribute(ExecutionContext.ATTR_PLAN))
+                    .prop(PROP_RESPONSE_STATUS, context.response().status())
+                    .prop(PROP_LATENCY, context.request().metrics().getProxyLatencyMs());
 
-                final Object tenant = node.metadata().get("tenant");
-                if (tenant != null) {
-                    event.context(CONTEXT_TENANT, (String) tenant);
-                }
-
-                final Long quotaCount = (Long) context.getAttribute(ExecutionContext.ATTR_QUOTA_COUNT);
-                if (quotaCount != null) {
-                    final Long quotaLimit = (Long) context.getAttribute(ExecutionContext.ATTR_QUOTA_LIMIT);
-                    if (quotaLimit != null) {
-                        event
-                                .prop(PROP_QUOTA_COUNT, quotaCount)
-                                .prop(PROP_QUOTA_LIMIT, quotaLimit)
-                                .prop(PROP_QUOTA_PERCENT, Double.valueOf(quotaCount) / Double.valueOf(quotaLimit) * 100);
-                    }
-                }
-                alertEngineService.send(event.build());
+            final Object tenant = node.metadata().get("tenant");
+            if (tenant != null) {
+                event.context(CONTEXT_TENANT, (String) tenant);
             }
+
+            final Long quotaCount = (Long) context.getAttribute(ExecutionContext.ATTR_QUOTA_COUNT);
+            if (quotaCount != null) {
+                final Long quotaLimit = (Long) context.getAttribute(ExecutionContext.ATTR_QUOTA_LIMIT);
+                if (quotaLimit != null) {
+                    event
+                            .prop(PROP_QUOTA_COUNT, quotaCount)
+                            .prop(PROP_QUOTA_LIMIT, quotaLimit)
+                            .prop(PROP_QUOTA_PERCENT, Double.valueOf(quotaCount) / Double.valueOf(quotaLimit) * 100);
+                }
+            }
+            alertEngineService.send(event.build());
         } catch (Exception ex) {
             LOGGER.error("An error occurs while sending alert", ex);
-        }
-         finally {
+        } finally {
             next.handle(null);
         }
     }

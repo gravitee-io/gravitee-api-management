@@ -31,34 +31,13 @@ public abstract class AbstractStreamableProcessorChain<T, S, P extends Streamabl
 
     private P streamableProcessorChain;
     private Handler<ProcessorFailure> streamErrorHandler;
-    private boolean initialized;
+    P previousProcessor = null;
 
     @Override
     public void handle(T data) {
-        if (! initialized) {
-            prepareStreamableProcessors(data);
-            initialized = true;
-        }
-
         if (hasNext()) {
-            P processor = next();
-
-            processor
-                    .handler(__ -> handle(data))
-                    .errorHandler(failure -> errorHandler.handle(failure))
-                    .exitHandler(stream -> exitHandler.handle(null))
-                    .streamErrorHandler(failure -> streamErrorHandler.handle(failure))
-                    .handle(data);
-        } else {
-            resultHandler.handle(data);
-        }
-    }
-
-    private void prepareStreamableProcessors(T data) {
-        P previousProcessor = null;
-
-        while(hasNext()) {
             P processor = next(data);
+
             if (streamableProcessorChain == null) {
                 streamableProcessorChain = processor;
             }
@@ -71,12 +50,21 @@ public abstract class AbstractStreamableProcessorChain<T, S, P extends Streamabl
 
             // Previous stream is now the current policy stream
             previousProcessor = processor;
-        }
 
-        ReadWriteStream<S> tailPolicyStreamer = previousProcessor;
-        if (streamableProcessorChain != null && tailPolicyStreamer != null) {
-            tailPolicyStreamer.bodyHandler(bodyPart -> {if (bodyHandler != null) bodyHandler.handle(bodyPart);});
-            tailPolicyStreamer.endHandler(result -> {if (endHandler != null) endHandler.handle(result);});
+            processor
+                    .handler(__ -> handle(data))
+                    .errorHandler(failure -> errorHandler.handle(failure))
+                    .exitHandler(stream -> exitHandler.handle(null))
+                    .streamErrorHandler(failure -> streamErrorHandler.handle(failure))
+                    .handle(data);
+        } else {
+            ReadWriteStream<S> tailPolicyStreamer = previousProcessor;
+            if (streamableProcessorChain != null && tailPolicyStreamer != null) {
+                tailPolicyStreamer.bodyHandler(bodyPart -> {if (bodyHandler != null) bodyHandler.handle(bodyPart);});
+                tailPolicyStreamer.endHandler(result -> {if (endHandler != null) endHandler.handle(result);});
+            }
+
+            resultHandler.handle(data);
         }
     }
 
