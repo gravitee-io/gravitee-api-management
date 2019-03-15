@@ -187,7 +187,7 @@ security:
           roles: MANAGEMENT:USER, PORTAL:USER
     # Enable authentication using internal repository
     - type: gravitee
-    # Enable authentication using an LDAP/Active Directoy
+    # Enable authentication using an LDAP/Active Directory
 #    - type: ldap
       # This is default LDAP configuration for ApacheDS
 #      context:
