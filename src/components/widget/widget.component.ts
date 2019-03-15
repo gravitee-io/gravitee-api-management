@@ -34,9 +34,7 @@ const WidgetComponent: ng.IComponentOptions = {
     $scope.$on('onTimeframeChange', function (event, timeframe) {
       let query;
 
-      if (that.$state.params['q']) {
-        query = that.$state.params['q'];
-      } else if (that.widget.chart.request.query) {
+      if (that.widget.chart.request.query) {
         query = that.widget.chart.request.query;
       }
 
@@ -45,7 +43,8 @@ const WidgetComponent: ng.IComponentOptions = {
         interval: timeframe.interval,
         from: timeframe.from,
         to: timeframe.to,
-        query: query
+        query: query,
+        additionalQuery: that.widget.chart.request.additionalQuery
       });
 
       that.reload();
@@ -53,9 +52,7 @@ const WidgetComponent: ng.IComponentOptions = {
 
     $scope.$on('onQueryFilterChange', function (event, query) {
       // Associate the new query filter to the chart request
-      _.assignIn(that.widget.chart.request, {
-        query: query.query
-      });
+      that.widget.chart.request.additionalQuery = query.query;
 
       // Reload only if not the same widget which applied the latest filter
       if (that.widget.$uid !== query.source) {
@@ -70,7 +67,18 @@ const WidgetComponent: ng.IComponentOptions = {
       let chart = this.widget.chart;
 
       // Prepare arguments
-      let args = [this.widget.root, chart.request];
+      let chartRequest = _.cloneDeep(chart.request);
+      if (chartRequest.additionalQuery) {
+        if (chartRequest.query) {
+          if (!_.includes(chartRequest.query, this.widget.chart.request.additionalQuery)) {
+            chartRequest.query += ' AND ' + this.widget.chart.request.additionalQuery;
+          }
+        } else {
+          chartRequest.query = this.widget.chart.request.additionalQuery;
+        }
+        delete chartRequest.additionalQuery;
+      }
+      let args = [this.widget.root, chartRequest];
 
       if (! this.widget.root) {
         args.splice(0,1);

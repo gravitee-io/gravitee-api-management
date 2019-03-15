@@ -40,7 +40,8 @@ export class PortalApiListController {
                private $window,
                private resolvedApis,
                private resolvedViews,
-               private $transitions) {
+               private $transitions,
+               private $timeout) {
     'ngInject';
 
     if ($window.localStorage.getItem(this.tilesModeKey) === null) {
@@ -74,10 +75,24 @@ export class PortalApiListController {
     $transitions.onStart({to: $state.current.name}, () => {
       this.apisLoading = true;
     });
+
+    let timer;
+    $scope.$watch('apisCtrl.query', (query, previousQuery) => {
+      $timeout.cancel(timer);
+      timer = $timeout(() => {
+        if (query !== undefined && query !== previousQuery) {
+          this.search();
+        }
+      }, 300);
+    });
   }
 
   search() {
-    this.$state.go('.', {q: this.query, view: 'results'});
+    if (this.query === undefined || this.query.length === 0) {
+      this.$state.go('.', {q: this.query, view: 'all'});
+    } else {
+      this.$state.go('.', {q: this.query, view: 'results'});
+    }
   }
 
   goToApi(api) {

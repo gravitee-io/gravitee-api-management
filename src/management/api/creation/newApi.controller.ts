@@ -81,10 +81,13 @@ class NewApiController {
           this.importSwagger();
           break;
         case "json" :
-          if (this.isSwaggerDescriptor()) {
-            this.importSwagger();
-          } else {
-            this.importGraviteeIODefinition();
+          let isSwagger = this.isSwaggerDescriptor();
+          if (isSwagger !== null) {
+            if (isSwagger) {
+              this.importSwagger();
+            } else {
+              this.importGraviteeIODefinition();
+            }
           }
           break;
         default:
