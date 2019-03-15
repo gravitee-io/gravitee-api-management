@@ -54,13 +54,13 @@ public class ReporterConfiguration {
 	/**
 	 * Request actions max by bulk 
 	 */
-	@Value("${reporters.elasticsearch.bulk.actions:50}")
+	@Value("${reporters.elasticsearch.bulk.actions:1000}")
 	private Integer bulkActions;
 	
 	/**
 	 * Bulk flush interval in seconds
 	 */
-	@Value("${reporters.elasticsearch.bulk.flush_interval:1}")
+	@Value("${reporters.elasticsearch.bulk.flush_interval:5}")
 	private Long flushInterval;
 
 	/**
