@@ -25,9 +25,9 @@ public class PageQuery {
 
     private String api;
     private String name;
+    private Boolean published;
     private PageType type;
     private Boolean homepage;
-    private Boolean published;
     private String parent;
     private Boolean rootParent;
 
@@ -45,6 +45,7 @@ public class PageQuery {
     public Boolean getHomepage() {
         return homepage;
     }
+
     public Boolean getPublished() {
         return published;
     }
@@ -119,7 +120,6 @@ public class PageQuery {
             this.query.setParent(parent);
             return this;
         }
-
         public Builder rootParent(Boolean root) {
             this.query.setRootParent(root);
             return this;

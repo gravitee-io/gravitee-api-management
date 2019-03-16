@@ -212,7 +212,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			PageEntity pageEntity = convert(createdPage);
 
 			// add document in search engine
-			searchEngineService.index(pageEntity);
+			index(pageEntity);
 
 			return pageEntity;
 		} catch (TechnicalException | FetcherException ex) {
@@ -297,7 +297,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				PageEntity pageEntity = convert(updatedPage);
 
 				// update document in search engine
-				searchEngineService.index(pageEntity);
+                if(pageToUpdate.isPublished() && !page.isPublished()) {
+                	searchEngineService.delete(convert(pageToUpdate));
+				} else {
+					index(pageEntity);
+				}
 
 				return pageEntity;
 			}
@@ -306,6 +310,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 	}
 
+	private void index(PageEntity pageEntity) {
+		if (pageEntity.isPublished()) {
+			searchEngineService.index(pageEntity);
+        }
+    
+}
 	private void fetchPage(final Page page) throws FetcherException {
 		Fetcher fetcher = this.getFetcher(page.getSource());
 		if (fetcher != null) {

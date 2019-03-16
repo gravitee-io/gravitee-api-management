@@ -19,12 +19,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
+import io.gravitee.management.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
@@ -47,15 +50,16 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Collections;
 import java.util.Optional;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_UpdateTest {
@@ -213,5 +217,58 @@ public class ApiService_UpdateTest {
                 .thenReturn(Collections.singleton(po2));
 
         apiService.update(API_ID, existingApi);
+    }
+
+    @Test(expected = EndpointNameInvalidException.class)
+    public void shouldNotUpdateWithInvalidEndpointGroupName() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.update(any())).thenReturn(api);
+        when(api.getId()).thenReturn(API_ID2);
+        when(api.getName()).thenReturn(API_NAME);
+
+        when(existingApi.getName()).thenReturn(API_NAME);
+        when(existingApi.getVersion()).thenReturn("v1");
+        when(existingApi.getDescription()).thenReturn("Ma description");
+        final Proxy proxy = mock(Proxy.class);
+        when(existingApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn("/new");
+        final EndpointGroup group = mock(EndpointGroup.class);
+        when(group.getName()).thenReturn("inva:lid");
+        when(proxy.getGroups()).thenReturn(singleton(group));
+
+        when(apiRepository.search(null)).thenReturn(singletonList(api));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
+
+        apiService.update(API_ID, existingApi);
+
+        fail("should throw EndpointNameInvalidException");
+    }
+
+    @Test(expected = EndpointNameInvalidException.class)
+    public void shouldNotUpdateWithInvalidEndpointName() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.update(any())).thenReturn(api);
+        when(api.getId()).thenReturn(API_ID2);
+        when(api.getName()).thenReturn(API_NAME);
+
+        when(existingApi.getName()).thenReturn(API_NAME);
+        when(existingApi.getVersion()).thenReturn("v1");
+        when(existingApi.getDescription()).thenReturn("Ma description");
+        final Proxy proxy = mock(Proxy.class);
+        when(existingApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn("/new");
+        final EndpointGroup group = mock(EndpointGroup.class);
+        when(group.getName()).thenReturn("group");
+        when(proxy.getGroups()).thenReturn(singleton(group));
+        Endpoint endpoint = mock(Endpoint.class);
+        when(endpoint.getName()).thenReturn("inva:lid");
+        when(group.getEndpoints()).thenReturn(singleton(endpoint));
+
+        when(apiRepository.search(null)).thenReturn(singletonList(api));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
+
+        apiService.update(API_ID, existingApi);
+
+        fail("should throw EndpointNameInvalidException");
     }
 }
