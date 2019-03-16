@@ -20,6 +20,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.el.TemplateEngine;
+import io.gravitee.el.spel.function.JsonPathFunction;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.configuration.identity.GroupMappingEntity;
@@ -41,7 +42,6 @@ import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -95,6 +95,15 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private Environment environment;
 
     private Client client;
+
+    // Dirty hack: only used to force class loading
+    static {
+        try {
+            LOGGER.trace("Loading class to initialize properly JsonPath Cache provider: " +
+                    Class.forName(JsonPathFunction.class.getName()));
+        } catch (ClassNotFoundException ignored) {
+        }
+    }
 
     private static final String ACCESS_TOKEN_PROPERTY = "access_token";
 
