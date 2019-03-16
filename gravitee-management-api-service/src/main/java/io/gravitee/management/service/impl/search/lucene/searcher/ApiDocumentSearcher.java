@@ -49,20 +49,23 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             put("name", 12.0f);
             put("name_lowercase", 12.0f);
             put("name_split", 10.0f);
-            put("description", 8.0f);
+            put("path", 10.0f);
+            put("labels", 8.0f);
+            put("description", 6.0f);
         }
     };
 
     private final static Map<String, Float> PAGE_FIELD_BOOST = new HashMap<String, Float>() {
         {
-            put("name", 10.0f);
-            put("content", 5.0f);
+            put("name", 1.0f);
+            put("content", 1.0f);
         }
     };
 
     @Override
     public SearchResult search(io.gravitee.management.service.search.query.Query query) throws TechnicalException {
         MultiFieldQueryParser apiParser = new MultiFieldQueryParser(new String[]{
+                "id",
                 "name",
                 "name_lowercase",
                 "name_split",

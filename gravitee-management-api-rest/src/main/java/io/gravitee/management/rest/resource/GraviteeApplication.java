@@ -113,6 +113,7 @@ public class GraviteeApplication extends ResourceConfig {
         register(UnrecognizedPropertyExceptionMapper.class);
         register(ThrowableMapper.class);
         register(NotFoundExceptionMapper.class);
+        register(NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
 
         // Dynamic authentication provider endpoints

@@ -83,6 +83,7 @@ public class PageService_ImportDirectoryTest {
         pageSource.setConfiguration(mapper.readTree("{}"));
         ImportPageEntity pageEntity = new ImportPageEntity();
         pageEntity.setSource(pageSource);
+        pageEntity.setPublished(true);
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
         when(fetcherPlugin.clazz()).thenReturn("io.gravitee.management.service.PageService_ImportDirectoryMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockFilesFetcherConfiguration.class);
@@ -95,6 +96,7 @@ public class PageService_ImportDirectoryTest {
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         Page newPage = mock(Page.class);
         when(newPage.getId()).thenReturn(UUID.toString(UUID.random()));
+        when(newPage.isPublished()).thenReturn(Boolean.TRUE);
         when(pageRepository.create(any())).thenReturn(newPage);
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
 
