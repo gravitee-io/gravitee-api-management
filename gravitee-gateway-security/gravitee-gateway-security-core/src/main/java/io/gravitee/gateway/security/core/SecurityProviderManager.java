@@ -78,15 +78,15 @@ public class SecurityProviderManager {
             }
         });
 
-        // Sort by order
-        Collections.sort(availableSecurityProviders, Comparator.comparingInt(AuthenticationHandler::order));
-
         // Filter security providers if a filter is defined
         if (securityProviderFilter != null) {
             securityProviders = securityProviderFilter.filter(availableSecurityProviders);
         } else {
             securityProviders = availableSecurityProviders;
         }
+
+        // Sort by order
+        securityProviders.sort(Comparator.comparingInt(AuthenticationHandler::order));
     }
 
     public List<AuthenticationHandler> getSecurityProviders() {
