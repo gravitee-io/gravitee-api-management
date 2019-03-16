@@ -36,6 +36,9 @@ class ApiHealthCheckConfigureController {
     'ngInject';
 
     this.api = this.$scope.$parent.apiCtrl.api;
+    this.$scope.$on('apiChangeSuccess', (event, args) => {
+      this.api = args.api;
+    });
 
     if (this.$stateParams.endpointName !== undefined) {
       // Health-check for specific endpoint

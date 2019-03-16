@@ -163,7 +163,7 @@
         <div ng-if="apiPoliciesCtrl.schemaByPolicyId[apiPoliciesCtrl.selectedApiPolicy.policyId]">
           <md-divider></md-divider>
           <md-button permission permission-only="'api-definition-u'" class="md-raised"
-                     ng-disabled="policyConfigurationForm.$invalid || policyConfigurationForm.$pristine"
+                     ng-disabled="!apiPoliciesCtrl.httpMethodsUpdated && (policyConfigurationForm.$invalid || policyConfigurationForm.$pristine)"
                      ng-click="apiPoliciesCtrl.savePaths();">Save
           </md-button>
         </div>

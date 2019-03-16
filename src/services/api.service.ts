@@ -472,6 +472,19 @@ class ApiService {
     return this.$http.get(this.apisURL + api + '/headers');
   }
 
+  isEndpointNameAlreadyUsed(api: any, name: string, onCreate: boolean) {
+    let endpointsName: String[] = [];
+    _.forEach(api.proxy.groups, (group) => {
+      endpointsName.push(group.name);
+      _.forEach(group.endpoints, (endpoint) => {
+        endpointsName.push(endpoint.name);
+      });
+    });
+    //in update mode, the api endpoint is updated when the form is filled.
+    // that's why we have to count it twice to detect non uniqueness
+    return _.filter(endpointsName, (endpointName) => name === endpointName).length > (onCreate ? 0 : 1);
+  }
+  
   getTagEntrypoints(api, entrypoints) {
     if (!api.tags || api.tags.length === 0) {
       return [this.Constants.portal.entrypoint];

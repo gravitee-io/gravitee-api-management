@@ -20,10 +20,13 @@
 
     <div class="gv-form">
       <div class="apis-header-filter">
-        <form flex layout="row" layout-align="center start" name="formSearch" autocomplete="off"
+        <form flex layout="row" layout-align="center center" name="formSearch" autocomplete="off"
               ng-submit="$ctrl.search()">
           <input class="form-control apis-filter" type="text" style="max-width: 960px"
                  ng-model="$ctrl.query" placeholder="Search users" autofocus/>
+          <md-button class="md-primary gv-search-button" type="submit" aria-label="Search">
+            <ng-md-icon icon="search"></ng-md-icon>
+          </md-button>
         </form>
       </div>
         <h2></h2>
