@@ -18,7 +18,12 @@
 <div flex>
    <div layout="row" flex>
       <div class="gv-sub-menu menu">
-         <div class="md-headline">{{apiCtrl.api.name}} ({{apiCtrl.api.version}})</div>
+         <div class="md-headline">
+            <span>
+               {{apiCtrl.api.name}} ({{apiCtrl.api.version}})
+               <md-tooltip md-direction="bottom">{{apiCtrl.api.name}} ({{apiCtrl.api.version}})</md-tooltip>
+            </span>
+         </div>
 
          <div class="aui-nav-heading">
             <strong>General</strong>
