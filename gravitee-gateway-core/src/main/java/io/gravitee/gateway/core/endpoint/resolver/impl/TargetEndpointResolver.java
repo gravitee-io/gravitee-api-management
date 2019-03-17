@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.endpoint.resolver.impl;
 
 import com.google.common.net.UrlEscapers;
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -36,6 +37,7 @@ import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class TargetEndpointResolver implements EndpointResolver {
@@ -44,6 +46,7 @@ public class TargetEndpointResolver implements EndpointResolver {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
 
     private static final String URI_PATH_SEPARATOR = "/";
+    private static final char URI_PATH_SEPARATOR_CHAR = '/';
 
     private static final String URI_HTTP_PREFIX = "http://";
 
@@ -83,62 +86,71 @@ public class TargetEndpointResolver implements EndpointResolver {
      * Select an endpoint according to the URI passed in the execution request attribute.
      */
     private ResolvedEndpoint selectUserDefinedEndpoint(Request serverRequest, String target) {
-        QueryStringDecoder decoder = new QueryStringDecoder(target);
-        Map<String, List<String>> queryParameters = decoder.parameters();
-
-        // Merge query parameters from user target into incoming request query parameters
-        for (Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
-            serverRequest.parameters().put(param.getKey(), param.getValue());
-        }
-
-        // Path segments must be encoded to avoid bad URI syntax
-        String[] segments = decoder.path().split(URI_PATH_SEPARATOR);
-        StringBuilder builder = new StringBuilder();
-
-        for (String pathSeg : segments) {
-            builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
-        }
-
-        String encodedTarget = builder.substring(0, builder.length() - 1);
-
         // Do we have a relative or an absolute path ?
-        if (encodedTarget.startsWith(URI_HTTP_PREFIX) || encodedTarget.startsWith(URI_HTTPS_PREFIX)) {
+        if (target.startsWith(URI_HTTP_PREFIX) || target.startsWith(URI_HTTPS_PREFIX)) {
             // When the user selected endpoint which is not defined (according to the given target), the gateway
             // is always returning the first endpoints reference and took into account its configuration.
             Collection<EndpointReference> endpoints = referenceRegister.referencesByType(EndpointReference.class);
             Reference reference = endpoints
                     .stream()
-                    .filter(endpointEntry -> encodedTarget.startsWith(endpointEntry.endpoint().target()))
+                    .filter(endpointEntry -> target.startsWith(endpointEntry.endpoint().target()))
                     .findFirst()
                     .orElse(endpoints.iterator().next());
 
-            return (reference != null) ? createEndpoint(reference.endpoint(), encodedTarget) : null;
-        } else if (encodedTarget.startsWith(URI_PATH_SEPARATOR)) {
+            return (reference != null) ? createEndpoint(reference.endpoint(), encode(target, serverRequest.parameters())) : null;
+        } else if (target.startsWith(URI_PATH_SEPARATOR)) {
             // Get the first group
             LoadBalancedEndpointGroup group = groupManager.getDefault();
 
             // Resolve to the next endpoint from group LB
             Endpoint endpoint = group.next();
 
-            return createEndpoint(endpoint, (endpoint != null) ? endpoint.target() + encodedTarget : null);
-        } else if (encodedTarget.startsWith(Reference.UNKNOWN_REFERENCE)) {
+            return createEndpoint(endpoint, (endpoint != null) ? endpoint.target() + encode(target, serverRequest.parameters()) : null);
+        } else if (target.startsWith(Reference.UNKNOWN_REFERENCE)) {
             return null;
         } else {
+            int first = target.indexOf((int) ':');
+            int last = target.indexOf((int) ':', first + 1);
+
             // Get the full reference
-            String sRef = segments[0].substring(0, segments[0].length() - 1);
+            String sRef = target.substring(first+1, last);
             final Reference reference = referenceRegister.lookup(sRef);
 
             // A null reference has been found (unknown reference ?), returning null to the caller
             if (reference == null) {
-                return null;
+                return null ;
             }
 
             // Get next endpoint from reference
             Endpoint endpoint = reference.endpoint();
 
-            int pathSepIdx = encodedTarget.indexOf('/');
-            return createEndpoint(endpoint,
-                    (pathSepIdx == -1) ? endpoint.target() : endpoint.target() + encodedTarget.substring(pathSepIdx));
+            String encodedTarget = encode(endpoint.target() + target.substring(last+1), serverRequest.parameters());
+            return createEndpoint(endpoint, encodedTarget);
+        }
+    }
+
+    private String encode(String uri, MultiValueMap<String, String> parameters) {
+        QueryStringDecoder decoder = new QueryStringDecoder(uri);
+        Map<String, List<String>> queryParameters = decoder.parameters();
+
+        // Merge query parameters from user target into incoming request query parameters
+        for(Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
+            parameters.put(param.getKey(), param.getValue());
+        }
+
+        // Path segments must be encoded to avoid bad URI syntax
+        String path = decoder.path();
+        String [] segments = path.split(URI_PATH_SEPARATOR);
+        StringBuilder builder = new StringBuilder();
+
+        for(String pathSeg : segments) {
+            builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
+        }
+
+        if (path.charAt(path.length() - 1) == URI_PATH_SEPARATOR_CHAR) {
+            return builder.toString();
+        } else {
+            return builder.substring(0, builder.length() - 1);
         }
     }
 

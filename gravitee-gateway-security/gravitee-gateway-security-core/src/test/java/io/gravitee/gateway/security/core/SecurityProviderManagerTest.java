@@ -49,7 +49,7 @@ public class SecurityProviderManagerTest {
     }
 
     @Test
-    public void shouldSortSecurityProviders() {
+    public void shouldSortSecurityProvidersWithoutFilter(){
         AuthenticationHandler securityProvider1 = mock(AuthenticationHandler.class);
         when(securityProvider1.name()).thenReturn("keyless");
         when(securityProvider1.order()).thenReturn(1000);
@@ -62,6 +62,33 @@ public class SecurityProviderManagerTest {
                 securityProvider1, securityProvider2));
 
         securityManager.afterPropertiesSet();
+        List<AuthenticationHandler> securityProviders = securityManager.getSecurityProviders();
+
+        assertEquals(2, securityProviders.size());
+        assertEquals(securityProvider2.name(), securityProviders.get(0).name());
+        assertEquals(securityProvider1.name(), securityProviders.get(1).name());
+    }
+
+    @Test
+    public void shouldSortSecurityProvidersWithFilter(){
+        AuthenticationHandler securityProvider1 = mock(AuthenticationHandler.class);
+        when(securityProvider1.name()).thenReturn("keyless");
+        when(securityProvider1.order()).thenReturn(1000);
+
+        AuthenticationHandler securityProvider2 = mock(AuthenticationHandler.class);
+        when(securityProvider2.name()).thenReturn("apikey");
+        when(securityProvider2.order()).thenReturn(500);
+
+        when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(
+                securityProvider1, securityProvider2));
+
+        AuthenticationHandlerEnhancer securityProviderFilter = mock(AuthenticationHandlerEnhancer.class);
+        when(securityProviderFilter.filter(securityProviderLoader.getSecurityProviders()))
+                .thenReturn(Arrays.asList(
+                        securityProvider1, securityProvider2));
+        securityManager.setSecurityProviderFilter(securityProviderFilter);
+        securityManager.afterPropertiesSet();
+
         List<AuthenticationHandler> securityProviders = securityManager.getSecurityProviders();
 
         assertEquals(2, securityProviders.size());
