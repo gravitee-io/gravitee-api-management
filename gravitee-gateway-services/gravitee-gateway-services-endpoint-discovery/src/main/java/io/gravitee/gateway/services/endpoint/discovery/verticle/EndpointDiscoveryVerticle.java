@@ -22,7 +22,6 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.discovery.api.ServiceDiscovery;
-import io.gravitee.discovery.api.event.Handler;
 import io.gravitee.discovery.api.service.Service;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
@@ -107,7 +106,8 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
         }
     }
 
-    private void startServiceDiscovery(Api api, EndpointGroup group, EndpointDiscoveryService discoveryService) {
+    private void startServiceDiscovery(final Api api, final EndpointGroup group,
+                                       final EndpointDiscoveryService discoveryService) {
         LOGGER.info("A discovery service is defined for API id[{}] name[{}] group[{}] type[{}]", api.getId(), api.getName(), group.getName(), discoveryService.getProvider());
         ServiceDiscoveryPlugin serviceDiscoveryPlugin = serviceDiscoveryPluginManager.get(discoveryService.getProvider());
         if (serviceDiscoveryPlugin != null) {
@@ -119,23 +119,20 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
             apiServiceDiscoveries.put(api, discoveries);
 
             try {
-                serviceDiscovery.listen(new Handler<io.gravitee.discovery.api.event.Event>() {
-                    @Override
-                    public void handle(io.gravitee.discovery.api.event.Event event) {
-                        LOGGER.info("Receiving a service discovery event id[{}] type[{}]", event.service().id(), event.type());
-                        Set<Endpoint> endpoints = group.getEndpoints();
-                        if (endpoints == null) {
-                            endpoints = new HashSet<>();
-                        }
-                        DiscoveredEndpoint endpoint = createEndpoint(event.service());
-                        switch (event.type()) {
-                            case REGISTER:
-                                endpoints.add(endpoint);
-                                break;
-                            case UNREGISTER:
-                                endpoints.remove(endpoint);
-                                break;
-                        }
+                serviceDiscovery.listen(event -> {
+                    LOGGER.info("Receiving a service discovery event id[{}] type[{}]", event.service().id(), event.type());
+                    Set<Endpoint> endpoints = group.getEndpoints();
+                    if (endpoints == null) {
+                        endpoints = new HashSet<>();
+                    }
+                    DiscoveredEndpoint endpoint = createEndpoint(event.service(), group);
+                    switch (event.type()) {
+                        case REGISTER:
+                            endpoints.add(endpoint);
+                            break;
+                        case UNREGISTER:
+                            endpoints.remove(endpoint);
+                            break;
                     }
                 });
             } catch (Exception ex) {
@@ -147,10 +144,14 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
         }
     }
 
-    private DiscoveredEndpoint createEndpoint(Service service) {
+    private DiscoveredEndpoint createEndpoint(final Service service, final EndpointGroup group) {
         final String scheme = (service.port() == 443) ? "https" : "http";
-        return new DiscoveredEndpoint(
+        final DiscoveredEndpoint discoveredEndpoint = new DiscoveredEndpoint(
                 "sd:" + service.id(),
                 scheme + "://" + service.host() + ':' + service.port());
+        discoveredEndpoint.setHttpClientOptions(group.getHttpClientOptions());
+        discoveredEndpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
+        discoveredEndpoint.setHttpProxy(group.getHttpProxy());
+        return discoveredEndpoint;
     }
 }
