@@ -38,6 +38,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
+import static io.gravitee.gateway.reactor.ReactorEvent.DEPLOY;
+import static io.gravitee.gateway.reactor.ReactorEvent.UNDEPLOY;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -110,7 +113,7 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
                                        final EndpointDiscoveryService discoveryService) {
         LOGGER.info("A discovery service is defined for API id[{}] name[{}] group[{}] type[{}]", api.getId(), api.getName(), group.getName(), discoveryService.getProvider());
         ServiceDiscoveryPlugin serviceDiscoveryPlugin = serviceDiscoveryPluginManager.get(discoveryService.getProvider());
-        if (serviceDiscoveryPlugin != null) {
+        if (serviceDiscoveryPlugin != null && !apiServiceDiscoveries.containsKey(api)) {
             ServiceDiscovery serviceDiscovery = serviceDiscoveryFactory.create(
                     serviceDiscoveryPlugin, discoveryService.getConfiguration());
 
@@ -129,9 +132,11 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
                     switch (event.type()) {
                         case REGISTER:
                             endpoints.add(endpoint);
+                            eventManager.publishEvent(DEPLOY, api);
                             break;
                         case UNREGISTER:
                             endpoints.remove(endpoint);
+                            eventManager.publishEvent(UNDEPLOY, api);
                             break;
                     }
                 });
