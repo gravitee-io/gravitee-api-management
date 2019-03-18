@@ -151,6 +151,12 @@ analytics:
 #      mapping:
 #        tenant_id: cluster_name
 #        tenant_id: cluster_name
+#    security:
+#      username: user
+#      password: secret
+#    client:
+#      timeout: 30000 # in milliseconds
+#
 
 # Authentication and identity sources
 # Users can have following roles (authorities):

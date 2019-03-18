@@ -39,6 +39,7 @@ public class PortalConfigEntity {
     private Plan plan;
     private ApiQualityMetrics apiQualityMetrics;
     private Logging logging;
+    private Analytics analytics;
 
     public PortalConfigEntity() {
         company = new Company();
@@ -51,6 +52,7 @@ public class PortalConfigEntity {
         plan = new Plan();
         apiQualityMetrics = new ApiQualityMetrics();
         logging = new Logging();
+        analytics = new Analytics();
     }
 
     public Company getCompany() {
@@ -121,6 +123,14 @@ public class PortalConfigEntity {
     }
     public void setLogging(Logging logging) {
         this.logging = logging;
+    }
+
+    public Analytics getAnalytics() {
+        return analytics;
+    }
+
+    public void setAnalytics(Analytics analytics) {
+        this.analytics = analytics;
     }
 
     public class Company {
@@ -885,6 +895,19 @@ public class PortalConfigEntity {
             public void setDisplayed(Boolean displayed) {
                 this.displayed = displayed;
             }
+        }
+    }
+
+    public class Analytics {
+        @ParameterKey(Key.ANALYTICS_CLIENT_TIMEOUT)
+        private Long clientTimeout;
+
+        public Long getClientTimeout() {
+            return clientTimeout;
+        }
+
+        public void setClientTimeout(Long clientTimeout) {
+            this.clientTimeout = clientTimeout;
         }
     }
 }
