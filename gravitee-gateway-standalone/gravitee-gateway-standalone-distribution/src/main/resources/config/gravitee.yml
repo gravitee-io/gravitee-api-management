@@ -231,3 +231,13 @@ alerts:
       hazelcast:
         config:
           path: ${gravitee.home}/config/hazelcast.xml
+
+# Configuration basic sample for Eureka Service Discovery
+# Considering each eureka instance is associated with application of the same region, you have to reference the nearest Eureka instance
+# and optionnally secondary instances for failover
+# More configuration details in the Gravitee Eureka plugin documentation and Eureka official repository
+#
+#service-discovery:
+#  eureka:
+#    serviceUrl:
+#      default: https://localhost:8007/eureka
