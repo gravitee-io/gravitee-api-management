@@ -209,15 +209,6 @@ class ApiProxyController {
     if (!this.failoverEnabled) {
       delete api.proxy.failover;
     }
-    // Discovery is disabled, set dummy values
-    if (this.discovery.enabled === false) {
-      delete this.discovery.configuration;
-    } else {
-      // Set default provider
-      this.discovery.provider = 'CONSUL';
-    }
-    this.api.services['discovery'] = this.discovery;
-
     this.ApiService.update(api).then(updatedApi => {
       updatedApi.data.etag = updatedApi.headers('etag');
       this.onApiUpdate(updatedApi.data);
