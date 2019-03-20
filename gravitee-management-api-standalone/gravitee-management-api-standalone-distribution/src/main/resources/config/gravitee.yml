@@ -154,8 +154,8 @@ analytics:
 #    security:
 #      username: user
 #      password: secret
-#    client:
-#      timeout: 30000 # in milliseconds
+#    http:
+#      timeout: 10000 # in milliseconds
 #
 
 # Authentication and identity sources
