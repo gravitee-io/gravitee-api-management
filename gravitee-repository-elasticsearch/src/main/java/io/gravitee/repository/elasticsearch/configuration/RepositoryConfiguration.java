@@ -67,7 +67,7 @@ public class RepositoryConfiguration {
 	/**
 	 * Configurable request timeout for http requests to elasticsearch
 	 */
-	@Value("${analytics.elasticsearch.client.timeout:10000}")
+	@Value("${analytics.elasticsearch.http.timeout:10000}")
 	private Long requestTimeout;
 
 	/**
