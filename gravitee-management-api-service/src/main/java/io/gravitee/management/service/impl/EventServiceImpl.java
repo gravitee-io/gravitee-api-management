@@ -39,6 +39,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
+import static io.gravitee.repository.management.model.Event.EventProperties.ID;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -177,6 +178,10 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
         if (!isBlank(query.getApi())) {
             builder.property(API_ID.getValue(), query.getApi());
+        }
+
+        if (!isBlank(query.getId())) {
+            builder.property(ID.getValue(), query.getId());
         }
         return builder;
     }

@@ -27,6 +27,6 @@ import java.util.Collection;
 public interface InstanceService {
 
     Collection<InstanceListItem> findInstances(boolean includeStopped);
-
+    Collection<InstanceListItem> findInstances(boolean includeStopped, String gatewayId);
     InstanceEntity findById(String id);
 }

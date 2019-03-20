@@ -59,12 +59,15 @@ public class InstanceServiceImpl implements InstanceService {
     }
 
     @Override
-    public Collection<InstanceListItem> findInstances(boolean includeStopped) {
+    public Collection<InstanceListItem> findInstances(boolean includeStopped, final String gatewayId) {
         final EventQuery query = new EventQuery();
         if (includeStopped) {
             query.setTypes(instancesAllState);
         } else {
             query.setTypes(instancesRunningOnly);
+        }
+        if (gatewayId != null) {
+            query.setId(gatewayId);
         }
         final Collection<EventEntity> events = eventService.search(query);
 
@@ -107,6 +110,11 @@ public class InstanceServiceImpl implements InstanceService {
                     return instance;
                 }
         ).collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<InstanceListItem> findInstances(boolean includeStopped) {
+        return findInstances(includeStopped, null);
     }
 
     @Override

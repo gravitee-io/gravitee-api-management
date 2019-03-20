@@ -406,9 +406,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     private Map<String, String> getGatewayMetadata(String gateway) {
         Map<String, String> metadata = new HashMap<>();
 
-        Optional<InstanceListItem> instanceOptional = instanceService.findInstances(false).stream()
-                .filter(instanceListItem -> instanceListItem.getId().equals(gateway))
-                .findFirst();
+        Optional<InstanceListItem> instanceOptional = instanceService.findInstances(false, gateway).stream().findFirst();
 
         if (instanceOptional.isPresent()) {
             metadata.put("hostname", instanceOptional.get().getHostname());

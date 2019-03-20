@@ -262,9 +262,7 @@ public class LogsServiceImpl implements LogsService {
         return s -> {
             Map<String, String> metadata = new HashMap<>();
 
-            Optional<InstanceListItem> instanceOptional = instanceService.findInstances(true).stream()
-                    .filter(instanceListItem -> instanceListItem.getId().equals(gateway))
-                    .findFirst();
+            Optional<InstanceListItem> instanceOptional = instanceService.findInstances(true, gateway).stream().findFirst();
 
             if (instanceOptional.isPresent()) {
                 metadata.put("hostname", instanceOptional.get().getHostname());

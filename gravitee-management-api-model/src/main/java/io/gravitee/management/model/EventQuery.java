@@ -29,6 +29,7 @@ public class EventQuery {
     private Map<String, Object> properties;
     private long from, to;
     private String api;
+    private String id;
 
     public Collection<EventType> getTypes() {
         return types;
@@ -70,22 +71,30 @@ public class EventQuery {
         this.api = api;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof EventQuery)) return false;
-        EventQuery query = (EventQuery) o;
-        return from == query.from &&
-                to == query.to &&
-                Objects.equals(types, query.types) &&
-                Objects.equals(properties, query.properties) &&
-                Objects.equals(api, query.api);
+        EventQuery that = (EventQuery) o;
+        return from == that.from &&
+                to == that.to &&
+                Objects.equals(types, that.types) &&
+                Objects.equals(properties, that.properties) &&
+                Objects.equals(api, that.api) &&
+                Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-
-        return Objects.hash(types, properties, from, to, api);
+        return Objects.hash(types, properties, from, to, api, id);
     }
 
     @Override
@@ -96,6 +105,7 @@ public class EventQuery {
                 ", from=" + from +
                 ", to=" + to +
                 ", api='" + api + '\'' +
+                ", id='" + id + '\'' +
                 '}';
     }
 }
