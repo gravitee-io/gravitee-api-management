@@ -126,6 +126,11 @@ reporters:
 #    pipeline:
 #      plugins:
 #        ingest: geoip, user_agent
+#    security:
+#      username: user
+#      password: secret
+#    http:
+#      timeout: 30000 # in milliseconds
 
 # Gateway service configurations. Provided values are default values.
 # All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the
