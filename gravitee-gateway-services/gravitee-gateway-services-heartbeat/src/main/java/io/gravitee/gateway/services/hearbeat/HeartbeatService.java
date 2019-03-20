@@ -138,8 +138,9 @@ public class HeartbeatService extends AbstractService {
         event.setUpdatedAt(event.getCreatedAt());
         Map<String, String> properties = new HashMap<>();
         properties.put("id", node.id());
-        properties.put("started_at", Long.toString(event.getCreatedAt().getTime()));
-        properties.put("last_heartbeat_at", Long.toString(event.getCreatedAt().getTime()));
+        final String now = Long.toString(event.getCreatedAt().getTime());
+        properties.put("started_at", now);
+        properties.put("last_heartbeat_at", now);
         event.setProperties(properties);
 
         InstanceEventPayload instance = createInstanceInfo();
