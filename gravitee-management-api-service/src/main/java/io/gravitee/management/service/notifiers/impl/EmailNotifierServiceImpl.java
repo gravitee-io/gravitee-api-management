@@ -15,9 +15,9 @@
  */
 package io.gravitee.management.service.notifiers.impl;
 
-import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.ApiModelEntity;
 import io.gravitee.management.model.PlanEntity;
+import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.EmailService;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
 import io.gravitee.management.service.notification.*;
@@ -44,7 +44,7 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
 
     @Override
     public void trigger(final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
-        if (genericNotificationConfig.getConfig() == null || genericNotificationConfig.getConfig().isEmpty()) {
+        if (genericNotificationConfig == null || genericNotificationConfig.getConfig() == null || genericNotificationConfig.getConfig().isEmpty()) {
             LOGGER.error("Email Notifier configuration is empty");
             return;
         }
@@ -68,6 +68,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
     }
 
     private EmailNotificationBuilder.EmailTemplate getEmailTemplate(final Hook hook) {
+        if (hook == null) {
+            return null;
+        }
         // Api Hook
         if (hook.equals(ApiHook.APIKEY_REVOKED)) {
             return EmailNotificationBuilder.EmailTemplate.REVOKE_API_KEY;
@@ -83,6 +86,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
         else if (hook.equals(ApiHook.SUBSCRIPTION_CLOSED)) {
             return EmailNotificationBuilder.EmailTemplate.CLOSE_SUBSCRIPTION;
+        }
+        else if (hook.equals(ApiHook.SUBSCRIPTION_REJECTED)) {
+            return EmailNotificationBuilder.EmailTemplate.REJECT_SUBSCRIPTION;
         }
         else if (hook.equals(ApiHook.NEW_SUPPORT_TICKET)) {
             return EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET_NOTIFICATION;
@@ -157,6 +163,12 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
                 return "New subscription for " + apiName + " with plan " + ((PlanEntity)plan).getName();
             }
+        }
+        else if (hook.equals(ApiHook.SUBSCRIPTION_CLOSED)) {
+            return "Subscription closed";
+        }
+        else if (hook.equals(ApiHook.SUBSCRIPTION_REJECTED)) {
+            return "Subscription rejected";
         }
         else if (hook.equals(ApiHook.NEW_SUPPORT_TICKET)) {
             return "New Support Ticket";
