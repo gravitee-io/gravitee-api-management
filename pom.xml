@@ -225,4 +225,44 @@
         <guava.version>26.0-jre</guava.version>
         <vertx.version>3.7.0-SNAPSHOT</vertx.version>
     </properties>
+
+    <!-- allow snapshot only for vertx until the final release -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>1.4.1</version>
+                    <configuration>
+                        <rules>
+                            <requireReleaseDeps>
+                                <message>No Snapshots Allowed!</message>
+                                <excludes>
+                                    <exclude>io.vertx:*</exclude>
+                                </excludes>
+                            </requireReleaseDeps>
+                            <requireReleaseVersion>
+                                <message>No Snapshots Allowed!</message>
+                            </requireReleaseVersion>
+                        </rules>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+    <profiles>
+        <profile>
+            <id>allow-snapshots-for-swagger3</id>
+            <activation><activeByDefault>true</activeByDefault></activation>
+            <repositories>
+                <repository>
+                    <id>snapshots-repo</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                    <releases><enabled>false</enabled></releases>
+                    <snapshots><enabled>true</enabled></snapshots>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
 </project>
