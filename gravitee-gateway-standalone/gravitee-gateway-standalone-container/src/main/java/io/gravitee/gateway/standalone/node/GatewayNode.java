@@ -23,6 +23,7 @@ import io.gravitee.node.container.AbstractNode;
 import io.gravitee.plugin.alert.AlertEngineService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,12 +63,13 @@ public class GatewayNode extends AbstractNode {
 
     @Override
     public List<Class<? extends LifecycleComponent>> components() {
-        List<Class<? extends LifecycleComponent>> components = super.components();
+        List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
 
         components.add(Reactor.class);
         components.add(VertxEmbeddedContainer.class);
         components.add(AlertEngineService.class);
 
+        components.addAll(super.components());
         return components;
     }
 }
