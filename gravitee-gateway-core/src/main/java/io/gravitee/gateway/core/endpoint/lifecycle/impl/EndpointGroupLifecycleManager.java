@@ -73,7 +73,7 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
         // Wrap endpoints with an observable collection
         Set<Endpoint> groupEndpoints = group.getEndpoints();
         if (groupEndpoints == null) {
-            groupEndpoints = new HashSet<>();
+            groupEndpoints = new LinkedHashSet<>();
         }
         ObservableSet<Endpoint> endpoints = new ObservableSet<>(groupEndpoints);
         endpoints.addListener(EndpointGroupLifecycleManager.this);

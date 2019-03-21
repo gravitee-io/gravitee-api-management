@@ -39,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -90,23 +89,22 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     }
 
     private void startHealthCheck(Api api) {
-        // Start HC only if at least one endpoint is configured with HC enabled
-        List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
-        if (!healthCheckEndpoints.isEmpty()) {
-            Set<Endpoint> endpoints = api.getProxy()
-                    .getGroups()
-                    .stream()
-                    .filter(group -> group.getEndpoints() != null)
-                    .flatMap(group -> group.getEndpoints().stream())
-                    .collect(Collectors.toSet());
+        api.getProxy().getGroups()
+                .stream()
+                .filter(group -> group.getEndpoints() != null)
+                .forEach(group -> {
+                    final Set<Endpoint> endpoints = group.getEndpoints();
+                    if (endpoints instanceof ObservableSet) {
+                        apiTimers.put(api, new ArrayList<>());
+                        ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
+                    }
+                });
 
+        // Configure triggers on resolved API endpoints
+        final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
+        if (!healthCheckEndpoints.isEmpty()) {
             LOGGER.info("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
             apiTimers.put(api, new ArrayList<>());
-
-            if (endpoints instanceof ObservableSet) {
-                ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
-            }
-
             healthCheckEndpoints.forEach(rule -> addTrigger(api, rule));
         }
     }
