@@ -421,6 +421,7 @@ import UpdateApiPortalHeaderDialogController
   from "./configuration/api-portal-header/update.api-portal-header.dialog.controller";
 import NewApiPortalHeaderDialogController
   from "./configuration/api-portal-header/new.api-portal-header.dialog.controller";
+import Base64Service from "../services/base64.service";
 
 angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ng-showdown',
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
@@ -551,6 +552,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('NotificationService', NotificationService)
   .service('PolicyService', PolicyService)
   .service('UserService', UserService)
+  .service("Base64Service", Base64Service)
   .service('ResourceService', ResourceService)
   .service('FetcherService', FetcherService)
   .service('EventsService', EventsService)
