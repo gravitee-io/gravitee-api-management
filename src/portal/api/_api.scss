@@ -265,7 +265,21 @@ a.ui.label:focus, a.ui.label:hover {
 
 #pageHeader #header-detail {
   opacity: 100;
+  overflow-y: hidden;
+  max-height: 190px;
 }
+
+#header-detail .api-description:after{
+  position: absolute;
+    bottom: 700px;
+    height: 190px;
+    right: 0px;
+    width: 100%;
+    content: "";
+    background: linear-gradient(to top, rgba(239, 244, 249, 1) 0%, rgba(255, 255, 255, 0) 19%);
+    pointer-events: none;
+}
+
 
 #pageHeader.sticky #header-detail {
   opacity: 0;
