@@ -269,15 +269,23 @@ a.ui.label:focus, a.ui.label:hover {
   max-height: 190px;
 }
 
-#header-detail .api-description:after{
+div#api-navbar {
+  z-index: 2;
+}
+
+div#api-navbar:before{
   position: absolute;
-    bottom: 700px;
-    height: 190px;
-    right: 0px;
-    width: 100%;
-    content: "";
-    background: linear-gradient(to top, rgba(239, 244, 249, 1) 0%, rgba(255, 255, 255, 0) 19%);
-    pointer-events: none;
+  bottom: 47px;
+  height: 190px;
+  right: 0px;
+  width: 100%;
+  content: "";
+  background: linear-gradient(to top, rgba(239, 244, 249, 1) 0%, rgba(255, 255, 255, 0) 19%);
+  pointer-events: none;
+}
+  
+#main-content-subcontent{
+  z-index: 1;
 }
 
 
@@ -354,6 +362,10 @@ a.ui.label:focus, a.ui.label:hover {
   }
 }
 
+#header-metadata{
+  padding-left: 20px;
+}
+
 .api-header-metadata {
   max-height: 200px;
   h2 {
@@ -362,9 +374,8 @@ a.ui.label:focus, a.ui.label:hover {
   }
 }
 
-#pageHeader.sticky .api-header-metadata {
-  opacity: 0;
-  max-height: 0;
+.layout-align-space-between-center.layout-row{
+  align-items: normal;
 }
 
 #pageHeader .container, #pageHeader .api-header-metadata, #pageHeader #header-detail {
