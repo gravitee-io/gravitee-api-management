@@ -3,6 +3,7 @@
       "id": "user0",
       "username":"user0 name",
       "email":"user0@gravitee.io",
+      "status": "ARCHIVED",
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
    },
@@ -10,6 +11,7 @@
       "id": "user1",
       "username":"user1 name",
       "email":"user1@gravitee.io",
+      "status": "ACTIVE",
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
    },
@@ -17,6 +19,7 @@
       "id": "user2",
       "username":"user2 name",
       "email":"user2@gravitee.io",
+      "status": "ACTIVE",
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
    },
@@ -24,6 +27,7 @@
       "id": "user3",
       "username":"user3 name",
       "email":"user3@gravitee.io",
+      "status": "ACTIVE",
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
    },
@@ -31,6 +35,7 @@
       "id": "user4",
       "username":"user4 name",
       "email":"user4@gravitee.io",
+      "status": "ACTIVE",
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
    },
@@ -45,6 +50,7 @@
       "id": "user2delete",
       "username":"user2delete name",
       "email":"user2delete@gravitee.io",
+      "status": "ACTIVE",
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
    },
@@ -55,6 +61,7 @@
       "sourceId":"sourceId2update",
       "password":"password2update",
       "email":"email2update",
+      "status": "ACTIVE",
       "firstname":"firstname2update",
       "lastname":"lastname2update",
       "picture":"picture2update",
