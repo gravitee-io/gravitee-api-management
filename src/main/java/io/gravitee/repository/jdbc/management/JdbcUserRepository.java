@@ -20,7 +20,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.UserStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -41,6 +43,8 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     private static final String SELECT_ESCAPED_USER_TABLE_NAME = "select * from " + escapeReservedWord("users");
 
+    private static final String STATUS_FIELD = "status";
+
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(User.class, "users", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -54,6 +58,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             .addColumn("source_id", Types.NVARCHAR, String.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("username", Types.NVARCHAR, String.class)
+            .addColumn(STATUS_FIELD, Types.NVARCHAR, UserStatus.class)
             .build();
 
     @Override
@@ -108,12 +113,40 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     }
 
     @Override
-    public Page<User> search(Pageable pageable) throws TechnicalException {
+    public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
             LOGGER.debug("JdbcAbstractCrudRepository<{}>.findAll()", getOrm().getTableName());
             try {
+                List result;
+                if (criteria == null) {
+                    result = jdbcTemplate.query(getOrm().getSelectAllSql(), getRowMapper());
+                } else {
+                    final StringBuilder query = new StringBuilder(SELECT_ESCAPED_USER_TABLE_NAME);
+
+                    query.append(" where 1=1 ");
+
+                    if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
+                        List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
+                        ORM.buildInCondition(false, query, STATUS_FIELD, statuses);
+                    }
+
+                    if (criteria.hasNoStatus()) {
+                        query.append(" and ").append(escapeReservedWord(STATUS_FIELD)).append(" is null ");
+                    }
+
+                    result = jdbcTemplate.query(query.toString()
+                            , (PreparedStatement ps) -> {
+                                int idx = 1;
+                                if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
+                                    List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
+                                    idx = ORM.setArguments(ps, statuses, idx);
+                                }
+                            }
+                            , ORM.getRowMapper()
+                    );
+                }
                 return getResultAsPage(
                         pageable,
-                        jdbcTemplate.query(getOrm().getSelectAllSql(), getRowMapper()));
+                        result);
             } catch (final Exception ex) {
                 LOGGER.error("Failed to find all {} items:", getOrm().getTableName(), ex);
                 throw new TechnicalException("Failed to find all " + getOrm().getTableName() + " items", ex);

@@ -25,3 +25,5 @@ databaseChangeLog:
     - file: liquibase/changelogs/v1_20_1/schema.yml
   - include:
     - file: liquibase/changelogs/v1_20_2/schema.yml
+  - include:
+    - file: liquibase/changelogs/v1_20_15/schema.yml
