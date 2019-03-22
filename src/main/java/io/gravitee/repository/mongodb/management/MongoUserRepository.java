@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
@@ -70,10 +71,10 @@ public class MongoUserRepository implements UserRepository {
 	}
 
 	@Override
-	public Page<User> search(Pageable pageable) throws TechnicalException {
+	public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
 		logger.debug("search users");
 
-		Page<UserMongo> users = internalUserRepo.search(pageable);
+		Page<UserMongo> users = internalUserRepo.search(criteria, pageable);
 		List<User> content = mapper.collection2list(users.getContent(), UserMongo.class, User.class);
 
 		logger.debug("search users - Done");
@@ -127,6 +128,9 @@ public class MongoUserRepository implements UserRepository {
 		userMongo.setPicture(user.getPicture());
 		userMongo.setUsername(user.getUsername());
 		userMongo.setEmail(user.getEmail());
+		if (user.getStatus() != null) {
+			userMongo.setStatus(user.getStatus().name());
+		}
 		userMongo.setLastConnectionAt(user.getLastConnectionAt());
 
 		UserMongo userUpdated = internalUserRepo.save(userMongo);
