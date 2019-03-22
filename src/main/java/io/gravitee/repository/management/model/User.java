@@ -87,6 +87,8 @@ public class User {
 	 */
 	private String picture;
 
+	private UserStatus status;
+
 	public User() {}
 
 	public User(User cloned) {
@@ -102,6 +104,7 @@ public class User {
 		this.updatedAt = cloned.updatedAt;
 		this.lastConnectionAt = cloned.lastConnectionAt;
 		this.picture = cloned.picture;
+		this.status = cloned.status;
 	}
 
 	public String getId() {
@@ -200,6 +203,14 @@ public class User {
 		this.lastConnectionAt = lastConnectionAt;
 	}
 
+	public UserStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(UserStatus status) {
+		this.status = status;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -223,6 +234,7 @@ public class User {
 		sb.append(", firstname='").append(firstname).append('\'');
 		sb.append(", lastname='").append(lastname).append('\'');
 		sb.append(", mail='").append(email).append('\'');
+		sb.append(", status='").append(status).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}

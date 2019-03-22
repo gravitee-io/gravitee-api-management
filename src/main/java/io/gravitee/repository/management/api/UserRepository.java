@@ -18,6 +18,7 @@ package io.gravitee.repository.management.api;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
 
 import java.util.List;
@@ -51,5 +52,5 @@ public interface UserRepository extends CrudRepository<User, String> {
 	 *
 	 * @return Users found
 	 */
-	Page<User> search(Pageable pageable) throws TechnicalException;
+	Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException;
 }
