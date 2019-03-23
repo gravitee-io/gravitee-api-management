@@ -312,6 +312,8 @@ user:
       # Secret key used to generate reference of a user which is unique (default: s3cR3t4grAv1t33.1Ous3D4R3f3r3nc3)
       # Must contains 32 chars (256 bits)
       #secret:
+  anonymize-on-delete:
+    #enabled: true
 
 # The portal URL used in emails
 #portalURL: http://portal-url.net

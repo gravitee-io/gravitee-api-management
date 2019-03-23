@@ -22,6 +22,8 @@ import io.gravitee.management.idp.repository.RepositoryIdentityProvider;
 import io.gravitee.management.idp.repository.lookup.spring.RepositoryIdentityLookupConfiguration;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.model.UserStatus;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +80,7 @@ public class RepositoryIdentityLookup implements IdentityLookup {
     @Override
     public Collection<User> search(String query) {
         try {
-            return userRepository.search(null).getContent().stream().filter(user -> MANAGED_USER_TYPES.contains(user.getSource())).filter(
+            return userRepository.search(new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),null).getContent().stream().filter(user -> MANAGED_USER_TYPES.contains(user.getSource())).filter(
                     user -> (user.getUsername() != null && StringUtils.containsIgnoreCase(user.getUsername(), query)) ||
                             (user.getFirstname() != null && StringUtils.containsIgnoreCase(user.getFirstname(), query)) ||
                             (user.getLastname() != null && StringUtils.containsIgnoreCase(user.getLastname(), query)) ||

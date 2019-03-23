@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
 import org.springframework.stereotype.Component;
 
@@ -50,8 +51,8 @@ public class UserRepositoryProxy extends AbstractProxy<UserRepository> implement
     }
 
     @Override
-    public Page<User> search(Pageable pageable) throws TechnicalException {
-        return target.search(pageable);
+    public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
+        return target.search(criteria, pageable);
     }
 
     @Override

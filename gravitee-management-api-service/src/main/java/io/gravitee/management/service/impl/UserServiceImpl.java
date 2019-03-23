@@ -30,11 +30,9 @@ import io.gravitee.management.service.notification.NotificationParamsBuilder;
 import io.gravitee.management.service.notification.PortalHook;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -104,6 +102,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
+
+    @Value("${user.anonymize-on-delete.enabled:false}")
+    private boolean anonymizeOnDelete;
 
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -330,7 +331,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             User user = convert(newExternalUserEntity);
             user.setId(UUID.toString(UUID.random()));
-            
+            user.setStatus(UserStatus.ACTIVE);
+
             // Set date fields
             user.setCreatedAt(new Date());
             user.setUpdatedAt(user.getCreatedAt());
@@ -490,6 +492,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
             if (updateUserEntity.getEmail() != null) {
                 user.setEmail(updateUserEntity.getEmail());
             }
+            if (updateUserEntity.getStatus() != null) {
+                user.setStatus(UserStatus.valueOf(updateUserEntity.getStatus()));
+            }
 
             User updatedUser = userRepository.update(user);
             auditService.createPortalAuditLog(
@@ -507,13 +512,23 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public Page<UserEntity> search(Pageable pageable) {
+        return search(new UserCriteria.Builder()
+                        .statuses(UserStatus.ACTIVE)
+                        .build(),
+                pageable);
+    }
+
+    @Override
+    public Page<UserEntity> search(UserCriteria criteria, Pageable pageable) {
         try {
             LOGGER.debug("search users");
 
-            Page<User> users = userRepository.search(new PageableBuilder()
-                    .pageNumber(pageable.getPageNumber() - 1)
-                    .pageSize(pageable.getPageSize())
-                    .build());
+            Page<User> users = userRepository.search(
+                    criteria,
+                    new PageableBuilder()
+                            .pageNumber(pageable.getPageNumber() - 1)
+                            .pageSize(pageable.getPageSize())
+                            .build());
 
             List<UserEntity> entities = users.getContent()
                     .stream()
@@ -552,7 +567,19 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             membershipService.removeUser(id);
-            userRepository.delete(id);
+
+            User user = optionalUser.get();
+            user.setUsername("deleted-" + user.getUsername());
+            user.setStatus(UserStatus.ARCHIVED);
+            user.setUpdatedAt(new Date());
+
+            if (anonymizeOnDelete) {
+                user.setFirstname("Unknown");
+                user.setLastname("");
+                user.setEmail("");
+            }
+
+            userRepository.update(user);
 
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete user", ex);
@@ -619,6 +646,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         user.setLastname(newExternalUserEntity.getLastname());
         user.setSource(newExternalUserEntity.getSource());
         user.setSourceId(newExternalUserEntity.getSourceId());
+        user.setStatus(UserStatus.ACTIVE);
 
         return user;
     }
@@ -641,6 +669,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
         userEntity.setUpdatedAt(user.getUpdatedAt());
         userEntity.setLastConnectionAt(user.getLastConnectionAt());
         userEntity.setPicture(user.getPicture());
+        if (user.getStatus() != null) {
+            userEntity.setStatus(user.getStatus().name());
+        }
 
         if (loadRoles) {
             Set<UserRoleEntity> roles = new HashSet<>();
