@@ -32,7 +32,8 @@ class DashboardController {
     private AnalyticsService,
     private ApiService,
     private ApplicationService,
-    private $scope
+    private $scope,
+    private Constants
   ) {
     'ngInject';
     this.eventLabels = {};
@@ -193,6 +194,40 @@ class DashboardController {
       }
     }
   }];
+
+    if (Constants.portal.dashboard && Constants.portal.dashboard.widgets) {
+      let initialDashboardLength = this.$scope.platformDashboard.length;
+      for (let i = 0; i < Constants.portal.dashboard.widgets.length; i++) {
+        let nbWidget = this.$scope.platformDashboard.length - initialDashboardLength;
+        let row = nbWidget > 2 ? 3 : 2;
+        let col = nbWidget > 2 ? (nbWidget - 3) * 2 : nbWidget * 2;
+        switch (Constants.portal.dashboard.widgets[i]) {
+          case 'host':
+            this.$scope.platformDashboard.push({
+              row: row,
+              col: col,
+              sizeY: 1,
+              sizeX: 2,
+              title: 'Hits by Host ',
+              subhead: 'Hits repartition by Host HTTP Header',
+              chart: {
+                type: 'table',
+                selectable: true,
+                columns: ['Host', 'Hits'],
+                paging: 5,
+                request: {
+                  type: 'group_by',
+                  field: 'host',
+                  fieldLabel: 'host',
+                  size: 20
+
+                }
+              }
+            });
+            break;
+        }
+      }
+    }
 
     _.forEach(this.$scope.platformDashboard, (widget) => {
       _.merge(widget, {
