@@ -142,7 +142,20 @@ public class ApiPagesResource extends AbstractResource {
 
         pages.stream()
                 .filter(pageListItem -> pageListItem.getSource() != null)
-                .forEach(pageListItem -> pageService.fetch(pageListItem.getId(), contributor));
+                .forEach(pageListItem -> {
+                    if (pageListItem.getType().equals("ROOT")) {
+                        final ImportPageEntity pageEntity = new ImportPageEntity();
+                        pageEntity.setType(PageType.valueOf(pageListItem.getType()));
+                        pageEntity.setSource(pageListItem.getSource());
+                        pageEntity.setConfiguration(pageListItem.getConfiguration());
+                        pageEntity.setPublished(pageListItem.isPublished());
+                        pageEntity.setExcludedGroups(pageListItem.getExcludedGroups());
+                        pageEntity.setLastContributor(contributor);
+                        pageService.importFiles(api, pageEntity);
+                    } else {
+                        pageService.fetch(pageListItem.getId(), contributor);
+                    }
+                });
 
         return Response.noContent().build();
     }
