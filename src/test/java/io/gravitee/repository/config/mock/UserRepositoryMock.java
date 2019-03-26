@@ -87,6 +87,8 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
         when(userRepository.update(argThat(o -> o == null || "unknown".equals(o.getId())))).thenThrow(new IllegalStateException());
 
         when(userRepository.findBySource("gravitee", "user1")).thenReturn(of(user1));
+        when(userRepository.findBySource("gravitee", "USER1")).thenReturn(of(user1));
+        when(userRepository.findBySource("gravitee", "user")).thenReturn(empty());
         when(userRepository.findById("user1")).thenReturn(of(user1));
         when(userRepository.findByIds(asList("user1", "user5"))).thenReturn(new HashSet<>(asList(user1, user5)));
 

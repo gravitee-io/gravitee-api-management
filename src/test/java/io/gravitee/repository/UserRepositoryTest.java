@@ -127,6 +127,22 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertTrue(user.isPresent());
     }
 
+    @Test
+    public void findUserBySourceCaseInsensitive() throws Exception {
+        Optional<User> user1 = userRepository.findBySource("gravitee", "user1");
+        Optional<User> user1Upper = userRepository.findBySource("gravitee", "USER1");
+        assertTrue(user1.isPresent());
+        assertTrue(user1Upper.isPresent());
+        assertEquals(user1.get().getId(), user1Upper.get().getId());
+    }
+
+    @Test
+    public void notFindUserBySource() throws Exception {
+        Optional<User> user1 = userRepository.findBySource("gravitee", "user");
+
+        assertFalse(user1.isPresent());
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownUser() throws Exception {
         User unknownUser = new User();
