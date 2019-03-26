@@ -213,14 +213,16 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         if (failure.message() != null) {
             try {
                 Buffer payload;
-                if (failure.contentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
-                    payload = Buffer.buffer(failure.message());
-                } else {
+                if (failure.contentType() == null) {
+                    // create JSON content only if no content-type is set
                     String contentAsJson = mapper.writeValueAsString(new ProcessorFailureAsJson(failure));
                     payload = Buffer.buffer(contentAsJson);
+                } else {
+                    // explicitly set content-type
+                    payload = Buffer.buffer(failure.message());
                 }
                 response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(payload.length()));
-                response.headers().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+                response.headers().set(HttpHeaders.CONTENT_TYPE, failure.contentType() == null ? MediaType.APPLICATION_JSON : failure.contentType());
                 response.write(payload);
             } catch (JsonProcessingException jpe) {
                 logger.error("Unable to transform a policy result into a json payload", jpe);
