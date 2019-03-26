@@ -58,7 +58,7 @@ class ApiLogsController {
     this.onPaginate = this.onPaginate.bind(this);
 
     this.query = new LogsQuery();
-    this.query.size = 20;
+    this.query.size = 15;
     this.query.page = 1;
     this.query.from = this.$state.params['from'];
     this.query.to = this.$state.params['to'];

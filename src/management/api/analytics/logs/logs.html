@@ -78,6 +78,7 @@
 
       <md-table-pagination
         md-limit="logsCtrl.query.size"
+        md-limit-options="[5, 10, 15, 20, 30, 50, 100]"
         md-page="logsCtrl.query.page"
         md-total="{{logsCtrl.logs.total}}"
         md-on-paginate="logsCtrl.onPaginate">
