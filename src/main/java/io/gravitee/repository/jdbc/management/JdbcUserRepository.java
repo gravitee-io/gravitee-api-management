@@ -69,7 +69,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     public Optional<User> findBySource(String source, String sourceId) throws TechnicalException {
         LOGGER.debug("JdbcUserRepository.findBySource({}, {})", source, sourceId);
         try {
-            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.source = ? and u.source_id = ?"
+            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.source = ? and UPPER(u.source_id) = UPPER(?)"
                     , ORM.getRowMapper()
                     , source, sourceId
             );
