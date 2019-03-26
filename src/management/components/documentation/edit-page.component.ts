@@ -166,7 +166,7 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.rename = () => {
-      DocumentationService.partialUpdate("name", this.newName, this.page.id, this.apiId).then( (response) => {
+      DocumentationService.partialUpdate("name", this.newName, this.page.id, this.apiId).then( () => {
         NotificationService.show("'" + this.page.name + "' has been renamed to '" + this.newName + "'");
         this.page.name = this.newName;
         this.toggleRename();
@@ -185,6 +185,13 @@ const EditPageComponent: ng.IComponentOptions = {
       } else {
         $state.transitionTo("management.settings.editdocumentation", {pageId: this.page.id, tab: this.currentTab}, {notify: false});
       }
+    };
+
+    this.fetch = () => {
+      DocumentationService.fetch(this.page.id, this.apiId).then( () => {
+        NotificationService.show("'" + this.page.name + "' has been successfully fetched");
+        this.reset();
+      });
     };
   }
 };

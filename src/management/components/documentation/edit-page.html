@@ -23,6 +23,9 @@
             <a ng-click="$ctrl.cancel()">Back to Documentation</a>
         </div>
         <div>
+          <md-button class="md-raised md-primary" type="button" ng-if="$ctrl.page.source" ng-click="$ctrl.fetch()">
+            Fetch
+          </md-button>
           <md-button type="button"
                      class="md-raised md-primary"
                      ng-click="$ctrl.toggleRename()"
@@ -78,7 +81,7 @@
                                 ng-model="$ctrl.page.content"
                                 aria-label="page content"
                                 rows="5" style="overflow-y: scroll;"
-                                ng-disabled="pageCtrl.useFetcher"
+                                ng-disabled="$ctrl.page.source"
                                 md-autofocus></textarea>
                                 </md-input-container>
                                 <gv-page flex="50" page="$ctrl.page" enable-try-it="false" edit="true"></gv-page>
@@ -206,7 +209,7 @@
                 <md-button class="md-raised" type="button" ng-click="$ctrl.reset()">
                     Reset
                 </md-button>
-                <md-button class="md-flat md-warn" type="button" ng-if="$ctrl.currentTab === 'fetchers' && $ctrl.page.source" ng-click="$ctrl.removeFetcher()">
+                <md-button class="md-flat md-warn" type="button" ng-if="$ctrl.page.source" ng-click="$ctrl.removeFetcher()">
                     Remove External Source Configuration
                 </md-button>
             </div>

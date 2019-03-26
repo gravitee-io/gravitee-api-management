@@ -17,11 +17,14 @@
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
     <div class="gv-forms-header">
-        <h1>Documentation</h1>
-        <a permission permission-only="['portal-documentation-c', 'api-documentation-c']"
-           ng-click="$ctrl.importPages()">
-           Import multiple files
-        </a>
+      <h1>Documentation</h1>
+      <a permission permission-only="['portal-documentation-c', 'api-documentation-c']"
+         ng-click="$ctrl.importPages()">
+         Import multiple files
+      </a>
+      <md-button class="md-raised md-primary" type="button" ng-click="$ctrl.fetch()">
+        Fetch all
+      </md-button>
     </div>
     <div class="gv-form">
         <div layout="row" layout-align="space-between center" ng-if="!renameFolder">

@@ -235,6 +235,13 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
         $state.go('management.settings.importdocumentation');
       }
     };
+
+    this.fetch = () => {
+      DocumentationService.fetchAll(this.apiId).then( () => {
+        this.refresh();
+        NotificationService.show('Pages has been successfully fetched');
+      });
+    };
   }
 };
 

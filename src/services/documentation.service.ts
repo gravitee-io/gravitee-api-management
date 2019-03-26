@@ -145,6 +145,14 @@ class DocumentationService {
     entity.excluded_groups = newPage.excluded_groups;
     return this.$http.post(this.url(apiId, null, true), entity, {timeout: 30000});
   }
+
+  fetch = (pageId: string, apiId?: string): IHttpPromise<any> => {
+    return this.$http.post(this.url(apiId, pageId) + '/_fetch');
+  };
+
+  fetchAll = (apiId: string): IHttpPromise<any> => {
+    return this.$http.post(this.url(apiId) + '_fetch');
+  }
 }
 
 export default DocumentationService;
