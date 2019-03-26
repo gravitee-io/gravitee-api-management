@@ -39,8 +39,8 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
     private static Comparator<String> nullSafeStringComparator = Comparator.nullsFirst(String::compareToIgnoreCase);
 
     @Override
-    public RedisUser findBySource(String sourceId, String userId) {
-        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":source:" + sourceId + ':' + userId);
+    public RedisUser findBySource(String source, String sourceId) {
+        Set<Object> keys = redisTemplate.opsForSet().members(generateSourceKey(source, sourceId));
 
         if (! keys.isEmpty()) {
             Object user = redisTemplate.opsForHash().get(REDIS_KEY, keys.iterator().next());
@@ -93,7 +93,7 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
     @Override
     public RedisUser saveOrUpdate(RedisUser user) {
         redisTemplate.opsForHash().put(REDIS_KEY, user.getId(), user);
-        redisTemplate.opsForSet().add(REDIS_KEY + ":source:" + user.getSource() + ':' + user.getSourceId(), user.getId());
+        redisTemplate.opsForSet().add(generateSourceKey(user.getSource(), user.getSourceId()), user.getId());
         return user;
     }
 
@@ -102,6 +102,10 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
         RedisUser user = find(userId);
 
         redisTemplate.opsForHash().delete(REDIS_KEY, user.getId());
-        redisTemplate.opsForSet().remove(REDIS_KEY + ":source:" + user.getSource() + ':' + user.getSourceId(), userId);
+        redisTemplate.opsForSet().remove(generateSourceKey(user.getSource(), user.getSourceId()), userId);
+    }
+
+    private String generateSourceKey(String source, String sourceId) {
+        return REDIS_KEY + ":source:" + source + ':' + (sourceId==null ? "" : sourceId.toUpperCase());
     }
 }

@@ -28,7 +28,7 @@ import java.util.Set;
  */
 public interface UserRedisRepository {
 
-    RedisUser findBySource(String sourceId, String userId);
+    RedisUser findBySource(String source, String sourceId);
 
     RedisUser find(String user);
 

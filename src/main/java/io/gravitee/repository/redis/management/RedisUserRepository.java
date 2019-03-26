@@ -76,8 +76,8 @@ public class RedisUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findBySource(String sourceId, String userId) throws TechnicalException {
-        RedisUser redisUser = this.userRedisRepository.findBySource(sourceId, userId);
+    public Optional<User> findBySource(String source, String sourceId) throws TechnicalException {
+        RedisUser redisUser = this.userRedisRepository.findBySource(source, sourceId);
         return Optional.ofNullable(convert(redisUser));
     }
 
