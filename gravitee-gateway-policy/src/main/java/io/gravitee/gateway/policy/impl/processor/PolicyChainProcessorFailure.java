@@ -18,6 +18,8 @@ package io.gravitee.gateway.policy.impl.processor;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.policy.api.PolicyResult;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -32,7 +34,7 @@ public class PolicyChainProcessorFailure implements ProcessorFailure {
 
     @Override
     public int statusCode() {
-        return policyResult.httpStatusCode();
+        return policyResult.statusCode();
     }
 
     @Override
@@ -41,7 +43,12 @@ public class PolicyChainProcessorFailure implements ProcessorFailure {
     }
 
     @Override
-    public String contentType() {
-        return policyResult.contentType();
+    public String key() {
+        return policyResult.key();
+    }
+
+    @Override
+    public Map<String, Object> parameters() {
+        return policyResult.parameters();
     }
 }

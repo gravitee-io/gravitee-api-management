@@ -21,9 +21,14 @@ import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.core.processor.StreamableProcessorDecorator;
 import io.gravitee.gateway.core.processor.chain.DefaultStreamableProcessorChain;
 import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
+import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
+import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
+import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
+import io.gravitee.gateway.handlers.api.processor.error.SimpleFailureProcessor;
+import io.gravitee.gateway.handlers.api.processor.error.templates.ResponseTemplateBasedFailureProcessor;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,19 +37,25 @@ import java.util.List;
  */
 public class OnErrorProcessorChainFactory extends ApiProcessorChainFactory {
 
-    private List<StreamableProcessor<ExecutionContext, Buffer>> processors;
+    private final List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers = new ArrayList<>();
 
     public void afterPropertiesSet() {
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
-            processors = Collections.singletonList(
-                    new StreamableProcessorDecorator<>(new CorsSimpleRequestProcessor(api.getProxy().getCors())));
+            providers.add(new ProcessorSupplier<>(() ->
+                    new StreamableProcessorDecorator<>(new CorsSimpleRequestProcessor(api.getProxy().getCors()))));
+        }
+
+        if (api.getResponseTemplates() != null && ! api.getResponseTemplates().isEmpty()) {
+            providers.add(new ProcessorSupplier<>(() ->
+                    new StreamableProcessorDecorator<>(new ResponseTemplateBasedFailureProcessor(api.getResponseTemplates()))));
         } else {
-            processors = Collections.emptyList();
+            providers.add(new ProcessorSupplier<>(() ->
+                    new StreamableProcessorDecorator<>(new SimpleFailureProcessor())));
         }
     }
 
     @Override
     public StreamableProcessorChain<ExecutionContext, Buffer, StreamableProcessor<ExecutionContext, Buffer>> create() {
-        return new DefaultStreamableProcessorChain<>(processors);
+        return new StreamableProcessorProviderChain<>(providers);
     }
 }

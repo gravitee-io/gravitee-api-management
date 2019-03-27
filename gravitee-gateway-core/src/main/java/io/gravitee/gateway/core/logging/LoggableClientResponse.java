@@ -73,7 +73,6 @@ public class LoggableClientResponse implements Response {
 
     private void calculate(Buffer buffer) {
         // Here we are sure that headers has been full processed by policies
-        log.setClientResponse(new io.gravitee.reporter.api.common.Response(status()));
         log.getClientResponse().setHeaders(headers());
 
         if (buffer != null) {

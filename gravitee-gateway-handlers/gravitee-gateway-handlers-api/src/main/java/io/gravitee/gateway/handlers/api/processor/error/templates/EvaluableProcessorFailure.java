@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.processor;
+package io.gravitee.gateway.handlers.api.processor.error.templates;
+
+import io.gravitee.gateway.core.processor.ProcessorFailure;
 
 import java.util.Map;
 
@@ -21,13 +23,27 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ProcessorFailure {
+public class EvaluableProcessorFailure {
 
-    int statusCode();
+    private final ProcessorFailure failure;
 
-    String message();
+    public EvaluableProcessorFailure(final ProcessorFailure failure) {
+        this.failure = failure;
+    }
 
-    String key();
+    public int getStatusCode() {
+        return failure.statusCode();
+    }
 
-    Map<String, Object> parameters();
+    public String getKey() {
+        return failure.key();
+    }
+
+    public String getMessage() {
+        return failure.message();
+    }
+
+    public Map<String, Object> getParameters() {
+        return failure.parameters();
+    }
 }
