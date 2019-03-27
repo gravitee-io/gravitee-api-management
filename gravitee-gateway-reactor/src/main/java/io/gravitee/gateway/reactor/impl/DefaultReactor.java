@@ -93,18 +93,22 @@ public class DefaultReactor extends AbstractService implements
                                     // Ensure that response has been ended before going further
                                     context1.response().end();
 
-                                    responseProcessorChainFactory
-                                            .create()
-                                            .handler(handler)
-                                            .handle(context1);
+                                    processResponse(context1, handler);
                                 })
                                 .handle(ctx);
                     } else {
-                        sendNotFound(context);
+                        sendNotFound(ctx);
                     }
                 })
-                .errorHandler(__ -> {})
-                .exitHandler(__ -> {})
+                .errorHandler(__ -> processResponse(context, handler))
+                .exitHandler(__ -> processResponse(context, handler))
+                .handle(context);
+    }
+
+    private void processResponse(ExecutionContext context, Handler<ExecutionContext> handler) {
+        responseProcessorChainFactory
+                .create()
+                .handler(handler)
                 .handle(context);
     }
 

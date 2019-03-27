@@ -15,17 +15,10 @@
  */
 package io.gravitee.gateway.handlers.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecyleManager;
@@ -64,9 +57,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     @Autowired
     private Invoker invoker;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     private String contextPath;
 
     @Autowired
@@ -103,8 +93,12 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
         chain
                 .handler(__ -> handleProxyInvocation(context, chain))
-                .streamErrorHandler(failure -> handleError(context, failure))
-                .errorHandler(failure -> handleError(context, failure))
+                .streamErrorHandler(failure -> {
+                    handleError(context, failure);
+                })
+                .errorHandler(failure -> {
+                    handleError(context, failure);
+                })
                 .exitHandler(__ -> {
                     context.request().resume();
                     handler.handle(context);
@@ -166,8 +160,12 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         final StreamableProcessor<ExecutionContext, Buffer> chain = responseProcessorChain.create();
 
         chain
-                .errorHandler(failure -> handleError(context, failure))
-                .streamErrorHandler(failure -> handleError(context, failure))
+                .errorHandler(failure -> {
+                    handleError(context, failure);
+                })
+                .streamErrorHandler(failure -> {
+                    handleError(context, failure);
+                })
                 .exitHandler(__ -> handler.handle(context))
                 .handler(stream -> {
                     chain
@@ -196,58 +194,13 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
 
     private void handleError(ExecutionContext context, ProcessorFailure failure) {
+        context.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
+
         errorProcessorChain
                 .create()
-                .handler(__ -> {
-                    handleProcessorFailure(failure, context.response());
-                    handler.handle(context);
-                })
+                .handler(__ -> handler.handle(context))
+                .errorHandler(__ -> handler.handle(context))
                 .handle(context);
-    }
-
-    private void handleProcessorFailure(ProcessorFailure failure, Response response) {
-        response.status(failure.statusCode());
-
-        response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-
-        if (failure.message() != null) {
-            try {
-                Buffer payload;
-                if (failure.contentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
-                    payload = Buffer.buffer(failure.message());
-                } else {
-                    String contentAsJson = mapper.writeValueAsString(new ProcessorFailureAsJson(failure));
-                    payload = Buffer.buffer(contentAsJson);
-                }
-                response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(payload.length()));
-                response.headers().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                response.write(payload);
-            } catch (JsonProcessingException jpe) {
-                logger.error("Unable to transform a policy result into a json payload", jpe);
-            }
-        }
-    }
-
-    private class ProcessorFailureAsJson {
-
-        @JsonProperty
-        private final String message;
-
-        @JsonProperty("http_status_code")
-        private final int httpStatusCode;
-
-        private ProcessorFailureAsJson(ProcessorFailure processorFailure) {
-            this.message = processorFailure.message();
-            this.httpStatusCode = processorFailure.statusCode();
-        }
-
-        private String getMessage() {
-            return message;
-        }
-
-        private int httpStatusCode() {
-            return httpStatusCode;
-        }
     }
 
     @Override

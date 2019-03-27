@@ -48,7 +48,6 @@ public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
                         securityProvider.name(), request.id());
 
                 List<AuthenticationPolicy> policies = securityProvider.handle(executionContext);
-
                 return RequestPolicyChain.create(createAuthenticationChain(policies), executionContext);
             }
 

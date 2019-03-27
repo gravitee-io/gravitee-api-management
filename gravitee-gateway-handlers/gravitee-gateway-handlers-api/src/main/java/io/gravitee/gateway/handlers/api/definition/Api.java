@@ -45,6 +45,7 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
         this.setProperties(definition.getProperties());
         this.setProxy(definition.getProxy());
         this.setPathMappings(definition.getPathMappings());
+        this.setResponseTemplates(definition.getResponseTemplates());
         this.setResources(definition.getResources());
         this.setServices(definition.getServices());
         this.setTags(definition.getTags());

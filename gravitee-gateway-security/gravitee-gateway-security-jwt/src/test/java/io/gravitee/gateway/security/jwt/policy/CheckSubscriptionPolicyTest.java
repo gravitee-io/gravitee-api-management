@@ -113,6 +113,6 @@ public class CheckSubscriptionPolicyTest {
     }
 
     ArgumentMatcher<PolicyResult> statusCode(int statusCode) {
-        return argument -> argument.httpStatusCode() == statusCode;
+        return argument -> argument.statusCode() == statusCode;
     }
 }

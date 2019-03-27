@@ -79,7 +79,7 @@ public abstract class PolicyChain extends BufferedReadWriteStream
             } catch (Exception ex) {
                 request.metrics().setMessage("An error occurs in policy[" + policy.id()+"] error["+Throwables.getStackTraceAsString(ex)+"]");
                 if (errorHandler != null) {
-                    errorHandler.handle(new PolicyChainProcessorFailure(PolicyResult.failure(null)));
+                    errorHandler.handle(new PolicyChainProcessorFailure(PolicyResult.failure(ex.getMessage())));
                 }
             }
         } else {

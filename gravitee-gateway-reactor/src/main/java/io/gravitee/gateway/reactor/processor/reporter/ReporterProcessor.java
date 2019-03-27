@@ -43,9 +43,6 @@ public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
             if (context.request().metrics().getLog() != null) {
                 context.request().metrics().getLog().setApi(context.request().metrics().getApi());
                 reporterService.report(context.request().metrics().getLog());
-
-                // Dispose the log reference since it must not be used anymore
-                context.request().metrics().setLog(null);
             }
         } catch (Exception ex) {
             LOGGER.error("An error occurs while reporting metrics", ex);
