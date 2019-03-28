@@ -23,7 +23,14 @@
   <div class="gv-form">
     <h2></h2>
     <div class="gv-form-content" layout="column">
-      <gv-logs-timeframe on-timeframe-change="logsCtrl.timeframeChange(timeframe)"></gv-logs-timeframe>
+      <div layout="row">
+        <gv-logs-timeframe on-timeframe-change="logsCtrl.timeframeChange(timeframe)" flex></gv-logs-timeframe>
+        <div style="margin: auto;">
+          <md-button type="button" class="md-raised" ng-click="logsCtrl.exportAsCSV()" ng-disabled="!logsCtrl.logs.logs || logsCtrl.logs.logs.length === 0">
+            Export as CSV
+          </md-button>
+        </div>
+      </div>
 
       <gv-logs-filters context="api" on-filters-change="logsCtrl.filtersChange(filters)" metadata="logsCtrl.metadata"
         api="logsCtrl.api"></gv-logs-filters>

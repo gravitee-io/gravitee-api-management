@@ -170,9 +170,7 @@ class ApplicationService {
   /*
    * Logs
    */
-  findLogs(api: string, query: LogsQuery): any {
-    var url = this.applicationsURL + api + '/logs?';
-
+  private buildURLWithQuery(query: LogsQuery, url) {
     var keys = Object.keys(query);
     _.forEach(keys, function (key) {
       var val = query[key];
@@ -180,8 +178,15 @@ class ApplicationService {
         url += key + '=' + val + '&';
       }
     });
+    return url;
+  }
 
-    return this.$http.get(url, {timeout: 30000});
+  findLogs(application: string, query: LogsQuery): ng.IPromise<any> {
+    return this.$http.get(this.buildURLWithQuery(query, this.applicationsURL + application + '/logs?'), {timeout: 30000});
+  }
+
+  exportLogsAsCSV(application: string, query: LogsQuery): ng.IPromise<any> {
+    return this.$http.get(this.buildURLWithQuery(query, this.applicationsURL + application + '/logs/export?'), {timeout: 30000});
   }
 
   getLog(api, logId, timestamp) {

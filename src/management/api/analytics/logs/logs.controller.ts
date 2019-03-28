@@ -35,8 +35,7 @@ class ApiLogsController {
     private applications: any,
     private tenants: any,
     private $scope,
-    private $state: StateService,
-    private Constants: any
+    private $state: StateService
   ) {
   'ngInject';
     this.ApiService = ApiService;
@@ -91,6 +90,20 @@ class ApiLogsController {
     this.query.page = 1;
     this.query.query = filters;
     this.refresh();
+  }
+
+  exportAsCSV() {
+    this.ApiService.exportLogsAsCSV(this.api.id, this.query).then((response) => {
+      let hiddenElement = document.createElement('a');
+      hiddenElement.href = 'data:attachment/csv,' + response.data;
+      hiddenElement.target = '_self';
+      let fileName = 'logs-' + this.api.name + '-' + this.api.version + '-' + _.now();
+      fileName = fileName.replace(/[\s]/gi, '-');
+      fileName = fileName.replace(/[^\w]/gi, '-');
+      hiddenElement.download = fileName + '.csv';
+      hiddenElement.click();
+      document.body.removeChild(hiddenElement);
+    });
   }
 }
 

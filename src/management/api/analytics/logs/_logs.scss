@@ -5,6 +5,7 @@ tr.log-error {
 
 .gv-request-response-table {
   height: 270px;
+
   > div {
     height: 100%;
 
@@ -33,7 +34,7 @@ tr.log-error {
 
   table.md-table td.md-cell {
     border: 0;
-    font-size:12px;
+    font-size: 12px;
   }
 }
 
@@ -98,4 +99,10 @@ tr.log-error {
 
 .gv-log-response-panel-5 {
   @include logResponsePanel(#ff9e9e, #f55d5d);
+}
+
+.gv-log-filter-dates {
+  border: 1px dashed silver;
+  border-radius: 10px;
+  padding: 10px;
 }

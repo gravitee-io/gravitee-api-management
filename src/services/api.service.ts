@@ -167,9 +167,7 @@ class ApiService {
   /*
    * Logs
    */
-  findLogs(api: string, query: LogsQuery): ng.IPromise<any> {
-    var url = this.apisURL + api + '/logs?';
-
+  private buildURLWithQuery(query: LogsQuery, url) {
     var keys = Object.keys(query);
     _.forEach(keys, function (key) {
       var val = query[key];
@@ -177,8 +175,15 @@ class ApiService {
         url += key + '=' + val + '&';
       }
     });
+    return url;
+  }
 
-    return this.$http.get(url, {timeout: 30000});
+  findLogs(api: string, query: LogsQuery): ng.IPromise<any> {
+    return this.$http.get(this.buildURLWithQuery(query, this.apisURL + api + '/logs?'), {timeout: 30000});
+  }
+
+  exportLogsAsCSV(api: string, query: LogsQuery): ng.IPromise<any> {
+    return this.$http.get(this.buildURLWithQuery(query, this.apisURL + api + '/logs/export?'), {timeout: 30000});
   }
 
   getLog(api, logId, timestamp): ng.IPromise<any> {

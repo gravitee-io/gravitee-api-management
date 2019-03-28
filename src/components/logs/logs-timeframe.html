@@ -24,7 +24,7 @@
     </button>
   </div>
 
-  <div>
+  <div class="gv-log-filter-dates">
     <md-input-container style="margin-bottom: 0;">
       <label>from</label>
       <input moment-picker="$ctrl.pickerStartDateFormated"
@@ -43,6 +43,6 @@
              ng-model="$ctrl.pickerEndDate"
              ng-model-options="{ updateOn: 'blur' }">
     </md-input-container>
+    <md-button class="md-raised" ng-click="$ctrl.updateRangeDate()">Apply</md-button>
   </div>
-  <md-button class="md-raised" ng-click="$ctrl.updateRangeDate()">Apply</md-button>
 </div>

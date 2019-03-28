@@ -75,6 +75,20 @@ class ApplicationLogsController {
     this.query.query = filters;
     this.refresh();
   }
+
+  exportAsCSV() {
+    this.ApplicationService.exportLogsAsCSV(this.application.id, this.query).then((response) => {
+      let hiddenElement = document.createElement('a');
+      hiddenElement.href = 'data:attachment/csv,' + response.data;
+      hiddenElement.target = '_self';
+      let fileName = 'logs-' + this.application.name + '-' + _.now();
+      fileName = fileName.replace(/[\s]/gi, '-');
+      fileName = fileName.replace(/[^\w]/gi, '-');
+      hiddenElement.download = fileName + '.csv';
+      hiddenElement.click();
+      document.body.removeChild(hiddenElement);
+    });
+  }
 }
 
 export default ApplicationLogsController;
