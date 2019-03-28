@@ -32,6 +32,10 @@ import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+
+import static java.lang.String.format;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -84,5 +88,23 @@ public class ApplicationLogsResource extends AbstractResource {
             @PathParam("log") String logId,
             @QueryParam("timestamp") Long timestamp) {
         return logsService.findApplicationLog(logId, timestamp);
+    }
+
+    @GET
+    @Path("export")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Export application logs as CSV")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Application logs as CSV"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
+    public Response exportApplicationLogsAsCSV(
+            @PathParam("application") String application,
+            @BeanParam LogsParam param) {
+        final SearchLogResponse searchLogResponse = applicationLogs(application, param);
+        return Response
+                .ok(logsService.exportAsCsv(searchLogResponse))
+                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", application, System.currentTimeMillis()))
+                .build();
     }
 }

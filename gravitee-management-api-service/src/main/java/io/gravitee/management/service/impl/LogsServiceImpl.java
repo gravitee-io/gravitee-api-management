@@ -33,6 +33,7 @@ import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,20 +45,22 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.repository.log.model.Log.AuditEvent.LOG_READ;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.REQUEST_ID;
+import static java.lang.System.lineSeparator;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class LogsServiceImpl implements LogsService {
 
-    /**
-     * Logger.
-     */
     private final Logger logger = LoggerFactory.getLogger(LogsServiceImpl.class);
 
     private static final String APPLICATION_KEYLESS = "1";
+    private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
+    private static final char separator = ';';
 
     @Autowired
     private LogRepository logRepository;
@@ -298,6 +301,66 @@ public class LogsServiceImpl implements LogsService {
             }
         }
         return null;
+    }
+
+    @Override
+    public String exportAsCsv(final SearchLogResponse searchLogResponse) {
+        if (searchLogResponse.getLogs() == null || searchLogResponse.getLogs().isEmpty()) {
+            return "";
+        }
+        final StringBuilder sb = new StringBuilder();
+        for (final Object log : searchLogResponse.getLogs()) {
+            if (log instanceof ApiRequestItem) {
+                final ApiRequestItem apiLog = (ApiRequestItem) log;
+                sb.append(dateFormatter.format(apiLog.getTimestamp()));
+                sb.append(separator);
+                sb.append(apiLog.getId());
+                sb.append(separator);
+                sb.append(apiLog.getTransactionId());
+                sb.append(separator);
+                sb.append(apiLog.getMethod());
+                sb.append(separator);
+                sb.append(apiLog.getPath());
+                sb.append(separator);
+                sb.append(apiLog.getStatus());
+                sb.append(separator);
+                sb.append(apiLog.getResponseTime());
+                sb.append(separator);
+                final Object plan = searchLogResponse.getMetadata().get(apiLog.getPlan());
+                sb.append(getName(plan));
+                sb.append(separator);
+                final Object application = searchLogResponse.getMetadata().get(apiLog.getApplication());
+                sb.append(getName(application));
+                sb.append(lineSeparator());
+            } else if (log instanceof ApplicationRequestItem) {
+                final ApplicationRequestItem applicationLog = (ApplicationRequestItem) log;
+                sb.append(dateFormatter.format(applicationLog.getTimestamp()));
+                sb.append(separator);
+                sb.append(applicationLog.getId());
+                sb.append(separator);
+                sb.append(applicationLog.getTransactionId());
+                sb.append(separator);
+                sb.append(applicationLog.getMethod());
+                sb.append(separator);
+                sb.append(applicationLog.getPath());
+                sb.append(separator);
+                sb.append(applicationLog.getStatus());
+                sb.append(separator);
+                sb.append(applicationLog.getResponseTime());
+                sb.append(separator);
+                final Object plan = searchLogResponse.getMetadata().get(applicationLog.getPlan());
+                sb.append(getName(plan));
+                sb.append(separator);
+                final Object application = searchLogResponse.getMetadata().get(applicationLog.getApi());
+                sb.append(getName(application));
+                sb.append(lineSeparator());
+            }
+        }
+        return sb.toString();
+    }
+
+    private String getName(Object map) {
+        return map == null? "" : ((Map) map).get("name").toString();
     }
 
     private ApiRequestItem toApiRequestItem(io.gravitee.repository.log.model.Log log) {

@@ -16,11 +16,11 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.permissions.RolePermission;
-import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.analytics.query.LogQuery;
 import io.gravitee.management.model.log.ApiRequest;
 import io.gravitee.management.model.log.SearchLogResponse;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.LogsParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
@@ -32,6 +32,10 @@ import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+
+import static java.lang.String.format;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -80,5 +84,23 @@ public class ApiLogsResource extends AbstractResource {
             @PathParam("log") String logId,
             @QueryParam("timestamp") Long timestamp) {
         return logsService.findApiLog(logId, timestamp);
+    }
+
+    @GET
+    @Path("export")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Export API logs as CSV")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API logs as CSV"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
+    public Response exportAPILogsAsCSV(
+            @PathParam("api") String api,
+            @BeanParam LogsParam param) {
+        final SearchLogResponse searchLogResponse = apiLogs(api, param);
+        return Response
+                .ok(logsService.exportAsCsv(searchLogResponse))
+                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", api, System.currentTimeMillis()))
+                .build();
     }
 }
