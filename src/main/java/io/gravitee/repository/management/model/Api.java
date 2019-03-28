@@ -25,7 +25,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class Api {
-    public enum AuditEvent implements Audit.AuditEvent {
+    public enum AuditEvent implements Audit.ApiAuditEvent {
         API_CREATED, API_UPDATED, API_DELETED
     }
     /**

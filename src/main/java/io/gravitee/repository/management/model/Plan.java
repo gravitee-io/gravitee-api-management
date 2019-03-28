@@ -24,7 +24,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class Plan {
-    public enum AuditEvent implements Audit.AuditEvent {
+    public enum AuditEvent implements Audit.ApiAuditEvent {
         PLAN_CREATED, PLAN_UPDATED, PLAN_DELETED, PLAN_PUBLISHED, PLAN_CLOSED
     }
 

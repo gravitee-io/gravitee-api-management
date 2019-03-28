@@ -33,6 +33,10 @@ public class Audit {
         String name();
     }
 
+    public interface ApiAuditEvent extends AuditEvent{
+
+    }
+
     public enum AuditProperties {
         PLAN, PAGE, API_KEY, METADATA, GROUP, USER, ROLE, API, APPLICATION, TAG, TENANT, VIEW, PARAMETER, DICTIONARY, API_HEADER
     }

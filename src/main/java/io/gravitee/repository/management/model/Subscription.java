@@ -22,7 +22,7 @@ import java.util.Date;
  * @author GraviteeSource Team
  */
 public class Subscription {
-    public enum AuditEvent implements Audit.AuditEvent {
+    public enum AuditEvent implements Audit.ApiAuditEvent {
         SUBSCRIPTION_CREATED, SUBSCRIPTION_UPDATED, SUBSCRIPTION_DELETED, SUBSCRIPTION_CLOSED
     }
 

@@ -24,7 +24,7 @@ import java.util.Map;
  */
 public class Dictionary {
 
-    public enum AuditEvent implements Audit.AuditEvent {
+    public enum AuditEvent implements Audit.ApiAuditEvent {
         DICTIONARY_CREATED, DICTIONARY_UPDATED, DICTIONARY_DELETED
     }
 
