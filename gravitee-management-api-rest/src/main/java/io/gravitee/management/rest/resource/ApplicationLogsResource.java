@@ -97,7 +97,7 @@ public class ApplicationLogsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Application logs as CSV"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
+    @Permissions({@Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)})
     public Response exportApplicationLogsAsCSV(
             @PathParam("application") String application,
             @BeanParam LogsParam param) {
