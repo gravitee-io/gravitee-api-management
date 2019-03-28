@@ -16,6 +16,7 @@
 package io.gravitee.repository.analytics.query.tabular;
 
 import io.gravitee.repository.analytics.query.AbstractQuery;
+import io.gravitee.repository.analytics.query.Sort;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -24,8 +25,8 @@ import io.gravitee.repository.analytics.query.AbstractQuery;
 public class TabularQuery extends AbstractQuery<TabularResponse> {
 
     private int size = 20;
-
     private int page = 0;
+    private Sort sort;
 
     @Override
     public Class<TabularResponse> responseType() {
@@ -46,5 +47,13 @@ public class TabularQuery extends AbstractQuery<TabularResponse> {
 
     void page(int page) {
         this.page = page;
+    }
+
+    public Sort sort() {
+        return sort;
+    }
+
+    void sort(Sort sort) {
+        this.sort = sort;
     }
 }

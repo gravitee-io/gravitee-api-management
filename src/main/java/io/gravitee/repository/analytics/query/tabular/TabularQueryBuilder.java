@@ -16,6 +16,7 @@
 package io.gravitee.repository.analytics.query.tabular;
 
 import io.gravitee.repository.analytics.query.AbstractQueryBuilder;
+import io.gravitee.repository.analytics.query.Sort;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,6 +39,11 @@ public class TabularQueryBuilder extends AbstractQueryBuilder<TabularQueryBuilde
 
     public TabularQueryBuilder size(int size) {
         query.size(size);
+        return this;
+    }
+
+    public TabularQueryBuilder sort(Sort sort) {
+        query.sort(sort);
         return this;
     }
 }
