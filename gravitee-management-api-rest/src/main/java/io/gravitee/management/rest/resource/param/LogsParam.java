@@ -43,6 +43,12 @@ public class LogsParam {
     @DefaultValue("1")
     private int page;
 
+    @QueryParam("field")
+    private String field;
+
+    @QueryParam("order")
+    private boolean order;
+
     public long getFrom() {
         return from;
     }
@@ -81,6 +87,22 @@ public class LogsParam {
 
     public void setPage(int page) {
         this.page = page;
+    }
+
+    public String getField() {
+        return field;
+    }
+
+    public void setField(String field) {
+        this.field = field;
+    }
+
+    public boolean isOrder() {
+        return order;
+    }
+
+    public void setOrder(boolean order) {
+        this.order = order;
     }
 
     public void validate() throws WebApplicationException {

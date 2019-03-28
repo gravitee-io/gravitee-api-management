@@ -22,8 +22,9 @@ package io.gravitee.management.model.analytics.query;
 public class LogQuery extends AbstractQuery {
 
     private int size = 20;
-
     private int page = 1;
+    private String field;
+    private boolean order;
 
     public int getSize() {
         return size;
@@ -39,5 +40,21 @@ public class LogQuery extends AbstractQuery {
 
     public void setPage(int page) {
         this.page = page;
+    }
+
+    public String getField() {
+        return field;
+    }
+
+    public void setField(String field) {
+        this.field = field;
+    }
+
+    public boolean isOrder() {
+        return order;
+    }
+
+    public void setOrder(boolean order) {
+        this.order = order;
     }
 }

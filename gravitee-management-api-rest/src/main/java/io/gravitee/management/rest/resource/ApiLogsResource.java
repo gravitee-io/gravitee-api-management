@@ -67,6 +67,8 @@ public class ApiLogsResource extends AbstractResource {
         logQuery.setSize(param.getSize());
         logQuery.setFrom(param.getFrom());
         logQuery.setTo(param.getTo());
+        logQuery.setField(param.getField());
+        logQuery.setOrder(param.isOrder());
 
         return logsService.findByApi(api, logQuery);
     }

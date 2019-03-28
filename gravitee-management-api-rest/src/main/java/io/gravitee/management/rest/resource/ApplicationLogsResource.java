@@ -16,11 +16,11 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.permissions.RolePermission;
-import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.analytics.query.LogQuery;
 import io.gravitee.management.model.log.ApplicationRequest;
 import io.gravitee.management.model.log.SearchLogResponse;
+import io.gravitee.management.model.permissions.RolePermission;
+import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.LogsParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
@@ -69,6 +69,8 @@ public class ApplicationLogsResource extends AbstractResource {
         logQuery.setSize(param.getSize());
         logQuery.setFrom(param.getFrom());
         logQuery.setTo(param.getTo());
+        logQuery.setField(param.getField());
+        logQuery.setOrder(param.isOrder());
 
         return logsService.findByApplication(application, logQuery);
     }

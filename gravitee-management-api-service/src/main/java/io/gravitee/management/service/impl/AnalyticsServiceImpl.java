@@ -135,7 +135,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
 
             if (query.getOrder() != null) {
-                GroupByQuery.Order order = query.getOrder();
+                final GroupByQuery.Order order = query.getOrder();
                 queryBuilder.sort(SortBuilder.on(
                         order.getField(),
                         order.isOrder() ? Order.ASC : Order.DESC,

@@ -167,7 +167,7 @@ public class PlatformAnalyticsResource extends AbstractResource  {
         query.setField(analyticsParam.getField());
 
         if (analyticsParam.getOrder() != null) {
-            GroupByQuery.Order order = new GroupByQuery.Order();
+            final GroupByQuery.Order order = new GroupByQuery.Order();
             order.setField(analyticsParam.getOrder().getField());
             order.setType(analyticsParam.getOrder().getType());
             order.setOrder(analyticsParam.getOrder().isOrder());

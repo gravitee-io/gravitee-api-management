@@ -25,9 +25,7 @@ import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.query.DateRangeBuilder;
-import io.gravitee.repository.analytics.query.IntervalBuilder;
-import io.gravitee.repository.analytics.query.QueryBuilders;
+import io.gravitee.repository.analytics.query.*;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
@@ -84,17 +82,18 @@ public class LogsServiceImpl implements LogsService {
     @Override
     public SearchLogResponse findByApi(String api, LogQuery query) {
         try {
-            TabularResponse response = logRepository.query(
-                    QueryBuilders.tabular()
-                            .page(query.getPage())
-                            .size(query.getSize())
-                            .query(query.getQuery())
-                            .timeRange(
-                                    DateRangeBuilder.between(query.getFrom(), query.getTo()),
-                                    IntervalBuilder.interval(query.getInterval())
-                            )
-                            .root("api", api)
-                            .build());
+            final String field = query.getField() == null ? "@timestamp" : query.getField();
+            TabularResponse response = logRepository.query(QueryBuilders.tabular()
+                    .page(query.getPage())
+                    .size(query.getSize())
+                    .query(query.getQuery())
+                    .sort(SortBuilder.on(field, query.isOrder() ? Order.ASC : Order.DESC, null))
+                    .timeRange(
+                            DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                            IntervalBuilder.interval(query.getInterval())
+                    )
+                    .root("api", api)
+                    .build());
 
             SearchLogResponse<ApiRequestItem> logResponse = new SearchLogResponse<>(response.getSize());
 
@@ -151,11 +150,13 @@ public class LogsServiceImpl implements LogsService {
     @Override
     public SearchLogResponse findByApplication(String application, LogQuery query) {
         try {
+            final String field = query.getField() == null ? "@timestamp" : query.getField();
             TabularResponse response = logRepository.query(
                     QueryBuilders.tabular()
                             .page(query.getPage())
                             .size(query.getSize())
                             .query(query.getQuery())
+                            .sort(SortBuilder.on(field, query.isOrder() ? Order.ASC : Order.DESC, null))
                             .timeRange(
                                     DateRangeBuilder.between(query.getFrom(), query.getTo()),
                                     IntervalBuilder.interval(query.getInterval())
@@ -291,7 +292,7 @@ public class LogsServiceImpl implements LogsService {
             } catch (ApiKeyNotFoundException e) {
                 // wrong apikey
             }
-        } else if (log.getPlan() != null && log.getApplication() != null){
+        } else if (log.getPlan() != null && log.getApplication() != null) {
             PlanEntity plan = planService.findById(log.getPlan());
             if (!PlanSecurityType.API_KEY.equals(plan.getSecurity()) && !PlanSecurityType.KEY_LESS.equals(plan.getSecurity())) {
                 Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(log.getApplication(), log.getPlan());
@@ -360,7 +361,7 @@ public class LogsServiceImpl implements LogsService {
     }
 
     private String getName(Object map) {
-        return map == null? "" : ((Map) map).get("name").toString();
+        return map == null ? "" : ((Map) map).get("name").toString();
     }
 
     private ApiRequestItem toApiRequestItem(io.gravitee.repository.log.model.Log log) {
