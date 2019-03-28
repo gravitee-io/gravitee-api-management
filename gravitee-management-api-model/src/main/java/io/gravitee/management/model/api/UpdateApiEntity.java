@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.management.model.Visibility;
@@ -69,6 +70,9 @@ public class UpdateApiEntity {
 
     @JsonProperty(value = "path_mappings")
     private Set<String> pathMappings;
+
+    @JsonProperty(value = "response_templates")
+    private Map<String, ResponseTemplates> responseTemplates;
 
     public Visibility getVisibility() {
         return visibility;
@@ -188,5 +192,13 @@ public class UpdateApiEntity {
 
     public void setPathMappings(Set<String> pathMappings) {
         this.pathMappings = pathMappings;
+    }
+
+    public Map<String, ResponseTemplates> getResponseTemplates() {
+        return responseTemplates;
+    }
+
+    public void setResponseTemplates(Map<String, ResponseTemplates> responseTemplates) {
+        this.responseTemplates = responseTemplates;
     }
 }

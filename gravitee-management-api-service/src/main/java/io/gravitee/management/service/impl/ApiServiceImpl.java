@@ -1442,6 +1442,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 if (apiDefinition.getPathMappings() != null) {
                     apiEntity.setPathMappings(new HashSet<>(apiDefinition.getPathMappings().keySet()));
                 }
+                apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while generating API definition", ioe);
             }
@@ -1503,6 +1504,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 apiDefinition.setPathMappings(updateApiEntity.getPathMappings().stream()
                         .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(""))));
             }
+            apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
 
             String definition = objectMapper.writeValueAsString(apiDefinition);
             api.setDefinition(definition);

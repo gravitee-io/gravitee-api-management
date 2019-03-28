@@ -22,6 +22,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.management.model.DeploymentRequired;
@@ -111,6 +112,10 @@ public class ApiEntity implements Indexable {
 
     @JsonIgnore
     private Map<String, Object> metadata = new HashMap<>();
+
+    @DeploymentRequired
+    @JsonProperty(value = "response_templates")
+    private Map<String, ResponseTemplates> responseTemplates;
 
     public String getId() {
         return id;
@@ -302,6 +307,14 @@ public class ApiEntity implements Indexable {
 
     public void setMetadata(Map<String, Object> metadata) {
         this.metadata = metadata;
+    }
+
+    public Map<String, ResponseTemplates> getResponseTemplates() {
+        return responseTemplates;
+    }
+
+    public void setResponseTemplates(Map<String, ResponseTemplates> responseTemplates) {
+        this.responseTemplates = responseTemplates;
     }
 
     @Override
