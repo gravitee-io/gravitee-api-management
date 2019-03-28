@@ -81,6 +81,7 @@
 
 <md-table-pagination
   md-limit="$ctrl.query.size"
+  md-limit-options="[5, 10, 15, 20, 30, 50, 100]"
   md-page="$ctrl.query.page"
   md-total="{{$ctrl.logs.total}}"
   md-on-paginate="$ctrl.onPaginate">
