@@ -22,6 +22,7 @@ export class LogsQuery {
   query?: string;
   page: number;
   size: number;
+  field: string;
 }
 
 interface IMembership {
@@ -178,12 +179,23 @@ class ApiService {
     return url;
   }
 
+  private cloneQuery(query: LogsQuery) {
+    let clonedQuery = _.clone(query);
+    if (_.startsWith(clonedQuery.field, '-')) {
+      clonedQuery.order = false;
+      clonedQuery.field = clonedQuery.field.substring(1);
+    } else {
+      clonedQuery.order = true;
+    }
+    return clonedQuery;
+  }
+
   findLogs(api: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(query, this.apisURL + api + '/logs?'), {timeout: 30000});
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs?'), {timeout: 30000});
   }
 
   exportLogsAsCSV(api: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(query, this.apisURL + api + '/logs/export?'), {timeout: 30000});
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs/export?'), {timeout: 30000});
   }
 
   getLog(api, logId, timestamp): ng.IPromise<any> {

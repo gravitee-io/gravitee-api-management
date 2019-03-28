@@ -35,15 +35,15 @@
 
 <md-table-container layout-padding>
   <table md-table class="gravitee-analytics-top-hits-table gv-table-dense">
-    <thead md-head>
+    <thead md-head md-order="$ctrl.query.field">
     <tr md-row>
-      <th md-column width="1%" nowrap>Date</th>
-      <th md-column width="1%" nowrap>Status</th>
+      <th md-column width="1%" md-order-by="@timestamp" nowrap>Date</th>
+      <th md-column width="1%" md-order-by="status" nowrap>Status</th>
       <th md-column width="1%" nowrap>API</th>
-      <th ng-if="$ctrl.Constants.logging.user.displayed" md-column width="1%" nowrap>User</th>
+      <th ng-if="$ctrl.Constants.logging.user.displayed" md-column width="1%" md-order-by="user" nowrap>User</th>
       <th md-column width="1%" nowrap>Plan</th>
-      <th md-column width="1%" nowrap>Method</th>
-      <th md-column>Path</th>
+      <th md-column width="1%" md-order-by="method" nowrap>Method</th>
+      <th md-column md-order-by="path">Path</th>
       <th md-column width="1%" md-numeric nowrap>Response time</th>
     </tr>
     </thead>

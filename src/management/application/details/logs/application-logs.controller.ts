@@ -26,11 +26,12 @@ class ApplicationLogsController {
   };
   private apis;
   private application: any;
+  private init: boolean;
 
   constructor(
     private ApplicationService: ApplicationService,
     private $state: StateService,
-    private Constants: any
+    private $scope
   ) {
   'ngInject';
     this.ApplicationService = ApplicationService;
@@ -43,9 +44,16 @@ class ApplicationLogsController {
   }
 
   $onInit() {
-      this.query.from = this.$state.params['from'];
-      this.query.to = this.$state.params['to'];
-      this.query.query = this.$state.params['q'];
+    this.query.from = this.$state.params['from'];
+    this.query.to = this.$state.params['to'];
+    this.query.query = this.$state.params['q'];
+    this.query.field = '-@timestamp';
+
+    this.$scope.$watch('$ctrl.query.field', (field) => {
+      if (field && this.init) {
+        this.refresh();
+      }
+    });
 
     this.metadata = {
       apis: this.apis.data
@@ -53,6 +61,7 @@ class ApplicationLogsController {
   };
 
   timeframeChange(timeframe) {
+    this.init = true;
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
     this.query.page = 1;

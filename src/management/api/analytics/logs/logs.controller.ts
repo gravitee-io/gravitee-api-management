@@ -27,6 +27,7 @@ class ApiLogsController {
     plans: any[];
     tenants?: any[];
   };
+  private init: boolean;
 
   constructor(
     private ApiService: ApiService,
@@ -62,9 +63,17 @@ class ApiLogsController {
     this.query.from = this.$state.params['from'];
     this.query.to = this.$state.params['to'];
     this.query.query = this.$state.params['q'];
+    this.query.field = '-@timestamp';
+
+    this.$scope.$watch('logsCtrl.query.field', (field) => {
+      if (field && this.init) {
+        this.refresh();
+      }
+    });
   }
 
   timeframeChange(timeframe) {
+    this.init = true;
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
     this.query.page = 1;
