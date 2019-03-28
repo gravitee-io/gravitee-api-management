@@ -1,0 +1,79 @@
+{
+  "id": "my-api",
+  "name": "my-team-api",
+
+  "proxy": {
+    "context_path": "/team",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://host1:8083/myapi",
+        "hostHeader": "host"
+      }
+    ],
+    "strip_context_path": false,
+    "cors": {
+      "enabled": true
+    }
+  },
+
+  "paths": {
+    "/*": [
+    ]
+  },
+
+  "response_templates": {
+    "API_KEY_INVALID": {
+      "application/json": {
+        "body": "{}",
+        "headers": {
+          "x-header1": "header1",
+          "x-header2": "header2"
+        },
+        "status": 403
+      },
+      "text/xml": {
+        "body": "<error></error>",
+        "headers": {
+          "x-header1": "header1",
+          "x-header2": "header2"
+        },
+        "status": 403
+      },
+      "*": {
+        "body": "{}",
+        "headers": {
+          "x-header1": "header1",
+          "x-header2": "header2"
+        },
+        "status": 403
+      }
+    },
+    "API_KEY_MISSING": {
+      "application/json": {
+        "body": "{}",
+        "headers": {
+          "x-header1": "header1",
+          "x-header2": "header2"
+        },
+        "status": 401
+      },
+      "text/xml": {
+        "body": "<error></error>",
+        "headers": {
+          "x-header1": "header1",
+          "x-header2": "header2"
+        },
+        "status": 401
+      },
+      "*": {
+        "body": "{}",
+        "headers": {
+          "x-header1": "header1",
+          "x-header2": "header2"
+        },
+        "status": 401
+      }
+    }
+  }
+}

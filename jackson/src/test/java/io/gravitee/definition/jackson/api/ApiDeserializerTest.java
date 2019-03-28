@@ -593,4 +593,28 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertNotNull(secondEndpoint.getHttpClientOptions());
         Assert.assertFalse(secondEndpoint.getHttpClientOptions().isFollowRedirects());
     }
+
+    @Test
+    public void definition_withResponseTemplates() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-response-templates.json", Api.class);
+
+        Map<String, ResponseTemplates> responseTemplates = api.getResponseTemplates();
+        Assert.assertNotNull(responseTemplates);
+
+        ResponseTemplates apiKeyResponseTemplates = responseTemplates.get("API_KEY_INVALID");
+        Assert.assertNotNull(apiKeyResponseTemplates);
+
+        Assert.assertEquals(3, apiKeyResponseTemplates.getTemplates().size());
+        Iterator<String> responseTemplateIterator = apiKeyResponseTemplates.getTemplates().keySet().iterator();
+
+        Assert.assertEquals("application/json", responseTemplateIterator.next());
+        Assert.assertEquals("text/xml", responseTemplateIterator.next());
+        Assert.assertEquals("*", responseTemplateIterator.next());
+
+        ResponseTemplate responseTemplate = apiKeyResponseTemplates.getTemplates().get("application/json");
+        Assert.assertEquals(403, responseTemplate.getStatusCode());
+        Assert.assertEquals("{}", responseTemplate.getBody());
+        Assert.assertEquals("header1", responseTemplate.getHeaders().get("x-header1"));
+        Assert.assertEquals("header2", responseTemplate.getHeaders().get("x-header2"));
+    }
 }

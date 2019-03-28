@@ -97,6 +97,10 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
             jgen.writeEndArray();
         }
 
+        if (api.getResponseTemplates() != null && !api.getResponseTemplates().isEmpty()) {
+            jgen.writeObjectField("response_templates", api.getResponseTemplates());
+        }
+
         jgen.writeEndObject();
     }
 }

@@ -38,6 +38,7 @@ public class Api {
     private Properties properties;
     private Set<String> tags = new HashSet<>();
     private Map<String, Pattern> pathMappings = new HashMap<>();
+    private Map<String, ResponseTemplates> responseTemplates = new HashMap<>();
 
     public String getId() {
         return id;
@@ -121,6 +122,14 @@ public class Api {
 
     public void setPathMappings(Map<String, Pattern> pathMappings) {
         this.pathMappings = pathMappings;
+    }
+
+    public Map<String, ResponseTemplates> getResponseTemplates() {
+        return responseTemplates;
+    }
+
+    public void setResponseTemplates(Map<String, ResponseTemplates> responseTemplates) {
+        this.responseTemplates = responseTemplates;
     }
 
     @Override

@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -154,6 +155,21 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
                 api.getPathMappings().put(pathMapping,
                         Pattern.compile(pathMapping.replaceAll(":\\w*", "[^\\/]*") + "/*"));
             });
+        }
+
+        JsonNode responseTemplatesNode = node.get("response_templates");
+        if (responseTemplatesNode != null) {
+            final Map<String, ResponseTemplates> responseTemplates = new HashMap<>();
+            responseTemplatesNode.fields().forEachRemaining(jsonNode -> {
+                try {
+                    ResponseTemplates templates = jsonNode.getValue().traverse(jp.getCodec()).readValueAs(ResponseTemplates.class);
+                    responseTemplates.put(jsonNode.getKey(), templates);
+                } catch (IOException e) {
+                    logger.error("Response templates {} can not be de-serialized", jsonNode.getKey());
+                }
+            });
+
+            api.setResponseTemplates(responseTemplates);
         }
 
         return api;
