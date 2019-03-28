@@ -17,26 +17,17 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.analytics.query.LogQuery;
 import io.gravitee.management.model.audit.AuditEntity;
 import io.gravitee.management.model.audit.AuditQuery;
-import io.gravitee.management.model.healthcheck.Log;
-import io.gravitee.management.model.healthcheck.SearchLogResponse;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.AuditParam;
-import io.gravitee.management.rest.resource.param.healthcheck.HealthcheckFieldParam;
-import io.gravitee.management.rest.resource.param.healthcheck.HealthcheckTypeParam;
-import io.gravitee.management.rest.resource.param.healthcheck.LogsParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.AuditService;
-import io.gravitee.management.service.HealthCheckService;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Audit;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import org.reflections.Reflections;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -49,6 +40,8 @@ import java.util.*;
  */
 @Api(tags = {"API"})
 public class ApiAuditResource extends AbstractResource {
+
+    private static final List<Audit.AuditEvent> events = new ArrayList<>();
 
     @Inject
     private AuditService auditService;
@@ -85,16 +78,18 @@ public class ApiAuditResource extends AbstractResource {
             @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ)
     })
     public Response getEvents() {
-        List<Audit.AuditEvent> events = new ArrayList<>();
-        events.addAll(Arrays.asList(io.gravitee.repository.management.model.Api.AuditEvent.values()));
-        events.addAll(Arrays.asList(ApiKey.AuditEvent.values()));
-        events.addAll(Arrays.asList(Membership.AuditEvent.values()));
-        events.addAll(Arrays.asList(Metadata.AuditEvent.values()));
-        events.addAll(Arrays.asList(io.gravitee.repository.management.model.Page.AuditEvent.values()));
-        events.addAll(Arrays.asList(Plan.AuditEvent.values()));
-        events.addAll(Arrays.asList(Subscription.AuditEvent.values()));
+        if (events.isEmpty()) {
+            Set<Class<? extends Audit.ApiAuditEvent>> subTypesOf =
+                    new Reflections("io.gravitee.repository.management.model")
+                            .getSubTypesOf(Audit.ApiAuditEvent.class);
+            for (Class<? extends Audit.ApiAuditEvent> clazz : subTypesOf) {
+                if (clazz.isEnum()) {
+                    events.addAll(Arrays.asList(clazz.getEnumConstants()));
+                }
+            }
 
-        events.sort(Comparator.comparing(Audit.AuditEvent::name));
+            events.sort(Comparator.comparing(Audit.AuditEvent::name));
+        }
         return Response.ok(events).build();
     }
 }
