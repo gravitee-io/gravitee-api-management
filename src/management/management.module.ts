@@ -257,7 +257,6 @@ import PageSidenavDirective from '../components/documentation/page/page-sidenav.
 import NewPageComponent from "./components/documentation/new-page.component";
 import EditPageComponent from "./components/documentation/edit-page.component";
 import ImportPagesComponent from "./components/documentation/import-pages.component";
-
 // Healthcheck
 import ApiHealthCheckConfigureController
   from '../management/api/proxy/backend/healthcheck/healthcheck-configure.controller';
@@ -279,7 +278,6 @@ import SettingsComponent from '../management/configuration/settings.component';
 import PortalConfigService from '../services/portalConfig.service';
 import ApiLoggingComponent from '../management/configuration/api_logging/api_logging.component';
 import ApiLoggingController from '../management/configuration/api_logging/api_logging.controller';
-
 // Users
 import UsersComponent from '../management/configuration/users/users.component';
 import UserDetailComponent from '../management/configuration/user/userdetail.component';
@@ -363,6 +361,16 @@ import EntrypointController from "./configuration/entrypoint/entrypoint.controll
 import DeleteEntrypointDialogController from './configuration/entrypoint/delete.entrypoint.dialog.controller';
 
 import MoveToFolderDialogController from "./components/documentation/movetofolder.controller";
+// API Response Templates
+import ApiResponseTemplatesController
+  from '../management/api/proxy/general/response-templates/response-templates.controller';
+import ApiResponseTemplateController
+  from '../management/api/proxy/general/response-templates/response-template.controller';
+import ApiResponseTemplateTypeComponent
+  from '../management/api/proxy/general/response-templates/response-template-type.component';
+import ApiResponseTemplateComponent
+  from '../management/api/proxy/general/response-templates/response-template.component';
+import AnalyticsSettingsComponent from "./configuration/analytics/analytics.component";
 
 // Settings - Client Registration
 import ClientRegistrationProviderService from '../services/clientRegistrationProvider.service';
@@ -375,7 +383,6 @@ import ClientRegistrationProviderController from '../management/configuration/ap
 import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
-import AnalyticsSettingsComponent from "./configuration/analytics/analytics.component";
 
 (<any>window).traverse = traverse;
 
@@ -742,6 +749,12 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('ApiHealthCheckConfigureController', ApiHealthCheckConfigureController)
   .controller('ApiHealthCheckLogController', ApiHealthCheckLogController)
   .component('progressBar', ProgressBarComponent)
+
+  // Response Templates
+  .controller('ApiResponseTemplatesController', ApiResponseTemplatesController)
+  .controller('ApiResponseTemplateController', ApiResponseTemplateController)
+  .component('gvResponseTemplateType', ApiResponseTemplateTypeComponent)
+  .component('gvResponseTemplate', ApiResponseTemplateComponent)
 
   // Configuration
   .component('settings', SettingsComponent)

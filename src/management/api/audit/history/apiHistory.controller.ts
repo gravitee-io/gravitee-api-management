@@ -264,7 +264,9 @@ class ApiHistoryController {
       "paths": eventPayloadDefinition.paths,
       "properties": eventPayloadDefinition.properties,
       "services": eventPayloadDefinition.services,
-      "resources": eventPayloadDefinition.resources
+      "resources": eventPayloadDefinition.resources,
+      "path_mappings": eventPayloadDefinition.path_mappings,
+      "response_templates": eventPayloadDefinition.response_templates
     };
     return reorganizedEvent;
   }

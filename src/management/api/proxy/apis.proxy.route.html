@@ -31,6 +31,10 @@
                 <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.proxy.general'><a class="execute">Details</a></li>
                 <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.proxy.cors'><a class="execute">CORS</a></li>
                 <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.proxy.deployments'><a class="execute">Deployments</a></li>
+              <li class="iterable-item"
+                  permission permission-only="['api-response_templates-c']"
+                  ng-class='{"aui-nav-selected": apiCtrl.$state.includes("management.apis.detail.proxy.responsetemplates.list") || apiCtrl.$state.includes("management.apis.detail.proxy.responsetemplates.new") || apiCtrl.$state.includes("management.apis.detail.proxy.responsetemplates.edit") || apiCtrl.$state.includes("management.apis.detail.proxy.healthcheck.log") }'
+                  ui-sref='management.apis.detail.proxy.responsetemplates.list'><a class="execute">Response Templates</a></li>
             </ul>
             <div class="aui-nav-heading">
                 <strong>Backend services</strong>

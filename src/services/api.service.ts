@@ -103,7 +103,7 @@ class ApiService {
       {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private,
         'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
         'picture': api.picture, 'resources': api.resources, 'views': api.views, 'groups': api.groups,
-        'labels': api.labels, 'path_mappings': api.path_mappings
+        'labels': api.labels, 'path_mappings': api.path_mappings, 'response_templates': api.response_templates
       }, {headers: {'If-Match': api.etag}}
     );
   }

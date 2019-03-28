@@ -218,4 +218,46 @@ function apisProxyRouterConfig($stateProvider) {
         }
       }
     })
+    .state('management.apis.detail.proxy.responsetemplates', {
+      url: '/responsetemplates',
+      abstract: true,
+    })
+    .state('management.apis.detail.proxy.responsetemplates.list', {
+      url: '/',
+      template: require('./general/response-templates/response-templates.html'),
+      controller: 'ApiResponseTemplatesController',
+      controllerAs: 'ctrl',
+      data: {
+        perms: {
+          only: ['api-response_templates-r']
+        },
+        docs: {
+          page: 'management-api-proxy-response-templates'
+        }
+      }
+    })
+    .state('management.apis.detail.proxy.responsetemplates.new', {
+      url: '/new',
+      component: 'gvResponseTemplate',
+      data: {
+        perms: {
+          only: ['api-response_templates-c']
+        },
+        docs: {
+          page: 'management-api-proxy-response-template'
+        }
+      }
+    })
+    .state('management.apis.detail.proxy.responsetemplates.edit', {
+      url: '/:key',
+      component: 'gvResponseTemplate',
+      data: {
+        perms: {
+          only: ['api-response_templates-u']
+        },
+        docs: {
+          page: 'management-api-proxy-response-template'
+        }
+      }
+    })
 }
