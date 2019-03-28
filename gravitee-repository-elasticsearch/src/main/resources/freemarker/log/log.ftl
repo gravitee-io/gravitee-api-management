@@ -31,12 +31,14 @@
         }
       ]
     }
-  },
-  "sort": [
+  }
+  <#if query.sort()?has_content>
+  ,"sort": [
     {
-      "@timestamp": {
-        "order": "desc"
+      "${query.sort().getField()}": {
+        "order": "${query.sort().getOrder()?lower_case}"
       }
     }
   ]
+  </#if>
 }
