@@ -17,15 +17,19 @@ package io.gravitee.repository.mongodb.management.internal.user;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+
+import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,11 +43,20 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
     private MongoTemplate mongoTemplate;
 
     @Override
-    public Page<UserMongo> search(Pageable pageable) {
+    public Page<UserMongo> search(UserCriteria criteria, Pageable pageable) {
         Query query = new Query();
+        if (criteria != null) {
+            if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
+                query.addCriteria(where("status").in(criteria.getStatuses()));
+            }
+
+            if (criteria.hasNoStatus()) {
+                query.addCriteria(where("status").exists(false));
+            }
+        }
         query.with(new Sort(Sort.Direction.ASC, "lastname", "username"));
         if (pageable != null) {
-            query.with(new PageRequest(pageable.pageNumber(), pageable.pageSize()));
+            query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
         }
 
         List<UserMongo> users = mongoTemplate.find(query, UserMongo.class);
