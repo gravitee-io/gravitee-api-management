@@ -23,7 +23,7 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class ApiKey {
-	public enum AuditEvent implements Audit.AuditEvent {
+	public enum AuditEvent implements Audit.ApiAuditEvent {
 		APIKEY_CREATED, APIKEY_RENEWED, APIKEY_REVOKED, APIKEY_EXPIRED
 	}
 

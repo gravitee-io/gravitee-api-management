@@ -23,7 +23,7 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 public class Membership {
-    public enum AuditEvent implements Audit.AuditEvent {
+    public enum AuditEvent implements Audit.ApiAuditEvent {
         MEMBERSHIP_CREATED, MEMBERSHIP_UPDATED, MEMBERSHIP_DELETED
     }
     /**
