@@ -16,8 +16,10 @@
 package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.UserStatus;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -46,6 +48,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         user.setCreatedAt(new Date());
         user.setUpdatedAt(user.getCreatedAt());
         user.setEmail(String.format("%s@gravitee.io", username));
+        user.setStatus(UserStatus.ACTIVE);
         user.setSource("gravitee");
         user.setSourceId("createuser1");
         User userCreated = userRepository.create(user);
@@ -59,6 +62,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals("Invalid saved user name.", user.getId(), userFound.getId());
         assertEquals("Invalid saved user mail.", user.getEmail(), userFound.getEmail());
+        assertEquals("Invalid saved user status.", user.getStatus(), userFound.getStatus());
     }
 
     @Test
@@ -74,15 +78,16 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         user.setFirstname("firstnameUpdated");
         user.setLastname("lastnameUpdated");
         user.setPicture("pictureUpdated");
+        user.setStatus(UserStatus.ARCHIVED);
         user.setCreatedAt(new Date(1439032010883L));
         user.setUpdatedAt(new Date(1439042010883L));
         user.setLastConnectionAt(new Date(1439052010883L));
 
-        long nbUsersBeforeUpdate = userRepository.search(
+        long nbUsersBeforeUpdate = userRepository.search(null,
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
         ).getTotalElements();
         userRepository.update(user);
-        long nbUsersAfterUpdate = userRepository.search(
+        long nbUsersAfterUpdate = userRepository.search(null,
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
         ).getTotalElements();
 
@@ -102,16 +107,57 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid saved createDate", new Date(1439032010883L), userUpdated.getCreatedAt());
         assertEquals("Invalid saved updateDate", new Date(1439042010883L), userUpdated.getUpdatedAt());
         assertEquals("Invalid saved lastConnection", new Date(1439052010883L), userUpdated.getLastConnectionAt());
+        assertEquals("Invalid status", UserStatus.ARCHIVED, userUpdated.getStatus());
     }
 
     @Test
-    public void shouldSearchAll() throws Exception {
-        List<User> users = userRepository.search(
+    public void shouldSearchAllWithNullCriteria() throws Exception {
+        List<User> users = userRepository.search(null,
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
         ).getContent();
 
         Assert.assertNotNull(users);
         assertEquals("Invalid user numbers in find all", 8, users.size());
+    }
+
+    @Test
+    public void shouldSearchAllWithEmptyCriteria() throws Exception {
+        List<User> users = userRepository.search(new UserCriteria.Builder().build(),
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
+        ).getContent();
+
+        Assert.assertNotNull(users);
+        assertEquals("Invalid user numbers in find all", 8, users.size());
+    }
+
+    @Test
+    public void shouldSearchArchivedUsers() throws Exception {
+        List<User> users = userRepository.search(new UserCriteria.Builder().statuses(UserStatus.ARCHIVED).build(),
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
+        ).getContent();
+
+        Assert.assertNotNull(users);
+        assertEquals("Invalid user numbers in find archived", 1, users.size());
+    }
+
+    @Test
+    public void shouldSearchUsersWithNoStatus() throws Exception {
+        List<User> users = userRepository.search(new UserCriteria.Builder().noStatus().build(),
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
+        ).getContent();
+
+        Assert.assertNotNull(users);
+        assertEquals("Invalid user numbers in find no status", 1, users.size());
+    }
+
+    @Test
+    public void shouldSearchActiveUsers() throws Exception {
+        List<User> users = userRepository.search(new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
+        ).getContent();
+
+        Assert.assertNotNull(users);
+        assertEquals("Invalid user numbers in find active", 6, users.size());
     }
 
     @Test
