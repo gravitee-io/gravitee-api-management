@@ -21,6 +21,7 @@ import _ = require('lodash');
 import StringService from './string.service';
 import {UrlService} from "@uirouter/angularjs";
 import {PagedResult} from "../entities/pagedResult";
+import Base64Service from "./base64.service";
 
 class UserService {
   private baseURL: string;
@@ -46,7 +47,8 @@ class UserService {
               private $location,
               private $cookies,
               private $window,
-              private StringService: StringService) {
+              private StringService: StringService,
+              private Base64Service: Base64Service) {
     'ngInject';
     this.baseURL = Constants.baseURL;
     this.searchUsersURL = `${Constants.baseURL}search/users/`;
@@ -189,7 +191,7 @@ class UserService {
   login(user): ng.IPromise<any> {
     return this.$http.post(`${this.userURL}login`, {}, {
       headers: {
-        Authorization: `Basic ${btoa(`${user.username}:${user.password}`)}`
+        Authorization: `Basic ${this.Base64Service.encode(`${user.username}:${user.password}`)}`
       }
     });
   }
