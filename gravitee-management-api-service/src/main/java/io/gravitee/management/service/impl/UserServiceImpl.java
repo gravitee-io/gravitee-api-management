@@ -35,11 +35,9 @@ import io.gravitee.management.service.search.query.Query;
 import io.gravitee.management.service.search.query.QueryBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -109,6 +107,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
     private String defaultAvatar;
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
+
+    @Value("${user.anonymize-on-delete.enabled:false}")
+    private boolean anonymizeOnDelete;
 
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -381,6 +382,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             User user = convert(newExternalUserEntity);
             user.setId(UUID.toString(UUID.random()));
+            user.setStatus(UserStatus.ACTIVE);
 
             // Set date fields
             user.setCreatedAt(new Date());
@@ -546,6 +548,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
             if (updateUserEntity.getEmail() != null) {
                 user.setEmail(updateUserEntity.getEmail());
             }
+            if (updateUserEntity.getStatus() != null) {
+                user.setStatus(UserStatus.valueOf(updateUserEntity.getStatus()));
+            }
 
             User updatedUser = userRepository.update(user);
             auditService.createPortalAuditLog(
@@ -563,43 +568,49 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public Page<UserEntity> search(String query, Pageable pageable) {
+        LOGGER.debug("search users");
+
+        if (query == null || query.isEmpty()) {
+            return search(new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(), pageable);
+        }
+
+        Query<UserEntity> userQuery = QueryBuilder.create(UserEntity.class)
+                .setQuery(query)
+                .setPage(pageable)
+                .build();
+
+        SearchResult results = searchEngineService.search(userQuery);
+
+        if (results.hasResults()) {
+            List<UserEntity> users = new ArrayList<>((findByIds(results.getDocuments())));
+            return new Page<>(users,
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    results.getHits());
+        }
+        return new Page<>(Collections.emptyList(), 1, 0, 0);
+    }
+
+
+    @Override
+    public Page<UserEntity> search(UserCriteria criteria, Pageable pageable) {
         try {
             LOGGER.debug("search users");
 
-            if (query != null && !query.isEmpty()) {
-                Query<UserEntity> userQuery = QueryBuilder.create(UserEntity.class)
-                        .setQuery(query)
-                        .setPage(pageable)
-                        .build();
+            Page<User> users = userRepository.search(criteria, new PageableBuilder()
+                    .pageNumber(pageable.getPageNumber() - 1)
+                    .pageSize(pageable.getPageSize())
+                    .build());
 
-                SearchResult results = searchEngineService.search(userQuery);
+            List<UserEntity> entities = users.getContent()
+                    .stream()
+                    .map(u -> convert(u, false))
+                    .collect(toList());
 
-                if (results.hasResults()) {
-                    List<UserEntity> users = new ArrayList<>((findByIds(results.getDocuments())));
-                    return new Page<>(users,
-                            pageable.getPageNumber(),
-                            pageable.getPageSize(),
-                            results.getHits());
-                } else {
-                    return new Page<>(Collections.<UserEntity>emptyList(),
-                            1, 0, 0);
-                }
-            } else {
-                Page<User> users = userRepository.search(new PageableBuilder()
-                        .pageNumber(pageable.getPageNumber() - 1)
-                        .pageSize(pageable.getPageSize())
-                        .build());
-
-                List<UserEntity> entities = users.getContent()
-                        .stream()
-                        .map(u -> convert(u, false))
-                        .collect(toList());
-
-                return new Page<>(entities,
-                        users.getPageNumber() + 1,
-                        (int) users.getPageElements(),
-                        users.getTotalElements());
-            }
+            return new Page<>(entities,
+                    users.getPageNumber() + 1,
+                    (int) users.getPageElements(),
+                    users.getTotalElements());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to search users", ex);
             throw new TechnicalManagementException("An error occurs while trying to search users", ex);
@@ -628,7 +639,19 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             membershipService.removeUser(id);
-            userRepository.delete(id);
+
+            User user = optionalUser.get();
+            user.setSourceId("deleted-" + user.getSourceId());
+            user.setStatus(UserStatus.ARCHIVED);
+            user.setUpdatedAt(new Date());
+
+            if (anonymizeOnDelete) {
+                user.setFirstname("Unknown");
+                user.setLastname("");
+                user.setEmail("");
+            }
+
+            userRepository.update(user);
 
             final UserEntity userEntity = convert(optionalUser.get(), false);
             searchEngineService.delete(userEntity);
@@ -691,6 +714,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         user.setLastname(newExternalUserEntity.getLastname());
         user.setSource(newExternalUserEntity.getSource());
         user.setSourceId(newExternalUserEntity.getSourceId());
+        user.setStatus(UserStatus.ACTIVE);
         return user;
     }
 
@@ -705,6 +729,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
         user.setLastname(userEntity.getLastname());
         user.setSource(userEntity.getSource());
         user.setSourceId(userEntity.getSourceId());
+        if (userEntity.getStatus() != null) {
+            user.setStatus(UserStatus.valueOf(userEntity.getStatus()));
+        }
         return user;
     }
 
@@ -725,6 +752,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
         userEntity.setUpdatedAt(user.getUpdatedAt());
         userEntity.setLastConnectionAt(user.getLastConnectionAt());
         userEntity.setPicture(user.getPicture());
+        if (user.getStatus() != null) {
+            userEntity.setStatus(user.getStatus().name());
+        }
 
         if (loadRoles) {
             Set<UserRoleEntity> roles = new HashSet<>();

@@ -93,6 +93,8 @@ public class UserEntity implements Indexable {
      */
     private Date lastConnectionAt;
 
+    private String status;
+
     public String getId() {
         return id;
     }
@@ -189,6 +191,14 @@ public class UserEntity implements Indexable {
         this.lastConnectionAt = lastConnectionAt;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public String getDisplayName() {
         String displayName;
 
@@ -226,6 +236,7 @@ public class UserEntity implements Indexable {
         sb.append(", lastname='").append(lastname).append('\'');
         sb.append(", mail='").append(email).append('\'');
         sb.append(", roles='").append(roles).append('\'');
+        sb.append(", status='").append(status).append('\'');
         sb.append('}');
         return sb.toString();
     }
