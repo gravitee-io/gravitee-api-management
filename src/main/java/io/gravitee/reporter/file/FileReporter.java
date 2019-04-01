@@ -19,6 +19,7 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
 import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.http.SecurityType;
 import io.gravitee.reporter.file.config.Config;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.eclipse.jetty.util.RolloverFileOutputStream;
@@ -131,12 +132,21 @@ public class FileReporter extends AbstractService implements Reporter {
 		buf.append(apiName);
 		buf.append(' ');
 
-		// Append key
-		String apiKey = metrics.getApiKey();
-		if (apiKey == null) {
-			apiKey = NO_STRING_DATA_VALUE;
+		// Append security type
+		SecurityType securityType = metrics.getSecurityType();
+		if (securityType == null) {
+			buf.append(NO_STRING_DATA_VALUE);
+		} else {
+			buf.append(securityType.name());
 		}
-		buf.append(apiKey);
+		buf.append(' ');
+
+		// Append security token
+		String securityToken = metrics.getSecurityToken();
+		if (securityToken == null) {
+			securityToken = NO_STRING_DATA_VALUE;
+		}
+		buf.append(securityToken);
 		buf.append(' ');
 
 		// Append request method and URI
