@@ -36,6 +36,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static io.gravitee.reporter.api.http.SecurityType.*;
+
 /**
  * An api-key based {@link AuthenticationHandler}.
  *
@@ -70,7 +72,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
     @Override
     public boolean canHandle(Request request, AuthenticationContext authenticationContext) {
         final String apiKey = lookForApiKey(request);
-        return apiKey != null && isMatchingCriteria(apiKey, authenticationContext);
+        return apiKey != null && isMatchingCriteria(apiKey, authenticationContext, request);
     }
 
     @Override
@@ -102,7 +104,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
         return apiKey;
     }
 
-    private boolean isMatchingCriteria(String apiKey, AuthenticationContext authenticationContext) {
+    private boolean isMatchingCriteria(String apiKey, AuthenticationContext authenticationContext, Request request) {
         if (apiKeyRepository == null || authenticationContext == null) {
             // unable to determine matching criteria, select this plan
             return true;
@@ -114,6 +116,12 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
                 // no api-key found, any API key plan can be selected, the request will be rejected by the API Key policy whatsoever
                 return true;
             }
+
+            if (apiKey != null) {
+                request.metrics().setSecurityType(API_KEY);
+                request.metrics().setSecurityToken(apiKey);
+            }
+
             return apiKeyOptional.get().getPlan().equals(authenticationContext.getId());
         } catch (TechnicalException e) {
             // technical exception, any API key plan can be selected, the request will be rejected by the API Key policy whatsoever

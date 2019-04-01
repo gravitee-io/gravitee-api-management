@@ -63,7 +63,7 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
             return false;
         }
 
-        String accessToken = authorizationBearerHeader.get().substring(BEARER_AUTHORIZATION_TYPE.length()).trim();
+        final String accessToken = authorizationBearerHeader.get().substring(BEARER_AUTHORIZATION_TYPE.length()).trim();
         return ! accessToken.isEmpty();
     }
 

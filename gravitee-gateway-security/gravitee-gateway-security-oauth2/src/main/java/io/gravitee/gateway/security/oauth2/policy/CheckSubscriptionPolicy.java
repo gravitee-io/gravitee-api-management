@@ -33,6 +33,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static io.gravitee.reporter.api.http.SecurityType.OAUTH2;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -76,6 +78,10 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                     executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
                     executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
+
+                    final String accessToken = (String) executionContext.getAttribute("oauth.access_token");
+                    request.metrics().setSecurityType(OAUTH2);
+                    request.metrics().setSecurityToken(accessToken);
 
                     policyChain.doNext(request, response);
                     return;

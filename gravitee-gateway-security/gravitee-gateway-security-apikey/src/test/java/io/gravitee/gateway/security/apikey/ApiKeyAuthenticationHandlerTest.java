@@ -27,6 +27,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -37,6 +38,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static io.gravitee.reporter.api.http.Metrics.on;
+import static java.lang.System.currentTimeMillis;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,10 +55,16 @@ public class ApiKeyAuthenticationHandlerTest {
 
     @Mock
     private ApiKeyRepository apiKeyRepository;
+    @Mock
+    private Request request;
+
+    @Before
+    public void init() {
+        when(request.metrics()).thenReturn(on(currentTimeMillis()).build());
+    }
 
     @Test
     public void shouldNotHandleRequest() {
-        Request request = mock(Request.class);
         when(request.headers()).thenReturn(new HttpHeaders());
 
         MultiValueMap<String, String> parameters = mock(MultiValueMap.class);
@@ -67,7 +76,6 @@ public class ApiKeyAuthenticationHandlerTest {
 
     @Test
     public void shouldHandleRequestUsingHeaders() {
-        Request request = mock(Request.class);
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
         when(request.headers()).thenReturn(headers);
@@ -78,8 +86,6 @@ public class ApiKeyAuthenticationHandlerTest {
 
     @Test
     public void shouldHandleRequestUsingQueryParameters() {
-        Request request = mock(Request.class);
-
         MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.put("api-key", Collections.singletonList("xxxxx-xxxx-xxxxx"));
         when(request.parameters()).thenReturn(parameters);
@@ -115,7 +121,6 @@ public class ApiKeyAuthenticationHandlerTest {
 
     @Test
     public void shouldNotHandleRequest_wrongCriteria() throws TechnicalException {
-        Request request = mock(Request.class);
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
         when(request.headers()).thenReturn(headers);
@@ -134,7 +139,6 @@ public class ApiKeyAuthenticationHandlerTest {
 
     @Test
     public void shouldHandleRequest_withCriteria() throws TechnicalException {
-        Request request = mock(Request.class);
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
         when(request.headers()).thenReturn(headers);

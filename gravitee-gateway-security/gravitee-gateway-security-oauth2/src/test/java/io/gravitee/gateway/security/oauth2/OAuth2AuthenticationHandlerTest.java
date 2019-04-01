@@ -18,19 +18,23 @@ package io.gravitee.gateway.security.oauth2;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.HookAuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
-import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.oauth2.policy.CheckSubscriptionPolicy;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Iterator;
 import java.util.List;
 
+import static io.gravitee.reporter.api.http.Metrics.on;
+import static java.lang.System.currentTimeMillis;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,10 +47,16 @@ public class OAuth2AuthenticationHandlerTest {
 
     @InjectMocks
     private OAuth2AuthenticationHandler authenticationHandler = new OAuth2AuthenticationHandler();
+    @Mock
+    private Request request;
+
+    @Before
+    public void init() {
+        when(request.metrics()).thenReturn(on(currentTimeMillis()).build());
+    }
 
     @Test
     public void shouldNotHandleRequest_noAuthorizationHeader() {
-        Request request = mock(Request.class);
         when(request.headers()).thenReturn(new HttpHeaders());
 
         boolean handle = authenticationHandler.canHandle(request);
@@ -56,7 +66,6 @@ public class OAuth2AuthenticationHandlerTest {
     @Test
     public void shouldNotHandleRequest_invalidAuthorizationHeader() {
         HttpHeaders headers = new HttpHeaders();
-        Request request = mock(Request.class);
         when(request.headers()).thenReturn(headers);
 
         headers.add(HttpHeaders.AUTHORIZATION, "");
@@ -68,7 +77,6 @@ public class OAuth2AuthenticationHandlerTest {
     @Test
     public void shouldNotHandleRequest_noBearerAuthorizationHeader() {
         HttpHeaders headers = new HttpHeaders();
-        Request request = mock(Request.class);
         when(request.headers()).thenReturn(headers);
 
         headers.add(HttpHeaders.AUTHORIZATION, "Basic xxx-xx-xxx-xx-xx");
@@ -80,7 +88,6 @@ public class OAuth2AuthenticationHandlerTest {
     @Test
     public void shouldHandleRequest_validAuthorizationHeader() {
         HttpHeaders headers = new HttpHeaders();
-        Request request = mock(Request.class);
         when(request.headers()).thenReturn(headers);
 
         headers.add(HttpHeaders.AUTHORIZATION, OAuth2AuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " xxx-xx-xxx-xx-xx");
@@ -92,7 +99,6 @@ public class OAuth2AuthenticationHandlerTest {
     @Test
     public void shouldHandleRequest_ignoreCaseAuthorizationHeader() {
         HttpHeaders headers = new HttpHeaders();
-        Request request = mock(Request.class);
         when(request.headers()).thenReturn(headers);
 
         headers.add(HttpHeaders.AUTHORIZATION, "BeaRer xxx-xx-xxx-xx-xx");
@@ -104,7 +110,6 @@ public class OAuth2AuthenticationHandlerTest {
     @Test
     public void shouldNotHandleRequest_noBearerValue() {
         HttpHeaders headers = new HttpHeaders();
-        Request request = mock(Request.class);
         when(request.headers()).thenReturn(headers);
 
         headers.add(HttpHeaders.AUTHORIZATION, OAuth2AuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " ");
