@@ -45,6 +45,8 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -107,8 +109,9 @@ public class ElasticsearchReporterTest {
 
         requestMetrics.setApplication("application");
         requestMetrics.setApiResponseTimeMs(100);
-        requestMetrics.setApiKey("apiKey");
         requestMetrics.setApi("api");
+        requestMetrics.setSecurityType(API_KEY);
+        requestMetrics.setSecurityToken("apiKey");
 
         // bulk of three line
         TestObserver metrics1 = reporter.rxReport(requestMetrics).test();
@@ -255,7 +258,8 @@ public class ElasticsearchReporterTest {
     private Metrics mockRequestMetrics() {
         Metrics requestMetrics = Metrics.on(new Date().getTime()).build();
         requestMetrics.setApi("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1");
-        requestMetrics.setApiKey("e14cfcb8-188d-4cb9-ad06-002aea5aab12");
+        requestMetrics.setSecurityType(API_KEY);
+        requestMetrics.setSecurityToken("e14cfcb8-188d-4cb9-ad06-002aea5aab12");
         requestMetrics.setApiResponseTimeMs(50);
         requestMetrics.setApplication("31b0d824-4f6a-4f58-b0d8-244f6a4f58d7");
         requestMetrics.setEndpoint("31b0d824-4f6a-4f58-b0d8-244f6a4f58d7");
