@@ -283,9 +283,9 @@ public class LogsServiceImpl implements LogsService {
     }
 
     private String getSubscription(io.gravitee.repository.log.model.ExtendedLog log) {
-        if (log.getApiKey() != null) {
+        if ("API_KEY".equals(log.getSecurityType())) {
             try {
-                ApiKeyEntity key = apiKeyService.findByKey(log.getApiKey());
+                ApiKeyEntity key = apiKeyService.findByKey(log.getSecurityToken());
                 if (key != null) {
                     return key.getSubscription();
                 }
@@ -414,11 +414,12 @@ public class LogsServiceImpl implements LogsService {
         req.setTenant(log.getTenant());
         req.setTimestamp(log.getTimestamp());
         req.setUri(log.getUri());
-        req.setApiKey(log.getApiKey());
         req.setMessage(log.getMessage());
         req.setGateway(log.getGateway());
         req.setSubscription(getSubscription(log));
         req.setHost(log.getHost());
+        req.setSecurityType(log.getSecurityType());
+        req.setSecurityToken(log.getSecurityToken());
 
         req.setClientRequest(createRequest(log.getClientRequest()));
         req.setProxyRequest(createRequest(log.getProxyRequest()));
@@ -488,10 +489,11 @@ public class LogsServiceImpl implements LogsService {
         req.setResponseTime(log.getResponseTime());
         req.setStatus(log.getStatus());
         req.setTimestamp(log.getTimestamp());
-        req.setApiKey(log.getApiKey());
         req.setRequest(createRequest(log.getClientRequest()));
         req.setResponse(createResponse(log.getClientResponse()));
         req.setHost(log.getHost());
+        req.setSecurityType(log.getSecurityType());
+        req.setSecurityToken(log.getSecurityToken());
 
         Map<String, Map<String, String>> metadata = new HashMap<>();
 

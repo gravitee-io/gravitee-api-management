@@ -38,7 +38,6 @@ public class ApiRequest {
     private long apiResponseTime;
     private long requestContentLength;
     private long responseContentLength;
-    private String apiKey;
     private String plan;
     private String application;
     private String localAddress;
@@ -53,6 +52,8 @@ public class ApiRequest {
     private Map<String, Map<String, String>> metadata;
     private String host;
     private String user;
+    private String securityType;
+    private String securityToken;
 
     public String getId() {
         return id;
@@ -190,14 +191,6 @@ public class ApiRequest {
         this.tenant = tenant;
     }
 
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
-
     public Request getClientRequest() {
         return clientRequest;
     }
@@ -276,6 +269,22 @@ public class ApiRequest {
 
     public void setUser(String user) {
         this.user = user;
+    }
+
+    public String getSecurityType() {
+        return securityType;
+    }
+
+    public void setSecurityType(String securityType) {
+        this.securityType = securityType;
+    }
+
+    public String getSecurityToken() {
+        return securityToken;
+    }
+
+    public void setSecurityToken(String securityToken) {
+        this.securityToken = securityToken;
     }
 
     @Override

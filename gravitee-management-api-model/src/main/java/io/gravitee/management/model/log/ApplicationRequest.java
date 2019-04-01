@@ -36,7 +36,6 @@ public class ApplicationRequest {
     private long responseTime;
     private long requestContentLength;
     private long responseContentLength;
-    private String apiKey;
     private String plan;
     private String api;
     private Request request;
@@ -44,6 +43,8 @@ public class ApplicationRequest {
     private Map<String, Map<String, String>> metadata;
     private String host;
     private String user;
+    private String securityType;
+    private String securityToken;
 
     public String getId() {
         return id;
@@ -133,14 +134,6 @@ public class ApplicationRequest {
         this.api = api;
     }
 
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
-
     public Request getRequest() {
         return request;
     }
@@ -179,6 +172,22 @@ public class ApplicationRequest {
 
     public void setUser(String user) {
         this.user = user;
+    }
+
+    public String getSecurityType() {
+        return securityType;
+    }
+
+    public void setSecurityType(String securityType) {
+        this.securityType = securityType;
+    }
+
+    public String getSecurityToken() {
+        return securityToken;
+    }
+
+    public void setSecurityToken(String securityToken) {
+        this.securityToken = securityToken;
     }
 
     @Override
