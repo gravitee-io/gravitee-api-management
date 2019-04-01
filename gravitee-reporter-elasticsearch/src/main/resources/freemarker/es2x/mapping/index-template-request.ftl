@@ -16,10 +16,6 @@
                     "index": "not_analyzed",
                     "type": "string"
                 },
-                "api-key": {
-                    "index": "not_analyzed",
-                    "type": "string"
-                },
                 "api-response-time": {
                     "type": "integer"
                 },
@@ -124,6 +120,12 @@
                 },
                 "user": {
                     "index": "not_analyzed",
+                    "type": "string"
+                },
+                "security-type": {
+                    "type": "string"
+                },
+                "security-token": {
                     "type": "string"
                 }
             }

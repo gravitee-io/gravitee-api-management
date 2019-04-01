@@ -15,10 +15,6 @@
                 "api": {
                     "type": "keyword"
                 },
-                "api-key": {
-                    "type": "keyword",
-                    "index": false
-                },
                 "api-response-time": {
                     "type": "integer"
                 },
@@ -125,6 +121,14 @@
                 },
                 "user": {
                     "type": "keyword"
+                },
+                "security-type": {
+                    "type": "keyword",
+                    "index": true
+                },
+                "security-token": {
+                    "type": "keyword",
+                    "index": true
                 }
             }
         }

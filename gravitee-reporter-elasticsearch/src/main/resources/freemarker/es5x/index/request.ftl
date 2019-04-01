@@ -28,9 +28,6 @@
   <#if responseContentLength??>
   ,"response-content-length":${responseContentLength}
   </#if>
-  <#if metrics.getApiKey()??>
-  ,"api-key":"${metrics.getApiKey()}"
-  </#if>
   <#if metrics.getPlan()??>
   ,"plan":"${metrics.getPlan()}"
   </#if>
@@ -65,5 +62,11 @@
   </#if>
   <#if metrics.getUser()??>
   ,"user":"${metrics.getUser()}"
+  </#if>
+  <#if metrics.getSecurityType()??>
+  ,"security-type":"${metrics.getSecurityType()}"
+  </#if>
+  <#if metrics.getSecurityToken()??>
+  ,"security-token":"${metrics.getSecurityToken()}"
   </#if>
 }</@compress>

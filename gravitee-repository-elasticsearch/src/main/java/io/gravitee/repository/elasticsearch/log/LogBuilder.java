@@ -76,11 +76,13 @@ final class LogBuilder {
     private final static String FIELD_APPLICATION = "application";
     private final static String FIELD_API = "api";
     private final static String FIELD_PLAN = "plan";
-    private final static String FIELD_API_KEY = "api-key";
     private final static String FIELD_HOST = "host";
 
     private final static String FIELD_MESSAGE = "message";
     private final static String FIELD_USER = "user";
+
+    private final static String FIELD_SECURITY_TYPE = "security-type";
+    private final static String FIELD_SECURITY_TOKEN = "security-token";
 
     static Log createLog(final SearchHit hit) {
         return createLog(hit, new Log());
@@ -151,11 +153,6 @@ final class LogBuilder {
             log.setPlan(planNode.asText());
         }
 
-        final JsonNode apiKeyNode = source.get(FIELD_API_KEY);
-        if (apiKeyNode != null && ! apiKeyNode.isNull()) {
-            log.setApiKey(apiKeyNode.asText());
-        }
-
         final JsonNode endpointNode = source.get(FIELD_ENDPOINT);
         if (endpointNode != null && ! endpointNode.isNull()) {
             log.setEndpoint(endpointNode.asText());
@@ -174,6 +171,16 @@ final class LogBuilder {
         final JsonNode userNode = source.get(FIELD_USER);
         if (userNode != null && ! userNode.isNull()) {
             log.setUser(userNode.asText());
+        }
+
+        final JsonNode secTypeNode = source.get(FIELD_SECURITY_TYPE);
+        if (secTypeNode != null && ! secTypeNode.isNull()) {
+            log.setSecurityType(secTypeNode.asText());
+        }
+
+        final JsonNode secTokenNode = source.get(FIELD_SECURITY_TOKEN);
+        if (secTokenNode != null && ! secTokenNode.isNull()) {
+            log.setSecurityToken(secTokenNode.asText());
         }
 
         return log;
