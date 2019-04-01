@@ -37,7 +37,6 @@ public class Log {
     private long apiResponseTime;
     private long requestContentLength;
     private long responseContentLength;
-    private String apiKey;
     private String plan;
     private String api;
     private String application;
@@ -49,6 +48,8 @@ public class Log {
     private String gateway;
     private String host;
     private String user;
+    private String securityType;
+    private String securityToken;
 
     public String getId() {
         return id;
@@ -138,14 +139,6 @@ public class Log {
         this.plan = plan;
     }
 
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
-
     public String getApi() {
         return api;
     }
@@ -224,6 +217,22 @@ public class Log {
 
     public void setUser(String user) {
         this.user = user;
+    }
+
+    public String getSecurityType() {
+        return securityType;
+    }
+
+    public void setSecurityType(String securityType) {
+        this.securityType = securityType;
+    }
+
+    public String getSecurityToken() {
+        return securityToken;
+    }
+
+    public void setSecurityToken(String securityToken) {
+        this.securityToken = securityToken;
     }
 
     @Override
