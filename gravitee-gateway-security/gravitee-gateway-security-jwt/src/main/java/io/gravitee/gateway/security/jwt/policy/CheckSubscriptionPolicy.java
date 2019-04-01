@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static io.gravitee.reporter.api.http.SecurityType.JWT;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -42,6 +44,7 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
 
     private final static String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
     private final static String OAUTH2_ERROR_SERVER_ERROR = "server_error";
+    private static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
     @Override
     protected void onRequest(Request request, Response response, PolicyChain policyChain, ExecutionContext executionContext) throws PolicyException {
@@ -68,6 +71,10 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                     executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
                     executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
+
+                    final String accessToken = (String) executionContext.getAttribute("jwt.token");
+                    request.metrics().setSecurityType(JWT);
+                    request.metrics().setSecurityToken(accessToken);
 
                     policyChain.doNext(request, response);
                     return;

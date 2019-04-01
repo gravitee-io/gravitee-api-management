@@ -62,8 +62,7 @@ public class OAuth2AuthenticationHandler implements AuthenticationHandler {
         if (! authorizationBearerHeader.isPresent()) {
             return false;
         }
-
-        String accessToken = authorizationBearerHeader.get().substring(BEARER_AUTHORIZATION_TYPE.length()).trim();
+        final String accessToken = authorizationBearerHeader.get().substring(BEARER_AUTHORIZATION_TYPE.length()).trim();
         return ! accessToken.isEmpty();
     }
 
