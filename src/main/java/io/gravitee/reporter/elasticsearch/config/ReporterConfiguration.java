@@ -18,10 +18,12 @@ package io.gravitee.reporter.elasticsearch.config;
 import io.gravitee.elasticsearch.config.Endpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.String.format;
 
 /**
  * Elasticsearch client reporter configuration.
@@ -37,75 +39,69 @@ public class ReporterConfiguration {
 	private final static String DEFAULT_ELASTICSEARCH_ENDPOINT = "http://localhost:9200";
 
 	@Autowired
-	private Environment environment;
+	private ConfigurableEnvironment environment;
 	
 	/**
 	 * Prefix index name. 
 	 */
 	@Value("${reporters.elasticsearch.index:gravitee}")
 	private String indexName;
-
 	/**
 	 * Single index or index per type?
 	 */
 	@Value("${reporters.elasticsearch.index_per_type:false}")
 	private boolean perTypeIndex;
-	
 	/**
 	 * Request actions max by bulk 
 	 */
 	@Value("${reporters.elasticsearch.bulk.actions:1000}")
 	private Integer bulkActions;
-	
 	/**
 	 * Bulk flush interval in seconds
 	 */
 	@Value("${reporters.elasticsearch.bulk.flush_interval:5}")
 	private Long flushInterval;
-
 	/**
 	 * Elasticsearch basic oauth login.
 	 */
 	@Value("${reporters.elasticsearch.security.username:#{null}}")
 	private String username;
-
 	/**
 	 * Elasticsearch basic oauth password.
 	 */
 	@Value("${reporters.elasticsearch.security.password:#{null}}")
 	private String password;
-
 	/**
 	 * Elasticsearch HTTP request timeout.
 	 */
 	@Value("${reporters.elasticsearch.http.timeout:30000}")
 	private long requestTimeout;
-
 	/**
 	 * Settings: number of shards
 	 */
 	@Value("${reporters.elasticsearch.settings.number_of_shards:5}")
 	private int numberOfShards;
-
 	/**
 	 * Settings: number of replicas
 	 */
 	@Value("${reporters.elasticsearch.settings.number_of_replicas:1}")
 	private int numberOfReplicas;
-
 	/**
 	 * Settings: refresh interval
 	 */
 	@Value("${reporters.elasticsearch.settings.refresh_interval:5s}")
 	private String refreshInterval;
-
 	@Value("${reporters.elasticsearch.enabled:true}")
 	private boolean enabled;
-
 	/**
 	 * Elasticsearch endpoints
 	 */
 	private List<Endpoint> endpoints;
+	/**
+	 * Extended request mapping template
+	 */
+	@Value("${reporters.elasticsearch.templates.extended_request_mapping:#{null}}")
+	private String extendedRequestMappingTemplate;
 
 	public List<Endpoint> getEndpoints() {
 		if(endpoints == null){
@@ -144,14 +140,14 @@ public class ReporterConfiguration {
 	}
 
 	private List<Endpoint> initializeEndpoints() {
-		String key = String.format("reporters.elasticsearch.endpoints[%s]", 0);
+		String key = format("reporters.elasticsearch.endpoints[%s]", 0);
 		List<Endpoint> endpoints = new ArrayList<>();
 		
 		while (environment.containsProperty(key)) {
 			String url = environment.getProperty(key);
 			endpoints.add(new Endpoint(url));
 			
-			key = String.format("reporters.elasticsearch.endpoints[%s]", endpoints.size());
+			key = format("reporters.elasticsearch.endpoints[%s]", endpoints.size());
 		}
 		
 		// Use default host if required
@@ -224,5 +220,13 @@ public class ReporterConfiguration {
 
 	public void setRequestTimeout(long requestTimeout) {
 		this.requestTimeout = requestTimeout;
+	}
+
+	public String getExtendedRequestMappingTemplate() {
+		return extendedRequestMappingTemplate;
+	}
+
+	public void setExtendedRequestMappingTemplate(String extendedRequestMappingTemplate) {
+		this.extendedRequestMappingTemplate = extendedRequestMappingTemplate;
 	}
 }

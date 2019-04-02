@@ -128,6 +128,7 @@
                 "security-token": {
                     "type": "string"
                 }
+                <#if extendedRequestMappingTemplate??>,<#include "/${extendedRequestMappingTemplate}"></#if>
             }
         }
     }

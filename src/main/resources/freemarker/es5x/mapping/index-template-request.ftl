@@ -130,6 +130,7 @@
                     "type": "keyword",
                     "index": true
                 }
+                <#if extendedRequestMappingTemplate??>,<#include "/${extendedRequestMappingTemplate}"></#if>
             }
         }
     }

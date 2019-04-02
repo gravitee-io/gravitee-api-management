@@ -54,7 +54,7 @@ public class ElasticsearchReporterConfiguration {
     }
 
     @Bean
-    public FreeMarkerComponent freeMarckerComponent() {
+    public FreeMarkerComponent freeMarkerComponent() {
         return new FreeMarkerComponent();
     }
 }

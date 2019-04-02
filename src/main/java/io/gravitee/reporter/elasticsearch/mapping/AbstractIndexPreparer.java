@@ -50,6 +50,7 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
         data.put("numberOfShards", this.configuration.getNumberOfShards());
         data.put("numberOfReplicas", this.configuration.getNumberOfReplicas());
         data.put("refreshInterval", this.configuration.getRefreshInterval());
+        data.put("extendedRequestMappingTemplate", this.configuration.getExtendedRequestMappingTemplate());
 
         return data;
     }
