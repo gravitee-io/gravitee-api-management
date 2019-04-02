@@ -15,14 +15,22 @@
  */
 package io.gravitee.elasticsearch.templating.freemarker;
 
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.cache.FileTemplateLoader;
+import freemarker.cache.MultiTemplateLoader;
+import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Locale;
@@ -34,7 +42,7 @@ import java.util.Map;
  * @author Guillaume Waignier
  * @author Sebastien Devaux
  */
-public class FreeMarkerComponent {
+public class FreeMarkerComponent implements InitializingBean {
 
     /** Logger. */
     private final Logger logger = LoggerFactory.getLogger(FreeMarkerComponent.class);
@@ -46,17 +54,26 @@ public class FreeMarkerComponent {
 
     /** Freemarker configuration */
     private Configuration configuration;
+    @Value("${reporters.elasticsearch.template_mapping.path:#{null}}")
+    private String templatesPath;
 
     /**
      * Initialize FreeMarker.
      */
-    {
-        this.configuration = new Configuration(Configuration.VERSION_2_3_23);
-        this.configuration.setDefaultEncoding(StandardCharsets.UTF_8.name());
-        this.configuration.setDateFormat("iso_utc");
-        this.configuration.setLocale(Locale.ENGLISH);
-        this.configuration.setNumberFormat("computer");
-        this.configuration.setClassLoaderForTemplateLoading(FreeMarkerComponent.class.getClassLoader(), DIRECTORY_NAME);
+    public void afterPropertiesSet() throws IOException {
+        configuration = new Configuration(Configuration.VERSION_2_3_23);
+        configuration.setDefaultEncoding(StandardCharsets.UTF_8.name());
+        configuration.setDateFormat("iso_utc");
+        configuration.setLocale(Locale.ENGLISH);
+        configuration.setNumberFormat("computer");
+
+        final ClassTemplateLoader ctl = new ClassTemplateLoader(FreeMarkerComponent.class.getClassLoader(), DIRECTORY_NAME);
+        if (templatesPath == null) {
+            configuration.setTemplateLoader(ctl);
+        } else {
+            final FileTemplateLoader ftl = new FileTemplateLoader(new File(URLDecoder.decode(templatesPath, StandardCharsets.UTF_8.name())));
+            configuration.setTemplateLoader(new MultiTemplateLoader(new TemplateLoader[]{ftl, ctl}));
+        }
     }
 
     /**

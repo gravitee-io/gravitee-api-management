@@ -16,10 +16,12 @@
 package io.gravitee.elasticsearch.templating.freemarker;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +36,11 @@ import java.util.Map;
 public class FreeMarkerComponentTest {
 
     private FreeMarkerComponent freeMarkerComponent = new FreeMarkerComponent();
+
+    @Before
+    public void init() throws IOException {
+        freeMarkerComponent.afterPropertiesSet();
+    }
 
     @Test
     public void testGenerateFromTemplateWithoutData() {
