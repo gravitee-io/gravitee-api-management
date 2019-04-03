@@ -70,7 +70,10 @@
           "placeholder": "选择应用..."
         },
         "clientIdRequired": "一个clientId需要订阅这个计划。请检查应用程序的配置。",
-        "action": "订阅"
+        "action": "订阅",
+        "comment": {
+          "message": "向API所有者發送評論"
+        }
       },
       "step3": {
         "apikey": {

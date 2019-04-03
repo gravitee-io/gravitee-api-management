@@ -71,7 +71,10 @@
           "placeholder": "Sélectionner une application..."
         },
         "clientIdRequired": "Un clientId est nécessaire pour pouvoir souscrire à ce plan. Veuillez configurer votre application.",
-        "action": "Souscrire"
+        "action": "Souscrire",
+        "comment": {
+          "message": "Envoyer un commentaire au propriétaire de l'API"
+        }
       },
       "step3": {
         "apikey": {

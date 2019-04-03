@@ -67,7 +67,10 @@
           "placeholder": "Выберите приложение..."
         },
         "clientIdRequired": "clientId необходим для подписки на данный тарифный план. Пожалуйста, проверьте конфигурацию вашего приложения.",
-        "action": "Subscribe"
+        "action": "Subscribe",
+        "comment": {
+          "message": "Отправить комментарий владельцу API"
+        }
       },
       "step3": {
         "apikey": {

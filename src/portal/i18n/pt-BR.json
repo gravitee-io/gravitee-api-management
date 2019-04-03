@@ -67,7 +67,10 @@
             "placeholder": "Seleciona uma aplicação..."
           },
           "clientIdRequired": "É necessário um clientId para assinar este plano. Favor verificar a configuração da sua aplicação.",
-          "action": "Assinar"
+          "action": "Assinar",
+          "comment": {
+            "message": "Envie um comentário para o proprietário da API"
+          }
         },
         "step3": {
           "apikey": {
@@ -181,4 +184,3 @@
       }
     }
   }
-  

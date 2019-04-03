@@ -91,7 +91,7 @@
             <md-not-found translate="application.notFound" translate-values="{applicationName: filterApp}"></md-not-found>
           </md-autocomplete>
           <md-input-container class="md-block">
-            <label>Send a comment to the API Owner</label>
+            <label>{{$ctrl.selectedPlan['comment_message']?$ctrl.selectedPlan['comment_message']:('api.subscription.step2.comment.message' | translate)}}</label>
             <textarea ng-model="$ctrl.requestMessage" md-maxlength="150" rows="2" ng-required="$ctrl.selectedPlan['comment_required']"></textarea>
           </md-input-container>
           <md-button class="md-raised" ng-click="$ctrl.subscribe($ctrl.selectedApp)"

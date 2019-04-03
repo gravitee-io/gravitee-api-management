@@ -67,7 +67,7 @@
             <md-input-container class="md-block" flex>
               <md-switch aria-label="Auto validate subscriptions"
                          ng-model="$ctrl.parent.plan.validation" ng-true-value="'auto'" ng-disabled="plan.security == 'key_less'" ng-false-value="'manual'">
-                &nbsp;&nbsp;Auto validate subscription.
+                Auto validate subscription.
               </md-switch>
             </md-input-container>
           </div>
@@ -76,8 +76,15 @@
             <md-input-container class="md-block" flex>
               <md-switch aria-label="Consumer comment"
                          ng-model="$ctrl.parent.plan.comment_required" ng-disabled="plan.security == 'key_less'">
-                &nbsp;&nbsp;Consumer must provide a comment when subscribing to the plan.
+                Consumer must provide a comment when subscribing to the plan.
               </md-switch>
+            </md-input-container>
+            <md-input-container class="md-block" flex>
+              <label>Custom message to display to consumer</label>
+              <input ng-model="$ctrl.parent.plan.comment_message" type="text" name="comment_message" md-maxlength="64">
+              <div ng-messages="$ctrl.planGeneralForm.comment_message.$error">
+                <div ng-message="md-maxlength">The comment message has to be less than 64 characters long.</div>
+              </div>
             </md-input-container>
           </div>
         </section>

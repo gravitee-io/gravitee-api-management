@@ -71,7 +71,10 @@
           "placeholder": "Select an application..."
         },
         "clientIdRequired": "A clientId is required to subscribe to this plan. Please check your application's configuration.",
-        "action": "Subscribe"
+        "action": "Subscribe",
+        "comment": {
+          "message": "Send a comment to the API Owner"
+        }
       },
       "step3": {
         "apikey": {
