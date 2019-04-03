@@ -19,7 +19,8 @@
          "charac 2"
       ],
       "excludedGroups": [ "grp1" ],
-      "commentRequired": true
+      "commentRequired": true,
+      "commentMessage": "What is your project code?"
    },
    {
       "id":"updated-plan",

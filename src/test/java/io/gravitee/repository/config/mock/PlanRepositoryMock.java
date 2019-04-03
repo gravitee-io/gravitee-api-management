@@ -74,6 +74,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(plan2.getCharacteristics()).thenReturn(asList("charac 1", "charac 2"));
         when(plan2.getExcludedGroups()).thenReturn(singletonList("grp1"));
         when(plan2.isCommentRequired()).thenReturn(true);
+        when(plan2.getCommentMessage()).thenReturn("What is your project code?");
 
         final Plan planOAuth2 = mock(Plan.class);
         when(planOAuth2.getName()).thenReturn("Plan oauth2 name");

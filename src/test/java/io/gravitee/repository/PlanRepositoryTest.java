@@ -61,6 +61,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertEquals(Arrays.asList("charac 1", "charac 2"), plan.get().getCharacteristics());
         assertEquals("grp1", plan.get().getExcludedGroups().get(0));
         assertTrue(plan.get().isCommentRequired());
+        assertEquals("What is your project code?", plan.get().getCommentMessage());
     }
 
     @Test
