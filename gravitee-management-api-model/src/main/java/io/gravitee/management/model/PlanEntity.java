@@ -97,6 +97,9 @@ public class PlanEntity {
     @JsonProperty("comment_required")
     private boolean commentRequired;
 
+    @JsonProperty("comment_message")
+    private String commentMessage;
+
     public String getId() {
         return id;
     }
@@ -247,6 +250,14 @@ public class PlanEntity {
 
     public void setCommentRequired(boolean commentRequired) {
         this.commentRequired = commentRequired;
+    }
+
+    public String getCommentMessage() {
+        return commentMessage;
+    }
+
+    public void setCommentMessage(String commentMessage) {
+        this.commentMessage = commentMessage;
     }
 
     @Override

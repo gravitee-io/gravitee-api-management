@@ -113,7 +113,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             return plans
                     .stream()
                     .map(this::convert)
-                    .sorted(Comparator.comparingInt(PlanEntity::getOrder))
                     .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to find a plan by api: {}", api, ex);
@@ -167,6 +166,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setStatus(Plan.Status.valueOf(newPlan.getStatus().name()));
             plan.setExcludedGroups(newPlan.getExcludedGroups());
             plan.setCommentRequired(newPlan.isCommentRequired());
+            plan.setCommentMessage(newPlan.getCommentMessage());
 
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // There is no need for a validation when authentication is KEY_LESS, force to AUTO
@@ -236,6 +236,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             newPlan.setUpdatedAt(new Date());
             newPlan.setSecurityDefinition(updatePlan.getSecurityDefinition());
             newPlan.setCommentRequired(updatePlan.isCommentRequired());
+            newPlan.setCommentMessage(updatePlan.getCommentMessage());
 
             String planPolicies = objectMapper.writeValueAsString(updatePlan.getPaths());
             newPlan.setDefinition(planPolicies);
@@ -418,7 +419,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                     throw new KeylessPlanAlreadyPublishedException(planId);
                 }
             }
-            
+
             // Update plan status
             plan.setStatus(Plan.Status.PUBLISHED);
             // Update plan order
@@ -599,6 +600,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         entity.setValidation(PlanValidationType.valueOf(plan.getValidation().name()));
         entity.setCharacteristics(plan.getCharacteristics());
         entity.setCommentRequired(plan.isCommentRequired());
+        entity.setCommentMessage(plan.getCommentMessage());
 
         return entity;
     }

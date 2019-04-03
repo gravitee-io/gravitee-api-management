@@ -16,7 +16,6 @@
 package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.gravitee.definition.model.Path;
 
 import javax.validation.constraints.NotNull;
@@ -56,6 +55,9 @@ public class UpdatePlanEntity {
 
     @JsonProperty("comment_required")
     private boolean commentRequired;
+
+    @JsonProperty("comment_message")
+    private String commentMessage;
 
     public String getName() {
         return name;
@@ -135,6 +137,14 @@ public class UpdatePlanEntity {
 
     public void setCommentRequired(boolean commentRequired) {
         this.commentRequired = commentRequired;
+    }
+
+    public String getCommentMessage() {
+        return commentMessage;
+    }
+
+    public void setCommentMessage(String commentMessage) {
+        this.commentMessage = commentMessage;
     }
 
     @Override

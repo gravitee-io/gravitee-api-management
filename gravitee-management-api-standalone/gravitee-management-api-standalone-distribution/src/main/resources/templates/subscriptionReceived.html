@@ -11,7 +11,7 @@
 			</#if>
 
 			<#if subscription.request??>
-				Message
+				<#if plan.commentMessage??>${plan.commentMessage}<#else>Message</#if>
 				<p style="border: 1px solid grey; margin: 0 32px; padding: 16px; font-style: italic;">${subscription.request}</p>
 			</#if>
       	</div>
