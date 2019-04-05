@@ -17,6 +17,8 @@ package io.gravite.gateway.http.endpoint;
 
 import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.el.TemplateContext;
+import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
 import io.gravitee.gateway.http.endpoint.HttpEndpointFactory;
 import org.junit.Assert;
@@ -41,6 +43,12 @@ public class HttpEndpointFactoryTest {
 
     @Mock
     private HttpEndpoint endpoint;
+    
+	@Mock
+	ApplicationContext appContext;
+	
+	@Mock 
+	ClassLoader classLoader;
 
     private HttpEndpointFactory factory = new HttpEndpointFactory();
 
@@ -48,13 +56,15 @@ public class HttpEndpointFactoryTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        ApplicationContext context = mock(ApplicationContext.class);
+        ApplicationContext appContext = mock(ApplicationContext.class);
         AutowireCapableBeanFactory autowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
 
-        when(context.getAutowireCapableBeanFactory()).thenReturn(autowireCapableBeanFactory);
+        when(appContext.getAutowireCapableBeanFactory()).thenReturn(autowireCapableBeanFactory);
         doAnswer(invocation -> invocation.getArguments()[0]).when(autowireCapableBeanFactory).autowireBean(any());
+        
+        when(appContext.getClassLoader()).thenReturn(classLoader);
 
-        factory.setApplicationContext(context);
+        factory.setApplicationContext(appContext);
     }
 
     @Test
@@ -99,4 +109,34 @@ public class HttpEndpointFactoryTest {
         Assert.assertNotNull(endpoint);
         Assert.assertEquals(properties.get("my_property") + "/", endpoint.target());
     }
+    
+    @Test
+	public void shouldResolveHttpEndpoint_dictionaryVariable() throws ClassNotFoundException {
+		final String dictionaryVariableName = "dictionaries";
+    	final String dictionaryKey = "my_server_config";
+		final String dictionaryEntryKey = "url";
+		final String dictionaryEntryValue = "https://my-server.company";
+		final String dictionaryExpression = String.format("{#%s['%s']['%s']}", dictionaryVariableName, dictionaryKey, dictionaryEntryKey);
+		
+		HttpEndpoint endpointUsingDictionary = new HttpEndpoint("default", dictionaryExpression);
+		
+		doReturn(TemplateVariableProvider.class).when(classLoader).loadClass(any(String.class));
+		
+		when(appContext.getBean(TemplateVariableProvider.class)).thenReturn(new TemplateVariableProvider() {
+
+			@Override
+			public void provide(TemplateContext context) {
+				Map<String, Map<String, String>> values = new HashMap<>();
+				Map<String, String> value = new HashMap<String, String>();
+				value.put(dictionaryEntryKey, dictionaryEntryValue);
+				values.put(dictionaryKey, value);
+				context.setVariable("dictionaries", values);
+			}
+		});
+
+		EndpointContext context = new EndpointContext();
+		io.gravitee.gateway.http.endpoint.HttpEndpoint httpEndpoint = factory.create(endpointUsingDictionary, context);
+		Assert.assertNotNull(httpEndpoint);
+		Assert.assertEquals(dictionaryEntryValue + "/", httpEndpoint.target());
+	}
 }

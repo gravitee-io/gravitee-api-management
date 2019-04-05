@@ -97,15 +97,15 @@ public class SyncManager {
         long nextLastRefreshAt = System.currentTimeMillis();
 
         try {
-            synchronizeApis(nextLastRefreshAt);
-        } catch (Exception ex) {
-            logger.error("An error occurs while synchronizing APIs", ex);
-        }
-
-        try {
             synchronizeDictionaries(nextLastRefreshAt);
         } catch (Exception ex) {
             logger.error("An error occurs while synchronizing dictionaries", ex);
+        }
+        
+        try {
+            synchronizeApis(nextLastRefreshAt);
+        } catch (Exception ex) {
+            logger.error("An error occurs while synchronizing APIs", ex);
         }
 
         lastRefreshAt = nextLastRefreshAt;
