@@ -56,7 +56,6 @@ public class HttpEndpointFactoryTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        ApplicationContext appContext = mock(ApplicationContext.class);
         AutowireCapableBeanFactory autowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
 
         when(appContext.getAutowireCapableBeanFactory()).thenReturn(autowireCapableBeanFactory);
