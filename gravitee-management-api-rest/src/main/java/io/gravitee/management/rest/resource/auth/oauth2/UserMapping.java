@@ -25,6 +25,8 @@ public class UserMapping {
     private String lastname;
     private String firstname;
     private String picture;
+    private boolean emailRequired;
+    private String username;
 
     public String getEmail() {
         return email;
@@ -64,5 +66,21 @@ public class UserMapping {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public boolean isEmailRequired() {
+        return emailRequired;
+    }
+
+    public void setEmailRequired(boolean emailRequired) {
+        this.emailRequired = emailRequired;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

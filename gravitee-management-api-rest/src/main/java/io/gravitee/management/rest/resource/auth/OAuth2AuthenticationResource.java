@@ -78,6 +78,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         public static final String LASTNAME = "lastName";
         public static final String PICTURE = "picture";
         public static final String EMAIL = "email";
+        public static final String USERNAME = "username";
     }
 
     @Inject
@@ -196,12 +197,22 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
         String username = attrs.get(UserProfile.EMAIL);
         if (username == null) {
-            throw new BadRequestException("No public email linked to your account");
+            if (serverConfiguration.getUserMapping().isEmailRequired()) {
+                throw new BadRequestException("No public email linked to your account");
+            } else {
+                username = attrs.get(UserProfile.USERNAME);
+                if (username == null) {
+                    username = attrs.get(UserProfile.ID);
+                    if (username == null) {
+                        throw new BadRequestException("No public email nor username nor ID linked to your account");
+                    }
+                }
+            }
         }
 
         //set user to Authentication Context
         UserDetails userDetails = new UserDetails(username, "", Collections.emptyList());
-        userDetails.setEmail(username);
+        userDetails.setEmail(attrs.get(UserProfile.EMAIL));
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
 
         try {
@@ -210,7 +221,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         } catch (UserNotFoundException unfe) {
             final NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setUsername(username);
-            newUser.setEmail(username);
+            newUser.setEmail(attrs.get(UserProfile.EMAIL));
             newUser.setSource(AuthenticationSource.OAUTH2.getName());
 
             if (attrs.get(UserProfile.ID) != null) {
@@ -277,6 +288,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         String lastNameMap = userMapping.getLastname();
         String firstNameMap = userMapping.getFirstname();
         String pictureMap = userMapping.getPicture();
+        String usernameMap = userMapping.getUsername();
 
         HashMap<String, String> hashMap = new HashMap<>();
 
@@ -285,6 +297,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         hashMap.put(UserProfile.LASTNAME, lastNameMap);
         hashMap.put(UserProfile.FIRSTNAME, firstNameMap);
         hashMap.put(UserProfile.PICTURE, pictureMap);
+        hashMap.put(UserProfile.USERNAME, usernameMap);
 
         for (Map.Entry<String, String> entry : hashMap.entrySet()) {
             String field = entry.getKey();

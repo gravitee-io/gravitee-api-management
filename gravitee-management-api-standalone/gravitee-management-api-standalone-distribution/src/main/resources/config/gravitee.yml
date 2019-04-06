@@ -236,10 +236,12 @@ security:
 #      authorizationHeader: "Bearer %s"
 #      mapping:
 #        id: sub
+#        username: preferred_username
 #        email: email
 #        lastname: family_name
 #        firstname: given_name
 #        picture: picture
+#        emailRequired: false
       #   by default created user will have default role for MANAGEMENT and PORTAL
       #   you can override this by assigning user to groups, on user creation, if its user info content match expression
 #     groups:
