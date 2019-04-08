@@ -234,6 +234,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid page name.", "Update Page", optionalBefore.get().getName());
         assertEquals("Invalid page content.", "Content of the update page", optionalBefore.get().getContent());
         final Page page = optionalBefore.get();
+        page.setId("updatePage");
         page.setName("New name");
         page.setContent("New content");
         page.setApi("new api");
@@ -262,34 +263,36 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         metadata.put("size", "10");
         page.setMetadata(metadata);
 
-        pageRepository.update(page);
+        assertUpdatedPage(pageRepository.update(page));
+        assertUpdatedPage(pageRepository.findById("updatePage").get());
+    }
 
-        Optional<Page> optionalUpdated = pageRepository.findById("updatePage");
-        assertTrue("Page to update not found", optionalUpdated.isPresent());
-        assertEquals("Invalid saved page name.", "New name", optionalUpdated.get().getName());
-        assertEquals("Invalid page content.", "New content", optionalUpdated.get().getContent());
-        assertEquals("Invalid api.", "new api", optionalUpdated.get().getApi());
-        assertEquals("Invalid type.", SWAGGER, optionalUpdated.get().getType());
-        assertEquals("Invalid order.", 1, optionalUpdated.get().getOrder());
-        assertEquals("Invalid updatedAt.", new Date(1486771200000L), optionalUpdated.get().getUpdatedAt());
-        assertEquals("Invalid createdAt.", new Date(1486772200000L), optionalUpdated.get().getCreatedAt());
-        assertEquals("Invalid parent id.", "parent-123", optionalUpdated.get().getParentId());
-        assertTrue("Invalid homepage.", optionalUpdated.get().isHomepage());
-        assertTrue("Invalid excluded groups.", optionalUpdated.get().isHomepage());
-        assertEquals("Invalid last contributor.", "me", optionalUpdated.get().getLastContributor());
-        assertTrue("Invalid published.", optionalUpdated.get().isPublished());
+    private void assertUpdatedPage(final Page updatedPage) {
+        assertNotNull("Page to update not found", updatedPage);
+        assertEquals("Invalid saved page name.", "New name", updatedPage.getName());
+        assertEquals("Invalid page content.", "New content", updatedPage.getContent());
+        assertEquals("Invalid api.", "new api", updatedPage.getApi());
+        assertEquals("Invalid type.", SWAGGER, updatedPage.getType());
+        assertEquals("Invalid order.", 1, updatedPage.getOrder());
+        assertEquals("Invalid updatedAt.", new Date(1486771200000L), updatedPage.getUpdatedAt());
+        assertEquals("Invalid createdAt.", new Date(1486772200000L), updatedPage.getCreatedAt());
+        assertEquals("Invalid parent id.", "parent-123", updatedPage.getParentId());
+        assertTrue("Invalid homepage.", updatedPage.isHomepage());
+        assertTrue("Invalid excluded groups.", updatedPage.isHomepage());
+        assertEquals("Invalid last contributor.", "me", updatedPage.getLastContributor());
+        assertTrue("Invalid published.", updatedPage.isPublished());
 
-        assertEquals("configuration try it", "true", optionalUpdated.get().getConfiguration().get("tryIt"));
-        assertEquals("configuration try it URL", "http://company.com", optionalUpdated.get().getConfiguration().get("tryItURL"));
-        assertEquals("configuration show URL", "true", optionalUpdated.get().getConfiguration().get("showURL"));
-        assertEquals("configuration display operation id", "true", optionalUpdated.get().getConfiguration().get("displayOperationId"));
-        assertEquals("configuration doc expansion", "FULL", optionalUpdated.get().getConfiguration().get("docExpansion"));
-        assertEquals("configuration enable filtering", "true", optionalUpdated.get().getConfiguration().get("enableFiltering"));
-        assertEquals("configuration show extensions", "true", optionalUpdated.get().getConfiguration().get("showExtensions"));
-        assertEquals("configuration show common extensions", "true", optionalUpdated.get().getConfiguration().get("showCommonExtensions"));
-        assertEquals("configuration maxDisplayedTags", "1234", optionalUpdated.get().getConfiguration().get("maxDisplayedTags"));
-        assertEquals("metadata edit_url", "url", optionalUpdated.get().getMetadata().get("edit_url"));
-        assertEquals("metadata size", "10", optionalUpdated.get().getMetadata().get("size"));
+        assertEquals("configuration try it", "true", updatedPage.getConfiguration().get("tryIt"));
+        assertEquals("configuration try it URL", "http://company.com", updatedPage.getConfiguration().get("tryItURL"));
+        assertEquals("configuration show URL", "true", updatedPage.getConfiguration().get("showURL"));
+        assertEquals("configuration display operation id", "true", updatedPage.getConfiguration().get("displayOperationId"));
+        assertEquals("configuration doc expansion", "FULL", updatedPage.getConfiguration().get("docExpansion"));
+        assertEquals("configuration enable filtering", "true", updatedPage.getConfiguration().get("enableFiltering"));
+        assertEquals("configuration show extensions", "true", updatedPage.getConfiguration().get("showExtensions"));
+        assertEquals("configuration show common extensions", "true", updatedPage.getConfiguration().get("showCommonExtensions"));
+        assertEquals("configuration maxDisplayedTags", "1234", updatedPage.getConfiguration().get("maxDisplayedTags"));
+        assertEquals("metadata edit_url", "url", updatedPage.getMetadata().get("edit_url"));
+        assertEquals("metadata size", "10", updatedPage.getMetadata().get("size"));
     }
 
     @Test
@@ -301,17 +304,20 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid page parentId.", "2", optionalBefore.get().getParentId());
 
         final Page page = optionalBefore.get();
+        page.setId("updatePageFolder");
         page.setName("New name page folder");
         page.setContent("New content page folder");
         page.setParentId("3");
 
-        pageRepository.update(page);
+        assertUpdatePageFolder(pageRepository.update(page));
+        assertUpdatePageFolder(pageRepository.findById("updatePageFolder").get());
+    }
 
-        Optional<Page> optionalUpdated = pageRepository.findById("updatePageFolder");
-        assertTrue("Page to update not found", optionalUpdated.isPresent());
-        assertEquals("Invalid saved page name.", "New name page folder", optionalUpdated.get().getName());
-        assertEquals("Invalid page content.", "New content page folder", optionalUpdated.get().getContent());
-        assertEquals("Invalid page parentId.", "3", optionalUpdated.get().getParentId());
+    private void assertUpdatePageFolder(final Page updatedPage) {
+        assertNotNull("Page to update not found", updatedPage);
+        assertEquals("Invalid saved page name.", "New name page folder", updatedPage.getName());
+        assertEquals("Invalid page content.", "New content page folder", updatedPage.getContent());
+        assertEquals("Invalid page parentId.", "3", updatedPage.getParentId());
     }
 
     @Test

@@ -178,7 +178,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(updatePageAfter.getMetadata()).thenReturn(metadata);
         when(pageRepository.findById("updatePage")).thenReturn(of(updatePageBefore), of(updatePageAfter));
 
-        when(pageRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
+        when(pageRepository.update(argThat(o -> o != null && o.getId().equals("updatePage")))).thenReturn(updatePageAfter);
 
         // should Update Page folder
         Page updatePageFolderBefore = mock(Page.class);
@@ -192,6 +192,8 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(updatePageFolderAfter.getContent()).thenReturn("New content page folder");
         when(updatePageFolderAfter.getParentId()).thenReturn("3");
         when(pageRepository.findById("updatePageFolder")).thenReturn(of(updatePageFolderBefore), of(updatePageFolderAfter));
+        when(pageRepository.update(argThat(o -> o != null && o.getId().equals("updatePageFolder")))).thenReturn(updatePageFolderAfter);
+        when(pageRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         //Find api pages
         final Page homepage = mock(Page.class);
