@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -27,10 +28,9 @@ public class Tag {
     }
 
     private String id;
-
     private String name;
-
     private String description;
+    private List<String> restrictedGroups;
 
     public String getId() {
         return id;
@@ -56,6 +56,14 @@ public class Tag {
         this.description = description;
     }
 
+    public List<String> getRestrictedGroups() {
+        return restrictedGroups;
+    }
+
+    public void setRestrictedGroups(List<String> restrictedGroups) {
+        this.restrictedGroups = restrictedGroups;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -63,12 +71,13 @@ public class Tag {
         Tag tag = (Tag) o;
         return Objects.equals(id, tag.id) &&
                 Objects.equals(name, tag.name) &&
-                Objects.equals(description, tag.description);
+                Objects.equals(description, tag.description) &&
+                Objects.equals(restrictedGroups, tag.restrictedGroups);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description);
+        return Objects.hash(id, name, description, restrictedGroups);
     }
 
     @Override
@@ -77,6 +86,7 @@ public class Tag {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", restrictedGroups=" + restrictedGroups +
                 '}';
     }
 }
