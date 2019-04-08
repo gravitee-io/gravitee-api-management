@@ -128,6 +128,8 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
 
     @Override
     public void delete(final String id) throws TechnicalException {
+        jdbcTemplate.update("delete from group_event_rules where group_id = ?", id);
+        jdbcTemplate.update("delete from group_roles where group_id = ?", id);
         jdbcTemplate.update(ORM.getDeleteSql(), id);
     }
 
@@ -249,6 +251,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             Set<Group> groups = new HashSet<>();
             for (Group group : rows) {
                 addGroupEvents(group);
+                addRoles(group);
                 groups.add(group);
             }
             return groups;

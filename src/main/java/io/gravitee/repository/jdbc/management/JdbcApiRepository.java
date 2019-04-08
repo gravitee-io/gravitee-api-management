@@ -150,6 +150,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     @Override
     public void delete(String id) throws TechnicalException {
         jdbcTemplate.update("delete from api_labels where api_id = ?", id);
+        jdbcTemplate.update("delete from api_groups where api_id = ?", id);
         jdbcTemplate.update("delete from api_views where api_id = ?", id);
         jdbcTemplate.update(ORM.getDeleteSql(), id);
     }

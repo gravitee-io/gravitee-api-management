@@ -4,6 +4,11 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - createTable:
+            tableName: tag_groups
+            columns:
+              - column: {name: tag_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
+        - createTable:
               tableName: application_metadata
               columns:
                   - column: {name: application_id, type: nvarchar(64), constraints: { nullable: false } }

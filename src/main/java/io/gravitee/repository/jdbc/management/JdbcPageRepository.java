@@ -315,6 +315,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     @Override
     public void delete(String id) throws TechnicalException {
+        jdbcTemplate.update("delete from page_excluded_groups where page_id = ?", id);
         jdbcTemplate.update("delete from page_configuration where page_id = ?", id);
         jdbcTemplate.update("delete from page_metadata where page_id = ?", id);
         jdbcTemplate.update(ORM.getDeleteSql(), id);

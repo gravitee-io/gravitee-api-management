@@ -17,30 +17,21 @@ package io.gravitee.repository.jdbc.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 
-import javax.sql.DataSource;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Types;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
@@ -99,8 +90,8 @@ public class JdbcMediaRepository implements MediaRepository {
     public Optional<Media> findByHash(String hash, String api, String mediaType) {
         LOGGER.debug("JdbcMediaRepository.findMediaBy({},{},{})", hash, mediaType, api);
 
-        String sql = null;
-        Object[] param = null;
+        String sql;
+        Object[] param;
         if (api != null) {
             sql = "select * from "+ escapeReservedWord("media")+" where hash = ? and type = ? and api = ?";
             param = new Object[]{hash, mediaType, api};
@@ -115,34 +106,4 @@ public class JdbcMediaRepository implements MediaRepository {
 
         return mediaList.stream().findFirst();
     }
-
-//    @Override
-//    public void delete(String hash, String mediaType) {
-//        this.deleteApiFor(hash, null, mediaType);
-//    }
-
-//    @Override
-//    public void deleteApiFor(String hash, String api, String mediaType) {
-//        LOGGER.debug("deleteApiMediaFor({}, {}, {})", hash, api, mediaType);
-//
-//        String sql = null;
-//        Object[] param = null;
-//        if (api != null) {
-//            sql = "delete from "+ escapeReservedWord("media")+" where hash = ? and type = ? and api = ?";
-//            param = new Object[]{hash, mediaType, api};
-//        } else {
-//            sql = "delete from media where hash = ? and type = ?";
-//            param = new Object[]{hash, mediaType};
-//        }
-//
-//        jdbcTemplate.update(sql, param);
-//    }
-
-
-//    @Override
-//    public long totalSizeFor(String api, String mediaType) {
-//        String sql = "select sum(size) from "+ escapeReservedWord("media")+" where type = ? and api = ?";
-//        Object[] param = new Object[]{mediaType, api};
-//        return (Long) jdbcTemplate.queryForObject(sql, Long.class, param);
-//    }
 }

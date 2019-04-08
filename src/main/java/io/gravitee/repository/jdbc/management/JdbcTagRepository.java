@@ -15,12 +15,18 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TagRepository;
 import io.gravitee.repository.management.model.Tag;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  *
@@ -41,7 +47,60 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
     }
 
     @Override
-    protected String getId(Tag item) {
+    protected String getId(final Tag item) {
         return item.getId();
+    }
+
+    @Override
+    public Optional<Tag> findById(final String id) throws TechnicalException {
+        final Optional<Tag> tag = super.findById(id);
+        tag.ifPresent(this::addGroups);
+        return tag;
+    }
+
+    @Override
+    public Set<Tag> findAll() throws TechnicalException {
+        return super.findAll().stream().peek(this::addGroups).collect(toSet());
+    }
+
+    @Override
+    public Tag create(final Tag tag) throws TechnicalException {
+        storeGroups(tag, false);
+        return super.create(tag);
+    }
+
+    @Override
+    public Tag update(final Tag tag) throws TechnicalException {
+        storeGroups(tag, true);
+        return super.update(tag);
+    }
+
+    @Override
+    public void delete(final String id) throws TechnicalException {
+        jdbcTemplate.update("delete from tag_groups where tag_id = ?", id);
+        super.delete(id);
+    }
+
+    private void storeGroups(final Tag tag, final boolean deleteFirst) {
+        if (tag == null) {
+            return;
+        }
+        if (deleteFirst) {
+            jdbcTemplate.update("delete from tag_groups where tag_id = ?", tag.getId());
+        }
+        List<String> filteredGroups = ORM.filterStrings(tag.getRestrictedGroups());
+        if (!filteredGroups.isEmpty()) {
+            jdbcTemplate.batchUpdate("insert into tag_groups (tag_id, group_id) values ( ?, ? )"
+                    , ORM.getBatchStringSetter(tag.getId(), filteredGroups));
+        }
+    }
+
+    private void addGroups(final Tag tag) {
+        final List<String> groups = getGroups(tag.getId());
+        tag.setRestrictedGroups(groups);
+    }
+
+    private List<String> getGroups(final String tagId) {
+        return jdbcTemplate.queryForList("select group_id from tag_groups where tag_id = ?", String.class, tagId);
     }
 }
