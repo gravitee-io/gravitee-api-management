@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.redis.management.model;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -26,6 +27,7 @@ public class RedisTag {
     private String id;
     private String name;
     private String description;
+    private List<String> restrictedGroups;
 
     public String getId() {
         return id;
@@ -49,6 +51,14 @@ public class RedisTag {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<String> getRestrictedGroups() {
+        return restrictedGroups;
+    }
+
+    public void setRestrictedGroups(List<String> restrictedGroups) {
+        this.restrictedGroups = restrictedGroups;
     }
 
     @Override

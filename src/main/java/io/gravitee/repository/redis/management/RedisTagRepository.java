@@ -84,6 +84,7 @@ public class RedisTagRepository implements TagRepository {
         tag.setId(redisTag.getId());
         tag.setName(redisTag.getName());
         tag.setDescription(redisTag.getDescription());
+        tag.setRestrictedGroups(redisTag.getRestrictedGroups());
         return tag;
     }
 
@@ -92,6 +93,7 @@ public class RedisTagRepository implements TagRepository {
         redisTag.setId(tag.getId());
         redisTag.setName(tag.getName());
         redisTag.setDescription(tag.getDescription());
+        redisTag.setRestrictedGroups(tag.getRestrictedGroups());
         return redisTag;
     }
 }
