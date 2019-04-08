@@ -240,6 +240,10 @@ class UserService {
     this.currentUser.tasks.populate(tasks);
     return this.currentUser;
   }
+
+  getCurrentUserTags(): ng.IPromise<any> {
+    return this.$http.get(`${this.userURL}tags`);
+  }
 }
 
 export default UserService;

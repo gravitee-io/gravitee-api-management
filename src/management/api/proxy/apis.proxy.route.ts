@@ -15,7 +15,6 @@
  */
 import TenantService from '../../../services/tenant.service';
 import ApiService from '../../../services/api.service';
-import ResourceService from "../../../services/resource.service";
 import ServiceDiscoveryService from "../../../services/serviceDiscovery.service";
 
 export default apisProxyRouterConfig;

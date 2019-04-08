@@ -110,7 +110,8 @@ function configurationRouterConfig($stateProvider) {
       component: 'tags',
       resolve: {
         tags: (TagService: TagService) => TagService.list().then(response => response.data),
-        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.list().then(response => response.data)
+        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.list().then(response => response.data),
+        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data)
       },
       data: {
         menu: null,
@@ -123,7 +124,7 @@ function configurationRouterConfig($stateProvider) {
       }
     })
     .state('management.settings.newEntrypoint', {
-      url: '/entrypoint/new',
+      url: '/tags/entrypoint/new',
       component: 'entrypoint',
       resolve: {
         tags: (TagService: TagService) => TagService.list().then(response => response.data)
@@ -139,7 +140,7 @@ function configurationRouterConfig($stateProvider) {
       }
     })
     .state('management.settings.entrypoint', {
-      url: '/entrypoint/:entrypointId',
+      url: '/tags/entrypoint/:entrypointId',
       component: 'entrypoint',
       resolve: {
         tags: (TagService: TagService) => TagService.list().then(response => response.data)
@@ -151,6 +152,22 @@ function configurationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['management-entrypoint-u']
+        }
+      }
+    })
+    .state('management.settings.tag', {
+      url: '/tags/:tagId',
+      component: 'tag',
+      resolve: {
+        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-sharding-tag'
+        },
+        perms: {
+          only: ['management-tag-r', 'management-tag-c', 'management-tag-u']
         }
       }
     })
@@ -205,7 +222,8 @@ function configurationRouterConfig($stateProvider) {
             [{"scope":"APPLICATION", "name": "", "system":false}].concat(roles)
           ),
         invitations: (GroupService: GroupService, $stateParams) =>
-          GroupService.getInvitations($stateParams.groupId).then(response => response.data)
+          GroupService.getInvitations($stateParams.groupId).then(response => response.data),
+        tags: (TagService: TagService) => TagService.list().then(response => response.data)
       },
       data: {
         menu: null,

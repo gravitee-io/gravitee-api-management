@@ -32,7 +32,8 @@ const GroupComponent: ng.IComponentOptions = {
     members: '<',
     apiRoles: '<',
     applicationRoles: '<',
-    invitations: '<'
+    invitations: '<',
+    tags: '<'
   },
   template: require("./group.html"),
   controller: function (

@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const TagsComponent: ng.IComponentOptions = {
+const TagComponent: ng.IComponentOptions = {
   bindings: {
-    tags: '<',
-    entrypoints: '<',
     groups: '<'
   },
-  controller: 'TagsController',
-  template: require('./tags.html')
+  controller: 'TagController',
+  template: require('./tag.html')
 };
 
-export default TagsComponent;
+export default TagComponent;

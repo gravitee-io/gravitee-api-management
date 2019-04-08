@@ -27,7 +27,7 @@
       <md-input-container class="md-block">
         <label>Sharding tags</label>
         <md-select ng-model="apiProxyCtrl.api.tags" multiple>
-          <md-option ng-repeat="tag in apiProxyCtrl.tags" ng-value="tag.id">
+          <md-option ng-repeat="tag in apiProxyCtrl.tags" ng-value="tag.id" ng-disabled="apiProxyCtrl.isTagDisabled(tag)">
             {{tag.name}}<span ng-if="tag.description" class="gravitee-general-description"> - {{tag.description}}</span>
           </md-option>
         </md-select>

@@ -51,7 +51,8 @@ class ApiProxyController {
     private resolvedViews,
     private resolvedGroups,
     private resolvedTags,
-    private resolvedTenants
+    private resolvedTenants,
+    private userTags
   ) {
     'ngInject';
 
@@ -293,6 +294,10 @@ class ApiProxyController {
         this.api.services['health-check'] &&
         this.api.services['health-check'].enabled);
     }
+  }
+
+  isTagDisabled(tag: any): boolean {
+    return !_.includes(this.userTags, tag.id);
   }
 }
 

@@ -20,9 +20,6 @@ import EntrypointService from "../../../services/entrypoint.service";
 import PortalConfigService from "../../../services/portalConfig.service";
 
 class TagsController {
-  private tagsToCreate: any[];
-  private tagsToUpdate: any[];
-  private initialTags: any;
   private tags: any;
 
   constructor(
@@ -35,104 +32,6 @@ class TagsController {
     private Constants,
     private PortalConfigService: PortalConfigService) {
     'ngInject';
-
-    this.tagsToCreate = [];
-    this.tagsToUpdate = [];
-  }
-
-  newTag(event) {
-    event.stopPropagation();
-
-    var that = this;
-
-    var promise = this.$mdEditDialog.small({
-      placeholder: 'Add a name',
-      save: input => {
-        const tag = {name: input.$modelValue};
-        this.tags.push(tag);
-        this.tagsToCreate.push(tag);
-      },
-      targetEvent: event,
-      validators: {
-        'md-maxlength': 30
-      }
-    });
-
-    promise.then(function (ctrl) {
-      var input = ctrl.getInput();
-
-      input.$viewChangeListeners.push(function () {
-        input.$setValidity('empty', input.$modelValue.length !== 0);
-        input.$setValidity('duplicate', !_.includes(_.map(that.tags, 'name'), input.$modelValue));
-      });
-    });
-  }
-
-  editName(event, tag) {
-    event.stopPropagation();
-
-    var that = this;
-
-    var promise = this.$mdEditDialog.small({
-      modelValue: tag.name,
-      placeholder: 'Add a name',
-      save: function (input) {
-        tag.name = input.$modelValue;
-        if (!_.includes(that.tagsToCreate, tag)) {
-          that.tagsToUpdate.push(tag);
-        }
-      },
-      targetEvent: event,
-      validators: {
-        'md-maxlength': 30
-      }
-    });
-
-    promise.then(function (ctrl) {
-      var input = ctrl.getInput();
-
-      input.$viewChangeListeners.push(function () {
-        input.$setValidity('empty', input.$modelValue.length !== 0);
-      });
-    });
-  }
-
-  editDescription(event, tag) {
-    event.stopPropagation();
-
-    var that = this;
-
-    this.$mdEditDialog.small({
-      modelValue: tag.description,
-      placeholder: 'Add a description',
-      save: function (input) {
-        tag.description = input.$modelValue;
-        if (!_.includes(that.tagsToCreate, tag)) {
-          that.tagsToUpdate.push(tag);
-        }
-      },
-      targetEvent: event,
-      validators: {
-        'md-maxlength': 160
-      }
-    });
-  }
-
-  saveTags() {
-    var that = this;
-
-    this.$q.all([
-      this.TagService.create(that.tagsToCreate),
-      this.TagService.update(that.tagsToUpdate)
-    ]).then(function (resultArray) {
-      that.NotificationService.show("Tags saved with success");
-      that.tagsToCreate = [];
-      that.tagsToUpdate = [];
-      let createResult = resultArray[0];
-      if (createResult) {
-        that.tags = _.unionBy(createResult.data, that.tags, 'name');
-      }
-    });
   }
 
   deleteTag(tag) {
@@ -153,17 +52,10 @@ class TagsController {
               });
             });
         } else {
-          _.remove(that.tagsToCreate, tag);
           _.remove(that.tags, tag);
         }
       }
     });
-  }
-
-  reset() {
-    this.tags = _.cloneDeep(this.initialTags);
-    this.tagsToCreate = [];
-    this.tagsToUpdate = [];
   }
 
   onClipboardSuccess(e) {
@@ -174,7 +66,7 @@ class TagsController {
   deleteEntrypoint(entrypoint) {
     this.$mdDialog.show({
       controller: 'DeleteEntrypointDialogController',
-      template: require('../entrypoint/delete.entrypoint.dialog.html'),
+      template: require('./entrypoint/delete.entrypoint.dialog.html'),
       locals: {
         entrypoint: entrypoint
       }
@@ -215,6 +107,13 @@ class TagsController {
       this.formSettings.$setPristine();
     });
   };
+
+  groupNames = (groups) => {
+    // _.join(array, [separator=','])
+    return _.join(_.map(groups, (groupId) => {
+      return _.find(this.groups, {id: groupId}).name;
+    }), ', ');
+  }
 }
 
 export default TagsController;

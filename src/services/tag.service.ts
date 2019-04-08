@@ -25,15 +25,19 @@ class TagService {
     return this.$http.get(this.tagsURL);
   }
 
-  create(tags) {
-    if (tags && tags.length) {
-      return this.$http.post(this.tagsURL, tags);
+  get(tagId:string) {
+    return this.$http.get(this.tagsURL + tagId);
+  }
+
+  create(tag) {
+    if (tag) {
+      return this.$http.post(this.tagsURL, tag);
     }
   }
 
-  update(tags) {
-    if (tags && tags.length) {
-      return this.$http.put(this.tagsURL, tags);
+  update(tag) {
+    if (tag && tag.id) {
+      return this.$http.put(this.tagsURL + tag.id, tag);
     }
   }
 

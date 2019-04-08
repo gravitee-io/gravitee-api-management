@@ -22,6 +22,7 @@ import NotificationSettingsService from '../../services/notificationSettings.ser
 import {Scope} from '../../entities/scope';
 import ApiService from "../../services/api.service";
 import TenantService from "../../services/tenant.service";
+import UserService from "../../services/user.service";
 
 export default apisRouterConfig;
 
@@ -71,7 +72,8 @@ function apisRouterConfig($stateProvider) {
             });
           });
           UserService.reloadPermissions();
-        }
+        },
+        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data)
       }
     })
     .state('management.apis.new', {

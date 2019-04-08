@@ -21,6 +21,7 @@ CORS configuration to handle connection from front-end applications.
 5. Deployment
 
 Choose registered sharding tags to choose on which gateway the API must be deployed. Sharding tags are configured at Gateway level.
+User must belong to a group authorized to deploy on the tag.
 
 6. Multi-tenant
 

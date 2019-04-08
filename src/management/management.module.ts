@@ -355,11 +355,13 @@ import DialogAddAlertController from "./components/notifications/alert/addAlert.
 import CircularPercentageComponent from "./components/circularPercentage/circularPercentage.component";
 import CircularPercentageController from "./components/circularPercentage/circularPercentage.controller";
 
-
 import EntrypointService from '../services/entrypoint.service';
-import EntrypointComponent from "./configuration/entrypoint/entrypoint.component";
-import EntrypointController from "./configuration/entrypoint/entrypoint.controller";
-import DeleteEntrypointDialogController from './configuration/entrypoint/delete.entrypoint.dialog.controller';
+import EntrypointComponent from "./configuration/tags/entrypoint/entrypoint.component";
+import EntrypointController from "./configuration/tags/entrypoint/entrypoint.controller";
+import DeleteEntrypointDialogController from './configuration/tags/entrypoint/delete.entrypoint.dialog.controller';
+
+import TagComponent from "./configuration/tags/tag/tag.component";
+import TagController from "./configuration/tags/tag/tag.controller";
 
 import MoveToFolderDialogController from "./components/documentation/movetofolder.controller";
 // API Response Templates
@@ -818,6 +820,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('entrypoint', EntrypointComponent)
   .controller('EntrypointController', EntrypointController)
   .controller('DeleteEntrypointDialogController', DeleteEntrypointDialogController)
+  .component('tag', TagComponent)
+  .controller('TagController', TagController)
 
   .filter('humanDateFilter', function () {
     return function (input) {

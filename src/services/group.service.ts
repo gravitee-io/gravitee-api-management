@@ -45,7 +45,7 @@ class GroupService {
   update(updatedGroup): ng.IPromise<any> {
     if(updatedGroup.id && updatedGroup) {
       let grpEntity = GroupService._mapToEntity(updatedGroup);
-      return this.$http.put( [this.groupsURL, updatedGroup.id].join("/"), grpEntity);
+      return this.$http.put([this.groupsURL, updatedGroup.id].join("/"), grpEntity);
     }
   }
 
