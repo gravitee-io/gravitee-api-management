@@ -7,7 +7,8 @@
    {
       "id":"products",
       "name":"Products",
-      "description": "Description for products tag"
+      "description": "Description for products tag",
+      "restrictedGroups" : ["group1", "group2"]
    },
    {
       "id":"stores",

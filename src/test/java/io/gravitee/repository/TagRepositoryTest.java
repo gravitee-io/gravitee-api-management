@@ -23,6 +23,8 @@ import org.junit.Test;
 import java.util.Optional;
 import java.util.Set;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
 public class TagRepositoryTest extends AbstractRepositoryTest {
@@ -38,6 +40,10 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(tags);
         assertEquals(3, tags.size());
+        final Tag tagProduct = tags.stream().filter(tag -> "products".equals(tag.getId())).findAny().get();
+        assertEquals("Products", tagProduct.getName());
+        assertEquals("Description for products tag", tagProduct.getDescription());
+        assertEquals(asList("group1", "group2"), tagProduct.getRestrictedGroups());
     }
 
     @Test
@@ -46,6 +52,7 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
         tag.setId("new-tag");
         tag.setName("Tag name");
         tag.setDescription("Description for the new tag");
+        tag.setRestrictedGroups(asList("g1", "groupNew"));
 
         int nbTagsBeforeCreation = tagRepository.findAll().size();
         tagRepository.create(tag);
@@ -59,6 +66,7 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
         final Tag tagSaved = optional.get();
         Assert.assertEquals("Invalid saved tag name.", tag.getName(), tagSaved.getName());
         Assert.assertEquals("Invalid tag description.", tag.getDescription(), tagSaved.getDescription());
+        Assert.assertEquals("Invalid tag groups.", tag.getRestrictedGroups(), tagSaved.getRestrictedGroups());
     }
 
     @Test
@@ -70,6 +78,7 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
         final Tag tag = optional.get();
         tag.setName("New product");
         tag.setDescription("New description");
+        tag.setRestrictedGroups(singletonList("group"));
 
         int nbTagsBeforeUpdate = tagRepository.findAll().size();
         tagRepository.update(tag);
@@ -83,6 +92,7 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
         final Tag tagUpdated = optionalUpdated.get();
         Assert.assertEquals("Invalid saved tag name.", "New product", tagUpdated.getName());
         Assert.assertEquals("Invalid tag description.", "New description", tagUpdated.getDescription());
+        Assert.assertEquals("Invalid tag groups.", singletonList("group"), tagUpdated.getRestrictedGroups());
     }
 
     @Test

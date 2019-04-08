@@ -20,6 +20,8 @@ import io.gravitee.repository.management.model.Tag;
 
 import java.util.Set;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
@@ -40,14 +42,18 @@ public class TagRepositoryMock extends AbstractRepositoryMock<TagRepository> {
         final Tag tag = mock(Tag.class);
         when(tag.getName()).thenReturn("Tag name");
         when(tag.getDescription()).thenReturn("Description for the new tag");
+        when(tag.getRestrictedGroups()).thenReturn(asList("g1", "groupNew"));
 
         final Tag tag2 = mock(Tag.class);
-        when(tag2.getId()).thenReturn("tag");
+        when(tag2.getId()).thenReturn("products");
         when(tag2.getName()).thenReturn("Products");
+        when(tag2.getDescription()).thenReturn("Description for products tag");
+        when(tag2.getRestrictedGroups()).thenReturn(asList("group1", "group2"));
 
         final Tag tag2Updated = mock(Tag.class);
         when(tag2Updated.getName()).thenReturn("New product");
         when(tag2Updated.getDescription()).thenReturn("New description");
+        when(tag2Updated.getRestrictedGroups()).thenReturn(singletonList("group"));
 
         final Set<Tag> tags = newSet(tag, tag2, mock(Tag.class));
         final Set<Tag> tagsAfterDelete = newSet(tag, tag2);

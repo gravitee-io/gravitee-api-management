@@ -23,6 +23,7 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 /**
@@ -131,7 +132,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByIds() throws TechnicalException {
-        Set<Group> groups = groupRepository.findByIds(new HashSet<>(Arrays.asList("group-application-1", "group-api-to-delete", "unknown")));
+        Set<Group> groups = groupRepository.findByIds(new HashSet<>(asList("group-application-1", "group-api-to-delete", "unknown")));
 
         assertNotNull(groups);
         assertFalse(groups.isEmpty());
@@ -140,7 +141,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
                 stream().
                 map(Group::getId).
                 collect(Collectors.toList()).
-                containsAll(Arrays.asList("group-application-1", "group-api-to-delete")));
+                containsAll(asList("group-application-1", "group-api-to-delete")));
     }
 
     @Test
