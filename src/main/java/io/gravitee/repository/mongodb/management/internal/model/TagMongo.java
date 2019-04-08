@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -29,10 +30,9 @@ public class TagMongo {
 
 	@Id
 	private String id;
-
 	private String name;
-
 	private String description;
+	private List<String> restrictedGroups;
 
 	public String getId() {
 		return id;
@@ -58,6 +58,14 @@ public class TagMongo {
 		this.description = description;
 	}
 
+	public List<String> getRestrictedGroups() {
+		return restrictedGroups;
+	}
+
+	public void setRestrictedGroups(List<String> restrictedGroups) {
+		this.restrictedGroups = restrictedGroups;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -77,6 +85,7 @@ public class TagMongo {
 				"id='" + id + '\'' +
 				", name='" + name + '\'' +
 				", description='" + description + '\'' +
+				", restrictedGroups=" + restrictedGroups +
 				'}';
 	}
 }

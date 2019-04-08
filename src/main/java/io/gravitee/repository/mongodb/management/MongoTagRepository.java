@@ -86,6 +86,7 @@ public class MongoTagRepository implements TagRepository {
             //Update
             tagMongo.setName(tag.getName());
             tagMongo.setDescription(tag.getDescription());
+            tagMongo.setRestrictedGroups(tag.getRestrictedGroups());
 
             TagMongo tagMongoUpdated = internalTagRepo.save(tagMongo);
             return mapper.map(tagMongoUpdated, Tag.class);
@@ -111,13 +112,7 @@ public class MongoTagRepository implements TagRepository {
     public Set<Tag> findAll() throws TechnicalException {
         final List<TagMongo> tags = internalTagRepo.findAll();
         return tags.stream()
-                .map(tagMongo -> {
-                    final Tag tag = new Tag();
-                    tag.setId(tagMongo.getId());
-                    tag.setName(tagMongo.getName());
-                    tag.setDescription(tagMongo.getDescription());
-                    return tag;
-                })
+                .map(tagMongo -> mapper.map(tagMongo, Tag.class))
                 .collect(Collectors.toSet());
     }
 }
