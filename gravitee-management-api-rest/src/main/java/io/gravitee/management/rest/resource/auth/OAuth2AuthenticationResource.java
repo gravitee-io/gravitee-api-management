@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.PostConstruct;
@@ -64,6 +65,10 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.singleton;
+import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -294,9 +299,18 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 addRolesToUser(userId, rolesToAdd);
             }
         }
+        final Set<RoleEntity> roles =
+                membershipService.getRoles(MembershipReferenceType.PORTAL, singleton("DEFAULT"), userId, RoleScope.PORTAL);
+        roles.addAll(membershipService.getRoles(MembershipReferenceType.MANAGEMENT, singleton("DEFAULT"), userId, RoleScope.MANAGEMENT));
+
+        final Set<GrantedAuthority> authorities = new HashSet<>();
+        if (!roles.isEmpty()) {
+            authorities.addAll(commaSeparatedStringToAuthorityList(roles.stream()
+                    .map(r -> r.getScope().name() + ':' + r.getName()).collect(Collectors.joining(","))));
+        }
 
         //set user to Authentication Context
-        UserDetails userDetails = new UserDetails(userId, "", Collections.emptyList());
+        UserDetails userDetails = new UserDetails(userId, "", authorities);
         userDetails.setEmail(email);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
 
