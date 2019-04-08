@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
@@ -299,7 +298,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                             "pc.k as pc_k, pc.v as pc_v " +
                             "from pages p " +
                             "left join page_configuration pc on p.id = pc.page_id " +
-                            "left join page_metadata pm on p.id = pc.page_id " +
+                            "left join page_metadata pm on p.id = pm.page_id " +
                             "where p.id = ?"
                     , rowMapper
                     , id

@@ -33,7 +33,7 @@
 
     <properties>
         <gravitee-repository.version>1.24.0</gravitee-repository.version>
-        <gravitee-repository-test.version>1.24.0</gravitee-repository-test.version>
+        <gravitee-repository-test.version>1.25.0-SNAPSHOT</gravitee-repository-test.version>
         <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
         <HikariCP.version>3.3.1</HikariCP.version>
         <liquibase.version>3.6.3</liquibase.version>
@@ -187,7 +187,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--<plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.0.0</version>
@@ -206,7 +206,7 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>-->
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
