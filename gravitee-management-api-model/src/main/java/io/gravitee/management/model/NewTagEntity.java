@@ -15,8 +15,11 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -29,6 +32,8 @@ public class NewTagEntity {
     @Size(min = 1)
     private String name;
     private String description;
+    @JsonProperty("restricted_groups")
+    private List<String> restrictedGroups;
 
     public String getName() {
         return name;
@@ -46,25 +51,35 @@ public class NewTagEntity {
         this.description = description;
     }
 
+    public List<String> getRestrictedGroups() {
+        return restrictedGroups;
+    }
+
+    public void setRestrictedGroups(List<String> restrictedGroups) {
+        this.restrictedGroups = restrictedGroups;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof NewTagEntity)) return false;
         NewTagEntity that = (NewTagEntity) o;
         return Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description);
+                Objects.equals(description, that.description) &&
+                Objects.equals(restrictedGroups, that.restrictedGroups);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description);
+        return Objects.hash(name, description, restrictedGroups);
     }
 
     @Override
     public String toString() {
         return "NewTagEntity{" +
-                ", name='" + name + '\'' +
+                "name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", restrictedGroups=" + restrictedGroups +
                 '}';
     }
 }

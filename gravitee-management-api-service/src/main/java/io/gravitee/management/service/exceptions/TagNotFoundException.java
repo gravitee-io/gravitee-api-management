@@ -13,26 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
-
-import io.gravitee.management.model.NewTagEntity;
-import io.gravitee.management.model.TagEntity;
-import io.gravitee.management.model.UpdateTagEntity;
-
-import java.util.List;
-import java.util.Set;
+package io.gravitee.management.service.exceptions;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TagService {
-    List<TagEntity> findAll();
-    TagEntity findById(String tagId);
-    TagEntity create(NewTagEntity tag);
-    TagEntity update(UpdateTagEntity tag);
-    List<TagEntity> create(List<NewTagEntity> tags);
-    List<TagEntity> update(List<UpdateTagEntity> tags);
-    void delete(String tagId);
-    Set<String> findByUser(String user);
+public class TagNotFoundException extends AbstractNotFoundException {
+
+    private final String tag;
+
+    public TagNotFoundException(String tag) {
+        this.tag = tag;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Tag [" + tag + "] can not be found.";
+    }
 }

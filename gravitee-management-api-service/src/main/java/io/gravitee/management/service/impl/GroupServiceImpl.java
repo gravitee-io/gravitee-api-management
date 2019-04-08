@@ -179,8 +179,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     updatedGroup);
             return findById(groupId);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to update a group", ex);
-            throw new TechnicalManagementException("An error occurs while trying to update a group", ex);
+            final String error = "An error occurs while trying to update a group";
+            logger.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
         }
     }
 

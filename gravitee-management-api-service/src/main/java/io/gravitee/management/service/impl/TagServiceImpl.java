@@ -16,13 +16,16 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.management.model.GroupEntity;
 import io.gravitee.management.model.NewTagEntity;
 import io.gravitee.management.model.TagEntity;
 import io.gravitee.management.model.UpdateTagEntity;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.AuditService;
+import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.TagService;
 import io.gravitee.management.service.exceptions.DuplicateTagNameException;
+import io.gravitee.management.service.exceptions.TagNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TagRepository;
@@ -33,36 +36,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.TAG;
 import static io.gravitee.repository.management.model.Tag.AuditEvent.*;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class TagServiceImpl extends TransactionalService implements TagService {
+public class TagServiceImpl extends AbstractService implements TagService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(TagServiceImpl.class);
 
     @Autowired
     private TagRepository tagRepository;
-
     @Autowired
     private ApiService apiService;
-
     @Autowired
     private AuditService auditService;
+    @Autowired
+    private GroupService groupService;
 
     @Override
     public List<TagEntity> findAll() {
         try {
-            LOGGER.debug("Find all APIs");
+            LOGGER.debug("Find all tags");
             return tagRepository.findAll()
                     .stream()
-                    .map(this::convert).collect(Collectors.toList());
+                    .map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all tags", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all tags", ex);
@@ -70,11 +75,38 @@ public class TagServiceImpl extends TransactionalService implements TagService {
     }
 
     @Override
+    public TagEntity findById(String tagId) {
+        try {
+            LOGGER.debug("Find tag by ID: {}", tagId);
+            Optional<Tag> optTag = tagRepository.findById(tagId);
+
+            if (! optTag.isPresent()) {
+                throw new TagNotFoundException(tagId);
+            }
+
+            return convert(optTag.get());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find tag by ID", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find tag by ID", ex);
+        }
+    }
+
+    @Override
+    public TagEntity create(NewTagEntity tag) {
+        return create(singletonList(tag)).get(0);
+    }
+
+    @Override
+    public TagEntity update(UpdateTagEntity tag) {
+        return update(singletonList(tag)).get(0);
+    }
+
+    @Override
     public List<TagEntity> create(final List<NewTagEntity> tagEntities) {
         // First we prevent the duplicate tag name
         final List<String> tagNames = tagEntities.stream()
                 .map(NewTagEntity::getName)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         final Optional<TagEntity> optionalTag = findAll().stream()
                 .filter(tag -> tagNames.contains(tag.getName()))
@@ -148,11 +180,45 @@ public class TagServiceImpl extends TransactionalService implements TagService {
         }
     }
 
+    @Override
+    public Set<String> findByUser(final String user) {
+        final List<TagEntity> tags = findAll();
+        if (isAdmin()) {
+            return tags.stream()
+                    .map(TagEntity::getId)
+                    .collect(toSet());
+        } else {
+            final Set<String> restrictedTags = findAll().stream()
+                    .filter(tag -> !tag.getRestrictedGroups().isEmpty())
+                    .map(TagEntity::getId)
+                    .collect(toSet());
+
+            final Set<String> groups = groupService.findByUser(user).stream()
+                    .map(GroupEntity::getId)
+                    .collect(toSet());
+
+            return tags.stream()
+                    .filter(tag -> !restrictedTags.contains(tag.getId()) || anyMatch(tag.getRestrictedGroups(), groups))
+                    .map(TagEntity::getId)
+                    .collect(toSet());
+        }
+    }
+
+    private boolean anyMatch(final List<String> restrictedGroups, final Set<String> groups) {
+        for (final String restrictedGroup : restrictedGroups) {
+            if (groups.contains(restrictedGroup)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private Tag convert(final NewTagEntity tagEntity) {
         final Tag tag = new Tag();
         tag.setId(IdGenerator.generate(tagEntity.getName()));
         tag.setName(tagEntity.getName());
         tag.setDescription(tagEntity.getDescription());
+        tag.setRestrictedGroups(tagEntity.getRestrictedGroups());
         return tag;
     }
 
@@ -161,6 +227,7 @@ public class TagServiceImpl extends TransactionalService implements TagService {
         tag.setId(tagEntity.getId());
         tag.setName(tagEntity.getName());
         tag.setDescription(tagEntity.getDescription());
+        tag.setRestrictedGroups(tagEntity.getRestrictedGroups());
         return tag;
     }
 
@@ -169,6 +236,7 @@ public class TagServiceImpl extends TransactionalService implements TagService {
         tagEntity.setId(tag.getId());
         tagEntity.setName(tag.getName());
         tagEntity.setDescription(tag.getDescription());
+        tagEntity.setRestrictedGroups(tag.getRestrictedGroups());
         return tagEntity;
     }
 }

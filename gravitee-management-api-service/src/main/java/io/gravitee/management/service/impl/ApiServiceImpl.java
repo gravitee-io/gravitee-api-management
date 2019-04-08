@@ -27,7 +27,6 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.management.idp.core.authentication.impl.ReferenceSerializer;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.*;
@@ -71,7 +70,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.gravitee.management.model.EventType.PUBLISH_API;
@@ -81,8 +79,7 @@ import static io.gravitee.repository.management.model.Api.AuditEvent.*;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static java.util.Collections.*;
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
@@ -92,7 +89,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  * @author GraviteeSource Team
  */
 @Component
-public class ApiServiceImpl extends TransactionalService implements ApiService {
+public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
 
@@ -139,9 +136,9 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
     @Autowired
     private Configuration freemarkerConfiguration;
     @Autowired
-    private ReferenceSerializer referenceSerializer;
-    @Autowired
     private ParameterService parameterService;
+    @Autowired
+    private TagService tagService;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
@@ -332,7 +329,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 throw new ApiAlreadyExistsException(id);
             }
 
-            // Format context-path and check if context path is unique
+            // if user changes sharding tags, then check if he is allowed to do it
+            checkShardingTags(api, null);
+
+            // format context-path and check if context path is unique
             checkContextPath(api.getProxy().getContextPath());
 
             // check endpoints name
@@ -361,7 +361,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 Set<String> defaultGroups = groupService.findByEvent(GroupEvent.API_CREATE).
                         stream().
                         map(GroupEntity::getId).
-                        collect(Collectors.toSet());
+                        collect(toSet());
                 if (!defaultGroups.isEmpty() && repoApi.getGroups() == null) {
                     repoApi.setGroups(defaultGroups);
                 } else if (!defaultGroups.isEmpty()) {
@@ -609,7 +609,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 throw new ApiNotFoundException(apiId);
             }
 
-            // Check if context path is unique
+            // if user changes sharding tags, then check if he is allowed to do it
+            checkShardingTags(updateApiEntity, convert(optApiToUpdate.get()));
+
+            // check if context path is unique
             checkContextPath(updateApiEntity.getProxy().getContextPath(), apiId);
 
             // check endpoints name
@@ -680,6 +683,27 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         }
     }
 
+    private void checkShardingTags(final UpdateApiEntity updateApiEntity, final ApiEntity existingAPI) {
+        if (!isAdmin()) {
+            final Set<String> tagsToUpdate = updateApiEntity.getTags() == null ? new HashSet<>() : updateApiEntity.getTags();
+            final Set<String> updatedTags;
+            if (existingAPI == null) {
+                updatedTags = tagsToUpdate;
+            } else {
+                final Set<String> existingAPITags = existingAPI.getTags() == null ? new HashSet<>() : existingAPI.getTags();
+                updatedTags = existingAPITags.stream().filter(tag -> !tagsToUpdate.contains(tag)).collect(toSet());
+                updatedTags.addAll(tagsToUpdate.stream().filter(tag -> !existingAPITags.contains(tag)).collect(toSet()));
+            }
+            if (updatedTags != null && !updatedTags.isEmpty()) {
+                final Set<String> userTags = tagService.findByUser(getAuthenticatedUsername());
+                if (!userTags.containsAll(updatedTags)) {
+                    final String[] notAllowedTags = updatedTags.stream().filter(tag -> !userTags.contains(tag)).toArray(String[]::new);
+                    throw new TagNotAllowedException(notAllowedTags);
+                }
+            }
+        }
+    }
+
     @Override
     public void delete(String apiId) {
         try {
@@ -698,7 +722,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                 Set<String> plansNotClosed = plans.stream()
                         .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
                         .map(PlanEntity::getName)
-                        .collect(Collectors.toSet());
+                        .collect(toSet());
 
                 if (!plansNotClosed.isEmpty()) {
                     throw new ApiNotDeletableException("Plan(s) [" + String.join(", ", plansNotClosed) +
@@ -1007,7 +1031,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                         .map(member -> {
                             UserEntity userEntity = userService.findById(member.getId());
                             return new MemberToImport(userEntity.getSource(), userEntity.getSourceId(), member.getRole());
-                        }).collect(Collectors.toSet());
+                        }).collect(toSet());
                 // get the current PO
                 MemberToImport currentPo = membersAlreadyPresent.stream()
                         .filter(memberToImport -> SystemRole.PRIMARY_OWNER.name().equals(memberToImport.getRole()))
@@ -1436,10 +1460,10 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
         );
 
         int poMissing = apis.size() - memberships.size();
-        final Set<String> apiIds = apis.stream().map(Api::getId).collect(Collectors.toSet());
+        final Set<String> apiIds = apis.stream().map(Api::getId).collect(toSet());
         Stream<Api> streamApis = apis.stream();
         if (poMissing > 0) {
-            Set<String> apiMembershipsIds = memberships.stream().map(Membership::getReferenceId).collect(Collectors.toSet());
+            Set<String> apiMembershipsIds = memberships.stream().map(Membership::getReferenceId).collect(toSet());
 
             apiIds.removeAll(apiMembershipsIds);
             Optional<String> optionalApisAsString = apiIds.stream().reduce((a, b) -> a + " / " + b);
@@ -1460,7 +1484,7 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
 
         return streamApis
                 .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId()))))
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     private ApiEntity convert(Api api) {

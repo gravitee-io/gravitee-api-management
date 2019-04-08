@@ -16,6 +16,8 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.management.idp.api.authentication.UserDetails;
+import io.gravitee.management.model.permissions.RoleScope;
+import io.gravitee.management.model.permissions.SystemRole;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -24,7 +26,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public abstract class AbstractService extends TransactionalService {
 
-    protected String getAuthenticatedUsername() {
+    public final static String MANAGEMENT_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
+    public final static String PORTAL_ADMIN = RoleScope.PORTAL.name() + ':' + SystemRole.ADMIN.name();
+
+    String getAuthenticatedUsername() {
         UserDetails authenticatedUser = getAuthenticatedUser();
         return authenticatedUser == null ? null : authenticatedUser.getUsername();
     }
@@ -39,5 +44,14 @@ public abstract class AbstractService extends TransactionalService {
     protected boolean isAuthenticated() {
         return SecurityContextHolder.getContext().getAuthentication() != null
                 && SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserDetails;
+    }
+
+    protected boolean isAdmin() {
+        return isUserInRole(MANAGEMENT_ADMIN) || isUserInRole(PORTAL_ADMIN);
+    }
+
+    private boolean isUserInRole(final String role) {
+        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(auth -> role.equals(auth.getAuthority()));
     }
 }

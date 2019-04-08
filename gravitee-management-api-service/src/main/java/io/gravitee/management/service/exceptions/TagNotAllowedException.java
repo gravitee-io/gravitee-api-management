@@ -13,26 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service;
+package io.gravitee.management.service.exceptions;
 
-import io.gravitee.management.model.NewTagEntity;
-import io.gravitee.management.model.TagEntity;
-import io.gravitee.management.model.UpdateTagEntity;
+import io.gravitee.common.http.HttpStatusCode;
 
-import java.util.List;
-import java.util.Set;
+import java.util.Arrays;
+
+import static java.lang.String.format;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TagService {
-    List<TagEntity> findAll();
-    TagEntity findById(String tagId);
-    TagEntity create(NewTagEntity tag);
-    TagEntity update(UpdateTagEntity tag);
-    List<TagEntity> create(List<NewTagEntity> tags);
-    List<TagEntity> update(List<UpdateTagEntity> tags);
-    void delete(String tagId);
-    Set<String> findByUser(String user);
+public class TagNotAllowedException extends AbstractManagementException {
+
+        private final String[] tags;
+
+        public TagNotAllowedException(String[] tags) {
+            this.tags = tags;
+        }
+
+        @Override
+        public int getHttpStatusCode() {
+            return HttpStatusCode.BAD_REQUEST_400;
+        }
+
+        @Override
+        public String getMessage() {
+            return format("You are not allowed to use deployment on the tag(s) %s.", Arrays.toString(tags));
+        }
 }

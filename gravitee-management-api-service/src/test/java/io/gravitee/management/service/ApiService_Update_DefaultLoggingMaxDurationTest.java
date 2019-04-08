@@ -42,8 +42,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -59,6 +63,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ApiServiceImpl.class)
+@PowerMockIgnore("javax.security.*")
 public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
     private static final String API_ID = "id-api";
@@ -116,6 +121,10 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
         mockStatic(System.class);
         when(System.currentTimeMillis()).thenReturn(0L);
+
+        final SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(mock(Authentication.class));
+        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test

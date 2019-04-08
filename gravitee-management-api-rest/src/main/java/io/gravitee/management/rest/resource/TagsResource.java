@@ -25,6 +25,9 @@ import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.TagService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -53,24 +56,50 @@ public class TagsResource extends AbstractResource  {
                 .collect(Collectors.toList());
     }
 
+    @GET
+    @Path("{tag}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get an tag",
+            notes = "User must have the MANAGEMENT_TAG permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Tag", response = TagEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.READ)
+    })
+    public TagEntity getTag(@PathParam("tag") String tag) {
+        return tagService.findById(tag);
+    }
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create a sharding tag",
+            notes = "User must have the MANAGEMENT_TAG permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "A new sharding tag", response = TagEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.CREATE)
     })
-    public List<TagEntity> create(@Valid @NotNull final List<NewTagEntity> tags) {
-        return tagService.create(tags);
+    public TagEntity create(@Valid @NotNull final NewTagEntity tag) {
+        return tagService.create(tag);
     }
 
     @PUT
+    @Path("{tag}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update a sharding tag",
+            notes = "User must have the MANAGEMENT_TAG permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Sharding tag", response = TagEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.MANAGEMENT_TAG, acls = RolePermissionAction.UPDATE)
     })
-    public List<TagEntity> update(@Valid @NotNull final List<UpdateTagEntity> tags) {
-        return tagService.update(tags);
+    public TagEntity update(@Valid @NotNull final UpdateTagEntity tag) {
+        return tagService.update(tag);
     }
 
     @Path("{tag}")

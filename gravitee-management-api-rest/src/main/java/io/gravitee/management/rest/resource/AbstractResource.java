@@ -46,17 +46,14 @@ public abstract class AbstractResource {
 
     @Inject
     MembershipService membershipService;
-
     @Inject
     RoleService roleService;
-
     @Inject
     ApiService apiService;
-
     @Inject
     PermissionService permissionService;
 
-    protected UserDetails getAuthenticatedUserDetails() {
+    UserDetails getAuthenticatedUserDetails() {
         return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
@@ -64,7 +61,7 @@ public abstract class AbstractResource {
         return securityContext.getUserPrincipal().getName();
     }
 
-    protected String getAuthenticatedUserOrNull() {
+    String getAuthenticatedUserOrNull() {
         return isAuthenticated() ? getAuthenticatedUser() : null;
     }
 
@@ -77,7 +74,7 @@ public abstract class AbstractResource {
                 isUserInRole(PORTAL_ADMIN);
     }
 
-    protected boolean isUserInRole(String role) {
+    private boolean isUserInRole(String role) {
         return securityContext.isUserInRole(role);
     }
 

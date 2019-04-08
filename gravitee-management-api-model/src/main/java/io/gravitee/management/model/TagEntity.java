@@ -15,8 +15,11 @@
  */
 package io.gravitee.management.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -30,6 +33,8 @@ public class TagEntity {
     @Size(min = 1)
     private String name;
     private String description;
+    @JsonProperty("restricted_groups")
+    private List<String> restrictedGroups;
 
     public String getId() {
         return id;
@@ -55,19 +60,28 @@ public class TagEntity {
         this.description = description;
     }
 
+    public List<String> getRestrictedGroups() {
+        return restrictedGroups;
+    }
+
+    public void setRestrictedGroups(List<String> restrictedGroups) {
+        this.restrictedGroups = restrictedGroups;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof TagEntity)) return false;
-        TagEntity that = (TagEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description);
+        TagEntity tagEntity = (TagEntity) o;
+        return Objects.equals(id, tagEntity.id) &&
+                Objects.equals(name, tagEntity.name) &&
+                Objects.equals(description, tagEntity.description) &&
+                Objects.equals(restrictedGroups, tagEntity.restrictedGroups);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description);
+        return Objects.hash(id, name, description, restrictedGroups);
     }
 
     @Override
@@ -76,6 +90,7 @@ public class TagEntity {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", restrictedGroups=" + restrictedGroups +
                 '}';
     }
 }

@@ -23,6 +23,7 @@ import io.gravitee.management.model.*;
 import io.gravitee.management.rest.model.PagedResult;
 import io.gravitee.management.rest.model.TokenEntity;
 import io.gravitee.management.security.cookies.JWTCookieGenerator;
+import io.gravitee.management.service.TagService;
 import io.gravitee.management.service.TaskService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.common.JWTHelper.Claims;
@@ -85,6 +86,8 @@ public class CurrentUserResource extends AbstractResource {
     private ConfigurableEnvironment environment;
     @Autowired
     private JWTCookieGenerator jwtCookieGenerator;
+    @Autowired
+    private TagService tagService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -260,6 +263,13 @@ public class CurrentUserResource extends AbstractResource {
         PagedResult<TaskEntity> pagedResult = new PagedResult<>(tasks);
         pagedResult.setMetadata(metadata);
         return pagedResult;
+    }
+
+    @GET
+    @Path("/tags")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUserShardingTags() {
+        return Response.ok(tagService.findByUser(getAuthenticatedUser())).build();
     }
 
 

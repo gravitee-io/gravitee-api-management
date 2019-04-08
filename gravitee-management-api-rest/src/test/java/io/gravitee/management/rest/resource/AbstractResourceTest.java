@@ -114,6 +114,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected SocialIdentityProviderService socialIdentityProviderService;
 
+    @Autowired
+    protected TagService tagService;
+
     @Configuration
     @PropertySource("classpath:/io/gravitee/management/rest/resource/jwt.properties")
     static class ContextConfiguration {
@@ -216,6 +219,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public SocialIdentityProviderService socialIdentityProviderService() {
             return mock(SocialIdentityProviderService.class);
+        }
+
+        @Bean
+        public TagService tagService() {
+            return mock(TagService.class);
         }
     }
 }

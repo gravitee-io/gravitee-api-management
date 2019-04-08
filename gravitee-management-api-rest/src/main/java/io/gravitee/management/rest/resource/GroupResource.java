@@ -31,6 +31,7 @@ import io.swagger.annotations.*;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -52,10 +53,8 @@ public class GroupResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
-
     @Inject
     private ApiService apiService;
-
     @Inject
     ApplicationService applicationService;
 

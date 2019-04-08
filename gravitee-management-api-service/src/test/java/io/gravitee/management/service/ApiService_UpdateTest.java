@@ -25,10 +25,7 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
-import io.gravitee.management.service.exceptions.ApiContextPathAlreadyExistsException;
-import io.gravitee.management.service.exceptions.ApiNotFoundException;
-import io.gravitee.management.service.exceptions.EndpointNameInvalidException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.management.service.search.SearchEngineService;
@@ -45,17 +42,21 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collections;
 import java.util.Optional;
 
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.util.collections.Sets.newSet;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -74,27 +75,22 @@ public class ApiService_UpdateTest {
 
     @Mock
     private ApiRepository apiRepository;
-
     @Mock
     private MembershipRepository membershipRepository;
-
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
-
     @Mock
     private UpdateApiEntity existingApi;
-
     @Mock
     private Api api;
-
     @Mock
     private UserService userService;
-
     @Mock
     private AuditService auditService;
-
     @Mock
     private SearchEngineService searchEngineService;
+    @Mock
+    private TagService tagService;
 
     @Mock
     private ParameterService parameterService;
@@ -103,24 +99,15 @@ public class ApiService_UpdateTest {
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+
+        final SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(mock(Authentication.class));
+        SecurityContextHolder.setContext(securityContext);
     }
 
     @Test
     public void shouldUpdate() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(apiRepository.update(any())).thenReturn(api);
-        when(api.getName()).thenReturn(API_NAME);
-
-        when(existingApi.getName()).thenReturn(API_NAME);
-        when(existingApi.getVersion()).thenReturn("v1");
-        when(existingApi.getDescription()).thenReturn("Ma description");
-        final Proxy proxy = mock(Proxy.class);
-        when(existingApi.getProxy()).thenReturn(proxy);
-        when(proxy.getContextPath()).thenReturn("/context");
-        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
-        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
-                .thenReturn(Collections.singleton(po));
+        prepareUpdate();
 
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
 
@@ -256,5 +243,91 @@ public class ApiService_UpdateTest {
         apiService.update(API_ID, existingApi);
 
         fail("should throw EndpointNameInvalidException");
+    }
+
+    private void prepareUpdate() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiRepository.update(any())).thenReturn(api);
+        when(api.getName()).thenReturn(API_NAME);
+
+        when(existingApi.getName()).thenReturn(API_NAME);
+        when(existingApi.getVersion()).thenReturn("v1");
+        when(existingApi.getDescription()).thenReturn("Ma description");
+        final Proxy proxy = mock(Proxy.class);
+        when(existingApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn("/context");
+        Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
+        po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
+        when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
+                .thenReturn(Collections.singleton(po));
+    }
+
+    @Test
+    public void shouldUpdateWithAllowedTag() throws TechnicalException {
+        prepareUpdate();
+        when(existingApi.getTags()).thenReturn(singleton("public"));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}");
+        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        assertNotNull(apiEntity);
+        assertEquals(API_NAME, apiEntity.getName());
+    }
+
+    @Test
+    public void shouldUpdateWithExistingAllowedTag() throws TechnicalException {
+        prepareUpdate();
+        when(existingApi.getTags()).thenReturn(singleton("private"));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}");
+        when(tagService.findByUser(any())).thenReturn(Sets.newSet("public", "private"));
+        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        assertNotNull(apiEntity);
+        assertEquals(API_NAME, apiEntity.getName());
+    }
+
+    @Test
+    public void shouldUpdateWithExistingAllowedTags() throws TechnicalException {
+        prepareUpdate();
+        when(existingApi.getTags()).thenReturn(newSet("public", "private"));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}");
+        when(tagService.findByUser(any())).thenReturn(Sets.newSet("public", "private"));
+        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        assertNotNull(apiEntity);
+        assertEquals(API_NAME, apiEntity.getName());
+    }
+
+    @Test
+    public void shouldUpdateWithExistingNotAllowedTag() throws TechnicalException {
+        prepareUpdate();
+        when(existingApi.getTags()).thenReturn(newSet("public", "private"));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\", \"private\"]}");
+        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        assertNotNull(apiEntity);
+        assertEquals(API_NAME, apiEntity.getName());
+    }
+
+    @Test(expected = TagNotAllowedException.class)
+    public void shouldNotUpdateWithNotAllowedTag() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}");
+        when(existingApi.getTags()).thenReturn(singleton("private"));
+        when(tagService.findByUser(any())).thenReturn(emptySet());
+        apiService.update(API_ID, existingApi);
+    }
+
+    @Test(expected = TagNotAllowedException.class)
+    public void shouldNotUpdateWithExistingNotAllowedTag() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}");
+        when(existingApi.getTags()).thenReturn(singleton("private"));
+        when(tagService.findByUser(any())).thenReturn(singleton("public"));
+        apiService.update(API_ID, existingApi);
+    }
+
+    @Test(expected = TagNotAllowedException.class)
+    public void shouldNotUpdateWithExistingNotAllowedTags() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\", \"private\"]}");
+        when(existingApi.getTags()).thenReturn(emptySet());
+        when(tagService.findByUser(any())).thenReturn(singleton("private"));
+        apiService.update(API_ID, existingApi);
     }
 }

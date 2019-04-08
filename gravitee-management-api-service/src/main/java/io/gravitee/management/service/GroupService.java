@@ -29,28 +29,16 @@ import java.util.Set;
 public interface GroupService {
 
     List<GroupEntity> findAll();
-
     List<GroupEntity> findByName(String name);
-
     GroupEntity create(NewGroupEntity group);
-
     GroupEntity update(String groupId, UpdateGroupEntity group);
-
     GroupEntity findById(String groupId);
-
     Set<GroupEntity> findByIds(Set<String> groupIds);
-
     Set<GroupEntity> findByEvent(GroupEvent event);
-
     Set<GroupEntity> findByUser(String user);
-
     void delete(String groupId);
-
     boolean isUserAuthorizedToAccessApiData(ApiEntity api, List<String> excludedGroups, String username);
-
     boolean isUserAuthorizedToAccessPortalData(List<String> excludedGroups, String username);
-
     List<ApiEntity> getApis(String groupId);
-
     List<ApplicationEntity> getApplications(String groupId);
 }

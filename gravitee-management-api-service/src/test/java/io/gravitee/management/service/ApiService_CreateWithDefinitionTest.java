@@ -20,7 +20,10 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.idp.api.identity.SearchableUser;
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.NewPageEntity;
+import io.gravitee.management.model.NewPlanEntity;
+import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.impl.ApiServiceImpl;
@@ -32,12 +35,16 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.net.URL;
@@ -97,6 +104,13 @@ public class ApiService_CreateWithDefinitionTest {
 
     @Mock
     private SearchEngineService searchEngineService;
+
+    @Before
+    public void init() {
+        final SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(mock(Authentication.class));
+        SecurityContextHolder.setContext(securityContext);
+    }
 
     @Test
     public void shouldCreateImportApiWithMembersAndPages() throws IOException, TechnicalException {
