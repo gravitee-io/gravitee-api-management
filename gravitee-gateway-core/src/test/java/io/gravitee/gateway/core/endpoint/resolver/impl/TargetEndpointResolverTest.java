@@ -140,7 +140,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpoint_withDynamicRouting() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test",
-                "endpoint:local:",
+                "local:",
                 "local",
                 "http://host:8080/test"
         );
@@ -150,7 +150,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withDynamicRouting() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test/",
-                "endpoint:local:",
+                "local:",
                 "local",
                 "http://host:8080/test/"
         );
@@ -160,7 +160,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpoint_withSlashInName() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test",
-                "endpoint:lo/cal:",
+                "lo/cal:",
                 "lo/cal",
                 "http://host:8080/test"
         );
@@ -170,7 +170,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpoint_withParenthesisInName() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test",
-                "endpoint:lo(cal:",
+                "lo(cal:",
                 "lo(cal",
                 "http://host:8080/test"
         );
@@ -181,7 +181,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpoint_withPointsInName() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test",
-                "endpoint:lo:cal:",
+                "lo:cal:",
                 "lo:cal",
                 "http://host:8080/test"
         );
@@ -191,7 +191,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpoint_withParenthesisInQuery() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test(q=1)",
-                "endpoint:local:(q=1)",
+                "local:(q=1)",
                 "local",
                 "http://host:8080/test"
         );
@@ -201,7 +201,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpoint_withSlashParenthesisInQuery() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test/(q=1)",
-                "endpoint:local:/(q=1)",
+                "local:/(q=1)",
                 "local",
                 "http://host:8080/test"
         );
@@ -211,7 +211,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpoint_withSpacesInName() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test",
-                "endpoint:lo cal:",
+                "lo cal:",
                 "lo cal",
                 "http://host:8080/test"
         );
@@ -221,7 +221,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpoint_withDashInName() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test",
-                "endpoint:lo-cal:",
+                "lo-cal:",
                 "lo-cal",
                 "http://host:8080/test"
         );
@@ -231,7 +231,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpoint_withSlashInTargetAndPath() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/method",
-                "endpoint:local:/method",
+                "local:/method",
                 "local",
                 "http://host:8080/"
         );
@@ -241,7 +241,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withSlashInTargetAndPath() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/method/",
-                "endpoint:local:/method/",
+                "local:/method/",
                 "local",
                 "http://host:8080/"
         );
@@ -251,7 +251,7 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpoint_withPrefixAndEncodedTargetURI() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test%20toto%20%20t%C3%A9t%C3%A9/titi",
-                "endpoint:local:test toto  tété/titi",
+                "local:test toto  tété/titi",
                 "local",
                 "http://host:8080/"
         );

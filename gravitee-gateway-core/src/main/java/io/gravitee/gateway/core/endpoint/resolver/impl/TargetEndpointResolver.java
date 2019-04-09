@@ -109,11 +109,10 @@ public class TargetEndpointResolver implements EndpointResolver {
         } else if (target.startsWith(Reference.UNKNOWN_REFERENCE)) {
             return null;
         } else {
-            int first = target.indexOf((int) ':');
-            int last = target.indexOf((int) ':', first + 1);
+            int refSeparatorIdx = target.indexOf((int) ':');
 
             // Get the full reference
-            String sRef = target.substring(first+1, last);
+            String sRef = target.substring(0, refSeparatorIdx);
             final Reference reference = referenceRegister.lookup(sRef);
 
             // A null reference has been found (unknown reference ?), returning null to the caller
@@ -124,7 +123,7 @@ public class TargetEndpointResolver implements EndpointResolver {
             // Get next endpoint from reference
             Endpoint endpoint = reference.endpoint();
 
-            String encodedTarget = encode(endpoint.target() + target.substring(last+1), serverRequest.parameters());
+            String encodedTarget = encode(endpoint.target() + target.substring(refSeparatorIdx+1), serverRequest.parameters());
             return createEndpoint(endpoint, encodedTarget);
         }
     }
