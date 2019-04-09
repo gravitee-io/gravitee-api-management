@@ -1,4 +1,4 @@
 title: A user has logged in for the first time.
 message: |
-  "${user.username}" has logged in for the first time.
+  "${user.displayName}" has logged in for the first time.
 
