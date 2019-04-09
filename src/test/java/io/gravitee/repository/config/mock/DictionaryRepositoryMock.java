@@ -44,7 +44,7 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
         when(newDictionary.getName()).thenReturn("My dic 1");
         when(newDictionary.getDescription()).thenReturn("Description for my dic 1");
         when(newDictionary.getCreatedAt()).thenReturn(new Date(1000000000000L));
-        when(newDictionary.getUpdatedAt()).thenReturn(new Date(1111111111111L));
+        when(newDictionary.getUpdatedAt()).thenReturn(new Date(1439032010883L));
         when(newDictionary.getType()).thenReturn(DictionaryType.MANUAL);
 
         final Dictionary dic1 = new Dictionary();
@@ -52,7 +52,7 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
         dic1.setName("My dic 1");
         dic1.setDescription("Description for my dic 1");
         dic1.setCreatedAt(new Date(1000000000000L));
-        dic1.setUpdatedAt(new Date(1111111111111L));
+        dic1.setUpdatedAt(new Date(1439032010883L));
 
         final Dictionary dictionaryUpdated = mock(Dictionary.class);
         when(dictionaryUpdated.getName()).thenReturn("My dic 1");

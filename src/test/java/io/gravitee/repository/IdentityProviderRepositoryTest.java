@@ -92,7 +92,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
         identityProvider.setName("My idp 1");
         identityProvider.setDescription("Description for my idp 1");
         identityProvider.setCreatedAt(new Date(1000000000000L));
-        identityProvider.setUpdatedAt(new Date(1111111111111L));
+        identityProvider.setUpdatedAt(new Date(1439032010883L));
         identityProvider.setType(IdentityProviderType.GITHUB);
         identityProvider.setEnabled(true);
 

@@ -49,7 +49,7 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
         when(newIdentityProvider.getDescription()).thenReturn("Description for my idp 1");
         when(newIdentityProvider.isEnabled()).thenReturn(true);
         when(newIdentityProvider.getCreatedAt()).thenReturn(new Date(1000000000000L));
-        when(newIdentityProvider.getUpdatedAt()).thenReturn(new Date(1111111111111L));
+        when(newIdentityProvider.getUpdatedAt()).thenReturn(new Date(1439032010883L));
         when(newIdentityProvider.getType()).thenReturn(IdentityProviderType.GITHUB);
 
         final IdentityProvider identityProvider1 = new IdentityProvider();

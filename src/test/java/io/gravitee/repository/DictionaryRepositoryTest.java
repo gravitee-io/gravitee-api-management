@@ -49,7 +49,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         dictionary.setName("My dic 1");
         dictionary.setDescription("Description for my dic 1");
         dictionary.setCreatedAt(new Date(1000000000000L));
-        dictionary.setUpdatedAt(new Date(1111111111111L));
+        dictionary.setUpdatedAt(new Date(1439032010883L));
         dictionary.setType(DictionaryType.MANUAL);
 
         int nbDictionariesBeforeCreation = dictionaryRepository.findAll().size();
