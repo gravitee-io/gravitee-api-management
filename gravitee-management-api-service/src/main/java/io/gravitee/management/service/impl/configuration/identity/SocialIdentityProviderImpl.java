@@ -107,6 +107,7 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             ((OIDCIdentityProviderEntity)provider).setAuthorizationEndpoint((String)identityProvider.getConfiguration().get("authorizeEndpoint"));
             ((OIDCIdentityProviderEntity)provider).setTokenIntrospectionEndpoint((String)identityProvider.getConfiguration().get("tokenIntrospectionEndpoint"));
             ((OIDCIdentityProviderEntity)provider).setUserInfoEndpoint((String)identityProvider.getConfiguration().get("userInfoEndpoint"));
+            ((OIDCIdentityProviderEntity) provider).setUserLogoutEndpoint((String)identityProvider.getConfiguration().get("userLogoutEndpoint"));
             ((OIDCIdentityProviderEntity)provider).setScopes((List<String>) identityProvider.getConfiguration().get("scopes"));
             ((OIDCIdentityProviderEntity) provider).setUserProfileMapping(identityProvider.getUserProfileMapping());
         } else if (identityProvider.getType() == IdentityProviderType.GRAVITEEIO_AM) {
