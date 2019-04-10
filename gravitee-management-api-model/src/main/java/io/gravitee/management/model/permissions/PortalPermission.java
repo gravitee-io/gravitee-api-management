@@ -27,7 +27,8 @@ public enum PortalPermission implements Permission {
     TOP_APIS(     "TOP_APIS",      1400),
     SETTINGS(     "SETTINGS",      1500),
     API_HEADER(   "API_HEADER",    1600),
-    IDENTITY_PROVIDER("IDENTITY_PROVIDER",   1700);
+    IDENTITY_PROVIDER("IDENTITY_PROVIDER",   1700),
+    CLIENT_REGISTRATION_PROVIDER("CLIENT_REGISTRATION_PROVIDER",   1800);
 
     String name;
     int mask;

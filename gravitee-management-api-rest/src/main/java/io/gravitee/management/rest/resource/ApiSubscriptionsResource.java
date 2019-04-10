@@ -153,7 +153,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 new Subscription.Application(
                         application.getId(),
                         application.getName(),
-                        application.getType(),
+                        //application.getType(),
+                        null,
                         new Subscription.User(
                                 application.getPrimaryOwner().getId(),
                                 application.getPrimaryOwner().getDisplayName()

@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.application.ApplicationListItem;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -48,7 +48,7 @@ public class ApplicationService_FindAllTest {
 
     @Test
     public void shouldTryFindAll() throws Exception {
-        Set<ApplicationEntity> set = applicationService.findAll();
+        Set<ApplicationListItem> set = applicationService.findAll();
         assertNotNull(set);
         assertTrue("result is empty", set.isEmpty());
         verify(applicationRepository, times(1)).findAll(ApplicationStatus.ACTIVE);

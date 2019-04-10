@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.application.ApplicationListItem;
 import io.gravitee.management.model.common.Pageable;
 import io.gravitee.management.model.pagedresult.Metadata;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
@@ -31,6 +32,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
 import org.slf4j.Logger;
@@ -119,8 +121,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         if (application != null && !application.trim().isEmpty()) {
             query.setApplication(application);
         } else if (isAuthenticated()) {
-            Set<ApplicationEntity> applications = applicationService.findByUser(getAuthenticatedUsername());
-            query.setApplications(applications.stream().map(ApplicationEntity::getId).collect(Collectors.toList()));
+            Set<ApplicationListItem> applications = applicationService.findByUser(getAuthenticatedUsername());
+            query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
         }
 
         return search(query);
@@ -218,10 +220,20 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
             }
 
+            // Extract the client_id according to the application type
+            String clientId;
+            if (ApplicationType.SIMPLE.name().equals(applicationEntity.getType())) {
+                clientId = (applicationEntity.getSettings() != null && applicationEntity.getSettings().getApp() != null)
+                        ? applicationEntity.getSettings().getApp().getClientId() : null;
+            } else {
+                clientId = (applicationEntity.getSettings() != null && applicationEntity.getSettings().getoAuthClient() != null)
+                        ? applicationEntity.getSettings().getoAuthClient().getClientId() : null;
+            }
+
             if (planEntity.getSecurity() == PlanSecurityType.OAUTH2 ||
                     planEntity.getSecurity() == PlanSecurityType.JWT) {
                 // Check that the application contains a client_id
-                if (applicationEntity.getClientId() == null || applicationEntity.getClientId().trim().isEmpty()) {
+                if (clientId == null || clientId.trim().isEmpty()) {
                     throw new PlanNotSubscribableException(
                             "A client_id is required to subscribe to an OAuth2 or JWT plan.");
                 }
@@ -236,7 +248,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setStatus(Subscription.Status.PENDING);
             subscription.setRequest(newSubscriptionEntity.getRequest());
             subscription.setSubscribedBy(getAuthenticatedUser().getUsername());
-            subscription.setClientId(applicationEntity.getClientId());
+            subscription.setClientId(clientId);
             String apiId = planEntity.getApis().iterator().next();
             subscription.setApi(apiId);
             subscription = subscriptionRepository.create(subscription);

@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.application.ApplicationListItem;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -50,7 +50,7 @@ public class ApplicationService_FindByGroupTest {
 
     @Test
     public void shouldTryFindByGroup() throws Exception {
-        Set<ApplicationEntity> set = applicationService.findByGroups(Collections.singletonList(GROUP_ID));
+        Set<ApplicationListItem> set = applicationService.findByGroups(Collections.singletonList(GROUP_ID));
         assertNotNull(set);
         assertTrue("result is empty", set.isEmpty());
         verify(applicationRepository, times(1)).findByGroups(Collections.singletonList(GROUP_ID), ApplicationStatus.ACTIVE);

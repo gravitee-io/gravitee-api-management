@@ -16,6 +16,7 @@
 package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.management.model.application.ApplicationSettings;
 
 import java.util.Date;
 import java.util.Objects;
@@ -31,9 +32,9 @@ public class ApplicationEntity {
     private String id;
     private String name;
     private String description;
-    private String type;
     private Set<String> groups;
     private String status;
+    private String type;
 
     @JsonProperty("created_at")
     private Date createdAt;
@@ -44,9 +45,8 @@ public class ApplicationEntity {
     @JsonProperty("owner")
     private PrimaryOwnerEntity primaryOwner;
 
-    private String role;
-
-    private String clientId;
+    @JsonProperty("settings")
+    private ApplicationSettings settings;
 
     public String getId() {
         return id;
@@ -80,28 +80,12 @@ public class ApplicationEntity {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public Date getUpdatedAt() {
         return updatedAt;
     }
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
     }
 
     public PrimaryOwnerEntity getPrimaryOwner() {
@@ -128,12 +112,20 @@ public class ApplicationEntity {
         this.status = status;
     }
 
-    public String getClientId() {
-        return clientId;
+    public ApplicationSettings getSettings() {
+        return settings;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public void setSettings(ApplicationSettings settings) {
+        this.settings = settings;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     @Override

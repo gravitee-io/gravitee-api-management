@@ -18,6 +18,9 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
+import io.gravitee.management.model.application.ApplicationListItem;
+import io.gravitee.management.model.application.ApplicationSettings;
+import io.gravitee.management.model.application.SimpleApplicationSettings;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
@@ -57,7 +60,9 @@ public class ApplicationsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation("List all the applications accessible to authenticated user")
+    @ApiOperation(
+            value = "List all the applications accessible to authenticated user",
+            notes = "User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission to list applications.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "User's applications", response = ApplicationEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -65,10 +70,10 @@ public class ApplicationsResource extends AbstractResource {
             @Permission(value = RolePermission.MANAGEMENT_APPLICATION, acls = RolePermissionAction.READ),
             @Permission(value = RolePermission.PORTAL_APPLICATION, acls = RolePermissionAction.READ)
     })
-    public List<ApplicationEntity> listApplications(
+    public List<ApplicationListItem> listApplications(
             @QueryParam("group") final String group,
             @QueryParam("query") final String query) {
-        Set<ApplicationEntity> applications;
+        Set<ApplicationListItem> applications;
 
         if (query != null && !query.trim().isEmpty()) {
             applications = applicationService.findByName(query);
@@ -99,8 +104,9 @@ public class ApplicationsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create an application",
-            notes = "User must have API_CONSUMER or ADMIN role to create an application.")
+    @ApiOperation(
+            value = "Create an application",
+            notes = "User must have MANAGEMENT_APPLICATION[CREATE] permission to create an application.")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Application successfully created", response = ApplicationEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -109,7 +115,17 @@ public class ApplicationsResource extends AbstractResource {
     })
     public Response createApplication(
             @ApiParam(name = "application", required = true)
-            @Valid @NotNull final NewApplicationEntity application) {
+            @Valid @NotNull(message = "An application must be provided") final NewApplicationEntity application) {
+        // To preserve backward compatibility, ensure that we have at least default settings for simple application type
+        if (application.getSettings() == null ||
+                (application.getSettings().getoAuthClient() == null && application.getSettings().getApp() == null)) {
+            ApplicationSettings settings = new ApplicationSettings();
+            SimpleApplicationSettings simpleAppSettings = new SimpleApplicationSettings();
+            simpleAppSettings.setType(application.getType());
+            simpleAppSettings.setClientId(application.getClientId());
+            application.setSettings(settings);
+        }
+
         ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUser());
         if (newApplication != null) {
             return Response

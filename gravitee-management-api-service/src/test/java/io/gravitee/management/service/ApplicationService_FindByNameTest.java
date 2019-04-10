@@ -15,7 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.application.ApplicationListItem;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import org.junit.Test;
@@ -47,7 +47,7 @@ public class ApplicationService_FindByNameTest {
 
     @Test
     public void shouldNotFindByNameWhenNull() throws Exception {
-        Set<ApplicationEntity> set = applicationService.findByName(null);
+        Set<ApplicationListItem> set = applicationService.findByName(null);
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
         verify(applicationRepository, never()).findByName(any());
@@ -55,7 +55,7 @@ public class ApplicationService_FindByNameTest {
 
     @Test
     public void shouldNotFindByNameWhenEmpty() throws Exception {
-        Set<ApplicationEntity> set = applicationService.findByName(" ");
+        Set<ApplicationListItem> set = applicationService.findByName(" ");
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
         verify(applicationRepository, never()).findByName(any());
@@ -63,7 +63,7 @@ public class ApplicationService_FindByNameTest {
 
     @Test
     public void shouldNotFindByName() throws Exception {
-        Set<ApplicationEntity> set = applicationService.findByName("a");
+        Set<ApplicationListItem> set = applicationService.findByName("a");
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
         verify(applicationRepository, times(1)).findByName("a");

@@ -82,9 +82,11 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
                 JsonObject jsonApplication = new JsonObject();
                 jsonApplication.put("id", application.getId());
                 jsonApplication.put("name", application.getName());
+                /*
                 if (application.getType() != null) {
                     jsonApplication.put("type", application.getType());
                 }
+                */
                 content.put("application", jsonApplication);
             }
         }

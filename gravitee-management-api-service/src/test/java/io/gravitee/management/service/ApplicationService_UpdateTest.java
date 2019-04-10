@@ -17,7 +17,10 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.management.model.application.ApplicationSettings;
+import io.gravitee.management.model.application.SimpleApplicationSettings;
 import io.gravitee.management.model.permissions.SystemRole;
+import io.gravitee.management.service.configuration.application.ClientRegistrationService;
 import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.management.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -34,6 +37,8 @@ import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -78,13 +83,25 @@ public class ApplicationService_UpdateTest {
     @Mock
     private SubscriptionService subscriptionService;
 
+    @Mock
+    private ParameterService parameterService;
+
+    @Mock
+    private ClientRegistrationService clientRegistrationService;
+
     @Test
     public void shouldUpdate() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        when(existingApplication.getSettings()).thenReturn(settings);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getDescription()).thenReturn("My description");
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.update(any())).thenReturn(application);
         Membership po = new Membership(USER_NAME, APPLICATION_ID, MembershipReferenceType.APPLICATION);
         po.setRoles(Collections.singletonMap(RoleScope.APPLICATION.getId(), SystemRole.PRIMARY_OWNER.name()));
@@ -109,6 +126,12 @@ public class ApplicationService_UpdateTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        when(existingApplication.getSettings()).thenReturn(settings);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(applicationRepository.update(any())).thenThrow(TechnicalException.class);
 
@@ -122,10 +145,20 @@ public class ApplicationService_UpdateTest {
     public void shouldUpdateBecauseSameApplication() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(application.getId()).thenReturn(APPLICATION_ID);
-        when(application.getClientId()).thenReturn(CLIENT_ID);
-        when(existingApplication.getClientId()).thenReturn(CLIENT_ID);
+
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("client_id", CLIENT_ID);
+        when(application.getMetadata()).thenReturn(metadata);
+
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        when(existingApplication.getSettings()).thenReturn(settings);
+
         when(application.getName()).thenReturn(APPLICATION_NAME);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getDescription()).thenReturn("My description");
         when(applicationRepository.update(any())).thenReturn(application);
@@ -147,13 +180,23 @@ public class ApplicationService_UpdateTest {
     public void shouldNotUpdateBecauseDifferentApplication() throws TechnicalException {
         Application other = mock(Application.class);
         when(other.getId()).thenReturn("other-app");
-        when(other.getClientId()).thenReturn(CLIENT_ID);
+
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("client_id", CLIENT_ID);
+        when(other.getMetadata()).thenReturn(metadata);
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.findAll(ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(other));
 
         when(application.getId()).thenReturn(APPLICATION_ID);
-        when(existingApplication.getClientId()).thenReturn(CLIENT_ID);
+
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+
+        when(existingApplication.getSettings()).thenReturn(settings);
 
         applicationService.update(APPLICATION_ID, existingApplication);
     }

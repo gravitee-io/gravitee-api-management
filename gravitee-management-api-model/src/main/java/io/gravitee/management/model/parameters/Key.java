@@ -87,7 +87,9 @@ public enum Key {
     LOGGING_AUDIT_ENABLED("logging.audit.enabled", "false"),
     LOGGING_USER_DISPLAYED("logging.user.displayed", "false"),
 
-    ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000");
+    ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000"),
+
+    APPLICATION_REGISTRATION_ENABLED("application.registration.enabled", "false");
 
     String key;
     String defaultValue;

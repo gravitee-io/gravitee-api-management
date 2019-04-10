@@ -18,6 +18,8 @@ package io.gravitee.management.service;
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.application.ApplicationSettings;
+import io.gravitee.management.model.application.OAuthClientSettings;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.SubscriptionServiceImpl;
 import io.gravitee.management.service.notification.ApiHook;
@@ -384,7 +386,11 @@ public class SubscriptionServiceTest {
         when(plan.getValidation()).thenReturn(PlanValidationType.AUTO);
         when(plan.getSecurity()).thenReturn(PlanSecurityType.OAUTH2);
 
-        when(application.getClientId()).thenReturn("my-client-id");
+        ApplicationSettings settings = new ApplicationSettings();
+        OAuthClientSettings clientSettings = new OAuthClientSettings();
+        clientSettings.setClientId("my-client-id");
+        settings.setoAuthClient(clientSettings);
+        when(application.getSettings()).thenReturn(settings);
 
         // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
         Subscription subscription = new Subscription();

@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.model;
 
+import io.gravitee.management.model.application.ApplicationSettings;
+
 import javax.validation.constraints.NotNull;
 import java.util.Set;
 
@@ -25,14 +27,27 @@ import java.util.Set;
  */
 public class NewApplicationEntity {
 
-    @NotNull
+    @NotNull(message = "Application's name must not be null")
     private String name;
 
-    @NotNull
+    @NotNull(message = "Application's description must not be null")
     private String description;
 
+    @NotNull(message = "Application's settings must not be null")
+    private ApplicationSettings settings;
+
+    /**
+     * @deprecated Only for backward compatibility at the API level.
+     *             Will be remove in a future version.
+     */
+    @Deprecated
     private String type;
 
+    /**
+     * @deprecated Only for backward compatibility at the API level.
+     *             Will be remove in a future version.
+     */
+    @Deprecated
     private String clientId;
 
     private Set<String> groups;
@@ -53,20 +68,28 @@ public class NewApplicationEntity {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public Set<String> getGroups() {
         return groups;
     }
 
     public void setGroups(Set<String> groups) {
         this.groups = groups;
+    }
+
+    public ApplicationSettings getSettings() {
+        return settings;
+    }
+
+    public void setSettings(ApplicationSettings settings) {
+        this.settings = settings;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getClientId() {
@@ -82,8 +105,6 @@ public class NewApplicationEntity {
         final StringBuilder sb = new StringBuilder("Application{");
         sb.append("description='").append(description).append('\'');
         sb.append(", name='").append(name).append('\'');
-        sb.append(", type='").append(type).append('\'');
-        sb.append(", clientId='").append(clientId).append('\'');
         sb.append(", groups='").append(groups).append('\'');
         sb.append('}');
         return sb.toString();

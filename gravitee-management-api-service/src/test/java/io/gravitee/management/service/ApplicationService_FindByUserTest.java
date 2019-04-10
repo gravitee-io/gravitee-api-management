@@ -16,6 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.application.ApplicationListItem;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.impl.ApplicationServiceImpl;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -81,6 +82,8 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(APPLICATION_ID);
         when(application.getStatus()).
                 thenReturn(ApplicationStatus.ACTIVE);
+        when(application.getType()).
+                thenReturn(ApplicationType.SIMPLE);
         when(membershipRepository.findByUserAndReferenceType(USERNAME, MembershipReferenceType.APPLICATION)).
                 thenReturn(Collections.singleton(appMembership));
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).
@@ -95,7 +98,7 @@ public class ApplicationService_FindByUserTest {
                 .thenReturn(Collections.singleton(po));
 //        when(userService.findByUsername(USERNAME, false)).thenReturn(new UserEntity());
 
-        Set<ApplicationEntity> apps = applicationService.findByUser(USERNAME);
+        Set<ApplicationListItem> apps = applicationService.findByUser(USERNAME);
 
         Assert.assertNotNull(apps);
         Assert.assertFalse("should find app", apps.isEmpty());
@@ -117,7 +120,7 @@ public class ApplicationService_FindByUserTest {
         when(applicationRepository.findByGroups(Collections.emptyList(), ApplicationStatus.ACTIVE)).
                 thenReturn(Collections.emptySet());
 
-        Set<ApplicationEntity> apps = applicationService.findByUser(USERNAME);
+        Set<ApplicationListItem> apps = applicationService.findByUser(USERNAME);
 
         Assert.assertNotNull(apps);
         Assert.assertTrue("should not find app", apps.isEmpty());
@@ -139,6 +142,10 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(GROUP_APPLICATION_ID);
         when(groupApplication.getStatus()).
                 thenReturn(ApplicationStatus.ACTIVE);
+        when(groupApplication.getType()).
+                thenReturn(ApplicationType.SIMPLE);
+        when(application.getType()).
+                thenReturn(ApplicationType.SIMPLE);
 
         when(membershipRepository.findByUserAndReferenceType(USERNAME, MembershipReferenceType.APPLICATION)).
                 thenReturn(Collections.singleton(appMembership));
@@ -160,7 +167,7 @@ public class ApplicationService_FindByUserTest {
 
 //        when(userService.findByUsername(USERNAME, false)).thenReturn(new UserEntity());
 
-        Set<ApplicationEntity> apps = applicationService.findByUser(USERNAME);
+        Set<ApplicationListItem> apps = applicationService.findByUser(USERNAME);
 
         Assert.assertNotNull(apps);
         Assert.assertFalse("should find apps", apps.isEmpty());

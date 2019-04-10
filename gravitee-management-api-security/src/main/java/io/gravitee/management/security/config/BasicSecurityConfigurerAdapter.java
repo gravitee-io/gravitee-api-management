@@ -253,7 +253,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                 // Entrypoints
                 .antMatchers(HttpMethod.GET, "/entrypoints/**").permitAll()
-
                 .anyRequest().authenticated().and();
     }
 

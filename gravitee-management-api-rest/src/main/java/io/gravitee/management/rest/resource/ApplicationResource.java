@@ -18,6 +18,8 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.management.model.application.ApplicationSettings;
+import io.gravitee.management.model.application.SimpleApplicationSettings;
 import io.gravitee.management.model.notification.NotifierEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -75,7 +77,7 @@ public class ApplicationResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update an application",
-            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+            notes = "User must have APPLICATION_DEFINITION[UPDATE] permission to update an application.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Updated application", response = ApplicationEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -84,7 +86,17 @@ public class ApplicationResource extends AbstractResource {
     })
     public ApplicationEntity updateApplication(
             @PathParam("application") String application,
-            @Valid @NotNull final UpdateApplicationEntity updatedApplication) {
+            @Valid @NotNull(message = "An application must be provided") final UpdateApplicationEntity updatedApplication) {
+        // To preserve backward compatibility, ensure that we have at least default settings for simple application type
+        if (updatedApplication.getSettings() == null ||
+                (updatedApplication.getSettings().getoAuthClient() == null && updatedApplication.getSettings().getApp() == null)) {
+            ApplicationSettings settings = new ApplicationSettings();
+            SimpleApplicationSettings simpleAppSettings = new SimpleApplicationSettings();
+            simpleAppSettings.setType(updatedApplication.getType());
+            simpleAppSettings.setClientId(updatedApplication.getClientId());
+            updatedApplication.setSettings(settings);
+        }
+
         return applicationService.update(application, updatedApplication);
     }
 

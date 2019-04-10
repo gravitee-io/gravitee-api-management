@@ -15,7 +15,10 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.*;
+import io.gravitee.management.model.ApplicationEntity;
+import io.gravitee.management.model.NewApplicationEntity;
+import io.gravitee.management.model.UpdateApplicationEntity;
+import io.gravitee.management.model.application.ApplicationListItem;
 
 import java.util.List;
 import java.util.Set;
@@ -29,13 +32,13 @@ public interface ApplicationService {
 
     ApplicationEntity findById(String applicationId);
 
-    Set<ApplicationEntity> findByUser(String username);
+    Set<ApplicationListItem> findByUser(String username);
 
-    Set<ApplicationEntity> findByName(String name);
+    Set<ApplicationListItem> findByName(String name);
 
-    Set<ApplicationEntity> findByGroups(List<String> groupId);
+    Set<ApplicationListItem> findByGroups(List<String> groupId);
 
-    Set<ApplicationEntity> findAll();
+    Set<ApplicationListItem> findAll();
 
     ApplicationEntity create(NewApplicationEntity application, String username);
 

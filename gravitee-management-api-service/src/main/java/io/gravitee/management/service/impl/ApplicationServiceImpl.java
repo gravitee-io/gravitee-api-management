@@ -15,16 +15,19 @@
  */
 package io.gravitee.management.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.application.*;
 import io.gravitee.management.model.notification.GenericNotificationConfigEntity;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
 import io.gravitee.management.service.*;
-import io.gravitee.management.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.management.service.exceptions.ClientIdAlreadyExistsException;
-import io.gravitee.management.service.exceptions.SubscriptionNotClosableException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.configuration.application.ClientRegistrationService;
+import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.management.service.notification.ApplicationHook;
 import io.gravitee.management.service.notification.HookScope;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -36,16 +39,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_ARCHIVED;
-import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
-import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_UPDATED;
+import static io.gravitee.repository.management.model.Application.AuditEvent.*;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonMap;
-
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -81,6 +83,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
 
+    @Autowired
+    private ClientRegistrationService clientRegistrationService;
+
+    @Autowired
+    private ParameterService parameterService;
+
+    private final ObjectMapper mapper = new ObjectMapper();
+
     @Override
     public ApplicationEntity findById(String applicationId) {
         try {
@@ -111,7 +121,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationEntity> findByUser(String username) {
+    public Set<ApplicationListItem> findByUser(String username) {
         try {
             LOGGER.debug("Find applications for user {}", username);
 
@@ -133,7 +143,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 return emptySet();
             }
 
-            return this.convert(applications);
+            return this.convertToList(applications);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for user {}", username, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for user " + username, ex);
@@ -141,7 +151,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationEntity> findByName(String name) {
+    public Set<ApplicationListItem> findByName(String name) {
         LOGGER.debug("Find applications by name {}", name);
         try {
             if (name == null || name.trim().isEmpty()) {
@@ -151,7 +161,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     findByName(name.trim()).stream().
                     filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus())).
                     collect(Collectors.toSet());
-            return convert(applications);
+            return convertToList(applications);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for name {}", name, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for name " + name, ex);
@@ -159,10 +169,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationEntity> findByGroups(List<String> groupIds) {
+    public Set<ApplicationListItem> findByGroups(List<String> groupIds) {
         LOGGER.debug("Find applications by groups {}", groupIds);
         try {
-            return convert(applicationRepository.findByGroups(groupIds, ApplicationStatus.ACTIVE));
+            return convertToList(applicationRepository.findByGroups(groupIds, ApplicationStatus.ACTIVE));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for groups {}", groupIds, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for groups " + groupIds, ex);
@@ -170,7 +180,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationEntity> findAll() {
+    public Set<ApplicationListItem> findAll() {
         try {
             LOGGER.debug("Find all applications");
 
@@ -180,7 +190,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 return emptySet();
             }
 
-            return this.convert(applications);
+            return this.convertToList(applications);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all applications", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all applications", ex);
@@ -192,16 +202,45 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         try {
             LOGGER.debug("Create {} for user {}", newApplicationEntity, userId);
 
-            // If clientId is set, check for uniqueness
-            String clientId = newApplicationEntity.getClientId();
+            // Check that only one settings is defined
+            if (newApplicationEntity.getSettings().getApp() != null && newApplicationEntity.getSettings().getoAuthClient() != null) {
+                throw new InvalidApplicationTypeException();
+            }
 
-            if (clientId != null && ! clientId.trim().isEmpty()) {
-                LOGGER.debug("Check that client_id is unique among all applications");
-                final Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ACTIVE);
-                final boolean alreadyExistingApp = applications.stream().anyMatch(application -> clientId.equals(application.getClientId()));
-                if (alreadyExistingApp) {
-                    LOGGER.error("An application already exists with the same client_id");
-                    throw new ClientIdAlreadyExistsException(clientId);
+            // Check that a type is defined
+            if (newApplicationEntity.getSettings().getApp() == null && newApplicationEntity.getSettings().getoAuthClient() == null) {
+                throw new InvalidApplicationTypeException();
+            }
+
+            // Create application metadata
+            Map<String, String> metadata = new HashMap<>();
+
+            // Create a simple "internal" application
+            if (newApplicationEntity.getSettings().getApp() != null)  {
+                // If clientId is set, check for uniqueness
+                String clientId = newApplicationEntity.getSettings().getApp().getClientId();
+
+                if (clientId != null && ! clientId.trim().isEmpty()) {
+                    LOGGER.debug("Check that client_id is unique among all applications");
+                    final Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ACTIVE);
+                    final boolean alreadyExistingApp = applications.stream().anyMatch(app ->
+                            app.getMetadata() != null && clientId.equals(app.getMetadata().get("client_id")));
+                    if (alreadyExistingApp) {
+                        LOGGER.error("An application already exists with the same client_id");
+                        throw new ClientIdAlreadyExistsException(clientId);
+                    }
+                }
+            }  else {
+                // Check that client registration is enabled
+                checkClientRegistrationEnabled();
+
+                // Create an OAuth client
+                ClientRegistrationResponse registrationResponse = clientRegistrationService.register(newApplicationEntity);
+                try {
+                    metadata.put("client_id", registrationResponse.getClientId());
+                    metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -211,9 +250,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             Application application = convert(newApplicationEntity);
-
             application.setId( UUID.toString(UUID.random()));
             application.setStatus(ApplicationStatus.ACTIVE);
+
+            metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
             // Add Default groups
             Set<String> defaultGroups = groupService.findByEvent(GroupEvent.APPLICATION_CREATE).
@@ -259,7 +299,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 notificationConfigEntity.setConfig(userEntity.getEmail());
                 genericNotificationConfigService.create(notificationConfigEntity);
             }
-            //TODO add membership log
+
             return convert(createdApplication, userEntity);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, userId, ex);
@@ -275,29 +315,65 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 //throw a NotFoundException if the group doesn't exist
                 groupService.findByIds(updateApplicationEntity.getGroups());
             }
+
             Optional<Application> optApplicationToUpdate = applicationRepository.findById(applicationId);
             if (!optApplicationToUpdate.isPresent()) {
                 throw new ApplicationNotFoundException(applicationId);
             }
 
-            // If clientId is set, check for uniqueness
-            String clientId = updateApplicationEntity.getClientId();
+            // Check that only one settings is defined
+            if (updateApplicationEntity.getSettings().getApp() != null && updateApplicationEntity.getSettings().getoAuthClient() != null) {
+                throw new InvalidApplicationTypeException();
+            }
 
-            if (clientId != null && ! clientId.trim().isEmpty()) {
-                LOGGER.debug("Check that client_id is unique among all applications");
-                final Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ACTIVE);
-                final Optional<Application> byClientId = applications.stream().filter(application -> clientId.equals(application.getClientId())).findAny();
-                if (byClientId.isPresent() && !byClientId.get().getId().equals(optApplicationToUpdate.get().getId())) {
-                    LOGGER.error("An application already exists with the same client_id");
-                    throw new ClientIdAlreadyExistsException(clientId);
+            // Check that a type is defined
+            if (updateApplicationEntity.getSettings().getApp() == null && updateApplicationEntity.getSettings().getoAuthClient() == null) {
+                throw new InvalidApplicationTypeException();
+            }
+
+            // Update application metadata
+            Map<String, String> metadata = new HashMap<>();
+
+            // Update a simple application
+            if (optApplicationToUpdate.get().getType() == ApplicationType.SIMPLE &&
+                    updateApplicationEntity.getSettings().getApp() != null) {
+                // If clientId is set, check for uniqueness
+                String clientId = updateApplicationEntity.getSettings().getApp().getClientId();
+
+                if (clientId != null && !clientId.trim().isEmpty()) {
+                    LOGGER.debug("Check that client_id is unique among all applications");
+                    final Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ACTIVE);
+                    final Optional<Application> byClientId = applications.stream().filter(
+                            app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get("client_id"))).findAny();
+                    if (byClientId.isPresent() && !byClientId.get().getId().equals(optApplicationToUpdate.get().getId())) {
+                        LOGGER.error("An application already exists with the same client_id");
+                        throw new ClientIdAlreadyExistsException(clientId);
+                    }
+                }
+            } else {
+                // Check that client registration is enabled
+                checkClientRegistrationEnabled();
+
+                // Update an OAuth client
+                ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
+                        optApplicationToUpdate.get().getMetadata().get("registration_payload"), updateApplicationEntity);
+
+                try {
+                    metadata.put("client_id", registrationResponse.getClientId());
+                    metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
                 }
             }
 
             Application application = convert(updateApplicationEntity);
             application.setId(applicationId);
             application.setStatus(ApplicationStatus.ACTIVE);
+            application.setType(optApplicationToUpdate.get().getType());
             application.setCreatedAt(optApplicationToUpdate.get().getCreatedAt());
             application.setUpdatedAt(new Date());
+
+            metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
             Application updatedApplication =  applicationRepository.update(application);
 
@@ -322,7 +398,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
                     updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
 
-                    subscriptionService.update(updateSubscriptionEntity, application.getClientId());
+                    subscriptionService.update(updateSubscriptionEntity, application.getMetadata().get("client_id"));
                 }
             });
             return convert(Collections.singleton(updatedApplication)).iterator().next();
@@ -330,6 +406,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             LOGGER.error("An error occurs while trying to update application {}", applicationId, ex);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to update application %s", applicationId), ex);
+        }
+    }
+
+    private void checkClientRegistrationEnabled() {
+        if (!parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED)) {
+            throw new IllegalStateException("The client registration is disabled");
         }
     }
 
@@ -422,22 +504,87 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 .collect(Collectors.toSet());
     }
 
+    private Set<ApplicationListItem> convertToList(Set<Application> applications) throws TechnicalException {
+        Set<ApplicationEntity> entities = convert(applications);
+
+        return entities.stream().map(new Function<ApplicationEntity, ApplicationListItem>() {
+            @Override
+            public ApplicationListItem apply(ApplicationEntity applicationEntity) {
+                ApplicationListItem item = new ApplicationListItem();
+
+                item.setId(applicationEntity.getId());
+                item.setName(applicationEntity.getName());
+                item.setDescription(applicationEntity.getDescription());
+                item.setCreatedAt(applicationEntity.getCreatedAt());
+                item.setUpdatedAt(applicationEntity.getUpdatedAt());
+                item.setGroups(applicationEntity.getGroups());
+                item.setPrimaryOwner(applicationEntity.getPrimaryOwner());
+                item.setType(applicationEntity.getType());
+                item.setStatus(applicationEntity.getStatus());
+
+                ApplicationListItemSettings settings = new ApplicationListItemSettings();
+                if (applicationEntity.getSettings().getApp() != null) {
+                    settings.setType(applicationEntity.getSettings().getApp().getType());
+                    settings.setClientId(applicationEntity.getSettings().getApp().getClientId());
+                } else if (applicationEntity.getSettings().getoAuthClient() != null) {
+                    settings.setClientId(applicationEntity.getSettings().getoAuthClient().getClientId());
+                }
+                item.setSettings(settings);
+
+                return item;
+            }
+        }).collect(Collectors.toSet());
+    }
+
     private ApplicationEntity convert(Application application, UserEntity primaryOwner) {
         ApplicationEntity applicationEntity = new ApplicationEntity();
 
         applicationEntity.setId(application.getId());
         applicationEntity.setName(application.getName());
         applicationEntity.setDescription(application.getDescription());
-        applicationEntity.setType(application.getType());
+        applicationEntity.setType(application.getType().name());
         applicationEntity.setStatus(application.getStatus().toString());
         applicationEntity.setGroups(application.getGroups());
         applicationEntity.setCreatedAt(application.getCreatedAt());
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
-        applicationEntity.setClientId(application.getClientId());
 
         if (primaryOwner != null) {
             applicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(primaryOwner));
         }
+
+        ApplicationSettings settings = new ApplicationSettings();
+        if (application.getType() == ApplicationType.SIMPLE) {
+            SimpleApplicationSettings simpleSettings = new SimpleApplicationSettings();
+            if (application.getMetadata() != null) {
+                if (application.getMetadata().get("client_id") != null) {
+                    simpleSettings.setClientId(application.getMetadata().get("client_id"));
+                }
+                if (application.getMetadata().get("type") != null) {
+                    simpleSettings.setType(application.getMetadata().get("type"));
+                }
+            }
+            settings.setApp(simpleSettings);
+        } else {
+            OAuthClientSettings clientSettings = new OAuthClientSettings();
+            if (application.getMetadata() != null) {
+                try {
+                    ClientRegistrationResponse registrationResponse = mapper.readValue(
+                            application.getMetadata().get("registration_payload"), ClientRegistrationResponse.class);
+                    clientSettings.setClientId(registrationResponse.getClientId());
+                    clientSettings.setClientSecret(registrationResponse.getClientSecret());
+                    clientSettings.setClientUri(registrationResponse.getClientUri());
+                    clientSettings.setApplicationType(registrationResponse.getApplicationType());
+                    clientSettings.setLogoUri(registrationResponse.getLogoUri());
+                    clientSettings.setResponseTypes(registrationResponse.getResponseTypes());
+                    clientSettings.setRedirectUris(registrationResponse.getRedirectUris());
+                    clientSettings.setGrantTypes(registrationResponse.getGrantTypes());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            settings.setoAuthClient(clientSettings);
+        }
+        applicationEntity.setSettings(settings);
 
         return applicationEntity;
     }
@@ -448,11 +595,21 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         application.setName(newApplicationEntity.getName().trim());
         application.setDescription(newApplicationEntity.getDescription().trim());
         application.setGroups(newApplicationEntity.getGroups());
-        application.setClientId(newApplicationEntity.getClientId());
 
-        if (newApplicationEntity.getType() != null) {
-            application.setType(newApplicationEntity.getType().trim());
+        Map<String, String> metadata = new HashMap<>();
+        if (newApplicationEntity.getSettings().getApp() != null) {
+            application.setType(ApplicationType.SIMPLE);
+            if (newApplicationEntity.getSettings().getApp().getClientId() != null) {
+                metadata.put("client_id", newApplicationEntity.getSettings().getApp().getClientId());
+            }
+            if (newApplicationEntity.getSettings().getApp().getType() != null) {
+                metadata.put("type", newApplicationEntity.getSettings().getApp().getType());
+            }
+        } else {
+            application.setType(ApplicationType.valueOf(newApplicationEntity.getSettings().getoAuthClient().getApplicationType().toUpperCase()));
         }
+
+        application.setMetadata(metadata);
 
         return application;
     }
@@ -463,13 +620,19 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         application.setName(updateApplicationEntity.getName().trim());
         application.setDescription(updateApplicationEntity.getDescription().trim());
         application.setGroups(updateApplicationEntity.getGroups());
-        application.setClientId(updateApplicationEntity.getClientId());
+        Map<String, String> metadata = new HashMap<>();
 
-        if (updateApplicationEntity.getType() != null) {
-            application.setType(updateApplicationEntity.getType().trim());
+        if (updateApplicationEntity.getSettings().getApp() != null) {
+            if (updateApplicationEntity.getSettings().getApp().getClientId() != null) {
+                metadata.put("client_id", updateApplicationEntity.getSettings().getApp().getClientId());
+            }
+            if (updateApplicationEntity.getSettings().getApp().getType() != null) {
+                metadata.put("type", updateApplicationEntity.getSettings().getApp().getType());
+            }
         }
+
+        application.setMetadata(metadata);
 
         return application;
     }
-
 }

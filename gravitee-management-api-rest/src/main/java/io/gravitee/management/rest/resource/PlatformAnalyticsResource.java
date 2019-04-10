@@ -20,6 +20,7 @@ import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.analytics.Analytics;
 import io.gravitee.management.model.analytics.query.*;
+import io.gravitee.management.model.application.ApplicationListItem;
 import io.gravitee.management.rest.resource.param.Aggregation;
 import io.gravitee.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.management.rest.resource.param.Range;
@@ -93,7 +94,7 @@ public class PlatformAnalyticsResource extends AbstractResource  {
                 ids = applicationService.findByUser(getAuthenticatedUser())
                         .stream()
                         .filter(app -> permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ))
-                        .map(ApplicationEntity::getId)
+                        .map(ApplicationListItem::getId)
                         .collect(Collectors.toList());
             }
 

@@ -110,6 +110,7 @@ public class GraviteeApplication extends ResourceConfig {
 
         register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);
+        register(ConstraintValidationExceptionMapper.class);
         register(UnrecognizedPropertyExceptionMapper.class);
         register(ThrowableMapper.class);
         register(NotFoundExceptionMapper.class);
@@ -129,5 +130,6 @@ public class GraviteeApplication extends ResourceConfig {
         register(SwaggerSerializers.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
+        property(ServerProperties.BV_DISABLE_VALIDATE_ON_EXECUTABLE_OVERRIDE_CHECK, true);
     }
 }

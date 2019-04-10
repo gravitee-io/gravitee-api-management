@@ -436,7 +436,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         ApplicationEntity applicationEntity = new ApplicationEntity();
                         applicationEntity.setId(application.getId());
                         applicationEntity.setName(application.getName());
-                        applicationEntity.setType(application.getType());
+                        //applicationEntity.setType(application.getType());
                         return applicationEntity;
                     })
                     .collect(Collectors.toList());
