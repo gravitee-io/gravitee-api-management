@@ -311,7 +311,6 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             LOGGER.error("Failed to find page by id:", ex);
             throw new TechnicalException("Failed to find page by id", ex);
         }
-
     }
 
     @Override
