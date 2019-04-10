@@ -19,6 +19,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -42,11 +43,11 @@ public class ApplicationMongo extends Auditable {
 
     private String type;
 
-    private Set<String> groups;
-
     private String status;
 
-    private String clientId;
+    private Set<String> groups;
+
+    private Map<String, String> metadata;
 
     public String getId() {
         return id;
@@ -96,12 +97,12 @@ public class ApplicationMongo extends Auditable {
         this.status = status;
     }
 
-    public String getClientId() {
-        return clientId;
+    public Map<String, String> getMetadata() {
+        return metadata;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 
     @Override
