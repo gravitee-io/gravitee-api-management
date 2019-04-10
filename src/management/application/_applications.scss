@@ -1,70 +1,43 @@
-@import '../constants';
+@import '../../constants';
 
-.application-general-container {
-	position: relative;
-	border-radius: 3px;
-	margin-bottom: 30px;
+.application-type-box {
+  border: 1px solid #bdbdbd;
+  background-color: rgb(226, 226, 226);
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  padding: 10px;
+  opacity: 0.3;
+  height: 200px;
+  margin-right: 12px;
+
+  .title {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    margin-top: 10px;
+  }
+
+  .description {
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .icon {
+    height: 70px;
+    margin: 0 auto;
+    padding: 10px 0 0;
+    width: 4em;
+
+    ng-md-icon {
+      top: 0;
+    }
+  }
 }
 
-.application-general-container > h3 {
-	background-color: #F5F5F5;
-	margin: 0px;
-	border-radius: 3px 3px 0px 0px;
-	border-width: 1px 1px 0px;
-	border-style: solid solid none;
-	border-color: #D8D8D8 #D8D8D8;
-	border-image: none;
-	padding: 9px 10px 10px;
-	font-size: 14px;
-	line-height: 17px;
-	display: block;
-}
-
-.application-general-container.dangerzone > h3 {
-	background-color: #DF3E3E;
-	border: 1px solid #A00;
-	color: #FFF;
-}
-
-.application-general-content {
-	padding: 1px 10px;
-	background: #FFF none repeat scroll 0% 0%;
-	border: 1px solid #D8D8D8;
-	border-bottom-left-radius: 3px;
-	border-bottom-right-radius: 3px;
-	color: #666;
-	font-size: 13px;
-}
-
-.gravitee-application-header {
-	height: $graviteeHeader;
-  background: #fff;
-  border-bottom: 1px solid #f1f1f1;
-  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12)
-}
-
-.gravitee-application-header-content-right {
-	color: grey;
-	fill: grey;
-}
-
-.gravitee-application-header-content {
-	color: grey;
-	padding-left: 20px;
-}
-
-.gravitee-application-header-content ng-md-icon {
-	fill: grey;
-}
-
-.gravitee-application-header-image {
-  background: #ffffff url('assets/GRAVITEE_LOGOsstxtclair-05.png') no-repeat center center;
-  background-size: contain;
-  margin-right: 20px;
-  min-width:110px;
-  max-width: 110px;
-  min-height: 110px;
-  max-height: 110px;
-  border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(25,25,34,0.12);
+.application-type-box-selected {
+  opacity: 1;
+  border-color: #187b9c;
+  border-width: 2px;
 }

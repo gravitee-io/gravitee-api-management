@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApplicationService from "../../services/applications.service";
+import ApplicationService from "../../services/application.service";
 import NotificationService from "../../services/notification.service";
-import { StateService } from '@uirouter/core';
+import {ApplicationType} from "../../entities/application";
+import {GrantType} from "../../entities/oauth";
+import {StateService} from '@uirouter/core';
+import _ = require('lodash');
 
 interface IApplicationScope extends ng.IScope {
   formApplication: any;
@@ -26,16 +29,29 @@ const CreateApplicationComponent: ng.IComponentOptions = {
   controller: class {
 
     private application: any;
+    private selectedType: ApplicationType;
+
+    private types = ApplicationType.TYPES;
+    private grantTypes = GrantType.TYPES;
 
     constructor(
       private ApplicationService: ApplicationService,
       private NotificationService: NotificationService,
       private $scope: IApplicationScope,
-      private $state: StateService
+      private $state: StateService,
+      private Constants
     ) {
       'ngInject';
 
       this.application = {};
+    }
+
+    $onInit() {
+      if (this.clientRegistrationEnabled()) {
+        this.selectType(ApplicationType.WEB);
+      } else {
+        this.selectType(ApplicationType.SIMPLE);
+      }
     }
 
     create() {
@@ -45,9 +61,44 @@ const CreateApplicationComponent: ng.IComponentOptions = {
       });
     }
 
+    selectType(applicationType: ApplicationType) {
+      this.selectedType = _.find(this.types, (type) => type.value === applicationType.value);
+
+      if (this.selectedType.oauth) {
+        this.application.settings = {
+          oauth: _.merge({
+            grant_types: this.selectedType.oauth.default_grant_types
+          }, this.selectedType.configuration.oauth)
+        };
+
+        // Update response_types according to the selected grant type
+        this.updateGrantTypes();
+      } else {
+        this.application.settings = {
+          app: {}
+        }
+      }
+    }
+
     reset() {
       this.application = {};
       this.$scope.formApplication.$setPristine();
+    }
+
+    clientRegistrationEnabled() {
+      return this.Constants.application && this.Constants.application.registration && this.Constants.application.registration.enabled;
+    }
+
+    isOAuthClient() {
+      return this.application.settings.oauth && (
+        _.indexOf(this.application.settings.oauth.grant_types, GrantType.AUTHORIZATION_CODE.type) != -1 ||
+        _.indexOf(this.application.settings.oauth.grant_types, GrantType.IMPLICIT.type) != -1);
+    }
+
+    updateGrantTypes() {
+      this.application.settings.oauth.response_types =
+        _.flatMap(this.application.settings.oauth.grant_types,
+          (selected) => _.find(this.grantTypes, (grantType) => grantType.type === selected).response_types);
     }
   }
 };

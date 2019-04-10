@@ -25,11 +25,12 @@ import ApiService from "../../services/api.service";
 import DictionaryService from "../../services/dictionary.service";
 import ApiHeaderService from "../../services/apiHeader.service";
 import IdentityProviderService from "../../services/identityProvider.service";
-import _ = require('lodash');
 import DocumentationService, {DocumentationQuery} from "../../services/documentation.service";
 import FetcherService from "../../services/fetcher.service";
 import {StateParams} from '@uirouter/core';
 import EntrypointService from "../../services/entrypoint.service";
+import ClientRegistrationProviderService from "../../services/clientRegistrationProvider.service";
+import _ = require('lodash');
 
 export default configurationRouterConfig;
 
@@ -704,5 +705,56 @@ function configurationRouterConfig($stateProvider) {
           only: ['portal-settings-r']
         }
       }
-    });
+    })
+    .state('management.settings.clientregistrationproviders', {
+      abstract: true,
+      url: '/client-registration'
+    })
+    .state('management.settings.clientregistrationproviders.list', {
+      url: '/',
+      component: 'clientRegistrationProviders',
+      resolve: {
+        clientRegistrationProviders: (ClientRegistrationProviderService: ClientRegistrationProviderService) =>
+          ClientRegistrationProviderService.list().then(response => response)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-client-registration-providers'
+        },
+        perms: {
+          only: ['portal-client_registration_provider-r']
+        }
+      }
+    })
+    .state('management.settings.clientregistrationproviders.create', {
+      url: '/new',
+      component: 'clientRegistrationProvider',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-client-registration-provider'
+        },
+        perms: {
+          only: ['portal-client_registration_provider-c']
+        }
+      }
+    })
+    .state('management.settings.clientregistrationproviders.clientregistrationprovider', {
+      url: '/:id',
+      component: 'clientRegistrationProvider',
+      resolve: {
+        clientRegistrationProvider: (ClientRegistrationProviderService: ClientRegistrationProviderService, $stateParams) =>
+          ClientRegistrationProviderService.get($stateParams.id).then(response => response),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-client-registration-provider'
+        },
+        perms: {
+          only: ['portal-client_registration_provider-r', 'portal-client_registration_provider-u', 'portal-client_registration_provider-d']
+        }
+      }
+    })
 }

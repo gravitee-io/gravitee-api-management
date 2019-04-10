@@ -364,6 +364,12 @@ import DeleteEntrypointDialogController from './configuration/entrypoint/delete.
 
 import MoveToFolderDialogController from "./components/documentation/movetofolder.controller";
 
+// Settings - Client Registration
+import ClientRegistrationProviderService from '../services/clientRegistrationProvider.service';
+import ClientRegistrationProvidersComponent from '../management/configuration/application/registration/client-registration-providers.component';
+import ClientRegistrationProviderComponent from '../management/configuration/application/registration/client-registration-provider.component';
+import ClientRegistrationProviderController from '../management/configuration/application/registration/client-registration-provider.controller';
+
 (<any>window).jQuery = jQuery;
 
 import angular = require('angular');
@@ -777,6 +783,12 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvIdentityproviderOidc', IdentityProviderOIDCComponent)
   .controller("IdentityProviderController", IdentityProviderController)
   .service('IdentityProviderService', IdentityProviderService)
+
+  // Settings: Client Registration
+  .component('clientRegistrationProviders', ClientRegistrationProvidersComponent)
+  .component('clientRegistrationProvider', ClientRegistrationProviderComponent)
+  .controller('ClientRegistrationProviderController', ClientRegistrationProviderController)
+  .service('ClientRegistrationProviderService', ClientRegistrationProviderService)
 
   // Alerts
   .service('AlertService', AlertService)

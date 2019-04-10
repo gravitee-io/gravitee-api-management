@@ -100,7 +100,7 @@ class UserService {
 
       const applicationRegex = /applications\/([\w|\-]+)/;
       let applicationId = applicationRegex.exec(this.$location.$$path);
-      if (!that.isLogout && applicationId) {
+      if (!that.isLogout && applicationId && applicationId[1] !== 'create') {
         promises.push(this.ApplicationService.getPermissions(applicationId[1]));
       }
 

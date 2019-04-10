@@ -18,7 +18,9 @@ import * as _ from 'lodash';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import SidenavService from '../../../../components/sidenav/sidenav.service';
-import { StateService } from '@uirouter/core';
+import {StateService} from '@uirouter/core';
+import {ApplicationType} from "../../../../entities/application";
+import {GrantType} from "../../../../entities/oauth";
 
 interface IApplicationScope extends ng.IScope {
   formApplication: any;
@@ -28,6 +30,8 @@ class ApplicationGeneralController {
 
   private application: any;
   private initialApplication: any;
+  private grantTypes = GrantType.TYPES;
+  private applicationType: ApplicationType;
 
   constructor(
     private ApplicationService: ApplicationService,
@@ -45,6 +49,7 @@ class ApplicationGeneralController {
       this.application.groups = [];
     }
     this.initialApplication = _.cloneDeep(this.application);
+    this.applicationType = ApplicationType[this.application.type];
   }
 
   update() {
@@ -70,6 +75,10 @@ class ApplicationGeneralController {
     this.$scope.formApplication.$setPristine();
   }
 
+  isOAuthClient() {
+    return this.application.type !== ApplicationType.SIMPLE.value;
+  }
+
   showDeleteApplicationConfirm(ev) {
     ev.stopPropagation();
     let that = this;
@@ -88,6 +97,22 @@ class ApplicationGeneralController {
         that.delete();
       }
     });
+  }
+
+  updateGrantTypes() {
+    this.application.settings.oauth.response_types =
+      _.flatMap(this.application.settings.oauth.grant_types,
+        (selected) => _.find(this.grantTypes, (grantType) => grantType.type === selected).response_types);
+  }
+
+  onCopyClientIdSuccess(e) {
+    this.NotificationService.show('ClientId has been copied to clipboard');
+    e.clearSelection();
+  }
+
+  onCopyClientSecretSuccess(e) {
+    this.NotificationService.show('ClientSecret has been copied to clipboard');
+    e.clearSelection();
   }
 }
 

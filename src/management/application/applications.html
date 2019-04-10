@@ -47,7 +47,7 @@
                   ng-repeat="application in $ctrl.applicationsToDisplay track by application.id">
                 <td md-cell nowrap><div style="min-width: 70px" class="api-box-icon default"></div></td>
                 <td md-cell>{{application.name}}</td>
-                <td md-cell nowrap>{{application.type}}</td>
+                <td md-cell nowrap>{{application.type | lowercase}}</td>
                 <td md-cell nowrap>
               <span>
                 {{application.owner.displayName}}
@@ -73,7 +73,7 @@
 
 <div permission permission-only="'portal-application-c'" ng-style="$ctrl.applications.length == 0 && {'text-align':'center'}">
   <md-button ng-class="{'md-fab-bottom-right': $ctrl.applications.length > 0}" class="md-fab"
-             aria-label="Create application" ui-sref="management.applications.new">
+             aria-label="Create New Application" ui-sref="management.applications.create">
     <ng-md-icon icon="add"></ng-md-icon>
   </md-button>
 </div>

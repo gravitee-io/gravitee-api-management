@@ -48,8 +48,8 @@ function applicationsConfig($stateProvider) {
         applications: (ApplicationService: ApplicationService) => ApplicationService.list().then(response => response.data)
       }
     })
-    .state('management.applications.new', {
-      url: '/new',
+    .state('management.applications.create', {
+      url: '/create',
       component: 'createApplication',
       data: {
         perms: {

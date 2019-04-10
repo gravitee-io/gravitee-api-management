@@ -16,6 +16,7 @@
 import ApiService from "../../../services/api.service";
 import NotificationService from "../../../services/notification.service";
 import * as _ from "lodash";
+import ApplicationService from "../../../services/application.service";
 
 const ApiSubscribeComponent: ng.IComponentOptions = {
   bindings: {
@@ -95,7 +96,9 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
         && this.selectedApp
         && !this.subscription
         && (
-          (('oauth2' === this.selectedPlan.security || 'jwt' === this.selectedPlan.security) && this.selectedApp.clientId)
+          (
+            ('oauth2' === this.selectedPlan.security || 'jwt' === this.selectedPlan.security)
+            && (this.selectedApp.settings && this.selectedApp.settings.client_id))
           || (this.selectedPlan.security === 'api_key')
         );
     }

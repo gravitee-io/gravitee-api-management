@@ -90,9 +90,8 @@ class ApplicationService {
       {
         'name': application.name,
         'description': application.description,
-        'type': application.type,
-        'clientId': application.clientId,
-        'groups': application.groups
+        'groups': application.groups,
+        'settings': application.settings
       }
     );
   }

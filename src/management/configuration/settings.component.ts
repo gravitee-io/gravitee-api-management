@@ -42,6 +42,11 @@ const SettingsComponent: ng.IComponentOptions = {
           ['portal-api_header-c', 'portal-api_header-r', 'portal-api_header-u', 'portal-api_header-d']),
         goTo: 'management.settings.apiPortalHeader'
       },
+      clientRegistration: {
+        perm: UserService.isUserHasPermissions(
+          ['portal-client_registration_provider-c', 'portal-client_registration_provider-r', 'portal-client_registration_provider-u', 'portal-client_registration_provider-d']),
+        goTo: 'management.settings.clientregistrationproviders.list'
+      },
       identityProviders: {
         perm: UserService.isUserHasPermissions(
           ['portal-identity_provider-c', 'portal-identity_provider-r', 'portal-identity_provider-u', 'portal-identity_provider-d']),
