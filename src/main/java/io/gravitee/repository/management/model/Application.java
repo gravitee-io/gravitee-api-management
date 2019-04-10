@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -44,11 +45,6 @@ public class Application {
     private String description;
 
     /**
-     * The application type.
-     */
-    private String type;
-
-    /**
      * The team creation date
      */
     private Date createdAt;
@@ -65,10 +61,9 @@ public class Application {
 
     private ApplicationStatus status;
 
-    /**
-     * The client_id.
-     */
-    private String clientId;
+    private ApplicationType type;
+
+    private Map<String, String> metadata;
 
     public Application(){}
 
@@ -76,12 +71,10 @@ public class Application {
         this.id = cloned.id;
         this.name = cloned.name;
         this.description = cloned.description;
-        this.type = cloned.type;
         this.createdAt = cloned.createdAt;
         this.updatedAt = cloned.updatedAt;
         this.groups = cloned.groups;
         this.status = cloned.status;
-        this.clientId = cloned.clientId;
     }
 
     public Date getCreatedAt() {
@@ -106,14 +99,6 @@ public class Application {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public Date getUpdatedAt() {
@@ -148,12 +133,20 @@ public class Application {
         this.status = status;
     }
 
-    public String getClientId() {
-        return clientId;
+    public ApplicationType getType() {
+        return type;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public void setType(ApplicationType type) {
+        this.type = type;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 
     @Override
@@ -175,11 +168,9 @@ public class Application {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", type='" + type + '\'' +
                 ", groups='" + groups + '\'' +
                 ", status='" + status + '\'' +
-                ", clientId='" + clientId + '\'' +
-                ", createdAt=" + createdAt +
+                ", createdAt=" + createdAt + '\'' +
                 ", updatedAt=" + updatedAt +
                 '}';
     }

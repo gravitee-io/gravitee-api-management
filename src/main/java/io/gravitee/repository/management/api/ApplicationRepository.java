@@ -20,7 +20,6 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -58,12 +57,4 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @throws TechnicalException
      */
     Set<Application> findByName(String partialName) throws TechnicalException;
-
-    /**
-     * find an application by its client_id
-     * @param clientId
-     * @return applications
-     * @throws TechnicalException
-     */
-    Optional<Application> findByClientId(String clientId) throws TechnicalException;
 }
