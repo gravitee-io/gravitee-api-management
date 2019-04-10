@@ -18,12 +18,10 @@ package io.gravitee.repository;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
@@ -67,7 +65,10 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         application.setId(name);
         application.setName(name);
         application.setDescription("Application description");
-        application.setType("type");
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("type", "app-type");
+        application.setMetadata(metadata);
+        application.setType(ApplicationType.SIMPLE);
         application.setStatus(ApplicationStatus.ACTIVE);
         application.setCreatedAt(parse("11/02/2016"));
         application.setUpdatedAt(parse("12/02/2016"));
@@ -83,10 +84,10 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals("Invalid application name.", application.getName(), appSaved.getName());
         assertEquals("Invalid application description.", application.getDescription(), appSaved.getDescription());
-        assertEquals("Invalid application type.", application.getType(), appSaved.getType());
         assertEquals("Invalid application status.", application.getStatus(), appSaved.getStatus());
         assertEquals("Invalid application createdAt.", application.getCreatedAt(), appSaved.getCreatedAt());
         assertEquals("Invalid application updateAt.", application.getUpdatedAt(), appSaved.getUpdatedAt());
+        assertEquals("Invalid application metadata.", application.getMetadata().get("type"), application.getMetadata().get("type"));
     }
 
     @Test
@@ -97,8 +98,11 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         application.setId(applicationName);
         application.setName(applicationName);
         application.setDescription("Updated description");
-        application.setType("update-type");
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("type", "update-type");
+        application.setMetadata(metadata);
         application.setStatus(ApplicationStatus.ARCHIVED);
+        application.setType(ApplicationType.SIMPLE);
         application.setCreatedAt(parse("11/02/2016"));
         application.setUpdatedAt(parse("22/02/2016"));
 
@@ -111,10 +115,10 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals("Invalid updated application name.", application.getName(), appUpdated.getName());
         assertEquals("Invalid updated application description.", application.getDescription(), appUpdated.getDescription());
-        assertEquals("Invalid updated application type.", application.getType(), appUpdated.getType());
         assertEquals("Invalid updated application status.", application.getStatus(), appUpdated.getStatus());
         assertEquals("Invalid updated application createdAt.", application.getCreatedAt(), appUpdated.getCreatedAt());
         assertEquals("Invalid updated application updateAt.", application.getUpdatedAt(), appUpdated.getUpdatedAt());
+        assertEquals("Invalid application metadata.", application.getMetadata().get("type"), application.getMetadata().get("type"));
     }
 
     @Test
@@ -135,6 +139,9 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
     public void findByIdTest() throws Exception {
         Optional<Application> optional = applicationRepository.findById("application-sample");
         assertTrue("Find application by name return no result ", optional.isPresent());
+
+        assertNotNull(optional.get().getMetadata());
+        assertEquals(2, optional.get().getMetadata().size());
     }
 
     @Test
@@ -196,23 +203,6 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(apps);
         assertEquals(1, apps.size());
         assertEquals("grouped-app2", apps.iterator().next().getId());
-    }
-
-    @Test
-    public void shouldFindByClientId() throws Exception {
-        Optional<Application> application = applicationRepository.findByClientId("my-client-id");
-
-        assertNotNull(application);
-        assertTrue(application.isPresent());
-        assertEquals("app-with-client-id", application.get().getId());
-    }
-
-    @Test
-    public void shouldNotFindByClientId() throws Exception {
-        Optional<Application> application = applicationRepository.findByClientId("unknown-client-id");
-
-        assertNotNull(application);
-        assertFalse(application.isPresent());
     }
 
     @Test

@@ -18,9 +18,11 @@ package io.gravitee.repository.config.mock;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
 
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Optional;
+import java.util.Map;
 import java.util.Set;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
@@ -47,6 +49,11 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
     void prepare(ApplicationRepository applicationRepository) throws Exception {
         final Application application = mock(Application.class);
         when(application.getId()).thenReturn("application-sample");
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("client_id", "my-client-id");
+        metadata.put("type", "Web");
+        when(application.getMetadata()).thenReturn(metadata);
         when(applicationRepository.findById("application-sample")).thenReturn(of(application));
 
         final Set<Application> allApplications = newSet(
@@ -66,10 +73,13 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         final Application newApplication = mock(Application.class);
         when(newApplication.getName()).thenReturn("created-app");
         when(newApplication.getDescription()).thenReturn("Application description");
-        when(newApplication.getType()).thenReturn("type");
         when(newApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(newApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(newApplication.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(newApplication.getUpdatedAt()).thenReturn(parse("12/02/2016"));
+        Map<String, String> createMetadata = new HashMap<>();
+        createMetadata.put("type", "app-type");
+        when(newApplication.getMetadata()).thenReturn(createMetadata);
 
         when(applicationRepository.findById("created-app")).thenReturn(of(newApplication));
 
@@ -77,10 +87,13 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         when(updatedApplication.getId()).thenReturn("updated-app");
         when(updatedApplication.getName()).thenReturn("updated-app");
         when(updatedApplication.getDescription()).thenReturn("Updated description");
-        when(updatedApplication.getType()).thenReturn("update-type");
         when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);
+        when(updatedApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(updatedApplication.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(updatedApplication.getUpdatedAt()).thenReturn(parse("22/02/2016"));
+        Map<String, String> updateMetadata = new HashMap<>();
+        updateMetadata.put("type", "update-type");
+        when(updatedApplication.getMetadata()).thenReturn(updateMetadata);
 
         when(applicationRepository.findById("updated-app")).thenReturn(of(updatedApplication));
 
@@ -116,12 +129,5 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
                 thenReturn(new HashSet<>(asList(application, updatedApplication)));
 
         when(applicationRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
-
-
-        final Application applicationWithClientId = mock(Application.class);
-        when(applicationWithClientId.getId()).thenReturn("app-with-client-id");
-        when(applicationWithClientId.getClientId()).thenReturn("my-client-id");
-        when(applicationRepository.findByClientId("my-client-id")).thenReturn(of(applicationWithClientId));
-        when(applicationRepository.findByClientId("unknown-client-id")).thenReturn(Optional.empty());
     }
 }

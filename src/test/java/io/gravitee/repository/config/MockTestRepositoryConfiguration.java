@@ -172,4 +172,9 @@ public class MockTestRepositoryConfiguration {
     public InvitationRepositoryMock invitationRepositoryMock() throws Exception {
         return new InvitationRepositoryMock();
     }
+
+    @Bean
+    public ClientRegistrationProviderRepositoryMock clientRegistrationProviderRepositoryMock() throws Exception {
+        return new ClientRegistrationProviderRepositoryMock();
+    }
 }
