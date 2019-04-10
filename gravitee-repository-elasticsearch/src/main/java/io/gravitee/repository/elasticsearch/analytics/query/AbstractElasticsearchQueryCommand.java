@@ -82,12 +82,27 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 	 * @return the elasticsearch json query
 	 */
 	String createQuery(final String templateName, final Query<T> query) {
+		return this.createQuery(templateName, query, null, null);
+	}
+
+	/**
+	 * Create the elasticsearch query
+	 * @param templateName Freemarker template name
+	 * @param query query parameter
+	 * @param roundedFrom from parameter
+	 * @param roundedTo to parameter
+	 * @return the elasticsearch json query
+	 */
+	String createQuery(final String templateName, final Query<T> query, Long roundedFrom, Long roundedTo ) {
 		final Map<String, Object> data = new HashMap<>();
 		data.put("query", query);
+		if (roundedFrom !=null) {data.put("roundedFrom", roundedFrom);}
+		if (roundedTo !=null) {data.put("roundedTo", roundedTo);}
+
 		final String request = this.freeMarkerComponent.generateFromTemplate(templateName, data);
-		
+
 		logger.debug("ES request {}", request);
-		
+
 		return request;
 	}
 

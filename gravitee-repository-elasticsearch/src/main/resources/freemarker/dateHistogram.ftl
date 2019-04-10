@@ -20,8 +20,8 @@
         {
           "range": {
             "@timestamp": {
-              "from": ${query.timeRange().range().from()},
-              "to": ${query.timeRange().range().to()},
+              "from": ${roundedFrom},
+              "to": ${roundedTo},
               "include_lower": true,
               "include_upper": true
             }
@@ -37,8 +37,8 @@
         "interval": "${query.timeRange().interval().toMillis()}ms",
         "min_doc_count": 0,
         "extended_bounds": {
-          "min": ${query.timeRange().range().from()},
-          "max": ${query.timeRange().range().to()}
+          "min": ${roundedFrom},
+          "max": ${roundedTo}
         }
       }
 <#if query.aggregations()?has_content>
