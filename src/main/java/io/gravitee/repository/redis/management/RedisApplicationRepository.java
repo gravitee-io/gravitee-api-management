@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.redis.management.internal.ApplicationRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApplication;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,12 +87,6 @@ public class RedisApplicationRepository implements ApplicationRepository {
     }
 
     @Override
-    public Optional<Application> findByClientId(String clientId) throws TechnicalException {
-        RedisApplication redisApplication = this.applicationRedisRepository.findByClientId(clientId);
-        return Optional.ofNullable(convert(redisApplication));
-    }
-
-    @Override
     public Optional<Application> findById(String applicationId) throws TechnicalException {
         RedisApplication redisApplication = this.applicationRedisRepository.find(applicationId);
         return Optional.ofNullable(convert(redisApplication));
@@ -118,8 +113,8 @@ public class RedisApplicationRepository implements ApplicationRepository {
         redisApplication.setDescription(application.getDescription());
         redisApplication.setCreatedAt(application.getCreatedAt().getTime());
         redisApplication.setUpdatedAt(application.getUpdatedAt().getTime());
-        redisApplication.setType(application.getType());
         redisApplication.setGroups(application.getGroups());
+        redisApplication.setMetadata(application.getMetadata());
         redisApplication.setStatus(application.getStatus().toString());
 
         applicationRedisRepository.saveOrUpdate(redisApplication);
@@ -142,9 +137,9 @@ public class RedisApplicationRepository implements ApplicationRepository {
         application.setName(redisApplication.getName());
         application.setCreatedAt(new Date(redisApplication.getCreatedAt()));
         application.setUpdatedAt(new Date(redisApplication.getUpdatedAt()));
-        application.setClientId(redisApplication.getClientId());
         application.setDescription(redisApplication.getDescription());
-        application.setType(redisApplication.getType());
+        application.setType(ApplicationType.valueOf(redisApplication.getType()));
+        application.setMetadata(redisApplication.getMetadata());
         application.setGroups(redisApplication.getGroups());
         application.setStatus(ApplicationStatus.valueOf(redisApplication.getStatus()));
 
@@ -156,11 +151,11 @@ public class RedisApplicationRepository implements ApplicationRepository {
 
         redisApplication.setId(application.getId());
         redisApplication.setName(application.getName());
-        redisApplication.setClientId(application.getClientId());
         redisApplication.setCreatedAt(application.getCreatedAt().getTime());
         redisApplication.setUpdatedAt(application.getUpdatedAt().getTime());
         redisApplication.setDescription(application.getDescription());
-        redisApplication.setType(application.getType());
+        redisApplication.setType(application.getType().toString());
+        redisApplication.setMetadata(application.getMetadata());
         redisApplication.setGroups(application.getGroups());
         redisApplication.setStatus(application.getStatus().toString());
 

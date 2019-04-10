@@ -83,10 +83,6 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
             }
         }
 
-        if (application.getClientId() != null) {
-            redisTemplate.opsForSet().add(REDIS_KEY + ":client_id:" + application.getClientId(), application.getId());
-        }
-
         redisTemplate.opsForSet().add(REDIS_KEY + ":search-by:name:" + application.getName().toUpperCase(), application.getId());
 
         return application;
@@ -139,16 +135,6 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
     }
 
     @Override
-    public RedisApplication findByClientId(String clientId) {
-        Set<Object> members = redisTemplate.opsForSet().members(REDIS_KEY + ":client_id:" + clientId);
-        if (members.isEmpty()) {
-            return null;
-        }
-
-        return find((String) members.iterator().next());
-    }
-
-    @Override
     public void delete(String applicationId) {
         RedisApplication redisApplication = find(applicationId);
         redisTemplate.opsForHash().delete(REDIS_KEY, applicationId);
@@ -158,7 +144,6 @@ public class ApplicationRedisRepositoryImpl extends AbstractRedisRepository impl
             }
         }
         redisTemplate.opsForSet().remove(REDIS_KEY + ":search-by:name:" + redisApplication.getName().toUpperCase(), applicationId);
-        redisTemplate.opsForSet().remove(REDIS_KEY + ":client_id:" + redisApplication.getClientId(), applicationId);
     }
 
 }

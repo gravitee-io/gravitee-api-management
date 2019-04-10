@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.redis.management.model;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -28,11 +29,10 @@ public class RedisApplication {
     private String id;
     private String name;
     private String description;
-    private String type;
     private Set<String> groups;
     private String status;
-    private String clientId;
-
+    private String type;
+    private Map<String, String> metadata;
     private long createdAt;
     private long updatedAt;
 
@@ -68,14 +68,6 @@ public class RedisApplication {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public Set<String> getGroups() {
         return groups;
     }
@@ -100,12 +92,20 @@ public class RedisApplication {
         this.status = status;
     }
 
-    public String getClientId() {
-        return clientId;
+    public String getType() {
+        return type;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
     }
 
     @Override

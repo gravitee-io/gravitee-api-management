@@ -15,31 +15,21 @@
  */
 package io.gravitee.repository.redis.management.internal;
 
-import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.repository.redis.management.model.RedisApplication;
+import io.gravitee.repository.redis.management.model.RedisClientRegistrationProvider;
 
-import java.util.List;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApplicationRedisRepository {
+public interface ClientRegistrationProviderRedisRepository {
 
-    RedisApplication find(String application);
+    Set<RedisClientRegistrationProvider> findAll();
 
-    Set<RedisApplication> find(List<String> applications);
+    RedisClientRegistrationProvider findById(String clientRegistrationProviderId);
 
-    Set<RedisApplication> findAll(ApplicationStatus ... statuses);
+    RedisClientRegistrationProvider saveOrUpdate(RedisClientRegistrationProvider clientRegistrationProvider);
 
-    Set<RedisApplication> findByGroups(List<String> groupIds, ApplicationStatus ... statuses);
-
-    Set<RedisApplication> findByName(String partialName);
-
-    RedisApplication saveOrUpdate(RedisApplication application);
-
-    void delete(String application);
-
+    void delete(String clientRegistrationProviderId);
 }
