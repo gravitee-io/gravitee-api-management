@@ -39,11 +39,17 @@ public class ManagementRepositoryProbe implements Probe {
 
     @Override
     public CompletableFuture<Result> check() {
-        // Search for an event to check repository connection
         try {
-            eventRepository.search(new EventCriteria.Builder()
-                    .from(System.currentTimeMillis()).to(System.currentTimeMillis()).build());
-            return CompletableFuture.completedFuture(Result.healthy());
+            // Search for an event to check repository connection
+            return CompletableFuture.supplyAsync(() -> {
+                try {
+                    eventRepository.search(new EventCriteria.Builder()
+                            .from(System.currentTimeMillis()).to(System.currentTimeMillis()).build());
+                    return Result.healthy();
+                } catch (Exception ex) {
+                    return Result.unhealthy(ex);
+                }
+            });
         } catch (Exception ex) {
             return CompletableFuture.completedFuture(Result.unhealthy(ex));
         }
