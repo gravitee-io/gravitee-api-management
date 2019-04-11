@@ -24,8 +24,8 @@ import java.util.Objects;
  */
 public class Metadata {
 
-    public enum AuditEvent implements Audit.AuditEvent {
-       METADATA_DELETED, METADATA_CREATED, METADATA_UPDATED
+    public enum AuditEvent implements Audit.ApiAuditEvent {
+        METADATA_DELETED, METADATA_CREATED, METADATA_UPDATED
     }
 
     private String key;
