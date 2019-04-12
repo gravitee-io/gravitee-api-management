@@ -40,6 +40,7 @@ public class UserMongo extends Auditable {
     private String picture;
     private String source;
     private String sourceId;
+    private String status;
     private Date lastConnectionAt;
 
     public String getId() {
@@ -104,6 +105,14 @@ public class UserMongo extends Auditable {
 
     public void setSourceId(String sourceId) {
         this.sourceId = sourceId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public Date getLastConnectionAt() {
