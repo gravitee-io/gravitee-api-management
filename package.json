@@ -1,6 +1,6 @@
 {
   "name": "gravitee-management-webui",
-  "version": "1.28.0",
+  "version": "1.29.0-SNAPSHOT",
   "description": "Gravitee.io APIM - Portal",
   "dependencies": {
     "amdefine": "^1.0.1",
@@ -36,7 +36,7 @@
     "dragular": "^4.5.0",
     "highcharts": "^6.1.1",
     "@highcharts/map-collection": "^1.1.2",
-    "jquery": "^3.3.1",
+    "jquery": "^3.4.0",
     "js-yaml": "^3.12.0",
     "karma-jasmine": "^1.1.2",
     "marked": "^0.7.0",
