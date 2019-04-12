@@ -27,6 +27,8 @@ import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.Upgrader;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.search.SearchEngineService;
+import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.model.UserStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
@@ -76,7 +78,9 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         });
 
         // Index users
-        Page<UserEntity> users = userService.search(null, new PageableImpl(1, Integer.MAX_VALUE));
+        Page<UserEntity> users = userService.search(
+                new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
+                new PageableImpl(1, Integer.MAX_VALUE));
         users.getContent().forEach(userEntity ->
                 searchEngineService.index(userEntity)
         );

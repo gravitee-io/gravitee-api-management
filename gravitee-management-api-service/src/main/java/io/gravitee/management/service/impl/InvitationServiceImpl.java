@@ -30,9 +30,11 @@ import io.gravitee.management.service.exceptions.MemberEmailAlreadyExistsExcepti
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.Invitation;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.repository.management.model.UserStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +83,9 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
         }
         try {
             // First check if user exists
-            final Page<UserEntity> pageUser = userService.search(invitation.getEmail(), new PageableImpl(1, 2));
+            final Page<UserEntity> pageUser = userService.search(
+                    invitation.getEmail(),
+                    new PageableImpl(1, 2));
             if (pageUser.getTotalElements() == 1) {
                 final Set<MemberEntity> members = membershipService.getMembers(
                         MembershipReferenceType.valueOf(invitation.getReferenceType().name()), invitation.getReferenceId(), API);
