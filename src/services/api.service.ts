@@ -512,7 +512,7 @@ class ApiService {
     // that's why we have to count it twice to detect non uniqueness
     return _.filter(endpointsName, (endpointName) => name === endpointName).length > (onCreate ? 0 : 1);
   }
-  
+
   getTagEntrypoints(api, entrypoints) {
     if (!api.tags || api.tags.length === 0) {
       return [this.Constants.portal.entrypoint];
