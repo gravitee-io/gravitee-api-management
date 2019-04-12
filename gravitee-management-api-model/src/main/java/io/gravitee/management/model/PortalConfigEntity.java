@@ -884,6 +884,7 @@ public class PortalConfigEntity {
         public class Audit {
             @ParameterKey(Key.LOGGING_AUDIT_ENABLED)
             private Boolean enabled;
+            private AuditTrail trail = new AuditTrail();
 
             public Boolean getEnabled() {
                 return enabled;
@@ -891,6 +892,27 @@ public class PortalConfigEntity {
 
             public void setEnabled(Boolean enabled) {
                 this.enabled = enabled;
+            }
+
+            public AuditTrail getTrail() {
+                return trail;
+            }
+
+            public void setTrail(AuditTrail trail) {
+                this.trail = trail;
+            }
+
+            public class AuditTrail {
+                @ParameterKey(Key.LOGGING_AUDIT_TRAIL_ENABLED)
+                private Boolean enabled;
+
+                public Boolean getEnabled() {
+                    return enabled;
+                }
+
+                public void setEnabled(Boolean enabled) {
+                    this.enabled = enabled;
+                }
             }
         }
 

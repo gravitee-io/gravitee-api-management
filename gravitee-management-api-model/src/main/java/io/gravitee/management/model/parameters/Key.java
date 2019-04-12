@@ -85,6 +85,7 @@ public enum Key {
 
     LOGGING_DEFAULT_MAX_DURATION("logging.default.max.duration", "0"),
     LOGGING_AUDIT_ENABLED("logging.audit.enabled", "false"),
+    LOGGING_AUDIT_TRAIL_ENABLED("logging.audit.trail.enabled", "false"),
     LOGGING_USER_DISPLAYED("logging.user.displayed", "false"),
 
     ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000"),

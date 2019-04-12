@@ -661,8 +661,14 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
                         apiToUpdate,
                         updatedApi);
 
+                if (parameterService.findAsBoolean(Key.LOGGING_AUDIT_TRAIL_ENABLED)) {
+                    // Audit API logging if option is enabled
+                    auditApiLogging(apiToUpdate, updatedApi);
+                }
+
                 ApiEntity apiEntity = convert(singletonList(updatedApi)).iterator().next();
                 searchEngineService.index(apiEntity);
+
                 return apiEntity;
             } else {
                 LOGGER.error("Unable to update API {} because of previous error.", api.getId());
@@ -1372,6 +1378,48 @@ public class ApiServiceImpl extends TransactionalService implements ApiService {
             return apiEntity;
         } else {
             throw new ApiNotFoundException(apiId);
+        }
+    }
+
+    private void auditApiLogging(Api apiToUpdate, Api apiUpdated) {
+        try {
+            // get old logging configuration
+            io.gravitee.definition.model.Api apiToUpdateDefinition = objectMapper.readValue(apiToUpdate.getDefinition(), io.gravitee.definition.model.Api.class);
+            Logging loggingToUpdate = apiToUpdateDefinition.getProxy().getLogging();
+
+            // get new logging configuration
+            io.gravitee.definition.model.Api apiUpdatedDefinition = objectMapper.readValue(apiUpdated.getDefinition(), io.gravitee.definition.model.Api.class);
+            Logging loggingUpdated = apiUpdatedDefinition.getProxy().getLogging();
+
+            // no changes for logging configuration, continue
+            if (loggingToUpdate == loggingUpdated ||
+                    (loggingToUpdate != null && loggingUpdated != null
+                            && Objects.equals(loggingToUpdate.getMode(), loggingUpdated.getMode())
+                            &&  Objects.equals(loggingToUpdate.getCondition(), loggingUpdated.getCondition()))) {
+                return;
+            }
+
+            // determine the audit event type
+            Api.AuditEvent auditEvent;
+            if ((loggingToUpdate == null || loggingToUpdate.getMode().equals(LoggingMode.NONE)) && (!loggingUpdated.getMode().equals(LoggingMode.NONE))) {
+                auditEvent = Api.AuditEvent.API_LOGGING_ENABLED;
+            } else if ((loggingToUpdate != null && !loggingToUpdate.getMode().equals(LoggingMode.NONE)) && (loggingUpdated.getMode().equals(LoggingMode.NONE))) {
+                auditEvent = Api.AuditEvent.API_LOGGING_DISABLED;
+            } else {
+                auditEvent = Api.AuditEvent.API_LOGGING_UPDATED;
+            }
+
+            // Audit
+            auditService.createApiAuditLog(
+                    apiUpdated.getId(),
+                    Collections.emptyMap(),
+                    auditEvent,
+                    new Date(),
+                    loggingToUpdate,
+                    loggingUpdated);
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while auditing API logging configuration for API: {}", apiUpdated.getId(), ex);
+            throw new TechnicalManagementException("An error occurs while auditing API logging configuration for API: " + apiUpdated.getId(), ex);
         }
     }
 

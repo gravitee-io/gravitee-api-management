@@ -60,9 +60,9 @@ public interface ApiService {
      * @return
      */
     boolean isSynchronized(String apiId);
-    
+
     ApiEntity deploy(String apiId, String userId, EventType eventType);
-    
+
     ApiEntity rollback(String apiId, UpdateApiEntity api);
 
     String exportAsJson(String apiId, String exportVersion, String... filteredFields);
