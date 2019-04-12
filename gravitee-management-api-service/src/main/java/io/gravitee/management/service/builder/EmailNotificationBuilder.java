@@ -95,6 +95,7 @@ public class EmailNotificationBuilder {
         TRANSFER_SUBSCRIPTION("subscriptionTransferred.html"),
         USER_REGISTRATION("userRegistration.html"),
         USER_REGISTERED("userRegistered.html"),
+        USER_CREATED("userCreated.html"),
         APPLICATION_MEMBER_SUBSCRIPTION("applicationMember.html"),
         API_MEMBER_SUBSCRIPTION("apiMember.html"),
         GROUP_MEMBER_SUBSCRIPTION("groupMember.html"),

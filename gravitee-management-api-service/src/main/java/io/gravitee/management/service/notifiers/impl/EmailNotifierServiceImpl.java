@@ -147,6 +147,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         else if (hook.equals(PortalHook.USER_REGISTERED)) {
             return EmailNotificationBuilder.EmailTemplate.USER_REGISTERED;
         }
+        else if (hook.equals(PortalHook.USER_CREATED)) {
+            return EmailNotificationBuilder.EmailTemplate.USER_CREATED;
+        }
         else if (hook.equals(PortalHook.PASSWORD_RESET)) {
             return EmailNotificationBuilder.EmailTemplate.PASSWORD_RESET;
         }
@@ -294,6 +297,9 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         // Portal Hook
         else if (hook.equals(PortalHook.USER_REGISTERED)) {
             return "User registration - " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
+        }
+        else if (hook.equals(PortalHook.USER_CREATED)) {
+            return "User creation - " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
         }
         else if (hook.equals(PortalHook.PASSWORD_RESET)) {
             return "Password reset - " + params.get(NotificationParamsBuilder.PARAM_USERNAME);

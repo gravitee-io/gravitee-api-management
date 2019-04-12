@@ -474,7 +474,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         final UserEntity userEntity = create(newExternalUserEntity, true);
 
         final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action);
-        notifierService.trigger(PortalHook.USER_REGISTERED, params);
+        notifierService.trigger(ACTION.USER_REGISTRATION.equals(action) ? PortalHook.USER_REGISTERED : PortalHook.USER_CREATED, params);
         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                 .to(userEntity.getEmail())
                 .subject(format("User %s - %s", USER_REGISTRATION.equals(action)?"registration":"creation", userEntity.getDisplayName()))
