@@ -17,6 +17,8 @@ package io.gravitee.repository.redis.management.internal.impl;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.repository.redis.management.internal.UserRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisUser;
 import org.springframework.stereotype.Component;
@@ -75,19 +77,36 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
     }
 
     @Override
-    public Page<RedisUser> search(Pageable pageable) {
-        final List<RedisUser> users = redisTemplate.opsForHash().entries(REDIS_KEY).values().stream()
+    public Page<RedisUser> search(UserCriteria criteria, Pageable pageable) {
+        List<RedisUser> redisUsers = redisTemplate.opsForHash().entries(REDIS_KEY).values().stream()
                 .filter(Objects::nonNull)
                 .map(u -> convert(u, RedisUser.class))
                 .sorted(comparing(RedisUser::getLastname, nullSafeStringComparator).thenComparing(RedisUser::getFirstname, nullSafeStringComparator))
                 .skip(pageable.from())
                 .limit(pageable.pageSize())
                 .collect(toList());
-        return new Page<>(
-                users,
+
+        if(criteria != null) {
+            if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
+                List<String> statuses = Arrays.stream(criteria.getStatuses())
+                        .map(UserStatus::name)
+                        .collect(Collectors.toList());
+                redisUsers = redisUsers.stream()
+                        .filter(u -> statuses.contains(u.getStatus()))
+                        .collect(Collectors.toList());
+            }
+
+            if (criteria.hasNoStatus()) {
+                redisUsers = redisUsers.stream()
+                        .filter(u -> u.getStatus() == null)
+                        .collect(Collectors.toList());
+            }
+        }
+
+        return new Page<>(redisUsers,
                 pageable.pageNumber(),
-                users.size() > pageable.pageSize() ? pageable.pageSize() : users.size(),
-                users.size());
+                redisUsers.size() > pageable.pageSize() ? pageable.pageSize() : redisUsers.size(),
+                redisUsers.size());
     }
 
     @Override
