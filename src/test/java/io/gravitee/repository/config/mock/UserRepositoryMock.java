@@ -16,12 +16,15 @@
 package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.UserStatus;
 
 import java.util.Date;
 import java.util.HashSet;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
@@ -56,6 +59,7 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
         when(userUpdated.getCreatedAt()).thenReturn(new Date(1439032010883L));
         when(userUpdated.getUpdatedAt()).thenReturn(new Date(1439042010883L));
         when(userUpdated.getLastConnectionAt()).thenReturn(new Date(1439052010883L));
+        when(userUpdated.getStatus()).thenReturn(UserStatus.ARCHIVED);
 
         final User user0 = mock(User.class);
         when(user0.getId()).thenReturn("user0");
@@ -73,13 +77,45 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
         when(id2update.getId()).thenReturn("id2update");
         final User user2delete = mock(User.class);
         when(user2delete.getId()).thenReturn("user2delete");
-        io.gravitee.common.data.domain.Page<User> searchResult = new io.gravitee.common.data.domain.Page<>(
+        io.gravitee.common.data.domain.Page<User> searchAllResult = new io.gravitee.common.data.domain.Page<>(
                 asList(user0, user1, user3, user5, user2, user4, id2update, user2delete),0, 0, 8);
 
-        when(userRepository.search(any())).thenReturn(searchResult);
+        when(userRepository.search(isNull(UserCriteria.class), any())).thenReturn(searchAllResult);
+        when(userRepository.search(
+                argThat(o -> o != null
+                        && (o.getStatuses() == null
+                        || o.getStatuses().length==0)
+                ), any()))
+                .thenReturn(searchAllResult);
+        when(userRepository.search(
+                argThat(o -> o != null
+                        && o.getStatuses() != null
+                        && o.getStatuses().length==1
+                        && UserStatus.ARCHIVED.equals(o.getStatuses()[0])
+                ), any()))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(mock(User.class)), 0, 0, 1));
+        when(userRepository.search(
+                argThat(o -> o != null
+                        && o.getStatuses() != null
+                        && o.getStatuses().length==1
+                        && UserStatus.ACTIVE.equals(o.getStatuses()[0])
+                ), any()))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(
+                        asList(user, mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class)),0, 0, 6));
+        when(userRepository.search(
+                argThat(o -> o != null
+                        && o.getStatuses() == null
+                        && o.hasNoStatus()
+                ), any()))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(
+                        asList(mock(User.class)),0, 0, 1));
         when(userRepository.create(any(User.class))).thenReturn(user);
         when(userRepository.findById("user0")).thenReturn(of(user));
         when(userRepository.findById("id2update")).thenReturn(of(userUpdated));
+
+        when(user.getId()).thenReturn("createuser1");
+        when(user.getEmail()).thenReturn("createuser1@gravitee.io");
+        when(user.getStatus()).thenReturn(UserStatus.ACTIVE);
 
         when(userRepository.findBySource("gravitee", "createuser1")).thenReturn(of(user));
 
