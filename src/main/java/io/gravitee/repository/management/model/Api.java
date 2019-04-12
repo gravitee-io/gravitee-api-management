@@ -25,9 +25,10 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class Api {
-    public enum AuditEvent implements Audit.ApiAuditEvent {
-        API_CREATED, API_UPDATED, API_DELETED, API_ROLLBACKED
+    public enum AuditEvent implements Audit.AuditEvent {
+        API_CREATED, API_UPDATED, API_DELETED, API_ROLLBACKED, API_LOGGING_ENABLED, API_LOGGING_DISABLED, API_LOGGING_UPDATED
     }
+
     /**
      * The api ID.
      */
@@ -52,7 +53,7 @@ public class Api {
      * The api JSON definition
      */
     private String definition;
-    
+
     /**
      * The api deployment date
      */
@@ -139,7 +140,7 @@ public class Api {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public Date getDeployedAt() {
         return deployedAt;
     }
