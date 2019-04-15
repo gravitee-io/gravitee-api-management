@@ -42,5 +42,11 @@
             <artifactId>gravitee-common</artifactId>
             <version>${gravitee-common.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>2.2.8</version>
+        </dependency>
     </dependencies>
 </project>

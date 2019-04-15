@@ -16,18 +16,20 @@
 package io.gravitee.repository.ratelimit.api;
 
 import io.gravitee.repository.ratelimit.model.RateLimit;
+import io.reactivex.Maybe;
+import io.reactivex.Single;
 
-import java.util.Iterator;
+import java.util.function.Supplier;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface RateLimitRepository {
-    
-    RateLimit get(String rateLimitKey);
+public interface RateLimitRepository<T extends RateLimit> {
 
-    void save(RateLimit rateLimit);
+    Single<T> incrementAndGet(String key, long weight, Supplier<T> supplier);
 
-    Iterator<RateLimit> findAsyncAfter(long timestamp);
+    Maybe<T> get(String key);
+
+    Single<T> save(T rateLimit);
 }
