@@ -16,6 +16,10 @@
 package io.gravitee.repository.mongodb.common;
 
 import com.mongodb.*;
+import com.mongodb.connection.*;
+import com.mongodb.reactivestreams.client.MongoClients;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
@@ -24,14 +28,17 @@ import org.springframework.core.env.Environment;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -204,6 +211,125 @@ public class MongoFactory implements FactoryBean<Mongo> {
             }
 
             return new MongoClient(seeds, credential, options);
+        }
+    }
+
+    public com.mongodb.reactivestreams.client.MongoClient getReactiveClient() throws Exception {
+        // Trying to get the MongoClientURI if uri property is defined
+        String uri = readPropertyValue(propertyPrefix + "uri");
+
+        if (uri != null && ! uri.isEmpty()) {
+            MongoClientOptions.Builder builder = builder();
+
+            // codec configuration for pojo mapping
+            CodecRegistry pojoCodecRegistry = fromRegistries(MongoClients.getDefaultCodecRegistry(),
+                    fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+            builder.codecRegistry(pojoCodecRegistry);
+
+            return MongoClients.create(new ConnectionString(uri));
+        } else {
+            MongoClientSettings.Builder builder = MongoClientSettings.builder();
+
+            // Advanced configuration
+            SocketSettings.Builder socketBuilder = SocketSettings.builder();
+            ClusterSettings.Builder clusterBuilder = ClusterSettings.builder();
+            ConnectionPoolSettings.Builder connectionPoolBuilder = ConnectionPoolSettings.builder();
+            ServerSettings.Builder serverBuilder = ServerSettings.builder();
+            SslSettings.Builder sslBuilder = SslSettings.builder();
+
+            Integer connectTimeout = readPropertyValue(propertyPrefix + "connectTimeout", Integer.class, 1000);
+            Integer maxWaitTime = readPropertyValue(propertyPrefix + "maxWaitTime", Integer.class);
+            Integer socketTimeout = readPropertyValue(propertyPrefix + "socketTimeout", Integer.class, 1000);
+            Boolean socketKeepAlive = readPropertyValue(propertyPrefix + "socketKeepAlive", Boolean.class, true);
+            Integer maxConnectionLifeTime = readPropertyValue(propertyPrefix + "maxConnectionLifeTime", Integer.class);
+            Integer maxConnectionIdleTime = readPropertyValue(propertyPrefix + "maxConnectionIdleTime", Integer.class);
+
+            // We do not want to wait for a server
+            Integer serverSelectionTimeout = readPropertyValue(propertyPrefix + "serverSelectionTimeout", Integer.class, 1000);
+            Integer minHeartbeatFrequency = readPropertyValue(propertyPrefix + "minHeartbeatFrequency", Integer.class);
+            String description = readPropertyValue(propertyPrefix + "description", String.class, "gravitee.io");
+            Integer heartbeatFrequency = readPropertyValue(propertyPrefix + "heartbeatFrequency", Integer.class);
+            Boolean sslEnabled = readPropertyValue(propertyPrefix + "sslEnabled", Boolean.class);
+            String keystore = readPropertyValue(propertyPrefix + "keystore", String.class);
+            String keystorePassword = readPropertyValue(propertyPrefix + "keystorePassword", String.class);
+            String keyPassword = readPropertyValue(propertyPrefix + "keyPassword", String.class);
+
+            if (maxWaitTime != null)
+                connectionPoolBuilder.maxWaitTime(maxWaitTime, TimeUnit.MILLISECONDS);
+            if (connectTimeout != null)
+                socketBuilder.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS);
+            if (socketTimeout != null)
+                socketBuilder.readTimeout(socketTimeout, TimeUnit.MILLISECONDS);
+            if (socketKeepAlive != null)
+                socketBuilder.keepAlive(socketKeepAlive);
+            if (maxConnectionLifeTime != null)
+                connectionPoolBuilder.maxConnectionLifeTime(maxConnectionLifeTime, TimeUnit.MILLISECONDS);
+            if (maxConnectionIdleTime != null)
+                connectionPoolBuilder.maxConnectionIdleTime(maxConnectionIdleTime, TimeUnit.MILLISECONDS);
+            if (minHeartbeatFrequency != null)
+                serverBuilder.minHeartbeatFrequency(minHeartbeatFrequency, TimeUnit.MILLISECONDS);
+            if (description != null)
+                clusterBuilder.description(description);
+            if (heartbeatFrequency != null)
+                serverBuilder.heartbeatFrequency(heartbeatFrequency, TimeUnit.MILLISECONDS);
+            if (sslEnabled != null)
+                sslBuilder.enabled(sslEnabled);
+            if (keystore != null) {
+                try {
+                    SSLContext ctx = SSLContext.getInstance("TLS");
+                    KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                    KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+                    ks.load(new FileInputStream(keystore), keystorePassword.toCharArray());
+                    keyManagerFactory.init(ks, keyPassword.toCharArray());
+                    ctx.init(keyManagerFactory.getKeyManagers(), null, null);
+                    sslBuilder.context(ctx);
+                } catch (Exception e) {
+                    logger.error(e.getCause().toString());
+                    throw new IllegalStateException("Error creating the keystore for mongodb", e);
+                }
+            }
+            if (serverSelectionTimeout != null)
+                clusterBuilder.serverSelectionTimeout(serverSelectionTimeout, TimeUnit.MILLISECONDS);
+
+            // credentials option
+            String username = readPropertyValue(propertyPrefix + "username");
+            String password = readPropertyValue(propertyPrefix + "password");
+            MongoCredential credentials = null;
+            if (username != null || password != null) {
+                String authSource = readPropertyValue(propertyPrefix + "authSource", String.class, "gravitee-am");
+                credentials = MongoCredential.createCredential(username, authSource, password.toCharArray());
+                builder.credential(credentials);
+            }
+
+            // clustering option
+            List<ServerAddress> seeds;
+            int serversCount = getServersCount();
+            if (serversCount == 0) {
+                String host = readPropertyValue(propertyPrefix + "host", String.class, "localhost");
+                int port = readPropertyValue(propertyPrefix + "port", int.class, 27017);
+                seeds = Collections.singletonList(new ServerAddress(host, port));
+            } else {
+                seeds = new ArrayList<>(serversCount);
+                for (int i = 0; i < serversCount; i++) {
+                    seeds.add(buildServerAddress(i));
+                }
+            }
+            clusterBuilder.hosts(seeds);
+
+            SocketSettings socketSettings = socketBuilder.build();
+            ClusterSettings clusterSettings = clusterBuilder.build();
+            ConnectionPoolSettings connectionPoolSettings = connectionPoolBuilder.build();
+            ServerSettings serverSettings = serverBuilder.build();
+            SslSettings sslSettings = sslBuilder.build();
+            MongoClientSettings settings = builder
+                    .applyToClusterSettings(builder1 -> builder1.applySettings(clusterSettings))
+                    .applyToSocketSettings(builder1 -> builder1.applySettings(socketSettings))
+                    .applyToConnectionPoolSettings(builder1 -> builder1.applySettings(connectionPoolSettings))
+                    .applyToServerSettings(builder1 -> builder1.applySettings(serverSettings))
+                    .applyToSslSettings(builder1 -> builder1.applySettings(sslSettings))
+                    .build();
+
+            return MongoClients.create(settings);
         }
     }
 
