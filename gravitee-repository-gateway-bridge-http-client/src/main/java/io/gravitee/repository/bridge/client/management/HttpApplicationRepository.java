@@ -72,8 +72,4 @@ public class HttpApplicationRepository extends AbstractRepository implements App
         throw new IllegalStateException();
     }
 
-    @Override
-    public Optional<Application> findByClientId(String clientId) throws TechnicalException {
-        throw new IllegalStateException();
-    }
 }
