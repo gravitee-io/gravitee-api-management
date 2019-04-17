@@ -17,6 +17,7 @@ package io.gravitee.repository.redis.management.model;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RedisUser {
@@ -32,6 +33,7 @@ public class RedisUser {
     private String source;
     private String sourceId;
     private long lastConnectionAt;
+    private String status;
 
     public String getId() {
         return id;
@@ -119,6 +121,14 @@ public class RedisUser {
 
     public void setLastConnectionAt(long lastConnectionAt) {
         this.lastConnectionAt = lastConnectionAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override

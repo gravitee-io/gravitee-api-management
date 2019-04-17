@@ -17,6 +17,8 @@ package io.gravitee.repository.redis.management.internal.impl;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.repository.redis.management.internal.UserRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisUser;
 import org.springframework.stereotype.Component;
@@ -39,8 +41,8 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
     private static Comparator<String> nullSafeStringComparator = Comparator.nullsFirst(String::compareToIgnoreCase);
 
     @Override
-    public RedisUser findBySource(String sourceId, String userId) {
-        Set<Object> keys = redisTemplate.opsForSet().members(REDIS_KEY + ":source:" + sourceId + ':' + userId);
+    public RedisUser findBySource(String source, String sourceId) {
+        Set<Object> keys = redisTemplate.opsForSet().members(generateSourceKey(source, sourceId));
 
         if (! keys.isEmpty()) {
             Object user = redisTemplate.opsForHash().get(REDIS_KEY, keys.iterator().next());
@@ -75,25 +77,42 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
     }
 
     @Override
-    public Page<RedisUser> search(Pageable pageable) {
-        final List<RedisUser> users = redisTemplate.opsForHash().entries(REDIS_KEY).values().stream()
+    public Page<RedisUser> search(UserCriteria criteria, Pageable pageable) {
+        List<RedisUser> redisUsers = redisTemplate.opsForHash().entries(REDIS_KEY).values().stream()
                 .filter(Objects::nonNull)
                 .map(u -> convert(u, RedisUser.class))
                 .sorted(comparing(RedisUser::getLastname, nullSafeStringComparator).thenComparing(RedisUser::getFirstname, nullSafeStringComparator))
                 .skip(pageable.from())
                 .limit(pageable.pageSize())
                 .collect(toList());
-        return new Page<>(
-                users,
+
+        if(criteria != null) {
+            if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
+                List<String> statuses = Arrays.stream(criteria.getStatuses())
+                        .map(UserStatus::name)
+                        .collect(Collectors.toList());
+                redisUsers = redisUsers.stream()
+                        .filter(u -> statuses.contains(u.getStatus()))
+                        .collect(Collectors.toList());
+            }
+
+            if (criteria.hasNoStatus()) {
+                redisUsers = redisUsers.stream()
+                        .filter(u -> u.getStatus() == null)
+                        .collect(Collectors.toList());
+            }
+        }
+
+        return new Page<>(redisUsers,
                 pageable.pageNumber(),
-                users.size() > pageable.pageSize() ? pageable.pageSize() : users.size(),
-                users.size());
+                redisUsers.size() > pageable.pageSize() ? pageable.pageSize() : redisUsers.size(),
+                redisUsers.size());
     }
 
     @Override
     public RedisUser saveOrUpdate(RedisUser user) {
         redisTemplate.opsForHash().put(REDIS_KEY, user.getId(), user);
-        redisTemplate.opsForSet().add(REDIS_KEY + ":source:" + user.getSource() + ':' + user.getSourceId(), user.getId());
+        redisTemplate.opsForSet().add(generateSourceKey(user.getSource(), user.getSourceId()), user.getId());
         return user;
     }
 
@@ -102,6 +121,10 @@ public class UserRedisRepositoryImpl extends AbstractRedisRepository implements 
         RedisUser user = find(userId);
 
         redisTemplate.opsForHash().delete(REDIS_KEY, user.getId());
-        redisTemplate.opsForSet().remove(REDIS_KEY + ":source:" + user.getSource() + ':' + user.getSourceId(), userId);
+        redisTemplate.opsForSet().remove(generateSourceKey(user.getSource(), user.getSourceId()), userId);
+    }
+
+    private String generateSourceKey(String source, String sourceId) {
+        return REDIS_KEY + ":source:" + source + ':' + (sourceId==null ? "" : sourceId.toUpperCase());
     }
 }

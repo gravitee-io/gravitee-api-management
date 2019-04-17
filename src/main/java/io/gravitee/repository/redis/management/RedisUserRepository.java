@@ -19,7 +19,9 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.repository.redis.management.internal.UserRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,8 +78,8 @@ public class RedisUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findBySource(String sourceId, String userId) throws TechnicalException {
-        RedisUser redisUser = this.userRedisRepository.findBySource(sourceId, userId);
+    public Optional<User> findBySource(String source, String sourceId) throws TechnicalException {
+        RedisUser redisUser = this.userRedisRepository.findBySource(source, sourceId);
         return Optional.ofNullable(convert(redisUser));
     }
 
@@ -89,8 +91,8 @@ public class RedisUserRepository implements UserRepository {
     }
 
     @Override
-    public Page<User> search(Pageable pageable) throws TechnicalException {
-        Page<RedisUser> redisUserPage = userRedisRepository.search(pageable);
+    public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
+        Page<RedisUser> redisUserPage = userRedisRepository.search(criteria, pageable);
         return new Page<>(
                 redisUserPage.getContent()
                         .stream()
@@ -117,6 +119,11 @@ public class RedisUserRepository implements UserRepository {
         user.setPicture(redisUser.getPicture());
         user.setSource(redisUser.getSource());
         user.setSourceId(redisUser.getSourceId());
+        if (redisUser.getStatus() == null) {
+            user.setStatus(UserStatus.ACTIVE);
+        } else {
+            user.setStatus(UserStatus.valueOf(redisUser.getStatus()));
+        }
 
         if (redisUser.getLastConnectionAt() != 0) {
             user.setLastConnectionAt(new Date(redisUser.getLastConnectionAt()));
@@ -137,6 +144,9 @@ public class RedisUserRepository implements UserRepository {
         redisUser.setPicture(user.getPicture());
         redisUser.setSource(user.getSource());
         redisUser.setSourceId(user.getSourceId());
+        if (user.getStatus() != null) {
+            redisUser.setStatus(user.getStatus().name());
+        }
 
         if (user.getLastConnectionAt() != null) {
             redisUser.setLastConnectionAt(user.getLastConnectionAt().getTime());
