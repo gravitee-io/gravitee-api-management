@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.user;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -32,7 +33,7 @@ import java.util.Set;
 @Repository
 public interface UserMongoRepositoryCustom {
 
-	Page<UserMongo> search(Pageable pageable);
+	Page<UserMongo> search(UserCriteria criteria, Pageable pageable);
 }
 
 
