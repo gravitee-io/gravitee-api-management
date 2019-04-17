@@ -23,7 +23,7 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Rating {
-    public enum RatingEvent implements Audit.AuditEvent {
+    public enum RatingEvent implements Audit.ApiAuditEvent {
         RATING_CREATED, RATING_UPDATED, RATING_DELETED
     }
     private String id;
