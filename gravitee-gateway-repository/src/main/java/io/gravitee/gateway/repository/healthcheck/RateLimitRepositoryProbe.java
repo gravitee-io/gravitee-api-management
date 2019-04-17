@@ -40,10 +40,16 @@ public class RateLimitRepositoryProbe implements Probe {
 
     @Override
     public CompletableFuture<Result> check() {
-        // Search for a rate-limit value to check repository connection
         try {
-            rateLimitRepository.get(RATE_LIMIT_UNKNOWN_IDENTIFIER);
-            return CompletableFuture.completedFuture(Result.healthy());
+            // Search for a rate-limit value to check repository connection
+            return CompletableFuture.supplyAsync(() -> {
+                try {
+                    rateLimitRepository.get(RATE_LIMIT_UNKNOWN_IDENTIFIER);
+                    return Result.healthy();
+                } catch (Exception ex) {
+                    return Result.unhealthy(ex);
+                }
+            });
         } catch (Exception ex) {
             return CompletableFuture.completedFuture(Result.unhealthy(ex));
         }
