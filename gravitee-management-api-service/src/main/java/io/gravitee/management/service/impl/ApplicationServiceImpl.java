@@ -542,7 +542,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setId(application.getId());
         applicationEntity.setName(application.getName());
         applicationEntity.setDescription(application.getDescription());
-        applicationEntity.setType(application.getType().name());
+        if (application.getType() != null) {
+            applicationEntity.setType(application.getType().name());
+        }
         applicationEntity.setStatus(application.getStatus().toString());
         applicationEntity.setGroups(application.getGroups());
         applicationEntity.setCreatedAt(application.getCreatedAt());
@@ -568,16 +570,19 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             OAuthClientSettings clientSettings = new OAuthClientSettings();
             if (application.getMetadata() != null) {
                 try {
-                    ClientRegistrationResponse registrationResponse = mapper.readValue(
-                            application.getMetadata().get("registration_payload"), ClientRegistrationResponse.class);
-                    clientSettings.setClientId(registrationResponse.getClientId());
-                    clientSettings.setClientSecret(registrationResponse.getClientSecret());
-                    clientSettings.setClientUri(registrationResponse.getClientUri());
-                    clientSettings.setApplicationType(registrationResponse.getApplicationType());
-                    clientSettings.setLogoUri(registrationResponse.getLogoUri());
-                    clientSettings.setResponseTypes(registrationResponse.getResponseTypes());
-                    clientSettings.setRedirectUris(registrationResponse.getRedirectUris());
-                    clientSettings.setGrantTypes(registrationResponse.getGrantTypes());
+                    final String registrationPayload = application.getMetadata().get("registration_payload");
+                    if (registrationPayload != null) {
+                        final ClientRegistrationResponse registrationResponse = mapper.readValue(
+                                registrationPayload, ClientRegistrationResponse.class);
+                        clientSettings.setClientId(registrationResponse.getClientId());
+                        clientSettings.setClientSecret(registrationResponse.getClientSecret());
+                        clientSettings.setClientUri(registrationResponse.getClientUri());
+                        clientSettings.setApplicationType(registrationResponse.getApplicationType());
+                        clientSettings.setLogoUri(registrationResponse.getLogoUri());
+                        clientSettings.setResponseTypes(registrationResponse.getResponseTypes());
+                        clientSettings.setRedirectUris(registrationResponse.getRedirectUris());
+                        clientSettings.setGrantTypes(registrationResponse.getGrantTypes());
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
