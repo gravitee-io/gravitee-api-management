@@ -96,6 +96,9 @@ public class ApiService_UpdateWithDefinitionTest {
     @Mock
     private SearchEngineService searchEngineService;
 
+    @Mock
+    private ParameterService parameterService;
+
     @Test
     public void shouldUpdateImportApiWithMembersAndPages() throws IOException, TechnicalException {
         URL url =  Resources.getResource("io/gravitee/management/service/import-api.definition+members+pages.json");

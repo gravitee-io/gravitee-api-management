@@ -96,6 +96,9 @@ public class ApiService_UpdateTest {
     @Mock
     private SearchEngineService searchEngineService;
 
+    @Mock
+    private ParameterService parameterService;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
