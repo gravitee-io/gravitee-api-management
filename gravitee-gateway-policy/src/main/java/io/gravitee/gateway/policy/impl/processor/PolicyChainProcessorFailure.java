@@ -51,4 +51,9 @@ public class PolicyChainProcessorFailure implements ProcessorFailure {
     public Map<String, Object> parameters() {
         return policyResult.parameters();
     }
+
+    @Override
+    public String contentType() {
+        return policyResult.contentType();
+    }
 }

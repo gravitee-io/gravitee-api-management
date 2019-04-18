@@ -30,4 +30,6 @@ public interface ProcessorFailure {
     String key();
 
     Map<String, Object> parameters();
+
+    String contentType();
 }
