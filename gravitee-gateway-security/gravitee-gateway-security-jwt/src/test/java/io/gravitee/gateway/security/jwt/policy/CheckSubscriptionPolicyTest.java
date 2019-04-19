@@ -26,13 +26,17 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 
+import static io.gravitee.reporter.api.http.Metrics.on;
+import static java.lang.System.currentTimeMillis;
 import static org.mockito.Mockito.*;
 
 /**
@@ -42,11 +46,18 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class CheckSubscriptionPolicyTest {
 
+    @Mock
+    private Request request;
+
+    @Before
+    public void init() {
+        when(request.metrics()).thenReturn(on(currentTimeMillis()).build());
+    }
+
     @Test
     public void shouldReturnUnauthorized_onException() throws PolicyException, TechnicalException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
-        Request request = mock(Request.class);
         Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
@@ -66,7 +77,6 @@ public class CheckSubscriptionPolicyTest {
     public void shouldReturnUnauthorized_badClient() throws PolicyException, TechnicalException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
-        Request request = mock(Request.class);
         Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
@@ -91,7 +101,6 @@ public class CheckSubscriptionPolicyTest {
     public void shouldContinue() throws PolicyException, TechnicalException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
-        Request request = mock(Request.class);
         Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 

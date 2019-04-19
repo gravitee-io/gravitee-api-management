@@ -23,7 +23,6 @@ import io.gravitee.gateway.security.core.HookAuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import io.gravitee.gateway.security.oauth2.policy.CheckSubscriptionPolicy;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -33,8 +32,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Iterator;
 import java.util.List;
 
-import static io.gravitee.reporter.api.http.Metrics.on;
-import static java.lang.System.currentTimeMillis;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,11 +46,6 @@ public class OAuth2AuthenticationHandlerTest {
     private OAuth2AuthenticationHandler authenticationHandler = new OAuth2AuthenticationHandler();
     @Mock
     private Request request;
-
-    @Before
-    public void init() {
-        when(request.metrics()).thenReturn(on(currentTimeMillis()).build());
-    }
 
     @Test
     public void shouldNotHandleRequest_noAuthorizationHeader() {
