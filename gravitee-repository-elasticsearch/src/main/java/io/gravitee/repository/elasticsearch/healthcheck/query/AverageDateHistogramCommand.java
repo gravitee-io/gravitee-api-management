@@ -60,8 +60,6 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
 	public DateHistogramResponse executeQuery(Query<DateHistogramResponse> query) throws AnalyticsException {
 		final DateHistogramQuery dateHistogramQuery = (DateHistogramQuery) query;
 
-		final String sQuery = this.createQuery(TEMPLATE, dateHistogramQuery);
-
 		try {
 			final long to;
 			final long from;
@@ -77,6 +75,13 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
 						.toEpochMilli();
 			}
 
+
+			//"from" and "to" are rounded according to the internal. It allows to exec the same request during the "interval" and make use of ES cache
+			final long interval = dateHistogramQuery.timeRange().interval().toMillis();
+			final long roundedFrom = (from / interval) * interval;
+			final long roundedTo = (to / interval) * interval;
+
+			final String sQuery = this.createQuery(TEMPLATE, dateHistogramQuery, roundedFrom, roundedTo);
 			final Single<SearchResponse> result = this.client.search(
 					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to),
 					Type.HEALTH_CHECK.getType(),

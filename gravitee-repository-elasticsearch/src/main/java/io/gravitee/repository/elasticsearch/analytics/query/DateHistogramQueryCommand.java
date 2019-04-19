@@ -52,8 +52,9 @@ public class DateHistogramQueryCommand extends AbstractElasticsearchQueryCommand
 		final Long to = dateHistogramQuery.timeRange().range().to();
 
 		//"from" and "to" are rounded according to the internal. It allows to exec the same request during the "interval" and make use of ES cache
-		final long roundedFrom = (from.longValue() / dateHistogramQuery.timeRange().interval().toMillis()) * dateHistogramQuery.timeRange().interval().toMillis();
-		final long roundedTo = (to.longValue() / dateHistogramQuery.timeRange().interval().toMillis()) * dateHistogramQuery.timeRange().interval().toMillis();
+		final long interval = dateHistogramQuery.timeRange().interval().toMillis();
+		final long roundedFrom = (from / interval) * interval;
+		final long roundedTo = (to / interval) * interval;
 
 		final String sQuery = this.createQuery(TEMPLATE, query, roundedFrom, roundedTo);
 

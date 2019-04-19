@@ -27,8 +27,8 @@
         "keyed" : false,
         "min_doc_count" : 0,
         "extended_bounds" : {
-          "min" : ${query.timeRange().range().from()},
-          "max" : ${query.timeRange().range().to()}
+          "min" : ${roundedFrom},
+          "max" : ${roundedTo}
         }
       }
 <#if query.aggregations()?has_content>
