@@ -50,7 +50,7 @@ public class ClientRegistrationProviderRepositoryMock extends AbstractRepository
         when(newClientRegistrationProvider.getClientSecret()).thenReturn("my-client-secret");
         when(newClientRegistrationProvider.getScopes()).thenReturn(Arrays.asList("scope1", "scope2", "scope3"));
         when(newClientRegistrationProvider.getCreatedAt()).thenReturn(new Date(1000000000000L));
-        when(newClientRegistrationProvider.getUpdatedAt()).thenReturn(new Date(1111111111111L));
+        when(newClientRegistrationProvider.getUpdatedAt()).thenReturn(new Date(1486771200000L));
 
         final ClientRegistrationProvider clientRegistrationProvider1 = new ClientRegistrationProvider();
         clientRegistrationProvider1.setId("github");

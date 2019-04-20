@@ -74,7 +74,7 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         clientRegistrationProvider.setClientSecret("my-client-secret");
         clientRegistrationProvider.setScopes(Arrays.asList("scope1", "scope2", "scope3"));
         clientRegistrationProvider.setCreatedAt(new Date(1000000000000L));
-        clientRegistrationProvider.setUpdatedAt(new Date(1111111111111L));
+        clientRegistrationProvider.setUpdatedAt(new Date(1486771200000L));
 
         int nbClientRegistrationProvidersBeforeCreation = clientRegistrationProviderRepository.findAll().size();
         clientRegistrationProviderRepository.create(clientRegistrationProvider);
