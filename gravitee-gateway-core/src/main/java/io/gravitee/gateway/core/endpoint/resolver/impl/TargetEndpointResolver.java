@@ -109,7 +109,7 @@ public class TargetEndpointResolver implements EndpointResolver {
         } else if (target.startsWith(Reference.UNKNOWN_REFERENCE)) {
             return null;
         } else {
-            int refSeparatorIdx = target.indexOf((int) ':');
+            int refSeparatorIdx = target.lastIndexOf((int) ':');
 
             // Get the full reference
             String sRef = target.substring(0, refSeparatorIdx);
