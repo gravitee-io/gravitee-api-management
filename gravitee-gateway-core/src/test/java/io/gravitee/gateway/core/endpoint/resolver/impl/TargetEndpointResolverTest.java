@@ -257,6 +257,16 @@ public class TargetEndpointResolverTest {
         );
     }
 
+    @Test
+    public void shouldResolveUserDefinedEndpoint_withEndpointDiscoveryName() {
+        resolveUserDefinedEndpoint(
+                "http://host:8080/test",
+                "consul:endpoint_id:",
+                "consul:endpoint_id",
+                "http://host:8080/test"
+        );
+    }
+
     private void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget) {
         when(executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT)).thenReturn(requestEndpoint);
 
