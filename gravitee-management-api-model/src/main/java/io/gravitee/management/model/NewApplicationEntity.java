@@ -33,7 +33,6 @@ public class NewApplicationEntity {
     @NotNull(message = "Application's description must not be null")
     private String description;
 
-    @NotNull(message = "Application's settings must not be null")
     private ApplicationSettings settings;
 
     /**

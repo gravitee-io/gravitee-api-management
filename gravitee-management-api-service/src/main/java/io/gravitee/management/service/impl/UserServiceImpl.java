@@ -20,6 +20,8 @@ import com.auth0.jwt.JWTVerifier;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.application.ApplicationSettings;
+import io.gravitee.management.model.application.SimpleApplicationSettings;
 import io.gravitee.management.model.common.Pageable;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.*;
@@ -134,6 +136,13 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     NewApplicationEntity defaultApp = new NewApplicationEntity();
                     defaultApp.setName("Default application");
                     defaultApp.setDescription("My default application");
+
+                    // To preserve backward compatibility, ensure that we have at least default settings for simple application type
+                    ApplicationSettings settings = new ApplicationSettings();
+                    SimpleApplicationSettings simpleAppSettings = new SimpleApplicationSettings();
+                    settings.setApp(simpleAppSettings);
+                    defaultApp.setSettings(settings);
+
                     applicationService.create(defaultApp, userId);
                 }
             }

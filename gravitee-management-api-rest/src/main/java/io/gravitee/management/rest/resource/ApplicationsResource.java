@@ -123,6 +123,7 @@ public class ApplicationsResource extends AbstractResource {
             SimpleApplicationSettings simpleAppSettings = new SimpleApplicationSettings();
             simpleAppSettings.setType(application.getType());
             simpleAppSettings.setClientId(application.getClientId());
+            settings.setApp(simpleAppSettings);
             application.setSettings(settings);
         }
 
