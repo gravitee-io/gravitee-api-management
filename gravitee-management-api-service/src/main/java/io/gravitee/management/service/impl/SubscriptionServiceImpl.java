@@ -562,7 +562,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
                 for (ApiKeyEntity apiKey : apiKeys) {
                     Date expireAt = apiKey.getExpireAt();
-                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
+                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.after(now))) {
                         apiKey.setPaused(true);
                         apiKey.setUpdatedAt(now);
                         apiKeyService.update(apiKey);
@@ -628,7 +628,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
                 for (ApiKeyEntity apiKey : apiKeys) {
                     Date expireAt = apiKey.getExpireAt();
-                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
+                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.after(now))) {
                         apiKey.setPaused(false);
                         apiKey.setUpdatedAt(now);
                         apiKeyService.update(apiKey);
