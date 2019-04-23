@@ -67,7 +67,7 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
                 }
 
                 response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(payload.length()));
-                response.headers().set(HttpHeaders.CONTENT_TYPE, failure.contentType());
+                response.headers().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
                 response.write(payload);
             } catch (JsonProcessingException jpe) {
                 // Do nothing
