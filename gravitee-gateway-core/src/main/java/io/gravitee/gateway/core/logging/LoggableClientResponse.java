@@ -91,6 +91,11 @@ public class LoggableClientResponse implements Response {
     }
 
     @Override
+    public boolean ended() {
+        return response.ended();
+    }
+
+    @Override
     public WriteStream<Buffer> drainHandler(Handler<Void> drainHandler) {
         response.drainHandler(drainHandler);
         return this;

@@ -18,11 +18,13 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.gateway.reactor.Reactor;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david at graviteesource.com)
@@ -45,9 +47,17 @@ public class ReactorVerticle extends AbstractVerticle {
     @Autowired
     private VertxHttpServerConfiguration httpServerConfiguration;
 
+    @Autowired
+    private Vertx vertx;
+
+    @Value("${http.requestTimeout:30000}")
+    private long requestTimeout;
+
     @Override
     public void start(Future<Void> startFuture) throws Exception {
-        httpServer.requestHandler(new VertxReactorHandler(reactor));
+        if (requestTimeout > 0) {
+            httpServer.requestHandler(new VertxReactorTimeoutHandler(vertx, reactor, requestTimeout));
+        }
 
         httpServer.listen(res -> {
             if (res.succeeded()) {

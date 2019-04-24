@@ -51,6 +51,8 @@ class VertxHttpServerRequest implements Request {
 
     private final Metrics metrics;
 
+    private Handler<Long> timeoutHandler;
+
     VertxHttpServerRequest(HttpServerRequest httpServerRequest) {
         this.httpServerRequest = httpServerRequest;
         this.timestamp = System.currentTimeMillis();
@@ -218,5 +220,16 @@ class VertxHttpServerRequest implements Request {
     @Override
     public boolean ended() {
         return httpServerRequest.isEnded();
+    }
+
+    @Override
+    public Request timeoutHandler(Handler<Long> timeoutHandler) {
+        this.timeoutHandler = timeoutHandler;
+        return this;
+    }
+
+    @Override
+    public Handler<Long> timeoutHandler() {
+        return this.timeoutHandler;
     }
 }

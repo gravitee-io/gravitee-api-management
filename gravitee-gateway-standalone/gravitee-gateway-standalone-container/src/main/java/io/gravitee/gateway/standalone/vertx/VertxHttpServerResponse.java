@@ -64,6 +64,11 @@ class VertxHttpServerResponse implements Response {
     }
 
     @Override
+    public boolean ended() {
+        return httpServerResponse.ended();
+    }
+
+    @Override
     public Response write(Buffer chunk) {
         if (valid()) {
             if (!httpServerResponse.headWritten()) {
