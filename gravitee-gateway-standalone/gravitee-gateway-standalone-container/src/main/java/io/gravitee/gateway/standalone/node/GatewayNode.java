@@ -63,13 +63,14 @@ public class GatewayNode extends AbstractNode {
 
     @Override
     public List<Class<? extends LifecycleComponent>> components() {
-        List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
+        final List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
 
         components.add(Reactor.class);
         components.add(VertxEmbeddedContainer.class);
-        components.add(AlertEngineService.class);
 
         components.addAll(super.components());
+
+        components.add(AlertEngineService.class);
         return components;
     }
 }
