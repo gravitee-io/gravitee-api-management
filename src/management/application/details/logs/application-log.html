@@ -118,10 +118,16 @@
 
     <br>
 
-    <div ng-if="$ctrl.log.request.body"
-         ui-codemirror
-         ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.request)}"
-         ng-model="$ctrl.log.request.body">
+    <div ng-if="$ctrl.log.request.body" class="log-body">
+      <div ui-codemirror
+           ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.request)}"
+           ng-model="$ctrl.log.request.body">
+      </div>
+      <button class="copy">
+        <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+        <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{$ctrl.log.request.body}}"
+                    ngclipboard-success="$ctrl.onCopyBodySuccess(e);" role="button"></ng-md-icon>
+      </button>
     </div>
   </div>
 
@@ -162,10 +168,16 @@
       </table>
     </md-table-container>
 
-    <div ng-if="$ctrl.log.response.body"
-         ui-codemirror
-         ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.response)}"
-         ng-model="$ctrl.log.response.body">
+    <div ng-if="$ctrl.log.response.body" class="log-body">
+      <div ui-codemirror
+           ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.response)}"
+           ng-model="$ctrl.log.response.body">
+      </div>
+      <button class="copy">
+        <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+        <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{$ctrl.log.response.body}}"
+                    ngclipboard-success="$ctrl.onCopyBodySuccess(e);" role="button"></ng-md-icon>
+      </button>
     </div>
   </div>
 </div>

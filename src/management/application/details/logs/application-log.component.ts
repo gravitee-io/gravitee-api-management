@@ -1,4 +1,5 @@
 import {StateService} from "@uirouter/core";
+import NotificationService from "../../../../services/notification.service";
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -19,22 +20,29 @@ const ApplicationLogComponent: ng.IComponentOptions = {
   bindings: {
     log: '<'
   },
-  controller: function($state: StateService, Constants: any) {
+  controller: function($state: StateService, NotificationService: NotificationService, Constants: any) {
     'ngInject';
     this.Constants = Constants;
+    this.NotificationService = NotificationService;
+
     this.backStateParams = {
       from: $state.params['from'],
       to: $state.params['to'],
-      q: $state.params['q'],
+      q: $state.params['q']
     };
-    this.getMimeType = function(log) {
 
+    this.getMimeType = function(log) {
       if (log.headers['Content-Type'] !== undefined) {
         let contentType = log.headers['Content-Type'][0];
         return contentType.split(';', 1)[0];
       }
 
       return null;
+    };
+
+    this.onCopyBodySuccess = function(evt) {
+      this.NotificationService.show('Body has been copied to clipboard');
+      evt.clearSelection();
     };
   },
   template: require('./application-log.html')

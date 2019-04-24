@@ -106,3 +106,30 @@ tr.log-error {
   border-radius: 10px;
   padding: 10px;
 }
+
+.log-body {
+  position: relative;
+
+  .copy {
+    z-index: 2;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #eee;
+    background-size: 15px;
+    padding: 6px 12px;
+    border: 1px solid #d5d5d5;
+    border-top: 0;
+    border-right: 0;
+    width: 30px;
+    height: 30px;
+    vertical-align: middle;
+
+    ng-md-icon {
+      cursor: pointer;
+      position: relative;
+      top: -2px;
+      right: 8px;
+    }
+  }
+}

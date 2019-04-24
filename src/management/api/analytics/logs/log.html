@@ -234,10 +234,16 @@
 
       <br>
 
-      <div ng-if="$ctrl.log.clientRequest.body"
-        ui-codemirror
-        ui-codemirror-opts="{lineNumbers: false, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.clientRequest)}"
-        ng-model="$ctrl.log.clientRequest.body">
+      <div ng-if="$ctrl.log.clientRequest.body" class="log-body">
+        <div ui-codemirror
+             ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.clientRequest)}"
+             ng-model="$ctrl.log.clientRequest.body">
+        </div>
+        <button class="copy">
+          <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+          <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{$ctrl.log.clientRequest.body}}"
+                      ngclipboard-success="$ctrl.onCopyBodySuccess(e);" role="button"></ng-md-icon>
+        </button>
       </div>
     </div>
     <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientRequest">
@@ -283,10 +289,16 @@
 
       <br>
 
-      <div ng-if="$ctrl.log.proxyRequest.body"
-        ui-codemirror
-        ui-codemirror-opts="{lineNumbers: false, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.proxyRequest)}"
-        ng-model="$ctrl.log.proxyRequest.body">
+      <div ng-if="$ctrl.log.proxyRequest.body" class="log-body">
+        <div ui-codemirror
+             ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.proxyRequest)}"
+             ng-model="$ctrl.log.proxyRequest.body">
+        </div>
+        <button class="copy">
+          <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+          <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{$ctrl.log.proxyRequest.body}}"
+                      ngclipboard-success="$ctrl.onCopyBodySuccess(e);" role="button"></ng-md-icon>
+        </button>
       </div>
     </div>
     <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyRequest">
@@ -328,11 +340,17 @@
 
       <br>
 
-      <div ng-if="$ctrl.log.clientResponse.body"
-          ui-codemirror
-          ui-codemirror-opts="{lineNumbers: false, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.clientResponse)}"
-          ng-model="$ctrl.log.clientResponse.body">
+      <div ng-if="$ctrl.log.clientResponse.body" class="log-body">
+        <div ui-codemirror
+             ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.clientResponse)}"
+             ng-model="$ctrl.log.clientResponse.body">
         </div>
+        <button class="copy">
+          <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+          <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{$ctrl.log.clientResponse.body}}"
+                      ngclipboard-success="$ctrl.onCopyBodySuccess(e);" role="button"></ng-md-icon>
+        </button>
+      </div>
     </div>
     <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientResponse">
       <p>No log for this response.</p>
@@ -373,10 +391,16 @@
 
       <br>
 
-      <div ng-if="$ctrl.log.proxyResponse.body"
-        ui-codemirror
-        ui-codemirror-opts="{lineNumbers: false, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.proxyResponse)}"
-        ng-model="$ctrl.log.proxyResponse.body">
+      <div ng-if="$ctrl.log.proxyResponse.body" class="log-body">
+        <div ui-codemirror
+             ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.proxyResponse)}"
+             ng-model="$ctrl.log.proxyResponse.body">
+        </div>
+        <button class="copy">
+          <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+          <ng-md-icon icon="content_copy" ngclipboard data-clipboard-text="{{$ctrl.log.proxyResponse.body}}"
+                      ngclipboard-success="$ctrl.onCopyBodySuccess(e);" role="button"></ng-md-icon>
+        </button>
       </div>
     </div>
     <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyResponse">
