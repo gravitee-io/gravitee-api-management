@@ -18,31 +18,32 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactor.Reactor;
-import io.vertx.core.Handler;
-import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.Vertx;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxReactorHandler implements Handler<HttpServerRequest> {
+public class VertxReactorTimeoutHandler extends VertxReactorHandler {
 
-    private final Reactor reactor;
+    private final Vertx vertx;
 
-    VertxReactorHandler(final Reactor reactor) {
-        this.reactor = reactor;
-    }
+    private final long timeout;
 
-    @Override
-    public void handle(HttpServerRequest httpServerRequest) {
-        final Request request = new VertxHttpServerRequest(httpServerRequest);
-        final Response response = new VertxHttpServerResponse(httpServerRequest, request.metrics());
-
-        route(request, response);
+    VertxReactorTimeoutHandler(final Vertx vertx, final Reactor reactor, final long timeout) {
+        super( reactor );
+        this.vertx = vertx;
+        this.timeout = timeout;
     }
 
     protected void route(final Request request, final Response response) {
-        reactor.route(request, response, __ -> {});
+        vertx.setTimer(timeout, event -> {
+            if (! response.ended()) {
+                io.gravitee.gateway.api.handler.Handler<Long> handler = request.timeoutHandler();
+                handler.handle(event);
+            }
+        });
+
+        super.route(request, response);
     }
 }

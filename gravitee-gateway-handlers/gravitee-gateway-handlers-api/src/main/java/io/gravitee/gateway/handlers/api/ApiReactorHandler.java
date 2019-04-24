@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -71,6 +73,9 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     @Override
     protected void doHandle(final ExecutionContext context) {
         final Request request = context.request();
+
+        // Set the timeout handler on the request
+        request.timeoutHandler(result -> handleError(context, TIMEOUT_PROCESSOR_FAILURE));
 
         // Pause the request and resume it as soon as all the stream are plugged and we have processed the HEAD part
         // of the request. (see handleProxyInvocation method).
@@ -140,13 +145,16 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     }
 
     private void handleProxyResponse(final ExecutionContext context, final ProxyResponse proxyResponse) {
-        if (proxyResponse == null || proxyResponse instanceof EmptyProxyResponse) {
-            context.response().status((proxyResponse == null) ? HttpStatusCode.SERVICE_UNAVAILABLE_503 : proxyResponse.status());
-            context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
-                    context.request().metrics().getApiResponseTimeMs());
-            handler.handle(context);
-        } else {
-            handleClientResponse(context, proxyResponse);
+        // If the response is not yet ended (by a request timeout for example)
+        if (! context.response().ended()) {
+            if (proxyResponse == null || proxyResponse instanceof EmptyProxyResponse) {
+                context.response().status((proxyResponse == null) ? HttpStatusCode.SERVICE_UNAVAILABLE_503 : proxyResponse.status());
+                context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
+                        context.request().metrics().getApiResponseTimeMs());
+                handler.handle(context);
+            } else {
+                handleClientResponse(context, proxyResponse);
+            }
         }
     }
 
@@ -253,4 +261,33 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         sb.append('}');
         return sb.toString();
     }
+
+    private final static ProcessorFailure TIMEOUT_PROCESSOR_FAILURE = new ProcessorFailure() {
+        private static final String REQUEST_TIMEOUT = "REQUEST_TIMEOUT";
+
+        @Override
+        public int statusCode() {
+            return HttpStatusCode.GATEWAY_TIMEOUT_504;
+        }
+
+        @Override
+        public String message() {
+            return "Request timeout";
+        }
+
+        @Override
+        public String key() {
+            return REQUEST_TIMEOUT;
+        }
+
+        @Override
+        public Map<String, Object> parameters() {
+            return null;
+        }
+
+        @Override
+        public String contentType() {
+            return null;
+        }
+    };
 }

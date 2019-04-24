@@ -21,6 +21,7 @@
 #  maxHeaderSize: 8192
 #  maxChunkSize: 8192
 #  instances: 0
+#  requestTimeout: 30000
 #  secured: false
 #  alpn: false
 #  ssl:

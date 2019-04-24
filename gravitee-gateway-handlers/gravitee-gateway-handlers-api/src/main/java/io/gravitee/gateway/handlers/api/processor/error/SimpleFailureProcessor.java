@@ -59,7 +59,7 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
         if (failure.message() != null) {
             try {
                 Buffer payload;
-                if (failure.contentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
+                if (failure.contentType() != null && failure.contentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
                     payload = Buffer.buffer(failure.message());
                 } else {
                     String contentAsJson = mapper.writeValueAsString(new ProcessorFailureAsJson(failure));
