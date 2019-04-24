@@ -1,0 +1,203 @@
+{
+  "common": {
+    "copyToClipboard": "Copieer naar clipboard",
+    "NANOSECONDS": "nanoseconden",
+    "MICROSECONDS": "microseconden",
+    "MILLISECONDS": "milliseconden",
+    "SECONDS": "seconden",
+    "MINUTES": "minuten",
+    "HOURS": "uren",
+    "DAYS": "dagen",
+    "close": "Sluiten",
+    "create": "Creëer",
+    "cancel": "Anuleer",
+    "ok": "OK",
+    "submit": "Bevestig",
+    "answer": "Antwoord",
+    "ratings.none": "Geen beoordeling",
+    "paging": {
+      "first": "Eerste",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "last": "Laatste"
+    }
+  },
+  "home": {
+    "subtitle": "Ontwikkel portaal",
+    "version": "Versie: {{version}}",
+    "pages": {
+      "title": "Documentatie"
+    },
+    "apis": {
+      "search": "Zoek een API...",
+      "top": "Top API's",
+      "all": "Bekijk alle API's",
+      "no.search.result": "Geen API's gevonden voor de zoekopdracht."
+    }
+  },
+  "menu": {
+    "login": "Aanmelden",
+    "gallery": "API gallerij",
+    "documentation": "Documentatie",
+    "profile": "Mijn account",
+    "management": "Administratie",
+    "applications": "Applicaties",
+    "apis": "APIs",
+    "tasks": "Taken",
+    "logout": "Uitloggen",
+    "support": "Support"
+  },
+  "apis": {
+    "filter": "Zoek in APIs...",
+    "search": {
+      "view": "Zoekresultaten"
+    }
+  },
+  "api": {
+    "version": "Versie",
+    "endpoint": "Endpoint",
+    "owner": "Eigenaar",
+    "publishedAt": "Gepubliceerd",
+    "subscription": {
+      "step1": {
+        "title": "Kies een API Plan",
+        "subtitle": "Het API plan is het service contract tussen jou en de API.",
+        "keyless": "Dit plan is sleutelloos en een subscriptie is niet nodig."
+      },
+      "step2": {
+        "title": "Selecteer een applicatie",
+        "subtitle": "Een Applicatie is de relatie tussen jou, de consumer, en het abonnement op het API plan",
+        "application": {
+          "placeholder": "Selecteer een applicatie..."
+        },
+        "clientIdRequired": "Een clientId is nodig om te abonneren op dit plan. Kijk de configuratie van je applicatie na aub.",
+        "action": "Abonneer"
+      },
+      "step3": {
+        "apikey": {
+          "key": "Je kan de API benaderen mbv de volgende API sleutel:",
+          "curl": "Aanroep voorbeeld mbv curl:",
+          "clipboard": "De API sleutel is gecopieerd naar het klembord."
+        },
+        "oauth2": {
+          "bearer": "Je hebt een access_token nodig van de authorization server before om deze API te consumeren.",
+          "curl": "Aanroep voorbeeld mbv curl:"
+        },
+        "jwt": {
+          "bearer": "Je hebt een access_token nodig van de authorization server before om deze API te consumeren.",
+          "curl": "Aanroep voorbeeld mbv curl:"
+        },
+        "pending": {
+          "title": "Het abonnement wacht op goedkeuring",
+          "subtitle": "Je abonnement staat nog steeds in de wachtrij voor goedkeuring. Je krijgt een kennisgeving van zodra deze is verwerkt."
+        },
+        "accepted": {
+          "title": "Maak gebruik van deze \"{{apiName}}\" met \"{{applicationName}}\"!"
+        },
+        "successful": "Een abonneer verzoek is ingediend."
+      },
+
+      "planInformation": "met een quota van {{quotaLimit}} verzoeken per {{quotaPeriodTime}} {{quotaPeriodTimeUnit}}"
+    },
+    "plan": {
+      "title": "Plannen",
+      "subscribe": "Abonneer",
+      "manual": "Abonneer onder voorbehoud van goedkeuring",
+      "empty": {
+        "title": "Er is geen plan voor deze API",
+        "message": "Van zodra een plan gecreëerd is, kan je abonneren op deze API"
+      }
+    },
+    "documentation": {
+      "title": "Documentatie",
+      "empty": {
+        "title": "Er is geen documentatie voor deze API.",
+        "message": "Kom snel terug, de API zal binnenkort voltooid zijn"
+      }
+    },
+    "metadata": {
+      "title": "Metadata",
+      "name": "Naam",
+      "value": "Waarde"
+    },
+    "rating": {
+      "title": "Titel of samenvatting van je commentaar",
+      "comment": "Commentaar",
+      "by": "Door",
+      "rate": "{{numberOfRatings}} beoordelings",
+      "empty": {
+        "title": "Er zijn geen beoordelingen voor deze API",
+        "message": "Wees de eerste om de API te beoordelen",
+        "rights.message": "Je hebt niet voldoende rechten om deze API te beoordelen"
+      },
+      "messages": {
+        "1": "Ik haat deze API",
+        "2": "Ik vind deze API maar niets",
+        "3": "Ik vind deze API goed",
+        "4": "Ik vind deze API geweldig",
+        "5": "Deze API is gewoon perfectie zelve"
+      },
+      "successCreation": "Jouw beoordeling is ingediend",
+      "successCreationMessage": "Je kan nu commentaar toevoegen om je beoordeling te vervolledigen",
+      "successUpdate": "Je beoordeling is succesvol bijgewerkt",
+      "successDeletion": "Deze beoordeling is sucessvol verwijderd",
+      "deletion": "Ben je zeker dat je deze beoordeling wil verwijderen?",
+      "list": {
+        "title": "{{numberOfRatings}} beoordelingen"
+      },
+      "answer": {
+        "label": "{{numberOfAnswers}} antwoorden",
+        "successCreation": "Je antwoord is succesvol ingediend",
+        "successDeletion": "Dit antwoord is succesvol verwijderd",
+        "deletion": "Ben je zeker dat je dit antwoord wil verwijderen?",
+        "new": {
+          "label": "Antwoord"
+        }
+      },
+      "summary": {
+        "title": "{{averageRate}} sterren van de 5",
+        "link": "Raadpleeg de {{numberOfRatings}} beoordelingen"
+      }
+    },
+    "header": {
+      "views": "Weergaven",
+      "tags": "Labels"
+    }
+  },
+  "applications": {
+    "empty": "Je beschikt niet over een applicatie!",
+    "start": "Start met het creëren van je eerste applicatie."
+  },
+  "application": {
+    "notFound": "Er zijn geen applicaties gevonden die overstemmen met \"{{applicationName}}\"."
+  },
+  "support": {
+    "ticket": {
+      "title": "Support ticket creatie",
+      "subject": "Onderwerp",
+      "content": "Inhoud",
+      "api": "Selecteer een API",
+      "application": "Selecteer een applicatie",
+      "copyToSender": "Ontvang een kopie van het bericht",
+      "successCreation": "Support ticket is succesvol aangemaakt",
+      "notAuthenticated": {
+        "title": "Creatie van een support ticket",
+        "message": "Om een support ticket aan te maken, moet je aangemeld zijn"
+      },
+      "userWithoutEmail": {
+        "message": "Je kan geen ticket indienen omdat je geen email hebt geconfigureerd in je account"
+      }
+    }
+  },
+  "views": {
+    "filter": "Filterweergaven..."
+  },
+  "view": {
+    "defaultDescription":  "Ophalen van APIs van categorie {{viewName}}",
+    "api": {
+      "documentation": "Documentatie",
+      "ratings": "Beoordelingen"
+    },
+    "moreApis": "Meer APIs ..."
+  }
+}

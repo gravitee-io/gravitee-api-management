@@ -25,12 +25,13 @@ function portalI18nConfig($translateProvider, $windowProvider) {
   });
 
   $translateProvider
-    .registerAvailableLanguageKeys( ["en", "fr", "pt-BR", "zh", "ru"], {
+    .registerAvailableLanguageKeys( ["en", "fr", "pt-BR", "zh", "ru", "nl"], {
       "en*": "en",
       "fr*": "fr",
       "pt*": "pt-BR",
       "zh*": "zh",
       "ru*": "ru",
+      "nl*": "nl",
       "*": "en"
       })
     .determinePreferredLanguage();
