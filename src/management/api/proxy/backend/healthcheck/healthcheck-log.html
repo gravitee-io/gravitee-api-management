@@ -72,7 +72,7 @@
 
       <br>
 
-      <md-table-container ng-if="healthCheckLogCtrl.log.request.headers.length > 0">
+      <md-table-container ng-if="healthCheckLogCtrl.log.request.headers">
         <table md-table>
           <tbody md-body>
           <tr md-row ng-repeat="(key, value) in healthCheckLogCtrl.log.request.headers" style="height: 30px;">
@@ -121,7 +121,7 @@
 
       <br>
 
-      <md-table-container ng-if="healthCheckLogCtrl.log.response.headers.length > 0">
+      <md-table-container ng-if="healthCheckLogCtrl.log.response.headers">
         <table md-table>
           <tbody md-body>
           <tr md-row ng-repeat="(key, value) in healthCheckLogCtrl.log.response.headers" style="height: 30px;">
