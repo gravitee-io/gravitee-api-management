@@ -17,19 +17,35 @@
                 },
                 "client-request": {
                     "type": "object",
-                    "enabled": false
+                    "properties": {
+                        "body":{
+                            "type": "keyword"
+                        }
+                    }
                 },
                 "client-response": {
                     "type": "object",
-                    "enabled": false
+                    "properties": {
+                        "body":{
+                            "type": "keyword"
+                        }
+                    }
                 },
                 "proxy-request": {
                     "type": "object",
-                    "enabled": false
+                    "properties": {
+                        "body":{
+                            "type": "keyword"
+                        }
+                    }
                 },
                 "proxy-response": {
                     "type": "object",
-                    "enabled": false
+                    "properties": {
+                        "body":{
+                            "type": "keyword"
+                        }
+                    }
                 }
             }
         }
