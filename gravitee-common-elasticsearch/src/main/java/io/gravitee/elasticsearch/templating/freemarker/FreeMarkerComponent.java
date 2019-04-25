@@ -88,7 +88,7 @@ public class FreeMarkerComponent implements InitializingBean {
             template.process(data, output);
             return output.getBuffer().toString();
         } catch (final IOException | TemplateException exception) {
-            logger.error("Impossible to generate from template {}", templateName, exception);
+            logger.error("Impossible to generate from template " + templateName, exception);
             throw new IllegalArgumentException();
         }
     }

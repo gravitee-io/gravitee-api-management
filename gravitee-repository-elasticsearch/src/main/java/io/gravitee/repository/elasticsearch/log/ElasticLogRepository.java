@@ -21,7 +21,9 @@ import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.analytics.query.QueryFilter;
 import io.gravitee.repository.analytics.query.tabular.TabularQuery;
+import io.gravitee.repository.analytics.query.tabular.TabularQueryBuilder;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.log.api.LogRepository;
@@ -32,16 +34,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static io.gravitee.repository.analytics.query.QueryBuilders.tabular;
+import static java.lang.String.format;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
+import static org.springframework.util.StringUtils.isEmpty;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
  * @author Sebastien Devaux (Zenika)
  * @author Guillaume Waignier (Zenika)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class ElasticLogRepository extends AbstractElasticsearchRepository implements LogRepository {
 
@@ -62,22 +68,77 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
 	@Override
 	public TabularResponse query(final TabularQuery query) throws AnalyticsException {
-		final String sQuery = this.createElasticsearchJsonQuery(query);
-		
 		final Long from = query.timeRange().range().from();
 		final Long to = query.timeRange().range().to();
-
 		try {
-			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.REQUEST, from, to),
-					Type.REQUEST.getType(),
-					sQuery);
+			final TabularQueryBuilder tabularQueryBuilder = tabular()
+					.timeRange(query.timeRange().range(), query.timeRange().interval())
+					.page(query.page())
+					.size(query.size())
+					.sort(query.sort());
+			final String logQueryString = getQuery(query.query(), true);
+			if (isEmpty(logQueryString)) {
+				final Single<SearchResponse> result = this.client.search(
+						this.indexNameGenerator.getIndexName(Type.REQUEST, from, to),
+						Type.REQUEST.getType(),
+						this.createElasticsearchJsonQuery(query));
 
-			return this.toTabularResponse(result.blockingGet());
+				return this.toTabularResponse(result.blockingGet());
+			} else {
+				final String sQuery = this.createElasticsearchJsonQuery(tabularQueryBuilder.query(logQueryString).build());
+				Single<SearchResponse> result = this.client.search(
+						this.indexNameGenerator.getIndexName(Type.LOG, from, to),
+						Type.LOG.getType(),
+						sQuery);
+
+				final SearchResponse searchResponse = result.blockingGet();
+				final String logIdsQuery = searchResponse.getSearchHits().getHits().stream()
+						.map(searchHit -> "_id:" + searchHit.getId())
+						.collect(joining(" OR "));
+
+				if (!logIdsQuery.isEmpty()) {
+					final String queryString = getQuery(query.query(), false);
+					final String requestQuery = isEmpty(queryString) ? logIdsQuery :
+							format("(%s) AND (%s)", queryString, logIdsQuery);
+					final TabularQueryBuilder tqb = tabularQueryBuilder.query(requestQuery);
+					if (query.root() != null) {
+						tqb.root(query.root().field(), query.root().id());
+					}
+					result = this.client.search(
+							this.indexNameGenerator.getIndexName(Type.REQUEST, from, to),
+							Type.REQUEST.getType(),
+							this.createElasticsearchJsonQuery(tqb.build()));
+				}
+
+				return this.toTabularResponse(result.blockingGet());
+			}
 		} catch (final Exception eex) {
 			logger.error("Impossible to perform log request", eex);
 			throw new AnalyticsException("Impossible to perform log request", eex);
 		}
+	}
+
+	private String getQuery(final QueryFilter query, final boolean log) {
+		if (query == null) {
+			return null;
+		}
+		final String filterSeparator = " AND ";
+		final String[] filters = query.filter().split(filterSeparator);
+		return stream(filters)
+				.map(f -> f.split(":"))
+				.filter(filter -> {
+					final String filterKey = filter[0];
+					return (log && filterKey.contains("body")) || (!log && !filterKey.contains("body"));
+				})
+				.map(filter -> {
+					final String filterKey = filter[0];
+					if ("body".equals(filterKey)) {
+						return "\\\\*.body" + ":" + filter[1];
+					} else {
+						return filterKey + ":" + filter[1];
+					}
+				})
+				.collect(joining(filterSeparator));
 	}
 
 	/**

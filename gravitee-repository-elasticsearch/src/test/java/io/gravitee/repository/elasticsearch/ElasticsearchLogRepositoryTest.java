@@ -18,13 +18,14 @@ package io.gravitee.repository.elasticsearch;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.elasticsearch.log.ElasticLogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
 import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
 import static io.gravitee.repository.analytics.query.QueryBuilders.tabular;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,7 +41,7 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
         // 29381bce-df59-47b2-b81b-cedf59c7b23e request is stored in the yesterday index
         ExtendedLog log = logRepository.findById("29381bce-df59-47b2-b81b-cedf59c7b23e", System.currentTimeMillis() - 24*60*60*1000);
 
-        Assert.assertNotNull(log);
+        assertNotNull(log);
     }
 
     @Test
@@ -53,7 +54,22 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
                         .size(20)
                         .build());
 
-        Assert.assertNotNull(response);
+        assertNotNull(response);
+        assertEquals(1, response.getSize());
+    }
+
+    @Test
+    public void testTabular_withLogQuery() throws Exception {
+        TabularResponse response = logRepository.query(
+                tabular()
+                        .timeRange(lastDays(60), hours(1))
+                        .query("client-response.body:*not valid or is expired*")
+                        .page(1)
+                        .size(20)
+                        .build());
+
+        assertNotNull(response);
+        assertEquals(1, response.getSize());
     }
 
     @Test
@@ -65,6 +81,7 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
                         .size(20)
                         .build());
 
-        Assert.assertNotNull(response);
+        assertNotNull(response);
+        assertEquals(6, response.getSize());
     }
 }
