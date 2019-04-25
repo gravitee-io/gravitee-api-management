@@ -28,24 +28,18 @@ public class LogsParam {
 
     @QueryParam("from")
     private long from;
-
     @QueryParam("to")
     private long to;
-
     @QueryParam("query")
     private String query;
-
     @QueryParam("size")
     @DefaultValue("20")
     private int size;
-
     @QueryParam("page")
     @DefaultValue("1")
     private int page;
-
     @QueryParam("field")
     private String field;
-
     @QueryParam("order")
     private boolean order;
 
