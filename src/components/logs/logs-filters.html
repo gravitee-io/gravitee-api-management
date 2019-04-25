@@ -65,7 +65,7 @@
         <md-option ng-value="plan.id" ng-repeat="plan in $ctrl.metadata.plans">{{plan.name}}</md-option>
       </md-select>
     </md-input-container>
-    <md-input-container class="md-block" flex-gt-sm flex="20" ng-if="$ctrl.metadata.tenants">
+    <md-input-container class="md-block" flex-gt-sm flex="20" ng-if="$ctrl.metadata.tenants.length > 0">
       <label>Tenants</label>
       <md-select ng-model="$ctrl.filters.tenant" placeholder="Tenant" multiple>
         <md-option ng-value="tenant.id" ng-repeat="tenant in $ctrl.metadata.tenants">{{tenant.name}}</md-option>
@@ -77,6 +77,10 @@
           {{displayMode.label}}
         </md-option>
       </md-select>
+    </md-input-container>
+    <md-input-container>
+      <label>Search in payloads</label>
+      <input ng-model="$ctrl.filters.body">
     </md-input-container>
     <div>
       <md-button type="submit" class="md-raised md-primary">

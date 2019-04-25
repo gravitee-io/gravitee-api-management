@@ -186,6 +186,9 @@ class LogsFiltersController {
         case '!_exists_':
           this.filters['!_exists_'] = v;
           break;
+        case 'body':
+          this.filters.body = v[0].replace(/\*/g, '');
+          break;
         default:
           console.log('unknown filter: ', k);
           break;
@@ -237,6 +240,9 @@ class LogsFiltersController {
           val = '/' + val;
         }
         val = val.replace(/\//g, '\\\\/') + '*';
+      }
+      if (key === 'body') {
+        val = '*' + val + '*';
       }
       let params = (val.constructor === Array && val.length > 1) ? LogsFiltersController.convert(val) : val;
       query += that.map(key, that.fields, true) + ':' + params;
