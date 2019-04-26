@@ -59,11 +59,15 @@ public class PortalPagesResource extends AbstractResource {
             @ApiResponse(code = 200, message = "Page"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public PageEntity getPage(
-                @PathParam("page") String page) {
+                @PathParam("page") String page,
+                @QueryParam("portal") boolean portal) {
         PageEntity pageEntity = pageService.findById(page);
         if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
+            }
+            if (portal) {
+                pageService.transformWithTemplate(pageEntity, null);
             }
             return pageEntity;
         } else {

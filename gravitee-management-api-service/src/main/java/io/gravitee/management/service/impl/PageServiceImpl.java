@@ -53,7 +53,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
-import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -65,6 +64,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.PAGE
 import static io.gravitee.repository.management.model.Page.AuditEvent.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static org.springframework.ui.freemarker.FreeMarkerTemplateUtils.processTemplateIntoString;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -101,6 +101,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 	private AuditService auditService;
 	@Autowired
 	private SearchEngineService searchEngineService;
+	@Autowired
+	private MetadataService metadataService;
 
 	@Autowired
 	private GraviteeDescriptorService graviteeDescriptorService;
@@ -126,7 +128,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	@Override
 	public void transformSwagger(PageEntity pageEntity) {
-		transformSwagger(pageEntity, null);
+		String apiId = null;
+		if (pageEntity instanceof ApiPageEntity) {
+			apiId = ((ApiPageEntity) pageEntity).getApi();
+		}
+		transformSwagger(pageEntity, apiId);
     }
 
 	@Override
@@ -154,17 +160,25 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		}
 	}
 
-	private void transformWithTemplate(final PageEntity pageEntity, final String api) {
+	@Override
+	public void transformWithTemplate(final PageEntity pageEntity, final String api) {
 		if (pageEntity.getContent() != null) {
 			try {
-				Template template = new Template(pageEntity.getId(), pageEntity.getContent(), freemarkerConfiguration);
+				final Template template = new Template(pageEntity.getId(), pageEntity.getContent(), freemarkerConfiguration);
+				final Map<String, Object> model = new HashMap<>();
+				if (api == null) {
+					final List<MetadataEntity> metadataList = metadataService.findAllDefault();
+					if (metadataList != null) {
+						final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
+						metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(), metadata.getValue()));
+						model.put("metadata", mapMetadata);
+					}
+				} else {
+					ApiModelEntity apiEntity = apiService.findByIdForTemplates(api);
+					model.put("api", apiEntity);
+				}
 
-				ApiModelEntity apiEntity = apiService.findByIdForTemplates(api);
-				Map<String, Object> model = new HashMap<>();
-				model.put("api", apiEntity);
-
-				final String content =
-						FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+				final String content = processTemplateIntoString(template, model);
 
 				pageEntity.setContent(content);
 			} catch (IOException | TemplateException ex) {
