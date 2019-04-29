@@ -221,7 +221,7 @@ function portalRouterConfig($stateProvider) {
       component: 'portalPage',
       resolve: {
         page: ($stateParams, DocumentationService: DocumentationService) =>
-          DocumentationService.get2($stateParams['pageId']).then(response => response.data)
+          DocumentationService.get(null, $stateParams['pageId'], true).then(response => response.data)
       },
       params: {
         pageId: {

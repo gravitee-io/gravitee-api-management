@@ -85,10 +85,6 @@ class DocumentationService {
     return this.$http.delete(this.url(apiId, pageId));
   };
 
-  get2 = (pageId: string, apiId?: string): IHttpPromise<any> => {
-    return this.$http.get(this.url(apiId, pageId));
-  };
-
   create = (newPage: any, apiId?: string): IHttpPromise<any> => {
     return this.$http.post(this.url(apiId), newPage);
   };
