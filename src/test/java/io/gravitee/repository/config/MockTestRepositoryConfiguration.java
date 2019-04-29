@@ -19,8 +19,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.*;
 import org.mockito.ArgumentMatcher;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.context.annotation.Bean;
@@ -1684,5 +1684,105 @@ public class MockTestRepositoryConfiguration {
                 .thenReturn(of(up));
 
         return apiHeaderRepository;
+    }
+
+    @Bean
+    public CommandRepository messageRepository() throws Exception {
+        final CommandRepository commandRepository = mock(CommandRepository.class);
+
+        //shouldCreate
+        Command newCommand = new Command();
+        newCommand.setId("msg-to-create");
+        newCommand.setTo("someone");
+        newCommand.setTags(Arrays.asList("INSERT", "DATA_TO_INDEX"));
+        newCommand.setContent("Hello, is it me you're looking for?");
+        newCommand.setAcknowledgments(Arrays.asList("1", "a"));
+        newCommand.setCreatedAt(new Date(1546305346000L));
+        newCommand.setUpdatedAt(new Date(1548983746000L));
+        newCommand.setExpiredAt(new Date(1551402946000L));
+        when(commandRepository.findById("msg-to-create")).thenReturn(of(newCommand));
+
+        //shouldUpdate
+        Command updatedCommand = new Command();
+        updatedCommand.setId("msg-to-update");
+        updatedCommand.setTo("message updated");
+        updatedCommand.setFrom("from updated");
+        updatedCommand.setTags(singletonList("DELETE"));
+        updatedCommand.setContent("updated content");
+        updatedCommand.setAcknowledgments(Arrays.asList("up", "date"));
+        updatedCommand.setCreatedAt(new Date(1546405346000L));
+        updatedCommand.setUpdatedAt(new Date(1546505346000L));
+        updatedCommand.setExpiredAt(new Date(1546605346000L));
+        when(commandRepository.update(argThat(new ArgumentMatcher<Command>() {
+            @Override
+            public boolean matches(Object o) {
+                return o instanceof Command && ((Command) o).getId().equals("msg-to-update");
+            }
+        }))).thenReturn(updatedCommand);
+
+        //shouldNotUpdateUnknownMessage
+        when(commandRepository.update(argThat(new ArgumentMatcher<Command>() {
+            @Override
+            public boolean matches(Object o) {
+                return o instanceof Command && ((Command) o).getId() == null;
+            }
+        }))).thenThrow(new IllegalStateException());
+
+        //shouldNotUpdateNull
+        when(commandRepository.update(argThat(new ArgumentMatcher<Command>() {
+            @Override
+            public boolean matches(Object o) {
+                return o == null;
+            }
+        }))).thenThrow(new IllegalStateException());
+
+        //shouldDelete
+        when(commandRepository.findById("msg-to-delete")).thenReturn(of(mock(Command.class)), empty());
+
+        //search
+        Command search1 = new Command();
+        search1.setId("search1");
+        Command search2 = new Command();
+        search2.setId("search2");
+        Command search3 = new Command();
+        search3.setId("search3");
+        when(commandRepository.search(argThat(new ArgumentMatcher<CommandCriteria>() {
+            @Override
+            public boolean matches(Object o) {
+                return o instanceof CommandCriteria && ((CommandCriteria) o).getNotFrom() != null;
+            }
+        }))).thenReturn(Arrays.asList(newCommand, updatedCommand, mock(Command.class), search2, search3));
+        when(commandRepository.search(argThat(new ArgumentMatcher<CommandCriteria>() {
+            @Override
+            public boolean matches(Object o) {
+                return o instanceof CommandCriteria && ((CommandCriteria) o).getTo() != null;
+            }
+        }))).thenReturn(singletonList(search3));
+        when(commandRepository.search(argThat(new ArgumentMatcher<CommandCriteria>() {
+            @Override
+            public boolean matches(Object o) {
+                return o instanceof CommandCriteria && ((CommandCriteria) o).getTags() != null && ((CommandCriteria) o).getTags().length == 1;
+            }
+        }))).thenReturn(Arrays.asList(newCommand, updatedCommand, search1, search2));
+        when(commandRepository.search(argThat(new ArgumentMatcher<CommandCriteria>() {
+            @Override
+            public boolean matches(Object o) {
+                return o instanceof CommandCriteria && ((CommandCriteria) o).getTags() != null && ((CommandCriteria) o).getTags().length == 2;
+            }
+        }))).thenReturn(singletonList(search3));
+        when(commandRepository.search(argThat(new ArgumentMatcher<CommandCriteria>() {
+            @Override
+            public boolean matches(Object o) {
+                return o instanceof CommandCriteria && ((CommandCriteria) o).getNotAckBy() != null;
+            }
+        }))).thenReturn(Arrays.asList(newCommand, updatedCommand, mock(Command.class), search2));
+        when(commandRepository.search(argThat(new ArgumentMatcher<CommandCriteria>() {
+            @Override
+            public boolean matches(Object o) {
+                return o instanceof CommandCriteria && ((CommandCriteria) o).isNotExpired();
+            }
+        }))).thenReturn(singletonList(search2));
+
+        return commandRepository;
     }
 }
