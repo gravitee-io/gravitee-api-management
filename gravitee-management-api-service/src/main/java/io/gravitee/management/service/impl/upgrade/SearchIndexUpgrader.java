@@ -54,13 +54,13 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         Set<ApiEntity> apis = apiService.findAll();
         apis.stream()
                 .forEach(apiEntity -> {
-                    searchEngineService.index(apiEntity);
+                    searchEngineService.index(apiEntity, true);
 
                     List<PageEntity> apiPages = pageService.search(new PageQuery.Builder().api(apiEntity.getId()).published(true).build());
                     apiPages.stream().forEach(pageListItem -> {
                         try {
                             PageEntity page = pageService.findById(pageListItem.getId(), true);
-                            searchEngineService.index(page);
+                            searchEngineService.index(page, true);
                         } catch (Exception ex) {
 
                         }

@@ -15,26 +15,37 @@
  */
 package io.gravitee.management.service.impl.search;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.management.model.ApiPageEntity;
+import io.gravitee.management.model.PageEntity;
+import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.command.CommandSearchIndexerEntity;
+import io.gravitee.management.model.command.CommandTags;
+import io.gravitee.management.model.command.NewCommandEntity;
 import io.gravitee.management.model.search.Indexable;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.CommandService;
+import io.gravitee.management.service.PageService;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.management.service.impl.search.lucene.DocumentTransformer;
 import io.gravitee.management.service.impl.search.lucene.SearchEngineIndexer;
 import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.MessageRecipient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -54,9 +65,88 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     @Autowired
     private Collection<DocumentSearcher> searchers;
 
+    @Autowired
+    private CommandService commandService;
+
+    @Autowired
+    private ApiService apiService;
+
+    @Autowired
+    private PageService pageService;
+
+    private ObjectMapper mapper = new ObjectMapper();
+
+    private static final String ACTION_INDEX = "I";
+    private static final String ACTION_DELETE = "D";
+
     @Async
     @Override
-    public void index(Indexable source) {
+    public void index(Indexable source, boolean locally) {
+        if (locally) {
+            indexLocally(source);
+        } else {
+            CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
+            content.setAction(ACTION_INDEX);
+            content.setId(source.getId());
+            content.setClazz(source.getClass().getName());
+
+            sendCommands(content);
+        }
+    }
+
+    @Async
+    @Override
+    public void delete(Indexable source, boolean locally) {
+        if (locally) {
+            deleteLocally(source);
+        } else {
+            CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
+            content.setAction(ACTION_DELETE);
+            content.setId(source.getId());
+            content.setClazz(source.getClass().getName());
+
+            sendCommands(content);
+        }
+    }
+
+    private void sendCommands(CommandSearchIndexerEntity content) {
+        try {
+            NewCommandEntity msg = new NewCommandEntity();
+            msg.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
+            msg.setTo(MessageRecipient.MANAGEMENT_APIS.name());
+            msg.setTtlInSeconds(60);
+            msg.setContent(mapper.writeValueAsString(content));
+            commandService.send(msg);
+        } catch (JsonProcessingException e) {
+            logger.error("Unexpected error while sending a message", e);
+        }
+    }
+
+    @Override
+    public void process(CommandSearchIndexerEntity content) {
+        Indexable source = getSource(content.getClazz(), content.getId());
+        if (source == null) {
+            logger.error("Unable to get source from message content [{}]", content);
+            throw new TechnicalManagementException("Unable to get source from message content [" + content + "]");
+        }
+
+        if (ACTION_DELETE.equals(content.getAction())) {
+            deleteLocally(source);
+        } else if (ACTION_INDEX.equals(content.getAction())) {
+            indexLocally(source);
+        }
+    }
+
+    private Indexable getSource(String clazz, String id) {
+        if (ApiEntity.class.getName().equals(clazz)) {
+            return apiService.findById(id);
+        } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
+            return pageService.findById(id);
+        }
+        return null;
+    }
+
+    private void indexLocally(Indexable source) {
         transformers.stream()
                 .filter(transformer -> transformer.handle(source.getClass()))
                 .findFirst()
@@ -69,9 +159,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                 });
     }
 
-    @Async
-    @Override
-    public void delete(Indexable source) {
+    private void deleteLocally(Indexable source) {
         transformers.stream()
                 .filter(transformer -> transformer.handle(source.getClass()))
                 .findFirst()
@@ -104,4 +192,5 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
         return results.get();
     }
+
 }

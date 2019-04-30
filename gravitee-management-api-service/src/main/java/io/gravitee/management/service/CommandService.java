@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.search;
+package io.gravitee.management.service;
+
+import io.gravitee.management.model.command.CommandEntity;
+import io.gravitee.management.model.command.CommandQuery;
+import io.gravitee.management.model.command.NewCommandEntity;
+
+import java.util.List;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Indexable {
-    String getId();
+public interface CommandService {
+
+    void send(NewCommandEntity message);
+    List<CommandEntity> search(CommandQuery query);
+    void ack(String messageId);
 }

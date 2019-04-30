@@ -456,7 +456,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 				// update document in search engine
                 if(pageToUpdate.isPublished() && !page.isPublished()) {
-                	searchEngineService.delete(convert(pageToUpdate));
+                	searchEngineService.delete(convert(pageToUpdate), false);
 				} else {
 					index(pageEntity);
 				}
@@ -470,7 +470,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	private void index(PageEntity pageEntity) {
 		if (pageEntity.isPublished()) {
-			searchEngineService.index(pageEntity);
+			searchEngineService.index(pageEntity, false);
 		}
 	}
 
@@ -558,7 +558,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
             }
 
             // remove from search engine
-			searchEngineService.delete(convert(optPage.get()));
+			searchEngineService.delete(convert(optPage.get()), false);
 		} catch (TechnicalException ex) {
 			logger.error("An error occurs while trying to delete Page {}", pageId, ex);
 			throw new TechnicalManagementException("An error occurs while trying to delete Page " + pageId, ex);
