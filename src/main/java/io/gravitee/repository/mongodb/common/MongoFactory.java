@@ -16,11 +16,13 @@
 package io.gravitee.repository.mongodb.common;
 
 import com.mongodb.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.util.Assert;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -30,6 +32,7 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -54,8 +57,9 @@ public class MongoFactory implements FactoryBean<Mongo> {
     private MongoClientOptions.Builder builder() {
         MongoClientOptions.Builder builder = MongoClientOptions.builder();
 
-        builder.writeConcern(WriteConcern.SAFE);
-
+        String writeConcern = readPropertyValue(propertyPrefix + "writeConcern", String.class, "1");
+        Boolean journal = readPropertyValue(propertyPrefix + "journal", Boolean.class);
+        Integer wtimeout = readPropertyValue(propertyPrefix + "wtimeout", Integer.class, 0);
         Integer connectionsPerHost = readPropertyValue(propertyPrefix + "connectionsPerHost", Integer.class);
         Integer connectTimeout = readPropertyValue(propertyPrefix + "connectTimeout", Integer.class, 1000);
         Integer maxWaitTime = readPropertyValue(propertyPrefix + "maxWaitTime", Integer.class);
@@ -157,6 +161,14 @@ public class MongoFactory implements FactoryBean<Mongo> {
 
             builder.readPreference(readPrefObj);
         }
+        WriteConcern wc;
+        if (StringUtils.isNumeric(writeConcern)) {
+            wc = new WriteConcern(Integer.valueOf(writeConcern));
+        } else {
+            Assert.isTrue(writeConcern.equals("majority"), "writeConcern must be numeric or equals to 'majority'");
+            wc = new WriteConcern(writeConcern);
+        }
+        builder.writeConcern(wc.withJournal(journal).withWTimeout(wtimeout, TimeUnit.MILLISECONDS));
 
         return builder;
     }

@@ -41,6 +41,9 @@ repository.mongodb options :
 | password                                         |            |
 | connectionPerHost                                |            |
 | connectTimeout                                   |            |
+| writeConcern                                     |      1     |
+| wtimeout                                         |    0       |
+| journal                                          |            |
 | maxWaitTime                                      |            |
 | socketTimeout                                    |            |
 | socketKeepAlive                                  |            |
@@ -59,3 +62,5 @@ repository.mongodb options :
 | keystorePassword                                 |            |
 | keystore                                         |            |
 | keyPassword                                      |            |
+
+NB: writeConcern possible value are 1,2,3... (the number of node) or 'majority' 
