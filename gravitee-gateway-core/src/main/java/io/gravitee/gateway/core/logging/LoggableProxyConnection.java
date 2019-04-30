@@ -178,6 +178,11 @@ public class LoggableProxyConnection implements ProxyConnection {
             return proxyResponse.status();
         }
 
+        @Override
+        public boolean connected() {
+            return proxyResponse.connected();
+        }
+
         protected void appendLog(Buffer buffer, Buffer chunk) {
             buffer.appendBuffer(chunk);
         }
