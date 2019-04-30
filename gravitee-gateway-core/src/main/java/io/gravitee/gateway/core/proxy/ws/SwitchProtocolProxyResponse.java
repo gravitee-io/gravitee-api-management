@@ -13,32 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.proxy;
+package io.gravitee.gateway.core.proxy.ws;
 
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpHeadersValues;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
 
-public class EmptyProxyResponse implements ProxyResponse {
+public class SwitchProtocolProxyResponse implements ProxyResponse {
 
     private Handler<Buffer> bodyHandler;
     private Handler<Void> endHandler;
 
     private final HttpHeaders httpHeaders = new HttpHeaders();
 
-    private final int statusCode;
-
-    public EmptyProxyResponse(int statusCode) {
-        this.statusCode = statusCode;
-        httpHeaders.set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-    }
-
     @Override
     public int status() {
-        return statusCode;
+        return HttpStatusCode.SWITCHING_PROTOCOLS_101;
     }
 
     @Override

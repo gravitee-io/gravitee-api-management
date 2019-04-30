@@ -37,12 +37,14 @@ public class VertxReactorTimeoutHandler extends VertxReactorHandler {
     }
 
     protected void route(final Request request, final Response response) {
-        vertx.setTimer(timeout, event -> {
-            if (! response.ended()) {
-                io.gravitee.gateway.api.handler.Handler<Long> handler = request.timeoutHandler();
-                handler.handle(event);
-            }
-        });
+        if (! request.isWebSocket()) {
+            vertx.setTimer(timeout, event -> {
+                if (!response.ended()) {
+                    io.gravitee.gateway.api.handler.Handler<Long> handler = request.timeoutHandler();
+                    handler.handle(event);
+                }
+            });
+        }
 
         super.route(request, response);
     }

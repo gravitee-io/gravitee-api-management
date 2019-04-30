@@ -25,7 +25,6 @@ import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecyleManager;
 import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
-import io.gravitee.gateway.core.proxy.EmptyProxyResponse;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
@@ -147,7 +146,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     private void handleProxyResponse(final ExecutionContext context, final ProxyResponse proxyResponse) {
         // If the response is not yet ended (by a request timeout for example)
         if (! context.response().ended()) {
-            if (proxyResponse == null || proxyResponse instanceof EmptyProxyResponse) {
+            if (proxyResponse == null || !proxyResponse.connected()) {
                 context.response().status((proxyResponse == null) ? HttpStatusCode.SERVICE_UNAVAILABLE_503 : proxyResponse.status());
                 context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
                         context.request().metrics().getApiResponseTimeMs());

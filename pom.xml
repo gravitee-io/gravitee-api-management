@@ -223,7 +223,6 @@
         <json-path.version>2.2.0</json-path.version>
         <wiremock.version>2.21.0</wiremock.version>
         <guava.version>26.0-jre</guava.version>
-        <vertx.version>3.7.0-SNAPSHOT</vertx.version>
     </properties>
 
     <!-- allow snapshot only for vertx until the final release -->

@@ -31,7 +31,7 @@ import io.vertx.core.http.HttpVersion;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-class VertxHttpServerResponse implements Response {
+public class VertxHttpServerResponse implements Response {
 
     private final HttpServerResponse httpServerResponse;
 
@@ -41,7 +41,7 @@ class VertxHttpServerResponse implements Response {
 
     private final HttpVersion version;
 
-    VertxHttpServerResponse(final HttpServerRequest httpServerRequest, final Metrics metrics) {
+    public VertxHttpServerResponse(final HttpServerRequest httpServerRequest, final Metrics metrics) {
         this.httpServerResponse = httpServerRequest.response();
         version = httpServerRequest.version();
         this.metrics = metrics;

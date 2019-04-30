@@ -24,6 +24,7 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.reporter.api.http.Metrics;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServerRequest;
@@ -38,7 +39,7 @@ import java.util.Map;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-class VertxHttpServerRequest implements Request {
+public class VertxHttpServerRequest implements Request {
 
     private final String id;
     private final long timestamp;
@@ -49,11 +50,11 @@ class VertxHttpServerRequest implements Request {
 
     private HttpHeaders headers = null;
 
-    private final Metrics metrics;
+    protected final Metrics metrics;
 
     private Handler<Long> timeoutHandler;
 
-    VertxHttpServerRequest(HttpServerRequest httpServerRequest) {
+    public VertxHttpServerRequest(HttpServerRequest httpServerRequest) {
         this.httpServerRequest = httpServerRequest;
         this.timestamp = System.currentTimeMillis();
         this.id = UUID.toString(UUID.random());
@@ -231,5 +232,14 @@ class VertxHttpServerRequest implements Request {
     @Override
     public Handler<Long> timeoutHandler() {
         return this.timeoutHandler;
+    }
+
+    public boolean isWebSocket() {
+        return false;
+    }
+
+    @Override
+    public WebSocket websocket() {
+        throw new IllegalStateException();
     }
 }
