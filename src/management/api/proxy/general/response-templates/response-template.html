@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form name="$ctrl.formResponseTemplate" ng-submit="$ctrl.update()" novalidate>
+<form name="$ctrl.formResponseTemplate" novalidate>
   <div class="gv-forms" layout="column">
     <div class="gv-forms-header">
       <h1 ng-if="$ctrl.creation">New Response Template</h1>
@@ -63,7 +63,7 @@
     </md-content>
 
     <div class="md-actions gravitee-api-save-button" layout="row">
-      <md-button permission permission-only="'api-response_templates-u'" class="md-raised md-primary" type="submit" ng-disabled="$ctrl.formResponseTemplate.$invalid || $ctrl.formResponseTemplate.$pristine">
+      <md-button permission permission-only="'api-response_templates-u'" class="md-raised md-primary" ng-click="$ctrl.update()" ng-disabled="$ctrl.formResponseTemplate.$invalid || $ctrl.formResponseTemplate.$pristine">
         Save
       </md-button>
       <md-button permission permission-only="'api-response_templates-u'" class="md-raised" type="button" ng-click="$ctrl.reset()" ng-disabled="$ctrl.formResponseTemplate.$pristine">
