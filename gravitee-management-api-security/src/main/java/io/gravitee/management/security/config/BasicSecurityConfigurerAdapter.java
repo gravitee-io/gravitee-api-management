@@ -19,8 +19,11 @@ import io.gravitee.management.idp.api.IdentityProvider;
 import io.gravitee.management.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.management.idp.core.plugin.IdentityProviderManager;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
+import io.gravitee.management.security.authentication.GraviteeAuthenticationDetails;
+import io.gravitee.management.security.authentication.GraviteeAuthenticationDetailsSource;
 import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.security.filter.JWTAuthenticationFilter;
+import io.gravitee.management.security.listener.AuthenticationFailureListener;
 import io.gravitee.management.security.listener.AuthenticationSuccessListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.config.annotation.SecurityConfigurer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -42,6 +46,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -74,6 +79,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         LOGGER.info("Loading authentication identity providers for Basic authentication");
+
         List<io.gravitee.management.security.authentication.AuthenticationProvider> providers =
                 authenticationProviderManager.getIdentityProviders()
                         .stream()
@@ -113,6 +119,11 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     @Bean
     public AuthenticationSuccessListener authenticationSuccessListener() {
         return new AuthenticationSuccessListener();
+    }
+
+    @Bean
+    public AuthenticationFailureListener authenticationFailureListener() {
+        return new AuthenticationFailureListener();
     }
 
     @Bean
@@ -173,7 +184,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {
-        return security.httpBasic()
+        return security.httpBasic().authenticationDetailsSource(authenticationDetailsSource())
                 .realmName("Gravitee.io Management API").and();
     }
 
@@ -253,6 +264,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 // Entrypoints
                 .antMatchers(HttpMethod.GET, "/entrypoints/**").permitAll()
                 .anyRequest().authenticated().and();
+    }
+
+    private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails> authenticationDetailsSource() {
+        return request -> new GraviteeAuthenticationDetails(request);
     }
 
     private HttpSecurity hsts(HttpSecurity security) throws Exception {
