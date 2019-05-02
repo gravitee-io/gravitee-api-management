@@ -150,23 +150,8 @@ class VertxHttpServerRequest implements Request {
 
     @Override
     public String remoteAddress() {
-        String xForwardedFor = httpServerRequest.getHeader(HttpHeaders.X_FORWARDED_FOR);
-        String remoteAddress;
-
-        if(xForwardedFor != null && xForwardedFor.length() > 0) {
-            int idx = xForwardedFor.indexOf(',');
-
-            remoteAddress = (idx != -1) ? xForwardedFor.substring(0, idx) : xForwardedFor;
-
-            idx = remoteAddress.indexOf(':');
-
-            remoteAddress = (idx != -1) ? remoteAddress.substring(0, idx).trim() : remoteAddress.trim();
-        } else {
-            SocketAddress address = httpServerRequest.remoteAddress();
-            remoteAddress = (address != null) ? address.host() : null;
-        }
-
-        return remoteAddress;
+        SocketAddress address = httpServerRequest.remoteAddress();
+        return (address != null) ? address.host() : null;
     }
 
     @Override

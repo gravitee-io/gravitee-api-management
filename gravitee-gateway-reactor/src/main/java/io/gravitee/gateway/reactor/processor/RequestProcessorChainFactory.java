@@ -18,10 +18,11 @@ package io.gravitee.gateway.reactor.processor;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.core.processor.chain.DefaultProcessorChain;
+import io.gravitee.gateway.reactor.processor.forward.XForwardForProcessor;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collections;
+import java.util.Arrays;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,6 +35,9 @@ public class RequestProcessorChainFactory {
 
     public Processor<ExecutionContext> create() {
         return new DefaultProcessorChain<>(
-                Collections.singletonList(transactionHandlerFactory.create()));
+                Arrays.asList(
+                        new XForwardForProcessor(),
+                        transactionHandlerFactory.create()
+                ));
     }
 }
