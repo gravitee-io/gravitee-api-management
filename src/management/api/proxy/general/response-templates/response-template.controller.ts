@@ -72,6 +72,9 @@ class ApiResponseTemplateController {
       'REQUEST_TIMEOUT',
       'REQUEST_VALIDATION_INVALID',
       'RESOURCE_FILTERING_FORBIDDEN',
+      'RBAC_FORBIDDEN',
+      'RBAC_INVALID_USER_ROLES',
+      'RBAC_NO_USER_ROLE'
     ];
 
     // In case of a new response template, initialize with default media type
