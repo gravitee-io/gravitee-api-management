@@ -217,6 +217,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             // Create a simple "internal" application
             if (newApplicationEntity.getSettings().getApp() != null)  {
+                // If client registration is enabled, check that the simple type is allowed
+                if (isClientRegistrationEnabled() && ! isApplicationTypeAllowed("simple")) {
+                    throw new IllegalStateException("Application type 'simple' is not allowed");
+                }
+
                 // If clientId is set, check for uniqueness
                 String clientId = newApplicationEntity.getSettings().getApp().getClientId();
 
@@ -233,6 +238,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }  else {
                 // Check that client registration is enabled
                 checkClientRegistrationEnabled();
+
+                // Check that the application_type is allowed
+                if (! isApplicationTypeAllowed(newApplicationEntity.getSettings().getoAuthClient().getApplicationType())) {
+                    throw new IllegalStateException("Application type '" + newApplicationEntity.getSettings().getoAuthClient().getApplicationType() + "' is not allowed");
+                }
 
                 // Create an OAuth client
                 ClientRegistrationResponse registrationResponse = clientRegistrationService.register(newApplicationEntity);
@@ -410,9 +420,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     private void checkClientRegistrationEnabled() {
-        if (!parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED)) {
+        if (!isClientRegistrationEnabled()) {
             throw new IllegalStateException("The client registration is disabled");
         }
+    }
+
+    private boolean isClientRegistrationEnabled() {
+        return parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED);
+    }
+
+    private boolean isApplicationTypeAllowed(String applicationType) {
+        Key key = Key.valueOf("APPLICATION_TYPE_" + applicationType.toUpperCase() + "_ENABLED");
+        return parameterService.findAsBoolean(key);
     }
 
     @Override
