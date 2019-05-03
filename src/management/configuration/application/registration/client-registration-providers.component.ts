@@ -76,6 +76,26 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
         NotificationService.show("Client registration is now " + (this.Constants.application.registration.enabled?"mandatory":"optional") );
       });
     };
+
+    this.saveApplicationType = (type: string) => {
+      let appType = {
+        application: {
+          types: {
+            [type]: {
+              enabled: this.Constants.application.types[type].enabled
+            }
+          }
+        }
+      };
+
+      appType['application']['types'][type] = {
+        enabled: this.Constants.application.types[type].enabled
+      };
+
+      PortalConfigService.save(appType).then( response => {
+        NotificationService.show("Application type '" + type  + "' is now " + (this.Constants.application.types[type].enabled?"allowed":"disallowed") );
+      });
+    };
   }
 };
 

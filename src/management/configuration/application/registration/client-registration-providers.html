@@ -17,18 +17,44 @@
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
   <h1>Client Registration</h1>
-  <div class="gv-form">
-    <h2></h2>
-    <div class="gv-form-content" layout="column">
 
-      <h3>Configuration</h3>
+  <div class="gv-form">
+    <h2>Configuration</h2>
+    <div class="gv-form-content" layout="column">
+      <h6>Enable Dynamic Client Registration</h6>
       <md-input-container class="gv-input-container-dense">
         <md-checkbox ng-model="$ctrl.Constants.application.registration.enabled" aria-label="Client registration" ng-change="$ctrl.saveClientRegistration()">
           Client registration for applications (OpenID Connect - Dynamic Client Registration)
         </md-checkbox>
       </md-input-container>
-      </md-input-container>
 
+      <h6>Allowed application types</h6>
+      <md-input-container class="gv-input-container-dense">
+        <md-checkbox ng-model="$ctrl.Constants.application.types.simple.enabled" aria-label="Allow or deny simple application type" ng-change="$ctrl.saveApplicationType('simple')">
+          Simple (A hands-free application. Using this type, you will be able to define the client_id by your own)
+        </md-checkbox>
+      </md-input-container>
+      <md-input-container class="gv-input-container-dense">
+        <md-checkbox ng-model="$ctrl.Constants.application.types.browser.enabled" aria-label="Allow or deny browser application type" ng-change="$ctrl.saveApplicationType('browser')">
+          Browser (Angular, React, ...)
+        </md-checkbox>
+      </md-input-container>
+      <md-input-container class="gv-input-container-dense">
+        <md-checkbox ng-model="$ctrl.Constants.application.types.web.enabled" aria-label="Allow or deny web application type" ng-change="$ctrl.saveApplicationType('web')">
+          Web (Java, .Net, ...)
+        </md-checkbox>
+      </md-input-container>
+      <md-input-container class="gv-input-container-dense">
+        <md-checkbox ng-model="$ctrl.Constants.application.types.native.enabled" aria-label="Allow or deny native application type" ng-change="$ctrl.saveApplicationType('native')">
+          Native (iOS, Android, ...)
+        </md-checkbox>
+      </md-input-container>
+    </div>
+  </div>
+
+  <div class="gv-form">
+    <h2>Providers</h2>
+    <div class="gv-form-content" layout="column">
       <md-table-container ng-if="$ctrl.clientRegistrationProviders.length > 0">
         <table md-table class="gv-table-dense">
           <thead md-head>

@@ -47,7 +47,7 @@
 
         <h2>Choose the platform</h2>
         <div class="gv-form-content" layout="column">
-          <div ng-if="$ctrl.clientRegistrationEnabled()" layout="row" layout-align="space-around center">
+          <div ng-if="$ctrl.clientRegistrationEnabled()" layout="row" layout-margin layout-align="center center">
             <div flex="20" layout="column"
                  class="application-type-box"
                  ng-class="{'application-type-box-selected' : type.value === $ctrl.selectedType.value, 'application-type-box-unselected' : type.value !== $ctrl.selectedType.value}"

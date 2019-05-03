@@ -31,7 +31,7 @@ const CreateApplicationComponent: ng.IComponentOptions = {
     private application: any;
     private selectedType: ApplicationType;
 
-    private types = ApplicationType.TYPES;
+    private types: ApplicationType[];
     private grantTypes = GrantType.TYPES;
 
     constructor(
@@ -48,7 +48,16 @@ const CreateApplicationComponent: ng.IComponentOptions = {
 
     $onInit() {
       if (this.clientRegistrationEnabled()) {
-        this.selectType(ApplicationType.WEB);
+        this.types = [...ApplicationType.TYPES];
+
+        // Filter types according to the allowed application type
+        _.remove(this.types, (type: ApplicationType) => {
+          return !this.Constants.application.types[type.value.toLowerCase()].enabled;
+        });
+
+        let web = _.find(this.types, (type: ApplicationType) => { return type === ApplicationType.WEB});
+
+        this.selectType((web) ? ApplicationType.WEB : this.types[0]);
       } else {
         this.selectType(ApplicationType.SIMPLE);
       }
