@@ -1,6 +1,6 @@
 <#ftl output_format="JSON">
 {
-    "index_patterns": ["${indexName}-*"],
+    "template": "${indexName}-*",
     "settings": {
         "index.number_of_shards":${numberOfShards},
         "index.number_of_replicas":${numberOfReplicas},
