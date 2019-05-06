@@ -346,6 +346,7 @@ import DialogAssertionInformationController from '../management/api/proxy/backen
 import ApiHealthCheckController from '../management/api/proxy/backend/healthcheck/healthcheck.controller';
 import ProgressBarComponent from '../components/progressbar/progress-bar.component';
 import ApiHealthCheckLogController from '../management/api/proxy/backend/healthcheck/healthcheck-log.controller';
+import HealthCheckMetricComponent from '../components/healthcheckmetric/healthcheck-metric.component';
 
 // Ticket
 import TicketService from '../services/ticket.service';
@@ -695,6 +696,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('ApiHealthCheckConfigureController', ApiHealthCheckConfigureController)
   .controller('ApiHealthCheckLogController', ApiHealthCheckLogController)
   .component('progressBar', ProgressBarComponent)
+  .component('gvHealthcheckMetric', HealthCheckMetricComponent)
 
   // Configuration
   .component('settings', SettingsComponent)
@@ -745,5 +747,10 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .filter('apiKeyFilter', function () {
     return function (keys) {
       return keys;
+    };
+  })
+  .filter('floor', function() {
+    return function (input) {
+      return Math.floor(input);
     };
   });
