@@ -43,7 +43,16 @@ public class LoggableClientRequest extends RequestWrapper {
         // Create a copy of HTTP request headers
         log.setClientRequest(new io.gravitee.reporter.api.common.Request());
         log.getClientRequest().setMethod(this.method());
-        log.getClientRequest().setUri(this.uri());
+        String uri = null;
+        if (this.headers().containsKey("X-Forwarded-Proto")) {
+            uri = this.headers().getFirst("X-Forwarded-Proto");
+        } else {
+            uri = request.scheme();
+        }
+        uri += "://" + this.headers().getFirst("host") + this.uri();
+
+        //if(request.headers['X-Forwarded-Prefix'])
+        log.getClientRequest().setUri(uri);
         log.getClientRequest().setHeaders(new HttpHeaders(this.headers()));
     }
 
