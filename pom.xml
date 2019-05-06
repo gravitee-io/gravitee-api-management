@@ -29,7 +29,7 @@
 
     <groupId>io.gravitee.gateway</groupId>
     <artifactId>gravitee-gateway</artifactId>
-    <version>1.25.1-SNAPSHOT</version>
+    <version>1.25.1</version>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway</name>
 
@@ -199,7 +199,7 @@
     </dependencies>
 
     <properties>
-        <gravitee-node.version>1.4.1-SNAPSHOT</gravitee-node.version>
+        <gravitee-node.version>1.4.1</gravitee-node.version>
         <gravitee-definition.version>1.18.0</gravitee-definition.version>
         <gravitee-common.version>1.15.0</gravitee-common.version>
         <gravitee-expression-language.version>1.2.0</gravitee-expression-language.version>
