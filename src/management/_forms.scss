@@ -1,5 +1,5 @@
 .gv-forms {
-  width: 960px;
+  max-width: 960px;
   h1 {
     font-size: 2em;
     margin: 16px 0 4px;
@@ -79,6 +79,5 @@
 
 }
 .gv-forms.gv-forms-fluid {
-  width: 100%;
-  min-width: 960px;
+    max-width: 100%;
 }
