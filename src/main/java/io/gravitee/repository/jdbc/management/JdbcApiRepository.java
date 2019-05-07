@@ -22,15 +22,12 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.sql.PreparedStatement;
@@ -40,6 +37,8 @@ import java.util.*;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
+import static org.springframework.util.CollectionUtils.isEmpty;
+import static org.springframework.util.StringUtils.isEmpty;
 
 /**
  * @author njt
@@ -66,6 +65,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .addColumn("visibility", Types.NVARCHAR, Visibility.class)
             .addColumn("lifecycle_state", Types.NVARCHAR, LifecycleState.class)
             .addColumn("picture", Types.NVARCHAR, String.class)
+            .addColumn("api_lifecycle_state", Types.NVARCHAR, ApiLifecycleState.class)
             .build();
 
     private static final JdbcHelper.ChildAdder<Api> CHILD_ADDER = (Api parent, ResultSet rs) -> {
@@ -218,7 +218,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
 
         String projection ="av.*, a.id, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
-                "a.visibility, a.lifecycle_state, a.picture";
+                "a.visibility, a.lifecycle_state, a.picture, a.api_lifecycle_state";
 
         if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isDefinition()) {
             projection += ", a.definition";
@@ -231,37 +231,40 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         sbQuery.append("left join api_views av on a.id = av.api_id ");
 
         if (apiCriteria != null) {
-            if (!CollectionUtils.isEmpty(apiCriteria.getGroups())) {
+            if (!isEmpty(apiCriteria.getGroups())) {
                 sbQuery.append("join api_groups ag on a.id = ag.api_id ");
             }
-            if (!StringUtils.isEmpty(apiCriteria.getLabel())) {
+            if (!isEmpty(apiCriteria.getLabel())) {
                 sbQuery.append("join api_labels al on a.id = al.api_id ");
             }
 
             sbQuery.append("where 1 = 1 ");
-            if (!CollectionUtils.isEmpty(apiCriteria.getGroups())) {
+            if (!isEmpty(apiCriteria.getGroups())) {
                 sbQuery.append("and ag.group_id in (").append(ORM.buildInClause(apiCriteria.getGroups())).append(") ");
             }
-            if (!CollectionUtils.isEmpty(apiCriteria.getIds())) {
+            if (!isEmpty(apiCriteria.getIds())) {
                 sbQuery.append("and a.id in (").append(ORM.buildInClause(apiCriteria.getIds())).append(") ");
             }
-            if (!StringUtils.isEmpty(apiCriteria.getLabel())) {
+            if (!isEmpty(apiCriteria.getLabel())) {
                 sbQuery.append("and al.label = ? ");
             }
-            if (!StringUtils.isEmpty(apiCriteria.getName())) {
+            if (!isEmpty(apiCriteria.getName())) {
                 sbQuery.append("and a.name = ? ");
             }
-            if (!StringUtils.isEmpty(apiCriteria.getState())) {
+            if (!isEmpty(apiCriteria.getState())) {
                 sbQuery.append("and a.lifecycle_state = ? ");
             }
-            if (!StringUtils.isEmpty(apiCriteria.getVersion())) {
+            if (!isEmpty(apiCriteria.getVersion())) {
                 sbQuery.append("and a.version = ? ");
             }
-            if (!StringUtils.isEmpty(apiCriteria.getView())) {
+            if (!isEmpty(apiCriteria.getView())) {
                 sbQuery.append("and av.").append(escapeReservedWord("view")).append(" = ? ");
             }
-            if (!StringUtils.isEmpty(apiCriteria.getVisibility())) {
+            if (!isEmpty(apiCriteria.getVisibility())) {
                 sbQuery.append("and a.visibility = ? ");
+            }
+            if (!StringUtils.isEmpty(apiCriteria.getLifecycleStates())) {
+                sbQuery.append("and a.api_lifecycle_state in (").append(ORM.buildInClause(apiCriteria.getLifecycleStates())).append(") ");
             }
         }
         sbQuery.append("order by a.name");
@@ -269,29 +272,32 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         jdbcTemplate.query(sbQuery.toString(), (PreparedStatement ps) -> {
                     int lastIndex = 1;
                     if (apiCriteria != null) {
-                        if (!CollectionUtils.isEmpty(apiCriteria.getGroups())) {
+                        if (!isEmpty(apiCriteria.getGroups())) {
                             lastIndex = ORM.setArguments(ps, apiCriteria.getGroups(), lastIndex);
                         }
-                        if (!CollectionUtils.isEmpty(apiCriteria.getIds())) {
+                        if (!isEmpty(apiCriteria.getIds())) {
                             lastIndex = ORM.setArguments(ps, apiCriteria.getIds(), lastIndex);
                         }
-                        if (!StringUtils.isEmpty(apiCriteria.getLabel())) {
+                        if (!isEmpty(apiCriteria.getLabel())) {
                             ps.setString(lastIndex++, apiCriteria.getLabel());
                         }
-                        if (!StringUtils.isEmpty(apiCriteria.getName())) {
+                        if (!isEmpty(apiCriteria.getName())) {
                             ps.setString(lastIndex++, apiCriteria.getName());
                         }
-                        if (!StringUtils.isEmpty(apiCriteria.getState())) {
+                        if (!isEmpty(apiCriteria.getState())) {
                             ps.setString(lastIndex++, apiCriteria.getState().name());
                         }
-                        if (!StringUtils.isEmpty(apiCriteria.getVersion())) {
+                        if (!isEmpty(apiCriteria.getVersion())) {
                             ps.setString(lastIndex++, apiCriteria.getVersion());
                         }
-                        if (!StringUtils.isEmpty(apiCriteria.getView())) {
+                        if (!isEmpty(apiCriteria.getView())) {
                             ps.setString(lastIndex++, apiCriteria.getView());
                         }
-                        if (!StringUtils.isEmpty(apiCriteria.getVisibility())) {
-                            ps.setString(lastIndex, apiCriteria.getVisibility().name());
+                        if (!isEmpty(apiCriteria.getVisibility())) {
+                            ps.setString(lastIndex++, apiCriteria.getVisibility().name());
+                        }
+                        if (!isEmpty(apiCriteria.getLifecycleStates())) {
+                            ORM.setArguments(ps, apiCriteria.getLifecycleStates(), lastIndex++);
                         }
                     }
                 }
