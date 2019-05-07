@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 
@@ -37,6 +38,7 @@ public class ApiCriteria {
     private Visibility visibility;
     private String version;
     private String name;
+    private List<ApiLifecycleState> lifecycleStates;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -47,6 +49,7 @@ public class ApiCriteria {
         this.visibility = builder.visibility;
         this.version = builder.version;
         this.name = builder.name;
+        this.lifecycleStates = builder.lifecycleStates;
     }
 
     public List<String> getIds() {
@@ -81,6 +84,10 @@ public class ApiCriteria {
         return name;
     }
 
+    public List<ApiLifecycleState> getLifecycleStates() {
+        return lifecycleStates;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -93,12 +100,13 @@ public class ApiCriteria {
                 Objects.equals(state, that.state) &&
                 Objects.equals(visibility, that.visibility) &&
                 Objects.equals(version, that.version) &&
-                Objects.equals(name, that.name);
+                Objects.equals(name, that.name) &&
+                Objects.equals(lifecycleStates, that.lifecycleStates);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, groups, view, label, state, visibility, version, name);
+        return Objects.hash(ids, groups, view, label, state, visibility, version, name, lifecycleStates);
     }
 
     public static class Builder {
@@ -110,6 +118,7 @@ public class ApiCriteria {
         private Visibility visibility;
         private String version;
         private String name;
+        private List<ApiLifecycleState> lifecycleStates;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = asList(id);
@@ -148,6 +157,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder name(final String name) {
             this.name = name;
+            return this;
+        }
+
+        public ApiCriteria.Builder lifecycleStates(final List<ApiLifecycleState> lifecycleStates) {
+            this.lifecycleStates = lifecycleStates;
             return this;
         }
 

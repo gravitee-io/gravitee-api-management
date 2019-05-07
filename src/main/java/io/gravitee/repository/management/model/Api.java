@@ -75,7 +75,7 @@ public class Api {
     private Visibility visibility;
 
     /**
-     * The current api life cycle state.
+     * The current runtime life cycle state.
      */
     private LifecycleState lifecycleState = LifecycleState.STOPPED;
 
@@ -98,6 +98,8 @@ public class Api {
      */
     private List<String> labels;
 
+    private ApiLifecycleState apiLifecycleState = ApiLifecycleState.CREATED;
+
     public Api(){}
 
     public Api(Api cloned) {
@@ -115,6 +117,7 @@ public class Api {
         this.groups = cloned.groups;
         this.views = cloned.views;
         this.labels = cloned.labels;
+        this.apiLifecycleState = cloned.apiLifecycleState;
     }
 
     public Date getCreatedAt() {
@@ -229,6 +232,14 @@ public class Api {
         this.labels = labels;
     }
 
+    public ApiLifecycleState getApiLifecycleState() {
+        return apiLifecycleState;
+    }
+
+    public void setApiLifecycleState(ApiLifecycleState apiLifecycleState) {
+        this.apiLifecycleState = apiLifecycleState;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -253,6 +264,7 @@ public class Api {
             ", updatedAt=" + updatedAt +
             ", visibility=" + visibility +
             ", lifecycleState=" + lifecycleState +
+            ", apiLifecycleState=" + apiLifecycleState +
             '}';
     }
 }
