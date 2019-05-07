@@ -22,16 +22,19 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import org.junit.Test;
 
 import java.util.*;
 
+import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 
@@ -67,11 +70,12 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
         Api apiSaved = optional.get();
         assertEquals("Invalid saved api version.", api.getVersion(), apiSaved.getVersion());
-        assertEquals("Invalid api lifecycle.", api.getLifecycleState(), apiSaved.getLifecycleState());
+        assertEquals("Invalid deployment lifecycle.", api.getLifecycleState(), apiSaved.getLifecycleState());
         assertEquals("Invalid api private api status.", api.getVisibility(), apiSaved.getVisibility());
         assertEquals("Invalid api definition.", api.getDefinition(), apiSaved.getDefinition());
         assertEquals("Invalid api createdAt.", api.getCreatedAt(), apiSaved.getCreatedAt());
         assertEquals("Invalid api updateAt.", api.getUpdatedAt(), apiSaved.getUpdatedAt());
+        assertEquals("Invalid api lifecycle.", api.getApiLifecycleState(), apiSaved.getApiLifecycleState());
 
         // test delete
         int nbApplicationBefore = apiRepository.search(null).size();
@@ -100,6 +104,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         api.setUpdatedAt(parse("13/11/2016"));
         api.setVersion("New version");
         api.setVisibility(Visibility.PRIVATE);
+        api.setApiLifecycleState(ApiLifecycleState.UNPUBLISHED);
 
         int nbAPIsBeforeUpdate = apiRepository.search(null).size();
         apiRepository.update(api);
@@ -117,12 +122,13 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid API definition.", "New definition", apiUpdated.getDefinition());
         assertEquals("Invalid API deployment date.", parse("11/02/2016"), apiUpdated.getDeployedAt());
         assertEquals("Invalid API group.", Collections.singleton("New group"), apiUpdated.getGroups());
-        assertEquals("Invalid API lifecycle state.", LifecycleState.STARTED, apiUpdated.getLifecycleState());
+        assertEquals("Invalid deployment lifecycle state.", LifecycleState.STARTED, apiUpdated.getLifecycleState());
         assertEquals("Invalid API picture.", "New picture", apiUpdated.getPicture());
         assertEquals("Invalid API create date.", parse("11/02/2016"), apiUpdated.getCreatedAt());
         assertEquals("Invalid API update date.", parse("13/11/2016"), apiUpdated.getUpdatedAt());
         assertEquals("Invalid API version.", "New version", apiUpdated.getVersion());
         assertEquals("Invalid API visibility.", Visibility.PRIVATE, apiUpdated.getVisibility());
+        assertEquals("Invalid API lifecycle state.", ApiLifecycleState.UNPUBLISHED, apiUpdated.getApiLifecycleState());
     }
 
     @Test
@@ -134,9 +140,10 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid api name", "api-to-findById name", api.getName());
         assertEquals("Invalid api version", "1", api.getVersion());
         assertEquals("Invalid api visibility", PUBLIC, api.getVisibility());
-        assertEquals("Invalid api lifecycle state", STOPPED, api.getLifecycleState());
+        assertEquals("Invalid deployment lifecycle state", STOPPED, api.getLifecycleState());
         assertEquals("Invalid api labels", 2, api.getLabels().size());
         assertEquals("Invalid api label at position 0", "label 1", api.getLabels().iterator().next());
+        assertEquals("Invalid api lifecycle state", ApiLifecycleState.DEPRECATED, api.getApiLifecycleState());
     }
 
     @Test
@@ -317,5 +324,20 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         apiIterator = apiPage.getContent().iterator();
         assertEquals("api-to-update", apiIterator.next().getId());
         assertEquals("grouped-api", apiIterator.next().getId());
+    }
+
+    @Test
+    public void shouldFindByLifecycleStates() {
+        final List<Api> apis =
+                apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(2, apis.size());
+        assertTrue(apis.stream().
+                map(Api::getId).
+                collect(toList()).
+                containsAll(asList( "api-to-update", "grouped-api")));
+        assertEquals(PUBLISHED, apis.get(0).getApiLifecycleState());
+        assertEquals(PUBLISHED, apis.get(1).getApiLifecycleState());
     }
 }

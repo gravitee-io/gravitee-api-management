@@ -19,13 +19,12 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 import org.mockito.internal.util.collections.Sets;
 
 import java.util.List;
 
+import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.repository.management.model.LifecycleState.STARTED;
 import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
@@ -57,6 +56,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         final Api apiToUpdate = mock(Api.class);
         when(apiToUpdate.getId()).thenReturn("api-to-update");
         when(apiToUpdate.getName()).thenReturn("api-to-update name");
+        when(apiToUpdate.getApiLifecycleState()).thenReturn(PUBLISHED);
         final Api apiUpdated = mock(Api.class);
         when(apiUpdated.getName()).thenReturn("New API name");
         when(apiUpdated.getDescription()).thenReturn("New description");
@@ -70,6 +70,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiUpdated.getUpdatedAt()).thenReturn(parse("13/11/2016"));
         when(apiUpdated.getVersion()).thenReturn("New version");
         when(apiUpdated.getVisibility()).thenReturn(Visibility.PRIVATE);
+        when(apiUpdated.getApiLifecycleState()).thenReturn(ApiLifecycleState.UNPUBLISHED);
 
         when(apiRepository.findById("api-to-update")).thenReturn(of(apiToUpdate), of(apiUpdated));
 
@@ -84,11 +85,13 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(newApi.getDefinition()).thenReturn("{}");
         when(newApi.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(newApi.getUpdatedAt()).thenReturn(parse("12/02/2016"));
+        when(newApi.getApiLifecycleState()).thenReturn(ApiLifecycleState.CREATED);
         when(apiRepository.findById("sample-new")).thenReturn(of(newApi), empty());
 
         final Api groupedApi = mock(Api.class);
         when(groupedApi.getGroups()).thenReturn(singleton("api-group"));
         when(groupedApi.getId()).thenReturn("grouped-api");
+        when(groupedApi.getApiLifecycleState()).thenReturn(PUBLISHED);
         when(apiRepository.findById("grouped-api")).thenReturn(of(groupedApi));
 
         final Api apiToFindById = mock(Api.class);
@@ -101,6 +104,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiToFindById.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(apiToFindById.getUpdatedAt()).thenReturn(parse("12/02/2016"));
         when(apiToFindById.getLabels()).thenReturn(asList("label 1", "label 2"));
+        when(apiToFindById.getApiLifecycleState()).thenReturn(ApiLifecycleState.DEPRECATED);
         when(apiRepository.findById("api-to-findById")).thenReturn(of(apiToFindById));
 
         final List<Api> searchedApis = asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class));
@@ -139,5 +143,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
                 new ApiCriteria.Builder().version("1").build(), new PageableBuilder().build())).thenReturn(
                 new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById, apiToUpdate, groupedApi), 0, 4, 4));
 
+        when(apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build()))
+                .thenReturn(asList(apiToUpdate, groupedApi));
     }
 }

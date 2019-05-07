@@ -16,7 +16,6 @@
 package io.gravitee.repository.config;
 
 import io.gravitee.repository.config.mock.*;
-import io.gravitee.repository.management.api.CommandRepository;
 import org.springframework.context.annotation.Bean;
 
 import static org.mockito.Mockito.mock;
@@ -182,5 +181,10 @@ public class MockTestRepositoryConfiguration {
     @Bean
     public CommandRepositoryMock messageRepository() throws Exception {
         return new CommandRepositoryMock();
+    }
+
+    @Bean
+    public WorkflowRepositoryMock workflowRepository() throws Exception {
+        return new WorkflowRepositoryMock();
     }
 }

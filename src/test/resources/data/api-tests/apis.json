@@ -7,7 +7,8 @@
     "visibility" : "PRIVATE",
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883,
-    "lifecycleState": "STOPPED"
+    "lifecycleState": "STOPPED",
+    "apiLifecycleState": "UNPUBLISHED"
   },
   {
     "id": "api-to-update",
@@ -17,7 +18,8 @@
     "visibility" : "PRIVATE",
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883,
-    "lifecycleState": "STOPPED"
+    "lifecycleState": "STOPPED",
+    "apiLifecycleState": "PUBLISHED"
   },
   {
     "id": "api-to-findById",
@@ -29,7 +31,8 @@
     "updatedAt": 1439022010883,
     "labels": [ "label 1", "label 2"],
     "lifecycleState": "STOPPED",
-    "views": ["my-view"]
+    "views": ["my-view"],
+    "apiLifecycleState": "DEPRECATED"
   },
   {
     "id": "grouped-api",
@@ -40,6 +43,7 @@
     "groups": ["api-group"],
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883,
-    "lifecycleState": "STOPPED"
+    "lifecycleState": "STOPPED",
+    "apiLifecycleState": "PUBLISHED"
   }
 ]
