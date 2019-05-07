@@ -13,12 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.service;
+
+import io.gravitee.management.model.WorkflowReferenceType;
+import io.gravitee.management.model.WorkflowState;
+import io.gravitee.management.model.WorkflowType;
+import io.gravitee.repository.management.model.Workflow;
+
+import java.util.List;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum TaskType {
-    SUBSCRIPTION_APPROVAL, IN_REVIEW, REQUEST_FOR_CHANGES
+public interface WorkflowService {
+    Workflow create(WorkflowReferenceType referenceType, String referenceId, WorkflowType type, String user,
+                    WorkflowState state, String comment);
+    List<Workflow> findByReferenceAndType(WorkflowReferenceType referenceType, String referenceId, WorkflowType type);
 }

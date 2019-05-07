@@ -61,18 +61,16 @@ public class ApiService_FindByIdTest {
 
     @Mock
     private ApiRepository apiRepository;
-
     @Mock
     private MembershipRepository membershipRepository;
-
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
-
     @Mock
     private Api api;
-
     @Mock
     private UserService userService;
+    @Mock
+    private ParameterService parameterService;
 
     @Before
     public void setUp() {

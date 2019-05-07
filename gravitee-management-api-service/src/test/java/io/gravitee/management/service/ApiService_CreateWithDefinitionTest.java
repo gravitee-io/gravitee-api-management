@@ -71,39 +71,30 @@ public class ApiService_CreateWithDefinitionTest {
 
     @Mock
     private ApiRepository apiRepository;
-
     @Mock
     private MembershipRepository membershipRepository;
-
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
-
     @Mock
     private Api api;
-
     @Mock
     private MembershipService membershipService;
-
     @Mock
     private PageService pageService;
-
     @Mock
     private UserService userService;
-
     @Mock
     private PlanService planService;
-
     @Mock
     private GroupService groupService;
-
     @Mock
     private AuditService auditService;
-
     @Mock
     private IdentityService identityService;
-
     @Mock
     private SearchEngineService searchEngineService;
+    @Mock
+    private ParameterService parameterService;
 
     @Before
     public void init() {

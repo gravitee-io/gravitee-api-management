@@ -74,6 +74,9 @@ public class UpdateApiEntity {
     @JsonProperty(value = "response_templates")
     private Map<String, ResponseTemplates> responseTemplates;
 
+    @JsonProperty(value = "lifecycle_state")
+    private ApiLifecycleState lifecycleState;
+
     public Visibility getVisibility() {
         return visibility;
     }
@@ -200,5 +203,13 @@ public class UpdateApiEntity {
 
     public void setResponseTemplates(Map<String, ResponseTemplates> responseTemplates) {
         this.responseTemplates = responseTemplates;
+    }
+
+    public ApiLifecycleState getLifecycleState() {
+        return lifecycleState;
+    }
+
+    public void setLifecycleState(ApiLifecycleState lifecycleState) {
+        this.lifecycleState = lifecycleState;
     }
 }

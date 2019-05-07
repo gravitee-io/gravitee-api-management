@@ -45,6 +45,8 @@ public class ApisParam {
     private String name;
     @QueryParam("tag")
     private String tag;
+    @QueryParam("portal")
+    private boolean portal;
 
     public String getView() {
         return view;
@@ -132,5 +134,13 @@ public class ApisParam {
 
     public void setTag(String tag) {
         this.tag = tag;
+    }
+
+    public boolean isPortal() {
+        return portal;
+    }
+
+    public void setPortal(boolean portal) {
+        this.portal = portal;
     }
 }

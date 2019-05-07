@@ -116,6 +116,15 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         else if (hook.equals(ApiHook.NEW_RATING_ANSWER)) {
             return EmailNotificationBuilder.EmailTemplate.NEW_RATING_ANSWER;
         }
+        else if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
+            return EmailNotificationBuilder.EmailTemplate.ASK_FOR_REVIEW;
+        }
+        else if (hook.equals(ApiHook.REQUEST_FOR_CHANGES)) {
+            return EmailNotificationBuilder.EmailTemplate.REQUEST_FOR_CHANGES;
+        }
+        else if (hook.equals(ApiHook.REVIEW_OK)) {
+            return EmailNotificationBuilder.EmailTemplate.REVIEW_OK;
+        }
 
         // Application Hook
         else if (hook.equals(ApplicationHook.SUBSCRIPTION_NEW)) {
@@ -231,6 +240,15 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
         else if (hook.equals(ApiHook.NEW_RATING_ANSWER)) {
             return "New Rating Answer";
+        }
+        else if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
+            return "Review asked";
+        }
+        else if (hook.equals(ApiHook.REQUEST_FOR_CHANGES)) {
+            return "Request for changes on API";
+        }
+        else if (hook.equals(ApiHook.REVIEW_OK)) {
+            return "API review accepted";
         }
 
         // Application Hook

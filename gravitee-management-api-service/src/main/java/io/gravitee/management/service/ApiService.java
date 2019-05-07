@@ -102,6 +102,7 @@ public interface ApiService {
         updateApiEntity.setVisibility(apiEntity.getVisibility());
         updateApiEntity.setLabels(apiEntity.getLabels());
         updateApiEntity.setPathMappings(apiEntity.getPathMappings());
+        updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
 
         return updateApiEntity;
     }
@@ -111,4 +112,8 @@ public interface ApiService {
     Collection<ApiEntity> search(String query, Map<String, Object> filters) throws TechnicalException;
 
     List<ApiHeaderEntity> getPortalHeaders(String apiId);
+
+    ApiEntity askForReview(String apiId, String userId, ReviewEntity reviewEntity);
+    ApiEntity acceptReview(String apiId, String userId, ReviewEntity reviewEntity);
+    ApiEntity rejectReview(String apiId, String userId, ReviewEntity reviewEntity);
 }

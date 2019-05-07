@@ -38,6 +38,7 @@ public class PortalConfigEntity {
     private Theme theme;
     private Plan plan;
     private ApiQualityMetrics apiQualityMetrics;
+    private ApiReview apiReview;
     private Logging logging;
     private Analytics analytics;
     private Application application;
@@ -52,6 +53,7 @@ public class PortalConfigEntity {
         theme = new Theme();
         plan = new Plan();
         apiQualityMetrics = new ApiQualityMetrics();
+        apiReview = new ApiReview();
         logging = new Logging();
         analytics = new Analytics();
         application = new Application();
@@ -118,6 +120,14 @@ public class PortalConfigEntity {
     }
     public void setApiQualityMetrics(ApiQualityMetrics apiQualityMetrics) {
         this.apiQualityMetrics = apiQualityMetrics;
+    }
+
+    public ApiReview getApiReview() {
+        return apiReview;
+    }
+
+    public void setApiReview(ApiReview apiReview) {
+        this.apiReview = apiReview;
     }
 
     public Logging getLogging() {
@@ -848,6 +858,19 @@ public class PortalConfigEntity {
 
         public void setLabelsWeight(Integer labelsWeight) {
             this.labelsWeight = labelsWeight;
+        }
+    }
+
+    public class ApiReview {
+        @ParameterKey(Key.API_REVIEW_ENABLED)
+        private Boolean enabled;
+
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
         }
     }
 

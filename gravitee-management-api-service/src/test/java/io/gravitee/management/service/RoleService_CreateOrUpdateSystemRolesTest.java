@@ -64,7 +64,8 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
             2215,
             2315,
             2415,
-            2515
+            2515,
+            2615
     };
 
     @Test

@@ -16,9 +16,11 @@
 package io.gravitee.management.model;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * Api workflow states
+ *
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum TaskType {
-    SUBSCRIPTION_APPROVAL, IN_REVIEW, REQUEST_FOR_CHANGES
+public enum WorkflowState {
+    DRAFT, IN_REVIEW, REQUEST_FOR_CHANGES, REVIEW_OK
 }

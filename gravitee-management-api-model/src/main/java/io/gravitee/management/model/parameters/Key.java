@@ -94,7 +94,9 @@ public enum Key {
     APPLICATION_TYPE_BROWSER_ENABLED("application.types.browser.enabled", "true"),
     APPLICATION_TYPE_WEB_ENABLED("application.types.web.enabled", "true"),
     APPLICATION_TYPE_NATIVE_ENABLED("application.types.native.enabled", "true"),
-    APPLICATION_REGISTRATION_ENABLED("application.registration.enabled", "false");
+    APPLICATION_REGISTRATION_ENABLED("application.registration.enabled", "false"),
+
+    API_REVIEW_ENABLED("api.review.enabled", "false");
 
     String key;
     String defaultValue;

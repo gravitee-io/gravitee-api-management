@@ -24,6 +24,7 @@ import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.UpdateApiEntity;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.ApiServiceImpl;
@@ -32,10 +33,7 @@ import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.repository.management.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +49,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Collections;
 import java.util.Optional;
 
+import static io.gravitee.management.model.WorkflowReferenceType.API;
+import static io.gravitee.management.model.WorkflowType.REVIEW;
+import static io.gravitee.management.model.api.ApiLifecycleState.*;
 import static java.util.Collections.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -91,9 +92,10 @@ public class ApiService_UpdateTest {
     private SearchEngineService searchEngineService;
     @Mock
     private TagService tagService;
-
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private WorkflowService workflowService;
 
     @Before
     public void setUp() {
@@ -103,6 +105,9 @@ public class ApiService_UpdateTest {
         final SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(mock(Authentication.class));
         SecurityContextHolder.setContext(securityContext);
+
+        when(api.getId()).thenReturn(API_ID);
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
     }
 
     @Test
@@ -130,8 +135,10 @@ public class ApiService_UpdateTest {
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn("/context");
+        when(existingApi.getLifecycleState()).thenReturn(CREATED);
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.CREATED);
         when(apiRepository.update(any())).thenThrow(TechnicalException.class);
 
         apiService.update(API_ID, existingApi);
@@ -177,6 +184,7 @@ public class ApiService_UpdateTest {
         when(apiRepository.update(any())).thenReturn(api);
         when(api.getId()).thenReturn(API_ID2);
         when(api.getName()).thenReturn(API_NAME);
+        when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.CREATED);
 
         when(existingApi.getName()).thenReturn(API_NAME);
         when(existingApi.getVersion()).thenReturn("v1");
@@ -184,6 +192,7 @@ public class ApiService_UpdateTest {
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getContextPath()).thenReturn(contextPathToCreate);
+        when(existingApi.getLifecycleState()).thenReturn(CREATED);
 
         when(apiRepository.search(null)).thenReturn(singletonList(api));
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
@@ -249,12 +258,14 @@ public class ApiService_UpdateTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
         when(api.getName()).thenReturn(API_NAME);
+        when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.CREATED);
 
         when(existingApi.getName()).thenReturn(API_NAME);
         when(existingApi.getVersion()).thenReturn("v1");
         when(existingApi.getDescription()).thenReturn("Ma description");
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
+        when(existingApi.getLifecycleState()).thenReturn(CREATED);
         when(proxy.getContextPath()).thenReturn("/context");
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
@@ -309,6 +320,9 @@ public class ApiService_UpdateTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}");
         when(existingApi.getTags()).thenReturn(singleton("private"));
+        final Proxy proxy = mock(Proxy.class);
+        when(existingApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn("/context");
         when(tagService.findByUser(any())).thenReturn(emptySet());
         apiService.update(API_ID, existingApi);
     }
@@ -318,6 +332,9 @@ public class ApiService_UpdateTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}");
         when(existingApi.getTags()).thenReturn(singleton("private"));
+        final Proxy proxy = mock(Proxy.class);
+        when(existingApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn("/context");
         when(tagService.findByUser(any())).thenReturn(singleton("public"));
         apiService.update(API_ID, existingApi);
     }
@@ -327,7 +344,93 @@ public class ApiService_UpdateTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\", \"private\"]}");
         when(existingApi.getTags()).thenReturn(emptySet());
+        final Proxy proxy = mock(Proxy.class);
+        when(existingApi.getProxy()).thenReturn(proxy);
+        when(proxy.getContextPath()).thenReturn("/context");
         when(tagService.findByUser(any())).thenReturn(singleton("private"));
         apiService.update(API_ID, existingApi);
+    }
+
+    @Test
+    public void shouldPublishApi() throws TechnicalException {
+        prepareUpdate();
+        // from UNPUBLISHED state
+        when(existingApi.getLifecycleState()).thenReturn(UNPUBLISHED);
+        when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.PUBLISHED);
+        ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        assertNotNull(apiEntity);
+        assertEquals(io.gravitee.management.model.api.ApiLifecycleState.PUBLISHED, apiEntity.getLifecycleState());
+        // from CREATED state
+        when(existingApi.getLifecycleState()).thenReturn(CREATED);
+        when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.PUBLISHED);
+        apiEntity = apiService.update(API_ID, existingApi);
+        assertNotNull(apiEntity);
+        assertEquals(io.gravitee.management.model.api.ApiLifecycleState.PUBLISHED, apiEntity.getLifecycleState());
+    }
+
+    @Test
+    public void shouldUnpublishApi() throws TechnicalException {
+        prepareUpdate();
+        when(existingApi.getLifecycleState()).thenReturn(io.gravitee.management.model.api.ApiLifecycleState.PUBLISHED);
+        when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.UNPUBLISHED);
+        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        assertNotNull(apiEntity);
+        assertEquals(UNPUBLISHED, apiEntity.getLifecycleState());
+    }
+
+    @Test
+    public void shouldNotChangeLifecycleStateFromUnpublishedToCreated() throws TechnicalException {
+        prepareUpdate();
+        assertUpdate(ApiLifecycleState.UNPUBLISHED, CREATED, true);
+        assertUpdate(ApiLifecycleState.UNPUBLISHED, PUBLISHED, false);
+        assertUpdate(ApiLifecycleState.UNPUBLISHED, UNPUBLISHED, false);
+        assertUpdate(ApiLifecycleState.UNPUBLISHED, ARCHIVED, false);
+    }
+
+    @Test
+    public void shouldOnlyUnpublishADeprecatedApi() throws TechnicalException {
+        prepareUpdate();
+        assertUpdate(ApiLifecycleState.DEPRECATED, CREATED, true);
+        assertUpdate(ApiLifecycleState.DEPRECATED, PUBLISHED, true);
+        assertUpdate(ApiLifecycleState.DEPRECATED, UNPUBLISHED, false);
+        assertUpdate(ApiLifecycleState.DEPRECATED, ARCHIVED, true);
+    }
+
+    @Test
+    public void shouldNotChangeLifecycleStateFromArchived() throws TechnicalException {
+        prepareUpdate();
+        assertUpdate(ApiLifecycleState.ARCHIVED, CREATED, true);
+        assertUpdate(ApiLifecycleState.ARCHIVED, PUBLISHED, true);
+        assertUpdate(ApiLifecycleState.ARCHIVED, UNPUBLISHED, true);
+        assertUpdate(ApiLifecycleState.ARCHIVED, DEPRECATED, true);
+    }
+
+    @Test
+    public void shouldNotChangeLifecycleStateFromCreatedInReview() throws TechnicalException {
+        prepareUpdate();
+        when(parameterService.findAsBoolean(Key.API_REVIEW_ENABLED)).thenReturn(true);
+        final Workflow workflow = new Workflow();
+        workflow.setState("IN_REVIEW");
+        when(workflowService.findByReferenceAndType(API, API_ID, REVIEW)).thenReturn(singletonList(workflow));
+
+        assertUpdate(ApiLifecycleState.CREATED, CREATED, false);
+        assertUpdate(ApiLifecycleState.CREATED, PUBLISHED, true);
+        assertUpdate(ApiLifecycleState.CREATED, UNPUBLISHED, true);
+        assertUpdate(ApiLifecycleState.CREATED, DEPRECATED, true);
+    }
+
+    private void assertUpdate(final ApiLifecycleState fromLifecycleState,
+                              final io.gravitee.management.model.api.ApiLifecycleState lifecycleState, final boolean shouldFail) {
+        when(api.getApiLifecycleState()).thenReturn(fromLifecycleState);
+        when(existingApi.getLifecycleState()).thenReturn(lifecycleState);
+        boolean failed = false;
+        try {
+            apiService.update(API_ID, existingApi);
+        } catch (final LifecycleStateChangeNotAllowedException ise) {
+            failed = true;
+        }
+        if (!failed && shouldFail) {
+            fail("Should not be possible to change the lifecycle state of a " + fromLifecycleState + " API to " + lifecycleState);
+        }
     }
 }

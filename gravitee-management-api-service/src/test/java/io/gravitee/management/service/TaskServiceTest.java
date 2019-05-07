@@ -66,7 +66,6 @@ public class TaskServiceTest {
     @Mock
     private PlanService planService;
 
-
     @Test
     public void shouldFindAll() throws TechnicalException {
         Membership m1 = new Membership();

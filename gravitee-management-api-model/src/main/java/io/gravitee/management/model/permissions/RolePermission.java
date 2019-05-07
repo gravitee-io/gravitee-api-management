@@ -34,7 +34,8 @@ public enum RolePermission {
     MANAGEMENT_MESSAGE      (RoleScope.MANAGEMENT, ManagementPermission.MESSAGE),
     MANAGEMENT_DICTIONARY   (RoleScope.MANAGEMENT, ManagementPermission.DICTIONARY),
     MANAGEMENT_ALERT        (RoleScope.MANAGEMENT, ManagementPermission.ALERT),
-    MANAGEMENT_ENTRYPOINT  (RoleScope.MANAGEMENT, ManagementPermission.ENTRYPOINT),
+    MANAGEMENT_ENTRYPOINT   (RoleScope.MANAGEMENT, ManagementPermission.ENTRYPOINT),
+    MANAGEMENT_SETTINGS     (RoleScope.MANAGEMENT, ManagementPermission.SETTINGS),
 
     PORTAL_METADATA         (RoleScope.PORTAL, PortalPermission.METADATA),
     PORTAL_DOCUMENTATION    (RoleScope.PORTAL, PortalPermission.DOCUMENTATION),
@@ -64,6 +65,7 @@ public enum RolePermission {
     API_MESSAGE             (RoleScope.API, ApiPermission.MESSAGE),
     API_ALERT               (RoleScope.API, ApiPermission.ALERT),
     API_RESPONSE_TEMPLATES  (RoleScope.API, ApiPermission.RESPONSE_TEMPLATES),
+    API_REVIEWS             (RoleScope.API, ApiPermission.REVIEWS),
 
     APPLICATION_DEFINITION  (RoleScope.APPLICATION, ApplicationPermission.DEFINITION),
     APPLICATION_MEMBER      (RoleScope.APPLICATION, ApplicationPermission.MEMBER),

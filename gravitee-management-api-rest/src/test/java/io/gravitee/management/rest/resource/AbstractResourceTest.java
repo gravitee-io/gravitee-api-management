@@ -20,6 +20,7 @@ import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.gravitee.management.security.cookies.JWTCookieGenerator;
 import io.gravitee.management.service.*;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -116,6 +117,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected TagService tagService;
+
+    @Autowired
+    protected ParameterService parameterService;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/management/rest/resource/jwt.properties")
@@ -229,6 +233,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public MediaService mediaService() {
             return mock(MediaService.class);
+        }
+
+        @Bean
+        public ParameterService parameterService() {
+            return mock(ParameterService.class);
         }
     }
 }

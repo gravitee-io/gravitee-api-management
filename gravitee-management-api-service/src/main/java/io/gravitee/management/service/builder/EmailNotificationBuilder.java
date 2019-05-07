@@ -108,7 +108,10 @@ public class EmailNotificationBuilder {
         NEW_RATING("newRating.html"),
         NEW_RATING_ANSWER("newRatingAnswer.html"),
         GENERIC_MESSAGE("genericMessage.html"),
-        GROUP_INVITATION("groupInvitation.html");
+        GROUP_INVITATION("groupInvitation.html"),
+        ASK_FOR_REVIEW("askForReview.html"),
+        REQUEST_FOR_CHANGES("requestForChanges.html"),
+        REVIEW_OK("reviewOk.html");
 
         private String template;
 

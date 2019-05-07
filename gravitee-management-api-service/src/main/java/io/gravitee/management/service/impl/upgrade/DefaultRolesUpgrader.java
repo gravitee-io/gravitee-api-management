@@ -22,6 +22,8 @@ import io.gravitee.management.model.permissions.ManagementPermission;
 import io.gravitee.management.model.permissions.PortalPermission;
 import io.gravitee.management.service.RoleService;
 import io.gravitee.management.service.Upgrader;
+import io.gravitee.management.service.exceptions.RoleNotFoundException;
+import io.gravitee.repository.management.model.RoleScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +55,7 @@ public class DefaultRolesUpgrader implements Upgrader, Ordered {
     @Override
     public boolean upgrade() {
         // initialize roles.
-        if(roleService.findAll().isEmpty()) {
+        if (roleService.findAll().isEmpty()) {
             logger.info("    No role found. Add default ones.");
 
             Map<String, char[]> perms = new HashMap<>();
@@ -145,6 +147,8 @@ public class DefaultRolesUpgrader implements Upgrader, Ordered {
                     perms
             ));
 
+            createRoleApiReviewer(perms);
+
             logger.info("     - <APPLICATION> USER (default)");
             perms.clear();
             perms.put(ApplicationPermission.DEFINITION.getName(), new char[]{READ.getId()});
@@ -176,10 +180,37 @@ public class DefaultRolesUpgrader implements Upgrader, Ordered {
                     false,
                     perms
             ));
+        } else {
+            try {
+                roleService.findById(RoleScope.API, "REVIEWER");
+            } catch (final RoleNotFoundException rnfe) {
+                createRoleApiReviewer(new HashMap<>());
+            }
         }
         roleService.createOrUpdateSystemRoles();
 
         return true;
+    }
+
+    private void createRoleApiReviewer(final Map<String, char[]> perms) {
+        logger.info("     - <API> REVIEWER");
+        perms.clear();
+        perms.put(ApiPermission.DEFINITION.getName(), new char[]{READ.getId()});
+        perms.put(ApiPermission.GATEWAY_DEFINITION.getName(), new char[]{READ.getId()});
+        perms.put(ApiPermission.PLAN.getName(), new char[]{READ.getId()});
+        perms.put(ApiPermission.METADATA.getName(), new char[]{READ.getId()});
+        perms.put(ApiPermission.DOCUMENTATION.getName(), new char[]{READ.getId()});
+        perms.put(ApiPermission.DISCOVERY.getName(), new char[]{READ.getId()});
+        perms.put(ApiPermission.NOTIFICATION.getName(), new char[]{READ.getId(), UPDATE.getId()});
+        perms.put(ApiPermission.ALERT.getName(), new char[]{READ.getId()});
+        perms.put(ApiPermission.REVIEWS.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
+        roleService.create(new NewRoleEntity(
+                "REVIEWER",
+                "API Role. Created by Gravitee.io.",
+                API,
+                false,
+                perms
+        ));
     }
 
     @Override

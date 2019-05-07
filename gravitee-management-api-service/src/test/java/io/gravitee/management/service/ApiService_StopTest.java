@@ -66,27 +66,22 @@ public class ApiService_StopTest {
 
     @Mock
     private ApiRepository apiRepository;
-
     @Mock
     private MembershipRepository membershipRepository;
-
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
-
     @Mock
     private Api api;
-
     @Mock
     private EventService eventService;
-
     @Mock
     private UserService userService;
-
     @Mock
     private AuditService auditService;
-
     @Mock
     private NotifierService notifierService;
+    @Mock
+    private ParameterService parameterService;
 
     @Before
     public void setUp() {

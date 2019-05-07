@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.management.model.PrimaryOwnerEntity;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.WorkflowState;
 
 import java.util.Date;
 import java.util.List;
@@ -72,6 +73,12 @@ public class ApiListItem {
     private int numberOfRatings;
 
     private Set<String> tags;
+
+    @JsonProperty(value = "lifecycle_state")
+    private ApiLifecycleState lifecycleState;
+
+    @JsonProperty(value = "workflow_state")
+    private WorkflowState workflowState;
 
     public String getId() {
         return id;
@@ -217,6 +224,22 @@ public class ApiListItem {
         this.tags = tags;
     }
 
+    public ApiLifecycleState getLifecycleState() {
+        return lifecycleState;
+    }
+
+    public void setLifecycleState(ApiLifecycleState lifecycleState) {
+        this.lifecycleState = lifecycleState;
+    }
+
+    public WorkflowState getWorkflowState() {
+        return workflowState;
+    }
+
+    public void setWorkflowState(WorkflowState workflowState) {
+        this.workflowState = workflowState;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -247,6 +270,8 @@ public class ApiListItem {
             ", rate=" + rate +
             ", numberOfRatings=" + numberOfRatings +
             ", tags=" + tags +
+            ", lifecycleState=" + lifecycleState +
+            ", workflowState=" + workflowState +
             '}';
     }
 }

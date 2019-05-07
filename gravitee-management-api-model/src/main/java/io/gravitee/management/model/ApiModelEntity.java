@@ -21,6 +21,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.management.model.api.ApiLifecycleState;
 
 import java.util.*;
 
@@ -51,6 +52,7 @@ public class ApiModelEntity {
     private List<Resource> resources = new ArrayList<>();
     private Set<String> views;
     private Map<String, String> metadata;
+    private ApiLifecycleState lifecycleState;
 
     public String getId() {
         return id;
@@ -212,6 +214,14 @@ public class ApiModelEntity {
         this.metadata = metadata;
     }
 
+    public ApiLifecycleState getLifecycleState() {
+        return lifecycleState;
+    }
+
+    public void setLifecycleState(ApiLifecycleState lifecycleState) {
+        this.lifecycleState = lifecycleState;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -243,6 +253,7 @@ public class ApiModelEntity {
             ", view=" + views +
             ", groups=" + groups +
             ", metadata=" + metadata +
+            ", lifecycleState=" + lifecycleState +
             '}';
     }
 }

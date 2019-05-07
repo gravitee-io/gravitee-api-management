@@ -13,12 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.rest.resource.param;
+
+import javax.validation.constraints.NotNull;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum TaskType {
-    SUBSCRIPTION_APPROVAL, IN_REVIEW, REQUEST_FOR_CHANGES
+public class ReviewActionParam {
+
+    public enum ReviewAction {
+        ASK, ACCEPT, REJECT
+    }
+
+    @NotNull
+    private ReviewAction action;
+
+    public ReviewActionParam(String input) {
+        try {
+            if (input != null) {
+                action = ReviewAction.valueOf(input.toUpperCase());
+            }
+        } catch (IllegalArgumentException iae) {
+            // Nothing to do here
+        }
+    }
+
+    public ReviewAction getAction() {
+        return this.action;
+    }
 }

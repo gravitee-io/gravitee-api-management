@@ -36,9 +36,11 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static io.gravitee.management.model.permissions.ApiPermission.REVIEWS;
 import static io.gravitee.management.model.permissions.RolePermissionAction.*;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ROLE;
 import static io.gravitee.repository.management.model.Role.AuditEvent.*;
+import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
@@ -116,8 +118,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     private boolean permissionsAreDifferent(Role role1, Role role2) {
-        return Arrays.stream(role1.getPermissions()).reduce(Math::addExact).orElse(0) !=
-                Arrays.stream(role2.getPermissions()).reduce(Math::addExact).orElse(0);
+        return stream(role1.getPermissions()).reduce(Math::addExact).orElse(0) !=
+                stream(role2.getPermissions()).reduce(Math::addExact).orElse(0);
     }
 
     private void createOrUpdateSystemRole(SystemRole roleName, RoleScope roleScope, io.gravitee.management.model.permissions.RoleScope permRoleScope, Permission[] permissions) throws TechnicalException {
@@ -156,7 +158,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             //PORTAL - ADMIN
             createOrUpdateSystemRole(SystemRole.ADMIN, RoleScope.PORTAL, io.gravitee.management.model.permissions.RoleScope.PORTAL, PortalPermission.values());
             //API - PRIMARY_OWNER
-            createOrUpdateSystemRole(SystemRole.PRIMARY_OWNER, RoleScope.API, io.gravitee.management.model.permissions.RoleScope.API, ApiPermission.values());
+            createOrUpdateSystemRole(SystemRole.PRIMARY_OWNER, RoleScope.API, io.gravitee.management.model.permissions.RoleScope.API,
+                    stream(ApiPermission.values()).filter(permission -> !REVIEWS.equals(permission)).toArray(Permission[]::new));
             //APPLICATION - PRIMARY_OWNER
             createOrUpdateSystemRole(SystemRole.PRIMARY_OWNER, RoleScope.APPLICATION, io.gravitee.management.model.permissions.RoleScope.APPLICATION, ApplicationPermission.values());
             //GROUP - ADMINISTRATOR

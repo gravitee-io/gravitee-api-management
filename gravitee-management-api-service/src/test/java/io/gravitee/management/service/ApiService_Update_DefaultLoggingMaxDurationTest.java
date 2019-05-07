@@ -32,10 +32,7 @@ import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.repository.management.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -107,6 +104,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
         when(api.getName()).thenReturn(API_NAME);
+        when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.CREATED);
 
         existingApi.setName(API_NAME);
         existingApi.setVersion("v1");
@@ -118,6 +116,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         final Proxy proxy = new Proxy();
         existingApi.setProxy(proxy);
         proxy.setContextPath("/context");
+        existingApi.setLifecycleState(io.gravitee.management.model.api.ApiLifecycleState.CREATED);
 
         mockStatic(System.class);
         when(System.currentTimeMillis()).thenReturn(0L);

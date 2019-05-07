@@ -25,6 +25,7 @@ import java.util.List;
  */
 public class ApiQuery {
 
+    private List<String> ids;
     private String view;
     private List<String> groups;
     private String contextPath;
@@ -34,6 +35,15 @@ public class ApiQuery {
     private String version;
     private String name;
     private String tag;
+    private List<ApiLifecycleState> lifecycleStates;
+
+    public List<String> getIds() {
+        return ids;
+    }
+
+    public void setIds(List<String> ids) {
+        this.ids = ids;
+    }
 
     public String getView() {
         return view;
@@ -107,18 +117,28 @@ public class ApiQuery {
         this.tag = tag;
     }
 
+    public List<ApiLifecycleState> getLifecycleStates() {
+        return lifecycleStates;
+    }
+
+    public void setLifecycleStates(List<ApiLifecycleState> lifecycleStates) {
+        this.lifecycleStates = lifecycleStates;
+    }
+
     @Override
     public String toString() {
         return "ApiQuery{" +
-                "view='" + view + '\'' +
-                ", groups='" + groups + '\'' +
+                "ids=" + ids +
+                ", view='" + view + '\'' +
+                ", groups=" + groups +
                 ", contextPath='" + contextPath + '\'' +
                 ", label='" + label + '\'' +
                 ", state='" + state + '\'' +
-                ", visibility='" + visibility + '\'' +
+                ", visibility=" + visibility +
                 ", version='" + version + '\'' +
                 ", name='" + name + '\'' +
                 ", tag='" + tag + '\'' +
+                ", lifecycleStates=" + lifecycleStates +
                 '}';
     }
 }

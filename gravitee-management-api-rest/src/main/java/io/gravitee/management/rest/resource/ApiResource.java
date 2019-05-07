@@ -18,17 +18,23 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.ApiLifecycleState;
+import io.gravitee.management.model.WorkflowState;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.api.header.ApiHeaderEntity;
 import io.gravitee.management.model.notification.NotifierEntity;
+import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam.LifecycleAction;
+import io.gravitee.management.rest.resource.param.ReviewActionParam;
+import io.gravitee.management.rest.resource.param.ReviewActionParam.ReviewAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.MessageService;
 import io.gravitee.management.service.NotifierService;
+import io.gravitee.management.service.ParameterService;
 import io.gravitee.management.service.QualityMetricsService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
@@ -70,12 +76,12 @@ public class ApiResource extends AbstractResource {
 
     @Autowired
     private NotifierService notifierService;
-
     @Autowired
     private QualityMetricsService qualityMetricsService;
-
     @Autowired
     private MessageService messageService;
+    @Autowired
+    private ParameterService parameterService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -469,6 +475,78 @@ public class ApiResource extends AbstractResource {
         return apiService.getPortalHeaders(api);
     }
 
+    @POST
+    @Path("reviews")
+    @ApiOperation(
+            value = "Manage the API's review state",
+            notes = "User must have the API_DEFINITION or API_REVIEWS permission to use this service (depending on the action)")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Updated API"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE)
+    })
+    public Response doReviewAction(
+            @Context HttpHeaders headers,
+            @ApiParam(required = true, allowableValues = "ASK")
+            @NotNull @Valid @QueryParam("action") ReviewActionParam action,
+            @PathParam("api") String api,
+            @ApiParam(name = "review") @Valid final ReviewEntity reviewEntity) {
+        final Response responseApi = get(api);
+        Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
+        if (builder != null) {
+            return builder.build();
+        }
+        final ApiEntity apiEntity = (ApiEntity) responseApi.getEntity();
+        final ApiEntity updatedApi;
+        checkAPIReviewWorkflow(apiEntity, action.getAction());
+        switch (action.getAction()) {
+            case ASK:
+                hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.UPDATE);
+                updatedApi = apiService.askForReview(apiEntity.getId(), getAuthenticatedUser(), reviewEntity);
+                break;
+            case ACCEPT:
+                hasPermission(RolePermission.API_REVIEWS, api, RolePermissionAction.UPDATE);
+                updatedApi = apiService.acceptReview(apiEntity.getId(), getAuthenticatedUser(), reviewEntity);
+                break;
+            case REJECT:
+                hasPermission(RolePermission.API_REVIEWS, api, RolePermissionAction.UPDATE);
+                updatedApi = apiService.rejectReview(apiEntity.getId(), getAuthenticatedUser(), reviewEntity);
+                break;
+            default:
+                updatedApi = null;
+                break;
+        }
+        return Response
+                .noContent()
+                .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+                .lastModified(updatedApi.getUpdatedAt())
+                .build();
+    }
+
+    private void checkAPIReviewWorkflow(final ApiEntity api, final ReviewAction action) {
+        if (ApiLifecycleState.ARCHIVED.equals(api.getLifecycleState())) {
+            throw new BadRequestException("Deleted API can not be reviewed");
+        }
+        if (api.getWorkflowState() != null) {
+            switch (api.getWorkflowState()) {
+                case IN_REVIEW:
+                    if (ReviewAction.ASK.equals(action)) {
+                        throw new BadRequestException("Review is still in progress");
+                    }
+                    break;
+                case DRAFT:
+                    if (ReviewAction.ACCEPT.equals(action) || ReviewAction.REJECT.equals(action)) {
+                        throw new BadRequestException("State invalid to accept/reject a review");
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     @Path("keys")
     public ApiKeysResource getApiKeyResource() {
         return resourceContext.getResource(ApiKeysResource.class);
@@ -553,6 +631,9 @@ public class ApiResource extends AbstractResource {
     }
 
     private void checkAPILifeCycle(ApiEntity api, LifecycleAction action) {
+        if (ApiLifecycleState.ARCHIVED.equals(api.getLifecycleState())) {
+            throw new BadRequestException("Deleted API can not be " + action.name().toLowerCase());
+        }
         switch (api.getState()) {
             case STARTED:
                 if (LifecycleAction.START.equals(action)) {
@@ -562,6 +643,13 @@ public class ApiResource extends AbstractResource {
             case STOPPED:
                 if (LifecycleAction.STOP.equals(action)) {
                     throw new BadRequestException("API is already stopped");
+                }
+
+                final boolean apiReviewEnabled = parameterService.findAsBoolean(Key.API_REVIEW_ENABLED);
+                if (apiReviewEnabled) {
+                    if (!WorkflowState.REVIEW_OK.equals(api.getWorkflowState())) {
+                        throw new BadRequestException("API can not be started without being reviewed");
+                    }
                 }
                 break;
             default:

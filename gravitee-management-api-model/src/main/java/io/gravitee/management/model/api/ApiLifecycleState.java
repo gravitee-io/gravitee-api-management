@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model;
+package io.gravitee.management.model.api;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * Api lifecycle states
+ *
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum TaskType {
-    SUBSCRIPTION_APPROVAL, IN_REVIEW, REQUEST_FOR_CHANGES
+public enum ApiLifecycleState {
+    CREATED, PUBLISHED, UNPUBLISHED, DEPRECATED, ARCHIVED
 }

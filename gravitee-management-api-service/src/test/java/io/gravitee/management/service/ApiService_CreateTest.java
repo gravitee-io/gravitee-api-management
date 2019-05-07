@@ -29,6 +29,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import org.junit.Before;
@@ -66,30 +67,24 @@ public class ApiService_CreateTest {
 
     @Mock
     private ApiRepository apiRepository;
-
     @Mock
     private MembershipRepository membershipRepository;
-
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
-
     @Mock
     private NewApiEntity newApi;
-
     @Mock
     private Api api;
-
     @Mock
     private GroupService groupService;
-
     @Mock
     private UserService userService;
-
     @Mock
     private AuditService auditService;
-
     @Mock
     private SearchEngineService searchEngineService;
+    @Mock
+    private ParameterService parameterService;
 
     @Before
     public void init() {
@@ -104,6 +99,7 @@ public class ApiService_CreateTest {
         when(api.getName()).thenReturn(API_NAME);
         when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
         when(api.getLifecycleState()).thenReturn(LifecycleState.STARTED);
+        when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.PUBLISHED);
         when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
         when(apiRepository.create(any())).thenReturn(api);
         when(newApi.getName()).thenReturn(API_NAME);

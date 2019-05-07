@@ -19,10 +19,8 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.model.RatingSummaryEntity;
-import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.model.api.ApiListItem;
-import io.gravitee.management.model.api.ApiQuery;
-import io.gravitee.management.model.api.NewApiEntity;
+import io.gravitee.management.model.WorkflowState;
+import io.gravitee.management.model.api.*;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.resource.param.ApisParam;
@@ -53,7 +51,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.management.model.Visibility.PUBLIC;
+import static io.gravitee.management.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.repository.management.model.View.ALL_ID;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -91,7 +91,7 @@ public class ApisResource extends AbstractResource {
 
         final ApiQuery apiQuery = new ApiQuery();
         if (apisParam.getGroup() != null) {
-            apiQuery.setGroups(Collections.singletonList(apisParam.getGroup()));
+            apiQuery.setGroups(singletonList(apisParam.getGroup()));
         }
         apiQuery.setContextPath(apisParam.getContextPath());
         apiQuery.setLabel(apisParam.getLabel());
@@ -107,6 +107,9 @@ public class ApisResource extends AbstractResource {
         if (isAdmin()) {
             apis = apiService.search(apiQuery);
         } else {
+            if (apisParam.isPortal() || apisParam.isTop()) {
+                apiQuery.setLifecycleStates(singletonList(PUBLISHED));
+            }
             if (isAuthenticated()) {
                 apis = apiService.findByUser(getAuthenticatedUser(), apiQuery);
             } else {
@@ -235,18 +238,16 @@ public class ApisResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response searchApis(
-            @ApiParam(name = "q", required = true)
-            @NotNull @QueryParam("q") String query) {
+    public Response searchApis(@ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
             final Collection<ApiEntity> apis;
             if (isAdmin()) {
                 apis = apiService.search(new ApiQuery());
             } else {
+                final ApiQuery apiQuery = new ApiQuery();
                 if (isAuthenticated()) {
-                    apis = apiService.findByUser(getAuthenticatedUser(), new ApiQuery());
+                    apis = apiService.findByUser(getAuthenticatedUser(), apiQuery);
                 } else {
-                    ApiQuery apiQuery = new ApiQuery();
                     apiQuery.setVisibility(PUBLIC);
                     apis = apiService.search(apiQuery);
                 }
@@ -316,6 +317,13 @@ public class ApisResource extends AbstractResource {
         }
         apiItem.setTags(api.getTags());
 
+        if (api.getLifecycleState() != null) {
+            apiItem.setLifecycleState(ApiLifecycleState.valueOf(api.getLifecycleState().toString()));
+        }
+
+        if (api.getWorkflowState() != null) {
+            apiItem.setWorkflowState(WorkflowState.valueOf(api.getWorkflowState().toString()));
+        }
         return apiItem;
     }
 

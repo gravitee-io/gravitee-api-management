@@ -28,6 +28,7 @@ import io.gravitee.definition.model.services.Services;
 import io.gravitee.management.model.DeploymentRequired;
 import io.gravitee.management.model.PrimaryOwnerEntity;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.WorkflowState;
 import io.gravitee.management.model.search.Indexable;
 
 import javax.validation.constraints.NotNull;
@@ -43,6 +44,7 @@ import java.util.*;
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @JsonFilter("apiMembershipTypeFilter")
@@ -116,6 +118,12 @@ public class ApiEntity implements Indexable {
     @DeploymentRequired
     @JsonProperty(value = "response_templates")
     private Map<String, ResponseTemplates> responseTemplates;
+
+    @JsonProperty(value = "lifecycle_state")
+    private ApiLifecycleState lifecycleState;
+
+    @JsonProperty(value = "workflow_state")
+    private WorkflowState workflowState;
 
     public String getId() {
         return id;
@@ -317,6 +325,22 @@ public class ApiEntity implements Indexable {
         this.responseTemplates = responseTemplates;
     }
 
+    public ApiLifecycleState getLifecycleState() {
+        return lifecycleState;
+    }
+
+    public void setLifecycleState(ApiLifecycleState lifecycleState) {
+        this.lifecycleState = lifecycleState;
+    }
+
+    public WorkflowState getWorkflowState() {
+        return workflowState;
+    }
+
+    public void setWorkflowState(WorkflowState workflowState) {
+        this.workflowState = workflowState;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -348,6 +372,8 @@ public class ApiEntity implements Indexable {
             ", view=" + views +
             ", groups=" + groups +
             ", pathMappings=" + pathMappings +
+            ", lifecycleState=" + lifecycleState +
+            ", workflowState=" + workflowState +
             '}';
     }
 }

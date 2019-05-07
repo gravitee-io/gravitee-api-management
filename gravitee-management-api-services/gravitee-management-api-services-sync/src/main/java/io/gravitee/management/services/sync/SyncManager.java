@@ -18,14 +18,14 @@ package io.gravitee.management.services.sync;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.model.configuration.dictionary.DictionaryEntity;
-import io.gravitee.management.service.configuration.dictionary.DictionaryService;
-import io.gravitee.management.service.event.DictionaryEvent;
 import io.gravitee.management.model.PrimaryOwnerEntity;
 import io.gravitee.management.model.UserEntity;
+import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.configuration.dictionary.DictionaryService;
+import io.gravitee.management.service.event.DictionaryEvent;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -34,8 +34,8 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -317,6 +317,10 @@ public class SyncManager {
         final LifecycleState lifecycleState = api.getLifecycleState();
         if (lifecycleState != null) {
             apiEntity.setState(Lifecycle.State.valueOf(lifecycleState.name()));
+        }
+        final ApiLifecycleState apiLifecycleState = api.getApiLifecycleState();
+        if (apiLifecycleState != null) {
+            apiEntity.setLifecycleState(io.gravitee.management.model.api.ApiLifecycleState.valueOf(apiLifecycleState.name()));
         }
         if (api.getVisibility() != null) {
             apiEntity.setVisibility(io.gravitee.management.model.Visibility.valueOf(api.getVisibility().toString()));

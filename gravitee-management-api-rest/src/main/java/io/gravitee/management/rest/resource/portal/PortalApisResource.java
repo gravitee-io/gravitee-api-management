@@ -19,6 +19,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.RatingSummaryEntity;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.ApiLifecycleState;
 import io.gravitee.management.model.api.ApiListItem;
 import io.gravitee.management.model.api.ApiQuery;
 import io.gravitee.management.rest.resource.AbstractResource;
@@ -41,6 +42,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static io.gravitee.management.model.Visibility.PUBLIC;
+import static io.gravitee.management.model.api.ApiLifecycleState.PUBLISHED;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -76,13 +79,14 @@ public class PortalApisResource extends AbstractResource {
             @NotNull @QueryParam("q") String query) {
         try {
             final Collection<ApiEntity> apis;
+            final ApiQuery apiQuery = new ApiQuery();
             if (isAdmin()) {
-                apis = apiService.search(new ApiQuery());
+                apis = apiService.search(apiQuery);
             } else {
+                apiQuery.setLifecycleStates(singletonList(PUBLISHED));
                 if (isAuthenticated()) {
-                    apis = apiService.findByUser(getAuthenticatedUser(), new ApiQuery());
+                    apis = apiService.findByUser(getAuthenticatedUser(), apiQuery);
                 } else {
-                    ApiQuery apiQuery = new ApiQuery();
                     apiQuery.setVisibility(PUBLIC);
                     apis = apiService.search(apiQuery);
                 }
@@ -140,6 +144,10 @@ public class PortalApisResource extends AbstractResource {
             apiItem.setNumberOfRatings(ratingSummary.getNumberOfRatings());
         }
         apiItem.setTags(api.getTags());
+
+        if (api.getLifecycleState() != null) {
+            apiItem.setLifecycleState(ApiLifecycleState.valueOf(api.getLifecycleState().toString()));
+        }
 
         return apiItem;
     }

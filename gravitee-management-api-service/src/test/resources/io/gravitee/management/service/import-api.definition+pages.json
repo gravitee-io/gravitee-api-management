@@ -3,6 +3,7 @@
   "version": "1",
   "description": "bmll",
   "visibility": "PRIVATE",
+  "lifecycle_state": "CREATED",
   "tags": [],
   "proxy": {
     "context_path": "/test",

@@ -75,30 +75,24 @@ public class ApiService_ExportAsJsonTest {
 
     @Mock
     private ApiRepository apiRepository;
-
     @Mock
     private MembershipRepository membershipRepository;
-
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
-
     @Mock
     private MembershipService membershipService;
-
     @Mock
     private PageService pageService;
-
     @Mock
     private UserService userService;
-
     @Mock
     private PlanService planService;
-
     @Mock
     private GroupService groupService;
-
     @Mock
     private ApplicationContext applicationContext;
+    @Mock
+    private ParameterService parameterService;
 
     @Before
     public void setUp() throws TechnicalException {
