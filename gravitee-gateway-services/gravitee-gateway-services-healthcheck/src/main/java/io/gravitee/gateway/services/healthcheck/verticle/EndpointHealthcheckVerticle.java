@@ -92,6 +92,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             Set<Endpoint> endpoints = api.getProxy()
                     .getGroups()
                     .stream()
+                    .filter(p -> p.getEndpoints() != null)
                     .flatMap(group -> group.getEndpoints().stream())
                     .collect(Collectors.toSet());
 
