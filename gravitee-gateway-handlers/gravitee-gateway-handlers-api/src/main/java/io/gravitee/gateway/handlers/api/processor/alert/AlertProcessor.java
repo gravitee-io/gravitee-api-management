@@ -49,13 +49,10 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
     private static final String PROP_QUOTA_LIMIT = "Quota limit";
     private static final String PROP_QUOTA_PERCENT = "Quota percent";
 
-    @Autowired
     private AlertEngineService alertEngineService;
 
-    @Autowired
     private Node node;
 
-    @Value("${http.port:8082}")
     private String port;
 
     @Override
@@ -96,5 +93,29 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
         } finally {
             next.handle(null);
         }
+    }
+
+    public AlertEngineService getAlertEngineService() {
+        return alertEngineService;
+    }
+
+    public void setAlertEngineService(AlertEngineService alertEngineService) {
+        this.alertEngineService = alertEngineService;
+    }
+
+    public Node getNode() {
+        return node;
+    }
+
+    public void setNode(Node node) {
+        this.node = node;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
     }
 }
