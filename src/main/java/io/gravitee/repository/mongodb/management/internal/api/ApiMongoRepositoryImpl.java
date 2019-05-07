@@ -79,6 +79,9 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             if (criteria.getVisibility() != null) {
                 query.addCriteria(where("visibility").is(criteria.getVisibility()));
             }
+            if (criteria.getLifecycleStates() != null && !criteria.getLifecycleStates().isEmpty()) {
+                query.addCriteria(where("apiLifecycleState").in(criteria.getLifecycleStates()));
+            }
         }
 
         query.with(new Sort(ASC, "name"));

@@ -70,21 +70,7 @@ public class MongoApiRepository implements ApiRepository {
 			throw new IllegalStateException(String.format("No api found with id [%s]", api.getId()));
 		}
 
-		apiMongo.setName(api.getName());
-		apiMongo.setDescription(api.getDescription());
-		apiMongo.setCreatedAt(api.getCreatedAt());
-		apiMongo.setUpdatedAt(api.getUpdatedAt());
-		apiMongo.setLifecycleState(api.getLifecycleState().toString());
-		apiMongo.setDefinition(api.getDefinition());
-		apiMongo.setVisibility(api.getVisibility().toString());
-		apiMongo.setVersion(api.getVersion());
-		apiMongo.setDeployedAt(api.getDeployedAt());
-		apiMongo.setPicture(api.getPicture());
-        apiMongo.setGroups(api.getGroups());
-		apiMongo.setViews(api.getViews());
-		apiMongo.setLabels(api.getLabels());
-
-		ApiMongo apiMongoUpdated = internalApiRepo.save(apiMongo);
+		final ApiMongo apiMongoUpdated = internalApiRepo.save(mapApi(api));
 		return mapApi(apiMongoUpdated);
 	}
 

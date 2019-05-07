@@ -62,6 +62,8 @@ public class ApiMongo extends Auditable {
 
     private List<ApiMetadataMongo> metadatas;
 
+    private String apiLifecycleState;
+
     public String getId() {
         return id;
     }
@@ -166,6 +168,14 @@ public class ApiMongo extends Auditable {
         this.metadatas = metadatas;
     }
 
+    public String getApiLifecycleState() {
+        return apiLifecycleState;
+    }
+
+    public void setApiLifecycleState(String apiLifecycleState) {
+        this.apiLifecycleState = apiLifecycleState;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -189,6 +199,7 @@ public class ApiMongo extends Auditable {
         sb.append(", visibility='").append(visibility).append('\'');
         sb.append(", groups='").append(groups).append('\'');
         sb.append(", metadatas='").append(metadatas).append('\'');
+        sb.append(", apiLifecycleState='").append(apiLifecycleState).append('\'');
         sb.append('}');
         return sb.toString();
     }
