@@ -73,6 +73,12 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
                 filterKeys.clear();
                 filterKeys.add(tempDestination);
             }
+            if (criteria.getLifecycleStates() != null && !criteria.getLifecycleStates().isEmpty()) {
+                criteria.getLifecycleStates().forEach(lifecycleState -> filterKeys.add(REDIS_KEY + ":lifecycleState:" + lifecycleState));
+                redisTemplate.opsForZSet().unionAndStore(null, filterKeys, tempDestination);
+                filterKeys.clear();
+                filterKeys.add(tempDestination);
+            }
             addCriteria("visibility", criteria.getVisibility(), filterKeys, tempDestination);
             addCriteria("view", criteria.getView(), filterKeys, tempDestination);
             addCriteria("label", criteria.getLabel(), filterKeys, tempDestination);
@@ -150,6 +156,7 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
                     redisTemplate.opsForSet().remove(REDIS_KEY + ":view:" + view, api.getId());
                 }
             }
+            redisTemplate.opsForSet().remove(REDIS_KEY + ":lifecycleState:" + oldApi.getApiLifecycleState(), api.getId());
             redisTemplate.opsForSet().remove(REDIS_KEY + ":id", oldApi.getId());
         }
 
@@ -173,6 +180,7 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
                 redisTemplate.opsForSet().add(REDIS_KEY + ":view:" + view, api.getId());
             }
         }
+        redisTemplate.opsForSet().add(REDIS_KEY + ":lifecycleState:" + api.getApiLifecycleState(), api.getId());
         redisTemplate.opsForSet().add(REDIS_KEY + ":id", api.getId());
         return api;
     }
@@ -186,6 +194,7 @@ public class ApiRedisRepositoryImpl extends AbstractRedisRepository implements A
         redisTemplate.opsForSet().remove(REDIS_KEY + ":state:" + api.getLifecycleState(), apiId);
         redisTemplate.opsForSet().remove(REDIS_KEY + ":version:" + api.getVersion(), apiId);
         redisTemplate.opsForSet().remove(REDIS_KEY + ":name:" + api.getName(), apiId);
+        redisTemplate.opsForSet().remove(REDIS_KEY + ":lifecycleState:" + api.getApiLifecycleState(), api.getId());
         if (api.getVisibility() != null) {
             redisTemplate.opsForSet().remove(REDIS_KEY + ":visibility:" + api.getVisibility(), apiId);
         }

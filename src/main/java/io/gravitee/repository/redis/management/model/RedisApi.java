@@ -41,6 +41,7 @@ public class RedisApi {
     private Set<String> views;
     private List<String> labels;
     private List<RedisApiMetadata> metadatas;
+    private String apiLifecycleState;
 
     public String getDefinition() {
         return definition;
@@ -160,6 +161,14 @@ public class RedisApi {
 
     public void setMetadatas(List<RedisApiMetadata> metadatas) {
         this.metadatas = metadatas;
+    }
+
+    public String getApiLifecycleState() {
+        return apiLifecycleState;
+    }
+
+    public void setApiLifecycleState(String apiLifecycleState) {
+        this.apiLifecycleState = apiLifecycleState;
     }
 
     @Override

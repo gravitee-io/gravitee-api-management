@@ -21,9 +21,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.redis.management.internal.ApiRedisRepository;
 import io.gravitee.repository.redis.management.model.RedisApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,11 +120,16 @@ public class RedisApiRepository implements ApiRepository {
         api.setDescription(redisApi.getDescription());
         api.setVersion(redisApi.getVersion());
         api.setVisibility(Visibility.valueOf(redisApi.getVisibility()));
-        api.setLifecycleState(LifecycleState.valueOf(redisApi.getLifecycleState()));
+        if (redisApi.getLifecycleState() != null) {
+            api.setLifecycleState(LifecycleState.valueOf(redisApi.getLifecycleState()));
+        }
         api.setPicture(redisApi.getPicture());
         api.setGroups(redisApi.getGroups());
         api.setViews(redisApi.getViews());
         api.setLabels(redisApi.getLabels());
+        if (redisApi.getApiLifecycleState() != null) {
+            api.setApiLifecycleState(ApiLifecycleState.valueOf(redisApi.getApiLifecycleState()));
+        }
 
         return api;
     }
@@ -147,11 +150,16 @@ public class RedisApiRepository implements ApiRepository {
         redisApi.setDescription(api.getDescription());
         redisApi.setVersion(api.getVersion());
         redisApi.setVisibility(api.getVisibility().name());
-        redisApi.setLifecycleState(api.getLifecycleState().name());
+        if (api.getLifecycleState() != null) {
+            redisApi.setLifecycleState(api.getLifecycleState().name());
+        }
         redisApi.setPicture(api.getPicture());
         redisApi.setGroups(api.getGroups());
         redisApi.setViews(api.getViews());
         redisApi.setLabels(api.getLabels());
+        if (api.getApiLifecycleState() != null) {
+            redisApi.setApiLifecycleState(api.getApiLifecycleState().name());
+        }
 
         return redisApi;
     }
