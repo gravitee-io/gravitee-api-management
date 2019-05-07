@@ -388,6 +388,8 @@ import ClientRegistrationProviderController from '../management/configuration/ap
 import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
+import DialogReviewController from "./api/review/reviewDialog.controller";
+import DialogRequestForChangesController from "./api/portal/general/dialog/requestForChanges.controller";
 
 (<any>window).traverse = traverse;
 
@@ -598,6 +600,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('AddTopApiDialogController', AddTopApiDialogController)
   .controller('DeleteTopApiDialogController', DeleteTopApiDialogController)
   .controller("MoveToFolderDialogController", MoveToFolderDialogController)
+  .controller('DialogReviewController', DialogReviewController)
+  .controller('DialogRequestForChangesController', DialogRequestForChangesController)
   .service('ApplicationService', ApplicationService)
   .service('ApiService', ApiService)
   .service('DocumentationService', DocumentationService)

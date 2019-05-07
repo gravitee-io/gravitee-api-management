@@ -62,8 +62,20 @@ class ApiService {
     return this.$http.get(this.apisURL + name);
   }
 
-  list(view?: string, opts?: any): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + (view ? '?view=' + view : ''), {}, opts);
+  list(view?: string, portal?: boolean, opts?: any): ng.IPromise<any> {
+    let params = '';
+    if (view !== undefined) {
+      params += '?view=' + view;
+    }
+    if (portal !== undefined) {
+      if (params === '') {
+        params += '?';
+      } else {
+        params += '&';
+      }
+      params += 'portal=' + portal;
+    }
+    return this.$http.get(this.apisURL + params, {}, opts);
   }
 
   searchApis(query?: string, opts?: any): ng.IPromise<any> {
@@ -103,7 +115,7 @@ class ApiService {
       {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private,
         'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
         'picture': api.picture, 'resources': api.resources, 'views': api.views, 'groups': api.groups,
-        'labels': api.labels, 'path_mappings': api.path_mappings, 'response_templates': api.response_templates
+        'labels': api.labels, 'path_mappings': api.path_mappings, 'response_templates': api.response_templates, 'lifecycle_state': api.lifecycle_state
       }, {headers: {'If-Match': api.etag}}
     );
   }
@@ -523,6 +535,18 @@ class ApiService {
       }
       return _.map(tagEntrypoints, 'value');
     }
+  }
+
+  askForReview(api, message?): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=ASK', {message: message}, {headers: {'If-Match': api.etag}});
+  }
+
+  acceptReview(api, message): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=ACCEPT', {message: message}, {headers: {'If-Match': api.etag}});
+  }
+
+  rejectReview(api, message): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=REJECT', {message: message}, {headers: {'If-Match': api.etag}});
   }
 }
 

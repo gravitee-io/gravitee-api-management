@@ -66,6 +66,16 @@
                   <i ng-if="$ctrl.syncStatus[api.id] === undefined?false:!$ctrl.syncStatus[api.id]" class="icon-arrows-cw" style="color:#e8ac3c;font-size: 14px;">
                     <md-tooltip>API out of sync</md-tooltip>
                   </i>
+                  <ng-md-icon ng-if="api.lifecycle_state === 'published'" icon="cloud_done" size="17" style="top: 3px;">
+                    <md-tooltip>Published</md-tooltip>
+                  </ng-md-icon>
+                  <ng-md-icon ng-if="api.lifecycle_state === 'unpublished'" icon="cloud_queue" size="17" style="top: 3px;">
+                    <md-tooltip>Unpublished</md-tooltip>
+                  </ng-md-icon>
+                  <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope" ng-if="$ctrl.getWorkflowStateLabel(api)"
+                        ng-style="{'background-color': $ctrl.getWorkflowStateColor(api)}">
+                    {{$ctrl.getWorkflowStateLabel(api)}}
+                  </span>
                 </td>
                 <td md-cell>{{api.context_path}}</td>
                 <td md-cell nowrap>{{api.tags.join(', ')}}</td>

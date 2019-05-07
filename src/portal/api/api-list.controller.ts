@@ -103,7 +103,7 @@ export class PortalApiListController {
         this.$state.current,
         {q: this.query, view: 'all'},
         {notify: false});
-      promise = this.ApiService.list('all', promOpts)
+      promise = this.ApiService.list('all', true, promOpts)
     } else {
       this.$state.transitionTo(
         this.$state.current,

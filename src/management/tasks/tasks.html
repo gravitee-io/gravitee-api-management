@@ -26,7 +26,7 @@
             <md-list>
                 <md-list-item class="md-3-line noright" ng-repeat="task in $ctrl.tasks.data" ng-click="$ctrl.go(task)">
                     <div class="md-list-item-text" layout="row" layout-align="space-between center">
-                        <ng-md-icon icon="vpn_key" size="36" flex="none"></ng-md-icon>
+                        <ng-md-icon icon="{{$ctrl.icon(task)}}" size="36" flex="none"></ng-md-icon>
                         <h4 flex="grow">{{$ctrl.taskMessage(task)}}</h4>
                         <p flex="none">{{task.created_at | humanDatetimeFilter}}</p>
                     </div>

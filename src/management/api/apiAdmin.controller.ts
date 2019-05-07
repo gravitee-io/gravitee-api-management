@@ -37,7 +37,8 @@ class ApiAdminController {
     private NotificationService: NotificationService,
     private resolvedApiState: any,
     private SidenavService: SidenavService,
-    private UserService: UserService) {
+    private UserService: UserService,
+    private Constants) {
     'ngInject';
 
     this.$scope = $scope;
@@ -125,12 +126,40 @@ class ApiAdminController {
       template: require('../../components/dialog/confirm.dialog.html'),
       clickOutsideToClose: true,
       locals: {
-        title: 'Would you like to deploy your API ?',
+        title: 'Would you like to deploy your API?',
         confirmButton: 'OK'
       }
     }).then(function (response) {
       if (response) {
         self.deploy(api);
+      }
+    });
+  }
+
+  showReviewConfirm(ev, api) {
+    ev.stopPropagation();
+    this.$mdDialog.show({
+      controller: 'DialogReviewController',
+      controllerAs: '$ctrl',
+      template: require('./review/review.dialog.html'),
+      clickOutsideToClose: true
+    }).then((response) => {
+      if (response) {
+        if (response.accept) {
+          this.ApiService.acceptReview(api, response.message).then((response) => {
+            this.api.workflow_state = 'review_ok';
+            this.api.etag = response.headers('etag');
+            this.NotificationService.show(`Changes accepted for API ${this.api.name}`);
+            this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
+          });
+        } else {
+          this.ApiService.rejectReview(api, response.message).then((response) => {
+            this.api.workflow_state = 'request_for_changes';
+            this.api.etag = response.headers('etag');
+            this.NotificationService.show(`Changes rejected for API ${this.api.name}`);
+            this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
+          });
+        }
       }
     });
   }
@@ -153,6 +182,44 @@ class ApiAdminController {
       this.NotificationService.show('API \'' + this.api.name + '\' saved');
       this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
     });
+  }
+
+  canDeploy(): boolean {
+    return !this.Constants.apiReview.enabled || (this.Constants.apiReview.enabled && this.api.workflow_state === 'review_ok');
+  }
+
+  canReview(): boolean {
+    return this.Constants.apiReview.enabled && this.api.workflow_state === 'in_review';
+  }
+
+  isRequestForChanges(): boolean {
+    return this.Constants.apiReview.enabled && this.api.workflow_state === 'request_for_changes';
+  }
+
+  isInDraft(): boolean {
+    return this.Constants.apiReview.enabled && this.api.workflow_state === 'draft';
+  }
+
+  isReviewOK(): boolean {
+    return this.Constants.apiReview.enabled && this.api.workflow_state === 'review_ok';
+  }
+
+  showRequestForChangesConfirm() {
+    this.$mdDialog.show({
+      controller: 'DialogRequestForChangesController',
+      controllerAs: '$ctrl',
+      template: require('./portal/general/dialog/requestForChanges.dialog.html'),
+      clickOutsideToClose: true,
+    }).then((response: boolean) => {
+      if (response) {
+        this.ApiService.rejectReview(this.api, response.message).then((response) => {
+          this.api.workflow_state = 'request_for_changes';
+          this.api.etag = response.headers('etag');
+          this.$rootScope.$broadcast("apiChangeSuccess", {api: this.api});
+          this.NotificationService.show(`Changes has been requested for API ${this.api.name}`);
+        });
+      }
+    })
   }
 }
 

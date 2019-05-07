@@ -67,7 +67,7 @@
           <label>Labels</label>
           <md-chips ng-model="portalCtrl.api.labels" placeholder="Enter a label" ng-click="portalCtrl.formApi.$setDirty()"></md-chips>
         </md-input-container>
-        <div permission permission-except="'api-definition-u'">
+        <div ng-if="portalCtrl.api.labels && portalCtrl.api.labels.length">
           <label>Labels</label>
           <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="portalCtrl.api.labels"></md-chips>
         </div>
@@ -80,7 +80,7 @@
             </md-option>
           </md-select>
         </md-input-container>
-        <div permission permission-except="'api-definition-u'" layout="column">
+        <div layout="column" ng-if="portalCtrl.api.views && portalCtrl.api.views.length">
           <label>Portal views</label>
           <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="portalCtrl.api.views"></md-chips>
         </div>
@@ -141,18 +141,33 @@
       <div class="gv-form gv-form-danger" permission permission-only="['api-definition-u', 'api-definition-d']">
         <h2>Danger Zone</h2>
         <div class="gv-form-content" layout="column">
-          <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-u'">
-            <div class="gv-form-danger-text" ng-if="portalCtrl.api.state==='started'">
-              Stop the API. It will no longer be available on all gateways.
+
+          <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-u'" ng-if="portalCtrl.canAskForReview()">
+            <div class="gv-form-danger-text">Ask for a review before to be able to publish / start your API.</div>
+            <div><md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.askForReview()">Ask for a review</md-button></div>
+          </div>
+
+          <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-u'" ng-if="portalCtrl.canChangeLifecycle()">
+            <div class="gv-form-danger-text" ng-if="portalCtrl.api.state==='started'">Stop the API. It will no longer be available on all gateways.</div>
+            <div class="gv-form-danger-text" ng-if="portalCtrl.api.state==='stopped'">Start the API. It will be available on all gateways (depending on sharding tags).</div>
+            <div>
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeLifecycle()" ng-if="portalCtrl.api.state==='started'">Stop the API</md-button>
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeLifecycle()" ng-if="portalCtrl.api.state==='stopped'">Start the API</md-button>
             </div>
-            <div class="gv-form-danger-text" ng-if="portalCtrl.api.state==='stopped'">
-              Start the API. It will be available on all gateways (depending on sharding tags).
+          </div>
+
+          <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-u'" ng-if="portalCtrl.canChangeApiLifecycle()">
+            <div class="gv-form-danger-text" ng-if="portalCtrl.api.lifecycle_state==='published'">
+              Unpublish the API. It will no longer be available on portal.
+            </div>
+            <div class="gv-form-danger-text" ng-if="portalCtrl.canPublish()">
+              Publish the API. It will be available on portal (depending on visibility/rights).
             </div>
             <div>
-              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeLifecycle()"
-                         ng-if="portalCtrl.api.state==='started'">Stop the API</md-button>
-              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeLifecycle()"
-                         ng-if="portalCtrl.api.state==='stopped'">Start the API</md-button>
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeApiLifecycle()"
+                         ng-if="portalCtrl.canPublish()">Publish the API</md-button>
+              <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeApiLifecycle()"
+                         ng-if="portalCtrl.api.lifecycle_state==='published'">Unpublish the API</md-button>
             </div>
           </div>
 
@@ -174,11 +189,11 @@
           <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-d'">
             <div class="gv-form-danger-text">
               Delete this API.
-              <span ng-if="portalCtrl.api.state === 'started'">A running API cannot be deleted</span>
+              <span ng-if="portalCtrl.api.state === 'started' || portalCtrl.api.lifecycle_state==='published'">A running or published API cannot be deleted</span>
             </div>
             <div>
               <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.delete(portalCtrl.api.id)"
-                         ng-disabled="portalCtrl.api.state === 'started'">Delete</md-button>
+                         ng-disabled="portalCtrl.api.state === 'started' || portalCtrl.api.lifecycle_state==='published'">Delete</md-button>
             </div>
           </div>
         </div>

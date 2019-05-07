@@ -62,7 +62,8 @@ class ApiCreationController {
               private ApiService: ApiService,
               private NotificationService: NotificationService,
               private $state: StateService,
-              private Constants: any) {
+              private Constants: any,
+              private $rootScope) {
     'ngInject';
     this.api = {};
     this.contextPathInvalid = true;
@@ -190,11 +191,11 @@ class ApiCreationController {
   /*
    API creation
    */
-  createAPI(deployAndStart) {
+  createAPI(deployAndStart, readyForReview?: boolean) {
     var alert = this.$mdDialog.confirm({
       title: 'Create API ?',
       content: 'The API ' + this.api.name + ' in version ' + this.api.version + ' will be created' + ((deployAndStart) ? ' and deployed.' : '.'),
-      ok: 'CREATE',
+      ok: 'CREATE' + (readyForReview? ' AND ASK FOR REVIEW':''),
       cancel: 'CANCEL'
     });
 
@@ -202,11 +203,11 @@ class ApiCreationController {
     this.$mdDialog
       .show(alert)
       .then(function () {
-        that._createAPI(deployAndStart);
+        that._createAPI(deployAndStart, readyForReview);
       });
   }
 
-  _createAPI(deployAndStart) {
+  _createAPI(deployAndStart, readyForReview?: boolean) {
     var _this = this;
     // clear API pages json format
     _.forEach(this.api.pages, function(page) {
@@ -224,8 +225,19 @@ class ApiCreationController {
     });
 
     // create API
+    if (deployAndStart) {
+      this.api.lifecycle_state = 'PUBLISHED';
+    }
     this.ApiService.import(null, this.api).then(function (api) {
       _this.vm.showBusyText = false;
+      if (readyForReview) {
+        _this.ApiService.askForReview(api.data).then((response) => {
+          api.data.workflow_state = 'in_review';
+          api.data.etag = response.headers('etag');
+          _this.api = api.data;
+          _this.$rootScope.$broadcast("apiChangeSuccess", {api: api.data});
+        });
+      }
       if (deployAndStart) {
         _this.ApiService.deploy(api.data.id).then(function() {
           _this.ApiService.start(api.data).then(function() {
@@ -237,6 +249,7 @@ class ApiCreationController {
         _this.NotificationService.show('API created');
         _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
       }
+      return api;
     }).catch(function () {
       _this.vm.showBusyText = false;
     });

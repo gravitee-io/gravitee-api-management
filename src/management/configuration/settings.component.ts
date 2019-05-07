@@ -78,6 +78,13 @@ const SettingsComponent: ng.IComponentOptions = {
         goTo: 'management.settings.views'
       },
 
+      // MANAGEMENT
+      managementSettings: {
+        perm: UserService.isUserHasPermissions(
+          ['management-settings-r']),
+        goTo: 'management.settings.management'
+      },
+
       // GATEWAYS
       api_logging: {
         perm: UserService.isUserHasPermissions(

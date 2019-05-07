@@ -106,7 +106,7 @@ export class ApisController {
     if (this.query) {
       promise = this.ApiService.searchApis(this.query, promOpts);
     } else {
-      promise = this.ApiService.list(null, promOpts);
+      promise = this.ApiService.list(null, false, promOpts);
     }
 
     let that = this;
@@ -201,8 +201,30 @@ export class ApisController {
   };
 
   getQualityMetricCssClass(score) {
-
     return this.ApiService.getQualityMetricCssClass(score);
+  };
+
+  getWorkflowStateLabel(api) {
+    switch (api.workflow_state) {
+      case 'draft':
+        return 'DRAFT';
+      case 'in_review':
+        return 'IN REVIEW';
+      case 'request_for_changes':
+        return 'NEED CHANGES';
+      case 'review_ok':
+        return '';
+    }
+  };
+
+  getWorkflowStateColor(api) {
+    switch (api.workflow_state) {
+      case 'draft':
+        return '#54a3ff';
+      case 'in_review':
+      case 'request_for_changes':
+        return '#d73a49';
+    }
   }
 }
 

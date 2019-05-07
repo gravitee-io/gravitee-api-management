@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogConfirmController($scope, $mdDialog, locals) {
+function DialogReviewController($scope, $mdDialog) {
   'ngInject';
 
-  $scope.title = locals.title;
-  $scope.msg = locals.msg;
-  $scope.confirmButton = locals.confirmButton || 'OK';
-  $scope.cancelButton = locals.cancelButton || 'Cancel';
-
   this.cancel = function() {
-    $mdDialog.hide(false);
+    $mdDialog.hide();
   };
 
-  this.confirm = function() {
-    $mdDialog.hide(true);
+  this.confirm = function(accept: boolean) {
+    $mdDialog.hide({
+      accept: accept,
+      message: this.message
+    });
   };
 }
 
-export default DialogConfirmController;
+export default DialogReviewController;

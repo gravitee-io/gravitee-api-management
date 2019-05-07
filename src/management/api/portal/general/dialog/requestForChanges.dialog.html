@@ -17,11 +17,15 @@
 -->
 <md-dialog aria-label="confirm-dialog">
   <md-dialog-content layout-padding>
-    <h4>{{title}}</h4>
+    <h4>Are you sure you want to request for changes on the API?</h4>
     <p ng-bind-html="msg"></p>
+    <md-input-container class="md-block">
+      <label>Comments</label>
+      <textarea aria-label="Review message" ng-model="$ctrl.message" maxlength="500" rows="2" cols="50"></textarea>
+    </md-input-container>
   </md-dialog-content>
   <md-dialog-actions layout="row">
-    <md-button ng-click="ctrl.cancel()">{{cancelButton}}</md-button>
-    <md-button class="md-raised md-primary" ng-click="ctrl.confirm()">{{confirmButton}}</md-button>
+    <md-button ng-click="$ctrl.cancel()">Cancel</md-button>
+    <md-button class="md-raised md-warn" ng-click="$ctrl.confirm()">Request for changes</md-button>
   </md-dialog-actions>
 </md-dialog>
