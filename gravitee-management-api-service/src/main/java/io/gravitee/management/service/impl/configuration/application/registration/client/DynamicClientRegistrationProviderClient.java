@@ -23,24 +23,17 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.service.impl.configuration.application.registration.client.register.ClientRegistrationRequest;
 import io.gravitee.management.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
-import io.gravitee.management.service.impl.configuration.application.registration.client.token.TokenResponse;
 import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -55,19 +48,12 @@ public abstract class DynamicClientRegistrationProviderClient {
 
     protected final ObjectMapper mapper = new ObjectMapper();
 
-    private final OIDCClient client;
-
     protected CloseableHttpClient httpClient;
 
     protected String registrationEndpoint;
 
-    protected String tokenEndpoint;
-
-    public DynamicClientRegistrationProviderClient(OIDCClient client) {
-        this.client = client;
-    }
-
-    public String generateToken() {
+    /*
+    public String getInitialAccessToken() {
         HttpPost tokenRequest = new HttpPost(tokenEndpoint);
 
         List<NameValuePair> tokenRequestParams = new ArrayList<>();
@@ -122,11 +108,12 @@ public abstract class DynamicClientRegistrationProviderClient {
             throw new DynamicClientRegistrationException("Unexpected error while generating an access_token: " + ex.getMessage(), ex);
         }
     }
+    */
 
-    protected ClientRegistrationResponse register(String accessToken, ClientRegistrationRequest request) {
+    protected ClientRegistrationResponse register(String initialAccessToken, ClientRegistrationRequest request) {
         HttpPost registerRequest = new HttpPost(registrationEndpoint);
 
-        registerRequest.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
+        registerRequest.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + initialAccessToken);
         registerRequest.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
 
         try {
@@ -177,7 +164,13 @@ public abstract class DynamicClientRegistrationProviderClient {
 
         try {
             JsonNode reqNode = mapper.readTree(mapper.writeValueAsString(request));
-            ((ObjectNode) reqNode).put("scope", String.join(ClientRegistrationRequest.SCOPE_DELIMITER, request.getScope()));
+            if (request.getScope() != null && !request.getScope().isEmpty()) {
+                ((ObjectNode) reqNode).put("scope", String.join(ClientRegistrationRequest.SCOPE_DELIMITER, request.getScope()));
+            } else {
+                ((ObjectNode) reqNode).remove("scope");
+            }
+
+            ((ObjectNode) reqNode).put("client_id", "0d7be850-e1ac-4d7a-9cf3-4f1ebd2c4ccb");
 
             updateRequest.setEntity(new StringEntity(
                     mapper.writeValueAsString(reqNode),
@@ -220,9 +213,11 @@ public abstract class DynamicClientRegistrationProviderClient {
 
     public ClientRegistrationResponse register(ClientRegistrationRequest request) {
         // 1_ Generate an access_token
-        String accessToken = generateToken();
+        String accessToken = getInitialAccessToken();
 
         // 2_ Register the client
         return register(accessToken, request);
     }
+
+    public abstract String getInitialAccessToken();
 }

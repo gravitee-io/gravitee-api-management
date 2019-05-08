@@ -39,14 +39,19 @@ public class NewClientRegistrationProviderEntity {
     private String discoveryEndpoint;
 
     @NotNull
+    @JsonProperty("initial_access_token_type")
+    private InitialAccessTokenType initialAccessTokenType;
+
     @JsonProperty("client_id")
     private String clientId;
 
-    @NotNull
     @JsonProperty("client_secret")
     private String clientSecret;
 
     private List<String> scopes;
+
+    @JsonProperty("initial_access_token")
+    private String initialAccessToken;
 
     public String getName() {
         return name;
@@ -72,6 +77,14 @@ public class NewClientRegistrationProviderEntity {
         this.discoveryEndpoint = discoveryEndpoint;
     }
 
+    public InitialAccessTokenType getInitialAccessTokenType() {
+        return initialAccessTokenType;
+    }
+
+    public void setInitialAccessTokenType(InitialAccessTokenType initialAccessTokenType) {
+        this.initialAccessTokenType = initialAccessTokenType;
+    }
+
     public String getClientId() {
         return clientId;
     }
@@ -94,6 +107,14 @@ public class NewClientRegistrationProviderEntity {
 
     public void setScopes(List<String> scopes) {
         this.scopes = scopes;
+    }
+
+    public String getInitialAccessToken() {
+        return initialAccessToken;
+    }
+
+    public void setInitialAccessToken(String initialAccessToken) {
+        this.initialAccessToken = initialAccessToken;
     }
 
     @Override

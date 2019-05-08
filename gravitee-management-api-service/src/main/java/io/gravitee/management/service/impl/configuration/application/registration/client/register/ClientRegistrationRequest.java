@@ -123,7 +123,10 @@ public class ClientRegistrationRequest {
     private String initiateLoginUri;
 
     @JsonProperty("request_uris")
-    private List<String> requestUris;    /*******************************************************************************
+    private List<String> requestUris;
+
+
+    /*******************************************************************************
      * Oauth2 metadata in addition to RFC specification
      * https://tools.ietf.org/html/rfc7591#section-2
      * https://tools.ietf.org/html/rfc7591#section-3.1.1

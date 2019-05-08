@@ -17,6 +17,7 @@ package io.gravitee.management.model.configuration.application.registration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +37,9 @@ public class ClientRegistrationProviderEntity {
     @JsonProperty("discovery_endpoint")
     private String discoveryEndpoint;
 
+    @JsonProperty("initial_access_token_type")
+    private InitialAccessTokenType initialAccessTokenType;
+
     @JsonProperty("client_id")
     private String clientId;
 
@@ -49,6 +53,9 @@ public class ClientRegistrationProviderEntity {
 
     @JsonProperty("updated_at")
     private Date updatedAt;
+
+    @JsonProperty("initial_access_token")
+    private String initialAccessToken;
 
     public String getId() {
         return id;
@@ -82,6 +89,14 @@ public class ClientRegistrationProviderEntity {
         this.discoveryEndpoint = discoveryEndpoint;
     }
 
+    public InitialAccessTokenType getInitialAccessTokenType() {
+        return initialAccessTokenType;
+    }
+
+    public void setInitialAccessTokenType(InitialAccessTokenType initialAccessTokenType) {
+        this.initialAccessTokenType = initialAccessTokenType;
+    }
+
     public String getClientId() {
         return clientId;
     }
@@ -104,6 +119,14 @@ public class ClientRegistrationProviderEntity {
 
     public void setScopes(List<String> scopes) {
         this.scopes = scopes;
+    }
+
+    public String getInitialAccessToken() {
+        return initialAccessToken;
+    }
+
+    public void setInitialAccessToken(String initialAccessToken) {
+        this.initialAccessToken = initialAccessToken;
     }
 
     public Date getCreatedAt() {

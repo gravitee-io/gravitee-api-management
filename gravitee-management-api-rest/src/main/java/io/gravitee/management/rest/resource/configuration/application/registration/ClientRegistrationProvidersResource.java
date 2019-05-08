@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource.configuration.application.registrat
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.configuration.application.registration.ClientRegistrationProviderEntity;
+import io.gravitee.management.model.configuration.application.registration.InitialAccessTokenType;
 import io.gravitee.management.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
@@ -83,8 +84,18 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
             @ApiResponse(code = 201, message = "Client registration provider provider successfully created",
                     response = ClientRegistrationProviderEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response createIdentityProvider(
+    public Response createClientRegistrationProvider(
             @ApiParam(name = "identity-provider", required = true) @Valid @NotNull NewClientRegistrationProviderEntity newClientRegistrationProviderEntity) {
+        if (newClientRegistrationProviderEntity.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
+            if (newClientRegistrationProviderEntity.getClientId() == null || newClientRegistrationProviderEntity.getClientSecret() == null) {
+                throw new IllegalArgumentException("Client credentials are missing");
+            }
+        } else {
+            if (newClientRegistrationProviderEntity.getInitialAccessToken() == null) {
+                throw new IllegalArgumentException("Access token is missing");
+            }
+        }
+
         ClientRegistrationProviderEntity newClientRegistrationProvider = clientRegistrationService.create(newClientRegistrationProviderEntity);
 
         if (newClientRegistrationProvider != null) {

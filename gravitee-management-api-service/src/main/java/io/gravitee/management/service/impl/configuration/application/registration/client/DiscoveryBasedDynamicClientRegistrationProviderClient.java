@@ -16,10 +16,14 @@
 package io.gravitee.management.service.impl.configuration.application.registration.client;
 
 import io.gravitee.management.service.impl.configuration.application.registration.client.discovery.DiscoveryResponse;
+import io.gravitee.management.service.impl.configuration.application.registration.client.token.InitialAccessTokenProvider;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,10 +32,12 @@ import org.apache.http.util.EntityUtils;
 public class DiscoveryBasedDynamicClientRegistrationProviderClient extends DynamicClientRegistrationProviderClient {
 
     private final String discoveryEndpoint;
+    private final InitialAccessTokenProvider initialAccessTokenProvider;
+    private final Map<String, String> attributes = new HashMap<>();
 
-    public DiscoveryBasedDynamicClientRegistrationProviderClient(OIDCClient client, String discoveryEndpoint) {
-        super(client);
+    public DiscoveryBasedDynamicClientRegistrationProviderClient(String discoveryEndpoint, InitialAccessTokenProvider initialAccessTokenProvider) {
         this.discoveryEndpoint = discoveryEndpoint;
+        this.initialAccessTokenProvider = initialAccessTokenProvider;
         initialize();
     }
 
@@ -57,10 +63,15 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
             });
 
             registrationEndpoint = discovery.getRegistrationEndpoint();
-            tokenEndpoint = discovery.getTokenEndpoint();
+            attributes.put("token_endpoint", discovery.getTokenEndpoint());
         } catch (Exception ex) {
             logger.error("Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(), ex);
             throw new DynamicClientRegistrationException("Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(), ex);
         }
+    }
+
+    @Override
+    public String getInitialAccessToken() {
+        return initialAccessTokenProvider.get(attributes);
     }
 }

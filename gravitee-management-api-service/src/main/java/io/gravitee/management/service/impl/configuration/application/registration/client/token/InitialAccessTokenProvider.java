@@ -13,40 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.impl.configuration.application.registration.client;
+package io.gravitee.management.service.impl.configuration.application.registration.client.token;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class OIDCClient {
+public interface InitialAccessTokenProvider {
 
-    private final String clientId;
-
-    private final String clientSecret;
-
-    private List<String> scopes;
-
-    public OIDCClient(String clientId, String clientSecret) {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public String getClientSecret() {
-        return clientSecret;
-    }
-
-    public List<String> getScopes() {
-        return scopes;
-    }
-
-    public void setScopes(List<String> scopes) {
-        this.scopes = scopes;
-    }
+    String get(Map<String, String> attributes);
 }
