@@ -32,8 +32,8 @@
     <name>Gravitee.io APIM - Repository - JDBC</name>
 
     <properties>
-        <gravitee-repository.version>1.20.2</gravitee-repository.version>
-        <gravitee-repository-test.version>1.20.3</gravitee-repository-test.version>
+        <gravitee-repository.version>1.20.3-SNAPSHOT</gravitee-repository.version>
+        <gravitee-repository-test.version>1.20.4-SNAPSHOT</gravitee-repository-test.version>
         <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
         <HikariCP.version>3.2.0</HikariCP.version>
         <liquibase.version>3.6.2</liquibase.version>
@@ -212,7 +212,7 @@
                             <skip>true</skip>
                         </configuration>
                     </execution>
-                    <!-- <execution>
+                     <execution>
                         <id>mysql</id>
                         <goals>
                             <goal>test</goal>
@@ -244,7 +244,7 @@
                                 <jdbcType>mariadb</jdbcType>
                             </systemPropertyVariables>
                         </configuration>
-                    </execution> -->
+                    </execution> 
                 </executions>
             </plugin>
         </plugins>
