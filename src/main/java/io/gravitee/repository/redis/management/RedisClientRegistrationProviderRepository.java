@@ -90,9 +90,12 @@ public class RedisClientRegistrationProviderRepository implements ClientRegistra
         clientRegistrationProvider.setName(redisClientRegistrationProvider.getName());
         clientRegistrationProvider.setDescription(redisClientRegistrationProvider.getDescription());
         clientRegistrationProvider.setDiscoveryEndpoint(redisClientRegistrationProvider.getDiscoveryEndpoint());
+        clientRegistrationProvider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.
+                valueOf(redisClientRegistrationProvider.getInitialAccessTokenType().toUpperCase()));
         clientRegistrationProvider.setClientId(redisClientRegistrationProvider.getClientId());
         clientRegistrationProvider.setClientSecret(redisClientRegistrationProvider.getClientSecret());
         clientRegistrationProvider.setScopes(redisClientRegistrationProvider.getScopes());
+        clientRegistrationProvider.setInitialAccessToken(redisClientRegistrationProvider.getInitialAccessToken());
         clientRegistrationProvider.setCreatedAt(new Date(redisClientRegistrationProvider.getCreatedAt()));
         clientRegistrationProvider.setUpdatedAt(new Date(redisClientRegistrationProvider.getUpdatedAt()));
 
@@ -119,9 +122,11 @@ public class RedisClientRegistrationProviderRepository implements ClientRegistra
         }
 
         redisClientRegistrationProvider.setDiscoveryEndpoint(clientRegistrationProvider.getDiscoveryEndpoint());
+        redisClientRegistrationProvider.setInitialAccessTokenType(clientRegistrationProvider.getInitialAccessTokenType().name());
         redisClientRegistrationProvider.setClientId(clientRegistrationProvider.getClientId());
         redisClientRegistrationProvider.setClientSecret(clientRegistrationProvider.getClientSecret());
         redisClientRegistrationProvider.setScopes(clientRegistrationProvider.getScopes());
+        redisClientRegistrationProvider.setInitialAccessToken(clientRegistrationProvider.getInitialAccessToken());
 
         return redisClientRegistrationProvider;
     }

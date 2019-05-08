@@ -43,6 +43,8 @@ public class RedisClientRegistrationProvider {
      */
     private String discoveryEndpoint;
 
+    private String initialAccessTokenType;
+
     /**
      * Client registration OIDC Client_ID
      */
@@ -57,6 +59,8 @@ public class RedisClientRegistrationProvider {
      * Client registration OIDC scopes
      */
     private List<String> scopes;
+
+    private String initialAccessToken;
 
     /**
      * Client registration provider creation date
@@ -138,6 +142,22 @@ public class RedisClientRegistrationProvider {
 
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getInitialAccessTokenType() {
+        return initialAccessTokenType;
+    }
+
+    public void setInitialAccessTokenType(String initialAccessTokenType) {
+        this.initialAccessTokenType = initialAccessTokenType;
+    }
+
+    public String getInitialAccessToken() {
+        return initialAccessToken;
+    }
+
+    public void setInitialAccessToken(String initialAccessToken) {
+        this.initialAccessToken = initialAccessToken;
     }
 
     @Override
