@@ -46,6 +46,7 @@ public class ClientRegistrationProviderRepositoryMock extends AbstractRepository
         when(newClientRegistrationProvider.getName()).thenReturn("new DCR");
         when(newClientRegistrationProvider.getDescription()).thenReturn("Description for my new DCR");
         when(newClientRegistrationProvider.getDiscoveryEndpoint()).thenReturn("http://localhost:8092/oidc/.well-known/openid-configuration");
+        when(newClientRegistrationProvider.getInitialAccessTokenType()).thenReturn(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
         when(newClientRegistrationProvider.getClientId()).thenReturn("my-client-id");
         when(newClientRegistrationProvider.getClientSecret()).thenReturn("my-client-secret");
         when(newClientRegistrationProvider.getScopes()).thenReturn(Arrays.asList("scope1", "scope2", "scope3"));
@@ -95,6 +96,7 @@ public class ClientRegistrationProviderRepositoryMock extends AbstractRepository
 
         clientRegistrationProvider3.setCreatedAt(new Date(1000000000000L));
         clientRegistrationProvider3.setUpdatedAt(new Date(1486771200000L));
+        clientRegistrationProvider3.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
 
         return clientRegistrationProvider3;
     }

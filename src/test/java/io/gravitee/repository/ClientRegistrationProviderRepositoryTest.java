@@ -57,6 +57,7 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         assertEquals("OIDC-3", clientRegistrationProvider.getName());
         assertEquals("OIDC Client registration provider", clientRegistrationProvider.getDescription());
         assertEquals("http://localhost:8092/oidc/.well-known/openid-configuration", clientRegistrationProvider.getDiscoveryEndpoint());
+        assertEquals(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS, clientRegistrationProvider.getInitialAccessTokenType());
         assertEquals("my-client-id", clientRegistrationProvider.getClientId());
         assertEquals("my-client-secret", clientRegistrationProvider.getClientSecret());
         assertEquals(3, clientRegistrationProvider.getScopes().size());
@@ -70,6 +71,7 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         clientRegistrationProvider.setName("new DCR");
         clientRegistrationProvider.setDescription("Description for my new DCR");
         clientRegistrationProvider.setDiscoveryEndpoint("http://localhost:8092/oidc/.well-known/openid-configuration");
+        clientRegistrationProvider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
         clientRegistrationProvider.setClientId("my-client-id");
         clientRegistrationProvider.setClientSecret("my-client-secret");
         clientRegistrationProvider.setScopes(Arrays.asList("scope1", "scope2", "scope3"));
@@ -91,6 +93,7 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         Assert.assertEquals("Invalid client registration provider createdAt.", clientRegistrationProvider.getCreatedAt(), clientRegistrationProviderSaved.getCreatedAt());
         Assert.assertEquals("Invalid client registration provider updatedAt.", clientRegistrationProvider.getUpdatedAt(), clientRegistrationProviderSaved.getUpdatedAt());
         Assert.assertEquals("Invalid client registration provider discovery endpoint.", clientRegistrationProvider.getDiscoveryEndpoint(), clientRegistrationProviderSaved.getDiscoveryEndpoint());
+        Assert.assertEquals("Invalid client registration provider initial access token type.", clientRegistrationProvider.getInitialAccessTokenType(), clientRegistrationProviderSaved.getInitialAccessTokenType());
         Assert.assertEquals("Invalid client registration provider client id.", clientRegistrationProvider.getClientId(), clientRegistrationProviderSaved.getClientId());
         Assert.assertEquals("Invalid client registration provider client secret.", clientRegistrationProvider.getClientSecret(), clientRegistrationProviderSaved.getClientSecret());
         Assert.assertEquals("Invalid client registration provider scopes.", clientRegistrationProvider.getScopes().size(), clientRegistrationProviderSaved.getScopes().size());
@@ -104,6 +107,7 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
 
         final ClientRegistrationProvider identityProvider = optional.get();
         identityProvider.setName("OIDC-1");
+        identityProvider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
         identityProvider.setDescription("OIDC 1 Client registration provider");
         identityProvider.setCreatedAt(new Date(1000000000000L));
         identityProvider.setUpdatedAt(new Date(1486771200000L));
