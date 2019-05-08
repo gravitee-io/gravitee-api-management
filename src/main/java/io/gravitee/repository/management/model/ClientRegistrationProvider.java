@@ -45,6 +45,8 @@ public class ClientRegistrationProvider {
      */
     private String discoveryEndpoint;
 
+    private InitialAccessTokenType initialAccessTokenType;
+
     /**
      * Client registration OIDC Client_ID
      */
@@ -59,6 +61,8 @@ public class ClientRegistrationProvider {
      * Client registration OIDC scopes
      */
     private List<String> scopes;
+
+    private String initialAccessToken;
 
     /**
      * Client registration provider creation date
@@ -118,6 +122,14 @@ public class ClientRegistrationProvider {
         this.discoveryEndpoint = discoveryEndpoint;
     }
 
+    public InitialAccessTokenType getInitialAccessTokenType() {
+        return initialAccessTokenType;
+    }
+
+    public void setInitialAccessTokenType(InitialAccessTokenType initialAccessTokenType) {
+        this.initialAccessTokenType = initialAccessTokenType;
+    }
+
     public String getClientId() {
         return clientId;
     }
@@ -142,6 +154,14 @@ public class ClientRegistrationProvider {
         this.scopes = scopes;
     }
 
+    public String getInitialAccessToken() {
+        return initialAccessToken;
+    }
+
+    public void setInitialAccessToken(String initialAccessToken) {
+        this.initialAccessToken = initialAccessToken;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -154,5 +174,10 @@ public class ClientRegistrationProvider {
     public int hashCode() {
 
         return Objects.hash(id);
+    }
+
+    public enum InitialAccessTokenType {
+        INITIAL_ACCESS_TOKEN,
+        CLIENT_CREDENTIALS
     }
 }
