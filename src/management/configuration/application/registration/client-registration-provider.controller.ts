@@ -31,6 +31,7 @@ class ClientRegistrationProviderController {
   private clientRegistrationProvider: ClientRegistrationProvider;
   private initialClientRegistrationProvider: ClientRegistrationProvider;
   private updateMode: boolean;
+  private initialAccessTokenTypes: any[];
 
   constructor(
     private $scope: IClientRegistrationProviderScope,
@@ -45,6 +46,16 @@ class ClientRegistrationProviderController {
   }
 
   $onInit() {
+    this.initialAccessTokenTypes = [];
+    this.initialAccessTokenTypes.push({
+      name: 'Client Credentials',
+      value: 'client_credentials'
+    });
+    this.initialAccessTokenTypes.push({
+      name: 'Initial Access Token',
+      value: 'initial_access_token'
+    });
+
     this.updateMode = this.clientRegistrationProvider !== undefined && this.clientRegistrationProvider.id !== undefined;
     if (! this.updateMode) {
       // Initialize the client registration provider
