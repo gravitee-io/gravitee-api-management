@@ -42,8 +42,10 @@ public class JdbcClientRegistrationProviderRepository extends JdbcAbstractCrudRe
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("discovery_endpoint", Types.NVARCHAR, String.class)
+            .addColumn("initial_access_token_type", Types.NVARCHAR, ClientRegistrationProvider.InitialAccessTokenType.class)
             .addColumn("client_id", Types.NVARCHAR, String.class)
             .addColumn("client_secret", Types.NVARCHAR, String.class)
+            .addColumn("initial_access_token", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
