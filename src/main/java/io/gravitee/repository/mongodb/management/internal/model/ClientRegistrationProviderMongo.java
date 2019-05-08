@@ -45,6 +45,8 @@ public class ClientRegistrationProviderMongo extends Auditable {
      */
     private String discoveryEndpoint;
 
+    private String initialAccessTokenType;
+
     /**
      * Client registration OIDC Client_ID
      */
@@ -59,6 +61,8 @@ public class ClientRegistrationProviderMongo extends Auditable {
      * Client registration OIDC scopes
      */
     private List<String> scopes;
+
+    private String initialAccessToken;
 
     public String getId() {
         return id;
@@ -114,6 +118,22 @@ public class ClientRegistrationProviderMongo extends Auditable {
 
     public void setScopes(List<String> scopes) {
         this.scopes = scopes;
+    }
+
+    public String getInitialAccessTokenType() {
+        return initialAccessTokenType;
+    }
+
+    public void setInitialAccessTokenType(String initialAccessTokenType) {
+        this.initialAccessTokenType = initialAccessTokenType;
+    }
+
+    public String getInitialAccessToken() {
+        return initialAccessToken;
+    }
+
+    public void setInitialAccessToken(String initialAccessToken) {
+        this.initialAccessToken = initialAccessToken;
     }
 
     @Override
