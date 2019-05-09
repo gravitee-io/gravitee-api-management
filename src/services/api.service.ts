@@ -59,12 +59,12 @@ class ApiService {
     return this.$http.get(this.apisURL + name);
   }
 
-  list(view?: string) {
-    return this.$http.get(this.apisURL + (view ? '?view=' + view : ''));
+  list(view?: string, opts?: any) {
+    return this.$http.get(this.apisURL + (view ? '?view=' + view : ''), {}, opts);
   }
 
-  searchApis(query?: string) {
-    return this.$http.post(this.apisURL + '_search?q=' + query);
+  searchApis(query?: string, opts?: any) {
+    return this.$http.post(this.apisURL + '_search?q=' + query, {}, opts);
   }
 
   listTopAPIs() {

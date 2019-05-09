@@ -21,10 +21,11 @@ import * as _ from 'lodash';
 import NotificationSettingsService from '../../services/notificationSettings.service';
 import {HookScope} from '../../entities/hookScope';
 import ApiService from "../../services/api.service";
+import {StateProvider} from '../../../node_modules/@uirouter/angularjs';
 
 export default apisRouterConfig;
 
-function apisRouterConfig($stateProvider) {
+function apisRouterConfig($stateProvider: StateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis', {
@@ -126,6 +127,11 @@ function apisRouterConfig($stateProvider) {
         devMode: true,
         ncyBreadcrumb: {
           label: 'APIs'
+        }
+      },
+      params: {
+        q: {
+          dynamic: true
         }
       }
     })
