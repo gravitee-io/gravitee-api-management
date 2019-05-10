@@ -15,57 +15,44 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.UserRepository;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.UserCriteria;
-import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.api.search.CommandCriteria;
+import io.gravitee.repository.management.model.Command;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class HttpUserRepository extends AbstractRepository implements UserRepository {
+public class HttpCommandRepository extends AbstractRepository implements CommandRepository {
 
     @Override
-    public Optional<User> findById(String s) throws TechnicalException {
+    public List<Command> search(CommandCriteria criteria) {
         throw new IllegalStateException();
     }
 
     @Override
-    public User create(User item) throws TechnicalException {
+    public Optional<Command> findById(String s) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public User update(User item) throws TechnicalException {
+    public Command create(Command item) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Command update(Command item) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
     public void delete(String s) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Optional<User> findByUsername(String username) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Set<User> findByIds(List<String> ids) throws TechnicalException {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
         throw new IllegalStateException();
     }
 }
