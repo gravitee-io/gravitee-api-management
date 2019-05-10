@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee.elasticsearch</groupId>
 		<artifactId>gravitee-elasticsearch</artifactId>
-		<version>1.20.3-SNAPSHOT</version>
+		<version>1.20.3</version>
 	</parent>
 
 	<groupId>io.gravitee.repository</groupId>
