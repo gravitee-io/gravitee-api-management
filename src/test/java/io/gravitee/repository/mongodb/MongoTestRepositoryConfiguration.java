@@ -20,6 +20,8 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 /**
@@ -47,5 +49,10 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @Bean(name = "managementMongoTemplate")
+    public MongoOperations mongoOperations() {
+        return new MongoTemplate(mongoClient(), "gravitee");
     }
 }
