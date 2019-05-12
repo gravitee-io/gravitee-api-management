@@ -108,6 +108,8 @@ public abstract class AbstractRepositoryTest {
     @Inject
     protected ApiHeaderRepository apiHeaderRepository;
     @Inject
+    protected CommandRepository commandRepository;
+    @Inject
     protected MediaRepository mediaRepository;
     @Inject
     protected IdentityProviderRepository identityProviderRepository;
@@ -219,6 +221,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if (object instanceof ApiHeader) {
             apiHeaderRepository.create((ApiHeader) object);
+        }
+        else if (object instanceof Command) {
+            commandRepository.create((Command) object);
         }
         else if (object instanceof IdentityProvider) {
             identityProviderRepository.create((IdentityProvider) object);
