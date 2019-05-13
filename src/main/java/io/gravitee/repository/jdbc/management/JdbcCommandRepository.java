@@ -173,10 +173,10 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
                     .append(")");
         }
         if (criteria.getNotFrom() != null) {
-            query.append(" and c.from != ? ");
+            query.append(" and c.").append(escapeReservedWord("from")).append(" != ? ");
         }
         if (criteria.getTo() != null) {
-            query.append(" and c.to = ? ");
+            query.append(" and c.").append(escapeReservedWord("to")).append(" = ? ");
         }
         if (criteria.isNotExpired()) {
             query.append(" and c.expired_at >= ? ");
