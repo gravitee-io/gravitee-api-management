@@ -62,7 +62,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         Set<ApiEntity> apis = apiService.findAll();
         apis.forEach(apiEntity -> {
             // API
-            searchEngineService.index(apiEntity);
+            searchEngineService.index(apiEntity, true);
 
             // Pages
             List<PageEntity> apiPages = pageService.search(new PageQuery.Builder().api(apiEntity.getId()).published(true).build());
@@ -71,7 +71,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
                     if (!PageType.FOLDER.name().equals(page.getType())
                             && !PageType.ROOT.name().equals(page.getType())) {
                         pageService.transformSwagger(page, apiEntity.getId());
-                        searchEngineService.index(page);
+                        searchEngineService.index(page, true);
                     }
                 } catch (Exception ignored) {}
             });
@@ -82,7 +82,7 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
                 new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
                 new PageableImpl(1, Integer.MAX_VALUE));
         users.getContent().forEach(userEntity ->
-                searchEngineService.index(userEntity)
+                searchEngineService.index(userEntity, true)
         );
 
         return true;

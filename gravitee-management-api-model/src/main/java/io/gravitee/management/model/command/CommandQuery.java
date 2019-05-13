@@ -13,13 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.search;
+package io.gravitee.management.model.command;
+
+import java.util.List;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Indexable {
-    String getId();
+public class CommandQuery {
+
+    private String to;
+    private List<CommandTags> tags;
+
+    public String getTo() {
+        return to;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
+    }
+
+    public List<CommandTags> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<CommandTags> tags) {
+        this.tags = tags;
+    }
 }

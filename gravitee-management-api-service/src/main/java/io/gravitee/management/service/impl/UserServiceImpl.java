@@ -160,7 +160,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     user);
 
             final UserEntity userEntity = convert(updatedUser, true);
-            searchEngineService.index(userEntity);
+            searchEngineService.index(userEntity, false);
             return userEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to connect {}", userId, ex);
@@ -331,7 +331,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     user);
 
             final UserEntity userEntity = convert(user, true);
-            searchEngineService.index(userEntity);
+            searchEngineService.index(userEntity, false);
             return userEntity;
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to create an internal user with the token {}", registerUserEntity.getToken(), ex);
@@ -410,7 +410,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             final UserEntity userEntity = convert(createdUser, true);
-            searchEngineService.index(userEntity);
+            searchEngineService.index(userEntity, false);
             return userEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create an external user {}", newExternalUserEntity, ex);
@@ -671,7 +671,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             userRepository.update(user);
 
             final UserEntity userEntity = convert(optionalUser.get(), false);
-            searchEngineService.delete(userEntity);
+            searchEngineService.delete(userEntity, false);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete user", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete user", ex);

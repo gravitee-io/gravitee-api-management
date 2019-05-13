@@ -93,6 +93,22 @@
 
 		<dependency>
 			<groupId>io.gravitee.management.services</groupId>
+			<artifactId>gravitee-management-api-services-search-indexer</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>zip</type>
+		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.management.services</groupId>
+      <artifactId>gravitee-management-api-services-search-indexer</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>zip</type>
+		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.management.services</groupId>
 			<artifactId>gravitee-management-api-services-sync</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>

@@ -48,7 +48,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.gravitee.management.service.impl.MessageServiceImpl.MesssageEvent.MESSAGE_SENT;
+import static io.gravitee.management.service.impl.MessageServiceImpl.MessageEvent.MESSAGE_SENT;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -92,7 +92,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     @Value("${email.from}")
     private String defaultFrom;
 
-    public enum MesssageEvent implements Audit.AuditEvent {
+    public enum MessageEvent implements Audit.AuditEvent {
         MESSAGE_SENT
     }
 

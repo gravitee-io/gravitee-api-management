@@ -87,4 +87,15 @@ public class UpdateUserEntity {
 	public void setPicture(String picture) {
 		this.picture = picture;
 	}
+
+	@Override
+	public String toString() {
+		return "UpdateUserEntity{" +
+				"firstname='" + firstname + '\'' +
+				", lastname='" + lastname + '\'' +
+				", email='" + email + '\'' +
+				", picture='" + picture + '\'' +
+				", status='" + status + '\'' +
+				'}';
+	}
 }
