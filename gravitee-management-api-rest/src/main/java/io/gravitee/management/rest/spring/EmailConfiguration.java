@@ -16,6 +16,7 @@
 package io.gravitee.management.rest.spring;
 
 import freemarker.cache.FileTemplateLoader;
+import freemarker.core.TemplateClassResolver;
 import io.gravitee.common.util.EnvironmentUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -96,6 +97,7 @@ public class EmailConfiguration {
         final freemarker.template.Configuration configuration =
                 new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22);
         try {
+            configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
             configuration.setTemplateLoader(new FileTemplateLoader(new File(templatesPath)));
         } catch (final IOException e) {
             LOGGER.warn("Error occurred while trying to read email templates directory", e);
