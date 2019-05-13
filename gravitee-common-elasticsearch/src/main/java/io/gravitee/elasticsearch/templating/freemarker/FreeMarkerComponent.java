@@ -15,6 +15,7 @@
  */
 package io.gravitee.elasticsearch.templating.freemarker;
 
+import freemarker.core.TemplateClassResolver;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;
@@ -66,6 +67,7 @@ public class FreeMarkerComponent implements InitializingBean {
         configuration.setDateFormat("iso_utc");
         configuration.setLocale(Locale.ENGLISH);
         configuration.setNumberFormat("computer");
+        configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
 
         final ClassTemplateLoader ctl = new ClassTemplateLoader(FreeMarkerComponent.class.getClassLoader(), DIRECTORY_NAME);
         if (templatesPath == null) {
