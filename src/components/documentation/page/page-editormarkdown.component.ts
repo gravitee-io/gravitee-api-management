@@ -104,7 +104,7 @@ class ComponentCtrl implements ng.IComponentController {
 
           $http.post(mediaURL + "upload", fd, {headers: {"Content-Type": undefined}})
           .then((response) => {
-            callback(mediaURL + "/" + response.data, blob.name);
+            callback(mediaURL + response.data, blob.name);
           });
 
           return false;
