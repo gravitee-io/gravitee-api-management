@@ -65,8 +65,12 @@
               <tr md-row md-select="endpoint" md-auto-select="false" ng-repeat="endpoint in group.endpoints | orderBy:order">
                 <td md-cell ng-style="endpoint.backup ? {'font-style': 'italic','color': 'darkgrey'} : ''">{{endpoint.name}}</td>
                 <td md-cell hide-gt-xs show-gt-sm nowrap>
-                  <ng-md-icon ng-show="apiProxyCtrl.hasHealthCheck(endpoint)" icon="favorite"></ng-md-icon>
-                  <ng-md-icon ng-show="endpoint.inherit" icon="subdirectory_arrow_right"></ng-md-icon>
+                  <ng-md-icon ng-show="apiProxyCtrl.hasHealthCheck(endpoint)" icon="favorite">
+                    <md-tooltip md-direction="top">Health-check enabled</md-tooltip>
+                  </ng-md-icon>
+                  <ng-md-icon ng-show="endpoint.inherit" icon="subdirectory_arrow_right">
+                    <md-tooltip md-direction="top">HTTP configuration inherited</md-tooltip>
+                  </ng-md-icon>
                 </td>
                 <td md-cell ng-style="endpoint.backup ? {'font-style': 'italic','color': 'darkgrey'} : ''">{{endpoint.target}}</td>
                 <td ng-if="apiProxyCtrl.hasTenants()" md-cell hide-gt-xs show-gt-sm>{{apiProxyCtrl.getTenants(endpoint.tenants)}}</td>
