@@ -18,6 +18,8 @@ import * as _ from 'lodash';
 import ViewService from "../../services/view.service";
 import {IScope} from "angular";
 import ApiService from "../../services/api.service";
+import {StateParams, StateService, TransitionService} from '@uirouter/core';
+import PortalService from "../../services/portal.service";
 
 export class PortalApiListController {
 
@@ -30,20 +32,24 @@ export class PortalApiListController {
   private tilesMode: boolean;
   private tilesModeKey = 'gv-tiles-mode';
   private apisLoading: boolean;
+  private canceler: any;
 
   constructor (private $scope: IScope,
-               private $state,
-               private $stateParams,
+               private $state: StateService,
+               private $stateParams: StateParams,
                private Constants,
                private ViewService: ViewService,
                private ApiService: ApiService,
-               private $window,
+               private PortalService: PortalService,
+               private $window: ng.IWindowService,
                private resolvedApis,
                private resolvedViews,
-               private $transitions,
-               private $timeout) {
+               private $transitions: TransitionService,
+               private $timeout: ng.ITimeoutService,
+               private $q: ng.IQService) {
     'ngInject';
 
+    this.$q = $q;
     if ($window.localStorage.getItem(this.tilesModeKey) === null) {
       if (Constants.portal && Constants.portal.apis) {
         this.tilesMode = Constants.portal.apis.tilesMode.enabled;
@@ -72,27 +78,45 @@ export class PortalApiListController {
       })
     }
 
-    $transitions.onStart({to: $state.current.name}, () => {
-      this.apisLoading = true;
-    });
-
     let timer;
-    $scope.$watch('apisCtrl.query', (query, previousQuery) => {
+    $scope.$watch('apisCtrl.query', (query: string, previousQuery: string) => {
       $timeout.cancel(timer);
       timer = $timeout(() => {
-        if (query !== undefined && query !== previousQuery) {
+        if (query !== undefined && query !== previousQuery && query.length > 3) {
           this.search();
         }
       }, 300);
     });
+    this.canceler = $q.defer();
   }
 
   search() {
+    this.apisLoading = true;
+    this.canceler.resolve();
+    this.canceler = this.$q.defer();
+
+    let promise;
+    let promOpts = {timeout: this.canceler.promise};
+
     if (this.query === undefined || this.query.length === 0) {
-      this.$state.go('.', {q: this.query, view: 'all'});
+      this.$state.transitionTo(
+        this.$state.current,
+        {q: this.query, view: 'all'},
+        {notify: false});
+      promise = this.ApiService.list('all', promOpts)
     } else {
-      this.$state.go('.', {q: this.query, view: 'results'});
+      this.$state.transitionTo(
+        this.$state.current,
+        {q: this.query, view: 'results'},
+        {notify: false});
+      promise = this.PortalService.searchApis(this.query, promOpts);
     }
+
+    let that = this;
+    promise.then( (response) => {
+      that.apis = response.data;
+      that.apisLoading = false;
+    });
   }
 
   goToApi(api) {
@@ -111,7 +135,7 @@ export class PortalApiListController {
 
   toggleDisplayMode() {
     this.tilesMode = !this.tilesMode;
-    this.$window.localStorage.setItem(this.tilesModeKey, this.tilesMode);
+    this.$window.localStorage.setItem(this.tilesModeKey, String(this.tilesMode));
   }
 
   sortByHighlightApi(view) {

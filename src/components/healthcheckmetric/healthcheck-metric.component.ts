@@ -13,25 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as _ from 'lodash';
 
-class PortalService {
-  private portalURL: string;
-  private Constants: any;
-
-  constructor(private $http, Constants) {
-    'ngInject';
-    this.portalURL = `${Constants.baseURL}portal/`;
-    this.Constants = Constants;
+const HealthCheckMetricComponent: ng.IComponentOptions = {
+  template: require('./healthcheck-metric.html'),
+  bindings: {
+    availability: '<',
+    responsetime: '<'
   }
+};
 
-  searchApis(query?: string, opts?: any) {
-    let url = this.portalURL + 'apis/_search?q=' + query;
-    return this.$http.post(url, {}, opts);
-  }
-
-  listSocialIdentityProviders() {
-    return this.$http.get(this.portalURL + 'identities');
-  }
-}
-
-export default PortalService;
+export default HealthCheckMetricComponent;
