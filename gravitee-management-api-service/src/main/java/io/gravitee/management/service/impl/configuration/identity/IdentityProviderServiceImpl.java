@@ -221,6 +221,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProvider.setType(IdentityProviderType.valueOf(newIdentityProviderEntity.getType().name().toUpperCase()));
         identityProvider.setEnabled(newIdentityProviderEntity.isEnabled());
         identityProvider.setUserProfileMapping(newIdentityProviderEntity.getUserProfileMapping());
+        identityProvider.setEmailRequired(newIdentityProviderEntity.isEmailRequired());
 
         return identityProvider;
     }
@@ -274,6 +275,11 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProviderEntity.setCreatedAt(identityProvider.getCreatedAt());
         identityProviderEntity.setUpdatedAt(identityProvider.getUpdatedAt());
         identityProviderEntity.setUserProfileMapping(identityProvider.getUserProfileMapping());
+        if (identityProvider.getEmailRequired() == null) {
+            identityProviderEntity.setEmailRequired(true);
+        } else {
+            identityProviderEntity.setEmailRequired(identityProvider.getEmailRequired());
+        }
         return identityProviderEntity;
     }
 
@@ -285,6 +291,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProvider.setEnabled(updateIdentityProvider.isEnabled());
         identityProvider.setConfiguration(updateIdentityProvider.getConfiguration());
         identityProvider.setUserProfileMapping(updateIdentityProvider.getUserProfileMapping());
+        identityProvider.setEmailRequired(updateIdentityProvider.isEmailRequired());
 
         if (updateIdentityProvider.getGroupMappings() != null && !updateIdentityProvider.getGroupMappings().isEmpty()) {
             identityProvider.setGroupMappings(updateIdentityProvider.getGroupMappings()

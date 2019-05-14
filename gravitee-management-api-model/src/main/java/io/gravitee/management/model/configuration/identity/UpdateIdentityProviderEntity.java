@@ -21,6 +21,7 @@ import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class UpdateIdentityProviderEntity {
@@ -41,6 +42,8 @@ public class UpdateIdentityProviderEntity {
     private List<RoleMappingEntity> roleMappings;
 
     private Map<String, String> userProfileMapping;
+
+    private boolean emailRequired;
 
     public String getName() {
         return name;
@@ -96,6 +99,14 @@ public class UpdateIdentityProviderEntity {
 
     public void setUserProfileMapping(Map<String, String> userProfileMapping) {
         this.userProfileMapping = userProfileMapping;
+    }
+
+    public boolean isEmailRequired() {
+        return emailRequired;
+    }
+
+    public void setEmailRequired(boolean emailRequired) {
+        this.emailRequired = emailRequired;
     }
 
     @Override
