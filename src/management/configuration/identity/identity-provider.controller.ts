@@ -54,6 +54,7 @@ class IdentityProviderController {
       this.identityProvider.type = (this.$state.params.type as string);
       this.identityProvider.configuration = new Map<string ,any>();
       this.identityProvider.configuration['scopes'] = [];
+      this.identityProvider.emailRequired = true;
     } else {
       this.tokenExchangeEndpoint = this.Constants.baseURL + 'auth/oauth2/' + this.identityProvider.id;
     }

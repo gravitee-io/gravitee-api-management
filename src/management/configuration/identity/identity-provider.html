@@ -71,6 +71,18 @@
             </div>
           </md-input-container>
         </div>
+
+        <div layout-gt-sm="row">
+          <md-input-container class="md-block" flex-gt-sm>
+            <md-checkbox
+                    ng-model="$ctrl.identityProvider.emailRequired"
+                    aria-label="A public email is required"
+                    class="md-primary md-align-top-left"
+                    flex>
+              A public email is required to be able to authenticate.
+            </md-checkbox>
+          </md-input-container>
+        </div>
       </div>
     </div>
 
