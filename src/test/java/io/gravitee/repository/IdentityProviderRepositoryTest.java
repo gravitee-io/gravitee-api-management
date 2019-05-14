@@ -59,6 +59,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Gravitee.io AM Identity Provider", identityProvider.getDescription());
         assertFalse(identityProvider.isEnabled());
         assertEquals(IdentityProviderType.GRAVITEEIO_AM, identityProvider.getType());
+        assertNull(identityProvider.getEmailRequired());
 
         String condition = "{#jsonPath('$.email_verified')}";
 
@@ -95,6 +96,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
         identityProvider.setUpdatedAt(new Date(1439032010883L));
         identityProvider.setType(IdentityProviderType.GITHUB);
         identityProvider.setEnabled(true);
+        identityProvider.setEmailRequired(true);
 
         int nbIdentityProvidersBeforeCreation = identityProviderRepository.findAll().size();
         identityProviderRepository.create(identityProvider);
@@ -112,6 +114,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid identity provider updatedAt.", identityProvider.getUpdatedAt(), identityProviderSaved.getUpdatedAt());
         Assert.assertEquals("Invalid identity provider type.", identityProvider.getType(), identityProviderSaved.getType());
         Assert.assertEquals("Invalid identity provider enabled.", identityProvider.isEnabled(), identityProviderSaved.isEnabled());
+        Assert.assertEquals("Invalid identity provider emailRequired.", identityProvider.getEmailRequired(), identityProviderSaved.getEmailRequired());
     }
 
     @Test
@@ -127,6 +130,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
         identityProvider.setUpdatedAt(new Date(1486771200000L));
         identityProvider.setType(IdentityProviderType.GOOGLE);
         identityProvider.setEnabled(true);
+        identityProvider.setEmailRequired(true);
 
         int nbIdentityProvidersBeforeUpdate = identityProviderRepository.findAll().size();
         identityProviderRepository.update(identityProvider);
@@ -144,6 +148,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid identity provider updatedAt.", identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt());
         Assert.assertEquals("Invalid identity provider type.", identityProvider.getType(), identityProviderUpdated.getType());
         Assert.assertEquals("Invalid identity provider enabled.", identityProvider.isEnabled(), identityProviderUpdated.isEnabled());
+        Assert.assertEquals("Invalid identity provider emailRequired.", identityProvider.getEmailRequired(), identityProviderUpdated.getEmailRequired());
     }
 
     @Test
