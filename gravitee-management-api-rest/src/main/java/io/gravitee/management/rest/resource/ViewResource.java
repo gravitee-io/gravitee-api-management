@@ -129,7 +129,7 @@ public class ViewResource extends AbstractViewResource {
             @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.UPDATE)
     })
     public ViewEntity update(@PathParam("id") String viewId, @Valid @NotNull final UpdateViewEntity view) {
-        checkImageSize(view.getPicture());
+        checkImage(view.getPicture());
 
         ViewEntity viewEntity = viewService.update(viewId, view);
         setPicture(viewEntity, false);

@@ -20,11 +20,11 @@ import io.gravitee.common.http.HttpStatusCode;
 /**
  * @author Guillaume Gillon
  */
-public class UploadUnAuthorized extends AbstractManagementException {
+public class UploadUnauthorized extends AbstractManagementException {
 
     private String message;
 
-    public UploadUnAuthorized(String message) {
+    public UploadUnauthorized(String message) {
         this.message = message;
     }
 

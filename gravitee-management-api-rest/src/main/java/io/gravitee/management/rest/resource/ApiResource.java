@@ -227,7 +227,7 @@ public class ApiResource extends AbstractResource {
             return builder.build();
         }
 
-        checkImageSize(apiToUpdate.getPicture());
+        checkImage(apiToUpdate.getPicture());
 
         final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
         // Force context-path if user is not the primary_owner or an administrator

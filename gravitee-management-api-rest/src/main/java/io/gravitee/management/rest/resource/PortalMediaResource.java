@@ -21,9 +21,8 @@ import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.management.service.ConfigService;
 import io.gravitee.management.service.MediaService;
-import io.gravitee.management.service.exceptions.UploadUnAuthorized;
+import io.gravitee.management.service.exceptions.UploadUnauthorized;
 import io.swagger.annotations.Api;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -54,9 +53,9 @@ public class PortalMediaResource extends AbstractResource {
         String mediaId = null;
 
         if (!body.getMediaType().getType().equals("image")) {
-            throw new UploadUnAuthorized("File format unauthorized " + body.getMediaType().getType()+"/"+body.getMediaType().getSubtype());
+            throw new UploadUnauthorized("File format unauthorized " + body.getMediaType().getType()+"/"+body.getMediaType().getSubtype());
         } else if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
-            throw new UploadUnAuthorized("Max size achieved " + fileDetail.getSize());
+            throw new UploadUnauthorized("Max size achieved " + fileDetail.getSize());
         } else {
             mediaId = mediaService.savePortalMedia(new MediaEntity(
                     uploadedInputStream,

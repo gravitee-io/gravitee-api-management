@@ -149,7 +149,7 @@ public class CurrentUserResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 */
-        checkImageSize(user.getPicture());
+        checkImage(user.getPicture());
         return ok(userService.update(userEntity.getId(), user)).build();
     }
 
