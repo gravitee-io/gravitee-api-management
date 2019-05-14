@@ -28,6 +28,12 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     Constants: any
   ) {
     'ngInject';
+
+    this.$onInit = () => {
+      this.Constants.authentication.localLogin.enabled = (this.Constants.authentication.localLogin.enabled || !this.hasIdpDefined());
+      this.save();
+    }
+
     this.Constants = Constants;
 
     this.widgets = [
@@ -46,6 +52,12 @@ const PortalSettingsComponent: ng.IComponentOptions = {
         Constants = response.data;
       });
     };
+
+    this.hasIdpDefined = () => {
+      return this.Constants.authentication.google.clientId ||
+       this.Constants.authentication.github.clientId ||
+       this.Constants.authentication.oauth2.clientId;
+    }
   }
 };
 

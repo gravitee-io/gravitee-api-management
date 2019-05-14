@@ -23,7 +23,7 @@
           <label>Log In</label>
         </div>
 
-        <form name="formUser" ng-submit="$ctrl.login()" layout="column" ng-if="!$ctrl.localLoginDisabled">
+        <form name="formUser" ng-submit="$ctrl.login()" layout="column" ng-if="!$ctrl.localLoginDisabled || $ctrl.providers.length == 0">
 
           <div layout="row">
             <ng-md-icon icon="person" style="fill: #555"></ng-md-icon>

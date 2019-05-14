@@ -207,7 +207,7 @@
                 </md-checkbox>
             </md-input-container>
             <md-input-container class="gv-input-container-dense">
-                <md-checkbox ng-model="$ctrl.Constants.authentication.localLogin.enabled" aria-label="localLogin">
+                <md-checkbox ng-disabled="!$ctrl.hasIdpDefined()" ng-model="$ctrl.Constants.authentication.localLogin.enabled" aria-label="localLogin">
                     Local Login
                 </md-checkbox>
             </md-input-container>
