@@ -36,6 +36,7 @@ import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -75,6 +76,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     private ApplicationRepository applicationRepository;
 
     @Autowired
+    @Lazy
     private UserService userService;
 
     @Autowired
