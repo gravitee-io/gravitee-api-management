@@ -32,7 +32,6 @@ import io.gravitee.management.service.NotifierService;
 import io.gravitee.management.service.QualityMetricsService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
-import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.swagger.annotations.*;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
@@ -47,7 +46,6 @@ import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -229,7 +227,7 @@ public class ApiResource extends AbstractResource {
             return builder.build();
         }
 
-        checkImageSize(apiToUpdate.getPicture());
+        checkImage(apiToUpdate.getPicture());
 
         final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();
         // Force context-path if user is not the primary_owner or an administrator

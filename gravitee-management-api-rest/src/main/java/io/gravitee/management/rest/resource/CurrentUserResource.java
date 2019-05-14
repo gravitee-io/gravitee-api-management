@@ -138,7 +138,7 @@ public class CurrentUserResource extends AbstractResource {
         if (!user.getUsername().equals(userService.findById(getAuthenticatedUser()).getUsername())) {
             throw new ForbiddenAccessException();
         }
-        checkImageSize(user.getPicture());
+        checkImage(user.getPicture());
         return ok(userService.update(user)).build();
     }
 

@@ -29,6 +29,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
+import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,6 +43,7 @@ public abstract class AbstractResource {
 
     public final static String MANAGEMENT_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
     public final static String PORTAL_ADMIN = RoleScope.PORTAL.name() + ':' + SystemRole.ADMIN.name();
+    private final static Pattern PATTERN = Pattern.compile("<script");
 
     @Context
     protected SecurityContext securityContext;
@@ -89,8 +93,16 @@ public abstract class AbstractResource {
         return isAuthenticated() && (isAdmin() || permissionService.hasPermission(permission, referenceId, acls));
     }
 
-    void checkImageSize(final String picture) {
+    void checkImage(final String picture) {
         if (picture != null) {
+            // first check that the image is in a valid format to prevent from XSS attack
+            final String base64Picture = picture.substring(picture.indexOf(',') + 1);
+            final String decodedPicture = new String(Base64.getDecoder().decode(base64Picture));
+            final Matcher matcher = PATTERN.matcher(decodedPicture);
+            if (matcher.find()) {
+                throw new IllegalArgumentException("The image is not in a valid format");
+            }
+            // then check that the image is not too big
             final int imageBase64Length = picture.length();
             final int approximateImageSizeInByte = 3 * imageBase64Length / 4;
             if (approximateImageSizeInByte > 50_000) {
