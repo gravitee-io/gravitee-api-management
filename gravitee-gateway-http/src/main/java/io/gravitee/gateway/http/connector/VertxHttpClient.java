@@ -32,9 +32,11 @@ import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
+import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.netty.channel.ConnectTimeoutException;
 import io.vertx.core.Context;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.core.net.*;
@@ -131,7 +133,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         }
 
         VertxProxyConnection proxyConnection = new VertxProxyConnection(proxyRequest, clientRequest);
-        clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse));
+        clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse, clientRequest));
 
         clientRequest.connectionHandler(connection -> {
             connection.exceptionHandler(ex -> {
@@ -163,7 +165,8 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         return proxyConnection;
     }
 
-    private void handleClientResponse(VertxProxyConnection proxyConnection, HttpClientResponse clientResponse) {
+    private void handleClientResponse(final VertxProxyConnection proxyConnection,
+                                      final HttpClientResponse clientResponse, final HttpClientRequest clientRequest) {
         VertxProxyResponse proxyClientResponse = new VertxProxyResponse(clientResponse);
         proxyConnection.setProxyResponse(proxyClientResponse);
 
@@ -178,6 +181,15 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
 
         // Signal end of the response
         clientResponse.endHandler(v -> proxyClientResponse.endHandler().handle(null));
+
+        clientResponse.exceptionHandler(throwable -> {
+            LOGGER.error("Unexpected error while handling backend response for request {} {} - {}",
+                    clientRequest.method(), clientRequest.absoluteURI(), throwable.getMessage());
+            ProxyResponse clientResponse1 = new VertxProxyResponse(HttpStatusCode.BAD_GATEWAY_502);
+
+            clientResponse1.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+            proxyConnection.handleResponse(clientResponse1);
+        });
 
         proxyConnection.handleResponse(proxyClientResponse);
     }
