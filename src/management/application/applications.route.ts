@@ -102,13 +102,9 @@ function applicationsConfig($stateProvider) {
       },
       resolve: {
         groups: (UserService: UserService, GroupService: GroupService) => {
-          if (UserService.currentUser.isAdmin()) {
-            return GroupService.list().then((groups) => {
-              return groups.data;
-            });
-          } else {
-            return [];
-          }
+          return GroupService.list().then((groups) => {
+            return  _.filter(groups.data, "manageable");
+          });
         }
       }
     })
