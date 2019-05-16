@@ -95,6 +95,9 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 				IndexPreparer preparer = applicationContext.getBean(IndexPreparer.class);
 				preparer
 						.prepare()
+						.doOnComplete(() -> {
+							logger.info("Starting Elastic reporter engine... DONE");
+						})
 						.subscribe(new CompletableObserver() {
 							@Override
 							public void onSubscribe(Disposable d) {}
@@ -111,7 +114,6 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 						});
 
 				indexer = applicationContext.getBean(Indexer.class);
-				logger.info("Starting Elastic reporter engine... DONE");
 			} else {
 				logger.info("Starting Elastic reporter engine... ERROR");
 			}
@@ -121,14 +123,13 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 	@Override
 	public void report(Reportable reportable) {
 		if (configuration.isEnabled()) {
-			rxReport(reportable).subscribe();
+			indexer.index(reportable);
 		}
 	}
 
 	Single rxReport(Reportable reportable) {
-		return indexer
-				.index(reportable)
-				.doOnError(throwable -> logger.error("An error occurs while indexing data into Elasticsearch"));
+		indexer.index(reportable);
+		return Single.just(reportable);
 	}
 
 	@Override
