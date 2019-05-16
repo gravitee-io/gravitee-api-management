@@ -71,6 +71,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.gravitee.management.model.EventType.PUBLISH_API;
@@ -140,6 +141,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private ParameterService parameterService;
     @Autowired
     private TagService tagService;
+    @Autowired
+    private EntrypointService entrypointService;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
@@ -292,7 +295,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             page.setType(SWAGGER);
             page.setOrder(1);
             if (INLINE.equals(swaggerDescriptor.getType())) {
-                page.setContent(swaggerDescriptor.getPayload());
+                String modifiedApi = addGraviteeUrl(createdApi.getProxy().getContextPath(), swaggerDescriptor.getPayload());
+                page.setContent(modifiedApi);
             } else {
                 final PageSourceEntity source = new PageSourceEntity();
                 page.setSource(source);
@@ -302,6 +306,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             pageService.createPage(createdApi.getId(), page);
         }
         return createdApi;
+    }
+
+    private String addGraviteeUrl(String apiContextPath, String payload) {
+        List<String> graviteeUrls = new ArrayList<>();
+        String portalEntrypoint = parameterService.findAll(Key.PORTAL_ENTRYPOINT).get(0);
+        if (portalEntrypoint != null) {
+            graviteeUrls.add(portalEntrypoint + apiContextPath);
+        }
+        
+        List<EntrypointEntity> entrypoints = entrypointService.findAll();
+        entrypoints.stream().map(entrypoint -> entrypoint.getValue() + apiContextPath).forEach(graviteeUrls::add);
+        
+        return swaggerService.replaceServerList(payload, graviteeUrls);
     }
 
     private Object generateMockContent(final String responseType, final Map<String, Object> responseProperties) {

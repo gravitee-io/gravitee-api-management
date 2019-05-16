@@ -62,6 +62,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -569,5 +570,18 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     private Map<String, Object> getResponseExample(final Map<String, Schema> properties) {
         return properties.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().getExample()));
+    }
+
+    @Override
+    public String replaceServerList(String payload, List<String> graviteeUrls) {
+        OpenAPI openApi = new OpenAPIV3Parser().readContents(payload).getOpenAPI();
+        if (openApi != null) {
+            List<Server> graviteeServers = graviteeUrls.stream()
+                    .map(url -> new Server().url(url))
+                    .collect(Collectors.toList());
+            openApi.setServers(graviteeServers);
+            return Yaml.pretty(openApi);
+        }
+        return payload;
     }
 }
