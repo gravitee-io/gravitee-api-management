@@ -27,8 +27,7 @@ import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
-import io.reactivex.Single;
-import io.reactivex.functions.Function;
+import io.vertx.core.buffer.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +37,6 @@ import java.net.UnknownHostException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -109,17 +107,11 @@ public abstract class AbstractIndexer implements Indexer {
      * {@inheritDoc}
      */
     @Override
-    public Single<String> index(Reportable reportable) {
-        return transform(reportable)
-                .doOnSuccess(data -> client.bulk(Collections.singletonList(data)));
+    public void index(Reportable reportable) {
+        transform(reportable);
     }
 
-    protected Single<String> transform(Reportable reportable) {
-        return Single
-                .just(reportable)
-                .map(new Function<Reportable, String>() {
-                    @Override
-                    public String apply(Reportable reportable) throws Exception {
+    protected Buffer transform(Reportable reportable) {
                         if (reportable instanceof Metrics) {
                             return getSource((Metrics) reportable, pipelineConfiguration.getPipeline());
                         } else if (reportable instanceof EndpointStatus) {
@@ -131,8 +123,6 @@ public abstract class AbstractIndexer implements Indexer {
                         }
 
                         return null;
-                    }
-                });
     }
 
     /**
@@ -141,8 +131,8 @@ public abstract class AbstractIndexer implements Indexer {
      * @param metrics A request metrics
      * @return ES bulk line
      */
-    protected String getSource(final Metrics metrics, String pipeline) {
-        final Map<String, Object> data = new HashMap<>();
+    protected Buffer getSource(final Metrics metrics, String pipeline) {
+        final Map<String, Object> data = new HashMap<>(10);
 
         data.put("index", indexNameGenerator.generate(metrics));
         data.put("type", Type.REQUEST.getType());
@@ -168,8 +158,8 @@ public abstract class AbstractIndexer implements Indexer {
      * @param log A request log
      * @return ES bulk line
      */
-    protected String getSource(final Log log) {
-        final Map<String, Object> data = new HashMap<>();
+    protected Buffer getSource(final Log log) {
+        final Map<String, Object> data = new HashMap<>(5);
 
         data.put("index", indexNameGenerator.generate(log));
         data.put("type", Type.LOG.getType());
@@ -190,8 +180,8 @@ public abstract class AbstractIndexer implements Indexer {
      * @param endpointStatus the healthStatus
      * @return ES bulk line
      */
-    protected String getSource(final EndpointStatus endpointStatus) {
-        final Map<String, Object> data = new HashMap<>();
+    protected Buffer getSource(final EndpointStatus endpointStatus) {
+        final Map<String, Object> data = new HashMap<>(5);
 
         data.put("index", indexNameGenerator.generate(endpointStatus));
         data.put("type", Type.HEALTH_CHECK.getType());
@@ -208,7 +198,7 @@ public abstract class AbstractIndexer implements Indexer {
      * @param monitor the monitor metric
      * @return ES bulk line
      */
-    protected String getSource(final Monitor monitor) {
+    protected Buffer getSource(final Monitor monitor) {
         final Map<String, Object> data = new HashMap<>();
 
         data.put("index", indexNameGenerator.generate(monitor));
@@ -284,7 +274,7 @@ public abstract class AbstractIndexer implements Indexer {
         return generateData("monitor.ftl", data);
     }
 
-    protected abstract String generateData(String templateName, Map<String, Object> data);
+    protected abstract Buffer generateData(String templateName, Map<String, Object> data);
 
     static final class Fields {
         static final String GATEWAY = "gateway";
