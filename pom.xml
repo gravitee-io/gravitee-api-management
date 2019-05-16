@@ -23,19 +23,19 @@
 	<parent>
 		<groupId>io.gravitee</groupId>
 		<artifactId>gravitee-parent</artifactId>
-		<version>15</version>
+		<version>16</version>
 	</parent>
 
 	<groupId>io.gravitee.elasticsearch</groupId>
 	<artifactId>gravitee-elasticsearch</artifactId>
-	<version>1.25.2</version>
+	<version>1.25.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Gravitee.io APIM - Elasticsearch Connector</name>
 
 	<properties>
 		<!-- Gravitee's project versions -->
-		<gravitee-gateway-api.version>1.16.0</gravitee-gateway-api.version>
+		<gravitee-gateway-api.version>1.15.0</gravitee-gateway-api.version>
 		<gravitee-common.version>1.15.0</gravitee-common.version>
 		<gravitee-reporter-api.version>1.14.0</gravitee-reporter-api.version>
 		<gravitee-policy-api.version>1.5.0</gravitee-policy-api.version>
