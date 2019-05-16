@@ -63,6 +63,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+import org.springframework.util.CollectionUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
@@ -142,7 +143,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
-
+    private static final String ENDPOINTS_DELIMITER = "\n";
     @Override
     public ApiEntity create(final NewApiEntity newApiEntity, final String userId) throws ApiAlreadyExistsException {
         return create(newApiEntity, userId, null, null);
@@ -157,7 +158,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         newApiEntity.setName(swaggerApiEntity.getName());
         newApiEntity.setContextPath(swaggerApiEntity.getContextPath());
         newApiEntity.setDescription(swaggerApiEntity.getDescription());
-        newApiEntity.setEndpoint(swaggerApiEntity.getEndpoint());
+        newApiEntity.setEndpoint(String.join(ENDPOINTS_DELIMITER, swaggerApiEntity.getEndpoint()));
         newApiEntity.setGroups(swaggerApiEntity.getGroups());
 
         return create(newApiEntity, userId, swaggerDescriptor, swaggerApiEntity.getPaths());
@@ -184,7 +185,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         proxy.setContextPath(newApiEntity.getContextPath());
         EndpointGroup group = new EndpointGroup();
         group.setName("default-group");
-        group.setEndpoints(singleton(new HttpEndpoint("default", newApiEntity.getEndpoint())));
+
+        String[] endpoints = null;
+        if (newApiEntity.getEndpoint() != null) {
+            endpoints = newApiEntity.getEndpoint().split(ENDPOINTS_DELIMITER);
+        }
+
+        if (endpoints == null) {
+            group.setEndpoints(singleton(new HttpEndpoint("default", null)));
+        } else if (endpoints.length == 1) {
+            group.setEndpoints(singleton(new HttpEndpoint("default", endpoints[0])));
+        } else {
+            group.setEndpoints(new HashSet<>());
+            for (int i = 0; i < endpoints.length; i++) {
+                group.getEndpoints().add(new HttpEndpoint("server" + (i + 1), endpoints[i]));
+            }
+        }
         proxy.setGroups(singleton(group));
         apiEntity.setProxy(proxy);
 

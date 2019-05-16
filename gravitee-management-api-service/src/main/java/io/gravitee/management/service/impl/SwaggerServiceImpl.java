@@ -42,6 +42,9 @@ import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.servers.ServerVariable;
+import io.swagger.v3.oas.models.servers.ServerVariables;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.AuthorizationValue;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
@@ -49,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.BufferedWriter;
@@ -58,6 +62,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toCollection;
@@ -301,7 +308,7 @@ public class SwaggerServiceImpl implements SwaggerService {
         String scheme = (swagger.getSchemes() == null || swagger.getSchemes().isEmpty()) ? defaultScheme :
                 swagger.getSchemes().iterator().next().toValue();
 
-        apiEntity.setEndpoint(scheme + "://" + swagger.getHost() + swagger.getBasePath());
+        apiEntity.setEndpoint(Arrays.asList(scheme + "://" + swagger.getHost() + swagger.getBasePath()));
         apiEntity.setPaths(swagger.getPaths().entrySet().stream()
                 .map(entry -> {
                     final SwaggerPath swaggerPath = new SwaggerPath();
@@ -380,10 +387,16 @@ public class SwaggerServiceImpl implements SwaggerService {
         final NewSwaggerApiEntity apiEntity = new NewSwaggerApiEntity();
         apiEntity.setName(swagger.getOpenAPI().getInfo().getTitle());
 
+        if (!swagger.getOpenAPI().getServers().isEmpty()) {
+            apiEntity.setEndpoint(mapServersToEndpoint(swagger.getOpenAPI().getServers()));
+        }
+
         String contextPath = null;
         if (!swagger.getOpenAPI().getServers().isEmpty()) {
-            contextPath = swagger.getOpenAPI().getServers().get(0).getUrl();
-            contextPath = URI.create(contextPath.replace("{scheme}", "http")).getPath();
+            List<String> evaluatedServerUrl = mapServersToEndpoint(swagger.getOpenAPI().getServers());
+            apiEntity.setEndpoint(evaluatedServerUrl);
+            contextPath = evaluatedServerUrl.get(0);
+            contextPath = URI.create(contextPath).getPath();
         }
 
         if (contextPath == null || contextPath.equals("/")) {
@@ -396,9 +409,6 @@ public class SwaggerServiceImpl implements SwaggerService {
                 swagger.getOpenAPI().getInfo().getDescription());
         apiEntity.setVersion(swagger.getOpenAPI().getInfo().getVersion());
 
-        if (!swagger.getOpenAPI().getServers().isEmpty()) {
-            apiEntity.setEndpoint(swagger.getOpenAPI().getServers().get(0).getUrl());
-        }
         apiEntity.setPaths(swagger.getOpenAPI().getPaths().entrySet().stream()
                 .map(entry -> {
                     final SwaggerPath swaggerPath = new SwaggerPath();
@@ -430,7 +440,44 @@ public class SwaggerServiceImpl implements SwaggerService {
         return apiEntity;
     }
 
-    private SwaggerVerb getSwaggerVerb(final SwaggerParseResult swagger, final Operation operation, final String verb) {
+    private List<String> mapServersToEndpoint(List<Server> servers) {
+        List<String> endpoints = new ArrayList<>();
+        for (Server server : servers) {
+            ServerVariables serverVariables = server.getVariables();
+            String serverUrl = server.getUrl();
+            if (CollectionUtils.isEmpty(serverVariables)) {
+                endpoints.add(serverUrl);
+            } else {
+                List<String> evaluatedUrls = Arrays.asList(serverUrl);
+                for (Entry<String, ServerVariable> serverVar : serverVariables.entrySet()) {
+                    evaluatedUrls = evaluateServerUrlsForOneVar(serverVar.getKey(), serverVar.getValue(),
+                            evaluatedUrls);
+                }
+                endpoints.addAll(evaluatedUrls);
+            }
+        }
+        return endpoints;
+    }
+    
+    private List<String> evaluateServerUrlsForOneVar(String varName, ServerVariable serverVar,
+            List<String> templateUrls) {
+        List<String> evaluatedUrls = new ArrayList<>();
+        for (String templateUrl : templateUrls) {
+            Matcher matcher = Pattern.compile("\\{" + varName + "\\}").matcher(templateUrl);
+            if (matcher.find()) {
+                if (CollectionUtils.isEmpty(serverVar.getEnum()) && serverVar.getDefault() != null) {
+                    evaluatedUrls.add(templateUrl.replace(matcher.group(0), serverVar.getDefault()));
+                } else {
+                    for (String enumValue : serverVar.getEnum()) {
+                        evaluatedUrls.add(templateUrl.replace(matcher.group(0), enumValue));
+                    }
+                }
+            }
+        }
+        return evaluatedUrls;
+    }
+    
+	private SwaggerVerb getSwaggerVerb(final SwaggerParseResult swagger, final Operation operation, final String verb) {
         final SwaggerVerb swaggerVerb = new SwaggerVerb();
         swaggerVerb.setVerb(verb);
         swaggerVerb.setDescription(operation.getSummary() == null ?
