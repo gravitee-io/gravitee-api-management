@@ -43,7 +43,7 @@ public class JdbcColumn {
         this.jdbcType = jdbcType;
         this.javaType = fieldType;
         String getterName = "get";
-        if ((fieldType == Boolean.class) || (fieldType == boolean.class)) {
+        if (fieldType == boolean.class) {
             getterName = "is";
         }
         getterName += this.name;

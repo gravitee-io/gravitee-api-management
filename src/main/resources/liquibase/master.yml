@@ -30,6 +30,8 @@ databaseChangeLog:
   - include:
     - file: liquibase/changelogs/v1_20_15/schema.yml
   - include:
+    - file: liquibase/changelogs/v1_20_16/schema.yml
+  - include:
     - file: liquibase/changelogs/v1_21_0/schema.yml
   - include:
     - file: liquibase/changelogs/v1_21_0/schema-media.yml
@@ -43,5 +45,7 @@ databaseChangeLog:
     - file: liquibase/changelogs/v1_25_0/schema.yml
   - include:
     - file: liquibase/changelogs/v1_25_0/schema-applications-migration.yml
+  - include:
+    - file: liquibase/changelogs/v1_25_3/schema.yml
   - include:
     - file: liquibase/changelogs/v1_26_0/schema.yml

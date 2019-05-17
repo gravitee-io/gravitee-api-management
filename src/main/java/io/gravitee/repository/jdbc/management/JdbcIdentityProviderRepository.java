@@ -60,6 +60,7 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractCrudRepository<I
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, IdentityProviderType.class)
             .addColumn("enabled", Types.BOOLEAN, boolean.class)
+            .addColumn("email_required", Types.BOOLEAN, Boolean.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();

@@ -82,7 +82,7 @@ public class JdbcPortalNotificationConfigRepository implements PortalNotificatio
     public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcPortalNotificationConfigRepository.findByReferenceAndHook({}, {}, {})", hook, referenceType, referenceId);
         try {
-            StringBuilder q = new StringBuilder("select distinct pnc." + escapeReservedWord("user") + ", pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at " +
+            StringBuilder q = new StringBuilder("select pnc." + escapeReservedWord("user") + ", pnc.reference_type, pnc.reference_id, pnc.created_at, pnc.updated_at " +
                     " from portal_notification_configs pnc" +
                     " left join portal_notification_config_hooks pnch" +
                     " on pnc.reference_type = pnch.reference_type" +
