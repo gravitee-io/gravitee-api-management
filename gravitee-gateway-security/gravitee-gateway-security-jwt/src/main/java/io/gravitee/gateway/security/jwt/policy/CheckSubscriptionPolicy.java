@@ -46,6 +46,9 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
     private final static String OAUTH2_ERROR_SERVER_ERROR = "server_error";
     private static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
+    static final String GATEWAY_OAUTH2_ACCESS_DENIED_KEY = "GATEWAY_OAUTH2_ACCESS_DENIED";
+    static final String GATEWAY_OAUTH2_SERVER_ERROR_KEY = "GATEWAY_OAUTH2_SERVER_ERROR";
+
     @Override
     protected void onRequest(Request request, Response response, PolicyChain policyChain, ExecutionContext executionContext) throws PolicyException {
         SubscriptionRepository subscriptionRepository = executionContext.getComponent(SubscriptionRepository.class);
@@ -82,16 +85,15 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
             }
 
             // As per https://tools.ietf.org/html/rfc6749#section-4.1.2.1
-            sendUnauthorized(policyChain, OAUTH2_ERROR_ACCESS_DENIED);
+            sendUnauthorized(GATEWAY_OAUTH2_ACCESS_DENIED_KEY, policyChain, OAUTH2_ERROR_ACCESS_DENIED);
         } catch (TechnicalException te) {
             // As per https://tools.ietf.org/html/rfc6749#section-4.1.2.1
-            sendUnauthorized(policyChain, OAUTH2_ERROR_SERVER_ERROR);
+            sendUnauthorized(GATEWAY_OAUTH2_SERVER_ERROR_KEY, policyChain, OAUTH2_ERROR_SERVER_ERROR);
         }
     }
 
-    private void sendUnauthorized(PolicyChain policyChain, String description) {
-        policyChain.failWith(PolicyResult.failure(
-                HttpStatusCode.UNAUTHORIZED_401, description));
+    private void sendUnauthorized(String key, PolicyChain policyChain, String description) {
+        policyChain.failWith(PolicyResult.failure(key, HttpStatusCode.UNAUTHORIZED_401, description));
     }
 
     @Override

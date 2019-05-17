@@ -47,6 +47,10 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
     private final static String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
     private final static String OAUTH2_ERROR_SERVER_ERROR = "server_error";
 
+    static final String GATEWAY_OAUTH2_ACCESS_DENIED_KEY = "GATEWAY_OAUTH2_ACCESS_DENIED";
+    static final String GATEWAY_OAUTH2_SERVER_ERROR_KEY = "GATEWAY_OAUTH2_SERVER_ERROR";
+    static final String GATEWAY_OAUTH2_INVALID_CLIENT_KEY = "GATEWAY_OAUTH2_INVALID_CLIENT";
+
     @Override
     protected void onRequest(Request request, Response response, PolicyChain policyChain, ExecutionContext executionContext) throws PolicyException {
         SubscriptionRepository subscriptionRepository = executionContext.getComponent(SubscriptionRepository.class);
@@ -54,7 +58,7 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
         // Get plan and client_id from execution context
         String clientId = (String) executionContext.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
         if (clientId == null || clientId.trim().isEmpty()) {
-            sendError(response, policyChain, "invalid_client", "No client_id was supplied");
+            sendError(GATEWAY_OAUTH2_INVALID_CLIENT_KEY, response, policyChain, "invalid_client", "No client_id was supplied");
             return;
         }
 
@@ -89,16 +93,15 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
             }
 
             // As per https://tools.ietf.org/html/rfc6749#section-4.1.2.1
-            sendUnauthorized(policyChain, OAUTH2_ERROR_ACCESS_DENIED);
+            sendUnauthorized(GATEWAY_OAUTH2_ACCESS_DENIED_KEY, policyChain, OAUTH2_ERROR_ACCESS_DENIED);
         } catch (TechnicalException te) {
             // As per https://tools.ietf.org/html/rfc6749#section-4.1.2.1
-            sendUnauthorized(policyChain, OAUTH2_ERROR_SERVER_ERROR);
+            sendUnauthorized(GATEWAY_OAUTH2_SERVER_ERROR_KEY, policyChain, OAUTH2_ERROR_SERVER_ERROR);
         }
     }
 
-    private void sendUnauthorized(PolicyChain policyChain, String description) {
-        policyChain.failWith(PolicyResult.failure(
-                HttpStatusCode.UNAUTHORIZED_401, description));
+    private void sendUnauthorized(String key, PolicyChain policyChain, String description) {
+        policyChain.failWith(PolicyResult.failure(key, HttpStatusCode.UNAUTHORIZED_401, description));
     }
 
     /**
@@ -109,13 +112,13 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
      *      error="invalid_token",
      *      error_description="The access token expired"
      */
-    private void sendError(Response response, PolicyChain policyChain, String error, String description) {
+    private void sendError(String key, Response response, PolicyChain policyChain, String error, String description) {
         String headerValue = BEARER_AUTHORIZATION_TYPE +
                 " realm=\"gravitee.io\"," +
                 " error=\"" + error + "\"," +
                 " error_description=\"" + description + "\"";
         response.headers().add(HttpHeaders.WWW_AUTHENTICATE, headerValue);
-        policyChain.failWith(PolicyResult.failure(HttpStatusCode.UNAUTHORIZED_401, null));
+        policyChain.failWith(PolicyResult.failure(key, HttpStatusCode.UNAUTHORIZED_401, null));
     }
 
     @Override

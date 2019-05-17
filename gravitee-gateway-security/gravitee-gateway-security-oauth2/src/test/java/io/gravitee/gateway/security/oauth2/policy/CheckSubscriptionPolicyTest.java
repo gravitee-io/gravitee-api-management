@@ -73,7 +73,9 @@ public class CheckSubscriptionPolicyTest {
 
         policy.onRequest(request, response, policyChain, executionContext);
 
-        verify(policyChain, times(1)).failWith(argThat(statusCode(HttpStatusCode.UNAUTHORIZED_401)));
+        verify(policyChain, times(1)).failWith(argThat(
+                result -> result.statusCode() == HttpStatusCode.UNAUTHORIZED_401
+                && CheckSubscriptionPolicy.GATEWAY_OAUTH2_SERVER_ERROR_KEY.equals(result.key())));
     }
 
     @Test
@@ -91,7 +93,9 @@ public class CheckSubscriptionPolicyTest {
 
         policy.onRequest(request, response, policyChain, executionContext);
 
-        verify(policyChain, times(1)).failWith(argThat(statusCode(HttpStatusCode.UNAUTHORIZED_401)));
+        verify(policyChain, times(1)).failWith(argThat(
+                result -> result.statusCode() == HttpStatusCode.UNAUTHORIZED_401
+                        && CheckSubscriptionPolicy.GATEWAY_OAUTH2_INVALID_CLIENT_KEY.equals(result.key())));
     }
 
     @Test
@@ -115,7 +119,9 @@ public class CheckSubscriptionPolicyTest {
 
         policy.onRequest(request, response, policyChain, executionContext);
 
-        verify(policyChain, times(1)).failWith(argThat(statusCode(HttpStatusCode.UNAUTHORIZED_401)));
+        verify(policyChain, times(1)).failWith(argThat(
+                result -> result.statusCode() == HttpStatusCode.UNAUTHORIZED_401
+                        && CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())));
     }
 
     @Test

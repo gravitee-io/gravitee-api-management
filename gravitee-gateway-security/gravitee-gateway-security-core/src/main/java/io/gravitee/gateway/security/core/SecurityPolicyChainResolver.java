@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
  */
 public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
 
+    static final String GATEWAY_MISSING_SECURITY_PROVIDER_KEY = "GATEWAY_MISSING_SECURITY_PROVIDER";
+
     @Autowired
     private SecurityProviderManager securityManager;
 
@@ -54,7 +56,7 @@ public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
             // No authentication method selected, must send a 401
             logger.debug("No security provider has been selected to process request {}. Returning an unauthorized status (401)", request.id());
             return new DirectPolicyChain(
-                    PolicyResult.failure(HttpStatusCode.UNAUTHORIZED_401, "Unauthorized"), executionContext);
+                    PolicyResult.failure(GATEWAY_MISSING_SECURITY_PROVIDER_KEY, HttpStatusCode.UNAUTHORIZED_401, "Unauthorized"), executionContext);
         } else {
             // In the case of response flow, there is no need for authentication.
             return new NoOpPolicyChain(executionContext);
