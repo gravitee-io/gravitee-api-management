@@ -24,9 +24,9 @@ class PortalService {
     this.Constants = Constants;
   }
 
-  searchApis(query?: string) {
+  searchApis(query?: string, opts?: any) {
     let url = this.portalURL + 'apis/_search?q=' + query;
-    return this.$http.post(url);
+    return this.$http.post(url, {}, opts);
   }
 
   listSocialIdentityProviders() {

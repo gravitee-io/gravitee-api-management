@@ -242,6 +242,11 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
         NotificationService.show('Pages has been successfully fetched');
       });
     };
+
+    this.hasExternalDoc = () => {
+      let externalPages = this.pages.filter(page => page.hasOwnProperty("source"));
+      return externalPages.length > 0;
+    };
   }
 };
 

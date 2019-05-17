@@ -90,7 +90,7 @@ class ApiResponseTemplateController {
   querySearchTemplateKey (query) {
     let keys = query ? this.keys.filter(this.createFilterForTemplateKey(query)) : this.keys;
     if (query && !_.includes(keys, query)) {
-      keys.push(query);
+      this.selectedTemplateKey = query;
     }
     return keys;
   }

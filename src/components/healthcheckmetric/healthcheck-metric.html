@@ -15,8 +15,12 @@
     limitations under the License.
 
 -->
-<div class="progress">
-  <div class="progress-bar" ng-class="{'progress-bar-success': $ctrl.value >= 95, 'progress-bar-warning': $ctrl.value < 95 && $ctrl.value >= 80 , 'progress-bar-danger': $ctrl.value < 80 && $ctrl.value >= 30, 'progress-bar-fatal': $ctrl.value < 30 }" role="progressbar" aria-valuenow="{{$ctrl.value}}" aria-valuemin="0" aria-valuemax="100" ng-style="{width: $ctrl.value + '%'}">
-    {{$ctrl.value}}%
-  </div>
+<div>
+    <progress-bar value="$ctrl.availability | floor  "></progress-bar>
+    <md-tooltip md-direction="top">
+        {{$ctrl.availability | number: 3}}%
+    </md-tooltip>
 </div>
+<span class="label label-primary" style="font-weight: bold;font-size: 10.5px">
+    {{$ctrl.responsetime | number: 0 }}ms
+</span>

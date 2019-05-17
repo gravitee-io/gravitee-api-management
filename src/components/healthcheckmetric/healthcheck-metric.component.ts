@@ -13,30 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class GroupMapping {
-  public condition: string;
-  public groups: string[];
-}
+import * as _ from 'lodash';
 
-export class RoleMapping {
-  public condition: string;
-  public portal: string;
-  public management: string;
-}
-
-export class IdentityProvider {
-  public id: string;
-  public name: string;
-  public description: string;
-  public enabled: boolean;
-  public type: string;
-  public configuration: Map<string, any>;
-  public groupMappings: GroupMapping[];
-  public roleMappings: RoleMapping[];
-  public userProfileMapping: Map<string, string>;
-  public emailRequired: boolean;
-
-  constructor() {
-    'ngInject';
+const HealthCheckMetricComponent: ng.IComponentOptions = {
+  template: require('./healthcheck-metric.html'),
+  bindings: {
+    availability: '<',
+    responsetime: '<'
   }
-}
+};
+
+export default HealthCheckMetricComponent;

@@ -30,8 +30,6 @@ const AuditComponent: ng.IComponentOptions = {
 
     vm.$onInit = ()=> {
       vm.events = _.map(vm.events, (ev: string)=> {return ev.toUpperCase()});
-      vm.apisById = _.keyBy(vm.apis, "id");
-      vm.applicationsById = _.keyBy(vm.applications, "id");
       vm.query = new AuditQuery();
       vm.onPaginate = vm.onPaginate.bind(this);
       AuditService.list(null, vm.api).then(response =>
@@ -66,17 +64,10 @@ const AuditComponent: ng.IComponentOptions = {
     };
 
     vm.getNameByReference = ( ref: {type: string, id:string} )=> {
-      switch (ref.type) {
-        case "API":
-          return vm.apisById[ref.id].name;
-        case "APPLICATION":
-          return vm.applicationsById[ref.id].name;
-        default:
-          if (vm.metadata[ref.type+':'+ref.id+':name']) {
-            return vm.metadata[ref.type + ':' + ref.id + ':name'];
-          }
-          return ref.id;
+      if (vm.metadata[ref.type+':'+ref.id+':name']) {
+        return vm.metadata[ref.type + ':' + ref.id + ':name'];
       }
+      return ref.id;
     };
 
     vm.getDisplayableProperties = (properties)=> {

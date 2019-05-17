@@ -22,7 +22,7 @@
          ng-click="$ctrl.importPages()">
          Import multiple files
       </a>
-      <md-button class="md-raised md-primary" type="button" ng-click="$ctrl.fetch()">
+      <md-button class="md-raised md-primary" type="button" ng-if="$ctrl.hasExternalDoc()" ng-click="$ctrl.fetch()">
         Fetch all
       </md-button>
     </div>

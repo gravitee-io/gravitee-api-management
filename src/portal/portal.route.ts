@@ -97,7 +97,9 @@ function portalRouterConfig($stateProvider) {
       },
       params: {
         view: undefined,
-        q: undefined
+        q: {
+          dynamic: true
+        }
       }
     })
     .state('portal.views', {

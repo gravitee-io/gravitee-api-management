@@ -47,31 +47,18 @@
               <gravitee-chart options="healthCheckCtrl.chartData" zoom="true" type="areaspline" height="180"></gravitee-chart>
             </div>
             <div layout="row" layout-padding layout-align="center center">
-              <div layout="column" flex="15">
-                <h5>Last minute</h5>
-                <progress-bar value="healthCheckCtrl.endpoint.availabilities.data.global['1m'] | number: 0"></progress-bar>
-                <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.global['1m'] | number: 0 }} ms</span>
+                <div flex="15"><h5>Last minute</h5></div>
+                <div flex="15"><h5>Last hour</h5></div>
+                <div flex="15"><h5>Last day</h5></div>
+                <div flex="15"><h5>Last week</h5></div>
+                <div flex="15"><h5>Last month</h5></div>
               </div>
-              <div layout="column" flex="15">
-                <h5>Last hour</h5>
-                <progress-bar value="healthCheckCtrl.endpoint.availabilities.data.global['1h'] | number: 0"></progress-bar>
-                <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.global['1h'] | number: 0 }} ms</span>
-              </div>
-              <div layout="column" flex="15">
-                <h5>Last day</h5>
-                <progress-bar value="healthCheckCtrl.endpoint.availabilities.data.global['1d'] | number: 0"></progress-bar>
-                <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.global['1d'] | number: 0 }} ms</span>
-              </div>
-              <div layout="column" flex="15">
-                <h5>Last week</h5>
-                <progress-bar value="healthCheckCtrl.endpoint.availabilities.data.global['1w'] | number: 0"></progress-bar>
-                <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.global['1w'] | number: 0 }} ms</span>
-              </div>
-              <div layout="column" flex="15">
-                <h5>Last month</h5>
-                <progress-bar value="healthCheckCtrl.endpoint.availabilities.data.global['1M'] | number: 0"></progress-bar>
-                <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.global['1M'] | number: 0 }} ms</span>
-              </div>
+            <div layout="row" layout-padding layout-align="center center">
+              <gv-healthcheck-metric availability="healthCheckCtrl.endpoint.availabilities.data.global['1m']" responsetime="healthCheckCtrl.endpoint.responsetimes.data.global['1m']" layout="column" flex="15"></gv-healthcheck-metric>
+              <gv-healthcheck-metric availability="healthCheckCtrl.endpoint.availabilities.data.global['1h']" responsetime="healthCheckCtrl.endpoint.responsetimes.data.global['1h']" layout="column" flex="15"></gv-healthcheck-metric>
+              <gv-healthcheck-metric availability="healthCheckCtrl.endpoint.availabilities.data.global['1d']" responsetime="healthCheckCtrl.endpoint.responsetimes.data.global['1d']" layout="column" flex="15"></gv-healthcheck-metric>
+              <gv-healthcheck-metric availability="healthCheckCtrl.endpoint.availabilities.data.global['1w']" responsetime="healthCheckCtrl.endpoint.responsetimes.data.global['1w']" layout="column" flex="15"></gv-healthcheck-metric>
+              <gv-healthcheck-metric availability="healthCheckCtrl.endpoint.availabilities.data.global['1M']" responsetime="healthCheckCtrl.endpoint.responsetimes.data.global['1M']" layout="column" flex="15"></gv-healthcheck-metric>
             </div>
           </md-card-content>
         </div>
@@ -103,26 +90,11 @@
                   <span style="font-weight: bold">{{endpoint}}</span>
                   <span style="color: rgba(0,0,0,0.54);font-size: 11px;">{{healthCheckCtrl.endpoint.availabilities.data.metadata[endpoint].target}}</span>
                 </div>
-                <div layout="column" flex="15">
-                  <progress-bar value="metrics['1m'] | number: 0"></progress-bar>
-                  <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1m'] | number: 0 }} ms</span>
-                </div>
-                <div layout="column" flex="15">
-                  <progress-bar value="metrics['1h'] | number: 0"></progress-bar>
-                  <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1h'] | number: 0 }} ms</span>
-                </div>
-                <div layout="column" flex="15">
-                  <progress-bar value="metrics['1d'] | number: 0"></progress-bar>
-                  <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1d'] | number: 0 }} ms</span>
-                </div>
-                <div layout="column" flex="15">
-                  <progress-bar value="metrics['1w'] | number: 0"></progress-bar>
-                  <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1w'] | number: 0 }} ms</span>
-                </div>
-                <div layout="column" flex="15">
-                  <progress-bar value="metrics['1M'] | number: 0"></progress-bar>
-                  <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1M'] | number: 0 }} ms</span>
-                </div>
+                <gv-healthcheck-metric availability="metrics['1m']" responsetime="healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1m']" layout="column" flex="15"></gv-healthcheck-metric>
+                <gv-healthcheck-metric availability="metrics['1h']" responsetime="healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1h']" layout="column" flex="15"></gv-healthcheck-metric>
+                <gv-healthcheck-metric availability="metrics['1d']" responsetime="healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1d']" layout="column" flex="15"></gv-healthcheck-metric>
+                <gv-healthcheck-metric availability="metrics['1w']" responsetime="healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1w']" layout="column" flex="15"></gv-healthcheck-metric>
+                <gv-healthcheck-metric availability="metrics['1M']" responsetime="healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1M']" layout="column" flex="15"></gv-healthcheck-metric>
               </div>
             </div>
           </md-card-content>
@@ -156,26 +128,11 @@
                     <span style="color: rgba(0,0,0,0.54);font-size: 11px;">{{healthCheckCtrl.gateway.availabilities.data.metadata[gateway].deleted}}</span>
                     <span style="color: rgba(0,0,0,0.54);font-size: 11px;">{{healthCheckCtrl.gateway.availabilities.data.metadata[gateway].ip}}</span>
                   </div>
-                  <div layout="column" flex="15">
-                    <progress-bar value="metrics['1m'] | number: 0"></progress-bar>
-                    <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1m'] | number: 0 }} ms</span>
-                  </div>
-                  <div layout="column" flex="15">
-                    <progress-bar value="metrics['1h'] | number: 0"></progress-bar>
-                    <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1h'] | number: 0 }} ms</span>
-                  </div>
-                  <div layout="column" flex="15">
-                    <progress-bar value="metrics['1d'] | number: 0"></progress-bar>
-                    <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1d'] | number: 0 }} ms</span>
-                  </div>
-                  <div layout="column" flex="15">
-                    <progress-bar value="metrics['1w'] | number: 0"></progress-bar>
-                    <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1w'] | number: 0 }} ms</span>
-                  </div>
-                  <div layout="column" flex="15">
-                    <progress-bar value="metrics['1M'] | number: 0"></progress-bar>
-                    <span class="label label-primary" style="font-weight: bold;font-size: 10.5px">{{healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1M'] | number: 0 }} ms</span>
-                  </div>
+                  <gv-healthcheck-metric availability="metrics['1m']" responsetime="healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1m']" layout="column" flex="15"></gv-healthcheck-metric>
+                  <gv-healthcheck-metric availability="metrics['1h']" responsetime="healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1h']" layout="column" flex="15"></gv-healthcheck-metric>
+                  <gv-healthcheck-metric availability="metrics['1d']" responsetime="healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1d']" layout="column" flex="15"></gv-healthcheck-metric>
+                  <gv-healthcheck-metric availability="metrics['1w']" responsetime="healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1w']" layout="column" flex="15"></gv-healthcheck-metric>
+                  <gv-healthcheck-metric availability="metrics['1M']" responsetime="healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1M']" layout="column" flex="15"></gv-healthcheck-metric>
                 </div>
               </div>
             </div>

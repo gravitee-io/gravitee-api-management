@@ -105,14 +105,15 @@ class ApiLogsController {
   exportAsCSV() {
     this.ApiService.exportLogsAsCSV(this.api.id, this.query).then((response) => {
       let hiddenElement = document.createElement('a');
-      hiddenElement.href = 'data:attachment/csv,' + response.data;
+      hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response.data);
       hiddenElement.target = '_self';
       let fileName = 'logs-' + this.api.name + '-' + this.api.version + '-' + _.now();
       fileName = fileName.replace(/[\s]/gi, '-');
       fileName = fileName.replace(/[^\w]/gi, '-');
       hiddenElement.download = fileName + '.csv';
+      document.getElementById('container').appendChild(hiddenElement);
       hiddenElement.click();
-      document.body.removeChild(hiddenElement);
+      document.getElementById('container').removeChild(hiddenElement);
     });
   }
 }

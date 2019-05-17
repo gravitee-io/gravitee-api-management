@@ -62,12 +62,12 @@ class ApiService {
     return this.$http.get(this.apisURL + name);
   }
 
-  list(view?: string): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + (view ? '?view=' + view : ''));
+  list(view?: string, opts?: any): ng.IPromise<any> {
+    return this.$http.get(this.apisURL + (view ? '?view=' + view : ''), {}, opts);
   }
 
-  searchApis(query?: string): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + '_search?q=' + query);
+  searchApis(query?: string, opts?: any): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + '_search?q=' + query, {}, opts);
   }
 
   listTopAPIs(): ng.IPromise<any> {

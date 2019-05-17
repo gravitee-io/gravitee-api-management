@@ -44,7 +44,7 @@
           <div flex="100" layout="row">
             <form flex layout="row" name="formSearch" autocomplete="off" ng-submit="apisCtrl.search()">
               <input type="text" autofocus class="form-control apis-filter" placeholder="{{'apis.filter' | translate}}"
-                     ng-model="apisCtrl.query" ng-disabled="apisCtrl.apisLoading" />
+                     ng-model="apisCtrl.query"/>
               <md-button class="md-primary gv-search-button" type="submit" aria-label="Search" ng-disabled="apisCtrl.apisLoading">
                 <ng-md-icon icon="search"></ng-md-icon>
               </md-button>
