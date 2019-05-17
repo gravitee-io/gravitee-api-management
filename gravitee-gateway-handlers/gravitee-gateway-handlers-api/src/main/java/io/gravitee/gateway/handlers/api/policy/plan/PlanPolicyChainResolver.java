@@ -45,6 +45,8 @@ import java.util.stream.Collectors;
  */
 public class PlanPolicyChainResolver extends AbstractPolicyChainResolver {
 
+    static final String GATEWAY_MISSING_SECURED_REQUEST_PLAN_KEY = "GATEWAY_MISSING_SECURED_REQUEST_PLAN";
+
     @Autowired
     protected Api api;
 
@@ -57,7 +59,10 @@ public class PlanPolicyChainResolver extends AbstractPolicyChainResolver {
         // Returning a 401 because no plan is associated to the incoming secured request
         if (streamType == StreamType.ON_REQUEST && policies == null) {
             return new DirectPolicyChain(
-                    PolicyResult.failure(HttpStatusCode.UNAUTHORIZED_401, "Unauthorized"), executionContext);
+                    PolicyResult.failure(
+                            GATEWAY_MISSING_SECURED_REQUEST_PLAN_KEY,
+                            HttpStatusCode.UNAUTHORIZED_401,
+                            "Unauthorized"), executionContext);
         } else if (policies.isEmpty()) {
             return new NoOpPolicyChain(executionContext);
         }

@@ -44,6 +44,8 @@ public abstract class PolicyChain extends BufferedReadWriteStream
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    static final String GATEWAY_POLICY_INTERNAL_ERROR_KEY = "GATEWAY_POLICY_INTERNAL_ERROR";
+
     protected Handler<ExecutionContext> resultHandler;
     protected Handler<ProcessorFailure> errorHandler;
     private Handler<ProcessorFailure> streamErrorHandler;
@@ -79,7 +81,8 @@ public abstract class PolicyChain extends BufferedReadWriteStream
             } catch (Exception ex) {
                 request.metrics().setMessage("An error occurs in policy[" + policy.id()+"] error["+Throwables.getStackTraceAsString(ex)+"]");
                 if (errorHandler != null) {
-                    errorHandler.handle(new PolicyChainProcessorFailure(PolicyResult.failure(ex.getMessage())));
+                    errorHandler.handle(new PolicyChainProcessorFailure(PolicyResult.failure(
+                            GATEWAY_POLICY_INTERNAL_ERROR_KEY, ex.getMessage())));
                 }
             }
         } else {
