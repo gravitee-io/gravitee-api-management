@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TransactionHandlerTest {
+public class TransactionProcessorTest {
 
     private final static String CUSTOM_TRANSACTION_ID_HEADER = "X-My-Transaction-Id";
 

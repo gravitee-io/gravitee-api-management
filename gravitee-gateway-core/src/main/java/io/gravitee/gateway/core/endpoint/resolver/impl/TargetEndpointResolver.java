@@ -122,6 +122,9 @@ public class TargetEndpointResolver implements EndpointResolver {
 
             // Get next endpoint from reference
             Endpoint endpoint = reference.endpoint();
+            if (endpoint == null) {
+                return null;
+            }
 
             String encodedTarget = encode(endpoint.target() + target.substring(refSeparatorIdx+1), serverRequest.parameters());
             return createEndpoint(endpoint, encodedTarget);

@@ -182,13 +182,16 @@ services:
     delay: 5000
     unit: MILLISECONDS
 
-  # Endpoint healthcheck service.
-  healthcheck:
-    threads: 3 # Threads core size used to check endpoint availability
-
   # metrics service
   metrics:
     enabled: false
+# default: local, http_method, http_code
+#    labels:
+#      - local
+#      - remote
+#      - http_method
+#      - http_code
+#      - http_path
     prometheus:
       enabled: true
 

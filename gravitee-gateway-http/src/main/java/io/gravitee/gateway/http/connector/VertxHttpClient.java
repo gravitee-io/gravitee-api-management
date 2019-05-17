@@ -214,7 +214,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
             }
 
             VertxProxyConnection proxyConnection = new VertxProxyConnection(proxyRequest, clientRequest);
-            clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse));
+            clientRequest.handler(clientResponse -> handleClientResponse(proxyConnection, clientResponse, clientRequest));
 
             clientRequest.connectionHandler(connection -> {
                 connection.exceptionHandler(ex -> {
@@ -247,7 +247,8 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         }
     }
 
-    private void handleClientResponse(VertxProxyConnection proxyConnection, HttpClientResponse clientResponse) {
+    private void handleClientResponse(final VertxProxyConnection proxyConnection,
+                                      final HttpClientResponse clientResponse, final HttpClientRequest clientRequest) {
         VertxProxyResponse proxyClientResponse = new VertxProxyResponse(clientResponse);
         proxyConnection.setProxyResponse(proxyClientResponse);
 
@@ -262,6 +263,14 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
 
         // Signal end of the response
         clientResponse.endHandler(v -> proxyClientResponse.endHandler().handle(null));
+
+        clientResponse.exceptionHandler(throwable -> {
+            LOGGER.error("Unexpected error while handling backend response for request {} {} - {}",
+                    clientRequest.method(), clientRequest.absoluteURI(), throwable.getMessage());
+            ProxyResponse clientResponse1 = new EmptyProxyResponse(HttpStatusCode.BAD_GATEWAY_502);
+
+            proxyConnection.handleResponse(clientResponse1);
+        });
 
         proxyConnection.handleResponse(proxyClientResponse);
     }

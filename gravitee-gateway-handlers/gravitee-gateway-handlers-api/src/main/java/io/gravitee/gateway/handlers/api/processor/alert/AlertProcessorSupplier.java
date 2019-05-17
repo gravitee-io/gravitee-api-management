@@ -13,31 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.processor;
+package io.gravitee.gateway.handlers.api.processor.alert;
 
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.core.processor.Processor;
-import io.gravitee.gateway.core.processor.chain.DefaultProcessorChain;
-import io.gravitee.gateway.reactor.processor.forward.XForwardForProcessor;
-import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.node.api.Node;
+import io.gravitee.plugin.alert.AlertEngineService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
-import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RequestProcessorChainFactory {
+public class AlertProcessorSupplier implements Supplier<AlertProcessor> {
 
     @Autowired
-    private TransactionProcessorFactory transactionHandlerFactory;
+    private AlertEngineService alertEngineService;
 
-    public Processor<ExecutionContext> create() {
-        return new DefaultProcessorChain<>(
-                Arrays.asList(
-                        new XForwardForProcessor(),
-                        transactionHandlerFactory.create()
-                ));
+    @Autowired
+    private Node node;
+
+    @Value("${http.port:8082}")
+    private String port;
+
+    @Override
+    public AlertProcessor get() {
+        AlertProcessor processor = new AlertProcessor();
+        processor.setPort(port);
+        processor.setAlertEngineService(alertEngineService);
+        processor.setNode(node);
+        return processor;
     }
 }

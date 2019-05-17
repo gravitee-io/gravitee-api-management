@@ -17,16 +17,14 @@ package io.gravitee.gateway.handlers.api.processor;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.core.processor.StreamableProcessorDecorator;
 import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
 import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
-import io.gravitee.gateway.core.processor.provider.spring.SpringBasedProcessorSupplier;
 import io.gravitee.gateway.handlers.api.policy.api.ApiResponsePolicyChainResolver;
-import io.gravitee.gateway.handlers.api.processor.alert.AlertProcessor;
+import io.gravitee.gateway.handlers.api.processor.alert.AlertProcessorSupplier;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.policy.PolicyChainResolver;
@@ -35,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,8 +61,9 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
         }
 
         if (alertEngineService != null) {
-            providers.add(new ProcessorSupplier<>(() ->
-                    new StreamableProcessorDecorator<>(new SpringBasedProcessorSupplier<>(applicationContext, AlertProcessor.class).get())));
+            AlertProcessorSupplier supplier = new AlertProcessorSupplier();
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(supplier);
+            providers.add(new ProcessorSupplier<>(() -> new StreamableProcessorDecorator<>(supplier.get())));
         }
     }
 
