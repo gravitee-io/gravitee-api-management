@@ -23,11 +23,12 @@ import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.MediaService;
-import io.gravitee.management.service.exceptions.UploadUnAuthorized;
+import io.gravitee.management.service.exceptions.UploadUnauthorized;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -35,13 +36,15 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 /**
  * @author Guillaume Gillon
  */
 @Api(tags = {"API"})
-public class ApiMediaResource {
+public class ApiMediaResource extends AbstractResource {
     @Inject
     private MediaService mediaService;
 
@@ -62,14 +65,14 @@ public class ApiMediaResource {
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetail,
             @FormDataParam("file") final FormDataBodyPart body
-    ) {
-        String mediaId = null;
-
+    ) throws IOException {
+        final String mediaId;
         if (!body.getMediaType().getType().equals("image")) {
-            throw new UploadUnAuthorized("File format unauthorized " + body.getMediaType().getType()+"/"+body.getMediaType().getSubtype());
+            throw new UploadUnauthorized("File format unauthorized " + body.getMediaType().getType()+"/"+body.getMediaType().getSubtype());
         } else if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
-            throw new UploadUnAuthorized("Max size achieved " + fileDetail.getSize());
+            throw new UploadUnauthorized("Max size achieved " + fileDetail.getSize());
         } else {
+            checkImageFormat(IOUtils.toString(uploadedInputStream, Charset.defaultCharset()));
             mediaId = mediaService.saveApiMedia(api, new MediaEntity(
                     uploadedInputStream,
                     body.getMediaType().getType(),

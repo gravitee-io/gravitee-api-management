@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -136,6 +137,7 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             provider.setGroupMappings(identityProvider.getGroupMappings());
             provider.setRoleMappings(identityProvider.getRoleMappings());
             provider.setRoleMappings(identityProvider.getRoleMappings());
+            provider.setEmailRequired(identityProvider.isEmailRequired());
 
             return provider;
         }

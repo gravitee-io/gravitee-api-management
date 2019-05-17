@@ -164,6 +164,11 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             public List<RoleMappingEntity> getRoleMappings() {
                 return roleMappings;
             }
+
+            @Override
+            public boolean isEmailRequired() {
+                return true;
+            }
         };
 
         when(socialIdentityProviderService.findById(USER_SOURCE_OAUTH2)).thenReturn(identityProvider);
@@ -207,6 +212,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         UpdateUserEntity user = new UpdateUserEntity();
         user.setFirstname("Jane");
         user.setLastname("Doe");
+        user.setEmail("janedoe@example.com");
         user.setPicture("http://example.com/janedoe/me.jpg");
 
         when(userService.update(eq(userEntity.getId()), refEq(user))).thenReturn(userEntity);

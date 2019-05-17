@@ -37,6 +37,8 @@ public abstract class SocialIdentityProviderEntity {
 
     private String clientId;
 
+    private boolean emailRequired;
+
     @JsonIgnore
     private String clientSecret;
 
@@ -154,5 +156,13 @@ public abstract class SocialIdentityProviderEntity {
 
     public void setRoleMappings(List<RoleMappingEntity> roleMappings) {
         this.roleMappings = roleMappings;
+    }
+
+    public boolean isEmailRequired() {
+        return emailRequired;
+    }
+
+    public void setEmailRequired(boolean emailRequired) {
+        this.emailRequired = emailRequired;
     }
 }

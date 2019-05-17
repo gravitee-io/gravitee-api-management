@@ -13,28 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.exceptions;
+package io.gravitee.management.model.command;
 
-import io.gravitee.common.http.HttpStatusCode;
+import java.util.List;
 
 /**
- * @author Guillaume Gillon
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author GraviteeSource Team
  */
-public class UploadUnAuthorized extends AbstractManagementException {
+public class CommandQuery {
 
-    private String message;
+    private String to;
+    private List<CommandTags> tags;
 
-    public UploadUnAuthorized(String message) {
-        this.message = message;
+    public String getTo() {
+        return to;
     }
 
-    @Override
-    public String getMessage() {
-        return message;
+    public void setTo(String to) {
+        this.to = to;
     }
 
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
+    public List<CommandTags> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<CommandTags> tags) {
+        this.tags = tags;
     }
 }

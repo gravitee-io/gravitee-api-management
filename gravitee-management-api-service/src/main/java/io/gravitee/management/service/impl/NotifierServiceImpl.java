@@ -34,6 +34,7 @@ import io.gravitee.repository.management.model.PortalNotificationDefaultReferenc
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -67,10 +68,12 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     @Autowired
     GenericNotificationConfigRepository genericNotificationConfigRepository;
 
+    @Autowired
+    @Lazy
+    EmailNotifierService emailNotifierService;
 
     @Autowired
-    EmailNotifierService emailNotifierService;
-    @Autowired
+    @Lazy
     WebhookNotifierService webhookNotifierService;
 
     @Override

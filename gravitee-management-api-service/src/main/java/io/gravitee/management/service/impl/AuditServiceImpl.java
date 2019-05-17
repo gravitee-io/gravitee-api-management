@@ -36,6 +36,7 @@ import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -69,6 +70,13 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     private GroupRepository groupRepository;
 
     @Autowired
+    private ApiRepository apiRepository;
+
+    @Autowired
+    private ApplicationRepository applicationRepository;
+
+    @Autowired
+    @Lazy
     private UserService userService;
 
     @Autowired
@@ -126,6 +134,34 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 metadata.put(metadataKey, auditEntity.getUser());
             }
 
+            if (Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType())) {
+                metadataKey = "API:" + auditEntity.getReferenceId() + ":name";
+                if (!metadata.containsKey(metadataKey)) {
+                    try {
+                        Optional<Api> optApi = apiRepository.findById(auditEntity.getReferenceId());
+                        if (optApi.isPresent()) {
+                            metadata.put(metadataKey, optApi.get().getName());
+                        }
+                    } catch (TechnicalException e) {
+                        LOGGER.error("Error finding metadata {}", metadataKey);
+                        metadata.put(metadataKey, auditEntity.getReferenceId());
+                    }
+                }
+            } else if (Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType())) {
+                metadataKey = "APPLICATION:" + auditEntity.getReferenceId() + ":name";
+                if (!metadata.containsKey(metadataKey)) {
+                    try {
+                        Optional<Application> optApp = applicationRepository.findById(auditEntity.getReferenceId());
+                        if (optApp.isPresent()) {
+                            metadata.put(metadataKey, optApp.get().getName());
+                        }
+                    } catch (TechnicalException e) {
+                        LOGGER.error("Error finding metadata {}", metadataKey);
+                        metadata.put(metadataKey, auditEntity.getReferenceId());
+                    }
+                }
+            }
+
             //add property metadata
             String name;
             if (auditEntity.getProperties() != null) {
@@ -139,6 +175,18 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                         name = property.getValue();
                         try {
                             switch (Audit.AuditProperties.valueOf(property.getKey())) {
+                                case API:
+                                    Optional<Api> optApi = apiRepository.findById(property.getValue());
+                                    if (optApi.isPresent()) {
+                                        name = optApi.get().getName();
+                                    }
+                                    break;
+                                case APPLICATION:
+                                    Optional<Application> optApp = applicationRepository.findById(property.getValue());
+                                    if (optApp.isPresent()) {
+                                        name = optApp.get().getName();
+                                    }
+                                    break;
                                 case PAGE:
                                     Optional<io.gravitee.repository.management.model.Page> optPage = pageRepository.findById(property.getValue());
                                     if (optPage.isPresent()) {

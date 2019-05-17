@@ -105,7 +105,7 @@ public class PageService_ImportDirectoryTest {
         assertNotNull(pageEntities);
         assertEquals(8, pageEntities.size());
 
-        verify(searchEngineService, times(8)).index(any());
+        verify(searchEngineService, times(8)).index(any(), eq(false));
         // //////////////////////
         // check Folder creation
         // //////////////////////

@@ -399,7 +399,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 //TODO add membership log
                 ApiEntity apiEntity = convert(createdApi, primaryOwner);
-                searchEngineService.index(apiEntity);
+                searchEngineService.index(apiEntity, false);
                 return apiEntity;
             } else {
                 LOGGER.error("Unable to create API {} because of previous error.", api.getName());
@@ -670,8 +670,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
 
                 ApiEntity apiEntity = convert(singletonList(updatedApi)).iterator().next();
-                searchEngineService.index(apiEntity);
-
+                searchEngineService.index(apiEntity, false);
                 return apiEntity;
             } else {
                 LOGGER.error("Unable to update API {} because of previous error.", api.getId());

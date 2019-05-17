@@ -240,7 +240,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         HashMap<String, String> attrs = getUserProfileAttrs(socialProvider.getUserProfileMapping(), userInfo);
 
         String email = attrs.get(SocialIdentityProviderEntity.UserProfile.EMAIL);
-        if (email == null) {
+        if (email == null && socialProvider.isEmailRequired()) {
             throw new BadRequestException("No public email linked to your account");
         }
 
@@ -261,6 +261,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
                 user.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
             }
+            user.setEmail(email);
 
             UserEntity updatedUser = userService.update(userId, user);
 

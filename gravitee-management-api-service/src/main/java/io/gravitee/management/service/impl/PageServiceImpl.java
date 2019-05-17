@@ -49,6 +49,7 @@ import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -298,7 +299,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 				// update document in search engine
                 if(pageToUpdate.isPublished() && !page.isPublished()) {
-                	searchEngineService.delete(convert(pageToUpdate));
+                	searchEngineService.delete(convert(pageToUpdate), false);
 				} else {
 					index(pageEntity);
 				}
@@ -312,7 +313,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
 	private void index(PageEntity pageEntity) {
 		if (pageEntity.isPublished()) {
-			searchEngineService.index(pageEntity);
+			searchEngineService.index(pageEntity, false);
         }
     
 }
@@ -729,7 +730,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
             createAuditLog(page.getApi(), PAGE_DELETED, new Date(), page, null);
 
             // remove from search engine
-			searchEngineService.delete(convert(page));
+			searchEngineService.delete(convert(page), false);
 		} catch (TechnicalException ex) {
 			logger.error("An error occurs while trying to delete Page {}", pageId, ex);
 			throw new TechnicalManagementException("An error occurs while trying to delete Page " + pageId, ex);

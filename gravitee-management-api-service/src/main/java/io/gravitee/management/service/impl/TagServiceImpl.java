@@ -39,6 +39,7 @@ import java.util.*;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.TAG;
 import static io.gravitee.repository.management.model.Tag.AuditEvent.*;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -188,8 +189,8 @@ public class TagServiceImpl extends AbstractService implements TagService {
                     .map(TagEntity::getId)
                     .collect(toSet());
         } else {
-            final Set<String> restrictedTags = findAll().stream()
-                    .filter(tag -> !tag.getRestrictedGroups().isEmpty())
+            final Set<String> restrictedTags = tags.stream()
+                    .filter(tag -> tag.getRestrictedGroups()!= null && !tag.getRestrictedGroups().isEmpty())
                     .map(TagEntity::getId)
                     .collect(toSet());
 
@@ -198,7 +199,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
                     .collect(toSet());
 
             return tags.stream()
-                    .filter(tag -> !restrictedTags.contains(tag.getId()) || anyMatch(tag.getRestrictedGroups(), groups))
+                    .filter(tag -> !restrictedTags.contains(tag.getId()) || (tag.getRestrictedGroups()!= null && anyMatch(tag.getRestrictedGroups(), groups)))
                     .map(TagEntity::getId)
                     .collect(toSet());
         }

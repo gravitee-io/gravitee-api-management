@@ -20,6 +20,7 @@ import io.gravitee.management.rest.resource.GraviteeApplication;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
@@ -103,6 +104,7 @@ public abstract class JerseySpringTest {
                 super.configureClient(config);
 
                 config.register(ObjectMapperResolver.class);
+                config.register(MultiPartFeature.class);
             }
         };
     }

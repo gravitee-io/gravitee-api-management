@@ -41,6 +41,8 @@ public class NewIdentityProviderEntity {
 
     private Map<String, String> userProfileMapping;
 
+    private boolean emailRequired;
+
     public String getName() {
         return name;
     }
@@ -87,5 +89,13 @@ public class NewIdentityProviderEntity {
 
     public void setUserProfileMapping(Map<String, String> userProfileMapping) {
         this.userProfileMapping = userProfileMapping;
+    }
+
+    public boolean isEmailRequired() {
+        return emailRequired;
+    }
+
+    public void setEmailRequired(boolean emailRequired) {
+        this.emailRequired = emailRequired;
     }
 }

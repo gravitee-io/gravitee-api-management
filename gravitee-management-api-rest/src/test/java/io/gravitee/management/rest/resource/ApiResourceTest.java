@@ -15,209 +15,204 @@
  */
 package io.gravitee.management.rest.resource;
 
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam;
-import org.junit.Ignore;
+import io.gravitee.management.service.exceptions.ApiNotFoundException;
+import org.glassfish.jersey.media.multipart.MultiPart;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Optional;
+import java.util.Date;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
+import static java.util.Base64.getEncoder;
+import static javax.ws.rs.client.Entity.entity;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
-@Ignore
 public class ApiResourceTest extends AbstractResourceTest {
 
-    private static final String API_NAME = "my-api";
+    private static final String API = "my-api";
+    private static final String UNKNOWN_API = "unknown";
 
     protected String contextPath() {
-        return "apis/"+API_NAME;
+        return "apis/";
+    }
+
+    private ApiEntity mockApi;
+    private UpdateApiEntity updateApiEntity;
+
+    @Before
+    public void init() {
+        mockApi = new ApiEntity();
+        mockApi.setId(API);
+        mockApi.setName(API);
+        mockApi.setProxy(new Proxy());
+        mockApi.setUpdatedAt(new Date());
+        doReturn(mockApi).when(apiService).findById(API);
+        doThrow(ApiNotFoundException.class).when(apiService).findById(UNKNOWN_API);
+
+        updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setDescription("toto");
+        updateApiEntity.setVisibility(Visibility.PUBLIC);
+        updateApiEntity.setName(API);
+        updateApiEntity.setVersion("v1");
+        updateApiEntity.setProxy(new Proxy());
+        doReturn(mockApi).when(apiService).update(eq(API), any());
     }
 
     @Test
     public void shouldGetApi() {
-        final ApiEntity mockApi = new ApiEntity();
-        mockApi.setName(API_NAME);
-
-        doReturn(mockApi).when(apiService).findById(API_NAME);
-
-        final Response response = target().request().get();
+        final Response response = target(API).request().get();
 
         assertEquals(OK_200, response.getStatus());
 
         final ApiEntity responseApi = response.readEntity(ApiEntity.class);
         assertNotNull(responseApi);
-        assertEquals(API_NAME, responseApi.getName());
+        assertEquals(API, responseApi.getName());
     }
 
     @Test
     public void shouldNotGetApiBecauseNotFound() {
-        final ApiEntity mockApi = new ApiEntity();
-        mockApi.setName(API_NAME);
-
-        doReturn(Optional.empty()).when(apiService).findById(API_NAME);
-
-        final Response response = target(API_NAME).request().get();
+        final Response response = target(UNKNOWN_API).request().get();
 
         assertEquals(NOT_FOUND_404, response.getStatus());
-    }
-
-    @Test
-    public void shouldNotGetApiBecausePermissionDenied() {
-        final ApiEntity mockApi = new ApiEntity();
-        mockApi.setName(API_NAME);
-
-        doReturn(new ApiEntity()).when(apiService).findById(API_NAME);
-
-        final Response response = target(API_NAME).request().get();
-
-        assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void shouldStartApi() {
-        final ApiEntity mockApi = new ApiEntity();
-        mockApi.setName(API_NAME);
+        mockApi.setState(Lifecycle.State.STOPPED);
+        doReturn(mockApi).when(apiService).start(eq(API), any());
 
-        doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
-
-        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
+        final Response response = target(API).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
 
         assertEquals(NO_CONTENT_204, response.getStatus());
 
-        verify(apiService).start(API_NAME, "admin");
+        verify(apiService).start(API, "UnitTests");
     }
 
     @Test
     public void shouldNotStartApiBecauseNotFound() {
-        final ApiEntity mockApi = new ApiEntity();
-        mockApi.setName(API_NAME);
-
-        doReturn(Optional.empty()).when(apiService).findById(API_NAME);
-
-        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
+        mockApi.setState(Lifecycle.State.STOPPED);
+        doReturn(mockApi).when(apiService).start(eq(API), any());
+        final Response response = target(UNKNOWN_API).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
 
         assertEquals(NOT_FOUND_404, response.getStatus());
     }
 
     @Test
-    public void shouldNotStartApiBecausePermissionDenied() {
-        final ApiEntity mockApi = new ApiEntity();
-        mockApi.setName(API_NAME);
-
-        doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
-
-        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.START).request().post(null);
-
-        assertEquals(FORBIDDEN_403, response.getStatus());
-    }
-
-    @Test
     public void shouldStopApi() {
-        final ApiEntity mockApi = new ApiEntity();
-        mockApi.setName(API_NAME);
+        mockApi.setState(Lifecycle.State.STARTED);
+        doReturn(mockApi).when(apiService).stop(eq(API), any());
 
-        doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
-
-        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
+        final Response response = target(API).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
 
         assertEquals(NO_CONTENT_204, response.getStatus());
     }
 
     @Test
     public void shouldNotStopApiBecauseNotFound() {
-        final ApiEntity mockApi = new ApiEntity();
-        mockApi.setName(API_NAME);
-
-        doReturn(Optional.empty()).when(apiService).findById(API_NAME);
-
-        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
+        final Response response = target(UNKNOWN_API).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
 
         assertEquals(NOT_FOUND_404, response.getStatus());
-    }
-
-    @Test
-    public void shouldNotStopApiBecausePermissionDenied() {
-        final ApiEntity mockApi = new ApiEntity();
-        mockApi.setName(API_NAME);
-
-        doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
-
-        final Response response = target(API_NAME).queryParam("action", LifecycleActionParam.LifecycleAction.STOP).request().post(null);
-
-        assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void shouldUpdateApi() {
-        final UpdateApiEntity mockApi = new UpdateApiEntity();
-        mockApi.setVersion("v1");
-        mockApi.setDescription("Description of my API");
-        mockApi.setProxy(new Proxy());
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
 
-        doReturn(new ApiEntity()).when(apiService).update(API_NAME, mockApi);
-
-        final Response response = target(API_NAME).request().put(Entity.json(mockApi));
-
-        assertEquals(NO_CONTENT_204, response.getStatus());
+        assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
     }
 
     @Test
-    public void shouldNotUpdateApiBecausePermissionDenied() {
-        final UpdateApiEntity mockApi = new UpdateApiEntity();
-        mockApi.setVersion("v1");
-        mockApi.setDescription("Description of my API");
-        mockApi.setProxy(new Proxy());
+    public void shouldNotUpdateApiBecauseTooLargePicture() {
+        updateApiEntity.setPicture(randomAlphanumeric(100_000));
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
 
-        final Response response = target(API_NAME).request().put(Entity.json(mockApi));
-
-        assertEquals(FORBIDDEN_403, response.getStatus());
-    }
-
-    /*
-    @Test
-    public void shouldDeleteApi() {
-        final ApiEntity mockApi = new ApiEntity();
-        mockApi.setName(API_NAME);
-
-        doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
-
-        final Response response = target(API_NAME).request().delete();
-
-        assertEquals(NO_CONTENT_204, response.getStatus());
-
-        verify(apiService).delete(API_NAME);
-    }
-    */
-
-    @Test
-    public void shouldNotDeleteApiBecauseNotFound() {
-        doReturn(Optional.empty()).when(apiService).findById(API_NAME);
-
-        final Response response = target(API_NAME).request().delete();
-
-        assertEquals(NOT_FOUND_404, response.getStatus());
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("The image is too big"));
     }
 
     @Test
-    public void shouldNotDeleteApiBecausePermissionDenied() {
-        final ApiEntity mockApi = new ApiEntity();
-        mockApi.setName(API_NAME);
+    public void shouldNotUpdateApiBecauseNotAValidImage() {
+        updateApiEntity.setPicture(getEncoder().encodeToString("<script>alert('XSS')</script>".getBytes()));
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
 
-        doReturn(Optional.of(mockApi)).when(apiService).findById(API_NAME);
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("The image is not in a valid format"));
+    }
 
-        final Response response = target(API_NAME).request().delete();
+    @Test
+    public void shouldUploadApiMedia() {
+        StreamDataBodyPart filePart = new StreamDataBodyPart("file",
+                this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.valueOf("image/svg+xml"));
+        final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
+        multiPart.bodyPart(filePart);
+        final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
 
-        assertEquals(FORBIDDEN_403, response.getStatus());
+        assertEquals(OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotUploadApiMediaBecauseWrongMediaType() {
+        StreamDataBodyPart filePart = new StreamDataBodyPart("file",
+                this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
+        multiPart.bodyPart(filePart);
+        final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("File format unauthorized"));
+    }
+
+    private static final MediaType IMAGE_SVG_XML_TYPE = MediaType.valueOf("image/svg+xml");
+
+    @Test
+    public void shouldNotUploadApiMediaBecauseXSS1() {
+        shouldNotUpdateApiMediaBecauseXSS("hacked1.svg");
+    }
+
+    @Test
+    public void shouldNotUploadApiMediaBecauseXSS2() {
+        shouldNotUpdateApiMediaBecauseXSS("hacked2.svg");
+    }
+
+    @Test
+    public void shouldNotUploadApiMediaBecauseXSS3() {
+        shouldNotUpdateApiMediaBecauseXSS("hacked3.svg");
+    }
+
+    @Test
+    public void shouldNotUploadApiMediaBecauseXSS4() {
+        shouldNotUpdateApiMediaBecauseXSS("hacked4.svg");
+    }
+
+    private void shouldNotUpdateApiMediaBecauseXSS(final String fileName) {
+        final StreamDataBodyPart filePart = new StreamDataBodyPart("file",
+                this.getClass().getResourceAsStream("/media/" + fileName), fileName, IMAGE_SVG_XML_TYPE);
+        final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
+        multiPart.bodyPart(filePart);
+        final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("The image is not in a valid format"));
     }
 }
