@@ -73,6 +73,8 @@ public class RedisIdentityProvider {
      */
     private long createdAt;
 
+    private Boolean emailRequired;
+
     /**
      * Identity provider last updated date
      */
@@ -164,6 +166,14 @@ public class RedisIdentityProvider {
 
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Boolean getEmailRequired() {
+        return emailRequired;
+    }
+
+    public void setEmailRequired(Boolean emailRequired) {
+        this.emailRequired = emailRequired;
     }
 
     @Override

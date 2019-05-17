@@ -98,6 +98,7 @@ public class RedisIdentityProviderRepository implements IdentityProviderReposito
         identityProvider.setGroupMappings(redisIdentityProvider.getGroupMappings());
         identityProvider.setRoleMappings(redisIdentityProvider.getRoleMappings());
         identityProvider.setUserProfileMapping(redisIdentityProvider.getUserProfileMapping());
+        identityProvider.setEmailRequired(redisIdentityProvider.getEmailRequired());
 
         return identityProvider;
     }
@@ -127,6 +128,7 @@ public class RedisIdentityProviderRepository implements IdentityProviderReposito
         redisIdentityProvider.setGroupMappings(identityProvider.getGroupMappings());
         redisIdentityProvider.setRoleMappings(identityProvider.getRoleMappings());
         redisIdentityProvider.setUserProfileMapping(identityProvider.getUserProfileMapping());
+        redisIdentityProvider.setEmailRequired(identityProvider.getEmailRequired());
 
         return redisIdentityProvider;
     }
