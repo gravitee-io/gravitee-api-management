@@ -46,6 +46,8 @@ public class IdentityProviderMongo extends Auditable {
 
 	private Map<String, String> userProfileMapping;
 
+	private Boolean emailRequired;
+
 	public String getId() {
 		return id;
 	}
@@ -116,6 +118,14 @@ public class IdentityProviderMongo extends Auditable {
 
 	public void setUserProfileMapping(Map<String, String> userProfileMapping) {
 		this.userProfileMapping = userProfileMapping;
+	}
+
+	public Boolean getEmailRequired() {
+		return emailRequired;
+	}
+
+	public void setEmailRequired(Boolean emailRequired) {
+		this.emailRequired = emailRequired;
 	}
 
 	@Override
