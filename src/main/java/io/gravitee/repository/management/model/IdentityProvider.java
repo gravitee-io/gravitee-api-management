@@ -70,6 +70,8 @@ public class IdentityProvider {
      */
     private Map<String, String> userProfileMapping;
 
+    private Boolean emailRequired;
+
     /**
      * Identity provider creation date
      */
@@ -166,6 +168,14 @@ public class IdentityProvider {
 
     public void setUserProfileMapping(Map<String, String> userProfileMapping) {
         this.userProfileMapping = userProfileMapping;
+    }
+
+    public Boolean getEmailRequired() {
+        return emailRequired;
+    }
+
+    public void setEmailRequired(Boolean emailRequired) {
+        this.emailRequired = emailRequired;
     }
 
     @Override
