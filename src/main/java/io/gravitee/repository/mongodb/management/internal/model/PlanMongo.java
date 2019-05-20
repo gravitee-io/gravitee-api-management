@@ -81,6 +81,8 @@ public class PlanMongo extends Auditable {
 
     private String commentMessage;
 
+    private Set<String> tags;
+
     public String getId() {
         return id;
     }
@@ -223,6 +225,14 @@ public class PlanMongo extends Auditable {
 
     public void setCommentMessage(String commentMessage) {
         this.commentMessage = commentMessage;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     @Override
