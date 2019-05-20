@@ -56,10 +56,15 @@ public class ApiHeaderRepositoryMock extends AbstractRepositoryMock<ApiHeaderRep
         //shouldFindAll
         when(apiHeaderRepository.findAll())
                 .thenReturn(new HashSet<>(Arrays.asList(mock(ApiHeader.class), mock(ApiHeader.class), mock(ApiHeader.class))));
+        
+      //shouldFindAllByEnvironment
+        when(apiHeaderRepository.findAllByEnvironment(any()))
+                .thenReturn(new HashSet<>(Arrays.asList(mock(ApiHeader.class), mock(ApiHeader.class))));
 
         //shouldUpdate
         ApiHeader up = new ApiHeader();
         up.setId("toUpdate");
+        up.setEnvironment("new_DEFAULT");
         up.setName("newName");
         up.setValue("newValue");
         up.setOrder(123);

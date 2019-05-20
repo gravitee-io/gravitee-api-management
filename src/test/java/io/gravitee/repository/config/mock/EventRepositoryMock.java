@@ -68,25 +68,31 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
         eventProperties.put("api_id", "api-4");
 
         when(event1.getId()).thenReturn("event1");
+        when(event1.getEnvironment()).thenReturn("DEFAULT");
         when(event1.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(event1.getType()).thenReturn(EventType.PUBLISH_API);
         when(event1.getPayload()).thenReturn("{}");
         when(event1.getProperties()).thenReturn(eventProperties);
         when(event2.getId()).thenReturn("event2");
+        when(event2.getEnvironment()).thenReturn("DEFAULT");
         when(event2.getType()).thenReturn(EventType.UNPUBLISH_API);
         when(event2.getCreatedAt()).thenReturn(parse("12/02/2016"));
         when(event2.getProperties()).thenReturn(eventProperties);
         when(event3.getId()).thenReturn("event3");
+        when(event3.getEnvironment()).thenReturn("DEFAULT");
         when(event3.getType()).thenReturn(EventType.PUBLISH_API);
         when(event3.getCreatedAt()).thenReturn(parse("13/02/2016"));
         when(event4.getId()).thenReturn("event4");
+        when(event4.getEnvironment()).thenReturn("DEFAULT");
         when(event4.getType()).thenReturn(EventType.STOP_API);
         when(event4.getCreatedAt()).thenReturn(parse("14/02/2016"));
         when(event4.getProperties()).thenReturn(eventProperties2);
         when(event5.getId()).thenReturn("event5");
+        when(event5.getEnvironment()).thenReturn("DEFAULT");
         when(event5.getType()).thenReturn(EventType.START_API);
         when(event5.getCreatedAt()).thenReturn(parse("15/02/2016"));
         when(event6.getId()).thenReturn("event6");
+        when(event6.getEnvironment()).thenReturn("DEFAULT");
         when(event6.getType()).thenReturn(EventType.START_API);
         when(event6.getCreatedAt()).thenReturn(parse("16/02/2016"));
 
@@ -176,6 +182,11 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
                         .property(Event.EventProperties.API_ID.getValue(), asList("api-1", "api-3"))
                         .build())).thenReturn(asList(event4, event2, event1));
 
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .environment("DEFAULT")
+                        .build())).thenReturn(asList(event6, event5, event4, event3, event2, event1));
+        
         when(eventRepository.search(
                 new EventCriteria.Builder().types(EventType.GATEWAY_STARTED).build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(

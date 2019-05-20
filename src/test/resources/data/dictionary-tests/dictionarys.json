@@ -1,6 +1,7 @@
 [
    {
       "id":"dic-1",
+      "environment": "DEFAULT",
       "name":"My dic 1",
       "description": "Description for my dic 1",
       "type": "DYNAMIC",
@@ -10,6 +11,7 @@
    },
    {
       "id":"dic-2",
+      "environment": "DEFAULT",
       "name":"My dic 2",
       "description": "Description for my dic 2",
       "type": "DYNAMIC",
@@ -27,6 +29,7 @@
    },
    {
       "id":"dic-3",
+      "environment": "DEFAULT",
       "name":"My dic 3",
       "description": "Description for my dic 3",
       "type": "DYNAMIC",

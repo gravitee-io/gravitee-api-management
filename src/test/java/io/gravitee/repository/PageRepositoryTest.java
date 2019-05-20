@@ -18,6 +18,7 @@ package io.gravitee.repository;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 
@@ -50,7 +51,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("id", "FindApiPage", page.getId());
         assertEquals("name", "Find apiPage by apiId or Id", page.getName());
         assertEquals("content", "Content of the page", page.getContent());
-        assertEquals("api", "my-api", page.getApi());
+        assertEquals("reference id", "my-api", page.getReferenceId());
+        assertEquals("reference type", PageReferenceType.API, page.getReferenceType());
         assertEquals("type", PageType.MARKDOWN, page.getType());
         assertEquals("last contributor", "john_doe", page.getLastContributor());
         assertEquals("order", 2, page.getOrder());
@@ -84,7 +86,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setName("Page name");
         page.setContent("Page content");
         page.setOrder(3);
-        page.setApi("my-api");
+        page.setReferenceId("my-api");
+        page.setReferenceType(PageReferenceType.API);
         page.setHomepage(true);
         page.setType(PageType.MARKDOWN);
         page.setParentId("2");
@@ -132,7 +135,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setId("new-page-folder");
         page.setName("Folder name");
         page.setOrder(3);
-        page.setApi("my-api");
+        page.setReferenceId("my-api");
+        page.setReferenceType(PageReferenceType.API);
         page.setHomepage(false);
         page.setParentId("");
         page.setType(PageType.FOLDER);
@@ -158,6 +162,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
     public void shouldCreatePortalPage() throws Exception {
         final Page page = new Page();
         page.setId("new-portal-page");
+        page.setReferenceId("DEFAULT");
+        page.setReferenceType(PageReferenceType.ENVIRONMENT);
         page.setName("Page name");
         page.setContent("Page content");
         page.setOrder(3);
@@ -205,6 +211,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
     public void shouldCreatePortalFolderPage() throws Exception {
         final Page page = new Page();
         page.setId("new-portal-page-folder");
+        page.setReferenceId("DEFAULT");
+        page.setReferenceType(PageReferenceType.ENVIRONMENT);
         page.setName("Folder name");
         page.setOrder(3);
         page.setType(PageType.FOLDER);
@@ -237,7 +245,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setId("updatePage");
         page.setName("New name");
         page.setContent("New content");
-        page.setApi("new api");
+        page.setReferenceId("my-api-2");
+        page.setReferenceType(PageReferenceType.API);
         page.setType(SWAGGER);
         page.setOrder(1);
         page.setUpdatedAt(new Date(1486771200000L));
@@ -271,7 +280,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertNotNull("Page to update not found", updatedPage);
         assertEquals("Invalid saved page name.", "New name", updatedPage.getName());
         assertEquals("Invalid page content.", "New content", updatedPage.getContent());
-        assertEquals("Invalid api.", "new api", updatedPage.getApi());
+        assertEquals("Invalid reference id.", "my-api-2", updatedPage.getReferenceId());
+        assertEquals("Invalid reference type.", PageReferenceType.API, updatedPage.getReferenceType());
         assertEquals("Invalid type.", SWAGGER, updatedPage.getType());
         assertEquals("Invalid order.", 1, updatedPage.getOrder());
         assertEquals("Invalid updatedAt.", new Date(1486771200000L), updatedPage.getUpdatedAt());
@@ -318,6 +328,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid saved page name.", "New name page folder", updatedPage.getName());
         assertEquals("Invalid page content.", "New content page folder", updatedPage.getContent());
         assertEquals("Invalid page parentId.", "3", updatedPage.getParentId());
+        assertEquals("Invalid page reference type.", PageReferenceType.API, updatedPage.getReferenceType());
+        assertEquals("Invalid page reference id.", "my-api-3", updatedPage.getReferenceId());
     }
 
     @Test
@@ -334,6 +346,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateUnknownPage() throws Exception {
         Page unknownPage = new Page();
         unknownPage.setId("unknown");
+        unknownPage.setReferenceId("DEFAULT");
+        unknownPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         pageRepository.update(unknownPage);
         fail("An unknown page should not be updated");
     }
@@ -346,19 +360,19 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindMaxApiPageOrderByApiId() throws TechnicalException {
-        Integer maxApiPageOrderByApiId = pageRepository.findMaxApiPageOrderByApiId("my-api-2");
+        Integer maxApiPageOrderByApiId = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("my-api-2", PageReferenceType.API);
         assertEquals(Integer.valueOf(2), maxApiPageOrderByApiId);
     }
 
     @Test
     public void shouldFindDefaultMaxApiPageOrderByApiId() throws TechnicalException {
-        Integer maxApiPageOrderByApiId = pageRepository.findMaxApiPageOrderByApiId("unknown api id");
+        Integer maxApiPageOrderByApiId = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("unknown api id", PageReferenceType.API);
         assertEquals(Integer.valueOf(0), maxApiPageOrderByApiId);
     }
 
     @Test
     public void shouldFindMaxPortalPageOrder() throws TechnicalException {
-        Integer maxPortalPageOrder = pageRepository.findMaxPortalPageOrder();
+        Integer maxPortalPageOrder = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("DEFAULT", PageReferenceType.ENVIRONMENT);
         assertEquals(Integer.valueOf(20), maxPortalPageOrder);
     }
 }

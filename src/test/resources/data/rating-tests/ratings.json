@@ -1,7 +1,8 @@
 [
    {
       "id":"rating-id",
-      "api":"api",
+      "referenceId":"api",
+      "referenceType": "API",
       "user":"user",
       "title":"title",
       "comment":"My comment",
@@ -10,7 +11,8 @@
    },
    {
       "id":"rating2-id",
-      "api":"api",
+      "referenceId":"api",
+      "referenceType": "API",
       "user":"toto",
       "title":"title2",
       "comment":"My comment2",
@@ -20,7 +22,8 @@
    },
    {
       "id":"rating3-id",
-      "api":"api2",
+      "referenceId":"api2",
+      "referenceType": "API",
       "user":"admin",
       "title":"title3",
       "comment":"My comment3",
@@ -30,7 +33,8 @@
    },
    {
       "id":"rating4-id",
-      "api":"api",
+      "referenceId":"api",
+      "referenceType": "API",
       "user":"admin",
       "title":"title4",
       "comment":"My comment4",

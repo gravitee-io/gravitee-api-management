@@ -1,9 +1,10 @@
 [
    {
       "id":"FindApiPage",
+      "referenceType":"API",
+      "referenceId":"my-api",
       "name":"Find apiPage by apiId or Id",
       "content": "Content of the page",
-      "api": "my-api",
       "type": "MARKDOWN",
       "lastContributor": "john_doe",
       "order": 2,
@@ -34,9 +35,10 @@
    },
    {
       "id":"updatePage",
+      "referenceType":"API",
+      "referenceId":"my-api-2",
       "name":"Update Page",
       "content": "Content of the update page",
-      "api": "my-api-2",
       "order": 0,
       "type": "MARKDOWN",
       "createdAt": 1439022010883,
@@ -44,9 +46,10 @@
    },
    {
       "id":"page3",
+      "referenceType":"API",
+      "referenceId":"my-api-2",
       "name":"Page 3",
       "content": "Content of the page 3",
-      "api": "my-api-2",
       "order": 1,
       "type": "MARKDOWN",
       "createdAt": 1439022010883,
@@ -54,10 +57,11 @@
    },
    {
       "id":"home",
+      "referenceType":"API",
+      "referenceId":"my-api-2",
       "name":"HOME",
       "homepage": true,
       "content": "HOME Content",
-      "api": "my-api-2",
       "order": 2,
       "type": "MARKDOWN",
       "createdAt": 1439022010883,
@@ -65,9 +69,10 @@
    },
    {
       "id":"updatePageFolder",
+      "referenceType":"API",
+      "referenceId":"my-api-3",
       "name":"Update Page Folder",
       "content": "Content of the update page folder",
-      "api": "my-api-3",
       "order": 0,
       "type": "MARKDOWN",
       "parentId": "2",
@@ -76,10 +81,11 @@
    },
    {
       "id":"page-to-be-deleted",
+      "referenceType":"API",
+      "referenceId":"api-id-page-to-be-deleted",
       "name":"should be deleted",
       "homepage": false,
       "content": "lorem ipsum",
-      "api": "api-id-page-to-be-deleted",
       "type": "MARKDOWN",
       "order": 0,
       "createdAt": 1439022010883,
@@ -87,6 +93,8 @@
    },
    {
       "id":"FindPortalPage-homepage",
+      "referenceType":"ENVIRONMENT",
+      "referenceId":"DEFAULT",
       "name":"find portal homepage",
       "homepage": true,
       "content": "lorem ipsum",
@@ -97,6 +105,8 @@
    },
    {
       "id":"FindPortalPage-nothomepage",
+      "referenceType":"ENVIRONMENT",
+      "referenceId":"DEFAULT",
       "name":"find portal not homepage",
       "homepage": false,
       "content": "lorem ipsum",
@@ -107,10 +117,11 @@
    },
    {
       "id":"page-to-be-removed-parentId-1",
+      "referenceType":"API",
+      "referenceId":"api-with-parent-id-to-be-deleted",
       "name":"parentId should be removed",
       "homepage": false,
       "content": "lorem ipsum",
-      "api": "api-with-parent-id-to-be-deleted",
       "type": "MARKDOWN",
       "parentId": "page-to-be-removed-parentId",
       "order": 0,
@@ -119,25 +130,27 @@
    },
    {
       "id":"page-to-be-removed-parentId-2",
+      "referenceType":"API",
+      "referenceId":"api-with-parent-id-to-be-deleted",
       "name":"parentId should be removed",
       "homepage": false,
       "content": "lorem ipsum",
-      "api": "api-with-parent-id-to-be-deleted",
       "type": "MARKDOWN",
       "order": 1,
       "parentId": "page-to-be-removed-parentId",
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
    },
-  {
-    "id":"page-to-be-removed-parentId-3",
-    "name":"should be deleted",
-    "homepage": false,
-    "content": "lorem ipsum",
-    "api": "api-with-parent-id-to-be-deleted",
-    "type": "MARKDOWN",
-    "order": 2,
-    "createdAt": 1439022010883,
-    "updatedAt": 1439022010883
-  }
+   {
+      "id":"page-to-be-removed-parentId-3",
+      "referenceType":"API",
+      "referenceId":"api-with-parent-id-to-be-deleted",
+      "name":"should be deleted",
+      "homepage": false,
+      "content": "lorem ipsum",
+      "type": "MARKDOWN",
+      "order": 2,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }
 ]

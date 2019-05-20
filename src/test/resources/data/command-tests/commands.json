@@ -1,6 +1,7 @@
 [
   {
     "id": "msg-to-create",
+    "environment": "DEFAULT",
     "from": "node0",
     "to": "someone",
     "tags": ["DATA_TO_INDEX", "INSERT"],
@@ -12,6 +13,7 @@
   },
   {
     "id": "msg-to-delete",
+    "environment": "DEV",
     "from": "node0",
     "to": "node3",
     "createdAt": 1546305346000,
@@ -20,6 +22,7 @@
   },
   {
     "id": "msg-to-update",
+    "environment": "DEV",
     "from": "node0",
     "to": "message to update",
     "tags": ["DATA_TO_INDEX", "INSERT"],
@@ -31,6 +34,7 @@
   },
   {
     "id": "search1",
+    "environment": "PROD",
     "from": "node1",
     "to": "MANAGEMENT_API",
     "tags": ["DATA_TO_INDEX", "INSERT"],
@@ -41,6 +45,7 @@
   },
   {
     "id": "search2",
+    "environment": "PROD",
     "from": "node2",
     "to": "MANAGEMENT_API",
     "tags": ["DATA_TO_INDEX", "INSERT"],
@@ -51,6 +56,7 @@
   },
   {
     "id": "search3",
+    "environment": "TEST",
     "from": "node2",
     "to": "node1",
     "tags": ["DATA_TO_INDEX", "DELETE"],

@@ -1,0 +1,14 @@
+[
+   {
+      "id": "DEFAULT-update",
+      "name": "Default env for update"
+   },
+   {
+      "id": "DEFAULT-delete",
+      "name": "Default env for delete"
+   },
+   {
+      "id": "DEFAULT-findById",
+      "name": "Default env for findById"
+   }
+]

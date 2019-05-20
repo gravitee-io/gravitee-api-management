@@ -202,4 +202,9 @@ public class MockTestRepositoryConfiguration {
     public DashboardRepositoryMock dashboardRepositoryMock() {
         return new DashboardRepositoryMock();
     }
+
+    @Bean
+    public EnvironmentRepositoryMock environmentRepository() throws Exception {
+        return new EnvironmentRepositoryMock();
+    }
 }

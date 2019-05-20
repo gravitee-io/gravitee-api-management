@@ -43,6 +43,12 @@ public class ApiHeaderTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindAllByEnvironment() throws Exception {
+        Set<ApiHeader> all = apiHeaderRepository.findAllByEnvironment("DEFAULT");
+        assertEquals(2, all.size());
+    }
+    
+    @Test
     public void shouldDelete() throws Exception {
         Optional<ApiHeader> optionalApiHeader = apiHeaderRepository.findById("1");
         assertTrue(optionalApiHeader.isPresent());
@@ -57,6 +63,7 @@ public class ApiHeaderTest extends AbstractRepositoryTest {
     public void shouldUpdate() throws Exception {
         ApiHeader up = new ApiHeader();
         up.setId("toUpdate");
+        up.setEnvironment("new_DEFAULT");
         up.setName("newName");
         up.setValue("newValue");
         up.setOrder(123);
@@ -69,6 +76,7 @@ public class ApiHeaderTest extends AbstractRepositoryTest {
 
         assertTrue(updated.isPresent());
         assertEquals(up.getId(), updated.get().getId());
+        assertEquals(up.getEnvironment(), updated.get().getEnvironment());
         assertEquals(up.getName(), updated.get().getName());
         assertEquals(up.getValue(), updated.get().getValue());
         assertEquals(up.getOrder(), updated.get().getOrder());

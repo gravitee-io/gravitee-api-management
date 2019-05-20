@@ -41,6 +41,7 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
         assertTrue(optMessage.isPresent());
         Command command = optMessage.get();
         assertEquals("id", "msg-to-create", command.getId());
+        assertEquals("environment id", "DEFAULT", command.getEnvironment());
         assertEquals("to", "someone", command.getTo());
         assertTrue("tags: DATA_TO_INDEX", command.getTags().contains("DATA_TO_INDEX"));
         assertTrue("tags: INSERT", command.getTags().contains("INSERT"));
@@ -56,6 +57,7 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
     public void shouldUpdate() throws Exception {
         Command command = new Command();
         command.setId("msg-to-update");
+        command.setEnvironment("new_DEFAULT");
         command.setFrom("from updated");
         command.setTo("message updated");
         command.setTags(Collections.singletonList("DELETE"));
@@ -68,6 +70,7 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
         Command updatedCommand = commandRepository.update(command);
 
         assertEquals("id", command.getId(), updatedCommand.getId());
+        assertEquals("environmment id.", command.getEnvironment(), updatedCommand.getEnvironment());
         assertEquals("to", command.getTo(), updatedCommand.getTo());
         assertEquals("from", command.getFrom(), updatedCommand.getFrom());
         assertTrue("tags: DATA_TO_INDEX", command.getTags().containsAll(updatedCommand.getTags()));
@@ -190,4 +193,16 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
         assertEquals("contain 'search2'", "search2", commands.get(0).getId());
     }
 
+    @Test
+    public void shouldSearchByEnvironment() {
+
+        List<Command> commands = commandRepository.search((new CommandCriteria.Builder())
+                .environment("DEFAULT")
+                .build());
+
+        assertNotNull("not null", commands);
+        assertFalse("not empty", commands.isEmpty());
+        assertEquals("result size", 1, commands.size());
+        assertEquals("contain 'msg-to-create'", "msg-to-create", commands.get(0).getId());
+    }
 }

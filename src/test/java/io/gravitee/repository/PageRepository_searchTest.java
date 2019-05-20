@@ -16,9 +16,9 @@
 package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 
@@ -40,7 +40,7 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindApiPageByApiId() throws Exception {
-        final List<Page> pages = pageRepository.search(new PageCriteria.Builder().api("my-api").build());
+        final List<Page> pages = pageRepository.search(new PageCriteria.Builder().referenceId("my-api").referenceType("API").build());
 
         assertNotNull(pages);
         assertEquals(1, pages.size());
@@ -50,7 +50,8 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
         assertEquals("id", "FindApiPage", page.getId());
         assertEquals("name", "Find apiPage by apiId or Id", page.getName());
         assertEquals("content", "Content of the page", page.getContent());
-        assertEquals("api", "my-api", page.getApi());
+        assertEquals("reference id", "my-api", page.getReferenceId());
+        assertEquals("reference type", PageReferenceType.API, page.getReferenceType());
         assertEquals("type", PageType.MARKDOWN, page.getType());
         assertEquals("last contributor", "john_doe", page.getLastContributor());
         assertEquals("order", 2, page.getOrder());
@@ -77,14 +78,14 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindApiPageByApiIdAndHomepageFalse() throws Exception {
-        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().api("my-api-2").homepage(Boolean.FALSE).build());
+        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().referenceId("my-api-2").referenceType("API").homepage(Boolean.FALSE).build());
         assertNotNull(pages);
         assertEquals(2, pages.size());
     }
 
     @Test
     public void shouldFindApiPageByApiIdAndHomepageTrue() throws Exception {
-        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().api("my-api-2").homepage(Boolean.TRUE).build());
+        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().referenceId("my-api-2").referenceType("API").homepage(Boolean.TRUE).build());
         assertNotNull(pages);
         assertEquals(1, pages.size());
         assertEquals("home", pages.iterator().next().getId());
@@ -92,7 +93,7 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindPortalPages() throws Exception {
-        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().build());
+        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().referenceId("DEFAULT").referenceType("ENVIRONMENT").build());
         assertNotNull(pages);
         assertEquals(2, pages.size());
         Set<String> ids = pages.stream().map(Page::getId).collect(Collectors.toSet());
@@ -102,7 +103,7 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindPortalPageByHomepageFalse() throws Exception {
-        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().homepage(Boolean.FALSE).build());
+        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().referenceId("DEFAULT").referenceType("ENVIRONMENT").homepage(Boolean.FALSE).build());
         assertNotNull(pages);
         assertEquals(1, pages.size());
         assertEquals("FindPortalPage-nothomepage", pages.iterator().next().getId());
@@ -110,7 +111,7 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindPortalPageByHomepageTrue() throws Exception {
-        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().homepage(Boolean.TRUE).build());
+        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().referenceId("DEFAULT").referenceType("ENVIRONMENT").homepage(Boolean.TRUE).build());
         assertNotNull(pages);
         assertEquals(1, pages.size());
         assertEquals("FindPortalPage-homepage", pages.iterator().next().getId());

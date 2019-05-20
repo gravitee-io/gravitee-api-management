@@ -17,6 +17,7 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.model.IdentityProvider;
+import io.gravitee.repository.management.model.IdentityProviderReferenceType;
 import io.gravitee.repository.management.model.IdentityProviderType;
 
 import java.util.Date;
@@ -46,6 +47,8 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
     void prepare(IdentityProviderRepository identityProviderRepository) throws Exception {
         final IdentityProvider newIdentityProvider = mock(IdentityProvider.class);
         when(newIdentityProvider.getName()).thenReturn("My idp 1");
+        when(newIdentityProvider.getReferenceId()).thenReturn("DEFAULT");
+        when(newIdentityProvider.getReferenceType()).thenReturn(IdentityProviderReferenceType.ENVIRONMENT);
         when(newIdentityProvider.getDescription()).thenReturn("Description for my idp 1");
         when(newIdentityProvider.isEnabled()).thenReturn(true);
         when(newIdentityProvider.getCreatedAt()).thenReturn(new Date(1000000000000L));
@@ -55,6 +58,8 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
 
         final IdentityProvider identityProvider1 = new IdentityProvider();
         identityProvider1.setId("github");
+        identityProvider1.setReferenceId("DEFAULT");
+        identityProvider1.setReferenceType(IdentityProviderReferenceType.ENVIRONMENT);
         identityProvider1.setEnabled(true);
         identityProvider1.setName("Google");
         identityProvider1.setDescription("GitHub Identity Provider");
@@ -64,6 +69,8 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
 
         final IdentityProvider identityProviderUpdated = mock(IdentityProvider.class);
         when(identityProviderUpdated.getName()).thenReturn("Google");
+        when(identityProviderUpdated.getReferenceId()).thenReturn("DEFAULT");
+        when(identityProviderUpdated.getReferenceType()).thenReturn(IdentityProviderReferenceType.ENVIRONMENT);
         when(identityProviderUpdated.getDescription()).thenReturn("Google Identity Provider");
         when(identityProviderUpdated.getCreatedAt()).thenReturn(new Date(1000000000000L));
         when(identityProviderUpdated.getUpdatedAt()).thenReturn(new Date(1486771200000L));
@@ -76,8 +83,9 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
         final Set<IdentityProvider> identityProviders = newSet(newIdentityProvider, identityProvider1, mock(IdentityProvider.class));
         final Set<IdentityProvider> identityProvidersAfterDelete = newSet(newIdentityProvider, identityProvider1);
         final Set<IdentityProvider> identityProvidersAfterAdd = newSet(newIdentityProvider, identityProvider1, mock(IdentityProvider.class), mock(IdentityProvider.class));
-
+        final Set<IdentityProvider> identityProvidersByEnv = newSet(newIdentityProvider, identityProvider1, identityProviderUpdated);
         when(identityProviderRepository.findAll()).thenReturn(identityProviders, identityProvidersAfterAdd, identityProviders, identityProvidersAfterDelete, identityProviders);
+        when(identityProviderRepository.findAllByReferenceIdAndReferenceType("DEFAULT", IdentityProviderReferenceType.ENVIRONMENT)).thenReturn(identityProvidersByEnv);
 
         when(identityProviderRepository.create(any(IdentityProvider.class))).thenReturn(newIdentityProvider);
 
@@ -92,6 +100,8 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
     private IdentityProvider createMock() {
         final IdentityProvider identityProvider3 = new IdentityProvider();
         identityProvider3.setId("idp-3");
+        identityProvider3.setReferenceId("DEFAULT");
+        identityProvider3.setReferenceType(IdentityProviderReferenceType.ENVIRONMENT);
         identityProvider3.setEnabled(false);
         identityProvider3.setName("Gravitee.io AM");
         identityProvider3.setDescription("Gravitee.io AM Identity Provider");

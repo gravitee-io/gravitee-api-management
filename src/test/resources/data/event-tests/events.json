@@ -1,6 +1,7 @@
 [
   {
     "id": "event1",
+    "environment": "DEFAULT",
     "type": "PUBLISH_API",
     "payload": "{}",
     "parentId": null,
@@ -11,6 +12,7 @@
   },
   {
     "id": "event2",
+    "environment": "DEFAULT",
     "type": "UNPUBLISH_API",
     "payload": "{}",
     "parentId": null,
@@ -21,6 +23,7 @@
   },
   {
     "id": "event3",
+    "environment": "DEFAULT",
     "type": "PUBLISH_API",
     "payload": "{}",
     "parentId": null,
@@ -32,6 +35,7 @@
   },
   {
     "id": "event4",
+    "environment": "DEFAULT",
     "type": "STOP_API",
     "payload": "{}",
     "parentId": null,
@@ -42,6 +46,7 @@
   },
   {
     "id": "event5",
+    "environment": "DEFAULT",
     "type": "START_API",
     "payload": "{}",
     "parentId": null,
@@ -53,6 +58,7 @@
   },
   {
     "id": "event6",
+    "environment": "DEFAULT",
     "type": "START_API",
     "payload": "{}",
     "parentId": null,

@@ -41,6 +41,7 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
     void prepare(ViewRepository viewRepository) throws Exception {
         final View newView = mock(View.class);
         when(newView.getName()).thenReturn("View name");
+        when(newView.getEnvironment()).thenReturn("DEFAULT");
         when(newView.getDescription()).thenReturn("Description for the new view");
         when(newView.getCreatedAt()).thenReturn(new Date(1486771200000L));
         when(newView.getUpdatedAt()).thenReturn(new Date(1486771200000L));
@@ -52,6 +53,7 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
 
         final View viewProducts = new View();
         viewProducts.setId("view");
+        viewProducts.setEnvironment("DEFAULT");
         viewProducts.setName("Products");
         viewProducts.setCreatedAt(new Date(1000000000000L));
         viewProducts.setUpdatedAt(new Date(1111111111111L));
@@ -61,6 +63,7 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
 
         final View viewProductsUpdated = mock(View.class);
         when(viewProductsUpdated.getName()).thenReturn("New product");
+        when(viewProductsUpdated.getEnvironment()).thenReturn("new_DEFAULT");
         when(viewProductsUpdated.getDescription()).thenReturn("New description");
         when(viewProductsUpdated.getCreatedAt()).thenReturn(new Date(1486771200000L));
         when(viewProductsUpdated.getUpdatedAt()).thenReturn(new Date(1486771200000L));
@@ -75,6 +78,7 @@ public class ViewRepositoryMock extends AbstractRepositoryMock<ViewRepository> {
         final Set<View> viewsAfterAdd = newSet(newView, viewProducts, mock(View.class), mock(View.class));
 
         when(viewRepository.findAll()).thenReturn(views, viewsAfterAdd, views, viewsAfterDelete, views);
+        when(viewRepository.findAllByEnvironment("DEFAULT")).thenReturn(views);
 
         when(viewRepository.create(any(View.class))).thenReturn(newView);
 

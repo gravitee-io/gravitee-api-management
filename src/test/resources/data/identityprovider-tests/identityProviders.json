@@ -1,6 +1,8 @@
 [
   {
     "id": "github",
+    "referenceId": "DEFAULT",
+    "referenceType": "ENVIRONMENT",
     "name": "GitHub",
     "description": "GitHub Identity Provider",
     "enabled": true,
@@ -19,6 +21,8 @@
   },
   {
     "id": "idp-3",
+    "referenceId": "DEFAULT",
+    "referenceType": "ENVIRONMENT",
     "name": "Gravitee.io AM",
     "description": "Gravitee.io AM Identity Provider",
     "enabled": false,
@@ -49,6 +53,8 @@
   },
   {
     "id": "idp-1",
+    "referenceId": "DEFAULT",
+    "referenceType": "ENVIRONMENT",
     "name": "Google",
     "description": "Google Identity Provider",
     "enabled": true,

@@ -44,11 +44,13 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
     void prepare(UserRepository userRepository) throws Exception {
         final User user = mock(User.class);
         when(user.getId()).thenReturn("createuser1");
+        when(user.getEnvironment()).thenReturn("DEFAULT");
         when(user.getPassword()).thenReturn("New pwd");
         when(user.getEmail()).thenReturn("createuser1@gravitee.io");
 
         final User userUpdated = mock(User.class);
         when(userUpdated.getId()).thenReturn("id2update");
+        when(userUpdated.getEnvironment()).thenReturn("new_DEFAULT");
         when(userUpdated.getSource()).thenReturn("sourceUpdated");
         when(userUpdated.getSourceId()).thenReturn("sourceIdUpdated");
         when(userUpdated.getPassword()).thenReturn("passwordUpdated");
@@ -111,6 +113,13 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
                 ), any()))
                 .thenReturn(new io.gravitee.common.data.domain.Page<>(
                         asList(mock(User.class)),0, 0, 1));
+        when(userRepository.search(
+                argThat(o -> o != null
+                        && "DEFAULT".equals(o.getEnvironment())
+                ), any()))
+                .thenReturn(new io.gravitee.common.data.domain.Page<>(
+                        asList(user0),0, 0, 1));
+        
         when(userRepository.create(any(User.class))).thenReturn(user);
         when(userRepository.findById("user0")).thenReturn(of(user));
         when(userRepository.findById("id2update")).thenReturn(of(userUpdated));
@@ -119,18 +128,19 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
         when(user.getEmail()).thenReturn("createuser1@gravitee.io");
         when(user.getStatus()).thenReturn(UserStatus.ACTIVE);
 
-        when(userRepository.findBySource("gravitee", "createuser1")).thenReturn(of(user));
+        when(userRepository.findBySource("gravitee", "createuser1", "DEFAULT")).thenReturn(of(user));
 
         when(userRepository.update(argThat(o -> o != null && "id2update".equals(o.getId())))).thenReturn(userUpdated);
         when(userRepository.update(argThat(o -> o == null || "unknown".equals(o.getId())))).thenThrow(new IllegalStateException());
 
-        when(userRepository.findBySource("gravitee", "user1")).thenReturn(of(user1));
-        when(userRepository.findBySource("gravitee", "USER1")).thenReturn(of(user1));
-        when(userRepository.findBySource("gravitee", "user")).thenReturn(empty());
-        when(userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me")).thenReturn(of(userSpecialChar));
+        when(userRepository.findBySource("gravitee", "user1", "DEV")).thenReturn(of(user1));
+        when(userRepository.findBySource("gravitee", "USER1", "DEV")).thenReturn(of(user1));
+        when(userRepository.findBySource("gravitee", "user", "DEV")).thenReturn(empty());
+        when(userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me", "DEV")).thenReturn(of(userSpecialChar));
         when(userRepository.findById("user1")).thenReturn(of(user1));
         when(userRepository.findByIds(asList("user1", "user5"))).thenReturn(new HashSet<>(asList(user1, user5)));
 
         when(userRepository.findById("user2delete")).thenReturn(of(new User()), empty());
+        
     }
 }

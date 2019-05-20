@@ -17,6 +17,7 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 
 import static java.util.Optional.empty;
@@ -39,16 +40,22 @@ public class RoleRepositoryMock extends AbstractRepositoryMock<RoleRepository> {
     void prepare(RoleRepository roleRepository) throws Exception {
         final Role toCreate = mock(Role.class);
         when(toCreate.getName()).thenReturn("to create");
+        when(toCreate.getReferenceId()).thenReturn("DEFAULT");
+        when(toCreate.getReferenceType()).thenReturn(RoleReferenceType.ENVIRONMENT);
         when(toCreate.getScope()).thenReturn(RoleScope.API);
         when(toCreate.getPermissions()).thenReturn(new int[]{3});
 
         final Role toDelete = mock(Role.class);
         when(toDelete.getName()).thenReturn("to delete");
+        when(toDelete.getReferenceId()).thenReturn("DEFAULT");
+        when(toDelete.getReferenceType()).thenReturn(RoleReferenceType.ENVIRONMENT);
         when(toDelete.getScope()).thenReturn(RoleScope.MANAGEMENT);
         when(toDelete.getPermissions()).thenReturn(new int[]{1, 2, 3});
 
         final Role toUpdate = mock(Role.class);
         when(toUpdate.getName()).thenReturn("to update");
+        when(toUpdate.getReferenceId()).thenReturn("DEFAULT");
+        when(toUpdate.getReferenceType()).thenReturn(RoleReferenceType.ENVIRONMENT);
         when(toUpdate.getDescription()).thenReturn("new description");
         when(toUpdate.getScope()).thenReturn(RoleScope.MANAGEMENT);
         when(toUpdate.isDefaultRole()).thenReturn(true);
@@ -56,6 +63,8 @@ public class RoleRepositoryMock extends AbstractRepositoryMock<RoleRepository> {
 
         final Role findByScope1 = mock(Role.class);
         when(findByScope1.getName()).thenReturn("find by scope 1");
+        when(findByScope1.getReferenceId()).thenReturn("DEFAULT");
+        when(findByScope1.getReferenceType()).thenReturn(RoleReferenceType.ENVIRONMENT);
         when(findByScope1.getDescription()).thenReturn("role description");
         when(findByScope1.getScope()).thenReturn(RoleScope.PORTAL);
         when(findByScope1.isDefaultRole()).thenReturn(true);
@@ -64,18 +73,24 @@ public class RoleRepositoryMock extends AbstractRepositoryMock<RoleRepository> {
 
         final Role findByScope2 = mock(Role.class);
         when(findByScope2.getName()).thenReturn("find by scope 2");
+        when(findByScope2.getReferenceId()).thenReturn("DEFAULT");
+        when(findByScope2.getReferenceType()).thenReturn(RoleReferenceType.ENVIRONMENT);
         when(findByScope2.getScope()).thenReturn(RoleScope.PORTAL);
         when(findByScope2.isDefaultRole()).thenReturn(false);
         when(findByScope2.getPermissions()).thenReturn(new int[]{1});
 
         when(roleRepository.findById(findByScope1.getScope(), findByScope1.getName())).thenReturn(of(findByScope1));
         when(roleRepository.findById(toUpdate.getScope(), toUpdate.getName())).thenReturn(of(toUpdate));
-        when(roleRepository.findById(toCreate.getScope(), toCreate.getName())).thenReturn(empty(), of(findByScope1));
+        when(roleRepository.findById(toCreate.getScope(), toCreate.getName())).thenReturn(empty(), of(toCreate));
         when(roleRepository.findById(toDelete.getScope(), toDelete.getName())).thenReturn(of(findByScope1), empty());
         when(roleRepository.findById(findByScope2.getScope(), findByScope2.getName())).thenReturn(of(findByScope2));
         when(roleRepository.create(any(Role.class))).thenReturn(toCreate);
         when(roleRepository.findAll()).thenReturn(newSet(toDelete, toUpdate, findByScope1, findByScope2));
+        when(roleRepository.findAllByReferenceIdAndReferenceType("DEFAULT", RoleReferenceType.ENVIRONMENT)).thenReturn(newSet(toCreate, toDelete, toUpdate));
+
         when(roleRepository.findByScope(RoleScope.PORTAL)).thenReturn(newSet(findByScope1, findByScope2));
+        when(roleRepository.findByScopeAndReferenceIdAndReferenceType(RoleScope.PORTAL, "DEFAULT", RoleReferenceType.ENVIRONMENT)).thenReturn(newSet(findByScope1));
+
         when(roleRepository.update(any())).thenReturn(toUpdate);
 
         when(roleRepository.update(argThat(o -> o == null || o.getName().equals("unknown")))).thenThrow(new IllegalStateException());

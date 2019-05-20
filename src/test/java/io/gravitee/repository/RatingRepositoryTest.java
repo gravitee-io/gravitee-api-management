@@ -20,6 +20,8 @@ import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
+import io.gravitee.repository.management.model.RatingReferenceType;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,7 +56,8 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
 
         assertTrue(ratingOptional.isPresent());
         final Rating rating = ratingOptional.get();
-        assertEquals("api", rating.getApi());
+        assertEquals("api", rating.getReferenceId());
+        assertEquals(RatingReferenceType.API, rating.getReferenceType());
         assertEquals("user", rating.getUser());
         assertEquals("title", rating.getTitle());
         assertEquals("My comment", rating.getComment());
@@ -70,11 +73,12 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByApiAndUser() throws Exception {
-        final Optional<Rating> ratingOptional = ratingRepository.findByApiAndUser("api", "user");
+        final Optional<Rating> ratingOptional = ratingRepository.findByReferenceIdAndReferenceTypeAndUser("api", RatingReferenceType.API, "user");
 
         assertTrue(ratingOptional.isPresent());
         final Rating rating = ratingOptional.get();
-        assertEquals("api", rating.getApi());
+        assertEquals("api", rating.getReferenceId());
+        assertEquals(RatingReferenceType.API, rating.getReferenceType());
         assertEquals("user", rating.getUser());
         assertEquals("title", rating.getTitle());
         assertEquals("My comment", rating.getComment());
@@ -90,7 +94,7 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByApiPageable() throws Exception {
-        Page<Rating> ratingPage = ratingRepository.findByApiPageable("api",
+        Page<Rating> ratingPage = ratingRepository.findByReferenceIdAndReferenceTypePageable("api", RatingReferenceType.API,
                 new PageableBuilder().pageNumber(0).pageSize(2).build());
 
         assertEquals(0, ratingPage.getPageNumber());
@@ -101,7 +105,7 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertEquals("rating4-id", ratingPage.getContent().get(0).getId());
         assertEquals("rating-id", ratingPage.getContent().get(1).getId());
 
-        ratingPage = ratingRepository.findByApiPageable("api",
+        ratingPage = ratingRepository.findByReferenceIdAndReferenceTypePageable("api", RatingReferenceType.API,
                 new PageableBuilder().pageNumber(1).pageSize(2).build());
 
         assertEquals(1, ratingPage.getPageNumber());
@@ -113,19 +117,20 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldFindByApi() throws Exception {
-        final List<Rating> ratings = ratingRepository.findByApi("api");
+    public void shouldFindByReferenceIdAndReferenceType() throws Exception {
+        final List<Rating> ratings = ratingRepository.findByReferenceIdAndReferenceType("api", RatingReferenceType.API);
         assertEquals(3, ratings.size());
         assertEquals(1, ratings.stream().filter(rating -> "rating-id".equals(rating.getId())).count());
         assertEquals(1, ratings.stream().filter(rating -> "rating2-id".equals(rating.getId())).count());
         assertEquals(1, ratings.stream().filter(rating -> "rating4-id".equals(rating.getId())).count());
     }
-
+    
     @Test
     public void shouldCreate() throws Exception {
         final Rating rating = new Rating();
         rating.setId("new-rating");
-        rating.setApi("api");
+        rating.setReferenceId("api");
+        rating.setReferenceType(RatingReferenceType.API);
         rating.setUser("user");
         rating.setTitle("title");
         rating.setComment("comment");
@@ -148,7 +153,8 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Rating saved not found", optional.isPresent());
 
         final Rating ratingSaved = optional.get();
-        assertEquals("Invalid rating api.", rating.getApi(), ratingSaved.getApi());
+        assertEquals("Invalid rating api.", rating.getReferenceId(), ratingSaved.getReferenceId());
+        assertEquals("Invalid rating api.", rating.getReferenceType(), ratingSaved.getReferenceType());
         assertEquals("Invalid rating user.", rating.getUser(), ratingSaved.getUser());
         assertEquals("Invalid rating title.", rating.getTitle(), ratingSaved.getTitle());
         assertEquals("Invalid rating comment.", rating.getComment(), ratingSaved.getComment());
@@ -162,7 +168,8 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
     public void shouldUpdate() throws Exception {
         final Rating rating = new Rating();
         rating.setId("rating-id");
-        rating.setApi("api-new");
+        rating.setReferenceId("api");
+        rating.setReferenceType(RatingReferenceType.API);
         rating.setUser("user10");
         rating.setTitle("title10");
         rating.setComment("comment10");
@@ -171,7 +178,8 @@ public class RatingRepositoryTest extends AbstractRepositoryTest {
         rating.setUpdatedAt(cal.getTime());
 
         final Rating ratingSaved = ratingRepository.update(rating);
-        assertEquals("Invalid rating api.", rating.getApi(), ratingSaved.getApi());
+        assertEquals("Invalid rating api.", rating.getReferenceId(), ratingSaved.getReferenceId());
+        assertEquals("Invalid rating api.", rating.getReferenceType(), ratingSaved.getReferenceType());
         assertEquals("Invalid rating user.", rating.getUser(), ratingSaved.getUser());
         assertEquals("Invalid rating title.", rating.getTitle(), ratingSaved.getTitle());
         assertEquals("Invalid rating comment.", rating.getComment(), ratingSaved.getComment());

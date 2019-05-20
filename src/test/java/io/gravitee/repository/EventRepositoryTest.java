@@ -39,6 +39,7 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
     public void createEventTest() throws Exception {
         Event event = new Event();
         event.setId(UUID.toString(UUID.random()));
+        event.setEnvironment("DEFAULT");
         event.setType(EventType.PUBLISH_API);
         event.setPayload("{}");
         event.setParentId(null);
@@ -49,6 +50,7 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals("Invalid saved event type.", EventType.PUBLISH_API, eventCreated.getType());
         assertEquals("Invalid saved event payload.", "{}", eventCreated.getPayload());
+        assertEquals("Invalid saved environment id.", "DEFAULT", eventCreated.getEnvironment());
     }
 
     @Test
@@ -201,6 +203,25 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
         assertTrue("event1".equals(iterator.next().getId()));
     }
 
+    @Test
+    public void searchByEnvironment() throws Exception {
+        List<Event> events = eventRepository.search(
+                new EventCriteria.Builder()
+                .environment("DEFAULT")
+                .build());
+
+        assertTrue(6L == events.size());
+        final Iterator<Event> iterator = events.iterator();
+        assertTrue("event6".equals(iterator.next().getId()));
+        assertTrue("event5".equals(iterator.next().getId()));
+        assertTrue("event4".equals(iterator.next().getId()));
+        assertTrue("event3".equals(iterator.next().getId()));
+        assertTrue("event2".equals(iterator.next().getId()));
+        assertTrue("event1".equals(iterator.next().getId()));
+    }
+
+    
+    
     @Test
     public void shouldDelete() throws Exception {
         assertTrue(eventRepository.findById("event5").isPresent());

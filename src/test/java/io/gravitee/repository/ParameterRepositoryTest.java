@@ -15,15 +15,21 @@
  */
 package io.gravitee.repository;
 
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.model.Parameter;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
+
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
 
 public class ParameterRepositoryTest extends AbstractRepositoryTest {
 
@@ -37,6 +43,8 @@ public class ParameterRepositoryTest extends AbstractRepositoryTest {
         final Parameter parameter = new Parameter();
         parameter.setKey("new-parameter");
         parameter.setValue("Parameter value");
+        parameter.setReferenceId("DEFAULT");
+        parameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
 
         assertFalse("Parameter already exists", parameterRepository.findById("new-parameter").isPresent());
         parameterRepository.create(parameter);
@@ -47,6 +55,9 @@ public class ParameterRepositoryTest extends AbstractRepositoryTest {
 
         final Parameter parameterSaved = optional.get();
         assertEquals("Invalid saved parameter value.", parameter.getValue(), parameterSaved.getValue());
+        assertEquals("Invalid saved parameter referenceId.", parameter.getReferenceId(), parameterSaved.getReferenceId());
+        assertEquals("Invalid saved parameter referenceType.", parameter.getReferenceType(), parameterSaved.getReferenceType());
+        
     }
 
     @Test
@@ -79,6 +90,8 @@ public class ParameterRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateUnknownParameter() throws Exception {
         Parameter unknownParameter = new Parameter();
         unknownParameter.setKey("unknown");
+        unknownParameter.setReferenceId("unknown");
+        unknownParameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
         parameterRepository.update(unknownParameter);
         fail("An unknown parameter should not be updated");
     }
@@ -95,5 +108,13 @@ public class ParameterRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(parameters);
         assertFalse(parameters.isEmpty());
         assertEquals(2, parameters.size());
+    }
+    
+    @Test
+    public void shouldFindAllByReferenceIdAndReferenceType() throws Exception {
+        List<Parameter> parameters = parameterRepository.findAllByReferenceIdAndReferenceType(null, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        assertNotNull(parameters);
+        assertFalse(parameters.isEmpty());
+        assertEquals(3, parameters.size());
     }
 }

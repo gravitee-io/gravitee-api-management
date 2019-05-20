@@ -49,6 +49,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
     void prepare(ApplicationRepository applicationRepository) throws Exception {
         final Application application = mock(Application.class);
         when(application.getId()).thenReturn("application-sample");
+        when(application.getEnvironment()).thenReturn("DEFAULT");
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         Map<String, String> metadata = new HashMap<>();
         metadata.put("client_id", "my-client-id");
@@ -67,12 +68,22 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
                 mock(Application.class),
                 mock(Application.class),
                 mock(Application.class));
+        final Set<Application> allApplicationsForDefaultEnvironment = newSet(
+                application,
+                mock(Application.class),
+                mock(Application.class),
+                mock(Application.class),
+                mock(Application.class));
+        
         when(applicationRepository.findAll()).thenReturn(allApplications);
+        when(applicationRepository.findAllByEnvironment("DEFAULT")).thenReturn(allApplicationsForDefaultEnvironment);
+
         doAnswer(invocation -> allApplications.remove(application)).when(applicationRepository).delete("deleted-app");
         when(applicationRepository.findById("deleted-app")).thenReturn(empty());
 
         final Application newApplication = mock(Application.class);
         when(newApplication.getName()).thenReturn("created-app");
+        when(newApplication.getEnvironment()).thenReturn("DEFAULT");
         when(newApplication.getDescription()).thenReturn("Application description");
         when(newApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(newApplication.getType()).thenReturn(ApplicationType.SIMPLE);
@@ -86,6 +97,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
 
         final Application updatedApplication = mock(Application.class);
         when(updatedApplication.getId()).thenReturn("updated-app");
+        when(updatedApplication.getEnvironment()).thenReturn("new_DEFAULT");
         when(updatedApplication.getName()).thenReturn("updated-app");
         when(updatedApplication.getDescription()).thenReturn("Updated description");
         when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);

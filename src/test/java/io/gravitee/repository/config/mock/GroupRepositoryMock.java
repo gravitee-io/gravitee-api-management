@@ -50,6 +50,7 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
     void prepare(GroupRepository groupRepository) throws Exception {
         final Group createGroup = new Group();
         createGroup.setId("1");
+        createGroup.setEnvironment("DEFAULT");
         createGroup.setName("my group");
         createGroup.setLockApiRole(true);
         createGroup.setLockApplicationRole(true);
@@ -60,6 +61,7 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
 
         final Group group_application_1 = new Group();
         group_application_1.setId("group-application-1");
+        group_application_1.setEnvironment("group-application-1 environment id");
         group_application_1.setName("group-application-1 name");
         group_application_1.setLockApiRole(true);
         group_application_1.setLockApplicationRole(true);
@@ -83,8 +85,10 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
         final Group group_updated = new Group();
         group_updated.setId("group-application-1");
         group_updated.setName("Modified Name");
+        group_updated.setEnvironment("new_DEFAULT");
         group_updated.setUpdatedAt(new Date(1000000000000L));
         when(groupRepository.findAll()).thenReturn(newSet(group_application_1, group_api_to_delete));
+        when(groupRepository.findAllByEnvironment("DEFAULT")).thenReturn(newSet(createGroup));
         when(groupRepository.findById("group-application-1")).thenReturn(of(group_application_1));
         when(groupRepository.findById("unknown")).thenReturn(empty());
         when(groupRepository.findById("group-api-to-delete")).thenReturn(empty());
