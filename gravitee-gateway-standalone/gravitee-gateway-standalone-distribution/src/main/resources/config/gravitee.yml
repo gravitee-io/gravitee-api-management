@@ -72,6 +72,10 @@ management:
 #    sslEnabled: false
 #    threadsAllowedToBlockForConnectionMultiplier: 5
 #    cursorFinalizerEnabled: true
+# possible values are 1,2,3... (the number of node) or 'majority'
+#    writeConcern: 1
+#    wtimeout: 0
+#    journal: true
 
 # Management repository: single MongoDB using URI
 # For more information about MongoDB configuration using URI, please have a look to:
