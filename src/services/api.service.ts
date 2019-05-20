@@ -64,7 +64,7 @@ class ApiService {
 
   list(view?: string, portal?: boolean, opts?: any): ng.IPromise<any> {
     let params = '';
-    if (view !== undefined) {
+    if (view !== undefined && view !== null) {
       params += '?view=' + view;
     }
     if (portal !== undefined) {
