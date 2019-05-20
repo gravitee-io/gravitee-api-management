@@ -73,6 +73,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(plan2.getNeedRedeployAt()).thenReturn(new Date(1507611670000L));
         when(plan2.getCharacteristics()).thenReturn(asList("charac 1", "charac 2"));
         when(plan2.getExcludedGroups()).thenReturn(singletonList("grp1"));
+        when(plan2.getTags()).thenReturn(new HashSet<>(asList("tag1", "tag2")));
         when(plan2.isCommentRequired()).thenReturn(true);
         when(plan2.getCommentMessage()).thenReturn("What is your project code?");
 
@@ -112,6 +113,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(updatedPlan.getId()).thenReturn("updated-plan");
         when(updatedPlan.getName()).thenReturn("New plan");
         when(updatedPlan.getDescription()).thenReturn("New description");
+        when(updatedPlan.getTags()).thenReturn(singleton("tag1"));
 
         final Plan updatedOauth2Plan = mock(Plan.class);
         when(updatedOauth2Plan.getId()).thenReturn("updated-plan-oauth2");

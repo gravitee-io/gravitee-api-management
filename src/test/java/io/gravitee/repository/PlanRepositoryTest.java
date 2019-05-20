@@ -60,6 +60,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertEquals(new Date(1507611670000L), plan.get().getNeedRedeployAt());
         assertEquals(Arrays.asList("charac 1", "charac 2"), plan.get().getCharacteristics());
         assertEquals("grp1", plan.get().getExcludedGroups().get(0));
+        assertEquals("tag1", plan.get().getTags().iterator().next());
         assertTrue(plan.get().isCommentRequired());
         assertEquals("What is your project code?", plan.get().getCommentMessage());
     }
@@ -193,6 +194,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         plan.setName("New plan");
         plan.setDescription("New description");
         plan.setStatus(Plan.Status.CLOSED);
+        plan.setTags(Collections.singleton("tag1"));
 
         planRepository.update(plan);
 
@@ -203,6 +205,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid saved plan name.", plan.getName(), planUpdated.getName());
         Assert.assertEquals("Invalid plan description.", plan.getDescription(), planUpdated.getDescription());
         Assert.assertEquals("Invalid plan status.", plan.getStatus(), planUpdated.getStatus());
+        Assert.assertEquals("Invalid plan tags.", plan.getTags().size(), planUpdated.getTags().size());
     }
 
     @Test
