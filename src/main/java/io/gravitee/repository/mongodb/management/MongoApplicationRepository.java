@@ -72,6 +72,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 		}
 		
 		applicationMongo.setName(application.getName());
+		applicationMongo.setEnvironment(application.getEnvironment());
 		applicationMongo.setDescription(application.getDescription());
 		applicationMongo.setCreatedAt(application.getCreatedAt());
 		applicationMongo.setUpdatedAt(application.getUpdatedAt());
@@ -125,4 +126,14 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	private ApplicationMongo mapApplication(Application application) {
 		return (application == null) ? null : mapper.map(application, ApplicationMongo.class);
 	}
+
+    @Override
+    public Set<Application> findAllByEnvironment(String environment, ApplicationStatus... statuses)
+            throws TechnicalException {
+        if (statuses != null && statuses.length>0) {
+            return mapApplications(internalApplicationRepo.findAllByEnvironment(environment, Arrays.asList(statuses)));
+        } else {
+            return mapApplications(internalApplicationRepo.findAllByEnvironment(environment));
+        }
+    }
 }

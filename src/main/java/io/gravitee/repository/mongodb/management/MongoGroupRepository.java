@@ -162,4 +162,15 @@ public class MongoGroupRepository implements GroupRepository {
     private Set<Group> collection2set(Collection<GroupMongo> groups) {
         return mapper.collection2set(groups, GroupMongo.class, Group.class);
     }
+
+    @Override
+    public Set<Group> findAllByEnvironment(String environment) throws TechnicalException {
+        logger.debug("Find all groups by environment");
+        Set<Group> all = internalRepository.findByEnvironment(environment).
+                stream().
+                map(this::map).
+                collect(Collectors.toSet());
+        logger.debug("Find all groups by environment - Found {}", all);
+        return all;
+    }
 }

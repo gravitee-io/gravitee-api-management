@@ -15,9 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import io.gravitee.repository.mongodb.management.internal.model.ViewMongo;
+import java.util.List;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import io.gravitee.repository.mongodb.management.internal.model.ViewMongo;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -26,6 +30,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ViewMongoRepository extends MongoRepository<ViewMongo, String> {
 
+    @Query("{ environment: ?0 }")
+    List<ViewMongo> findByEnvironment(String environment);
 }
 
 

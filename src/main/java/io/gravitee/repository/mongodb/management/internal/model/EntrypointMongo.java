@@ -29,6 +29,7 @@ public class EntrypointMongo {
 
 	@Id
 	private String id;
+	private String environment;
 	private String value;
 	private String tags;
 
@@ -40,7 +41,15 @@ public class EntrypointMongo {
 		this.id = id;
 	}
 
-	public String getValue() {
+	public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
+
+    public String getValue() {
 		return value;
 	}
 
@@ -73,6 +82,7 @@ public class EntrypointMongo {
 	public String toString() {
 		return "EntrypointMongo{" +
 				"id='" + id + '\'' +
+                ", environment='" + environment + '\'' +
 				", value='" + value + '\'' +
 				", tags='" + tags + '\'' +
 				'}';

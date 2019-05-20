@@ -15,21 +15,23 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ParameterRepository;
-import io.gravitee.repository.management.model.Parameter;
-import io.gravitee.repository.mongodb.management.internal.api.ParameterMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.ParameterMongo;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ParameterRepository;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.repository.mongodb.management.internal.api.ParameterMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.ParameterMongo;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -55,7 +57,7 @@ public class MongoParameterRepository implements ParameterRepository {
     }
 
     @Override
-    public List<Parameter> findAll(List<String> keys) throws TechnicalException  {
+    public List<Parameter> findAll(List<String> keys) throws TechnicalException {
         LOGGER.debug("Find parameters by keys [{}]", keys);
         Iterable<ParameterMongo> all = internalParameterRepo.findAllById(keys);
         LOGGER.debug("Find parameters by keys [{}] - Done", keys);
@@ -63,7 +65,7 @@ public class MongoParameterRepository implements ParameterRepository {
                 .map(parameter -> mapper.map(parameter, Parameter.class))
                 .collect(Collectors.toList());
     }
-
+    
     @Override
     public Parameter create(Parameter parameter) throws TechnicalException {
         LOGGER.debug("Create parameter [{}]", parameter);
@@ -102,4 +104,21 @@ public class MongoParameterRepository implements ParameterRepository {
             throw new TechnicalException("An error occured when deleting parameter");
         }
     }
+
+    @Override
+    public List<Parameter> findAllByReferenceIdAndReferenceType(List<String> keys, String referenceId,
+            ParameterReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("Find parameters by keys and env");
+        Iterable<ParameterMongo> all;
+        if( keys != null) {
+            all = internalParameterRepo.findAllByReferenceIdAndReferenceType(keys, referenceId, referenceType.name());
+        } else {
+            all = internalParameterRepo.findAllByReferenceIdAndReferenceType(referenceId, referenceType.name());
+        }
+        LOGGER.debug("Find parameters by keys and env - Done");
+        return StreamSupport.stream(all.spliterator(), false)
+                .map(parameter -> mapper.map(parameter, Parameter.class))
+                .collect(Collectors.toList());
+    }
+
 }

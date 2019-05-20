@@ -29,6 +29,7 @@ public class EventMongo extends Auditable {
 
     @Id
     private String id;
+    private String environment;
     private String type;
     private String payload;
     private String parentId;
@@ -40,6 +41,14 @@ public class EventMongo extends Auditable {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
     }
 
     public String getType() {

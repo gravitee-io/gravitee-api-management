@@ -24,6 +24,11 @@ db.plans.dropIndexes();
 db.plans.createIndex( { "api" : 1 } );
 db.plans.reIndex();
 
+// "environments" collection
+db.environments.dropIndexes();
+db.environments.createIndex( { "id" : 1 } );
+db.environments.reIndex();
+
 // "subscriptions" collection
 db.subscriptions.dropIndexes();
 db.subscriptions.createIndex( { "plan" : 1 } );

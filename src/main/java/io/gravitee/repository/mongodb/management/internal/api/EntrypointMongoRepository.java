@@ -15,9 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import io.gravitee.repository.mongodb.management.internal.model.EntrypointMongo;
+import java.util.List;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import io.gravitee.repository.mongodb.management.internal.model.EntrypointMongo;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -25,4 +29,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface EntrypointMongoRepository extends MongoRepository<EntrypointMongo, String> {
+    @Query("{ environment: ?0 }")
+    List<EntrypointMongo> findByEnvironment(String environment);
 }

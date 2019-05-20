@@ -15,22 +15,24 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.RoleRepository;
-import io.gravitee.repository.management.model.Role;
-import io.gravitee.repository.management.model.RoleScope;
-import io.gravitee.repository.mongodb.management.internal.model.RoleMongo;
-import io.gravitee.repository.mongodb.management.internal.model.RolePkMongo;
-import io.gravitee.repository.mongodb.management.internal.role.RoleMongoRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.RoleRepository;
+import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.repository.mongodb.management.internal.model.RoleMongo;
+import io.gravitee.repository.mongodb.management.internal.model.RolePkMongo;
+import io.gravitee.repository.mongodb.management.internal.role.RoleMongoRepository;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -135,6 +137,8 @@ public class MongoRoleRepository implements RoleRepository {
         Role role = new Role();
         role.setScope(RoleScope.valueOf(roleMongo.getId().getScope()));
         role.setName(roleMongo.getId().getName());
+        role.setReferenceId(roleMongo.getReferenceId());
+        role.setReferenceType(RoleReferenceType.valueOf(roleMongo.getReferenceType()));
         role.setDescription(roleMongo.getDescription());
         role.setDefaultRole(roleMongo.isDefaultRole());
         role.setSystem(roleMongo.isSystem());
@@ -151,6 +155,8 @@ public class MongoRoleRepository implements RoleRepository {
 
         RoleMongo roleMongo = new RoleMongo();
         roleMongo.setId(convert(role));
+        roleMongo.setReferenceId(role.getReferenceId());
+        roleMongo.setReferenceType(role.getReferenceType().name());
         roleMongo.setDescription(role.getDescription());
         roleMongo.setDefaultRole(role.isDefaultRole());
         roleMongo.setSystem(role.isSystem());
@@ -158,5 +164,25 @@ public class MongoRoleRepository implements RoleRepository {
         roleMongo.setUpdatedAt(role.getUpdatedAt());
         roleMongo.setCreatedAt(role.getCreatedAt());
         return roleMongo;
+    }
+
+    @Override
+    public Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType)
+            throws TechnicalException {
+        final List<RoleMongo> roles = internalRoleRepo.findByReferenceIdAndReferenceType(referenceId, referenceType.name());
+        return roles.stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId,
+            RoleReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("Find role by scope and ref [{}, {}, {}]", scope, referenceId, referenceType);
+
+        final Set<RoleMongo> roles = internalRoleRepo.findByScopeAndReferenceIdAndReferenceType(scope.getId(), referenceId, referenceType.name());
+
+        LOGGER.debug("Find role by scope [{}, {}, {}] - Done", scope, referenceId, referenceType);
+        return roles.stream().map(this::map).collect(Collectors.toSet());
     }
 }

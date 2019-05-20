@@ -28,6 +28,7 @@ import java.util.List;
 public class GroupMongo extends Auditable {
     @Id
     private String id;
+    private String environment;
     private String name;
     private List<String> administrators;
     private List<GroupEventRuleMongo> eventRules;
@@ -44,6 +45,14 @@ public class GroupMongo extends Auditable {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
     }
 
     public String getName() {

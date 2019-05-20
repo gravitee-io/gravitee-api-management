@@ -15,9 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.identityprovider;
 
-import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderMongo;
+import java.util.List;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderMongo;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -25,7 +29,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface IdentityProviderMongoRepository extends MongoRepository<IdentityProviderMongo, String> {
-
+    @Query("{ referenceId: ?0, referenceType: ?1 }")
+    List<IdentityProviderMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }
 
 

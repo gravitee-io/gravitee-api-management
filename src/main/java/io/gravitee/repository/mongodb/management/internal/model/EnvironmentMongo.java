@@ -21,59 +21,39 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Objects;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "apiheaders")
-public class ApiHeaderMongo extends Auditable{
+@Document(collection = "environments")
+public class EnvironmentMongo {
 
 	@Id
 	private String id;
-	private String environment;
+
 	private String name;
-	private String value;
-	private int order;
 
 	public String getId() {
 		return id;
 	}
+
 	public void setId(String id) {
 		this.id = id;
 	}
 
-	public String getEnvironment() {
-        return environment;
-    }
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
-    public String getName() {
+	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public String getValue() {
-		return value;
-	}
-	public void setValue(String value) {
-		this.value = value;
-	}
-
-	public int getOrder() {
-		return order;
-	}
-	public void setOrder(int order) {
-		this.order = order;
 	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (!(o instanceof ApiHeaderMongo)) return false;
-		ApiHeaderMongo mongo = (ApiHeaderMongo) o;
-		return Objects.equals(id, mongo.id);
+		if (!(o instanceof EnvironmentMongo)) return false;
+		EnvironmentMongo envMongo = (EnvironmentMongo) o;
+		return Objects.equals(id, envMongo.id);
 	}
 
 	@Override
@@ -83,12 +63,9 @@ public class ApiHeaderMongo extends Auditable{
 
 	@Override
 	public String toString() {
-		return "ApiHeaderMongo{" +
+		return "EnvironmentMongo{" +
 				"id='" + id + '\'' +
-                ", environment='" + environment + '\'' +
 				", name='" + name + '\'' +
-				", value='" + value + '\'' +
-				", order='" + order + '\'' +
 				'}';
 	}
 }

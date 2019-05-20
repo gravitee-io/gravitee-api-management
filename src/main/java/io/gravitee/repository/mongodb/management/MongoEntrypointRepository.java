@@ -85,6 +85,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
         try {
             //Update
             entrypointMongo.setValue(entrypoint.getValue());
+            entrypointMongo.setEnvironment(entrypoint.getEnvironment());
             entrypointMongo.setTags(entrypoint.getTags());
 
             EntrypointMongo entrypointMongoUpdated = internalEntryPointRepo.save(entrypointMongo);
@@ -114,6 +115,22 @@ public class MongoEntrypointRepository implements EntrypointRepository {
                 .map(entrypointMongo -> {
                     final Entrypoint entrypoint = new Entrypoint();
                     entrypoint.setId(entrypointMongo.getId());
+                    entrypoint.setEnvironment(entrypointMongo.getEnvironment());
+                    entrypoint.setValue(entrypointMongo.getValue());
+                    entrypoint.setTags(entrypointMongo.getTags());
+                    return entrypoint;
+                })
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Entrypoint> findAllByEnvironment(String environment) throws TechnicalException {
+        final List<EntrypointMongo> entrypoints = internalEntryPointRepo.findByEnvironment(environment);
+        return entrypoints.stream()
+                .map(entrypointMongo -> {
+                    final Entrypoint entrypoint = new Entrypoint();
+                    entrypoint.setId(entrypointMongo.getId());
+                    entrypoint.setEnvironment(entrypointMongo.getEnvironment());
                     entrypoint.setValue(entrypointMongo.getValue());
                     entrypoint.setTags(entrypointMongo.getTags());
                     return entrypoint;

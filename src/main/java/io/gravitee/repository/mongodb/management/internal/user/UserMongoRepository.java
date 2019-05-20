@@ -34,8 +34,8 @@ public interface UserMongoRepository extends MongoRepository<UserMongo, String>,
 	@Query(value = "{ _id: {$in: ?0} }", fields = "{'picture': 0}")
 	Set<UserMongo> findByIds(List<String> ids);
 
-	@Query(value = "{ 'source': ?0, 'sourceId': {$regex: '^?1$', $options: 'i'} }")
-	UserMongo findBySourceAndSourceId(String source, String sourceId);
+	@Query(value = "{ 'source': ?0, 'sourceId': {$regex: '^?1$', $options: 'i'}, 'environment': ?2 }")
+	UserMongo findBySourceAndSourceId(String source, String sourceId, String environment);
 }
 
 

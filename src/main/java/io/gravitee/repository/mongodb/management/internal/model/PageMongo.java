@@ -31,13 +31,14 @@ public class PageMongo extends Auditable {
 
 	@Id
 	private String id;
+	private String referenceId;
+    private String referenceType;
 	private String name;
 	private String type;
 	private String title;
 	private String content;
 	private String lastContributor;
 	private int order;
-	private String api;
 	private boolean published;
 	private PageSourceMongo source;
 	private Map<String, String> configuration;
@@ -46,15 +47,33 @@ public class PageMongo extends Auditable {
     private String parentId;
 	private Map<String, String> metadata;
 
+	
+
 	public String getId() {
-		return id;
-	}
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public String getName() {
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public String getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    public String getName() {
 		return name;
 	}
 
@@ -100,14 +119,6 @@ public class PageMongo extends Auditable {
 
 	public void setOrder(int order) {
 		this.order = order;
-	}
-
-	public String getApi() {
-		return api;
-	}
-
-	public void setApi(String api) {
-		this.api = api;
 	}
 
 	public boolean isPublished() {
@@ -179,13 +190,14 @@ public class PageMongo extends Auditable {
 	public String toString() {
 		return "PageMongo{" +
 				"id='" + id + '\'' +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType='" + referenceType + '\'' +
 				", name='" + name + '\'' +
 				", type='" + type + '\'' +
 				", title='" + title + '\'' +
 				", content='" + content + '\'' +
 				", lastContributor='" + lastContributor + '\'' +
 				", order=" + order +
-				", api='" + api + '\'' +
 				", published=" + published +
 				", source=" + source +
 				", configuration=" + configuration +

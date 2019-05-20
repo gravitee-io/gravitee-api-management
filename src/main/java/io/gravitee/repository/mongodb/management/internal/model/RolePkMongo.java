@@ -34,6 +34,7 @@ public class RolePkMongo implements Serializable {
         this.name = name;
     }
 
+
     public String getName() {
         return name;
     }
@@ -48,12 +49,14 @@ public class RolePkMongo implements Serializable {
         this.scope = scope;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof RolePkMongo)) return false;
         RolePkMongo roleMongo = (RolePkMongo) o;
-        return Objects.equals(name, roleMongo.name) && Objects.equals(scope, roleMongo.scope);
+        return Objects.equals(name, roleMongo.name) && 
+                Objects.equals(scope, roleMongo.scope);
     }
 
     @Override

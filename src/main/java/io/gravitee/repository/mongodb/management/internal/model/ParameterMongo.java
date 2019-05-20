@@ -30,17 +30,39 @@ public class ParameterMongo {
 	@Id
 	private String key;
 
+    private String referenceId;
+    
+    private String referenceType;
+    
 	private String value;
 
+	
+
 	public String getKey() {
-		return key;
-	}
+        return key;
+    }
 
-	public void setKey(String key) {
-		this.key = key;
-	}
+    public void setKey(String key) {
+        this.key = key;
+    }
 
-	public String getValue() {
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public String getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    public String getValue() {
 		return value;
 	}
 
@@ -66,6 +88,8 @@ public class ParameterMongo {
 	public String toString() {
 		return "ParameterMongo{" +
 				"key='" + key + '\'' +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType='" + referenceType + '\'' +
 				", value='" + value + '\'' +
 				'}';
 	}

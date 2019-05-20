@@ -15,14 +15,15 @@
  */
 package io.gravitee.repository.mongodb.management.internal.application;
 
-import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Set;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,6 +47,12 @@ public interface ApplicationMongoRepository extends MongoRepository<ApplicationM
 
     @Query("{ status: {$in: ?0} }")
     List<ApplicationMongo> findAll(List<ApplicationStatus> statuses);
+    
+    @Query("{ environment: ?0, status: {$in: ?1} }")
+    List<ApplicationMongo> findAllByEnvironment(String environment, List<ApplicationStatus> statuses);
+    
+    @Query("{ environment: ?0 }")
+    List<ApplicationMongo> findAllByEnvironment(String environment);
 }
 
 

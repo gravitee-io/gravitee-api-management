@@ -15,13 +15,15 @@
  */
 package io.gravitee.repository.mongodb.management.internal.role;
 
-import io.gravitee.repository.mongodb.management.internal.model.RoleMongo;
-import io.gravitee.repository.mongodb.management.internal.model.RolePkMongo;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.Set;
+import io.gravitee.repository.mongodb.management.internal.model.RoleMongo;
+import io.gravitee.repository.mongodb.management.internal.model.RolePkMongo;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -32,6 +34,12 @@ public interface RoleMongoRepository extends MongoRepository<RoleMongo, RolePkMo
 
     @Query("{ 'id.scope' : ?0 }")
     Set<RoleMongo> findByScope(int scopeId);
+    
+    @Query("{ 'id.scope' : ?0, referenceId: ?1, referenceType: ?2 }")
+    Set<RoleMongo> findByScopeAndReferenceIdAndReferenceType(int scopeId, String referenceId, String referenceType);
+    
+    @Query("{ referenceId: ?0, referenceType: ?1 }")
+    List<RoleMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }
 
 

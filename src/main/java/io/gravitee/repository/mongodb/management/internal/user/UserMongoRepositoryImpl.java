@@ -53,6 +53,10 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
             if (criteria.hasNoStatus()) {
                 query.addCriteria(where("status").exists(false));
             }
+            
+            if (criteria.getEnvironment() != null) {
+                query.addCriteria(where("environment").is(criteria.getEnvironment()));
+            }
         }
         query.with(new Sort(Sort.Direction.ASC, "lastname", "firstname"));
         if (pageable != null) {

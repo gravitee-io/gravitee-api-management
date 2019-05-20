@@ -15,20 +15,18 @@
  */
 package io.gravitee.repository.mongodb.management.internal.page;
 
-import io.gravitee.repository.management.api.search.PageCriteria;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-
-import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
-import org.springframework.data.mongodb.core.query.Update;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import java.util.List;
 
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
+
+import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -41,22 +39,11 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
 	private MongoTemplate mongoTemplate;
 
 	@Override
-	public int findMaxPageOrderByApi(String apiId) {
+	public int findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, String referenceType) {
 		Query query = new Query();
 		query.limit(1);
 		query.with(new Sort(Sort.Direction.DESC, "order"));
-		query.addCriteria(where("api").is(apiId));
-
-		PageMongo page = mongoTemplate.findOne(query, PageMongo.class);
-		return (page != null) ? page.getOrder() : 0;
-	}
-
-	@Override
-	public int findMaxPortalPageOrder() {
-		Query query = new Query();
-		query.limit(1);
-		query.with(new Sort(Sort.Direction.DESC, "order"));
-		query.addCriteria(where("api").exists(false));
+		query.addCriteria(where("referenceType").is(referenceType).and("referenceId").is(referenceId));
 
 		PageMongo page = mongoTemplate.findOne(query, PageMongo.class);
 		return (page != null) ? page.getOrder() : 0;
@@ -70,11 +57,12 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
 			if (criteria.getHomepage() != null) {
 				q.addCriteria(where("homepage").is(criteria.getHomepage()));
 			}
-			if (criteria.getApi() == null) {
-				q.addCriteria(where("api").exists(false));
-			} else {
-				q.addCriteria(where("api").is(criteria.getApi()));
+			if (criteria.getReferenceId() != null) {
+			    q.addCriteria(where("referenceId").is(criteria.getReferenceId()));
 			}
+			if (criteria.getReferenceType() != null) {
+                q.addCriteria(where("referenceType").is(criteria.getReferenceType()));
+            }
 			if (criteria.getPublished() != null) {
 				q.addCriteria(where("published").is(criteria.getPublished()));
 			}

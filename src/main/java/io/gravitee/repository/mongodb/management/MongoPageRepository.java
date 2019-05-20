@@ -15,22 +15,24 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PageRepository;
-import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageSource;
-import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
-import io.gravitee.repository.mongodb.management.internal.model.PageSourceMongo;
-import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.model.PageSource;
+import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
+import io.gravitee.repository.mongodb.management.internal.model.PageSourceMongo;
+import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -99,7 +101,9 @@ public class MongoPageRepository implements PageRepository {
             if (page.getType() != null) {
                 pageMongo.setType(page.getType().name());
             }
-            pageMongo.setApi(page.getApi());
+            pageMongo.setId(page.getId());
+            pageMongo.setReferenceId(page.getReferenceId());
+            pageMongo.setReferenceType(page.getReferenceType().name());
             pageMongo.setLastContributor(page.getLastContributor());
             pageMongo.setCreatedAt(page.getCreatedAt());
             pageMongo.setUpdatedAt(page.getUpdatedAt());
@@ -137,24 +141,15 @@ public class MongoPageRepository implements PageRepository {
     }
 
     @Override
-    public Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException {
+    public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType) throws TechnicalException {
         try {
-            return internalPageRepo.findMaxPageOrderByApi(apiId);
+            return internalPageRepo.findMaxPageReferenceIdAndReferenceTypeOrder(referenceId, referenceType.name());
         } catch (Exception e) {
-            logger.error("An error occured when searching max order page for api name [{}]", apiId, e);
-            throw new TechnicalException("An error occured when searching max order page for api name");
+            logger.error("An error occured when searching max order page for reference [{}, {}]", referenceId,referenceType, e);
+            throw new TechnicalException("An error occured when searching max order page for reference");
         }
     }
 
-    @Override
-    public Integer findMaxPortalPageOrder() throws TechnicalException {
-        try {
-            return internalPageRepo.findMaxPortalPageOrder();
-        } catch (Exception e) {
-            logger.error("An error occured when searching max order portal page ", e);
-            throw new TechnicalException("An error occured when searching max order portal page");
-        }
-    }
 
     private PageSourceMongo convert(PageSource pageSource) {
         PageSourceMongo pageSourceMongo = new PageSourceMongo();
@@ -162,5 +157,4 @@ public class MongoPageRepository implements PageRepository {
         pageSourceMongo.setConfiguration(pageSource.getConfiguration());
         return pageSourceMongo;
     }
-
 }

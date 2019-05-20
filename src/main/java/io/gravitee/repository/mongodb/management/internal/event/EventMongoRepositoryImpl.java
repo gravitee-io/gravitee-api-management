@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.event;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -26,9 +26,10 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -64,6 +65,11 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
             query.addCriteria(Criteria.where("updatedAt").gte(new Date(filter.getFrom())).lt(new Date(filter.getTo())));
         }
 
+        // set environment
+        if (filter.getEnvironment() != null) {
+            query.addCriteria(Criteria.where("environment").is(filter.getEnvironment()));
+        }
+        
         // set sort by updated at
         query.with(new Sort(Sort.Direction.DESC, "updatedAt"));
 

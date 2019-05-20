@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.page;
+package io.gravitee.repository.mongodb.management.internal.environment;
 
-import java.util.List;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
-import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
+import io.gravitee.repository.mongodb.management.internal.model.EnvironmentMongo;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PageMongoRepositoryCustom {
-
-	List<PageMongo> search(PageCriteria criteria);
-	
-	int findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, String referenceType);
+@Repository
+public interface EnvironmentMongoRepository extends MongoRepository<EnvironmentMongo, String> {
 
 }
+
+

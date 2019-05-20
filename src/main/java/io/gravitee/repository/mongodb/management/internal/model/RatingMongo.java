@@ -31,9 +31,11 @@ public class RatingMongo extends Auditable {
 	@Id
 	private String id;
 
-	private String api;
-
-	private String user;
+    private String referenceId;
+    
+    private String referenceType;
+	
+    private String user;
 
 	private byte rate;
 
@@ -43,23 +45,32 @@ public class RatingMongo extends Auditable {
 
 	private List<RatingAnswerMongo> answers;
 
+
 	public String getId() {
-		return id;
-	}
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public String getApi() {
-		return api;
-	}
+    public String getReferenceId() {
+        return referenceId;
+    }
 
-	public void setApi(String api) {
-		this.api = api;
-	}
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 
-	public String getUser() {
+    public String getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    public String getUser() {
 		return user;
 	}
 
@@ -116,7 +127,8 @@ public class RatingMongo extends Auditable {
 	public String toString() {
 		return "RatingMongo{" +
 				"id='" + id + '\'' +
-				", api='" + api + '\'' +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType='" + referenceType + '\'' +
 				", user='" + user + '\'' +
 				", rate=" + rate +
 				", title='" + title + '\'' +

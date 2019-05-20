@@ -15,13 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.RatingRepository;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.Rating;
-import io.gravitee.repository.mongodb.management.internal.api.RatingMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.RatingMongo;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +28,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
-
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.RatingRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.Rating;
+import io.gravitee.repository.management.model.RatingReferenceType;
+import io.gravitee.repository.mongodb.management.internal.api.RatingMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.RatingMongo;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -56,37 +58,37 @@ public class MongoRatingRepository implements RatingRepository {
     }
 
     @Override
-    public Optional<Rating> findByApiAndUser(final String api, final String user) throws TechnicalException {
-        LOGGER.debug("Find rating by api [{}] and user [{}]", api, user);
-        final RatingMongo rating = internalRatingRepository.findByApiAndUser(api, user);
-        LOGGER.debug("Find rating by api [{}] and user [{}] - DONE", api, user);
+    public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(final String referenceId, final RatingReferenceType referenceType, final String user) throws TechnicalException {
+        LOGGER.debug("Find rating by ref [{}] and user [{}]", referenceId, user);
+        final RatingMongo rating = internalRatingRepository.findByReferenceIdAndReferenceTypeAndUser(referenceId, referenceType.name(), user);
+        LOGGER.debug("Find rating by ref [{}] and user [{}] - DONE", referenceId, user);
         return ofNullable(map(rating));
     }
 
     @Override
     public Rating create(final Rating rating) throws TechnicalException {
-        LOGGER.debug("Create rating for api [{}] by user [{}]", rating.getApi(), rating.getUser());
+        LOGGER.debug("Create rating for ref [{}] by user [{}]", rating.getReferenceId(), rating.getUser());
         final Rating createdRating = map(internalRatingRepository.insert(map(rating)));
-        LOGGER.debug("Create rating for api [{}] by user [{}] - DONE", rating.getApi(), rating.getUser());
+        LOGGER.debug("Create rating for ref [{}] by user [{}] - DONE", rating.getReferenceId(), rating.getUser());
         return createdRating;
     }
 
     @Override
-    public Page<Rating> findByApiPageable(final String api, final Pageable pageable) throws TechnicalException {
-        LOGGER.debug("Find rating by api [{}] with pagination", api);
+    public Page<Rating> findByReferenceIdAndReferenceTypePageable(final String referenceId, final RatingReferenceType referenceType, final Pageable pageable) throws TechnicalException {
+        LOGGER.debug("Find rating by ref [{}] with pagination", referenceId);
         final org.springframework.data.domain.Page<RatingMongo> ratingPageMongo =
-                internalRatingRepository.findByApi(api, new PageRequest(pageable.pageNumber(), pageable.pageSize(), Sort.Direction.DESC, "createdAt"));
+                internalRatingRepository.findByReferenceIdAndReferenceType(referenceId, referenceType.name(), new PageRequest(pageable.pageNumber(), pageable.pageSize(), Sort.Direction.DESC, "createdAt"));
         final List<Rating> ratings = ratingPageMongo.getContent().stream().map(this::map).collect(toList());
         final Page<Rating> ratingPage = new Page<>(ratings, ratingPageMongo.getNumber(), ratingPageMongo.getNumberOfElements(), ratingPageMongo.getTotalElements());
-        LOGGER.debug("Find rating by api [{}] with pagination - DONE", api);
+        LOGGER.debug("Find rating by ref [{}] with pagination - DONE", referenceId);
         return ratingPage;
     }
 
     @Override
-    public List<Rating> findByApi(final String api) throws TechnicalException {
-        LOGGER.debug("Find rating by api [{}]", api);
-        final List<RatingMongo> ratings = internalRatingRepository.findByApi(api);
-        LOGGER.debug("Find rating by api [{}] - DONE", api);
+    public List<Rating> findByReferenceIdAndReferenceType(final String referenceId, final RatingReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("Find rating by ref [{}, {}]", referenceId, referenceType);
+        final List<RatingMongo> ratings = internalRatingRepository.findByReferenceIdAndReferenceType(referenceId, referenceType.name());
+        LOGGER.debug("Find rating by ID [{}, {}] - Done", referenceId, referenceType);
         return ratings.stream().map(this::map).collect(toList());
     }
 
@@ -100,7 +102,6 @@ public class MongoRatingRepository implements RatingRepository {
             throw new IllegalStateException(String.format("No rating found with id [%s]", rating.getId()));
         }
         try {
-            ratingMongo.setApi(rating.getApi());
             ratingMongo.setUser(rating.getUser());
             ratingMongo.setRate(rating.getRate());
             ratingMongo.setTitle(rating.getTitle());
@@ -130,7 +131,8 @@ public class MongoRatingRepository implements RatingRepository {
         }
         final Rating rating = new Rating();
         rating.setId(ratingMongo.getId());
-        rating.setApi(ratingMongo.getApi());
+        rating.setReferenceId(ratingMongo.getReferenceId());
+        rating.setReferenceType(RatingReferenceType.valueOf(ratingMongo.getReferenceType()));
         rating.setUser(ratingMongo.getUser());
         rating.setRate(ratingMongo.getRate());
         rating.setTitle(ratingMongo.getTitle());
@@ -143,7 +145,8 @@ public class MongoRatingRepository implements RatingRepository {
     private RatingMongo map(final Rating rating) {
         final RatingMongo ratingMongo = new RatingMongo();
         ratingMongo.setId(rating.getId());
-        ratingMongo.setApi(rating.getApi());
+        ratingMongo.setReferenceId(rating.getReferenceId());
+        ratingMongo.setReferenceType(rating.getReferenceType().name());
         ratingMongo.setUser(rating.getUser());
         ratingMongo.setRate(rating.getRate());
         ratingMongo.setTitle(rating.getTitle());

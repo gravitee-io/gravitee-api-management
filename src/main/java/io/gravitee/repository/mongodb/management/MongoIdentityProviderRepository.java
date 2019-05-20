@@ -15,18 +15,25 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.IdentityProviderRepository;
-import io.gravitee.repository.management.model.IdentityProvider;
-import io.gravitee.repository.mongodb.management.internal.identityprovider.IdentityProviderMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderMongo;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.IdentityProviderRepository;
+import io.gravitee.repository.management.model.IdentityProvider;
+import io.gravitee.repository.management.model.IdentityProviderReferenceType;
+import io.gravitee.repository.mongodb.management.internal.identityprovider.IdentityProviderMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderMongo;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -168,5 +175,17 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
         }
 
         return identityProvider;
+    }
+
+    @Override
+    public Set<IdentityProvider> findAllByReferenceIdAndReferenceType(String referenceId,
+            IdentityProviderReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("Find all identity providers by ref");
+
+        List<IdentityProviderMongo> identityProviders = internalIdentityProviderRepository.findByReferenceIdAndReferenceType(referenceId, referenceType.name());
+        Set<IdentityProvider> res = mapper.collection2set(identityProviders, IdentityProviderMongo.class, IdentityProvider.class);
+
+        LOGGER.debug("Find all identity providers by ref - Done");
+        return res;
     }
 }

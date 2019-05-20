@@ -109,4 +109,12 @@ public class MongoViewRepository implements ViewRepository {
                 .map(viewMongo -> mapper.map(viewMongo, View.class))
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public Set<View> findAllByEnvironment(String environment) throws TechnicalException {
+        final List<ViewMongo> views = internalViewRepo.findByEnvironment(environment);
+        return views.stream()
+                .map(viewMongo -> mapper.map(viewMongo, View.class))
+                .collect(Collectors.toSet());
+    }
 }

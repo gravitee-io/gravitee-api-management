@@ -15,13 +15,14 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import io.gravitee.repository.mongodb.management.internal.model.RatingMongo;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import io.gravitee.repository.mongodb.management.internal.model.RatingMongo;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -30,9 +31,9 @@ import java.util.List;
 @Repository
 public interface RatingMongoRepository extends MongoRepository<RatingMongo, String> {
 
-    RatingMongo findByApiAndUser(String api, String user);
+    RatingMongo findByReferenceIdAndReferenceTypeAndUser(String referenceId, String referenceType, String user);
 
-    Page<RatingMongo> findByApi(String api, Pageable pageable);
+    Page<RatingMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType, Pageable pageable);
 
-    List<RatingMongo> findByApi(String api);
+    List<RatingMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }

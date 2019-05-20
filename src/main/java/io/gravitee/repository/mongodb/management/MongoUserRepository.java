@@ -52,11 +52,11 @@ public class MongoUserRepository implements UserRepository {
 	private GraviteeMapper mapper;
 
 	@Override
-	public Optional<User> findBySource(final String source, final String sourceId) throws TechnicalException {
+	public Optional<User> findBySource(String source, String sourceId, String envrironment) throws TechnicalException {
 		logger.debug("Find user by name source[{}] user[{}]", source, sourceId);
 
 		String escapedSourceId = escaper.matcher(sourceId).replaceAll("\\\\$1");
-		UserMongo user = internalUserRepo.findBySourceAndSourceId(source, escapedSourceId);
+		UserMongo user = internalUserRepo.findBySourceAndSourceId(source, escapedSourceId, envrironment);
 		User res = mapper.map(user, User.class);
 
 		return Optional.ofNullable(res);
@@ -122,6 +122,7 @@ public class MongoUserRepository implements UserRepository {
 		}
 
 		userMongo.setSource(user.getSource());
+		userMongo.setEnvironment(user.getEnvironment());
 		userMongo.setSourceId(user.getSourceId());
 		userMongo.setFirstname(user.getFirstname());
 		userMongo.setLastname(user.getLastname());
