@@ -69,7 +69,7 @@
                   <ng-md-icon ng-if="api.lifecycle_state === 'published'" icon="cloud_done" size="17" style="top: 3px;">
                     <md-tooltip>Published</md-tooltip>
                   </ng-md-icon>
-                  <ng-md-icon ng-if="api.lifecycle_state === 'unpublished'" icon="cloud_queue" size="17" style="top: 3px;">
+                  <ng-md-icon ng-if="api.lifecycle_state !== 'published'" icon="cloud_queue" size="17" style="top: 3px;">
                     <md-tooltip>Unpublished</md-tooltip>
                   </ng-md-icon>
                   <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope" ng-if="$ctrl.getWorkflowStateLabel(api)"
