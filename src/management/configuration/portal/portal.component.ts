@@ -16,6 +16,7 @@
 import NotificationService from "../../../services/notification.service";
 import PortalConfigService from "../../../services/portalConfig.service";
 import { StateService } from '@uirouter/core';
+import _ = require('lodash');
 
 const PortalSettingsComponent: ng.IComponentOptions = {
   bindings: {
@@ -28,12 +29,11 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     Constants: any
   ) {
     'ngInject';
+    this.settings = _.cloneDeep(Constants);
 
     this.$onInit = () => {
-      this.Constants.authentication.localLogin.enabled = (this.Constants.authentication.localLogin.enabled || !this.hasIdpDefined());
+      this.settings.authentication.localLogin.enabled = (this.settings.authentication.localLogin.enabled || !this.hasIdpDefined());
     };
-
-    this.Constants = Constants;
 
     this.widgets = [
       {'id': 'geo_country', 'label': 'Hits by country'},
@@ -41,21 +41,20 @@ const PortalSettingsComponent: ng.IComponentOptions = {
       {'id': 'host', 'label': 'Hits by HTTP Host header'}];
 
     this.save = () => {
-      PortalConfigService.save(null).then( () => {
+      PortalConfigService.save(this.settings).then( (response) => {
+        _.merge(Constants, response.data);
         NotificationService.show("Configuration saved !");
       });
     };
 
     this.reset = () => {
-      this.PortalConfigService.get().then((response) => {
-        Constants = response.data;
-      });
+      this.settings = _.cloneDeep(Constants);
     };
 
     this.hasIdpDefined = () => {
-      return this.Constants.authentication.google.clientId ||
-       this.Constants.authentication.github.clientId ||
-       this.Constants.authentication.oauth2.clientId;
+      return this.settings.authentication.google.clientId ||
+       this.settings.authentication.github.clientId ||
+       this.settings.authentication.oauth2.clientId;
     }
   }
 };
