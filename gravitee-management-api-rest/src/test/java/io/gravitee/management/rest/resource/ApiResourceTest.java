@@ -19,6 +19,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.api.ApiLifecycleState;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
@@ -72,6 +73,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         updateApiEntity.setName(API);
         updateApiEntity.setVersion("v1");
         updateApiEntity.setProxy(new Proxy());
+        updateApiEntity.setLifecycleState(ApiLifecycleState.CREATED);
         doReturn(mockApi).when(apiService).update(eq(API), any());
     }
 
