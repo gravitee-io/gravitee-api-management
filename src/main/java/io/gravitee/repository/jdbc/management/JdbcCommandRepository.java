@@ -49,6 +49,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Command.class, "commands", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment", Types.NVARCHAR, String.class)
             .addColumn("from", Types.NVARCHAR, String.class)
             .addColumn("to", Types.NVARCHAR, String.class)
             .addColumn("content", Types.NVARCHAR, String.class)
@@ -178,6 +179,9 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         if (criteria.getTo() != null) {
             query.append(" and c.").append(escapeReservedWord("to")).append(" = ? ");
         }
+        if (criteria.getEnvironment() != null) {
+            query.append(" and c.environment = ? ");
+        }
         if (criteria.isNotExpired()) {
             query.append(" and c.expired_at >= ? ");
         }
@@ -194,6 +198,9 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
                 }
                 if (criteria.getTo() != null) {
                     ps.setString(lastIndex++, criteria.getTo());
+                }
+                if (criteria.getEnvironment() != null) {
+                    ps.setString(lastIndex++, criteria.getEnvironment());
                 }
                 if (criteria.isNotExpired()) {
                     ps.setDate(lastIndex++, new java.sql.Date(System.currentTimeMillis()));

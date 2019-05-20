@@ -20,12 +20,12 @@ import io.gravitee.repository.jdbc.orm.JdbcColumn;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageSource;
-import io.gravitee.repository.management.model.PageType;
+import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -52,12 +52,13 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Page.class, "pages", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, PageReferenceType.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, PageType.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("content", Types.NVARCHAR, String.class)
             .addColumn("last_contributor", Types.NVARCHAR, String.class)
             .addColumn("order", Types.INTEGER, int.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
             .addColumn("published", Types.BOOLEAN, boolean.class)
             .addColumn("homepage", Types.BOOLEAN, boolean.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -358,12 +359,13 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     }
 
     @Override
-    public Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.findMaxApiPageOrderByApiId({})", apiId);
+    public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("JdbcPageRepository.findMaxPageReferenceIdAndReferenceTypeOrder({}, {})", referenceId, referenceType);
         try {
-            Integer result = jdbcTemplate.queryForObject("select max(" + ESCAPED_ORDER_COLUMN_NAME + ") from pages where api = ? "
+            Integer result = jdbcTemplate.queryForObject("select max(" + ESCAPED_ORDER_COLUMN_NAME + ") from pages where reference_type = ? and reference_id = ? "
                     , Integer.class
-                    , apiId
+                    , referenceType.name()
+                    , referenceId
             );
             return result == null ? 0 : result;
         } catch (final Exception ex) {
@@ -393,11 +395,13 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                     where.add("p.homepage = ?");
                     params.add(criteria.getHomepage());
                 }
-                if (criteria.getApi() == null) {
-                    where.add("p.api is null");
-                } else {
-                    where.add("p.api = ?");
-                    params.add(criteria.getApi());
+                if (criteria.getReferenceId() != null) {
+                    where.add("p.reference_id = ?");
+                    params.add(criteria.getReferenceId());
+                }
+                if (criteria.getReferenceType() != null) {
+                    where.add("p.reference_type = ?");
+                    params.add(criteria.getReferenceType());
                 }
                 if (criteria.getPublished() != null) {
                     where.add("p.published = ?");
@@ -433,19 +437,4 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             throw new TechnicalException(message, ex);
         }
     }
-
-    @Override
-    public Integer findMaxPortalPageOrder() throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.findMaxPortalPageOrder()");
-        try {
-            return jdbcTemplate.queryForObject("select max(" + ESCAPED_ORDER_COLUMN_NAME + ") from pages where api is null "
-                    , Integer.class
-            );
-        } catch (final Exception ex) {
-            final String message = "Failed to find max portal page order";
-            LOGGER.error(message, ex);
-            throw new TechnicalException(message, ex);
-        }
-    }
-
 }

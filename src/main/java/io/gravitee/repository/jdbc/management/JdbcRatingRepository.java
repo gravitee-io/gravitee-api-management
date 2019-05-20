@@ -21,9 +21,15 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Rating;
+import io.gravitee.repository.management.model.RatingReferenceType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import static java.lang.String.format;
 
 import java.sql.Types;
 import java.util.Date;
@@ -41,9 +47,13 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRatingRepository.class);
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Rating.class, "ratings", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, RatingReferenceType.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("user", Types.NVARCHAR, String.class)
             .addColumn("rate", Types.TINYINT, byte.class)
             .addColumn("title", Types.NVARCHAR, String.class)
@@ -75,13 +85,14 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     }
 
     @Override
-    public Page<Rating> findByApiPageable(String api, Pageable page) throws TechnicalException {
-        LOGGER.debug("JdbcRatingRepository.findByApiPageable({}, {})", api, page);
+    public Page<Rating> findByReferenceIdAndReferenceTypePageable(String referenceId, RatingReferenceType referenceType, Pageable page) throws TechnicalException {
+        LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypePageable({}, {}, {})", referenceId, referenceType, page);
         final List<Rating> ratings;
         try {
-            ratings = jdbcTemplate.query("select r.* from ratings r where api = ? order by created_at desc"
+            ratings = jdbcTemplate.query("select r.* from ratings r where reference_id = ? and reference_type = ? order by created_at desc"
                     , ORM.getRowMapper()
-                    , api
+                    , referenceId
+                    , referenceType.name()
             );
         } catch (final Exception ex) {
             final String message = "Failed to find ratings by api pageable";
@@ -91,28 +102,30 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
         return getResultAsPage(page, ratings);
 
     }
-
+    
     @Override
-    public List<Rating> findByApi(String apiId) throws TechnicalException {
-        LOGGER.debug("JdbcRatingRepository.findByApi({})", apiId);
+    public List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
-            return jdbcTemplate.query("select r.* from ratings r where api = ?"
+            return jdbcTemplate.query("select r.* from ratings r where reference_id = ? and reference_type = ? "
                     , ORM.getRowMapper()
-                    , apiId
+                    , referenceId
+                    , referenceType.name()
             );
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find ratings by api:", ex);
-            throw new TechnicalException("Failed to find ratings by api", ex);
+            LOGGER.error("Failed to find ratings by ref:", ex);
+            throw new TechnicalException("Failed to find ratings by ref", ex);
         }
     }
 
     @Override
-    public Optional<Rating> findByApiAndUser(String api, String user) throws TechnicalException {
-        LOGGER.debug("JdbcRatingRepository.findByApiAndUser({}, {})", api, user);
+    public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user) throws TechnicalException {
+        LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypeAndUser({}, {}, {})", referenceId, referenceType, user);
         try {
-            List<Rating> ratings = jdbcTemplate.query("select r.* from ratings r where api = ? and " + escapeReservedWord("user") + " = ?"
+            List<Rating> ratings = jdbcTemplate.query("select r.* from ratings r where reference_id = ? and reference_type = ?  and " + escapeReservedWord("user") + " = ?"
                     , ORM.getRowMapper()
-                    , api
+                    , referenceId
+                    , referenceType.name()
                     , user
             );
             return ratings.stream().findFirst();
@@ -121,4 +134,5 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
             throw new TechnicalException("Failed to find ratings by api", ex);
         }
     }
+
 }

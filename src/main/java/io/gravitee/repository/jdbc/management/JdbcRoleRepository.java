@@ -15,11 +15,19 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.RoleRepository;
-import io.gravitee.repository.management.model.Role;
-import io.gravitee.repository.management.model.RoleScope;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static java.lang.String.format;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,14 +35,12 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.*;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
-import static java.lang.String.format;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.RoleRepository;
+import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 
 /**
  *
@@ -52,6 +58,8 @@ public class JdbcRoleRepository implements RoleRepository {
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Role.class, "roles", "key")
             .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, RoleReferenceType.class)
             .addColumn(SCOPE_FIELD, Types.NVARCHAR, RoleScope.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("default_role", Types.BIT, boolean.class)
@@ -97,6 +105,8 @@ public class JdbcRoleRepository implements RoleRepository {
             jdbcTemplate.update("update roles set "
                             + " scope = ?"
                             + " , name = ?"
+                            + " , reference_id = ?"
+                            + " , reference_type = ?"
                             + " , description = ?"
                             + " , default_role = ?"
                             + " , " + escapeReservedWord("system") + " = ? "
@@ -107,6 +117,8 @@ public class JdbcRoleRepository implements RoleRepository {
                             + " and name = ? "
                     , role.getScope() == null ? null : role.getScope().name()
                     , role.getName()
+                    , role.getReferenceId()
+                    , role.getReferenceType().name()
                     , role.getDescription()
                     , role.isDefaultRole()
                     , role.isSystem()
@@ -192,7 +204,7 @@ public class JdbcRoleRepository implements RoleRepository {
 
     @Override
     public Optional<Role> findById(RoleScope scope, String name) throws TechnicalException {
-        LOGGER.debug("JdbcRoleRepository.findById({}, {})", scope, name);
+        LOGGER.info("JdbcRoleRepository.findById({}, {})", scope, name);
         try {
             JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
             jdbcTemplate.query("select * from roles r"
@@ -204,7 +216,6 @@ public class JdbcRoleRepository implements RoleRepository {
                     , name
             );
             Optional<Role> result = rowMapper.getRows().stream().findFirst();
-            LOGGER.debug("JdbcRoleRepository.findById({}, {}) = {}", scope, name, result);
             return result;
         } catch (final Exception ex) {
             LOGGER.error("Failed to find role by id:", ex);
@@ -246,6 +257,50 @@ public class JdbcRoleRepository implements RoleRepository {
         } catch (final Exception ex) {
             LOGGER.error("Failed to find all roles:", ex);
             throw new TechnicalException("Failed to find all roles", ex);
+        }
+    }
+
+    @Override
+    public Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType)
+            throws TechnicalException {
+        LOGGER.debug("JdbcRoleRepository.findAllByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
+        try {
+            JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
+            jdbcTemplate.query("select * from roles r "
+                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name "
+                    + " where r.reference_id = ? and r.reference_type = ?"
+                    + " order by r.scope, r.name"
+                    , rowMapper
+                    , referenceId
+                    , referenceType.name()
+            );
+            return new HashSet<>(rowMapper.getRows());
+
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find all roles by ref:", ex);
+            throw new TechnicalException("Failed to find all roles by ref", ex);
+        }
+    }
+
+    @Override
+    public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId,
+            RoleReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("JdbcRoleRepository.findByScopeAndReferenceIdAndReferenceType({}, {}, {})", scope, referenceId, referenceType);
+        try {
+            JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
+            jdbcTemplate.query("select * from roles r "
+                    + " left join role_permissions rp on rp.role_scope = r.scope and rp.role_name = r.name "
+                    + " where r.scope = ? and reference_id = ? and reference_type = ?"
+                    + " order by r.scope, r.name"
+                    , rowMapper
+                    , scope.name()
+                    , referenceId
+                    , referenceType.name()
+            );
+            return new HashSet<>(rowMapper.getRows());
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find role by scope and ref:", ex);
+            throw new TechnicalException("Failed to find role by scope and ref", ex);
         }
     }
 }

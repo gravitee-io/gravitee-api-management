@@ -65,6 +65,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "client_registration_provider_scopes",
             "dictionaries",
             "dictionary_property",
+            "environments",
             "events",
             "event_properties",
             "generic_notification_configs",

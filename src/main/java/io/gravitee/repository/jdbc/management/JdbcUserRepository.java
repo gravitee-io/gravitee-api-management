@@ -47,6 +47,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(User.class, "users", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("email", Types.NVARCHAR, String.class)
             .addColumn("firstname", Types.NVARCHAR, String.class)
@@ -71,12 +72,13 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     }
 
     @Override
-    public Optional<User> findBySource(String source, String sourceId) throws TechnicalException {
+    public Optional<User> findBySource(String source, String sourceId, String environment) throws TechnicalException {
         LOGGER.debug("JdbcUserRepository.findBySource({}, {})", source, sourceId);
         try {
-            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.source = ? and UPPER(u.source_id) = UPPER(?)"
+            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and environment = ?"
                     , ORM.getRowMapper()
                     , source, sourceId
+                    , environment
             );
             return users.stream().findFirst();
         } catch (final Exception ex) {
@@ -113,7 +115,8 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     @Override
     public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
-            LOGGER.debug("JdbcAbstractCrudRepository<{}>.findAll()", getOrm().getTableName());
+            LOGGER.debug("JdbcUserRepository<{}>.search()", getOrm().getTableName());
+            
             try {
                 List result;
                 if (criteria == null) {
@@ -132,6 +135,10 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                         query.append(" and ").append(escapeReservedWord(STATUS_FIELD)).append(" is null ");
                     }
 
+                    if (criteria.getEnvironment() != null ) {
+                        query.append(" and environment = ? ");
+                    }
+                    
                     query.append(" order by lastname, firstname ");
 
                     result = jdbcTemplate.query(query.toString()
@@ -140,6 +147,9 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                                 if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
                                     List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
                                     idx = ORM.setArguments(ps, statuses, idx);
+                                }
+                                if (criteria.getEnvironment() != null ) {
+                                    ORM.setArguments(ps, Arrays.asList(criteria.getEnvironment()), idx);
                                 }
                             }
                             , ORM.getRowMapper()

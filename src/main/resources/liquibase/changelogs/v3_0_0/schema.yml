@@ -3,25 +3,238 @@ databaseChangeLog:
         id: 3.0.0
         author: GraviteeSource Team
         changes:
-        - addColumn:
-            tableName: plans
-            columns:
-              - column:
-                  name: api
-                  type: nvarchar(64)
-                  constraints:
-                    nullable: false;
+          - addColumn:
+              tableName: plans
+              columns:
+                - column:
+                    name: api
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false;
 
-        - sql:
-            sql: update plans p set api = (select pa.api from plan_apis pa where pa.plan_id = p.id)
+          - sql:
+              sql: update plans p set api = (select pa.api from plan_apis pa where pa.plan_id = p.id)
 
-        - droptIndex:
-            tableName: plan_apis
-            indexName: idx_planapis_api
+          - droptIndex:
+              tableName: plan_apis
+              indexName: idx_planapis_api
 
-        - dropPrimaryKey:
-            constraintName: pk_plan_apis
-            tableName: plan_apis
-            
-        - dropTable:
-            tableName: plan_apis
+          - dropPrimaryKey:
+              constraintName: pk_plan_apis
+              tableName: plan_apis
+              
+          - dropTable:
+              tableName: plan_apis
+
+          - addColumn:
+              tableName: pages
+              columns:
+                - column:
+                    name: reference_id
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: reference_type
+                    type: nvarchar(32)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update pages set reference_type='API', reference_id=api where api is not null
+          - sql:
+              sql: update pages set reference_type='ENVIRONMENT', reference_id='DEFAULT' where api is null
+          - dropColumn:
+              columnName: api
+              tableName: pages
+
+          - addColumn:
+              tableName: ratings
+              columns:
+                - column:
+                    name: reference_id
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: reference_type
+                    type: nvarchar(32)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update ratings set reference_type='API', reference_id=api where api is not null
+          - sql:
+              sql: update ratings set reference_type='ENVIRONMENT', reference_id='DEFAULT' where api is null
+          - dropColumn:
+              columnName: api
+              tableName: ratings
+
+          - addColumn:
+              tableName: identity_providers
+              columns:
+                - column:
+                    name: reference_id
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: reference_type
+                    type: nvarchar(32)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update identity_providers set reference_type='ENVIRONMENT', reference_id='DEFAULT'
+          
+          - addColumn:
+              tableName: parameters
+              columns:
+                - column:
+                    name: reference_id
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: reference_type
+                    type: nvarchar(32)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update parameters set reference_type='ENVIRONMENT', reference_id='DEFAULT'
+          
+          - addColumn:
+              tableName: roles
+              columns:
+                - column:
+                    name: reference_id
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+                - column:
+                    name: reference_type
+                    type: nvarchar(32)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update roles set reference_type='ENVIRONMENT', reference_id='DEFAULT'
+
+          - addColumn:
+              tableName: apis
+              columns:
+                - column:
+                    name: environment
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update apis set environment='DEFAULT'
+
+          - addColumn:
+              tableName: api_headers
+              columns:
+                - column:
+                    name: environment
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update api_headers set environment='DEFAULT'
+
+          - addColumn:
+              tableName: applications
+              columns:
+                - column:
+                    name: environment
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update applications set environment='DEFAULT'
+
+          - addColumn:
+              tableName: commands
+              columns:
+                - column:
+                    name: environment
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update commands set environment='DEFAULT'
+
+          - addColumn:
+              tableName: dictionaries
+              columns:
+                - column:
+                    name: environment
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update dictionaries set environment='DEFAULT'
+
+          - addColumn:
+              tableName: entrypoints
+              columns:
+                - column:
+                    name: environment
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update entrypoints set environment='DEFAULT'
+
+          - addColumn:
+              tableName: events
+              columns:
+                - column:
+                    name: environment
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update events set environment='DEFAULT'
+
+          - addColumn:
+              tableName: groups
+              columns:
+                - column:
+                    name: environment
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update groups set environment='DEFAULT'
+
+          - addColumn:
+              tableName: users
+              columns:
+                - column:
+                    name: environment
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+          - sql:
+              sql: update users set environment='DEFAULT'
+
+          - addColumn:
+              tableName: views
+              columns:
+                - column:
+                    name: environment
+                    type: nvarchar(64)
+                    constraints:
+                      nullable: false
+          
+          - sql:
+              sql: update views set environment='DEFAULT'
+
+          - createTable:
+              tableName: environments
+              columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
+          - addPrimaryKey:
+              constraintName: pk_environments
+              columnNames: id
+              tableName: environments
+          - sql:
+              sql: insert into environments (id, name) values ('DEFAULT', 'Default environment')

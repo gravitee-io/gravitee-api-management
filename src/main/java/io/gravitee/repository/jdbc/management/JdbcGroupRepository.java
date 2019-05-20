@@ -54,6 +54,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Group.class, "groups", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
@@ -258,6 +259,27 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         } catch (final Exception ex) {
             LOGGER.error("Failed to find group by ids", ex);
             throw new TechnicalException("Failed to find group by ids", ex);
+        }
+    }
+
+    @Override
+    public Set<Group> findAllByEnvironment(String environment) throws TechnicalException {
+        LOGGER.debug("JdbcGroupRepository.findAllByEnvironment({})", environment);
+        try {
+            List<Group> rows = jdbcTemplate.query(
+                    SELECT_ESCAPED_GROUP_TABLE_NAME + " where environment = ?"
+                    , ORM.getRowMapper()
+                    , environment);
+            Set<Group> groups = new HashSet<>();
+            for (Group group : rows) {
+                addGroupEvents(group);
+                addRoles(group);
+                groups.add(group);
+            }
+            return groups;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find all groups by environment : {}", environment, ex);
+            throw new TechnicalException("Failed to find all groups by environment : " + environment, ex);
         }
     }
 }

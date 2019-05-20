@@ -51,6 +51,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Event.class, "events", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("type", Types.NVARCHAR, EventType.class)
             .addColumn("payload", Types.NVARCHAR, String.class)
@@ -183,7 +184,12 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             args.add(new Date(filter.getTo()));
             started = true;
         }
-
+        if(filter.getEnvironment() != null) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("e.environment = ?");
+            args.add(filter.getEnvironment());
+            started = true;
+        }
         if (!isEmpty(filter.getTypes())) {
             final Collection<String> types = filter.getTypes().stream().map(Enum::name).collect(toList());
             addStringsWhereClause(types, "type", args, builder, started);
@@ -238,6 +244,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         return "{ " + "from: " + filter.getFrom() +
                 ", " + "props: " + filter.getProperties() +
                 ", " + "to: " + filter.getTo() +
+                ", " + "environment: " + filter.getEnvironment() +
                 ", " + "types: " + filter.getTypes() +
                 " }";
     }

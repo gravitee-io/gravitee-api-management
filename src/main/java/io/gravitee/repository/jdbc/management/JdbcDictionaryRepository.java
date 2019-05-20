@@ -15,12 +15,25 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcColumn;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.DictionaryRepository;
-import io.gravitee.repository.management.model.Dictionary;
-import io.gravitee.repository.management.model.*;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
+import static java.lang.String.format;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -28,14 +41,15 @@ import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.*;
-import java.util.*;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
-import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
-import static java.lang.String.format;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcColumn;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.DictionaryRepository;
+import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryProvider;
+import io.gravitee.repository.management.model.DictionaryTrigger;
+import io.gravitee.repository.management.model.DictionaryType;
+import io.gravitee.repository.management.model.LifecycleState;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,6 +62,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Dictionary.class, "dictionaries", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, DictionaryType.class)
@@ -286,6 +301,24 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         } catch (final Exception ex) {
             LOGGER.error("Failed to update dictionary", ex);
             throw new TechnicalException("Failed to update dictionary", ex);
+        }
+    }
+
+    @Override
+    public Set<Dictionary> findAllByEnvironment(String environment) throws TechnicalException {
+        LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironment({})", environment);
+        try {
+            JdbcHelper.CollatingRowMapper<Dictionary> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            jdbcTemplate.query("select * from dictionaries d left join dictionary_property dp on d.id = dp.dictionary_id where d.environment = ?"
+                    , rowMapper
+                    , environment
+            );
+            Set<Dictionary> result = new HashSet<>(rowMapper.getRows());
+            LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironment({}) = {}", environment, result);
+            return result;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find dictionary by environment:", ex);
+            throw new TechnicalException("Failed to find dictionary by environment", ex);
         }
     }
 }

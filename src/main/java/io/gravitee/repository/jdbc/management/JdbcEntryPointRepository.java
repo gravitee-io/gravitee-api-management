@@ -15,12 +15,19 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import java.sql.Types;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
+
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
-import org.springframework.stereotype.Repository;
-
-import java.sql.Types;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -29,8 +36,11 @@ import java.sql.Types;
 @Repository
 public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypoint, String> implements EntrypointRepository {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcEntryPointRepository.class);
+
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Entrypoint.class, "entrypoints", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment", Types.NVARCHAR, String.class)
             .addColumn("value", Types.NVARCHAR, String.class)
             .addColumn("tags", Types.NVARCHAR, String.class)
             .build();
@@ -43,5 +53,20 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
     @Override
     protected String getId(Entrypoint item) {
         return item.getId();
+    }
+    
+    @Override
+    public Set<Entrypoint> findAllByEnvironment(String environment) throws TechnicalException {
+        LOGGER.debug("JdbcEntryPointRepository.findAllByEnvironment({})", environment);
+        try {
+            List<Entrypoint> entrypoints = jdbcTemplate.query("select * from entrypoints where environment = ?"
+                    , ORM.getRowMapper()
+                    , environment
+            );
+            return new HashSet<>(entrypoints);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find entrypoints by environment:", ex);
+            throw new TechnicalException("Failed to find entrypoints by environment", ex);
+        }
     }
 }

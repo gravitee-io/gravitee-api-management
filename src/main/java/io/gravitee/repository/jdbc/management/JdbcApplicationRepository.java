@@ -15,25 +15,36 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.model.*;
+import static java.lang.String.format;
+import static java.util.Collections.emptySet;
+import static org.springframework.util.CollectionUtils.isEmpty;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.*;
-
-import static java.lang.String.format;
-import static java.util.Collections.emptySet;
-import static org.springframework.util.CollectionUtils.isEmpty;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
 
 /**
  *
@@ -49,6 +60,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
     private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Application.class, "applications", "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn(TYPE_FIELD, Types.NVARCHAR, ApplicationType.class)
@@ -278,6 +290,37 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         } catch (final Exception ex) {
             LOGGER.error("Failed to find applications by name", ex);
             throw new TechnicalException("Failed to find applications by name", ex);
+        }
+    }
+
+    @Override
+    public Set<Application> findAllByEnvironment(String environment, ApplicationStatus... ass)
+            throws TechnicalException {
+        LOGGER.debug("JdbcApplicationRepository.findAllByEnvironment({}, {})", environment, (Object[])ass);
+
+        try {
+            List<ApplicationStatus> statuses = Arrays.asList(ass);
+            
+            StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where a.environment = ?");
+            boolean first = false;
+            ORM.buildInCondition(first, query, STATUS_FIELD, statuses);
+
+            JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            jdbcTemplate.query(query.toString()
+                    , (PreparedStatement ps) -> {
+                        ORM.setArguments(ps, Arrays.asList(environment), 1);
+                        ORM.setArguments(ps, statuses, 2);
+                    }
+                    , rowMapper
+            );
+            for (Application application : rowMapper.getRows()) {
+                addGroups(application);
+            }
+            LOGGER.debug("Found {} applications: {}", rowMapper.getRows().size(), rowMapper.getRows());
+            return new HashSet<>(rowMapper.getRows());
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find applications by environment:", ex);
+            throw new TechnicalException("Failed to find applications by environment", ex);
         }
     }
 }
