@@ -1,0 +1,15 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.27.0
+        author: GraviteeSource Team
+        changes:
+          - createTable:
+              tableName: plan_tags
+              columns:
+                - column: {name: plan_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: tag, type: nvarchar(64), constraints: { nullable: false } }
+
+          - addPrimaryKey:
+              constraintName: pk_plan_tags
+              columnNames: plan_id, tag
+              tableName: plan_tags

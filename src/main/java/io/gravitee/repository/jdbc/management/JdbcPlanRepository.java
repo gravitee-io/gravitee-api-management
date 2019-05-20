@@ -77,17 +77,20 @@ public class JdbcPlanRepository implements PlanRepository {
         }
     };
     
-    
     private void addApis(Plan parent) {
         List<String> apis = getApis(parent.getId());
         parent.setApis(new HashSet<>(apis));
+    }
+
+    private void addTags(Plan parent) {
+        List<String> tags = getTags(parent.getId());
+        parent.setTags(new HashSet<>(tags));
     }
     
     private void addCharacteristics(Plan parent) {
         List<String> characteristics = getCharacteristics(parent.getId());
         parent.setCharacteristics(characteristics);
     }
-
     
     private void addExcludedGroups(Plan parent) {        
         List<String> excludedGroups = getExcludedGroups(parent.getId());
@@ -108,6 +111,7 @@ public class JdbcPlanRepository implements PlanRepository {
             if (result.isPresent()) {
                 addCharacteristics(result.get());
                 addExcludedGroups(result.get());
+                addTags(result.get());
             }
             return result;
         } catch (final Exception ex) {
@@ -125,6 +129,7 @@ public class JdbcPlanRepository implements PlanRepository {
             storeApis(item, false);
             storeCharacteristics(item, false);
             storeExcludedGroups(item, false);
+            storeTags(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create plan", ex);
@@ -143,6 +148,7 @@ public class JdbcPlanRepository implements PlanRepository {
             storeApis(plan, true);
             storeCharacteristics(plan, true);
             storeExcludedGroups(plan, true);
+            storeTags(plan, true);
             return findById(plan.getId()).orElseThrow(() ->
                     new IllegalStateException(format("No plan found with id [%s]", plan.getId())));
         } catch (final IllegalStateException ex) {
@@ -158,6 +164,7 @@ public class JdbcPlanRepository implements PlanRepository {
         LOGGER.debug("JdbcPlanRepository.delete({})", id);
         try {
             jdbcTemplate.update("delete from plan_apis where plan_id = ?", id);
+            jdbcTemplate.update("delete from plan_tags where plan_id = ?", id);
             jdbcTemplate.update("delete from plan_characteristics where plan_id = ?", id);
             jdbcTemplate.update("delete from plan_excluded_groups where plan_id = ?", id);
             jdbcTemplate.update(ORM.getDeleteSql(), id);
@@ -170,6 +177,11 @@ public class JdbcPlanRepository implements PlanRepository {
     private List<String> getApis(String planId) {
         LOGGER.debug("JdbcPlanRepository.getApis({})", planId);
         return jdbcTemplate.queryForList("select api from plan_apis where plan_id = ?", String.class, planId);
+    }
+
+    private List<String> getTags(String planId) {
+        LOGGER.debug("JdbcPlanRepository.getTags({})", planId);
+        return jdbcTemplate.queryForList("select tag from plan_tags where plan_id = ?", String.class, planId);
     }
     
     private List<String> getCharacteristics(String planId) {
@@ -237,7 +249,24 @@ public class JdbcPlanRepository implements PlanRepository {
                 }
             });
         }
-    }    
+    }
+
+    private void storeTags(Plan plan, boolean deleteFirst) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.storeTags({}, {})", plan, deleteFirst);
+        try {
+            if (deleteFirst) {
+                jdbcTemplate.update("delete from plan_tags where plan_id = ?", plan.getId());
+            }
+            List<String> filteredTags = ORM.filterStrings(plan.getTags());
+            if (! filteredTags.isEmpty()) {
+                jdbcTemplate.batchUpdate("insert into plan_tags ( plan_id, tag ) values ( ?, ? )"
+                        , ORM.getBatchStringSetter(plan.getId(), filteredTags));
+            }
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to store tags:", ex);
+            throw new TechnicalException("Failed to store tags", ex);
+        }
+    }
 
     @Override
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
@@ -257,6 +286,7 @@ public class JdbcPlanRepository implements PlanRepository {
                 addCharacteristics(plan);
                 addExcludedGroups(plan);
                 addApis(plan);
+                addTags(plan);
             }
             return new HashSet<>(plans);
         } catch (final Exception ex) {

@@ -85,6 +85,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "plan_apis",
             "plan_characteristics",
             "plan_excluded_groups",
+            "plan_tags",
             "portal_notifications",
             "portal_notification_configs",
             "portal_notification_config_hooks",
