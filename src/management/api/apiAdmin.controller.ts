@@ -185,7 +185,11 @@ class ApiAdminController {
   }
 
   canDeploy(): boolean {
-    return !this.Constants.apiReview.enabled || (this.Constants.apiReview.enabled && this.api.workflow_state === 'review_ok');
+    if (this.Constants.apiReview.enabled) {
+      return !this.api.workflow_state || this.api.workflow_state === 'review_ok';
+    } else {
+      return true;
+    }
   }
 
   canReview(): boolean {
