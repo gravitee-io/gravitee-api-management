@@ -133,6 +133,7 @@ public class RedisPlanRepository implements PlanRepository {
         plan.setSecurityDefinition(redisPlan.getSecurityDefinition());
         plan.setCommentRequired(redisPlan.isCommentRequired());
         plan.setCommentMessage(redisPlan.getCommentMessage());
+        plan.setTags(redisPlan.getTags());
         return plan;
     }
 
@@ -185,6 +186,7 @@ public class RedisPlanRepository implements PlanRepository {
         redisPlan.setSecurityDefinition(plan.getSecurityDefinition());
         redisPlan.setCommentRequired(plan.isCommentRequired());
         redisPlan.setCommentMessage(plan.getCommentMessage());
+        redisPlan.setTags(plan.getTags());
         return redisPlan;
     }
 }
