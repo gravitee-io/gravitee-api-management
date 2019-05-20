@@ -39,6 +39,7 @@ public class ApiCriteria {
     private String version;
     private String name;
     private List<ApiLifecycleState> lifecycleStates;
+    private String environment;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -50,6 +51,7 @@ public class ApiCriteria {
         this.version = builder.version;
         this.name = builder.name;
         this.lifecycleStates = builder.lifecycleStates;
+        this.environment = builder.environment;
     }
 
     public List<String> getIds() {
@@ -88,6 +90,10 @@ public class ApiCriteria {
         return lifecycleStates;
     }
 
+    public String getEnvironment() {
+        return environment;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -101,12 +107,13 @@ public class ApiCriteria {
                 Objects.equals(visibility, that.visibility) &&
                 Objects.equals(version, that.version) &&
                 Objects.equals(name, that.name) &&
-                Objects.equals(lifecycleStates, that.lifecycleStates);
+                Objects.equals(lifecycleStates, that.lifecycleStates) &&
+                Objects.equals(environment, that.environment);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, groups, view, label, state, visibility, version, name, lifecycleStates);
+        return Objects.hash(ids, groups, view, label, state, visibility, version, name, lifecycleStates, environment);
     }
 
     public static class Builder {
@@ -119,6 +126,7 @@ public class ApiCriteria {
         private String version;
         private String name;
         private List<ApiLifecycleState> lifecycleStates;
+        private String environment;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = asList(id);
@@ -165,6 +173,11 @@ public class ApiCriteria {
             return this;
         }
 
+        public ApiCriteria.Builder environment(final String environment) {
+            this.environment = environment;
+            return this;
+        }
+        
         public ApiCriteria build() {
             return new ApiCriteria(this);
         }

@@ -26,6 +26,7 @@ import java.util.Objects;
 
 public class Command {
     private String id;
+    private String environment;
     private String from;
     private String to;
     private List<String> tags;
@@ -34,6 +35,14 @@ public class Command {
     private Date expiredAt;
     private Date createdAt;
     private Date updatedAt;
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
 
     public String getId() {
         return id;
@@ -123,6 +132,7 @@ public class Command {
     public String toString() {
         return "Message{" +
                 "id='" + id + '\'' +
+                ", environment='" + environment + '\'' +
                 ", from='" + from + '\'' +
                 ", to='" + to + '\'' +
                 ", tags='" + tags + '\'' +

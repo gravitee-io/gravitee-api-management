@@ -20,18 +20,20 @@ package io.gravitee.repository.management.api.search;
  * @author GraviteeSource Team
  */
 public class PageCriteria {
-    private String api;
+    private String referenceId;
+    private String referenceType;
     private String name;
     private String type;
     private Boolean homepage;
     private Boolean published;
     private String parent;
     private Boolean rootParent;
+    
 
     private PageCriteria() {}
 
-    public String getApi() {
-        return api;
+    public String getReferenceId() {
+        return referenceId;
     }
     public String getName() {
         return name;
@@ -52,8 +54,16 @@ public class PageCriteria {
         return rootParent;
     }
 
-    private void setApi(String api) {
-        this.api = api;
+    public String getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    private void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
     }
     private void setName(String name) {
         this.name = name;
@@ -86,11 +96,16 @@ public class PageCriteria {
             return this.query;
         }
 
-        public Builder api(String api) {
-            this.query.setApi(api);
+        public Builder referenceId(String referenceId) {
+            this.query.setReferenceId(referenceId);
             return this;
         }
 
+        public Builder referenceType(String referenceType) {
+            this.query.setReferenceType(referenceType);
+            return this;
+        }
+        
         public Builder name(String name) {
             this.query.setName(name);
             return this;

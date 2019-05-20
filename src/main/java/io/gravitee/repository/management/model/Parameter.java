@@ -27,6 +27,9 @@ public class Parameter {
     }
 
     private String key;
+    private String referenceId;
+    private ParameterReferenceType referenceType;
+    
     private String value;
 
     public String getKey() {
@@ -45,24 +48,44 @@ public class Parameter {
         this.value = value;
     }
 
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public ParameterReferenceType getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(ParameterReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Parameter)) return false;
         Parameter parameter = (Parameter) o;
-        return Objects.equals(key, parameter.key);
+        return Objects.equals(key, parameter.key) &&
+                Objects.equals(referenceId, parameter.referenceId) &&
+                referenceType == parameter.referenceType;
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(key);
+        return Objects.hash(key, referenceId, referenceType);
     }
 
     @Override
     public String toString() {
         return "Parameter{" +
                 "key='" + key + '\'' +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType='" + referenceType + '\'' +
                 ", value='" + value + '\'' +
                 '}';
     }

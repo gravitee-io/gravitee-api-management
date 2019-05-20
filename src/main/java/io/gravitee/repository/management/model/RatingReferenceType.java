@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
-
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.ApiHeader;
-
-import java.util.Set;
+package io.gravitee.repository.management.model;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiHeaderRepository extends CrudRepository<ApiHeader, String> {
-
-    Set<ApiHeader> findAll() throws TechnicalException;
-    
-    Set<ApiHeader> findAllByEnvironment(String environment) throws TechnicalException;
+public enum RatingReferenceType {
+    API
 }

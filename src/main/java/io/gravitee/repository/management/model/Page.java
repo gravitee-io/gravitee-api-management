@@ -31,6 +31,8 @@ public class Page {
 	}
 
 	private String id;
+	private String referenceId;
+	private PageReferenceType referenceType;
 	private String name;
 	private PageType type;
 	private String content;
@@ -40,7 +42,6 @@ public class Page {
 	private PageSource source;
 	private Map<String, String> configuration;
 	private boolean homepage;
-	private String api;
 	private Date createdAt;
 	private Date updatedAt;
 	private String parentId;
@@ -53,6 +54,22 @@ public class Page {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public String getReferenceId() {
+		return referenceId;
+	}
+
+	public void setReferenceId(String referenceId) {
+		this.referenceId = referenceId;
+	}
+
+	public PageReferenceType getReferenceType() {
+		return referenceType;
+	}
+
+	public void setReferenceType(PageReferenceType referenceType) {
+		this.referenceType = referenceType;
 	}
 
 	public PageType getType() {
@@ -93,14 +110,6 @@ public class Page {
 
 	public void setOrder(int order) {
 		this.order = order;
-	}
-
-	public String getApi() {
-		return api;
-	}
-
-	public void setApi(String api) {
-		this.api = api;
 	}
 
 	public Date getCreatedAt() {
@@ -176,18 +185,22 @@ public class Page {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Page page = (Page) o;
-		return Objects.equals(id, page.id);
+		return Objects.equals(id, page.id) && 
+		        Objects.equals(referenceId, page.referenceId) && 
+		        referenceType == page.referenceType ;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id);
+		return Objects.hash(id, referenceId, referenceType);
 	}
 
 	@Override
 	public String toString() {
 		return "Page{" +
 				"id='" + id + '\'' +
+				", referenceId='" + referenceId + '\'' +
+				", referenceType=" + referenceType +
 				", name='" + name + '\'' +
 				", type=" + type +
 				", content='" + content + '\'' +
@@ -197,7 +210,6 @@ public class Page {
 				", source=" + source +
 				", configuration=" + configuration +
 				", homepage=" + homepage +
-				", api='" + api + '\'' +
 				", createdAt=" + createdAt +
 				", updatedAt=" + updatedAt +
 				", parentId='" + parentId + '\'' +

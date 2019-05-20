@@ -25,6 +25,7 @@ public class CommandCriteria {
     private boolean notExpired;
     private String notFrom;
     private String notAckBy;
+    private String environment;
 
     private CommandCriteria(Builder builder) {
         this.to = builder.to;
@@ -32,6 +33,7 @@ public class CommandCriteria {
         this.notExpired = builder.notDeleted;
         this.notFrom = builder.notFrom;
         this.notAckBy = builder.notAckBy;
+        this.environment = builder.environment;
     }
 
     public String getTo() {
@@ -54,6 +56,10 @@ public class CommandCriteria {
         return notAckBy;
     }
 
+    public String getEnvironment() {
+        return environment;
+    }
+
     @Override
     public String toString() {
         return "criteria {" +
@@ -62,6 +68,7 @@ public class CommandCriteria {
                 "notExpired: " + notExpired +
                 "notFrom: " + notFrom +
                 "notAckBy:" + notAckBy +
+                "environment:" + environment +
                 "}";
     }
 
@@ -71,6 +78,7 @@ public class CommandCriteria {
         private boolean notDeleted;
         private String notFrom;
         private String notAckBy;
+        private  String environment;
 
         public CommandCriteria build() {
             return new CommandCriteria(this);
@@ -98,6 +106,11 @@ public class CommandCriteria {
 
         public Builder notAckBy(String by) {
             this.notAckBy = by;
+            return this;
+        }
+        
+        public Builder environment(String environment) {
+            this.environment = environment;
             return this;
         }
     }

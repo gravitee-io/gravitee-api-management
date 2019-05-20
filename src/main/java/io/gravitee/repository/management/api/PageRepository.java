@@ -15,23 +15,30 @@
  */
 package io.gravitee.repository.management.api;
 
+import java.util.List;
+import java.util.Optional;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
-
-import java.util.Collection;
-import java.util.List;
+import io.gravitee.repository.management.model.PageReferenceType;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PageRepository extends CrudRepository<Page, String> {
+public interface PageRepository {
+
+	Page create(Page page) throws TechnicalException;
+
+	Page update(Page page) throws TechnicalException;
+
+	void delete(String id) throws TechnicalException;
+
+	Optional<Page> findById(String id) throws TechnicalException;
 
 	List<Page> search(PageCriteria criteria) throws TechnicalException;
-
-	Integer findMaxApiPageOrderByApiId(String apiId) throws TechnicalException;
-
-	Integer findMaxPortalPageOrder() throws TechnicalException;
+	
+	Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType) throws TechnicalException;
 }

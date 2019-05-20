@@ -18,26 +18,13 @@ package io.gravitee.repository.management.model;
 import java.util.Objects;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Entrypoint {
-    public enum AuditEvent implements Audit.AuditEvent {
-        ENTRYPOINT_CREATED, ENTRYPOINT_UPDATED, ENTRYPOINT_DELETED
-    }
+public class Environment {
 
     private String id;
-    private String environment;
-    private String value;
-    private String tags;
-
-    public String getEnvironment() {
-        return environment;
-    }
-
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
+    private String name;
 
     public String getId() {
         return id;
@@ -47,28 +34,20 @@ public class Entrypoint {
         this.id = id;
     }
 
-    public String getValue() {
-        return value;
+    public String getName() {
+        return name;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getTags() {
-        return tags;
-    }
-
-    public void setTags(String tags) {
-        this.tags = tags;
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Entrypoint)) return false;
-        Entrypoint that = (Entrypoint) o;
-        return Objects.equals(id, that.id);
+        if (!(o instanceof Environment)) return false;
+        Environment env = (Environment) o;
+        return Objects.equals(id, env.id);
     }
 
     @Override
@@ -78,11 +57,9 @@ public class Entrypoint {
 
     @Override
     public String toString() {
-        return "Entrypoint{" +
+        return "Environment{" +
                 "id='" + id + '\'' +
-                ", environment='" + environment + '\'' +
-                ", value='" + value + '\'' +
-                ", tags='" + tags + '\'' +
+                ", name='" + name + '\'' +
                 '}';
     }
 }

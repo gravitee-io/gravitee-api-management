@@ -35,6 +35,11 @@ public class Api {
     private String id;
 
     /**
+     * The ID of the environment the api is attached to
+     */
+    private String environment;
+    
+    /**
      * The api name.
      */
     private String name;
@@ -104,6 +109,7 @@ public class Api {
 
     public Api(Api cloned) {
         this.id = cloned.id;
+        this.environment = cloned.environment;
         this.name = cloned.name;
         this.description = cloned.description;
         this.version = cloned.version;
@@ -200,6 +206,14 @@ public class Api {
         this.id = id;
     }
 
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
+
     public String getPicture() {
         return picture;
     }
@@ -256,6 +270,7 @@ public class Api {
     public String toString() {
         return "Api{" +
             "id='" + id + '\'' +
+            ", environment='" + environment + '\'' +
             ", name='" + name + '\'' +
             ", description='" + description + '\'' +
             ", version='" + version + '\'' +

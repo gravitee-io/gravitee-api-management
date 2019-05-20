@@ -34,6 +34,11 @@ public class Dictionary {
     private String id;
 
     /**
+     * The ID of the environment the dictionary is attached to
+     */
+    private String environment;
+    
+    /**
      * Dictionary name
      */
     private String name;
@@ -82,6 +87,14 @@ public class Dictionary {
      * For {@code DictionaryType.DYNAMIC} dictionary;
      */
     private DictionaryTrigger trigger;
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
 
     public String getName() {
         return name;

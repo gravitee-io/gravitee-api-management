@@ -28,4 +28,6 @@ import java.util.Set;
 public interface ViewRepository extends CrudRepository<View, String>{
 
     Set<View> findAll() throws TechnicalException;
+    
+    Set<View> findAllByEnvironment(String environment) throws TechnicalException;
 }

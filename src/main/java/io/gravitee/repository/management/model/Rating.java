@@ -27,7 +27,8 @@ public class Rating {
         RATING_CREATED, RATING_UPDATED, RATING_DELETED
     }
     private String id;
-    private String api;
+    private String referenceId;
+    private RatingReferenceType referenceType;
     private String user;
     private byte rate;
     private String title;
@@ -40,14 +41,16 @@ public class Rating {
 
     public Rating(Rating cloned) {
         this.id = cloned.id;
-        this.api = cloned.api;
         this.user = cloned.user;
         this.rate = cloned.rate;
         this.title = cloned.title;
         this.comment = cloned.comment;
         this.createdAt = cloned.createdAt;
         this.updatedAt = cloned.updatedAt;
+        this.referenceId = cloned.referenceId;
+        this.referenceType = cloned.referenceType;
     }
+
 
     public String getId() {
         return id;
@@ -55,14 +58,6 @@ public class Rating {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getApi() {
-        return api;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
     }
 
     public String getUser() {
@@ -113,6 +108,23 @@ public class Rating {
         this.updatedAt = updatedAt;
     }
 
+    
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public RatingReferenceType getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(RatingReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -123,14 +135,15 @@ public class Rating {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, referenceId, referenceType);
     }
 
     @Override
     public String toString() {
         return "Rating{" +
                 "id='" + id + '\'' +
-                ", api='" + api + '\'' +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType=" + referenceType +
                 ", user='" + user + '\'' +
                 ", rate=" + rate +
                 ", title='" + title + '\'' +

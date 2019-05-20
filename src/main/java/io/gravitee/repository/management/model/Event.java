@@ -30,6 +30,11 @@ public class Event {
     private String id;
 
     /**
+     * The ID of the environment the event is attached to
+     */
+    private String environment;
+    
+    /**
      * The event Type
      */
     private EventType type;
@@ -58,6 +63,14 @@ public class Event {
      * The event last updated date
      */
     private Date updatedAt;
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
 
     public String getId() {
         return id;

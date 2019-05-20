@@ -15,16 +15,30 @@
  */
 package io.gravitee.repository.management.api;
 
+import java.util.List;
+import java.util.Optional;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Parameter;
-
-import java.util.List;
+import io.gravitee.repository.management.model.ParameterReferenceType;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ParameterRepository extends CrudRepository<Parameter, String>{
+public interface ParameterRepository {
+    
+    Optional<Parameter> findById(String key) throws TechnicalException;
+
+    Parameter create(Parameter item) throws TechnicalException;
+
+    Parameter update(Parameter item) throws TechnicalException;
+
+    void delete(String key) throws TechnicalException;
+    
     List<Parameter> findAll(List<String> keys) throws TechnicalException;
+    
+    List<Parameter> findAllByReferenceIdAndReferenceType(List<String> keys, String referenceId, ParameterReferenceType referenceType) throws TechnicalException;
+    
 }

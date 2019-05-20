@@ -32,6 +32,11 @@ public class User {
 	 */
 	private String id;
 
+    /**
+     * The ID of the environment the user is attached to
+     */
+    private String environment;
+	
 	/**
 	 * The source when user is coming from an external system (LDAP, ...)
 	 */
@@ -88,6 +93,7 @@ public class User {
 
 	public User(User cloned) {
 		this.id = cloned.id;
+		this.environment = cloned.environment;
 		this.source = cloned.source;
 		this.sourceId = cloned.sourceId;
 		this.password = cloned.password;
@@ -101,7 +107,15 @@ public class User {
 		this.status = cloned.status;
 	}
 
-	public String getId() {
+	public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
+
+    public String getId() {
 		return id;
 	}
 
@@ -214,6 +228,7 @@ public class User {
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("User{");
 		sb.append("id='").append(id).append('\'');
+        sb.append(", environment='").append(environment).append('\'');
 		sb.append(", source='").append(source).append('\'');
 		sb.append(", sourceId='").append(sourceId).append('\'');
 		sb.append(", firstname='").append(firstname).append('\'');

@@ -30,6 +30,7 @@ public class Group {
     }
 
     private String id;
+    private String environment;
     private String name;
     private List<GroupEventRule> eventRules;
     private Map<Integer, String> roles;
@@ -40,6 +41,14 @@ public class Group {
     private boolean lockApplicationRole;
     private boolean systemInvitation;
     private boolean emailInvitation;
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
 
     public String getId() {
         return id;

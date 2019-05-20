@@ -32,4 +32,12 @@ public interface DictionaryRepository extends CrudRepository<Dictionary, String>
      * @throws TechnicalException if something goes wrong
      */
     Set<Dictionary> findAll() throws TechnicalException;
+
+    /**
+     * List all dictionaries by environment
+     * @param environment
+     * @return all dictionaries for a given environment
+     * @throws TechnicalException
+     */
+    Set<Dictionary> findAllByEnvironment(String environment) throws TechnicalException;
 }

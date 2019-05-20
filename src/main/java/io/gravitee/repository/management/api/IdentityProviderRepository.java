@@ -15,16 +15,18 @@
  */
 package io.gravitee.repository.management.api;
 
+import java.util.Optional;
+import java.util.Set;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.IdentityProvider;
-
-import java.util.Set;
+import io.gravitee.repository.management.model.IdentityProviderReferenceType;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface IdentityProviderRepository extends CrudRepository<IdentityProvider, String> {
+public interface IdentityProviderRepository {
 
     /**
      * List all identity providers
@@ -32,4 +34,15 @@ public interface IdentityProviderRepository extends CrudRepository<IdentityProvi
      * @throws TechnicalException if something goes wrong
      */
     Set<IdentityProvider> findAll() throws TechnicalException;
+    
+    Set<IdentityProvider> findAllByReferenceIdAndReferenceType(String referenceId, IdentityProviderReferenceType referenceType) throws TechnicalException;
+    
+    IdentityProvider create(IdentityProvider identityProvider) throws TechnicalException;
+
+    IdentityProvider update(IdentityProvider identityProvider) throws TechnicalException;
+
+    void delete(String key) throws TechnicalException;
+
+    Optional<IdentityProvider> findById(String key) throws TechnicalException;
+    
 }

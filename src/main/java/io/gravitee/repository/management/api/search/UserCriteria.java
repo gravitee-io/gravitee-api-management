@@ -25,10 +25,12 @@ public class UserCriteria {
 
     private UserStatus[] statuses;
     private boolean noStatus;
+    private String environment;
 
     UserCriteria(UserCriteria.Builder builder) {
         this.statuses = builder.statuses;
         this.noStatus = builder.noStatus;
+        this.environment = builder.environment;
     }
 
     public UserStatus[] getStatuses() {
@@ -39,9 +41,20 @@ public class UserCriteria {
         return noStatus;
     }
 
+    
+    public String getEnvironment() {
+        return environment;
+    }
+
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
+
     public static class Builder {
         private UserStatus[] statuses;
         private boolean noStatus;
+        private String environment;
 
         public Builder statuses(UserStatus... statuses) {
             this.statuses = statuses;
@@ -53,6 +66,11 @@ public class UserCriteria {
             return this;
         }
 
+        public Builder environment(String environment) {
+            this.environment = environment;
+            return this;
+        }
+        
         public UserCriteria build() {
             return new UserCriteria(this);
         }

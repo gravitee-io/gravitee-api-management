@@ -15,12 +15,13 @@
  */
 package io.gravitee.repository.management.api;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Role;
-import io.gravitee.repository.management.model.RoleScope;
-
 import java.util.Optional;
 import java.util.Set;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -44,8 +45,20 @@ public interface RoleRepository {
     Set<Role> findByScope(RoleScope scope) throws TechnicalException;
 
     /**
+     * find all roles by scope id
+     * @param scope the scope id (Application, API, Portal or Management)
+     * @param referenceId
+     * @param referenceType
+     * @return list of roles
+     * @throws TechnicalException if something wrong happen
+     */
+    Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType) throws TechnicalException;
+    
+    /**
      * @return get all roles
      * @throws TechnicalException if something wrong happen
      */
     Set<Role> findAll() throws TechnicalException;
+    
+    Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException;
 }

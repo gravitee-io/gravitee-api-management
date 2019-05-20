@@ -32,6 +32,8 @@ public interface GroupRepository extends CrudRepository<Group, String> {
      * @throws TechnicalException if something goes wrong
      */
     Set<Group> findAll() throws TechnicalException;
-
+    
+    Set<Group> findAllByEnvironment(String environment) throws TechnicalException;
+    
     Set<Group> findByIds(Set<String> ids) throws TechnicalException;
 }

@@ -30,12 +30,15 @@ public class EventCriteria {
     private Map<String, Object> properties;
 
     private long from, to;
+    
+    private String environment;
 
     EventCriteria(EventCriteria.Builder builder) {
         this.from = builder.from;
         this.to = builder.to;
         this.types = new HashSet<>(builder.types);
         this.properties = new HashMap<>(builder.properties);
+        this.environment = builder.environment;
     }
 
     public Collection<EventType> getTypes() {
@@ -70,6 +73,14 @@ public class EventCriteria {
         this.to = to;
     }
 
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -80,6 +91,7 @@ public class EventCriteria {
         if (from != that.from) return false;
         if (to != that.to) return false;
         if (types != null ? !types.equals(that.types) : that.types != null) return false;
+        if (environment != null ? !environment.equals(that.environment) : that.environment != null) return false;
         return properties != null ? properties.equals(that.properties) : that.properties == null;
     }
 
@@ -87,6 +99,7 @@ public class EventCriteria {
     public int hashCode() {
         int result = types != null ? types.hashCode() : 0;
         result = 31 * result + (properties != null ? properties.hashCode() : 0);
+        result = 31 * result + (environment != null ? environment.hashCode() : 0);
         result = 31 * result + (int) (from ^ (from >>> 32));
         result = 31 * result + (int) (to ^ (to >>> 32));
         return result;
@@ -100,6 +113,8 @@ public class EventCriteria {
         private long from;
 
         private long to;
+        
+        private String environment;
 
         public Builder from(long from) {
             this.from = from;
@@ -125,6 +140,11 @@ public class EventCriteria {
             return this;
         }
 
+        public Builder environment(String environment) {
+            this.environment = environment;
+            
+            return this;
+        }
         public EventCriteria build() {
             return new EventCriteria(this);
         }

@@ -37,6 +37,14 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
     Set<Application> findAll(ApplicationStatus ... statuses) throws TechnicalException;
 
     /**
+     * List all applications for a gieven environment.
+     * @param environment
+     * @return All public applications.
+     * @throws TechnicalException
+     */
+    Set<Application> findAllByEnvironment(String environment, ApplicationStatus ... statuses) throws TechnicalException;
+    
+    /**
      * find a list of Applications via their ids.
      * @param ids a list of applications id
      * @return List Applications.

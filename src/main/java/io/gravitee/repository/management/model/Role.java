@@ -27,6 +27,8 @@ public class Role {
         ROLE_CREATED, ROLE_UPDATED, ROLE_DELETED
     }
     private String name;
+    private String referenceId;
+    private RoleReferenceType referenceType;
     private RoleScope scope;
     private String description;
     private boolean defaultRole;
@@ -39,6 +41,8 @@ public class Role {
 
     public Role(Role cloned) {
         this.name = cloned.name;
+        this.referenceId = cloned.referenceId;
+        this.referenceType = cloned.referenceType;
         this.scope = cloned.scope;
         this.description = cloned.description;
         this.defaultRole = cloned.defaultRole;
@@ -46,6 +50,22 @@ public class Role {
         this.system = cloned.system;
         this.createdAt = cloned.createdAt;
         this.updatedAt = cloned.updatedAt;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public RoleReferenceType getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(RoleReferenceType referenceType) {
+        this.referenceType = referenceType;
     }
 
     public String getName() {
@@ -110,7 +130,7 @@ public class Role {
         if (this == o) return true;
         if (!(o instanceof Role)) return false;
         Role role = (Role) o;
-        return Objects.equals(name, role.name) && Objects.equals(scope, role.scope);
+        return Objects.equals(name, role.name) && Objects.equals(scope, role.scope) && Objects.equals(referenceId, role.referenceId) && referenceType == role.referenceType;
     }
 
     @Override
@@ -122,6 +142,8 @@ public class Role {
     public String toString() {
         return "Role{" +
                 "name='" + name + '\'' +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType='" + referenceType + '\'' +
                 ", scope='" + scope + '\'' +
                 ", defaultRole='" + defaultRole + '\'' +
                 ", system='" + system + '\'' +
