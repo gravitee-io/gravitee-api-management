@@ -100,6 +100,9 @@ public class PlanEntity {
     @JsonProperty("comment_message")
     private String commentMessage;
 
+    @DeploymentRequired
+    private Set<String> tags;
+
     public String getId() {
         return id;
     }
@@ -258,6 +261,14 @@ public class PlanEntity {
 
     public void setCommentMessage(String commentMessage) {
         this.commentMessage = commentMessage;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     @Override

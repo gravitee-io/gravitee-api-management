@@ -22,6 +22,7 @@ import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -58,6 +59,8 @@ public class UpdatePlanEntity {
 
     @JsonProperty("comment_message")
     private String commentMessage;
+
+    private Set<String> tags;
 
     public String getName() {
         return name;
@@ -145,6 +148,14 @@ public class UpdatePlanEntity {
 
     public void setCommentMessage(String commentMessage) {
         this.commentMessage = commentMessage;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     @Override

@@ -167,6 +167,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setExcludedGroups(newPlan.getExcludedGroups());
             plan.setCommentRequired(newPlan.isCommentRequired());
             plan.setCommentMessage(newPlan.getCommentMessage());
+            plan.setTags(newPlan.getTags());
 
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // There is no need for a validation when authentication is KEY_LESS, force to AUTO
@@ -237,6 +238,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             newPlan.setSecurityDefinition(updatePlan.getSecurityDefinition());
             newPlan.setCommentRequired(updatePlan.isCommentRequired());
             newPlan.setCommentMessage(updatePlan.getCommentMessage());
+            newPlan.setTags(updatePlan.getTags());
 
             String planPolicies = objectMapper.writeValueAsString(updatePlan.getPaths());
             newPlan.setDefinition(planPolicies);
@@ -601,6 +603,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         entity.setCharacteristics(plan.getCharacteristics());
         entity.setCommentRequired(plan.isCommentRequired());
         entity.setCommentMessage(plan.getCommentMessage());
+        entity.setTags(plan.getTags());
 
         return entity;
     }
