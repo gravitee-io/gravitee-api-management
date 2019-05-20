@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -98,6 +99,8 @@ public class Plan {
 
     private String commentMessage;
 
+    private Set<String> tags = new HashSet<>();
+
     public Plan() {
     }
 
@@ -119,6 +122,7 @@ public class Plan {
         this.characteristics = cloned.getCharacteristics();
         this.excludedGroups = cloned.getExcludedGroups();
         this.needRedeployAt = cloned.getNeedRedeployAt();
+        this.tags = cloned.getTags();
     }
 
 
@@ -280,6 +284,14 @@ public class Plan {
 
     public void setCommentMessage(String commentMessage) {
         this.commentMessage = commentMessage;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     @Override
