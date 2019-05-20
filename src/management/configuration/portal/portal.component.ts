@@ -31,8 +31,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
 
     this.$onInit = () => {
       this.Constants.authentication.localLogin.enabled = (this.Constants.authentication.localLogin.enabled || !this.hasIdpDefined());
-      this.save();
-    }
+    };
 
     this.Constants = Constants;
 
