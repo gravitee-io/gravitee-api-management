@@ -24,6 +24,8 @@ class ApiEditPlanController {
   groups: any[];
   api: any;
   policies: any[];
+  tags: any[];
+  userTags: any[];
 
   restrictionsPolicies: any[];
   planPolicies: any[];
@@ -175,6 +177,10 @@ class ApiEditPlanController {
         this.plan.id === undefined ? {'state': 'staging'} : {});
       this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
     });
+  }
+
+  isTagDisabled(tag: any): boolean {
+    return !_.includes(this.userTags, tag.id) || !_.includes(this.api.tags, tag.id);
   }
 }
 

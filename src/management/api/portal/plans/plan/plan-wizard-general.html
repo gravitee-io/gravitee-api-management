@@ -92,6 +92,22 @@
         <br />
 
         <section>
+          <md-subheader>Deployment</md-subheader>
+          <div layout-gt-sm="row">
+            <md-input-container class="md-block" flex="100">
+              <label>Sharding tags</label>
+              <md-select ng-model="$ctrl.parent.plan.tags" multiple>
+                <md-option ng-repeat="tag in $ctrl.parent.tags" ng-value="tag.id" ng-disabled="$ctrl.parent.isTagDisabled(tag)">
+                  {{tag.name}}<span ng-if="tag.description" class="gravitee-general-description"> - {{tag.description}}</span>
+                </md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+        </section>
+
+        <br />
+
+        <section>
           <md-subheader>Access-Control</md-subheader>
 
           <div layout-gt-sm="row">

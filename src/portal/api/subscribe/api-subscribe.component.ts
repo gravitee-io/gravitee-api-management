@@ -126,8 +126,10 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
 
     getCurlSample() {
       let entrypoints = this.ApiService.getTagEntrypoints(this.api, this.entrypoints);
-      return _.map(entrypoints, (entrypoint) => {
-        return 'curl -X GET "' + entrypoint + this.api.context_path + '" -H "' + (this.apiKey ?
+      let planEntrypoints = _.filter(entrypoints, (entrypoint) => _.intersection(entrypoint.tags, this.selectedPlan.tags).length > 0);
+
+      return _.map(planEntrypoints, (entrypoint) => {
+        return 'curl -X GET "' + entrypoint.value + this.api.context_path + '" -H "' + (this.apiKey ?
           this.Constants.portal.apikeyHeader + ': ' + (this.apiKey ? this.apiKey : 'given_api_key') + '"' :
           '"Authorization: Bearer xxxx-xxxx-xxxx-xxxx"');
       });

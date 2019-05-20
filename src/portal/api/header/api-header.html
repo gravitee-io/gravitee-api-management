@@ -45,8 +45,8 @@
       <li ng-repeat="header in $ctrl.apiPortalHeaders" ng-if="header.value">
         {{ header.name | translate }}:
         <span ng-if="header.name === 'api.endpoint'">
-          <span ng-if="$ctrl.getEntrypointsByTags().length === 1">{{::$ctrl.getEntrypointsByTags()[0]}}{{::header.value}}</span>
-          <div ng-if="$ctrl.getEntrypointsByTags().length > 1" ng-repeat="entrypoint in ::$ctrl.getEntrypointsByTags()">- {{::entrypoint}}{{::header.value}}</div>
+          <span ng-if="$ctrl.getEntrypointsByTags().length === 1">{{::$ctrl.getEntrypointsByTags()[0].value}}{{::header.value}}</span>
+          <div ng-if="$ctrl.getEntrypointsByTags().length > 1" ng-repeat="entrypoint in ::$ctrl.getEntrypointsByTags()">- {{::entrypoint.value}}{{::header.value}}</div>
         </span>
         <span ng-if="header.name !== 'api.endpoint'">{{::header.value}}</span>
       </li>

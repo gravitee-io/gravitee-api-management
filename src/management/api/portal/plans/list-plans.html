@@ -40,6 +40,7 @@
               {{plan.name}}
             </h4>
             <span style="font-size: 12px;">Authentication: {{plan.security}}</span>
+            <span style="font-size: 12px;" ng-if="plan.tags && plan.tags.length > 0">Deploy on: {{plan.tags.join(', ')}}</span>
           </div>
           <span flex></span>
           <span ng-if="plan.status !== 'closed'" permission permission-only="'api-plan-u'">

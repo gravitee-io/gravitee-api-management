@@ -274,7 +274,8 @@ class ApiService {
           characteristics: plan.characteristics, order: plan.order, paths: plan.paths,
           excluded_groups: plan.excludedGroups,
           comment_required: plan.comment_required,
-          comment_message: plan.comment_message
+          comment_message: plan.comment_message,
+          tags: plan.tags
         });
     } else {
       return this.$http.post(this.apisURL + apiId + '/plans',
@@ -284,7 +285,8 @@ class ApiService {
           characteristics: plan.characteristics, type: plan.type, paths: plan.paths,
           security: plan.security, securityDefinition: plan.securityDefinition, excluded_groups: plan.excludedGroups,
           comment_required: plan.comment_required,
-          comment_message: plan.comment_message
+          comment_message: plan.comment_message,
+          tags: plan.tags
         });
     }
   }
@@ -527,13 +529,13 @@ class ApiService {
 
   getTagEntrypoints(api, entrypoints) {
     if (!api.tags || api.tags.length === 0) {
-      return [this.Constants.portal.entrypoint];
+      return [{tags: ["default"], value: this.Constants.portal.entrypoint}];
     } else {
       let tagEntrypoints = _.filter(entrypoints, (entrypoint) => _.intersection(entrypoint.tags, api.tags).length > 0);
       if (!tagEntrypoints || tagEntrypoints.length === 0) {
         return [this.Constants.portal.entrypoint];
       }
-      return _.map(tagEntrypoints, 'value');
+      return tagEntrypoints;
     }
   }
 

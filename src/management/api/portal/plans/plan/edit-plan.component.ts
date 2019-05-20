@@ -18,7 +18,9 @@ const ApiEditPlanComponent: ng.IComponentOptions = {
     api: '<',
     plan: '<',
     groups: '<',
-    policies: '<'
+    policies: '<',
+    tags: '<',
+    userTags: '<'
   },
   controller: 'ApiEditPlanController',
   template: require('./edit-plan.html')
