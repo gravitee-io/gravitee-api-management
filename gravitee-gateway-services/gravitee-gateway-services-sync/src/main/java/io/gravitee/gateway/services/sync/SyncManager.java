@@ -45,6 +45,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BinaryOperator;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
@@ -233,7 +234,7 @@ public class SyncManager {
                         Api deployedApi = apiManager.get(api.getId());
 
                         // Does the API have a matching sharding tags ?
-                        if (hasMatchingTags(api)) {
+                        if (hasMatchingTags(api.getTags())) {
                             // API to deploy
                             enhanceWithData(api);
 
@@ -244,6 +245,8 @@ public class SyncManager {
                                 apiManager.update(api);
                             }
                         } else {
+                            logger.debug("The API {} has been ignored because not in configured tags {}", api.getName(), api.getTags());
+
                             // Check that the API was not previously deployed with other tags
                             // In that case, we must undeploy it
                             if (deployedApi != null) {
@@ -258,12 +261,12 @@ public class SyncManager {
         });
     }
 
-    private boolean hasMatchingTags(Api api) {
+    private boolean hasMatchingTags(Set<String> tags) {
         final Optional<List<String>> optTagList = gatewayConfiguration.shardingTags();
 
         if (optTagList.isPresent()) {
             List<String> tagList = optTagList.get();
-            if (api.getTags() != null) {
+            if (tags != null) {
                 final List<String> inclusionTags = tagList.stream()
                         .map(String::trim)
                         .filter(tag -> !tag.startsWith("!"))
@@ -281,28 +284,24 @@ public class SyncManager {
 
                 final boolean hasMatchingTags =
                         inclusionTags.stream()
-                                .anyMatch(tag -> api.getTags().stream()
-                                        .anyMatch(apiTag -> {
+                                .anyMatch(tag -> tags.stream()
+                                        .anyMatch(crtTag -> {
                                             final Collator collator = Collator.getInstance();
                                             collator.setStrength(Collator.NO_DECOMPOSITION);
-                                            return collator.compare(tag, apiTag) == 0;
+                                            return collator.compare(tag, crtTag) == 0;
                                         })
                                 ) || (!exclusionTags.isEmpty() &&
                                 exclusionTags.stream()
-                                        .noneMatch(tag -> api.getTags().stream()
-                                                .anyMatch(apiTag -> {
+                                        .noneMatch(tag -> tags.stream()
+                                                .anyMatch(crtTag -> {
                                                     final Collator collator = Collator.getInstance();
                                                     collator.setStrength(Collator.NO_DECOMPOSITION);
-                                                    return collator.compare(tag, apiTag) == 0;
+                                                    return collator.compare(tag, crtTag) == 0;
                                                 })
                                         ));
-
-                if (!hasMatchingTags) {
-                    logger.debug("The API {} has been ignored because not in configured tags {}", api.getName(), tagList);
-                }
                 return hasMatchingTags;
             }
-            logger.debug("Tags {} are configured on gateway instance but not found on the API {}", tagList, api.getName());
+        //    logger.debug("Tags {} are configured on gateway instance but not found on the API {}", tagList, api.getName());
             return false;
         }
         // no tags configured on this gateway instance
@@ -358,6 +357,18 @@ public class SyncManager {
                     .stream()
                     .filter(plan -> io.gravitee.repository.management.model.Plan.Status.PUBLISHED.equals(plan.getStatus())
                                  || io.gravitee.repository.management.model.Plan.Status.DEPRECATED.equals(plan.getStatus()))
+                    .filter(new Predicate<io.gravitee.repository.management.model.Plan>() {
+                        @Override
+                        public boolean test(io.gravitee.repository.management.model.Plan plan) {
+                            if (plan.getTags() != null && ! plan.getTags().isEmpty()) {
+                                boolean hasMatchingTags = hasMatchingTags(plan.getTags());
+                                logger.debug("Plan name[{}] api[{}] has been ignored because not in configured sharding tags {}", plan.getName(), definition.getName());
+                                return hasMatchingTags;
+                            }
+
+                            return true;
+                        }
+                    })
                     .map(this::convert)
                     .collect(Collectors.toList()));
         } catch (TechnicalException te) {
