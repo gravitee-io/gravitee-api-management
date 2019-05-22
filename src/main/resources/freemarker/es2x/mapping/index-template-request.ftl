@@ -127,6 +127,10 @@
                 },
                 "security-token": {
                     "type": "string"
+                },
+                "error-key": {
+                    "type": "keyword",
+                    "index": true
                 }
                 <#if extendedRequestMappingTemplate??>,<#include "/${extendedRequestMappingTemplate}"></#if>
             }
