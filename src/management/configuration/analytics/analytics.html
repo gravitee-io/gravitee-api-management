@@ -30,7 +30,7 @@
             <md-input-container class="md-block" flex-gt-sm>
                 <label>Analytics widgets</label>
                 <md-select
-                        ng-model="$ctrl.Constants.portal.dashboard.widgets"
+                        ng-model="$ctrl.settings.portal.dashboard.widgets"
                         multiple>
                     <md-option ng-repeat="widget in $ctrl.widgets" value="{{widget.id}}">
                         {{widget.label}}
@@ -44,7 +44,7 @@
         <div class="gv-form-content" layout="column">
             <md-input-container class="md-block" flex-gt-sm>
                 <label>HTTP Client Timeout</label>
-                <input type="number" min="0" ng-model="$ctrl.Constants.analytics.clientTimeout">
+                <input type="number" min="0" ng-model="$ctrl.settings.analytics.clientTimeout">
             </md-input-container>
         </div>
     </div>
