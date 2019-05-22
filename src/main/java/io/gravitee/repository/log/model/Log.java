@@ -50,6 +50,7 @@ public class Log {
     private String user;
     private String securityType;
     private String securityToken;
+    private String errorKey;
 
     public String getId() {
         return id;
@@ -233,6 +234,14 @@ public class Log {
 
     public void setSecurityToken(String securityToken) {
         this.securityToken = securityToken;
+    }
+
+    public String getErrorKey() {
+        return errorKey;
+    }
+
+    public void setErrorKey(String errorKey) {
+        this.errorKey = errorKey;
     }
 
     @Override
