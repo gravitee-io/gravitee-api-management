@@ -31,13 +31,6 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     'ngInject';
     this.settings = _.cloneDeep(Constants);
 
-    this.widgets = [
-      {'id': 'geo_country', 'label': 'Hits by country'},
-      {'id': 'geo_city', 'label': 'Hits by city'},
-      {'id': 'host', 'label': 'Hits by HTTP Host header'},
-      {'id': 'user_agent_name', 'label': 'Hits by user agent'},
-      {'id': 'os_name', 'label': 'Hits by OS'}];
-
     this.save = () => {
       PortalConfigService.save(this.settings).then( (response) => {
         _.merge(Constants, response.data);

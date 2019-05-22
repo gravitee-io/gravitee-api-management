@@ -26,6 +26,8 @@ class DashboardController {
   private analyticsData: any;
   private events: any;
   private query: any;
+  private dashboards: any;
+  private dashboard: any;
 
   constructor(
     private EventsService,
@@ -33,7 +35,9 @@ class DashboardController {
     private ApiService,
     private ApplicationService,
     private $scope,
-    private Constants
+    private Constants,
+    private $state,
+    private $timeout
   ) {
     'ngInject';
     this.eventLabels = {};
@@ -140,7 +144,7 @@ class DashboardController {
     },
     {
       col: 0,
-      row: 2,
+      row: 3,
       sizeY: 1,
       sizeX: 6,
       title: 'Response Status',
@@ -158,7 +162,7 @@ class DashboardController {
       }
     }, {
       col: 0,
-      row: 3,
+      row: 4,
       sizeY: 1,
       sizeX: 6,
       title: 'Response times',
@@ -173,71 +177,228 @@ class DashboardController {
         },
         labels: ['Global latency (ms)', 'API latency (ms)']
       }
-    },
-  {
-    col: 4,
-    row: 0,
-    sizeY: 1,
-    sizeX: 2,
-    title: 'Tenant repartition',
-    subhead: 'Hits repartition by tenant',
-    chart: {
-      type: 'table',
-      selectable: true,
-      columns: ['Tenant', 'Hits'],
-      paging: 5,
-      request: {
-        type: 'group_by',
-        field: 'tenant',
-        size: 20
-
-      }
-    }
-  }];
-
-    if (Constants.portal.dashboard && Constants.portal.dashboard.widgets) {
-      let initialDashboardLength = this.$scope.platformDashboard.length;
-      for (let i = 0; i < Constants.portal.dashboard.widgets.length; i++) {
-        let nbWidget = this.$scope.platformDashboard.length - initialDashboardLength;
-        let row = nbWidget > 2 ? 3 : 2;
-        let col = nbWidget > 2 ? (nbWidget - 3) * 2 : nbWidget * 2;
-        switch (Constants.portal.dashboard.widgets[i]) {
-          case 'host':
-            this.$scope.platformDashboard.push({
-              row: row,
-              col: col,
-              sizeY: 1,
-              sizeX: 2,
-              title: 'Hits by Host ',
-              subhead: 'Hits repartition by Host HTTP Header',
-              chart: {
-                type: 'table',
-                selectable: true,
-                columns: ['Host', 'Hits'],
-                paging: 5,
-                request: {
-                  type: 'group_by',
-                  field: 'host',
-                  fieldLabel: 'host',
-                  size: 20
-
-                }
-              }
-            });
-            break;
+    }, {
+      col: 4,
+      row: 0,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Tenant repartition',
+      subhead: 'Hits repartition by tenant',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Tenant', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'tenant',
+          size: 20
         }
       }
-    }
-
-    _.forEach(this.$scope.platformDashboard, (widget) => {
-      _.merge(widget, {
+    }, {
+        row: 3,
+        col: 0,
+        sizeY: 1,
+        sizeX: 2,
+        title: 'Hits by Host ',
+        subhead: 'Hits repartition by Host HTTP Header',
         chart: {
-          service: {
-            caller: this.AnalyticsService,
-            function: this.AnalyticsService.analytics
+          type: 'table',
+          selectable: true,
+          columns: ['Host', 'Hits'],
+          paging: 5,
+          request: {
+            type: 'group_by',
+            field: 'host',
+            fieldLabel: 'host',
+            size: 20
           }
         }
-      });
+      }];
+
+    this.$scope.geoDashboard = [{
+      row: 0,
+      col: 0,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Top API',
+      subhead: 'Ordered by API calls',
+      chart: {
+        type: 'table',
+        selectable: true,
+        link: 'api',
+        columns: ['API', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'api',
+          size: 10000
+        }
+      }
+    }, {
+      row: 0,
+      col: 2,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Top applications',
+      subhead: 'Ordered by application calls',
+      chart: {
+        type: 'table',
+        selectable: true,
+        link: 'application',
+        columns: ['Application', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'application',
+          size: 10000
+        }
+      }
+    }, {
+      row: 0,
+      col: 4,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Top plans',
+      subhead: 'Hits repartition by API plan',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Plan', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'plan',
+          size: 20
+        }
+      }
+    }, {
+      row: 1,
+      col: 0,
+      sizeY: 2,
+      sizeX: 6,
+      title: 'Geomap',
+      subhead: 'Hits by location',
+      chart: {
+        type: 'map',
+        request: {
+          type: 'group_by',
+          field: 'geoip.country_iso_code'
+        }
+      }
+    }, {
+      row: 3,
+      col: 0,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Geolocation by country',
+      subhead: 'Hits repartition by country',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Country', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'geoip.country_iso_code',
+          fieldLabel: 'country',
+          size: 20
+        }
+      }
+    }, {
+      row: 3,
+      col: 2,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Geolocation by city',
+      subhead: 'Hits repartition by city',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['City', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'geoip.city_name',
+          fieldLabel: 'city',
+          size: 20
+        }
+      }
+    }];
+
+    this.$scope.deviceDashboard = [{
+      row: 3,
+      col: 0,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Hits by user agent',
+      subhead: 'Hits repartition by user agent name',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['User agent name', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'user_agent.name',
+          fieldLabel: 'User agent name',
+          size: 20
+        }
+      }
+    }, {
+      row: 3,
+      col: 2,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Hits by OS',
+      subhead: 'Hits repartition by OS name',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['OS name', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'user_agent.os_name',
+          fieldLabel: 'OS name',
+          size: 20
+        }
+      }
+    }];
+
+    this.dashboards = [{
+      id: 'global',
+      label: 'Global dashboard',
+      widgets: this.$scope.platformDashboard
+    }, {
+      id: 'geo',
+      label: 'Geo dashboard',
+      widgets: this.$scope.geoDashboard
+    }, {
+      id: 'device',
+      label: 'Device dashboard',
+      widgets: this.$scope.deviceDashboard
+    }];
+
+    let dashboardId = this.$state.params.dashboard;
+    if (dashboardId) {
+      this.dashboard = _.find(this.dashboards, {'id': dashboardId});
+    } else {
+      this.dashboard = this.dashboards[0];
+    }
+    this.setDashboard(this.dashboard.id);
+
+    _.forEach(this.dashboards, (dashboard) => {
+      _.forEach(dashboard.widgets, (widget) => {
+        _.merge(widget, {
+          chart: {
+            service: {
+              caller: this.AnalyticsService,
+              function: this.AnalyticsService.analytics
+            }
+          }
+        });
+      })
     });
 
     // init events
@@ -249,6 +410,19 @@ class DashboardController {
 
     this.initPagination();
     this.searchEvents = this.searchEvents.bind(this);
+  }
+
+  onDashboardChanged() {
+    this.$scope.$broadcast('dashboardReload');
+    this.setDashboard(this.dashboard.id);
+  }
+
+  private setDashboard(dashboardId) {
+    this.$timeout(() => {
+      this.$state.transitionTo(
+        'management.platform',
+        _.merge(this.$state.params, {dashboard: dashboardId}));
+    });
   }
 
   onTimeframeChange(timeframe) {

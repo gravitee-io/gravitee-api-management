@@ -37,6 +37,7 @@
       <gv-widget-data-table ng-switch-when="table" data="$ctrl.results"></gv-widget-data-table>
       <gv-widget-chart-line ng-switch-when="line" data="$ctrl.results"></gv-widget-chart-line>
       <gv-widget-chart-pie ng-switch-when="pie" data="$ctrl.results"></gv-widget-chart-pie>
+      <gv-widget-chart-map ng-switch-when="map" data="$ctrl.results"></gv-widget-chart-map>
     </div>
 
     <div ng-if="!$ctrl.fetchData && !$ctrl.results" layout="column" layout-align="center center" flex>

@@ -26,7 +26,7 @@ function apisAnalyticsRouterConfig($stateProvider) {
       template: require("./apis.analytics.route.html")
     })
     .state('management.apis.detail.analytics.overview', {
-      url: '/analytics?from&to&q',
+      url: '/analytics?from&to&q&dashboard',
       template: require('./overview/analytics.html'),
       controller: 'ApiAnalyticsController',
       controllerAs: 'analyticsCtrl',
@@ -52,6 +52,10 @@ function apisAnalyticsRouterConfig($stateProvider) {
           dynamic: true
         },
         q: {
+          type: 'string',
+          dynamic: true
+        },
+        dashboard: {
           type: 'string',
           dynamic: true
         }

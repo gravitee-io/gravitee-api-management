@@ -16,43 +16,28 @@
 
 -->
 <form name="$ctrl.formSettings" class="gv-forms" layout="column" ng-submit="$ctrl.save()">
-    <h1>Analytics</h1>
-    <blockquote>
-        <p style="font-size: 12px">
-            <ng-md-icon icon="info"  style="fill:grey;"></ng-md-icon>
-            Depending on your architecture, this configuration may be overridden by a local configuration file.
-            See documentation for more information.
-        </p>
-    </blockquote>
-    <div class="gv-form">
-        <h2>Dashboard</h2>
-        <div class="gv-form-content" layout="column">
-            <md-input-container class="md-block" flex-gt-sm>
-                <label>Analytics widgets</label>
-                <md-select
-                        ng-model="$ctrl.settings.portal.dashboard.widgets"
-                        multiple>
-                    <md-option ng-repeat="widget in $ctrl.widgets" value="{{widget.id}}">
-                        {{widget.label}}
-                    </md-option>
-                </md-select>
-            </md-input-container>
-        </div>
-    </div>
-    <div class="gv-form">
-        <h2>Settings</h2>
-        <div class="gv-form-content" layout="column">
-            <md-input-container class="md-block" flex-gt-sm>
-                <label>HTTP Client Timeout</label>
-                <input type="number" min="0" ng-model="$ctrl.settings.analytics.clientTimeout">
-            </md-input-container>
-        </div>
-    </div>
+  <h1>Analytics</h1>
+  <blockquote>
+    <p style="font-size: 12px">
+      <ng-md-icon icon="info"  style="fill:grey;"></ng-md-icon>
+      Depending on your architecture, this configuration may be overridden by a local configuration file.
+      See documentation for more information.
+    </p>
+  </blockquote>
+  <div class="gv-form">
+      <h2>Settings</h2>
+      <div class="gv-form-content" layout="column">
+          <md-input-container class="md-block" flex-gt-sm>
+              <label>HTTP Client Timeout</label>
+              <input type="number" min="0" ng-model="$ctrl.Constants.analytics.clientTimeout">
+          </md-input-container>
+      </div>
+  </div>
 
-    <md-card-actions>
-        <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
-                   permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Save</md-button>
-        <md-button type="button" class="md-raised" ng-click="$ctrl.reset()" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
-                   permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Reset</md-button>
-    </md-card-actions>
+  <md-card-actions>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
+                 permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Save</md-button>
+      <md-button type="button" class="md-raised" ng-click="$ctrl.reset()" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
+                 permission permission-only="['portal-settings-c', 'portal-settings-u', 'portal-settings-d']">Reset</md-button>
+  </md-card-actions>
 </form>

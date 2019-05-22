@@ -132,6 +132,7 @@ import WidgetComponent from '../components/widget/widget.component';
 import WidgetDataTableComponent from '../components/widget/widget-data-table.component';
 import WidgetChartLineComponent from '../components/widget/widget-chart-line.component';
 import WidgetChartPieComponent from '../components/widget/widget-chart-pie.component';
+import WidgetChartMapComponent from '../components/widget/widget-chart-map.component';
 import DashboardComponent from '../components/dashboard/dashboard.component';
 import DashboardFilterComponent from '../components/dashboard/dashboard-filter.component';
 import DashboardFilterController from '../components/dashboard/dashboard-filter.controller';
@@ -463,10 +464,15 @@ const Highcharts = require('highcharts');
 const HighchartsMore = require('../../node_modules/highcharts/js/highcharts-more.js');
 const SolidGauge = require('../../node_modules/highcharts/js/modules/solid-gauge.js');
 const NoDataToDisplay = require('../../node_modules/highcharts/js/modules/no-data-to-display.js');
+const Map = require('../../node_modules/highcharts/js/modules/map.js');
 
 HighchartsMore(Highcharts);
 SolidGauge(Highcharts);
 NoDataToDisplay(Highcharts);
+Map(Highcharts);
+
+(<any>window).Highcharts = Highcharts;
+require('../../node_modules/@highcharts/map-collection/custom/world.js');
 
 (<any>window).jsyaml = jsyaml;
 
@@ -643,6 +649,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvWidgetDataTable', WidgetDataTableComponent)
   .component('gvWidgetChartPie', WidgetChartPieComponent)
   .component('gvWidgetChartLine', WidgetChartLineComponent)
+  .component('gvWidgetChartMap', WidgetChartMapComponent)
 
   .component('views', ViewsComponent)
   .component('view', ViewComponent)

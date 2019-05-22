@@ -95,6 +95,10 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
+"@highcharts/map-collection@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@highcharts/map-collection/-/map-collection-1.1.2.tgz#a4a9ba0ae9384a9256fe9f2e3a91474d663570e5"
+
 "@sindresorhus/is@^0.7.0":
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.7.0.tgz#9a06f4f137ee84d7df0460c1fdb1135ffa6c50fd"

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import * as Highcharts from "highcharts";
 import angular = require('angular');
 
 class ChartDirective {
@@ -159,6 +158,7 @@ class ChartDirective {
             newOptions.credits = {
               enabled: false
             };
+
             newOptions.series = _.sortBy(newOptions.series, 'name');
 
             _.forEach(newOptions.series, function (serie) {
@@ -258,7 +258,11 @@ class ChartDirective {
               }
             }
 
-            Highcharts.chart(chartElement, newOptions);
+            if (scope.type === 'map') {
+              Highcharts.mapChart(chartElement, _.cloneDeep(newOptions));
+            } else {
+              Highcharts.chart(chartElement, _.cloneDeep(newOptions));
+            }
           }
         }
       }

@@ -15,17 +15,21 @@
  */
 import _ = require('lodash');
 import { StateService } from '@uirouter/core';
+import PortalService from "../../../../services/portal.service";
 
 class ApiAnalyticsController {
 
   private api: any;
+  private dashboards: any;
+  private dashboard: any;
 
   constructor(
     private ApiService,
     private resolvedApi,
     private $scope,
     private $state: StateService,
-    private Constants: any) {
+    private Constants: any,
+    private $timeout) {
   'ngInject';
     this.ApiService = ApiService;
     this.$scope = $scope;
@@ -171,137 +175,30 @@ class ApiAnalyticsController {
           aggs: 'field:application'
         }
       }
-    }];
-
-    if (Constants.portal.dashboard && Constants.portal.dashboard.widgets) {
-      let initialDashboardLength = this.$scope.apiDashboard.length;
-      for (let i = 0; i < Constants.portal.dashboard.widgets.length; i++) {
-        let nbWidget = this.$scope.apiDashboard.length - initialDashboardLength;
-        let row = nbWidget > 2 ? 4 : 3;
-        let col = nbWidget > 2 ? (nbWidget - 3) * 2 : nbWidget * 2;
-        switch (Constants.portal.dashboard.widgets[i]) {
-          case 'geo_country':
-            this.$scope.apiDashboard.push({
-              row: row,
-              col: col,
-              sizeY: 1,
-              sizeX: 2,
-              title: 'Geolocation by country',
-              subhead: 'Hits repartition by country',
-              chart: {
-                type: 'table',
-                selectable: true,
-                columns: ['Country', 'Hits'],
-                paging: 5,
-                request: {
-                  type: 'group_by',
-                  field: 'geoip.country_iso_code',
-                  fieldLabel: 'country',
-                  size: 20
-
-                }
-              }
-            });
-            break;
-          case 'geo_city':
-            this.$scope.apiDashboard.push({
-              row: row,
-              col: col,
-              sizeY: 1,
-              sizeX: 2,
-              title: 'Geolocation by city',
-              subhead: 'Hits repartition by city',
-              chart: {
-                type: 'table',
-                selectable: true,
-                columns: ['City', 'Hits'],
-                paging: 5,
-                request: {
-                  type: 'group_by',
-                  field: 'geoip.city_name',
-                  fieldLabel: 'city',
-                  size: 20
-
-                }
-              }
-            });
-            break;
-          case 'host':
-            this.$scope.apiDashboard.push({
-              row: row,
-              col: col,
-              sizeY: 1,
-              sizeX: 2,
-              title: 'Hits by Host ',
-              subhead: 'Hits repartition by Host HTTP Header',
-              chart: {
-                type: 'table',
-                selectable: true,
-                columns: ['Host', 'Hits'],
-                paging: 5,
-                request: {
-                  type: 'group_by',
-                  field: 'host',
-                  fieldLabel: 'host',
-                  size: 20
-
-                }
-              }
-            });
-            break;
-          case 'user_agent_name':
-            this.$scope.apiDashboard.push({
-              row: row,
-              col: col,
-              sizeY: 1,
-              sizeX: 2,
-              title: 'Hits by user agent',
-              subhead: 'Hits repartition by user agent name',
-              chart: {
-                type: 'table',
-                selectable: true,
-                columns: ['User agent name', 'Hits'],
-                paging: 5,
-                request: {
-                  type: 'group_by',
-                  field: 'user_agent.name',
-                  fieldLabel: 'User agent name',
-                  size: 20
-
-                }
-              }
-            });
-            break;
-          case 'os_name':
-            this.$scope.apiDashboard.push({
-              row: row,
-              col: col,
-              sizeY: 1,
-              sizeX: 2,
-              title: 'Hits by OS',
-              subhead: 'Hits repartition by OS name',
-              chart: {
-                type: 'table',
-                selectable: true,
-                columns: ['OS name', 'Hits'],
-                paging: 5,
-                request: {
-                  type: 'group_by',
-                  field: 'user_agent.os_name',
-                  fieldLabel: 'OS name',
-                  size: 20
-
-                }
-              }
-            });
-            break;
+    }, {
+      row: 2,
+      col: 0,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Hits by Host ',
+      subhead: 'Hits repartition by Host HTTP Header',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Host', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'host',
+          fieldLabel: 'host',
+          size: 20
         }
       }
-    }
+    }];
 
     let hasTenants = _.chain(this.api.proxy.groups)
-                        .map((group) =>  group.endpoints)
-                        .find((endpoint) => _.has(endpoint, 'tenants'));
+      .map((group) =>  group.endpoints)
+      .find((endpoint) => _.has(endpoint, 'tenants'));
     if (hasTenants === undefined) {
       this.$scope.apiDashboard.push({
         row: 0,
@@ -345,18 +242,170 @@ class ApiAnalyticsController {
       });
     }
 
-    var _that = this;
-
-    _.forEach(this.$scope.apiDashboard, function (widget) {
-      _.merge(widget, {
-        root: _that.api.id,
-        chart: {
-          service: {
-            caller: _that.ApiService,
-            function: _that.ApiService.analytics
-          }
+    this.$scope.geoDashboard = [{
+      row: 0,
+      col: 0,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Top applications',
+      subhead: 'Ordered by application calls',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Application', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'application',
+          size: 20
         }
-      });
+      }
+    }, {
+      row: 0,
+      col: 2,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Top plans',
+      subhead: 'Hits repartition by API plan',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Plan', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'plan',
+          size: 20
+        }
+      }
+    }, {
+      row: 1,
+      col: 0,
+      sizeY: 2,
+      sizeX: 6,
+      title: 'Geomap',
+      subhead: 'Hits by location',
+      chart: {
+        type: 'map',
+        request: {
+          type: 'group_by',
+          field: 'geoip.country_iso_code'
+        }
+      }
+    }, {
+      row: 3,
+      col: 0,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Geolocation by country',
+      subhead: 'Hits repartition by country',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Country', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'geoip.country_iso_code',
+          fieldLabel: 'country',
+          size: 20
+        }
+      }
+    }, {
+      row: 3,
+      col: 2,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Geolocation by city',
+      subhead: 'Hits repartition by city',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['City', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'geoip.city_name',
+          fieldLabel: 'city',
+          size: 20
+        }
+      }
+    }];
+
+    this.$scope.deviceDashboard = [{
+      row: 0,
+      col: 0,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Hits by user agent',
+      subhead: 'Hits repartition by user agent name',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['User agent name', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'user_agent.name',
+          fieldLabel: 'User agent name',
+          size: 20
+        }
+      }
+    }, {
+      row: 0,
+      col: 2,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Hits by OS',
+      subhead: 'Hits repartition by OS name',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['OS name', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'user_agent.os_name',
+          fieldLabel: 'OS name',
+          size: 20
+        }
+      }
+    }];
+
+    this.dashboards = [{
+      id: 'global',
+      label: 'Global dashboard',
+      widgets: this.$scope.apiDashboard
+    }, {
+      id: 'geo',
+      label: 'Geo dashboard',
+      widgets: this.$scope.geoDashboard
+    }, {
+      id: 'device',
+      label: 'Device dashboard',
+      widgets: this.$scope.deviceDashboard
+    }];
+
+    let dashboardId = this.$state.params.dashboard;
+    if (dashboardId) {
+      this.dashboard = _.find(this.dashboards, {'id': dashboardId});
+    } else {
+      this.dashboard = this.dashboards[0];
+    }
+    this.setDashboard(this.dashboard.id);
+
+    _.forEach(this.dashboards, (dashboard) => {
+      _.forEach(dashboard.widgets, (widget) => {
+        _.merge(widget, {
+          root: this.api.id,
+          chart: {
+            service: {
+              caller: this.ApiService,
+              function: this.ApiService.analytics
+            }
+          }
+        });
+      })
     });
   }
 
@@ -365,6 +414,19 @@ class ApiAnalyticsController {
     this.$state.transitionTo(
       'management.apis.detail.analytics.logs',
       this.$state.params);
+  }
+
+  onDashboardChanged() {
+    this.$scope.$broadcast('dashboardReload');
+    this.setDashboard(this.dashboard.id);
+  }
+
+  private setDashboard(dashboardId) {
+    this.$timeout(() => {
+      this.$state.transitionTo(
+        'management.apis.detail.analytics.overview',
+        _.merge(this.$state.params, {dashboard: dashboardId}));
+    });
   }
 }
 
