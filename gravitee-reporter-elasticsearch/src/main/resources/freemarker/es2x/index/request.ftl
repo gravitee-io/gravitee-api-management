@@ -69,4 +69,7 @@
   <#if metrics.getSecurityToken()??>
   ,"security-token":"${metrics.getSecurityToken()}"
   </#if>
+  <#if metrics.getErrorKey()??>
+  ,"error-key":"${metrics.getErrorKey()}"
+  </#if>
 }</@compress>

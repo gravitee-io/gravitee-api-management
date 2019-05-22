@@ -84,6 +84,8 @@ final class LogBuilder {
     private final static String FIELD_SECURITY_TYPE = "security-type";
     private final static String FIELD_SECURITY_TOKEN = "security-token";
 
+    private final static String FIELD_ERROR_KEY = "error-key";
+
     static Log createLog(final SearchHit hit) {
         return createLog(hit, new Log());
     }
@@ -181,6 +183,11 @@ final class LogBuilder {
         final JsonNode secTokenNode = source.get(FIELD_SECURITY_TOKEN);
         if (secTokenNode != null && ! secTokenNode.isNull()) {
             log.setSecurityToken(secTokenNode.asText());
+        }
+
+        final JsonNode errorKeyNode = source.get(FIELD_ERROR_KEY);
+        if (errorKeyNode != null && ! errorKeyNode.isNull()) {
+            log.setErrorKey(errorKeyNode.asText());
         }
 
         return log;
