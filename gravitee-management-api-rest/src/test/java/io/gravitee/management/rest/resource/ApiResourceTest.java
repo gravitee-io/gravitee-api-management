@@ -158,59 +158,48 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertTrue(message, message.contains("The image is not in a valid format"));
     }
 
-    @Test
     public void shouldUploadApiMedia() {
         StreamDataBodyPart filePart = new StreamDataBodyPart("file",
                 this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.valueOf("image/svg+xml"));
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
-
         assertEquals(OK_200, response.getStatus());
     }
 
-    @Test
     public void shouldNotUploadApiMediaBecauseWrongMediaType() {
         StreamDataBodyPart filePart = new StreamDataBodyPart("file",
                 this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.APPLICATION_OCTET_STREAM_TYPE);
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
-
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
         assertTrue(message, message.contains("File format unauthorized"));
     }
 
     private static final MediaType IMAGE_SVG_XML_TYPE = MediaType.valueOf("image/svg+xml");
-
     @Test
     public void shouldNotUploadApiMediaBecauseXSS1() {
         shouldNotUpdateApiMediaBecauseXSS("hacked1.svg");
     }
-
     @Test
     public void shouldNotUploadApiMediaBecauseXSS2() {
         shouldNotUpdateApiMediaBecauseXSS("hacked2.svg");
     }
-
-    @Test
     public void shouldNotUploadApiMediaBecauseXSS3() {
         shouldNotUpdateApiMediaBecauseXSS("hacked3.svg");
     }
 
-    @Test
     public void shouldNotUploadApiMediaBecauseXSS4() {
         shouldNotUpdateApiMediaBecauseXSS("hacked4.svg");
     }
-
     private void shouldNotUpdateApiMediaBecauseXSS(final String fileName) {
         final StreamDataBodyPart filePart = new StreamDataBodyPart("file",
                 this.getClass().getResourceAsStream("/media/" + fileName), fileName, IMAGE_SVG_XML_TYPE);
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
-
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
         assertTrue(message, message.contains("The image is not in a valid format"));
