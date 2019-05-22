@@ -53,6 +53,8 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
     protected void handleFailure(final ExecutionContext context, final ProcessorFailure failure) {
         final Response response = context.response();
 
+        context.request().metrics().setErrorKey(failure.key());
+
         response.status(failure.statusCode());
         response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
