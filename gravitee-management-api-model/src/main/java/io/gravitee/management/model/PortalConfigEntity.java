@@ -183,7 +183,6 @@ public class PortalConfigEntity {
 
         private PortalApis apis;
         private PortalAnalytics analytics;
-        private PortalDashboard dashboard;
         private PortalRating rating;
 
         private PortalUploadMedia media;
@@ -191,7 +190,6 @@ public class PortalConfigEntity {
         public Portal() {
             apis = new PortalApis();
             analytics = new PortalAnalytics();
-            dashboard = new PortalDashboard();
             rating = new PortalRating();
             media = new PortalUploadMedia();
         }
@@ -266,14 +264,6 @@ public class PortalConfigEntity {
 
         public void setAnalytics(PortalAnalytics analytics) {
             this.analytics = analytics;
-        }
-
-        public PortalDashboard getDashboard() {
-            return dashboard;
-        }
-
-        public void setDashboard(PortalDashboard dashboard) {
-            this.dashboard = dashboard;
         }
 
         public PortalRating getRating() {
@@ -669,20 +659,6 @@ public class PortalConfigEntity {
 
         public void setApiHeaderShowViews(Enabled apiHeaderShowViews) {
             this.apiHeaderShowViews = apiHeaderShowViews;
-        }
-    }
-
-    public static class PortalDashboard {
-        @ParameterKey(Key.PORTAL_DASHBOARD_WIDGETS)
-        //available values:  "geo_country","geo_city"
-        private List<String> widgets;
-
-        public List<String> getWidgets() {
-            return widgets;
-        }
-
-        public void setWidgets(List<String> widgets) {
-            this.widgets = widgets;
         }
     }
 
