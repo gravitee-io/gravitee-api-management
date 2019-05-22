@@ -16,6 +16,7 @@
 import NotificationService from "../../../services/notification.service";
 import PortalConfigService from "../../../services/portalConfig.service";
 import { StateService } from '@uirouter/core';
+import _ = require('lodash');
 
 const PortalSettingsComponent: ng.IComponentOptions = {
   bindings: {
@@ -29,21 +30,31 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     Constants: any
   ) {
     'ngInject';
-    this.Constants = Constants;
+    this.settings = _.cloneDeep(Constants);
+
+    this.$onInit = () => {
+      this.settings.authentication.localLogin.enabled = (this.settings.authentication.localLogin.enabled || !this.hasIdpDefined());
+    };
 
     this.save = () => {
-      PortalConfigService.save().then( () => {
-        NotificationService.show("Configuration saved");
+      PortalConfigService.save(this.settings).then( (response) => {
+        _.merge(Constants, response.data);
+        NotificationService.show("Configuration saved !");
         this.formSettings.$setPristine();
       });
     };
 
     this.reset = () => {
-      PortalConfigService.get().then((response) => {
-        this.Constants = response.data;
-        this.formSettings.$setPristine();
-      });
+      this.settings = _.cloneDeep(Constants);
+      this.formSettings.$setPristine();
+
     };
+
+    this.hasIdpDefined = () => {
+      return this.settings.authentication.google.clientId ||
+       this.settings.authentication.github.clientId ||
+       this.settings.authentication.oauth2.clientId;
+    }
   }
 };
 
