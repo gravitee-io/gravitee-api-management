@@ -22,6 +22,7 @@ import io.gravitee.repository.analytics.query.SortBuilder;
 import io.gravitee.repository.analytics.query.SortType;
 import io.gravitee.repository.analytics.query.count.CountResponse;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
+import io.gravitee.repository.analytics.query.groupby.GroupByResponse.Bucket;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
 import org.junit.Assert;
 import org.junit.Test;
@@ -149,9 +150,24 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
                         .range(100, 199)
                         .range(200, 299)
                         .range(300, 399)
+                        .range(400, 499)
                         .build());
-
+        
         Assert.assertNotNull(response);
+        for(Bucket bucket : response.getValues()) {
+        	if( bucket.name().startsWith("100")) {
+        		Assert.assertEquals(0,  bucket.value());
+        	}
+        	if( bucket.name().startsWith("200")) {
+        		Assert.assertEquals(1,  bucket.value()); //line 56 in bulk.json
+        	}
+        	if( bucket.name().startsWith("300")) {
+        		Assert.assertEquals(0,  bucket.value());
+        	}
+        	if( bucket.name().startsWith("400")) {
+        		Assert.assertEquals(1,  bucket.value()); //line 42 in bulk.json
+        	}
+        }
     }
 
     @Test

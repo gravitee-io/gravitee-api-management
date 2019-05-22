@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -86,9 +87,24 @@ public class FreeMarkerComponent implements InitializingBean {
      */
     public String generateFromTemplate(final String templateName, final Map<String, Object> data) {
         try (final StringWriter output = new StringWriter()) {
-            final Template template = this.configuration.getTemplate(templateName);
-            template.process(data, output);
+            generateFromTemplate(templateName, data, output);
             return output.getBuffer().toString();
+        } catch (final IOException exception) {
+            logger.error("Impossible to generate from template {}", templateName, exception);
+            throw new IllegalArgumentException();
+        }
+    }
+
+    /**
+     * Generate a string from a FreeMarker template.
+     * @param templateName name of the FreeMarker template
+     * @param data data of the template
+     * @return the string generated from the template
+     */
+    public void generateFromTemplate(final String templateName, final Map<String, Object> data, Writer writer) {
+        try {
+            final Template template = this.configuration.getTemplate(templateName);
+            template.process(data, writer);
         } catch (final IOException | TemplateException exception) {
             logger.error("Impossible to generate from template {}", templateName, exception);
             throw new IllegalArgumentException();

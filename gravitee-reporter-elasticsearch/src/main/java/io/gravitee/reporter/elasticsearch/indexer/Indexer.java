@@ -17,6 +17,7 @@ package io.gravitee.reporter.elasticsearch.indexer;
 
 import io.gravitee.reporter.api.Reportable;
 import io.reactivex.Single;
+import io.vertx.core.buffer.Buffer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -24,5 +25,5 @@ import io.reactivex.Single;
  */
 public interface Indexer {
 
-    Single<String> index(Reportable reportable);
+    void index(Reportable reportable);
 }

@@ -21,6 +21,7 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import io.vertx.core.buffer.Buffer;
 
 import java.util.List;
 
@@ -34,7 +35,7 @@ public interface Client {
 
     Single<Health> getClusterHealth();
 
-    Single<BulkResponse> bulk(List<String> data);
+    Single<BulkResponse> bulk(List<Buffer> data);
 
     Completable putTemplate(String templateName, String template);
 
