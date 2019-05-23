@@ -38,7 +38,7 @@ public class Plan {
     @JsonProperty(value = "paths", required = true)
     private Map<String, Path> paths = new HashMap<>();
 
-    private Set<String> apis;
+    private String api;
 
     private String selectionRule;
 
@@ -82,12 +82,12 @@ public class Plan {
         this.securityDefinition = securityDefinition;
     }
 
-    public Set<String> getApis() {
-        return apis;
+    public String getApi() {
+        return api;
     }
 
-    public void setApis(Set<String> apis) {
-        this.apis = apis;
+    public void setApi(String api) {
+        this.api = api;
     }
 
     public String getSelectionRule() {
