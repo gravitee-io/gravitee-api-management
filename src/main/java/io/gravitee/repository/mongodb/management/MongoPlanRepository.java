@@ -43,7 +43,7 @@ public class MongoPlanRepository implements PlanRepository {
 
     @Override
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
-            return internalPlanRepository.findByApisContaining(apiId)
+            return internalPlanRepository.findByApi(apiId)
                     .stream()
                     .map(this::map)
                     .collect(Collectors.toSet());

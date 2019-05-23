@@ -50,9 +50,9 @@ public class PlanMongo extends Auditable {
     private int order;
 
     /**
-     * List of API used by this plan.
+     * The API used by this plan.
      */
-    private Set<String> apis;
+    private String api;
 
     /**
      * The JSON payload of all policies to apply for this plan
@@ -125,12 +125,12 @@ public class PlanMongo extends Auditable {
         this.type = type;
     }
 
-    public Set<String> getApis() {
-        return apis;
+    public String getApi() {
+        return api;
     }
 
-    public void setApis(Set<String> apis) {
-        this.apis = apis;
+    public void setApi(String api) {
+        this.api = api;
     }
 
     public String getDefinition() {

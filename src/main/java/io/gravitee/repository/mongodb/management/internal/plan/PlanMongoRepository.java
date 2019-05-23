@@ -15,11 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.plan;
 
-import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
+import java.util.List;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,5 +29,5 @@ import java.util.List;
 @Repository
 public interface PlanMongoRepository extends MongoRepository<PlanMongo, String> {
 
-    List<PlanMongo> findByApisContaining(String api);
+    List<PlanMongo> findByApi(String api);
 }

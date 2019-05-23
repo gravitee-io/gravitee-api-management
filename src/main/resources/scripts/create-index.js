@@ -21,7 +21,7 @@ db.events.reIndex();
 
 // "plans" collection
 db.plans.dropIndexes();
-db.plans.createIndex( { "apis" : 1 } );
+db.plans.createIndex( { "api" : 1 } );
 db.plans.reIndex();
 
 // "subscriptions" collection
