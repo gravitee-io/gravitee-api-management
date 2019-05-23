@@ -15,21 +15,22 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Plan;
+import static io.gravitee.repository.utils.DateUtils.parse;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 
-import static io.gravitee.repository.utils.DateUtils.parse;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.*;
+import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Plan;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,7 +49,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(plan.getDescription()).thenReturn("Description for the new plan");
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getApis()).thenReturn(singleton("my-api"));
+        when(plan.getApi()).thenReturn("my-api");
         when(plan.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(plan.getUpdatedAt()).thenReturn(parse("12/02/2016"));
         when(plan.getPublishedAt()).thenReturn(parse("13/02/2016"));
@@ -60,7 +61,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(plan2.getId()).thenReturn("my-plan");
         when(plan2.getName()).thenReturn("Free plan");
         when(plan2.getDescription()).thenReturn("Description of the free plan");
-        when(plan2.getApis()).thenReturn(singleton("api1"));
+        when(plan2.getApi()).thenReturn("api1");
         when(plan2.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
         when(plan2.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan2.getType()).thenReturn(Plan.PlanType.API);
@@ -83,7 +84,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(planOAuth2.getDescription()).thenReturn("Description for the new oauth2 plan");
         when(planOAuth2.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(planOAuth2.getType()).thenReturn(Plan.PlanType.API);
-        when(planOAuth2.getApis()).thenReturn(singleton("my-api"));
+        when(planOAuth2.getApi()).thenReturn("my-api");
         when(planOAuth2.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(planOAuth2.getUpdatedAt()).thenReturn(parse("12/02/2016"));
         when(planOAuth2.getPublishedAt()).thenReturn(parse("13/02/2016"));
@@ -99,7 +100,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(createdPlanOAuth2.getDescription()).thenReturn("Description of oauth2");
         when(createdPlanOAuth2.getValidation()).thenReturn(Plan.PlanValidationType.MANUAL);
         when(createdPlanOAuth2.getType()).thenReturn(Plan.PlanType.API);
-        when(createdPlanOAuth2.getApis()).thenReturn(singleton("4e0db366-f772-4489-8db3-66f772b48989"));
+        when(createdPlanOAuth2.getApi()).thenReturn("4e0db366-f772-4489-8db3-66f772b48989");
         when(createdPlanOAuth2.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(createdPlanOAuth2.getUpdatedAt()).thenReturn(parse("12/02/2016"));
         when(createdPlanOAuth2.getStatus()).thenReturn(Plan.Status.STAGING);

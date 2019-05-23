@@ -47,7 +47,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertEquals("my-plan", plan.get().getId());
         assertEquals("Free plan", plan.get().getName());
         assertEquals("Description of the free plan", plan.get().getDescription());
-        assertEquals("api1", plan.get().getApis().stream().findFirst().get());
+        assertEquals("api1", plan.get().getApi());
         assertEquals(Plan.PlanSecurityType.API_KEY, plan.get().getSecurity());
         assertEquals(Plan.PlanValidationType.AUTO, plan.get().getValidation());
         assertEquals(Plan.PlanType.API, plan.get().getType());
@@ -75,7 +75,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertEquals("plan-oauth2", planOAuth2.get().getId());
         assertEquals("oauth2", planOAuth2.get().getName());
         assertEquals("Description of oauth2", planOAuth2.get().getDescription());
-        assertEquals("4e0db366-f772-4489-8db3-66f772b48989", planOAuth2.get().getApis().stream().findFirst().get());
+        assertEquals("4e0db366-f772-4489-8db3-66f772b48989", planOAuth2.get().getApi());
         assertEquals(Plan.PlanSecurityType.OAUTH2, planOAuth2.get().getSecurity());
         assertEquals(Plan.PlanValidationType.MANUAL, planOAuth2.get().getValidation());
         assertEquals(Plan.PlanType.API, planOAuth2.get().getType());
@@ -120,7 +120,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         plan.setValidation(Plan.PlanValidationType.AUTO);
         plan.setType(Plan.PlanType.API);
         plan.setStatus(Plan.Status.STAGING);
-        plan.setApis(Collections.singleton("my-api"));
+        plan.setApi("my-api");
         plan.setCreatedAt(parse("11/02/2016"));
         plan.setUpdatedAt(parse("12/02/2016"));
         plan.setPublishedAt(parse("13/02/2016"));
@@ -137,7 +137,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid plan description.", plan.getDescription(), createdPlan.getDescription());
         Assert.assertEquals("Invalid plan validation.", plan.getValidation(), createdPlan.getValidation());
         Assert.assertEquals("Invalid plan type.", plan.getType(), createdPlan.getType());
-        Assert.assertEquals("Invalid plan APIs.", plan.getApis().size(), createdPlan.getApis().size());
+        Assert.assertEquals("Invalid plan API.", plan.getApi(), createdPlan.getApi());
         Assert.assertEquals("Invalid plan created date.", plan.getCreatedAt(), createdPlan.getCreatedAt());
         Assert.assertEquals("Invalid plan updated date.", plan.getUpdatedAt(), createdPlan.getUpdatedAt());
         Assert.assertEquals("Invalid plan status.", plan.getStatus(), createdPlan.getStatus());
@@ -157,7 +157,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         plan.setValidation(Plan.PlanValidationType.AUTO);
         plan.setType(Plan.PlanType.API);
         plan.setStatus(Plan.Status.STAGING);
-        plan.setApis(Collections.singleton("my-api"));
+        plan.setApi("my-api");
         plan.setCreatedAt(parse("11/02/2016"));
         plan.setUpdatedAt(parse("12/02/2016"));
         plan.setPublishedAt(parse("13/02/2016"));
@@ -176,7 +176,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid oauth2 plan description.", plan.getDescription(), createdPlan.getDescription());
         Assert.assertEquals("Invalid oauth2 plan validation.", plan.getValidation(), createdPlan.getValidation());
         Assert.assertEquals("Invalid oauth2 plan type.", plan.getType(), createdPlan.getType());
-        Assert.assertEquals("Invalid oauth2 plan APIs.", plan.getApis().size(), createdPlan.getApis().size());
+        Assert.assertEquals("Invalid oauth2 plan API.", plan.getApi(), createdPlan.getApi());
         Assert.assertEquals("Invalid oauth2 plan created date.", plan.getCreatedAt(), createdPlan.getCreatedAt());
         Assert.assertEquals("Invalid oauth2 plan updated date.", plan.getUpdatedAt(), createdPlan.getUpdatedAt());
         Assert.assertEquals("Invalid oauth2 plan status.", plan.getStatus(), createdPlan.getStatus());

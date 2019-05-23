@@ -3,7 +3,7 @@
       "id":"my-plan",
       "name":"Free plan",
       "description": "Description of the free plan",
-      "apis": ["api1"],
+      "api": "api1",
       "security": "API_KEY",
       "validation": "AUTO",
       "type": "API",
@@ -26,21 +26,21 @@
    {
       "id":"updated-plan",
       "name":"old plan",
-      "apis": ["api3"],
+      "api": "api3",
       "commentRequired": true
    },
    {
       "id":"products",
       "name":"Products",
       "description": "Description for products view",
-      "apis": ["api1"],
+      "api": "api1",
       "commentRequired": false
    },
    {
       "id":"stores",
       "name":"Stores",
       "description": "Description for stores view",
-      "apis": ["api2"]
+      "api": "api2"
    },
    {
       "id": "plan-oauth2",
@@ -53,9 +53,7 @@
       "selectionRule": "#context.attributes['jwt'].claims['iss'] == 'toto'",
       "type": "API",
       "status": "STAGING",
-      "apis": [
-         "4e0db366-f772-4489-8db3-66f772b48989"
-      ],
+      "api": "4e0db366-f772-4489-8db3-66f772b48989",
       "order": 0,
       "characteristics": [],
       "createdAt": 1455148800000,
