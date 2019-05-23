@@ -24,6 +24,7 @@ import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.MediaService;
 import io.gravitee.management.service.exceptions.UploadUnauthorized;
 import io.swagger.annotations.Api;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -31,7 +32,9 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 @Api(tags = {"Portal"})
 public class PortalMediaResource extends AbstractResource {
@@ -49,7 +52,7 @@ public class PortalMediaResource extends AbstractResource {
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetail,
             @FormDataParam("file") final FormDataBodyPart body
-    ) {
+    ) throws IOException {
         String mediaId = null;
 
         if (!body.getMediaType().getType().equals("image")) {
@@ -57,6 +60,7 @@ public class PortalMediaResource extends AbstractResource {
         } else if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
             throw new UploadUnauthorized("Max size achieved " + fileDetail.getSize());
         } else {
+            checkImageContent(IOUtils.toString(uploadedInputStream, Charset.defaultCharset()));
             mediaId = mediaService.savePortalMedia(new MediaEntity(
                     uploadedInputStream,
                     body.getMediaType().getType(),

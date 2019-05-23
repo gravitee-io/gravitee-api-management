@@ -27,9 +27,17 @@ import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
@@ -140,7 +148,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotUpdateApiBecauseTooLargePicture() {
-        updateApiEntity.setPicture(randomAlphanumeric(100_000));
+        updateApiEntity.setPicture("data:image/png;base64,"+ randomAlphanumeric(1_000_000));
         final Response response = target(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -179,21 +187,27 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     private static final MediaType IMAGE_SVG_XML_TYPE = MediaType.valueOf("image/svg+xml");
+
     @Test
     public void shouldNotUploadApiMediaBecauseXSS1() {
         shouldNotUpdateApiMediaBecauseXSS("hacked1.svg");
     }
+
     @Test
     public void shouldNotUploadApiMediaBecauseXSS2() {
         shouldNotUpdateApiMediaBecauseXSS("hacked2.svg");
     }
+
+    @Test
     public void shouldNotUploadApiMediaBecauseXSS3() {
         shouldNotUpdateApiMediaBecauseXSS("hacked3.svg");
     }
 
+    @Test
     public void shouldNotUploadApiMediaBecauseXSS4() {
         shouldNotUpdateApiMediaBecauseXSS("hacked4.svg");
     }
+
     private void shouldNotUpdateApiMediaBecauseXSS(final String fileName) {
         final StreamDataBodyPart filePart = new StreamDataBodyPart("file",
                 this.getClass().getResourceAsStream("/media/" + fileName), fileName, IMAGE_SVG_XML_TYPE);
@@ -202,6 +216,6 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("The image is not in a valid format"));
+        assertTrue(message, message.contains("Invalid content in the image"));
     }
 }
