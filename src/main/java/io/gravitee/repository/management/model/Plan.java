@@ -56,9 +56,9 @@ public class Plan {
     private int order;
 
     /**
-     * List of API used by this plan.
+     * The API used by this plan.
      */
-    private Set<String> apis;
+    private String api;
 
     /**
      * Plan creation date
@@ -115,7 +115,7 @@ public class Plan {
         this.type = cloned.getType();
         this.status = cloned.getStatus();
         this.order = cloned.getOrder();
-        this.apis = cloned.getApis();
+        this.api = cloned.getApi();
         this.createdAt = cloned.getCreatedAt();
         this.updatedAt = cloned.getUpdatedAt();
         this.publishedAt = cloned.getPublishedAt();
@@ -169,12 +169,12 @@ public class Plan {
         this.type = type;
     }
 
-    public Set<String> getApis() {
-        return apis;
+    public String getApi() {
+        return api;
     }
 
-    public void setApis(Set<String> apis) {
-        this.apis = apis;
+    public void setApi(String api) {
+        this.api = api;
     }
 
     public Date getCreatedAt() {
@@ -324,6 +324,7 @@ public class Plan {
     public String toString() {
         return "Plan{" +
                 "id='" + id + '\'' +
+                ", api='" + api + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", validation=" + validation +
