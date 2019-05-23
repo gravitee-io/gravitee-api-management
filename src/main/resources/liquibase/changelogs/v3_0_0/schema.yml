@@ -1,0 +1,27 @@
+databaseChangeLog:
+    - changeSet:
+        id: 3.0.0
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+            tableName: plans
+            columns:
+              - column:
+                  name: api
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: false;
+
+        - sql:
+            sql: update plans p set api = (select pa.api from plan_apis pa where pa.plan_id = p.id)
+
+        - droptIndex:
+            tableName: plan_apis
+            indexName: idx_planapis_api
+
+        - dropPrimaryKey:
+            constraintName: pk_plan_apis
+            tableName: plan_apis
+            
+        - dropTable:
+            tableName: plan_apis

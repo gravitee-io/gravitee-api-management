@@ -82,7 +82,6 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "page_excluded_groups",
             "page_configuration",
             "plans",
-            "plan_apis",
             "plan_characteristics",
             "plan_excluded_groups",
             "plan_tags",

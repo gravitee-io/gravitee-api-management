@@ -15,10 +15,18 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Plan;
+import static java.lang.String.format;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +34,10 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.*;
-
-import static java.lang.String.format;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Plan;
 
 /**
  *
@@ -55,6 +60,7 @@ public class JdbcPlanRepository implements PlanRepository {
             .addColumn("definition", Types.NVARCHAR, String.class)
             .addColumn("security_definition", Types.NVARCHAR, String.class)
             .addColumn("order", Types.INTEGER, int.class)
+            .addColumn("api", Types.NVARCHAR, String.class)
             .addColumn("status", Types.NVARCHAR, Plan.Status.class)
             .addColumn("security", Types.NVARCHAR, Plan.PlanSecurityType.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -103,12 +109,11 @@ public class JdbcPlanRepository implements PlanRepository {
         
         LOGGER.debug("JdbcPlanRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from plans p left join plan_apis pa on p.id = pa.plan_id where p.id = ?"
-                    , rowMapper
+            List<Plan> plans = jdbcTemplate.query("select * from plans p where p.id = ?"
+                    , ORM.getRowMapper()
                     , id
             );
-            Optional<Plan> result = rowMapper.getRows().stream().findFirst();
+            Optional<Plan> result = plans.stream().findFirst();
             if (result.isPresent()) {
                 addCharacteristics(result.get());
                 addExcludedGroups(result.get());
@@ -127,7 +132,6 @@ public class JdbcPlanRepository implements PlanRepository {
         LOGGER.debug("JdbcPlanRepository.create({})", item);
         try {
             jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
-            storeApis(item, false);
             storeCharacteristics(item, false);
             storeExcludedGroups(item, false);
             storeTags(item, false);
@@ -146,7 +150,6 @@ public class JdbcPlanRepository implements PlanRepository {
         }
         try {
             jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(plan, plan.getId()));
-            storeApis(plan, true);
             storeCharacteristics(plan, true);
             storeExcludedGroups(plan, true);
             storeTags(plan, true);
@@ -194,23 +197,6 @@ public class JdbcPlanRepository implements PlanRepository {
         return jdbcTemplate.query("select excluded_group from plan_excluded_groups where plan_id = ?"
                 , (ResultSet rs, int rowNum) -> rs.getString(1)
                 , pageId);
-    }
-    
-    private void storeApis(Plan plan, boolean deleteFirst) throws TechnicalException {
-        LOGGER.debug("JdbcPlanRepository.storeApis({}, {})", plan, deleteFirst);
-        try {
-            if (deleteFirst) {
-                jdbcTemplate.update("delete from plan_apis where plan_id = ?", plan.getId());
-            }
-            List<String> filteredApis = ORM.filterStrings(plan.getApis());
-            if (! filteredApis.isEmpty()) {
-                jdbcTemplate.batchUpdate("insert into plan_apis ( plan_id, api ) values ( ?, ? )"
-                        , ORM.getBatchStringSetter(plan.getId(), filteredApis));
-            }
-        } catch (final Exception ex) {
-            LOGGER.error("Failed to store apis:", ex);
-            throw new TechnicalException("Failed to store apis", ex);
-        }
     }
     
     private void storeCharacteristics(Plan plan, boolean deleteFirst) throws TechnicalException {
@@ -274,15 +260,10 @@ public class JdbcPlanRepository implements PlanRepository {
 
         LOGGER.debug("JdbcPlanRepository.findByApi({})", apiId);
         try {
-            JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select p.*, pa.* from plans p "
-                    + " left join plan_apis pa on p.id = pa.plan_id "
-                    + " left join plan_apis pa2 on p.id = pa2.plan_id "
-                    + " where pa2.api = ?"
-                    , rowMapper
+            List<Plan> plans = jdbcTemplate.query("select * from plans where api = ?"
+                    , ORM.getRowMapper()
                     , apiId
             );
-            List<Plan> plans = rowMapper.getRows();
             for (Plan plan : plans) {
                 addCharacteristics(plan);
                 addExcludedGroups(plan);
