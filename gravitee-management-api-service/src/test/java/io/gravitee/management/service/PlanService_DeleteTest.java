@@ -76,7 +76,7 @@ public class PlanService_DeleteTest {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
-        when(plan.getApis()).thenReturn(Collections.singleton("id"));
+        when(plan.getApi()).thenReturn("id");
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.delete(PLAN_ID);
@@ -96,7 +96,7 @@ public class PlanService_DeleteTest {
         when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
-        when(plan.getApis()).thenReturn(Collections.singleton("id"));
+        when(plan.getApi()).thenReturn("id");
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.delete(PLAN_ID);
@@ -109,7 +109,7 @@ public class PlanService_DeleteTest {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
-        when(plan.getApis()).thenReturn(Collections.singleton("id"));
+        when(plan.getApi()).thenReturn("id");
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.delete(PLAN_ID);
@@ -121,7 +121,7 @@ public class PlanService_DeleteTest {
     public void shouldDelete() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.emptySet());
-        when(plan.getApis()).thenReturn(Collections.singleton("id"));
+        when(plan.getApi()).thenReturn("id");
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.delete(PLAN_ID);

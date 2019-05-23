@@ -98,7 +98,7 @@ public class PlanService_PublishTest {
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
-        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
@@ -117,7 +117,7 @@ public class PlanService_PublishTest {
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
-        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
 
@@ -129,7 +129,7 @@ public class PlanService_PublishTest {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
-        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 

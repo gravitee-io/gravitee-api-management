@@ -165,7 +165,7 @@ public class ApiPlansResource extends AbstractResource {
         updatePlanEntity.setId(plan);
 
         PlanEntity planEntity = planService.findById(plan);
-        if (! planEntity.getApis().contains(api)) {
+        if (! planEntity.getApi().equals(api)) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity("'plan' parameter does not correspond to the current API")
@@ -191,7 +191,7 @@ public class ApiPlansResource extends AbstractResource {
         if (Visibility.PUBLIC.equals(apiService.findById(api).getVisibility())
                 || hasPermission(API_PLAN, api, READ)) {
             PlanEntity planEntity = planService.findById(plan);
-            if (!planEntity.getApis().contains(api)) {
+            if (!planEntity.getApi().equals(api)) {
                 return Response
                         .status(Response.Status.BAD_REQUEST)
                         .entity("'plan' parameter does not correspond to the current API")
@@ -218,7 +218,7 @@ public class ApiPlansResource extends AbstractResource {
             @PathParam("api") String api,
             @PathParam("plan") String plan) {
         PlanEntity planEntity = planService.findById(plan);
-        if (! planEntity.getApis().contains(api)) {
+        if (! planEntity.getApi().equals(api)) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity("'plan' parameter does not correspond to the current API")
@@ -245,7 +245,7 @@ public class ApiPlansResource extends AbstractResource {
             @PathParam("api") String api,
             @PathParam("plan") String plan) {
         PlanEntity planEntity = planService.findById(plan);
-        if (! planEntity.getApis().contains(api)) {
+        if (! planEntity.getApi().equals(api)) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity("'plan' parameter does not correspond to the current API")
@@ -270,7 +270,7 @@ public class ApiPlansResource extends AbstractResource {
             @PathParam("api") String api,
             @PathParam("plan") String plan) {
         PlanEntity planEntity = planService.findById(plan);
-        if (! planEntity.getApis().contains(api)) {
+        if (! planEntity.getApi().equals(api)) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity("'plan' parameter does not correspond to the current API")
@@ -295,7 +295,7 @@ public class ApiPlansResource extends AbstractResource {
             @PathParam("api") String api,
             @PathParam("plan") String plan) {
         PlanEntity planEntity = planService.findById(plan);
-        if (! planEntity.getApis().contains(api)) {
+        if (! planEntity.getApi().equals(api)) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity("'plan' parameter does not correspond to the current API")

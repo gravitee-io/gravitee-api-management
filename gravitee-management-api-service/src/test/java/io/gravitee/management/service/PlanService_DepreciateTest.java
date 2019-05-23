@@ -100,7 +100,7 @@ public class PlanService_DepreciateTest {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
-        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 

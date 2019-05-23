@@ -88,7 +88,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             // Audit
             final PlanEntity plan = planService.findById(apiKey.getPlan());
             auditService.createApiAuditLog(
-                    plan.getApis().iterator().next(),
+                    plan.getApi(),
                     Collections.singletonMap(API_KEY, apiKey.getKey()),
                     APIKEY_CREATED,
                     apiKey.getCreatedAt(),
@@ -125,7 +125,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             // Audit
             final PlanEntity plan = planService.findById(newApiKey.getPlan());
             auditService.createApiAuditLog(
-                    plan.getApis().iterator().next(),
+                    plan.getApi(),
                     Collections.singletonMap(API_KEY, newApiKey.getKey()),
                     APIKEY_RENEWED,
                     newApiKey.getCreatedAt(),
@@ -134,7 +134,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             // Notification
             final ApplicationEntity application = applicationService.findById(newApiKey.getApplication());
-            final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
+            final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
             final Map<String, Object> params = new NotificationParamsBuilder()
                     .application(application)
@@ -143,7 +143,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                     .owner(owner)
                     .apikey(newApiKey)
                     .build();
-            notifierService.trigger(ApiHook.APIKEY_RENEWED, plan.getApis().iterator().next(), params);
+            notifierService.trigger(ApiHook.APIKEY_RENEWED, plan.getApi(), params);
 
             return convert(newApiKey);
         } catch (TechnicalException ex) {
@@ -204,7 +204,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             final PlanEntity plan = planService.findById(key.getPlan());
             // Audit
             auditService.createApiAuditLog(
-                    plan.getApis().iterator().next(),
+                    plan.getApi(),
                     Collections.singletonMap(API_KEY, key.getKey()),
                     APIKEY_REVOKED,
                     key.getUpdatedAt(),
@@ -214,7 +214,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             // notify
             if (notify) {
                 final ApplicationEntity application = applicationService.findById(key.getApplication());
-                final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
+                final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
                 final PrimaryOwnerEntity owner = application.getPrimaryOwner();
                 final Map<String, Object> params = new NotificationParamsBuilder()
                         .application(application)
@@ -334,7 +334,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             //notify
             final ApplicationEntity application = applicationService.findById(key.getApplication());
             final PlanEntity plan = planService.findById(key.getPlan());
-            final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApis().iterator().next());
+            final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
 
             NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder();
@@ -354,7 +354,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             // Audit
             auditService.createApiAuditLog(
-                    plan.getApis().iterator().next(),
+                    plan.getApi(),
                     Collections.singletonMap(API_KEY, key.getKey()),
                     APIKEY_EXPIRED,
                     key.getUpdatedAt(),

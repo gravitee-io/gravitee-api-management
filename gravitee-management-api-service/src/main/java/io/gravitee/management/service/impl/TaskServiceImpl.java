@@ -198,7 +198,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
                 if (!metadata.containsKey(subscription.getPlan())) {
                     PlanEntity planEntity = planService.findById(subscription.getPlan());
-                    String apiId = planEntity.getApis().iterator().next();
+                    String apiId = planEntity.getApi();
                     ApiEntity api = apiService.findById(apiId);
                     metadata.put(subscription.getPlan(), "name", planEntity.getName());
                     metadata.put(subscription.getPlan(), "api", apiId);

@@ -51,7 +51,7 @@ public class PlanEntity {
     private PlanStatus status;
 
     @DeploymentRequired
-    private Set<String> apis;
+    private String api;
 
     private int order;
 
@@ -147,12 +147,12 @@ public class PlanEntity {
         this.type = type;
     }
 
-    public Set<String> getApis() {
-        return apis;
+    public String getApi() {
+        return api;
     }
 
-    public void setApis(Set<String> apis) {
-        this.apis = apis;
+    public void setApi(String api) {
+        this.api = api;
     }
 
     public Date getCreatedAt() {

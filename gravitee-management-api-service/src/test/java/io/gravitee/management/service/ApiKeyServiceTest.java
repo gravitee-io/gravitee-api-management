@@ -103,7 +103,7 @@ public class ApiKeyServiceTest {
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
 
         PlanEntity planEntity = mock(PlanEntity.class);
-        when(planEntity.getApis()).thenReturn(Collections.singleton("apiId"));
+        when(planEntity.getApi()).thenReturn("apiId");
         when(planService.findById(any())).thenReturn(planEntity);
 
         // Stub API Key creation
@@ -141,7 +141,7 @@ public class ApiKeyServiceTest {
         // Prepare data
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(plan.getApi()).thenReturn(API_ID);
 
         // Stub
         when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
@@ -207,7 +207,7 @@ public class ApiKeyServiceTest {
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+        when(plan.getApi()).thenReturn(API_ID);
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);

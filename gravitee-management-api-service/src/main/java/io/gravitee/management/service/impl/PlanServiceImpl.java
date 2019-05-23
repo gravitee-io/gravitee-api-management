@@ -153,7 +153,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             Plan plan = new Plan();
 
             plan.setId(UUID.toString(UUID.random()));
-            plan.setApis(Collections.singleton(newPlan.getApi()));
+            plan.setApi(newPlan.getApi());
             plan.setName(newPlan.getName());
             plan.setDescription(newPlan.getDescription());
             plan.setCreatedAt(new Date());
@@ -225,7 +225,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             newPlan.setType(oldPlan.getType());
             newPlan.setStatus(oldPlan.getStatus());
             newPlan.setOrder(oldPlan.getOrder());
-            newPlan.setApis(oldPlan.getApis());
+            newPlan.setApi(oldPlan.getApi());
             newPlan.setCreatedAt(oldPlan.getCreatedAt());
             newPlan.setPublishedAt(oldPlan.getPublishedAt());
             newPlan.setClosedAt(oldPlan.getClosedAt());
@@ -271,7 +271,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 }
                 newPlan = planRepository.update(newPlan);
                 auditService.createApiAuditLog(
-                        newPlan.getApis().iterator().next(),
+                        newPlan.getApi(),
                         Collections.singletonMap(PLAN, newPlan.getId()),
                         PLAN_UPDATED,
                         newPlan.getUpdatedAt(),
@@ -333,7 +333,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Audit
             auditService.createApiAuditLog(
-                    plan.getApis().iterator().next(),
+                    plan.getApi(),
                     Collections.singletonMap(PLAN, plan.getId()),
                     PLAN_CLOSED,
                     plan.getUpdatedAt(),
@@ -373,7 +373,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             planRepository.delete(plan);
             // Audit
             auditService.createApiAuditLog(
-                    optPlan.get().getApis().iterator().next(),
+                    optPlan.get().getApi(),
                     Collections.singletonMap(PLAN, optPlan.get().getId()),
                     PLAN_DELETED,
                     new Date(),
@@ -408,7 +408,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new PlanAlreadyDeprecatedException(planId);
             }
 
-            Set<Plan> plans = planRepository.findByApi(plan.getApis().iterator().next());
+            Set<Plan> plans = planRepository.findByApi(plan.getApi());
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // Look to other plans if there is already a keyless-published plan
                 long count = plans
@@ -441,7 +441,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Audit
             auditService.createApiAuditLog(
-                    plan.getApis().iterator().next(),
+                    plan.getApi(),
                     Collections.singletonMap(PLAN, plan.getId()),
                     PLAN_PUBLISHED,
                     plan.getUpdatedAt(),
@@ -485,7 +485,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Audit
             auditService.createApiAuditLog(
-                    plan.getApis().iterator().next(),
+                    plan.getApi(),
                     Collections.singletonMap(PLAN, plan.getId()),
                     PLAN_DEPRECATED,
                     plan.getUpdatedAt(),
@@ -508,7 +508,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     private void reorderAndSavePlans(final Plan planToReorder) throws TechnicalException {
-        final Collection<Plan> plans = planRepository.findByApi(planToReorder.getApis().iterator().next());
+        final Collection<Plan> plans = planRepository.findByApi(planToReorder.getApi());
         Plan[] plansToReorder = plans.stream()
                 .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()) && !Objects.equals(p.getId(), planToReorder.getId()))
                 .sorted(Comparator.comparingInt(Plan::getOrder)).toArray(Plan[]::new);
@@ -540,7 +540,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     private void reorderedAndSavePlansAfterRemove(final Plan planRemoved) throws TechnicalException {
-        final Collection<Plan> plans = planRepository.findByApi(planRemoved.getApis().iterator().next());
+        final Collection<Plan> plans = planRepository.findByApi(planRemoved.getApi());
         plans.stream()
                 .filter(p -> Plan.Status.PUBLISHED.equals(p.getStatus()))
                 .sorted(Comparator.comparingInt(Plan::getOrder))
@@ -563,7 +563,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         entity.setId(plan.getId());
         entity.setName(plan.getName());
         entity.setDescription(plan.getDescription());
-        entity.setApis(plan.getApis());
+        entity.setApi(plan.getApi());
         entity.setCreatedAt(plan.getCreatedAt());
         entity.setUpdatedAt(plan.getUpdatedAt());
         entity.setOrder(plan.getOrder());

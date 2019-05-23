@@ -191,7 +191,7 @@ public class ApiService_ExportAsJsonTest {
 
         PlanEntity publishedPlan = new PlanEntity();
         publishedPlan.setId("plan-id");
-        publishedPlan.setApis(Collections.singleton(API_ID));
+        publishedPlan.setApi(API_ID);
         publishedPlan.setDescription("free plan");
         publishedPlan.setType(PlanType.API);
         publishedPlan.setSecurity(PlanSecurityType.API_KEY);
@@ -219,7 +219,7 @@ public class ApiService_ExportAsJsonTest {
         publishedPlan.setPaths(paths);
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("closedPlan-id");
-        closedPlan.setApis(Collections.singleton(API_ID));
+        closedPlan.setApi(API_ID);
         closedPlan.setDescription("free closedPlan");
         closedPlan.setType(PlanType.API);
         closedPlan.setSecurity(PlanSecurityType.API_KEY);
