@@ -15,11 +15,11 @@
  */
 package io.gravitee.repository.redis;
 
+import org.springframework.data.redis.connection.jedis.JedisConnection;
+
 import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
-import io.gravitee.repository.redis.management.ManagementRepositoryConfiguration;
 import io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisConnection;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,8 +48,7 @@ public class RedisRepository implements Repository {
     @Override
     public Scope[] scopes() {
         return new Scope [] {
-                Scope.RATE_LIMIT,
-                Scope.MANAGEMENT
+                Scope.RATE_LIMIT
         };
     }
 
@@ -58,8 +57,8 @@ public class RedisRepository implements Repository {
         switch (scope) {
             case RATE_LIMIT:
                 return RateLimitRepositoryConfiguration.class;
-            case MANAGEMENT:
-                return ManagementRepositoryConfiguration.class;
+            default:
+                break;
         }
 
         return null;
