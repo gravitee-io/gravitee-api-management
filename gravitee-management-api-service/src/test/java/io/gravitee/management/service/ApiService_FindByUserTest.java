@@ -15,9 +15,31 @@
  */
 package io.gravitee.management.service;
 
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+import java.util.Collections;
+import java.util.Set;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.MockitoJUnitRunner;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -31,24 +53,6 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.Set;
-
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -83,8 +87,8 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldFindByUser() throws TechnicalException {
-        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(singletonList(api));
-        when(apiRepository.search(new ApiCriteria.Builder().ids(api.getId()).build())).thenReturn(singletonList(api));
+        when(apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").visibility(PUBLIC).build())).thenReturn(singletonList(api));
+        when(apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").ids(api.getId()).build())).thenReturn(singletonList(api));
 
         Membership membership = new Membership(USER_NAME, api.getId(), MembershipReferenceType.API);
         membership.setRoles(Collections.singletonMap(RoleScope.API.getId(), "USER"));
@@ -104,7 +108,7 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
-        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(emptyList());
+        when(apiRepository.search(new ApiCriteria.Builder().environment("DEFAULT").visibility(PUBLIC).build())).thenReturn(emptyList());
         when(membershipRepository.findByUserAndReferenceType(anyString(), any(MembershipReferenceType.class)))
                 .thenReturn(Collections.emptySet());
 

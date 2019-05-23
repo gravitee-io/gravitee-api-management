@@ -30,6 +30,8 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
+import io.gravitee.repository.management.model.RatingReferenceType;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -107,7 +109,7 @@ public class RatingServiceTest {
         SecurityContextHolder.setContext(securityContext);
 
         when(rating.getId()).thenReturn(RATING_ID);
-        when(rating.getApi()).thenReturn(API_ID);
+        when(rating.getReferenceId()).thenReturn(API_ID);
         when(rating.getTitle()).thenReturn(TITLE);
         when(rating.getComment()).thenReturn(COMMENT);
         when(rating.getRate()).thenReturn(RATE);
@@ -122,7 +124,7 @@ public class RatingServiceTest {
     @Test(expected = RatingAlreadyExistsException.class)
     public void shouldNotCreateBecauseAlreadyExists() throws TechnicalException {
         when(newRatingEntity.getApi()).thenReturn(API_ID);
-        when(ratingRepository.findByApiAndUser(API_ID, USER)).thenReturn(of(rating));
+        when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser(API_ID, RatingReferenceType.API, USER)).thenReturn(of(rating));
 
         ratingService.create(newRatingEntity);
         verify(mockNotifierService, never()).trigger(eq(ApiHook.NEW_RATING_ANSWER), eq(API_ID), any());
@@ -130,7 +132,7 @@ public class RatingServiceTest {
 
     @Test
     public void shouldCreate() throws TechnicalException {
-        when(ratingRepository.findByApiAndUser(API_ID, USER)).thenReturn(empty());
+        when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser(API_ID, RatingReferenceType.API, USER)).thenReturn(empty());
         when(ratingRepository.create(any())).thenReturn(rating);
         when(newRatingEntity.getApi()).thenReturn(API_ID);
         when(newRatingEntity.getComment()).thenReturn(COMMENT);
@@ -198,7 +200,7 @@ public class RatingServiceTest {
         when(pageRating.getTotalElements()).thenReturn(100L);
         when(pageRating.getContent()).thenReturn(singletonList(rating));
 
-        when(ratingRepository.findByApiPageable(eq(API_ID), eq(new PageableBuilder()
+        when(ratingRepository.findByReferenceIdAndReferenceTypePageable(eq(API_ID), eq(RatingReferenceType.API), eq(new PageableBuilder()
                 .pageNumber(0).pageSize(1).build()))).thenReturn(pageRating);
 
         final Page<RatingEntity> pageRatingEntity = ratingService.findByApi(API_ID, pageable);
@@ -217,13 +219,13 @@ public class RatingServiceTest {
 
     @Test
     public void shouldNotFindByApiForConnectedUser() throws TechnicalException {
-        when(ratingRepository.findByApiAndUser(API_ID, USER)).thenReturn(empty());
+        when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser(API_ID, RatingReferenceType.API, USER)).thenReturn(empty());
         assertNull(ratingService.findByApiForConnectedUser(API_ID));
     }
 
     @Test
     public void shouldFindByApiForConnectedUser() throws TechnicalException {
-        when(ratingRepository.findByApiAndUser(API_ID, USER)).thenReturn(of(rating));
+        when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser(API_ID, RatingReferenceType.API, USER)).thenReturn(of(rating));
 
         final RatingEntity ratingEntity = ratingService.findByApiForConnectedUser(API_ID);
 
@@ -275,7 +277,7 @@ public class RatingServiceTest {
 
     @Test
     public void shouldFindSummaryByApiWithNoRatings() throws TechnicalException {
-        when(ratingRepository.findByApi(API_ID)).thenReturn(emptyList());
+        when(ratingRepository.findByReferenceIdAndReferenceType(API_ID, RatingReferenceType.API)).thenReturn(emptyList());
 
         final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(API_ID);
         assertEquals(API_ID, ratingSummary.getApi());
@@ -289,7 +291,7 @@ public class RatingServiceTest {
         final Rating r = new Rating();
         r.setRate(new Byte("4"));
 
-        when(ratingRepository.findByApi(API_ID)).thenReturn(asList(rating, r));
+        when(ratingRepository.findByReferenceIdAndReferenceType(API_ID, RatingReferenceType.API)).thenReturn(asList(rating, r));
 
         final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(API_ID);
         assertEquals(API_ID, ratingSummary.getApi());

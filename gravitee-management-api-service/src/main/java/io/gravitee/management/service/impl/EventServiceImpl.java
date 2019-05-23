@@ -20,6 +20,7 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
 import io.gravitee.management.service.EventService;
 import io.gravitee.management.service.UserService;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.exceptions.EventNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
@@ -83,7 +84,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
             Event event = convert(newEventEntity);
             event.setId(UUID.toString(UUID.random()));
-
+            event.setEnvironment(GraviteeContext.getCurrentEnvironment());
+            
             // Set origin
             event.getProperties().put(Event.EventProperties.ORIGIN.getValue(), hostAddress);
             // Set date fields
@@ -123,7 +125,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     private Set<EventEntity> findByProperty(String property, String value) {
-        return convert(eventRepository.search(new EventCriteria.Builder().property(property, value).build()));
+        return convert(eventRepository.search(new EventCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).property(property, value).build()));
     }
 
     @Override
@@ -143,6 +145,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             properties.forEach(builder::property);
         }
 
+        builder.environment(GraviteeContext.getCurrentEnvironment());
+        
         Page<Event> pageEvent = eventRepository.search(
                 builder.build(),
                 new PageableBuilder().pageNumber(page).pageSize(size).build());
@@ -159,7 +163,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     private EventCriteria.Builder queryToCriteria(EventQuery query) {
-        final EventCriteria.Builder builder = new EventCriteria.Builder();
+        final EventCriteria.Builder builder = new EventCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment());
         if (query == null) {
             return builder;
         }
@@ -183,6 +187,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         if (!isBlank(query.getId())) {
             builder.property(ID.getValue(), query.getId());
         }
+        
         return builder;
     }
 

@@ -23,6 +23,8 @@ import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -81,21 +83,24 @@ public class PageService_UpdateTest {
         final Page pageOrder1 = new Page();
         pageOrder1.setId(PAGE_ID);
         pageOrder1.setOrder(1);
-        pageOrder1.setApi(API_ID);
+        pageOrder1.setReferenceId(API_ID);
+        //pageOrder1.setReferenceType(PageReferenceType.API);
 
         final Page pageOrder2 = new Page();
         pageOrder2.setId("2");
         pageOrder2.setOrder(2);
-        pageOrder2.setApi(API_ID);
+        pageOrder2.setReferenceId(API_ID);
+        //pageOrder2.setReferenceType(PageReferenceType.API);
 
         final Page pageOrder3 = new Page();
         pageOrder3.setId("3");
         pageOrder3.setOrder(3);
-        pageOrder3.setApi(API_ID);
+        pageOrder3.setReferenceId(API_ID);
+        //pageOrder3.setReferenceType(PageReferenceType.API);
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(pageOrder1));
 
-        when(pageRepository.search(argThat(o -> o == null || o.getApi().equals(API_ID)))).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
+        when(pageRepository.search(argThat(o -> o == null || o.getReferenceId().equals(API_ID)))).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
         when(pageRepository.update(any(Page.class))).thenReturn(pageOrder1);
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
@@ -122,21 +127,24 @@ public class PageService_UpdateTest {
         final Page pageOrder1 = new Page();
         pageOrder1.setId(PAGE_ID);
         pageOrder1.setOrder(1);
-        pageOrder1.setApi(API_ID);
+        pageOrder1.setReferenceId(API_ID);
+        //pageOrder1.setReferenceType(PageReferenceType.API);
 
         final Page pageOrder2 = new Page();
         pageOrder2.setId("2");
         pageOrder2.setOrder(2);
-        pageOrder2.setApi(API_ID);
+        pageOrder2.setReferenceId(API_ID);
+        //pageOrder2.setReferenceType(PageReferenceType.API);
 
         final Page pageOrder3 = new Page();
         pageOrder3.setId("3");
         pageOrder3.setOrder(3);
-        pageOrder3.setApi(API_ID);
+        pageOrder3.setReferenceId(API_ID);
+        //pageOrder3.setReferenceType(PageReferenceType.API);
 
         when(pageRepository.findById("3")).thenReturn(Optional.of(pageOrder3));
 
-        when(pageRepository.search(argThat(o -> o == null || o.getApi().equals(API_ID)))).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
+        when(pageRepository.search(argThat(o -> o == null || o.getReferenceId().equals(API_ID)))).thenReturn(asList(pageOrder1, pageOrder2, pageOrder3));
         when(pageRepository.update(any(Page.class))).thenReturn(pageOrder1);
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();

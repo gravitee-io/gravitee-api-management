@@ -72,7 +72,7 @@ public class ViewService_CreateTest {
         NewViewEntity nv1 = new NewViewEntity();
         v1.setName("v1");
         nv1.setName("v1");
-        when(mockViewRepository.findAll()).thenReturn(Collections.singleton(v1));
+        when(mockViewRepository.findAllByEnvironment(any())).thenReturn(Collections.singleton(v1));
 
         try {
             viewService.create(nv1);

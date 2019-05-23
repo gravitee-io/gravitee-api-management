@@ -40,6 +40,7 @@ import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.plan.PlanQuery;
 import io.gravitee.management.service.*;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.search.SearchResult;
 import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
@@ -418,7 +419,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (repoApi != null) {
                 repoApi.setId(id);
-
+                repoApi.setEnvironment(GraviteeContext.getCurrentEnvironment());
                 // Set date fields
                 repoApi.setCreatedAt(new Date());
                 repoApi.setUpdatedAt(repoApi.getCreatedAt());
@@ -630,7 +631,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findByVisibility(io.gravitee.management.model.Visibility visibility) {
         try {
             LOGGER.debug("Find APIs by visibility {}", visibility);
-            return convert(apiRepository.search(new ApiCriteria.Builder().visibility(Visibility.valueOf(visibility.name())).build()));
+            return convert(apiRepository.search(new ApiCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).visibility(Visibility.valueOf(visibility.name())).build()));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -641,7 +642,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findAll() {
         try {
             LOGGER.debug("Find all APIs");
-            return convert(apiRepository.search(null));
+            return convert(apiRepository.search(new ApiCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).build()));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -652,7 +653,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findAllLight() {
         try {
             LOGGER.debug("Find all APIs without some fields (definition, picture...)");
-            return convert(apiRepository.search(null,
+            return convert(apiRepository.search(new ApiCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).build(),
                     new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs light", ex);
@@ -1659,7 +1660,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiCriteria.Builder queryToCriteria(ApiQuery query) {
-        final ApiCriteria.Builder builder = new ApiCriteria.Builder();
+        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment());
         if (query == null) {
             return builder;
         }

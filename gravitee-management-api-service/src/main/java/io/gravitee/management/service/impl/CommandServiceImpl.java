@@ -21,6 +21,7 @@ import io.gravitee.management.model.command.CommandQuery;
 import io.gravitee.management.model.command.CommandTags;
 import io.gravitee.management.model.command.NewCommandEntity;
 import io.gravitee.management.service.CommandService;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.exceptions.Message2RecipientNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.node.api.Node;
@@ -62,6 +63,7 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
 
         Command command = new Command();
         command.setId(UUID.toString(java.util.UUID.randomUUID()));
+        command.setEnvironment(GraviteeContext.getCurrentEnvironment());
         command.setFrom(node.id());
         command.setTo(messageEntity.getTo());
         command.setTags(convert(messageEntity.getTags()));
@@ -96,6 +98,7 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
                 .tags(tags)
                 .notAckBy(node.id())
                 .notDeleted()
+                .environment(GraviteeContext.getCurrentEnvironment())
                 .build();
         return commandRepository.search(criteria)
                 .stream()

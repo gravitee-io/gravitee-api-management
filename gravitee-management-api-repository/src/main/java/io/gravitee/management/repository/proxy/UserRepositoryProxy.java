@@ -56,8 +56,8 @@ public class UserRepositoryProxy extends AbstractProxy<UserRepository> implement
     }
 
     @Override
-    public Optional<User> findBySource(String sourceId, String userId) throws TechnicalException {
-        return target.findBySource(sourceId, userId);
+    public Optional<User> findBySource(String sourceId, String userId, String environment) throws TechnicalException {
+        return target.findBySource(sourceId, userId, environment);
     }
 
     @Override

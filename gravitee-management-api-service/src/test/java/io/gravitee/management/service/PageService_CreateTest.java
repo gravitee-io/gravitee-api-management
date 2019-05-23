@@ -23,6 +23,7 @@ import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,7 +74,7 @@ public class PageService_CreateTest {
 
         when(page1.getId()).thenReturn(PAGE_ID);
         when(page1.getName()).thenReturn(name);
-        when(page1.getApi()).thenReturn(API_ID);
+        when(page1.getReferenceId()).thenReturn(API_ID);
         when(page1.getType()).thenReturn(PageType.valueOf(type));
         when(page1.getLastContributor()).thenReturn(contrib);
         when(page1.getOrder()).thenReturn(1);
@@ -90,7 +91,8 @@ public class PageService_CreateTest {
         final PageEntity createdPage = pageService.createPage(API_ID, newPage);
 
         verify(pageRepository).create(argThat(pageToCreate -> pageToCreate.getId().split("-").length == 5 &&
-            API_ID.equals(pageToCreate.getApi()) &&
+            API_ID.equals(pageToCreate.getReferenceId()) &&
+            PageReferenceType.API.equals(pageToCreate.getReferenceType()) &&
             name.equals(pageToCreate.getName()) &&
             contrib.equals(pageToCreate.getLastContributor()) &&
             content.equals(pageToCreate.getContent()) &&

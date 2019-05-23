@@ -187,7 +187,7 @@ public class ApplicationService_UpdateTest {
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
-        when(applicationRepository.findAll(ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(other));
+        when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(other));
 
         when(application.getId()).thenReturn(APPLICATION_ID);
 

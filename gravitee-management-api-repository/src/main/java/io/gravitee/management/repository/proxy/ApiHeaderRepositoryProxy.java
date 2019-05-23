@@ -54,4 +54,9 @@ public class ApiHeaderRepositoryProxy extends AbstractProxy<ApiHeaderRepository>
     public Set<ApiHeader> findAll() throws TechnicalException {
         return target.findAll();
     }
+
+    @Override
+    public Set<ApiHeader> findAllByEnvironment(String environment) throws TechnicalException {
+        return target.findAllByEnvironment(environment);
+    }
 }

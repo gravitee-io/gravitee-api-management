@@ -15,21 +15,22 @@
  */
 package io.gravitee.management.service.impl;
 
-import io.gravitee.common.utils.IdGenerator;
-import io.gravitee.management.model.InlinePictureEntity;
-import io.gravitee.management.model.NewViewEntity;
-import io.gravitee.management.model.UpdateViewEntity;
-import io.gravitee.management.model.ViewEntity;
-import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.AuditService;
-import io.gravitee.management.service.ViewService;
-import io.gravitee.management.service.exceptions.DuplicateViewNameException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.exceptions.ViewNotFoundException;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ViewRepository;
-import io.gravitee.repository.management.model.View;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.VIEW;
+import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_CREATED;
+import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_DELETED;
+import static io.gravitee.repository.management.model.View.AuditEvent.VIEW_UPDATED;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.xml.bind.DatatypeConverter;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,14 +38,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.xml.bind.DatatypeConverter;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.VIEW;
-import static io.gravitee.repository.management.model.View.AuditEvent.*;
+import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.management.model.InlinePictureEntity;
+import io.gravitee.management.model.NewViewEntity;
+import io.gravitee.management.model.UpdateViewEntity;
+import io.gravitee.management.model.ViewEntity;
+import io.gravitee.management.service.ApiService;
+import io.gravitee.management.service.AuditService;
+import io.gravitee.management.service.ViewService;
+import io.gravitee.management.service.common.GraviteeContext;
+import io.gravitee.management.service.exceptions.DuplicateViewNameException;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.ViewNotFoundException;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ViewRepository;
+import io.gravitee.repository.management.model.View;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -72,7 +80,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     public List<ViewEntity> findAll() {
         try {
             LOGGER.debug("Find all views");
-            return viewRepository.findAll()
+            return viewRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
                     .stream()
                     .map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
@@ -111,6 +119,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
 
         try {
             View view = convert(viewEntity);
+            view.setEnvironment(GraviteeContext.getCurrentEnvironment());
             ViewEntity createdView = convert(viewRepository.create(view));
             auditService.createPortalAuditLog(
                     Collections.singletonMap(VIEW, view.getId()),
@@ -212,6 +221,7 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
     public void createDefaultView() {
             View view = new View();
             view.setId(View.ALL_ID);
+            view.setEnvironment(GraviteeContext.getCurrentEnvironment());
             view.setName("All");
             view.setDefaultView(true);
             view.setOrder(0);

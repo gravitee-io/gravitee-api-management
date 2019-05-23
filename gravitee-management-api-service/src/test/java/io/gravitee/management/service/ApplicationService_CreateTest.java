@@ -139,7 +139,7 @@ public class ApplicationService_CreateTest {
         settings.setApp(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
 
-        when(applicationRepository.findAll(ApplicationStatus.ACTIVE)).thenReturn(Collections.singleton(application));
+        when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenReturn(Collections.singleton(application));
 
         applicationService.create(newApplication, USER_NAME);
     }
@@ -152,7 +152,7 @@ public class ApplicationService_CreateTest {
         settings.setApp(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
 
-        when(applicationRepository.findAll(ApplicationStatus.ACTIVE)).thenThrow(TechnicalException.class);
+        when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenThrow(TechnicalException.class);
 //        when(newApplication.getClientId()).thenReturn(CLIENT_ID);
 
         applicationService.create(newApplication, USER_NAME);

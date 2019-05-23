@@ -49,12 +49,12 @@ public class ViewService_FindTest {
 
     @Test
     public void shouldDoNothingWithEmptyResult() throws TechnicalException {
-        when(mockViewRepository.findAll()).thenReturn(emptySet());
+        when(mockViewRepository.findAllByEnvironment(any())).thenReturn(emptySet());
 
         List<ViewEntity> list = viewService.findAll();
 
         assertTrue(list.isEmpty());
-        verify(mockViewRepository, times(1)).findAll();
+        verify(mockViewRepository, times(1)).findAllByEnvironment(any());
     }
 
     @Test
@@ -68,7 +68,7 @@ public class ViewService_FindTest {
         when(view.isHidden()).thenReturn(true);
         when(view.getUpdatedAt()).thenReturn(new Date(1234567890L));
         when(view.getCreatedAt()).thenReturn(new Date(9876543210L));
-        when(mockViewRepository.findAll()).thenReturn(singleton(view));
+        when(mockViewRepository.findAllByEnvironment(any())).thenReturn(singleton(view));
 
         List<ViewEntity> list = viewService.findAll();
 
@@ -83,6 +83,6 @@ public class ViewService_FindTest {
         assertEquals("Hidden", true, list.get(0).isHidden());
         assertEquals("UpdatedAt", new Date(1234567890L), list.get(0).getUpdatedAt());
         assertEquals("CreatedAt", new Date(9876543210L), list.get(0).getCreatedAt());
-        verify(mockViewRepository, times(1)).findAll();
+        verify(mockViewRepository, times(1)).findAllByEnvironment(any());
     }
 }

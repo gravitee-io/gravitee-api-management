@@ -15,19 +15,21 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.impl.PageServiceImpl;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PageRepository;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.impl.PageServiceImpl;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.model.PageReferenceType;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -47,21 +49,21 @@ public class PageService_FindMaxPageOrderByApiTest {
 
     @Test
     public void shouldFindMaxPageOrderByApiName() throws TechnicalException {
-        when(pageRepository.findMaxApiPageOrderByApiId(API_ID)).thenReturn(10);
+        when(pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(API_ID, PageReferenceType.API)).thenReturn(10);
 
         assertEquals(10, pageService.findMaxApiPageOrderByApi(API_ID));
     }
 
     @Test
     public void shouldFindMaxPageOrderByApiNameWhenNull() throws TechnicalException {
-        when(pageRepository.findMaxApiPageOrderByApiId(API_ID)).thenReturn(null);
+        when(pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(API_ID, PageReferenceType.API)).thenReturn(null);
 
         assertEquals(0, pageService.findMaxApiPageOrderByApi(API_ID));
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindMaxPageOrderByApiNameBecauseTechnicalException() throws TechnicalException {
-        doThrow(TechnicalException.class).when(pageRepository).findMaxApiPageOrderByApiId(API_ID);
+        doThrow(TechnicalException.class).when(pageRepository).findMaxPageReferenceIdAndReferenceTypeOrder(API_ID, PageReferenceType.API);
 
         pageService.findMaxApiPageOrderByApi(API_ID);
     }

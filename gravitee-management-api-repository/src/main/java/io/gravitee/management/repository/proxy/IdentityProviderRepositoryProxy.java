@@ -18,6 +18,8 @@ package io.gravitee.management.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.model.IdentityProvider;
+import io.gravitee.repository.management.model.IdentityProviderReferenceType;
+
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -48,5 +50,11 @@ public class IdentityProviderRepositoryProxy extends AbstractProxy<IdentityProvi
 
     public void delete(String s) throws TechnicalException {
         target.delete(s);
+    }
+
+    @Override
+    public Set<IdentityProvider> findAllByReferenceIdAndReferenceType(String referenceId,
+            IdentityProviderReferenceType referenceType) throws TechnicalException {
+        return target.findAllByReferenceIdAndReferenceType(referenceId, referenceType);
     }
 }

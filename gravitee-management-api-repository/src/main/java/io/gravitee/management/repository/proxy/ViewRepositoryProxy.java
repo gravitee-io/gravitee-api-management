@@ -54,4 +54,9 @@ public class ViewRepositoryProxy extends AbstractProxy<ViewRepository> implement
     public void delete(String s) throws TechnicalException {
         target.delete(s);
     }
+
+    @Override
+    public Set<View> findAllByEnvironment(String environment) throws TechnicalException {
+        return target.findAllByEnvironment(environment);
+    }
 }

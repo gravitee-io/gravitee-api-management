@@ -114,7 +114,7 @@ public class EntrypointServiceTest {
     @Test
     public void shouldUpdateWithSameTags() throws Exception {
         // use to check existing tags excluding current entry point
-        when(entrypointRepository.findAll()).thenReturn(newHashSet(singletonList(entrypointUpdated)));
+        when(entrypointRepository.findAllByEnvironment(any())).thenReturn(newHashSet(singletonList(entrypointUpdated)));
 
         final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
         entrypoint.setId(ID);
@@ -135,7 +135,7 @@ public class EntrypointServiceTest {
 
     @Test
     public void shouldFindAll() throws Exception {
-        when(entrypointRepository.findAll()).thenReturn(newHashSet(singletonList(entrypointCreated)));
+        when(entrypointRepository.findAllByEnvironment(any())).thenReturn(newHashSet(singletonList(entrypointCreated)));
         final List<EntrypointEntity> entrypoints = entrypointService.findAll();
         assertNotNull(entrypoints);
         assertEquals(1, entrypoints.size());
@@ -155,7 +155,7 @@ public class EntrypointServiceTest {
 
     @Test(expected = EntrypointTagsAlreadyExistsException.class)
     public void shouldNotCreateWithSameTags() throws Exception {
-        when(entrypointRepository.findAll()).thenReturn(newHashSet(singletonList(entrypointCreated)));
+        when(entrypointRepository.findAllByEnvironment(any())).thenReturn(newHashSet(singletonList(entrypointCreated)));
 
         final NewEntryPointEntity entrypoint = new NewEntryPointEntity();
         entrypoint.setTags(new String[]{"product", "private"});
@@ -164,7 +164,7 @@ public class EntrypointServiceTest {
 
     @Test(expected = EntrypointTagsAlreadyExistsException.class)
     public void shouldNotUpdateWithSameTags() throws Exception {
-        when(entrypointRepository.findAll()).thenReturn(newHashSet(singletonList(entrypointUpdated)));
+        when(entrypointRepository.findAllByEnvironment(any())).thenReturn(newHashSet(singletonList(entrypointUpdated)));
 
         final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
         entrypoint.setId("new ID");

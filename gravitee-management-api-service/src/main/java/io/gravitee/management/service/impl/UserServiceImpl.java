@@ -26,6 +26,7 @@ import io.gravitee.management.model.common.Pageable;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.builder.EmailNotificationBuilder;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.common.JWTHelper.ACTION;
 import io.gravitee.management.service.common.JWTHelper.Claims;
 import io.gravitee.management.service.exceptions.*;
@@ -215,7 +216,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         try {
             LOGGER.debug("Find user by source[{}] user[{}]", source, sourceId);
 
-            Optional<User> optionalUser = userRepository.findBySource(source, sourceId);
+            Optional<User> optionalUser = userRepository.findBySource(source, sourceId, GraviteeContext.getCurrentEnvironment());
 
             if (optionalUser.isPresent()) {
                 return convert(optionalUser.get(), loadRoles);
@@ -303,7 +304,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 Optional<User> checkUser = userRepository.findById(username);
                 user = checkUser.orElseThrow(() -> new UserNotFoundException(username));
                 if (StringUtils.isNotBlank(user.getPassword())) {
-                    throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, username);
+                    throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, username, GraviteeContext.getCurrentEnvironment());
                 }
             }
 
@@ -389,14 +390,15 @@ public class UserServiceImpl extends AbstractService implements UserService {
         try {
             LOGGER.debug("Create an external user {}", newExternalUserEntity);
             Optional<User> checkUser = userRepository.findBySource(
-                    newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId());
+                    newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), GraviteeContext.getCurrentEnvironment());
 
             if (checkUser.isPresent()) {
-                throw new UserAlreadyExistsException(newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId());
+                throw new UserAlreadyExistsException(newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), GraviteeContext.getCurrentEnvironment());
             }
 
             User user = convert(newExternalUserEntity);
             user.setId(UUID.toString(UUID.random()));
+            user.setEnvironment(GraviteeContext.getCurrentEnvironment());
             user.setStatus(UserStatus.ACTIVE);
 
             // Set date fields
@@ -474,9 +476,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         final Optional<User> optionalUser;
         try {
-            optionalUser = userRepository.findBySource(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail());
+            optionalUser = userRepository.findBySource(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail(), GraviteeContext.getCurrentEnvironment());
             if (optionalUser.isPresent()) {
-                throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail());
+                throw new UserAlreadyExistsException(IDP_SOURCE_GRAVITEE, newExternalUserEntity.getEmail(), GraviteeContext.getCurrentEnvironment());
             }
         } catch (final TechnicalException e) {
             LOGGER.error("An error occurs while trying to create user {}", newExternalUserEntity.getEmail(), e);
@@ -618,8 +620,15 @@ public class UserServiceImpl extends AbstractService implements UserService {
     public Page<UserEntity> search(UserCriteria criteria, Pageable pageable) {
         try {
             LOGGER.debug("search users");
-
-            Page<User> users = userRepository.search(criteria, new PageableBuilder()
+            UserCriteria.Builder builder = new UserCriteria.Builder()
+                    .environment(GraviteeContext.getCurrentEnvironment())
+                    .statuses(criteria.getStatuses());
+            if(criteria.hasNoStatus()) {
+                builder.noStatus();
+            }
+            UserCriteria newCriteria = builder.build();
+            
+            Page<User> users = userRepository.search(newCriteria, new PageableBuilder()
                     .pageNumber(pageable.getPageNumber() - 1)
                     .pageSize(pageable.getPageSize())
                     .build());

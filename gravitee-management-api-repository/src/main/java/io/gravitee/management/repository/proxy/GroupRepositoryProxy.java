@@ -15,17 +15,14 @@
  */
 package io.gravitee.management.repository.proxy;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.GroupRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Group;
-import io.gravitee.repository.management.model.Membership;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import org.springframework.stereotype.Component;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.model.Group;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
@@ -61,5 +58,10 @@ public class GroupRepositoryProxy extends AbstractProxy<GroupRepository> impleme
     @Override
     public Set<Group> findByIds(Set<String> ids) throws TechnicalException {
         return target.findByIds(ids);
+    }
+
+    @Override
+    public Set<Group> findAllByEnvironment(String environment) throws TechnicalException {
+        return target.findAllByEnvironment(environment);
     }
 }

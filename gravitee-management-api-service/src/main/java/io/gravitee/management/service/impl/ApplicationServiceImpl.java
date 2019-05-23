@@ -26,6 +26,7 @@ import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
 import io.gravitee.management.service.*;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.configuration.application.ClientRegistrationService;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
@@ -162,6 +163,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Set<Application> applications = applicationRepository.
                     findByName(name.trim()).stream().
                     filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus())).
+                    filter(app -> GraviteeContext.getCurrentEnvironment().equals(app.getEnvironment())).
                     collect(Collectors.toSet());
             return convertToList(applications);
         } catch (TechnicalException ex) {
@@ -186,7 +188,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         try {
             LOGGER.debug("Find all applications");
 
-            final Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ACTIVE);
+            final Set<Application> applications = applicationRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment(), ApplicationStatus.ACTIVE);
 
             if (applications == null || applications.isEmpty()) {
                 return emptySet();
@@ -229,7 +231,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
                 if (clientId != null && ! clientId.trim().isEmpty()) {
                     LOGGER.debug("Check that client_id is unique among all applications");
-                    final Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ACTIVE);
+                    final Set<Application> applications = applicationRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment(), ApplicationStatus.ACTIVE);
                     final boolean alreadyExistingApp = applications.stream().anyMatch(app ->
                             app.getMetadata() != null && clientId.equals(app.getMetadata().get("client_id")));
                     if (alreadyExistingApp) {
@@ -264,7 +266,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Application application = convert(newApplicationEntity);
             application.setId( UUID.toString(UUID.random()));
             application.setStatus(ApplicationStatus.ACTIVE);
-
+            application.setEnvironment(GraviteeContext.getCurrentEnvironment());
+            
             metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
             // Add Default groups
@@ -358,7 +361,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
                 if (clientId != null && !clientId.trim().isEmpty()) {
                     LOGGER.debug("Check that client_id is unique among all applications");
-                    final Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ACTIVE);
+                    final Set<Application> applications = applicationRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment(), ApplicationStatus.ACTIVE);
                     final Optional<Application> byClientId = applications.stream().filter(
                             app -> app.getMetadata() != null && clientId.equals(app.getMetadata().get("client_id"))).findAny();
                     if (byClientId.isPresent() && !byClientId.get().getId().equals(optApplicationToUpdate.get().getId())) {

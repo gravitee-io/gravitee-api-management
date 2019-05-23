@@ -51,6 +51,6 @@ public class ApplicationService_FindAllTest {
         Set<ApplicationListItem> set = applicationService.findAll();
         assertNotNull(set);
         assertTrue("result is empty", set.isEmpty());
-        verify(applicationRepository, times(1)).findAll(ApplicationStatus.ACTIVE);
+        verify(applicationRepository, times(1)).findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE);
     }
 }

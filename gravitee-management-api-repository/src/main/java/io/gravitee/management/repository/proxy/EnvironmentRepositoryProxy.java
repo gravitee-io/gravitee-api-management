@@ -15,33 +15,34 @@
  */
 package io.gravitee.management.repository.proxy;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.EntrypointRepository;
-import io.gravitee.repository.management.model.Entrypoint;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
 
+import org.springframework.stereotype.Component;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.model.Environment;
+
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class EntrypointRepositoryProxy extends AbstractProxy<EntrypointRepository> implements EntrypointRepository {
+public class EnvironmentRepositoryProxy extends AbstractProxy<EnvironmentRepository> implements EnvironmentRepository {
 
     @Override
-    public Optional<Entrypoint> findById(String s) throws TechnicalException {
+    public Optional<Environment> findById(String s) throws TechnicalException {
         return target.findById(s);
     }
 
     @Override
-    public Entrypoint create(Entrypoint item) throws TechnicalException {
+    public Environment create(Environment item) throws TechnicalException {
         return target.create(item);
     }
 
     @Override
-    public Entrypoint update(Entrypoint item) throws TechnicalException {
+    public Environment update(Environment item) throws TechnicalException {
         return target.update(item);
     }
 
@@ -51,12 +52,7 @@ public class EntrypointRepositoryProxy extends AbstractProxy<EntrypointRepositor
     }
 
     @Override
-    public Set<Entrypoint> findAll() throws TechnicalException {
+    public Set<Environment> findAll() throws TechnicalException {
         return target.findAll();
-    }
-
-    @Override
-    public Set<Entrypoint> findAllByEnvironment(String environment) throws TechnicalException {
-        return target.findAllByEnvironment(environment);
     }
 }

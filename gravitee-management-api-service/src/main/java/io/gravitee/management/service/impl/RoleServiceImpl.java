@@ -22,10 +22,12 @@ import io.gravitee.management.model.permissions.*;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.RoleService;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.exceptions.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -82,7 +84,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     public List<RoleEntity> findAll() {
         try {
             LOGGER.debug("Find all Roles");
-            return roleRepository.findAll()
+            return roleRepository.findAllByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), RoleReferenceType.ENVIRONMENT)
                     .stream()
                     .map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
@@ -100,6 +102,9 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             }
             role.setCreatedAt(new Date());
             role.setUpdatedAt(role.getCreatedAt());
+            role.setReferenceId(GraviteeContext.getCurrentEnvironment());
+            role.setReferenceType(RoleReferenceType.ENVIRONMENT);
+            
             RoleEntity entity = convert(roleRepository.create(role));
             auditService.createPortalAuditLog(
                     Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
@@ -130,6 +135,10 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         }
         systemRole.setPermissions(convertPermissions(permRoleScope , perms));
 
+        //TODO: [ENV] set role with environment
+        systemRole.setReferenceId(GraviteeContext.getCurrentEnvironment());
+        systemRole.setReferenceType(RoleReferenceType.ENVIRONMENT);
+        
         Optional<Role> existingRole = roleRepository.findById(systemRole.getScope(), systemRole.getName());
         if (existingRole.isPresent() && permissionsAreDifferent(existingRole.get(), systemRole)) {
             roleRepository.update(systemRole);
@@ -240,7 +249,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     public List<RoleEntity> findByScope(RoleScope scope) {
         try {
             LOGGER.debug("Find Roles by scope");
-            return roleRepository.findByScope(scope).stream()
+            return roleRepository.findByScopeAndReferenceIdAndReferenceType(scope, GraviteeContext.getCurrentEnvironment(), RoleReferenceType.ENVIRONMENT).stream()
                     .map(this::convert)
                     .sorted(comparing(RoleEntity::getName))
                     .collect(toList());
@@ -257,7 +266,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             List<RoleEntity> roles = new ArrayList<>();
             for (RoleScope scope : scopes) {
                 roles.addAll(
-                        roleRepository.findByScope(scope).
+                        roleRepository.findByScopeAndReferenceIdAndReferenceType(scope, GraviteeContext.getCurrentEnvironment(), RoleReferenceType.ENVIRONMENT).
                                 stream().
                                 filter(Role::isDefaultRole).
                                 map(this::convert).
@@ -292,7 +301,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     private void toggleDefaultRole(RoleScope scope, String newDefaultRoleName) throws TechnicalException {
-        List<Role> roles = roleRepository.findByScope(scope).
+        List<Role> roles = roleRepository.findByScopeAndReferenceIdAndReferenceType(scope, GraviteeContext.getCurrentEnvironment(), RoleReferenceType.ENVIRONMENT).
                 stream().
                 filter(Role::isDefaultRole).
                 collect(toList());

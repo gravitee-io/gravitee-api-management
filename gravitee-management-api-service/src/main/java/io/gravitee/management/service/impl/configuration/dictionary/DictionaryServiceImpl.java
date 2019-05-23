@@ -22,6 +22,7 @@ import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.configuration.dictionary.*;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.EventService;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.configuration.dictionary.DictionaryService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.AbstractService;
@@ -66,7 +67,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     public Set<DictionaryEntity> findAll() {
         try {
             return dictionaryRepository
-                    .findAll()
+                    .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
                     .stream()
                     .map(this::convert)
                     .collect(Collectors.toSet());
@@ -220,7 +221,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             }
 
             Dictionary dictionary = convert(newDictionaryEntity);
-
+            
+            dictionary.setEnvironment(GraviteeContext.getCurrentEnvironment());
+            
             // Set date fields
             dictionary.setCreatedAt(new Date());
             dictionary.setState(LifecycleState.STOPPED);

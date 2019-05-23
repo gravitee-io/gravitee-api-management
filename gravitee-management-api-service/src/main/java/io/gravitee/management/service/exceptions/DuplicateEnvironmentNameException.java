@@ -18,28 +18,24 @@ package io.gravitee.management.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UserAlreadyExistsException extends AbstractManagementException {
+public class DuplicateEnvironmentNameException extends AbstractManagementException {
 
-    private final String source;
-    private final String userId;
-    private final String environment;
+        private final String environmentName;
 
-    public UserAlreadyExistsException(String source, String userId, String environment) {
-        this.source = source;
-        this.userId = userId;
-        this.environment = environment;
-    }
+        public DuplicateEnvironmentNameException(String environmentName) {
+            this.environmentName = environmentName;
+        }
 
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
-    }
+        @Override
+        public int getHttpStatusCode() {
+            return HttpStatusCode.BAD_REQUEST_400;
+        }
 
-    @Override
-    public String getMessage() {
-        return "A user  [" + userId + "] already exists for environment " + environment + ".";
-    }
+        @Override
+        public String getMessage() {
+            return "The environment '" + environmentName + "' already exists.";
+        }
 }

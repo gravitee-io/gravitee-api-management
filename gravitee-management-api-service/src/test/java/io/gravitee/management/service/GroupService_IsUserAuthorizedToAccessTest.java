@@ -66,7 +66,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
 
         assertTrue(userAuthorizedToAccess);
         verify(membershipService, never()).getMember(any(), any(), any(), any());
-        verify(groupRepository, never()).findAll();
+        verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
     @Test
@@ -77,7 +77,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
 
         assertFalse(userAuthorizedToAccess);
         verify(membershipService, never()).getMember(any(), any(), any(), any());
-        verify(groupRepository, never()).findAll();
+        verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
     @Test
@@ -86,7 +86,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
 
         assertTrue(userAuthorizedToAccess);
         verify(membershipService, never()).getMember(any(), any(), any(), any());
-        verify(groupRepository, never()).findAll();
+        verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
     @Test
@@ -98,7 +98,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
 
         assertFalse(userAuthorizedToAccess);
         verify(membershipService, times(1)).getMember(any(), any(), any(), any());
-        verify(groupRepository, never()).findAll();
+        verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
     @Test
@@ -107,7 +107,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
 
         assertTrue(userAuthorizedToAccess);
         verify(membershipService, never()).getMember(any(), any(), any(), any());
-        verify(groupRepository, never()).findAll();
+        verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
     @Test
@@ -130,7 +130,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
                         "user",
                         RoleScope.API);
         verify(api, never()).getGroups();
-        verify(groupRepository, never()).findAll();
+        verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
     @Test
@@ -166,7 +166,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
                         "user",
                         RoleScope.API);
         verify(api, atLeast(2)).getGroups();
-        verify(groupRepository, never()).findAll();
+        verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
     @Test
@@ -202,7 +202,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
                         "user",
                         RoleScope.API);
         verify(api, atLeast(2)).getGroups();
-        verify(groupRepository, never()).findAll();
+        verify(groupRepository, never()).findAllByEnvironment("DEFAULT");
     }
 
     @Test
@@ -213,7 +213,7 @@ public class GroupService_IsUserAuthorizedToAccessTest {
         Group grp2 = new Group();
         grp1.setId("grp1");
         grp2.setId("grp2");
-        when(groupRepository.findAll()).thenReturn(new HashSet<>(Arrays.asList(grp1, grp2)));
+        when(groupRepository.findAllByEnvironment("DEFAULT")).thenReturn(new HashSet<>(Arrays.asList(grp1, grp2)));
         when(membershipService.getMember(
                 MembershipReferenceType.API,
                 api.getId(),
@@ -242,6 +242,6 @@ public class GroupService_IsUserAuthorizedToAccessTest {
                         "user",
                         RoleScope.API);
         verify(api, never()).getGroups();
-        verify(groupRepository, times(1)).findAll();
+        verify(groupRepository, times(1)).findAllByEnvironment("DEFAULT");
     }
 }

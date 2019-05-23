@@ -15,15 +15,16 @@
  */
 package io.gravitee.management.repository.proxy;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Component;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import io.gravitee.repository.management.model.PageReferenceType;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,10 +35,6 @@ import java.util.Optional;
 @Component
 public class PageRepositoryProxy extends AbstractProxy<PageRepository> implements PageRepository {
 
-    @Override
-    public Integer findMaxApiPageOrderByApiId(String s) throws TechnicalException {
-        return target.findMaxApiPageOrderByApiId(s);
-    }
 
     @Override
     public Page create(Page page) throws TechnicalException {
@@ -59,13 +56,15 @@ public class PageRepositoryProxy extends AbstractProxy<PageRepository> implement
         return target.update(page);
     }
 
-    @Override
-    public Integer findMaxPortalPageOrder() throws TechnicalException {
-        return target.findMaxPortalPageOrder();
-    }
 
     @Override
     public List<Page> search(PageCriteria criteria) throws TechnicalException {
         return target.search(criteria);
+    }
+
+    @Override
+    public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType)
+            throws TechnicalException {
+        return target.findMaxPageReferenceIdAndReferenceTypeOrder(referenceId, referenceType);
     }
 }

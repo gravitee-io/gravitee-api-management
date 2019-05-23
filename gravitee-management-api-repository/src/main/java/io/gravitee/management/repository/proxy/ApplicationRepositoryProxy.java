@@ -72,4 +72,11 @@ public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationReposit
     public Set<Application> findByName(String partialName) throws TechnicalException {
         return target.findByName(partialName);
     }
+
+    @Override
+    public Set<Application> findAllByEnvironment(String environment, ApplicationStatus... statuses)
+            throws TechnicalException {
+        return target.findAllByEnvironment(environment, statuses);
+
+    }
 }

@@ -25,6 +25,7 @@ import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.exceptions.GroupNameAlreadyExistsException;
 import io.gravitee.management.service.exceptions.GroupNotFoundException;
 import io.gravitee.management.service.exceptions.GroupsNotFoundException;
@@ -76,7 +77,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     public List<GroupEntity> findAll() {
         try {
             logger.debug("Find all groups");
-            Set<Group> all = groupRepository.findAll();
+            Set<Group> all = groupRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment());
             logger.debug("Find all groups - DONE");
             final List<GroupEntity> groups = all.stream()
                     .map(this::map)
@@ -110,7 +111,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             if (name == null) {
                 return Collections.emptyList();
             }
-            List<GroupEntity> groupEntities = groupRepository.findAll().stream()
+            List<GroupEntity> groupEntities = groupRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment()).stream()
                     .filter(group -> group.getName().equals(name))
                     .map(this::map)
                     .sorted(Comparator.comparing(GroupEntity::getName))
@@ -132,6 +133,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             Group newGroup = this.map(group);
             newGroup.setId(UUID.toString(UUID.random()));
+            newGroup.setEnvironment(GraviteeContext.getCurrentEnvironment());
             newGroup.setCreatedAt(new Date());
             newGroup.setUpdatedAt(newGroup.getCreatedAt());
             GroupEntity grp = this.map(groupRepository.create(newGroup));
@@ -246,7 +248,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     public Set<GroupEntity> findByEvent(GroupEvent event) {
         try {
             logger.debug("findByEvent : {}", event);
-            Set<GroupEntity> set = groupRepository.findAll().
+            Set<GroupEntity> set = groupRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment()).
                     stream().
                     filter(g -> g.getEventRules() != null && g.getEventRules().
                             stream().
@@ -289,7 +291,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             //remove all applications or apis
             Date updatedDate = new Date();
-            apiRepository.search(new ApiCriteria.Builder().groups(groupId).build()).forEach(api -> {
+            apiRepository.search(new ApiCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).groups(groupId).build()).forEach(api -> {
                 api.getGroups().remove(groupId);
                 api.setUpdatedAt(updatedDate);
                 try {
@@ -350,7 +352,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             if (Visibility.PUBLIC.equals(api.getVisibility())) {
                 try {
-                    authorizedGroups = groupRepository.findAll().stream().map(Group::getId).collect(Collectors.toSet());
+                    authorizedGroups = groupRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment()).stream().map(Group::getId).collect(Collectors.toSet());
                 } catch (TechnicalException ex) {
                     logger.error("An error occurs while trying to find all groups", ex);
                     throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
@@ -379,7 +381,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             // for public apis, default authorized groups are all groups,
             Set<String> authorizedGroups;
             try {
-                authorizedGroups = groupRepository.findAll().stream().map(Group::getId).collect(Collectors.toSet());
+                authorizedGroups = groupRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment()).stream().map(Group::getId).collect(Collectors.toSet());
             } catch (TechnicalException ex) {
                 logger.error("An error occurs while trying to find all groups", ex);
                 throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
@@ -414,7 +416,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public List<ApiEntity> getApis(String groupId) {
         return apiRepository.search(
-                new ApiCriteria.Builder().groups(groupId).build(),
+                new ApiCriteria.Builder().environment(GraviteeContext.getCurrentEnvironment()).groups(groupId).build(),
                 new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())
                 .stream()
                 .map( api -> {

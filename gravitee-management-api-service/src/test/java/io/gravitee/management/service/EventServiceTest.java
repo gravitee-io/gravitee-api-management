@@ -143,6 +143,7 @@ public class EventServiceTest {
                 new EventCriteria.Builder()
                         .from(1420070400000L).to(1422748800000L)
                         .types(EventType.START_API)
+                        .environment("DEFAULT")
                         .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
         )).thenReturn(eventPage);
@@ -175,6 +176,7 @@ public class EventServiceTest {
                 new EventCriteria.Builder()
                         .from(1420070400000L).to(1422748800000L)
                         .types(EventType.START_API)
+                        .environment("DEFAULT")
                         .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
         )).thenReturn(eventPage);
@@ -206,6 +208,7 @@ public class EventServiceTest {
                 new EventCriteria.Builder()
                         .from(1420070400000L).to(1422748800000L)
                         .types(EventType.START_API, EventType.STOP_API)
+                        .environment("DEFAULT")
                         .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
         )).thenReturn(eventPage);
@@ -242,6 +245,7 @@ public class EventServiceTest {
                 new EventCriteria.Builder()
                         .from(1420070400000L).to(1422748800000L)
                         .property(Event.EventProperties.API_ID.getValue(), "id-api")
+                        .environment("DEFAULT")
                         .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
         )).thenReturn(eventPage);
@@ -276,6 +280,7 @@ public class EventServiceTest {
                         .from(1420070400000L).to(1422748800000L)
                         .property(Event.EventProperties.API_ID.getValue(), "id-api")
                         .types(EventType.START_API, EventType.STOP_API)
+                        .environment("DEFAULT")
                         .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
         )).thenReturn(eventPage);

@@ -33,6 +33,8 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
+import io.gravitee.repository.management.model.RatingReferenceType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,18 +85,18 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            final Optional<Rating> ratingOptional = ratingRepository.findByApiAndUser(ratingEntity.getApi(), getAuthenticatedUsername());
+            final Optional<Rating> ratingOptional = ratingRepository.findByReferenceIdAndReferenceTypeAndUser(ratingEntity.getApi(), RatingReferenceType.API, getAuthenticatedUsername());
             if (ratingOptional.isPresent()) {
                 throw new RatingAlreadyExistsException(ratingEntity.getApi(), getAuthenticatedUsername());
             }
             Rating rating = ratingRepository.create(convert(ratingEntity));
-            auditService.createApiAuditLog(rating.getApi(), null, Rating.RatingEvent.RATING_CREATED, rating.getCreatedAt(), null, rating);
+            auditService.createApiAuditLog(rating.getReferenceId(), null, Rating.RatingEvent.RATING_CREATED, rating.getCreatedAt(), null, rating);
 
             notifierService.trigger(
                     ApiHook.NEW_RATING,
-                    rating.getApi(),
+                    rating.getReferenceId(),
                     new NotificationParamsBuilder()
-                            .api(apiService.findById(rating.getApi()))
+                            .api(apiService.findById(rating.getReferenceId()))
                             .build());
 
             return convert(rating);
@@ -119,13 +121,13 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             ratingAnswer.setComment(answerEntity.getComment());
             ratingAnswer.setCreatedAt(new Date());
             ratingAnswerRepository.create(ratingAnswer);
-            auditService.createApiAuditLog(rating.getApi(), null, RatingAnswer.RatingAnswerEvent.RATING_ANSWER_CREATED, ratingAnswer.getCreatedAt(), null, ratingAnswer);
+            auditService.createApiAuditLog(rating.getReferenceId(), null, RatingAnswer.RatingAnswerEvent.RATING_ANSWER_CREATED, ratingAnswer.getCreatedAt(), null, ratingAnswer);
 
             notifierService.trigger(
                     ApiHook.NEW_RATING_ANSWER,
-                    rating.getApi(),
+                    rating.getReferenceId(),
                     new NotificationParamsBuilder()
-                            .api(apiService.findById(rating.getApi()))
+                            .api(apiService.findById(rating.getReferenceId()))
                             .build());
 
             return convert(rating);
@@ -141,7 +143,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            final Page<Rating> pageRating = ratingRepository.findByApiPageable(api,
+            final Page<Rating> pageRating = ratingRepository.findByReferenceIdAndReferenceTypePageable(api, RatingReferenceType.API, 
                     new PageableBuilder().pageNumber(pageable.pageNumber() - 1).pageSize(pageable.pageSize()).build());
             final List<RatingEntity> ratingEntities =
                     pageRating.getContent().stream().map(this::convert).collect(toList());
@@ -159,7 +161,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            final List<Rating> ratings = ratingRepository.findByApi(api);
+            final List<Rating> ratings = ratingRepository.findByReferenceIdAndReferenceType(api, RatingReferenceType.API);
             final RatingSummaryEntity ratingSummary = new RatingSummaryEntity();
             ratingSummary.setApi(api);
             ratingSummary.setNumberOfRatings(ratings.size());
@@ -181,7 +183,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
             throw new ApiRatingUnavailableException();
         }
         try {
-            final Optional<Rating> ratingOptional = ratingRepository.findByApiAndUser(api, getAuthenticatedUsername());
+            final Optional<Rating> ratingOptional = ratingRepository.findByReferenceIdAndReferenceTypeAndUser(api, RatingReferenceType.API, getAuthenticatedUsername());
             if (ratingOptional.isPresent()) {
                 return convert(ratingOptional.get());
             }
@@ -201,7 +203,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         try {
             final Rating rating = findById(ratingEntity.getId());
             final Rating oldRating = new Rating(rating);
-            if (!rating.getApi().equals(ratingEntity.getApi())) {
+            if (!rating.getReferenceId().equals(ratingEntity.getApi())) {
                 throw new RatingNotFoundException(ratingEntity.getId(), ratingEntity.getApi());
             }
             final Date now = new Date();
@@ -216,7 +218,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 rating.setComment(ratingEntity.getComment());
             }
             Rating updatedRating = ratingRepository.update(rating);
-            auditService.createApiAuditLog(rating.getApi(), null, Rating.RatingEvent.RATING_UPDATED, updatedRating.getUpdatedAt(), oldRating, updatedRating);
+            auditService.createApiAuditLog(rating.getReferenceId(), null, Rating.RatingEvent.RATING_UPDATED, updatedRating.getUpdatedAt(), oldRating, updatedRating);
             return convert(updatedRating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to update rating {}", ratingEntity.getId(), ex);
@@ -232,7 +234,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         try {
             Rating rating = findById(id);
             ratingRepository.delete(id);
-            auditService.createApiAuditLog(rating.getApi(), null, Rating.RatingEvent.RATING_DELETED, new Date(), rating, null);
+            auditService.createApiAuditLog(rating.getReferenceId(), null, Rating.RatingEvent.RATING_DELETED, new Date(), rating, null);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete rating {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete rating " + id, ex);
@@ -247,7 +249,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         try {
             Rating rating = findById(ratingId);
             ratingAnswerRepository.delete(answerId);
-            auditService.createApiAuditLog(rating.getApi(), null, RatingAnswer.RatingAnswerEvent.RATING_ANSWER_DELETED, new Date(), rating, null);
+            auditService.createApiAuditLog(rating.getReferenceId(), null, RatingAnswer.RatingAnswerEvent.RATING_ANSWER_DELETED, new Date(), rating, null);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete rating answer {}", answerId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete rating answer " + answerId, ex);
@@ -282,7 +284,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         ratingEntity.setUser(user.getId());
         ratingEntity.setUserDisplayName(user.getDisplayName());
         ratingEntity.setId(rating.getId());
-        ratingEntity.setApi(rating.getApi());
+        ratingEntity.setApi(rating.getReferenceId());
         ratingEntity.setTitle(rating.getTitle());
         ratingEntity.setComment(rating.getComment());
         ratingEntity.setRate(rating.getRate());
@@ -321,7 +323,8 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     private Rating convert(final NewRatingEntity ratingEntity) {
         final Rating rating = new Rating();
         rating.setId(UUID.toString(UUID.random()));
-        rating.setApi(ratingEntity.getApi());
+        rating.setReferenceId(ratingEntity.getApi());
+        rating.setReferenceType(RatingReferenceType.API);
         rating.setRate(ratingEntity.getRate());
         rating.setTitle(ratingEntity.getTitle());
         rating.setComment(ratingEntity.getComment());

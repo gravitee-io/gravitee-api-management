@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.GroupEvent.API_CREATE;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -61,7 +63,7 @@ public class GroupService_FindByEventTest {
         HashSet<Group> findAll = new HashSet<>();
         findAll.add(grp1);
         findAll.add(grp2);
-        when(groupRepository.findAll()).thenReturn(findAll);
+        when(groupRepository.findAllByEnvironment(Mockito.any())).thenReturn(findAll);
 
 
         Set<GroupEntity> groupEntities = groupService.findByEvent(API_CREATE);
@@ -85,7 +87,7 @@ public class GroupService_FindByEventTest {
         HashSet<Group> findAll = new HashSet<>();
         findAll.add(grp1);
         findAll.add(grp2);
-        when(groupRepository.findAll()).thenReturn(findAll);
+        when(groupRepository.findAllByEnvironment(any())).thenReturn(findAll);
 
 
         Set<GroupEntity> groupEntities = groupService.findByEvent(API_CREATE);

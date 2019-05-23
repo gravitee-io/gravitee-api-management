@@ -18,10 +18,13 @@ package io.gravitee.management.service.impl;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.ParameterService;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -114,7 +117,10 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     @Override
     public <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, Predicate<String> filter) {
         try {
-            List<Parameter> parameters = parameterRepository.findAll(keys.stream().map(Key::key).collect(toList()));
+            List<Parameter> parameters = parameterRepository.findAllByReferenceIdAndReferenceType(
+                    keys.stream().map(Key::key).collect(toList()), 
+                    GraviteeContext.getCurrentEnvironment(), 
+                    ParameterReferenceType.ENVIRONMENT);
             if (parameters.isEmpty()) {
                 return emptyMap();
             }
@@ -148,6 +154,8 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
             final Parameter parameter = new Parameter();
             parameter.setKey(key.key());
+            parameter.setReferenceId(GraviteeContext.getCurrentEnvironment());
+            parameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
             parameter.setValue(value);
 
             if (updateMode) {

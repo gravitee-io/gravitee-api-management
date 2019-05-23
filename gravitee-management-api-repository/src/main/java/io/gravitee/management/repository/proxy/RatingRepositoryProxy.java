@@ -15,15 +15,17 @@
  */
 package io.gravitee.management.repository.proxy;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Component;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Rating;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
+import io.gravitee.repository.management.model.RatingReferenceType;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -43,21 +45,6 @@ public class RatingRepositoryProxy extends AbstractProxy<RatingRepository> imple
     }
 
     @Override
-    public Optional<Rating> findByApiAndUser(String api, String user) throws TechnicalException {
-        return target.findByApiAndUser(api, user);
-    }
-
-    @Override
-    public List<Rating> findByApi(String api) throws TechnicalException {
-        return target.findByApi(api);
-    }
-
-    @Override
-    public Page<Rating> findByApiPageable(String api, Pageable pageable) throws TechnicalException {
-        return target.findByApiPageable(api, pageable);
-    }
-
-    @Override
     public Rating update(Rating rating) throws TechnicalException {
         return target.update(rating);
     }
@@ -66,4 +53,23 @@ public class RatingRepositoryProxy extends AbstractProxy<RatingRepository> imple
     public void delete(String id) throws TechnicalException {
         target.delete(id);
     }
+
+    @Override
+    public Page<Rating> findByReferenceIdAndReferenceTypePageable(String referenceId, RatingReferenceType referenceType,
+            Pageable pageable) throws TechnicalException {
+        return target.findByReferenceIdAndReferenceTypePageable(referenceId, referenceType, pageable);
+    }
+
+    @Override
+    public List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType)
+            throws TechnicalException {
+        return target.findByReferenceIdAndReferenceType(referenceId, referenceType);
+    }
+
+    @Override
+    public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId,
+            RatingReferenceType referenceType, String user) throws TechnicalException {
+        return target.findByReferenceIdAndReferenceTypeAndUser(referenceId, referenceType, user);
+    }
+
 }

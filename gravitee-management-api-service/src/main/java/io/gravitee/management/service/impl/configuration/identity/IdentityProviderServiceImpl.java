@@ -19,12 +19,14 @@ import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.management.model.configuration.identity.*;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.RoleService;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.configuration.identity.IdentityProviderService;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.AbstractService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.model.IdentityProvider;
+import io.gravitee.repository.management.model.IdentityProviderReferenceType;
 import io.gravitee.repository.management.model.IdentityProviderType;
 import io.gravitee.repository.management.model.RoleScope;
 import org.slf4j.Logger;
@@ -72,6 +74,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             }
 
             IdentityProvider identityProvider = convert(newIdentityProviderEntity);
+            identityProvider.setReferenceId(GraviteeContext.getCurrentEnvironment());
+            identityProvider.setReferenceType(IdentityProviderReferenceType.ENVIRONMENT);
 
             // If provider is a social type, we must ensure required parameters
             if (identityProvider.getType() == IdentityProviderType.GOOGLE ||
@@ -200,7 +204,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
     public Set<IdentityProviderEntity> findAll() {
         try {
             return identityProviderRepository
-                    .findAll()
+                    .findAllByReferenceIdAndReferenceType(GraviteeContext.getCurrentEnvironment(), IdentityProviderReferenceType.ENVIRONMENT)
                     .stream()
                     .map(this::convert)
                     .collect(Collectors.toSet());

@@ -21,6 +21,7 @@ import io.gravitee.management.model.NewEntryPointEntity;
 import io.gravitee.management.model.UpdateEntryPointEntity;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.EntrypointService;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.exceptions.EntrypointNotFoundException;
 import io.gravitee.management.service.exceptions.EntrypointTagsAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
@@ -73,7 +74,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     public List<EntrypointEntity> findAll() {
         try {
             LOGGER.debug("Find all APIs");
-            return entrypointRepository.findAll()
+            return entrypointRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
                     .stream()
                     .map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
@@ -87,6 +88,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         try {
             checkTagsOnExistingEntryPoints(entrypointEntity.getTags(), null);
             final Entrypoint entrypoint = convert(entrypointEntity);
+            entrypoint.setEnvironment(GraviteeContext.getCurrentEnvironment());
             final EntrypointEntity savedEntryPoint = convert(entrypointRepository.create(entrypoint));
             auditService.createPortalAuditLog(
                     Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
@@ -127,7 +129,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
 
     private void checkTagsOnExistingEntryPoints(final String[] tags, final String entrypointIdToIgnore) throws TechnicalException {
         // first check for existing entry point with same tags
-        final boolean tagsAlreadyDefined = entrypointRepository.findAll().stream()
+        final boolean tagsAlreadyDefined = entrypointRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment()).stream()
                 .filter(entrypoint -> entrypointIdToIgnore == null || !entrypoint.getId().equals(entrypointIdToIgnore))
                 .anyMatch(entrypoint -> {
                     final String[] entrypointTags = entrypoint.getTags().split(SEPARATOR);
