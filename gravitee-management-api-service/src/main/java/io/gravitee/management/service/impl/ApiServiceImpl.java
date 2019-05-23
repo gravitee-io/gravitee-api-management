@@ -30,8 +30,8 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.management.model.EventType;
 import io.gravitee.management.model.PageType;
 import io.gravitee.management.model.*;
-import io.gravitee.management.model.alert.AlertEntity;
 import io.gravitee.management.model.alert.AlertReferenceType;
+import io.gravitee.management.model.alert.AlertTriggerEntity;
 import io.gravitee.management.model.api.*;
 import io.gravitee.management.model.api.header.ApiHeaderEntity;
 import io.gravitee.management.model.documentation.PageQuery;
@@ -951,7 +951,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // Delete top API
                 topApiService.delete(apiId);
                 // Delete alerts
-                final List<AlertEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
+                final List<AlertTriggerEntity> alerts = alertService.findByReference(AlertReferenceType.API, apiId);
                 alerts.forEach(alert -> alertService.delete(alert.getId(), alert.getReferenceId()));
                 // delete all reference on api quality rule
                 apiQualityRuleRepository.deleteByApi(apiId);

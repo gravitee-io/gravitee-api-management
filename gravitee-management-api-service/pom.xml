@@ -57,10 +57,6 @@
 			<artifactId>gravitee-management-api-fetcher</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>io.gravitee.node</groupId>
-			<artifactId>gravitee-node-notifier</artifactId>
-		</dependency>
 
 		<!-- Gravitee Dependencies -->
 		<dependency>
@@ -95,6 +91,11 @@
 		<dependency>
 			<groupId>io.gravitee.plugin</groupId>
 			<artifactId>gravitee-plugin-service-discovery</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.plugin</groupId>
+			<artifactId>gravitee-plugin-notifier</artifactId>
 		</dependency>
 
 		<!-- Lucene -->

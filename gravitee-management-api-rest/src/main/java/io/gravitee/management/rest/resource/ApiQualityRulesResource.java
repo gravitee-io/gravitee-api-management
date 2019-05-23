@@ -16,18 +16,13 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.alert.AlertEntity;
-import io.gravitee.management.model.alert.NewAlertEntity;
-import io.gravitee.management.model.alert.UpdateAlertEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.quality.ApiQualityRuleEntity;
 import io.gravitee.management.model.quality.NewApiQualityRuleEntity;
-import io.gravitee.management.model.quality.NewQualityRuleEntity;
 import io.gravitee.management.model.quality.UpdateApiQualityRuleEntity;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.management.service.AlertService;
 import io.gravitee.management.service.ApiQualityRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -38,8 +33,6 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import java.util.List;
 
-import static io.gravitee.management.model.alert.AlertReferenceType.API;
-import static io.gravitee.management.model.permissions.RolePermission.API_ALERT;
 import static io.gravitee.management.model.permissions.RolePermission.API_QUALITY_RULE;
 import static io.gravitee.management.model.permissions.RolePermissionAction.READ;
 

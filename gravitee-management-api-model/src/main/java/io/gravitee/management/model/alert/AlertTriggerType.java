@@ -15,23 +15,14 @@
  */
 package io.gravitee.management.model.alert;
 
-public class AlertThreshold {
-    private String key;
-    private String description;
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
+/**
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public enum AlertTriggerType {
+    HC_ENDPOINT_STATUS_CHANGED,
+    REQUEST_MAX_RESPONSE_TIME_THRESHOLD,
+    REQUEST_QUOTA_THRESHOLD,
+    REQUEST_AVG_RESPONSE_TIME_THRESHOLD,
+    NODE_METRICS_THRESHOLD
 }

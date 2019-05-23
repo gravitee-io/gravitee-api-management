@@ -42,6 +42,11 @@
 			<groupId>io.gravitee.definition</groupId>
 			<artifactId>gravitee-definition-jackson</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>io.gravitee.alert</groupId>
+			<artifactId>gravitee-alert-api</artifactId>
+			<version>${gravitee-alert-api.version}</version>
+		</dependency>
 
 		<!-- Jackson dependencies -->
 		<dependency>

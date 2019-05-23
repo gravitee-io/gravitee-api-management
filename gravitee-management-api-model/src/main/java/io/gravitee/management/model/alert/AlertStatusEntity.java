@@ -13,15 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.alert;
+package io.gravitee.management.model.alert;
 
-import io.gravitee.management.model.alert.AlertEntity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface AlertTriggerService {
-    void trigger(AlertEntity alert);
-    void disable(AlertEntity alert);
+public class AlertStatusEntity {
+
+    @JsonProperty("available_plugins")
+    private int plugins;
+
+    @JsonProperty("enabled")
+    private boolean enabled;
+
+    public int getPlugins() {
+        return plugins;
+    }
+
+    public void setPlugins(int plugins) {
+        this.plugins = plugins;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 }

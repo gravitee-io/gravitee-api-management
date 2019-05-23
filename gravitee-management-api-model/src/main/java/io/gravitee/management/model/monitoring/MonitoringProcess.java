@@ -25,10 +25,20 @@ import java.util.Objects;
  */
 public class MonitoringProcess {
 
+    @JsonProperty("cpu_percent")
+    private int cpuPercent;
     @JsonProperty("open_file_descriptors")
     private int openFileDescriptors;
     @JsonProperty("max_file_descriptors")
     private int maxFileDescriptors;
+
+    public int getCpuPercent() {
+        return cpuPercent;
+    }
+
+    public void setCpuPercent(int cpuPercent) {
+        this.cpuPercent = cpuPercent;
+    }
 
     public int getOpenFileDescriptors() {
         return openFileDescriptors;

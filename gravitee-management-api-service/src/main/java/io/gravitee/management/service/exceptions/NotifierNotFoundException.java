@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.alert;
+package io.gravitee.management.service.exceptions;
 
-public enum ThresholdType {
-    COUNT("Count"), PERCENT_RATE("Percent rate");
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public class NotifierNotFoundException extends AbstractNotFoundException {
 
-    private String description;
+    private final String notifier;
 
-    ThresholdType(String description) {
-        this.description = description;
+    public NotifierNotFoundException(String notifier) {
+        this.notifier = notifier;
     }
 
-    public String description() {
-        return description;
+    @Override
+    public String getMessage() {
+        return "Notifier [" + notifier + "] can not be found.";
     }
 }

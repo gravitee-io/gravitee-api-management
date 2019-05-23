@@ -47,4 +47,9 @@ public class PlatformResource {
     public PlatformTicketsResource getPlatformTicketsResource() {
         return resourceContext.getResource(PlatformTicketsResource.class);
     }
+
+    @Path("alerts")
+    public PlatformAlertsResource getPlatformAlertsResource() {
+        return resourceContext.getResource(PlatformAlertsResource.class);
+    }
 }

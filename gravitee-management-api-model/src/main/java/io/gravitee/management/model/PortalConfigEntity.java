@@ -42,6 +42,7 @@ public class PortalConfigEntity {
     private Logging logging;
     private Analytics analytics;
     private Application application;
+    private Alert alert;
 
     public PortalConfigEntity() {
         company = new Company();
@@ -57,6 +58,7 @@ public class PortalConfigEntity {
         logging = new Logging();
         analytics = new Analytics();
         application = new Application();
+        alert = new Alert();
     }
 
     public Company getCompany() {
@@ -151,6 +153,14 @@ public class PortalConfigEntity {
 
     public void setApplication(Application application) {
         this.application = application;
+    }
+
+    public Alert getAlert() {
+        return alert;
+    }
+
+    public void setAlert(Alert alert) {
+        this.alert = alert;
     }
 
     public class Company {
@@ -613,6 +623,19 @@ public class PortalConfigEntity {
 
         public void setNotificationsInSeconds(Integer notificationsInSeconds) {
             this.notificationsInSeconds = notificationsInSeconds;
+        }
+    }
+
+    public static class Alert {
+        @ParameterKey(Key.ALERT_ENABLED)
+        private Boolean enabled;
+
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
         }
     }
 

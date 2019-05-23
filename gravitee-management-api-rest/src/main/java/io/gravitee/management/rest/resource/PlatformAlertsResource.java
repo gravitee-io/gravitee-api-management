@@ -34,28 +34,29 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import java.util.List;
 
-import static io.gravitee.management.model.alert.AlertReferenceType.API;
-import static io.gravitee.management.model.permissions.RolePermission.API_ALERT;
+import static io.gravitee.management.model.alert.AlertReferenceType.PLATFORM;
 import static io.gravitee.management.model.permissions.RolePermissionAction.READ;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API", "Alerts"})
-public class ApiAlertsResource extends AbstractResource {
+@Api(tags = {"Platform", "Alerts"})
+public class PlatformAlertsResource extends AbstractResource {
+
+    private final static String PLATFORM_REFERENCE_ID = "default";
 
     @Autowired
     private AlertService alertService;
 
     @GET
-    @ApiOperation(value = "List configured alerts of a given API")
+    @ApiOperation(value = "List configured alerts of the platform")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = API_ALERT, acls = READ)
+            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = READ)
     })
-    public List<AlertTriggerEntity> list(@PathParam("api") String api) {
-        return alertService.findByReference(API, api);
+    public List<AlertTriggerEntity> list() {
+        return alertService.findByReference(PLATFORM, PLATFORM_REFERENCE_ID);
     }
 
     @GET
@@ -73,11 +74,11 @@ public class ApiAlertsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = RolePermissionAction.CREATE)
     })
-    public AlertTriggerEntity create(@PathParam("api") String api, @Valid @NotNull final NewAlertTriggerEntity alertEntity) {
-        alertEntity.setReferenceType(API);
-        alertEntity.setReferenceId(api);
+    public AlertTriggerEntity create(@Valid @NotNull final NewAlertTriggerEntity alertEntity) {
+        alertEntity.setReferenceType(PLATFORM);
+        alertEntity.setReferenceId(PLATFORM_REFERENCE_ID);
         return alertService.create(alertEntity);
     }
 
@@ -86,12 +87,12 @@ public class ApiAlertsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.UPDATE)
+            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = RolePermissionAction.UPDATE)
     })
-    public AlertTriggerEntity update(@PathParam("api") String api, @PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
+    public AlertTriggerEntity update(@PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
         alertEntity.setId(alert);
-        alertEntity.setReferenceType(API);
-        alertEntity.setReferenceId(api);
+        alertEntity.setReferenceType(PLATFORM);
+        alertEntity.setReferenceId(PLATFORM_REFERENCE_ID);
         return alertService.update(alertEntity);
     }
 
@@ -99,9 +100,9 @@ public class ApiAlertsResource extends AbstractResource {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.DELETE)
+            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("api") String api, @PathParam("alert") String alert) {
-        alertService.delete(alert, api);
+    public void delete(@PathParam("alert") String alert) {
+        alertService.delete(alert, PLATFORM_REFERENCE_ID);
     }
 }

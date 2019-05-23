@@ -104,8 +104,9 @@ public class MonitoringServiceImpl implements MonitoringService {
 
     private MonitoringProcess convertProcess(MonitoringResponse monitoringResponse) {
         final MonitoringProcess monitoringProcess = new MonitoringProcess();
-        monitoringProcess.setOpenFileDescriptors(monitoringResponse.getJvmProcessOpenFileDescriptors());
-        monitoringProcess.setMaxFileDescriptors(monitoringResponse.getJvmProcessMaxFileDescriptors());
+        monitoringProcess.setOpenFileDescriptors(monitoringResponse.getProcessOpenFileDescriptors());
+        monitoringProcess.setMaxFileDescriptors(monitoringResponse.getProcessMaxFileDescriptors());
+        monitoringProcess.setCpuPercent(monitoringResponse.getProcessCPUPercent());
         return monitoringProcess;
     }
 

@@ -16,8 +16,8 @@
 package io.gravitee.management.repository.proxy;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.AlertRepository;
-import io.gravitee.repository.management.model.Alert;
+import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.model.AlertTrigger;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -29,35 +29,29 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @Component
-public class AlertRepositoryProxy extends AbstractProxy<AlertRepository> implements AlertRepository {
+public class AlertTriggerRepositoryProxy extends AbstractProxy<AlertTriggerRepository> implements AlertTriggerRepository {
 
-    @Override
-    public Optional<Alert> findById(String s) throws TechnicalException {
-        return target.findById(s);
-    }
-
-    @Override
-    public Alert create(Alert item) throws TechnicalException {
-        return target.create(item);
-    }
-
-    @Override
-    public Alert update(Alert item) throws TechnicalException {
-        return target.update(item);
-    }
-
-    @Override
-    public void delete(String s) throws TechnicalException {
-        target.delete(s);
-    }
-
-    @Override
-    public Set<Alert> findAll() throws TechnicalException {
+    public Set<AlertTrigger> findAll() throws TechnicalException {
         return target.findAll();
     }
 
-    @Override
-    public List<Alert> findByReference(String referenceType, String referenceId) throws TechnicalException {
+    public List<AlertTrigger> findByReference(String referenceType, String referenceId) throws TechnicalException {
         return target.findByReference(referenceType, referenceId);
+    }
+
+    public Optional<AlertTrigger> findById(String s) throws TechnicalException {
+        return target.findById(s);
+    }
+
+    public AlertTrigger create(AlertTrigger item) throws TechnicalException {
+        return target.create(item);
+    }
+
+    public AlertTrigger update(AlertTrigger item) throws TechnicalException {
+        return target.update(item);
+    }
+
+    public void delete(String s) throws TechnicalException {
+        target.delete(s);
     }
 }

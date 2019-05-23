@@ -344,16 +344,3 @@ notifiers:
 #      trustAll: false
 #      keyStore:
 #      keyStorePassword:
-
-# Gravitee Alert Engine is only available with support
-alerts:
-  enabled: false
-  default:
-    enabled: false
-    # must be reachable by other nodes
-    cluster:
-      host: localhost
-      port: 0
-      hazelcast:
-        config:
-          path: ${gravitee.home}/config/hazelcast.xml

@@ -16,33 +16,36 @@
 package io.gravitee.management.model.alert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.alert.api.trigger.Trigger;
 
-import java.util.Date;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AlertEntity {
+public class UpdateAlertTriggerEntity extends Trigger {
+
     private String id;
+
+    @NotNull
     private String name;
+
     private String description;
+
+    @NotNull
+    private Severity severity;
+
     @JsonProperty("reference_type")
     private AlertReferenceType referenceType;
+
     @JsonProperty("reference_id")
     private String referenceId;
-    private AlertType type;
-    private boolean enabled;
-    private MetricType metricType;
-    private Metric metric;
-    private ThresholdType thresholdType;
-    private Double threshold;
-    private String plan;
-    @JsonProperty("created_at")
-    private Date createdAt;
-    @JsonProperty("updated_at")
-    private Date updatedAt;
+
+    protected UpdateAlertTriggerEntity() {
+        super(null, null, Severity.INFO, null, false);
+    }
 
     public String getId() {
         return id;
@@ -84,83 +87,21 @@ public class AlertEntity {
         this.referenceId = referenceId;
     }
 
-    public AlertType getType() {
-        return type;
+    @Override
+    public Severity getSeverity() {
+        return severity;
     }
 
-    public void setType(AlertType type) {
-        this.type = type;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public MetricType getMetricType() {
-        return metricType;
-    }
-
-    public void setMetricType(MetricType metricType) {
-        this.metricType = metricType;
-    }
-
-    public Metric getMetric() {
-        return metric;
-    }
-
-    public void setMetric(Metric metric) {
-        this.metric = metric;
-    }
-
-    public ThresholdType getThresholdType() {
-        return thresholdType;
-    }
-
-    public void setThresholdType(ThresholdType thresholdType) {
-        this.thresholdType = thresholdType;
-    }
-
-    public Double getThreshold() {
-        return threshold;
-    }
-
-    public void setThreshold(Double threshold) {
-        this.threshold = threshold;
-    }
-
-    public String getPlan() {
-        return plan;
-    }
-
-    public void setPlan(String plan) {
-        this.plan = plan;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
+    @Override
+    public void setSeverity(Severity severity) {
+        this.severity = severity;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AlertEntity)) return false;
-        AlertEntity that = (AlertEntity) o;
+        if (!(o instanceof UpdateAlertTriggerEntity)) return false;
+        UpdateAlertTriggerEntity that = (UpdateAlertTriggerEntity) o;
         return Objects.equals(id, that.id);
     }
 
@@ -171,21 +112,12 @@ public class AlertEntity {
 
     @Override
     public String toString() {
-        return "AlertEntity{" +
+        return "UpdateAlertEntity{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", referenceType=" + referenceType +
                 ", referenceId='" + referenceId + '\'' +
-                ", type=" + type +
-                ", enabled=" + enabled +
-                ", metricType=" + metricType +
-                ", metric=" + metric +
-                ", thresholdType=" + thresholdType +
-                ", threshold=" + threshold +
-                ", plan='" + plan + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
                 '}';
     }
 }

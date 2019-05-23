@@ -23,9 +23,11 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface NotifierService {
@@ -33,4 +35,10 @@ public interface NotifierService {
      void trigger(final ApplicationHook hook, final String applicationId, Map<String, Object> params);
      void trigger(final PortalHook hook, Map<String, Object> params);
      List<NotifierEntity> list(NotificationReferenceType referenceType, String referenceId);
+
+     Set<io.gravitee.management.model.NotifierEntity> findAll();
+
+     io.gravitee.management.model.NotifierEntity findById(String notifier);
+
+     String getSchema(String notifier);
 }

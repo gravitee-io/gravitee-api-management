@@ -16,9 +16,10 @@
 package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.management.model.alert.AlertEntity;
-import io.gravitee.management.model.alert.NewAlertEntity;
-import io.gravitee.management.model.alert.UpdateAlertEntity;
+import io.gravitee.management.model.alert.AlertStatusEntity;
+import io.gravitee.management.model.alert.AlertTriggerEntity;
+import io.gravitee.management.model.alert.NewAlertTriggerEntity;
+import io.gravitee.management.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.rest.security.Permission;
@@ -53,8 +54,19 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = APPLICATION_ALERT, acls = READ)
     })
-    public List<AlertEntity> list(@PathParam("application") String application) {
+    public List<AlertTriggerEntity> list(@PathParam("application") String application) {
         return alertService.findByReference(APPLICATION, application);
+    }
+
+    @GET
+    @Path("status")
+    @ApiOperation(value = "Get the status of alerting module")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_ALERT, acls = READ)
+    })
+    public AlertStatusEntity status() {
+        return alertService.getStatus();
     }
 
     @POST
@@ -63,7 +75,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.CREATE)
     })
-    public AlertEntity create(@PathParam("application") String application, @Valid @NotNull final NewAlertEntity alertEntity) {
+    public AlertTriggerEntity create(@PathParam("application") String application, @Valid @NotNull final NewAlertTriggerEntity alertEntity) {
         alertEntity.setReferenceType(APPLICATION);
         alertEntity.setReferenceId(application);
         return alertService.create(alertEntity);
@@ -76,7 +88,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.UPDATE)
     })
-    public AlertEntity update(@PathParam("application") String application, @PathParam("alert") String alert, @Valid @NotNull final UpdateAlertEntity alertEntity) {
+    public AlertTriggerEntity update(@PathParam("application") String application, @PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
         alertEntity.setId(alert);
         alertEntity.setReferenceType(APPLICATION);
         alertEntity.setReferenceId(application);

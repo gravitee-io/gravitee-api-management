@@ -15,10 +15,7 @@
  */
 package io.gravitee.management.service;
 
-import io.gravitee.management.model.alert.AlertEntity;
-import io.gravitee.management.model.alert.AlertReferenceType;
-import io.gravitee.management.model.alert.NewAlertEntity;
-import io.gravitee.management.model.alert.UpdateAlertEntity;
+import io.gravitee.management.model.alert.*;
 
 import java.util.List;
 
@@ -27,9 +24,10 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface AlertService {
-    AlertEntity create(NewAlertEntity alert);
-    AlertEntity update(UpdateAlertEntity alert);
-    List<AlertEntity> findByReference(AlertReferenceType referenceType, String referenceId);
+    AlertTriggerEntity create(NewAlertTriggerEntity alert);
+    AlertTriggerEntity update(UpdateAlertTriggerEntity alert);
+    List<AlertTriggerEntity> findByReference(AlertReferenceType referenceType, String referenceId);
     void delete(String alertId, String referenceId);
-    List<AlertEntity> findAll();
+    List<AlertTriggerEntity> findAll();
+    AlertStatusEntity getStatus();
 }
