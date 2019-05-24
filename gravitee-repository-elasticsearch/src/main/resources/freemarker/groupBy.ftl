@@ -40,7 +40,11 @@
   <#list query.groups() as range>
             {
               "from":${range.from()},
+    <#if query.field() == 'status'>
+              "to":${range.to() + 1}
+    <#else>
               "to":${range.to()}
+    </#if>
             }
     <#sep>,</#sep>
   </#list>
