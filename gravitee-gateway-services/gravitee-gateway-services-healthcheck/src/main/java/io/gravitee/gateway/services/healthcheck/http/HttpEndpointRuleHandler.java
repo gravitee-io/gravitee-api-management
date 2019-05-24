@@ -34,7 +34,7 @@ import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
 import io.gravitee.gateway.services.healthcheck.eval.assertion.AssertionEvaluation;
 import io.gravitee.gateway.services.healthcheck.http.el.EvaluableHttpResponse;
 import io.gravitee.node.api.Node;
-import io.gravitee.plugin.alert.AlertEngineService;
+import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.health.EndpointStatus;
@@ -71,12 +71,26 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:|wss:|ws:))[//]+");
     private static final String HTTPS_SCHEME = "https";
 
+    private static final String EVENT_TYPE = "ENDPOINT_HEALTH_CHECK";
+    private static final String CONTEXT_NODE_ID = "node.id";
+    private static final String CONTEXT_NODE_HOSTNAME = "node.hostname";
+    private static final String CONTEXT_NODE_APPLICATION = "node.application";
+
+    private static final String PROP_RESPONSE_TIME = "response_time";
+    private static final String PROP_TENANT = "tenant";
+    private static final String PROP_API = "api";
+    private static final String PROP_ENDPOINT_NAME = "endpoint.name";
+    private static final String PROP_STATUS_OLD = "status.old";
+    private static final String PROP_STATUS_NEW = "status.new";
+    private static final String PROP_SUCCESS = "success";
+    private static final String PROP_MESSAGE = "message";
+
     private final EndpointRule rule;
     private final Vertx vertx;
     private final EndpointStatusDecorator endpointStatus;
     private Handler<EndpointStatus> statusHandler;
 
-    private AlertEngineService alertEngineService;
+    private AlertEventProducer alertEventProducer;
     private Node node;
     private String port;
 
@@ -416,27 +430,29 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
         this.endpointStatus.updateStatus(endpointStatus.isSuccess());
         endpointStatus.setState(rule.endpoint().getStatus().code());
         endpointStatus.setAvailable(!rule.endpoint().getStatus().isDown());
-        endpointStatus.setResponseTime((long) endpointStatus.getSteps().stream().mapToLong(Step::getResponseTime).average().getAsDouble());
+
+        final long responseTime = endpointStatus.getSteps().stream().mapToLong(Step::getResponseTime).sum();
+        endpointStatus.setResponseTime(responseTime);
         final boolean transition = previousStatusCode != rule.endpoint().getStatus().code();
         endpointStatus.setTransition(transition);
 
-        if (transition && alertEngineService != null) {
-            final Event.Builder event = new Event.Builder()
-                    .timestamp(currentTimeMillis())
-                    .context("Gateway", node.id())
-                    .context("Hostname", node.hostname())
-                    .context("Port", port)
-                    .type("HEALTH_CHECK")
-                    .prop("API", rule.api())
-                    .prop("Endpoint name", rule.endpoint().getName())
-                    .prop("Old status", previousStatusName)
-                    .prop("New status", rule.endpoint().getStatus().name())
-                    .prop("Success", endpointStatus.isSuccess());
-            final Object tenant = node.metadata().get("tenant");
-            if (tenant != null) {
-                event.context("Tenant", (String) tenant);
-            }
-            alertEngineService.send(event.build());
+        if (transition && alertEventProducer != null && ! alertEventProducer.isEmpty()) {
+            final Event event = Event
+                    .at(currentTimeMillis())
+                    .context(CONTEXT_NODE_ID, node.id())
+                    .context(CONTEXT_NODE_HOSTNAME, node.hostname())
+                    .context(CONTEXT_NODE_APPLICATION, node.application())
+                    .type(EVENT_TYPE)
+                    .property(PROP_API, rule.api())
+                    .property(PROP_ENDPOINT_NAME, rule.endpoint().getName())
+                    .property(PROP_STATUS_OLD, previousStatusName)
+                    .property(PROP_STATUS_NEW, rule.endpoint().getStatus().name())
+                    .property(PROP_SUCCESS, endpointStatus.isSuccess())
+                    .property(PROP_TENANT, () -> node.metadata().get("tenant"))
+                    .property(PROP_RESPONSE_TIME, responseTime)
+                    .property(PROP_MESSAGE, endpointStatus.getSteps().get(0).getMessage())
+                    .build();
+            alertEventProducer.send(event);
         }
 
         statusHandler.handle(endpointStatus);
@@ -446,8 +462,8 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
         this.statusHandler = statusHandler;
     }
 
-    public void setAlertEngineService(AlertEngineService alertEngineService) {
-        this.alertEngineService = alertEngineService;
+    public void setAlertEventProducer(AlertEventProducer alertEventProducer) {
+        this.alertEventProducer = alertEventProducer;
     }
 
     public void setNode(Node node) {

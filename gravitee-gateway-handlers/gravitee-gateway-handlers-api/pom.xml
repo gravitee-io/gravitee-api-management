@@ -109,11 +109,6 @@
             <version>${gravitee-node.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>io.gravitee.plugin</groupId>
-            <artifactId>gravitee-plugin-alert</artifactId>
-        </dependency>
-
         <!-- Vert.x -->
         <dependency>
             <groupId>io.vertx</groupId>
