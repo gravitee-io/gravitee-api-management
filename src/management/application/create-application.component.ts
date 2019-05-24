@@ -99,9 +99,7 @@ const CreateApplicationComponent: ng.IComponentOptions = {
     }
 
     isOAuthClient() {
-      return this.application.settings.oauth && (
-        _.indexOf(this.application.settings.oauth.grant_types, GrantType.AUTHORIZATION_CODE.type) != -1 ||
-        _.indexOf(this.application.settings.oauth.grant_types, GrantType.IMPLICIT.type) != -1);
+      return this.application.settings.oauth;
     }
 
     updateGrantTypes() {

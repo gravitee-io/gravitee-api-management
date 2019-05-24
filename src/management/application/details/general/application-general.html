@@ -131,11 +131,11 @@
             </md-option>
           </md-select>
           <div class="hint">
-            Grant types allowed for the client. Please try to set only grant types you need for security reasons.
+            Grant types allowed for the client. Please set only grant types you need for security reasons.
           </div>
         </md-input-container>
 
-        <md-input-container class="md-block">
+        <md-input-container class="md-block" ng-if="$ctrl.applicationType.oauth.requires_redirect_uris">
           <label>Redirect URIs</label>
           <md-chips required
                     ng-model="$ctrl.application.settings.oauth.redirect_uris"

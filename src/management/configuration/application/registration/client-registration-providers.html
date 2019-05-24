@@ -49,6 +49,11 @@
           Native (iOS, Android, ...)
         </md-checkbox>
       </md-input-container>
+      <md-input-container class="gv-input-container-dense">
+        <md-checkbox ng-model="$ctrl.Constants.application.types.backend_to_backend.enabled" aria-label="Allow or deny machine to machine application type" ng-change="$ctrl.saveApplicationType('backend_to_backend')">
+          Backend-to-Backend
+        </md-checkbox>
+      </md-input-container>
     </div>
   </div>
 

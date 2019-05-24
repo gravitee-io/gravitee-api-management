@@ -25,8 +25,9 @@ export class GrantType {
   static IMPLICIT_HYBRID = new GrantType('implicit_hybrid', 'implicit', 'Implicit (Hybrid)', ['token', 'id_token']);
   static REFRESH_TOKEN = new GrantType('refresh_token', 'refresh_token', 'Refresh Token', []);
   static PASSWORD = new GrantType('password', 'password', 'Resource Owner Password', []);
+  static CLIENT_CREDENTIALS = new GrantType('client_credentials', 'client_credentials', 'Client Credentials', []);
 
-  static TYPES: GrantType[] = [GrantType.AUTHORIZATION_CODE, GrantType.IMPLICIT, GrantType.IMPLICIT_HYBRID, GrantType.REFRESH_TOKEN, GrantType.PASSWORD];
+  static TYPES: GrantType[] = [GrantType.AUTHORIZATION_CODE, GrantType.IMPLICIT, GrantType.IMPLICIT_HYBRID, GrantType.REFRESH_TOKEN, GrantType.PASSWORD, GrantType.CLIENT_CREDENTIALS];
 
   constructor(code: string, type: string, name: string, response_types: string[]) {
     this.code = code;

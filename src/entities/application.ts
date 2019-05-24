@@ -33,6 +33,7 @@ export class ApplicationType {
     'SPA', 'BROWSER', 'Angular, React, ...',
     'computer',
     {
+      requires_redirect_uris: true,
       allowed_grant_types: [GrantType.AUTHORIZATION_CODE, GrantType.IMPLICIT],
       default_grant_types: [GrantType.IMPLICIT.type]
     },
@@ -48,6 +49,7 @@ export class ApplicationType {
     'Web', 'WEB', 'Java, .Net, ...',
     'language',
     {
+      requires_redirect_uris: true,
       allowed_grant_types: [GrantType.AUTHORIZATION_CODE, GrantType.REFRESH_TOKEN, GrantType.IMPLICIT_HYBRID],
       mandatory_grant_types: [GrantType.AUTHORIZATION_CODE.type],
       default_grant_types: [GrantType.AUTHORIZATION_CODE.type]
@@ -64,6 +66,7 @@ export class ApplicationType {
     'Native', 'NATIVE', 'iOS, Android, ...',
     'phone_android',
     {
+      requires_redirect_uris: true,
       allowed_grant_types: [GrantType.AUTHORIZATION_CODE, GrantType.REFRESH_TOKEN, GrantType.PASSWORD, GrantType.IMPLICIT_HYBRID],
       mandatory_grant_types: [GrantType.AUTHORIZATION_CODE.type],
       default_grant_types: [GrantType.AUTHORIZATION_CODE.type]
@@ -76,7 +79,29 @@ export class ApplicationType {
       }
     });
 
-  static TYPES: ApplicationType[] = [ApplicationType.SIMPLE, ApplicationType.BROWSER, ApplicationType.WEB, ApplicationType.NATIVE];
+  static BACKEND_TO_BACKEND: ApplicationType = new ApplicationType(
+    'Backend to backend', 'BACKEND_TO_BACKEND', 'Machine to machine',
+    'share',
+    {
+      requires_redirect_uris: false,
+      allowed_grant_types: [GrantType.CLIENT_CREDENTIALS, GrantType.REFRESH_TOKEN],
+      mandatory_grant_types: [GrantType.CLIENT_CREDENTIALS.type],
+      default_grant_types: [GrantType.CLIENT_CREDENTIALS.type]
+    },
+    {
+      oauth: {
+        application_type: 'backend_to_backend',
+        grant_types: ['client_credentials']
+      }
+    });
+
+  static TYPES: ApplicationType[] = [
+    ApplicationType.SIMPLE,
+    ApplicationType.BROWSER,
+    ApplicationType.WEB,
+    ApplicationType.NATIVE,
+    ApplicationType.BACKEND_TO_BACKEND
+  ];
 
   constructor(name: string, value: string, description: string, icon: string, oauth: any, configuration: any) {
     this.name = name;
@@ -93,18 +118,3 @@ export class ApplicationType {
       _.indexOf(this.oauth.mandatory_grant_types, grantType.type) != -1;
   }
 }
-
-// Dynamic Client registration does not support backend-to-backend (client_credentials).
-/*
-const BACKEND_TO_BACKEND_TYPE: ApplicationType = {
-  name: 'Machine to Machine',
-  value: 'BACKEND_TO_BACKEND',
-  description: 'Service to service',
-  icon: 'share',
-  oauth: true,
-  configuration: {
-    application_type: 'service',
-    grant_types: ['client_credentials']
-  }
-};
-*/
