@@ -1000,6 +1000,10 @@ public class PortalConfigEntity {
             @ParameterKey(Key.APPLICATION_TYPE_NATIVE_ENABLED)
             private Enabled nativeType;
 
+            @JsonProperty("backend_to_backend")
+            @ParameterKey(Key.APPLICATION_TYPE_BACKEND_TO_BACKEND_ENABLED)
+            private Enabled backendToBackendType;
+
             public Enabled getSimpleType() {
                 return simpleType;
             }
