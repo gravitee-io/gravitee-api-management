@@ -18,6 +18,7 @@ import {StateService} from '@uirouter/core';
 import ApiHeaderService from "../../../services/apiHeader.service";
 import {ApiPortalHeader} from "../../../entities/apiPortalHeader";
 import PortalConfigService from "../../../services/portalConfig.service";
+import _ = require('lodash');
 
 const ApiPortalHeaderComponent: ng.IComponentOptions = {
   bindings: {
@@ -33,7 +34,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
     this.$mdDialog = $mdDialog;
-    this.Constants = Constants;
+    this.settings = _.cloneDeep(Constants);
 
     this.$onInit = () => {
     };
@@ -114,12 +115,12 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
         portal: {
           apis: {
             apiHeaderShowViews: {
-              enabled: this.Constants.portal.apis.apiHeaderShowViews.enabled
+              enabled: this.settings.portal.apis.apiHeaderShowViews.enabled
             }
           }
         }
       }).then( response => {
-        NotificationService.show("Views are now " + (this.Constants.portal.apis.apiHeaderShowViews.enabled?"visible":"hidden"));
+        NotificationService.show("Views are now " + (this.settings.portal.apis.apiHeaderShowViews.enabled?"visible":"hidden"));
       });
     };
 
@@ -128,12 +129,12 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
         portal: {
           apis: {
             apiHeaderShowTags: {
-              enabled: this.Constants.portal.apis.apiHeaderShowTags.enabled
+              enabled: this.settings.portal.apis.apiHeaderShowTags.enabled
             }
           }
         }
       }).then( response => {
-        NotificationService.show("Tags are now " + (this.Constants.portal.apis.apiHeaderShowTags.enabled?"visible":"hidden"));
+        NotificationService.show("Tags are now " + (this.settings.portal.apis.apiHeaderShowTags.enabled?"visible":"hidden"));
       });
     };
 

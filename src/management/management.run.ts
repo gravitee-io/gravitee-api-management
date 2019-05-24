@@ -32,7 +32,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
     let fromState = trans.from();
     let toState = trans.to();
 
-    let notEligibleForDevMode = Constants.portal.devMode.enabled && toState.data && !toState.data.devMode;
+    let notEligibleForDevMode = Constants.portal.devMode.enabled && toState.data && !toState.data.devMode && !UserService.currentUser.isAdmin();
     let notEligibleForUserCreation = !Constants.portal.userCreation.enabled && (fromState.name === 'registration' || fromState === 'confirm');
 
     if (notEligibleForDevMode || notEligibleForUserCreation) {

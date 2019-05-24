@@ -27,6 +27,11 @@ const DashboardComponent: ng.IComponentOptions = {
   controller: function($scope) {
     'ngInject';
 
+    this.initialEventCounter = 2;
+    this.initialTimeFrame;
+    this.initialQuery;
+
+
     this.dashboardOptions = {
       margins: [10, 10],
       columns: 6,
@@ -45,19 +50,49 @@ const DashboardComponent: ng.IComponentOptions = {
     };
 
     this.timeframeChange = function(timeframe) {
-      //TODO: remove event broadcast and call a widget function instead
-      $scope.$broadcast('onTimeframeChange', timeframe);
-      if (this.onTimeframeChange) {
-        this.onTimeframeChange({timeframe: timeframe});
+      if(this.initialEventCounter > 0) {
+          this.initialEventCounter--;
+      }
+      if(this.initialEventCounter == 0) {
+        //TODO: remove event broadcast and call a widget function instead
+        $scope.$broadcast('onTimeframeChange', timeframe);
+        if (this.onTimeframeChange) {
+            this.onTimeframeChange({timeframe: timeframe});
+        }
+        if(this.initialQuery) {
+            $scope.$broadcast('onQueryFilterChange', {query: this.initialQuery, source: undefined});
+            if (this.onFilterChange) {
+                this.onFilterChange({query: this.initialQuery});
+            }
+            delete(this.initialQuery);
+        }
+      } else {
+        //waiting for queryFilterChange event ==> store timeframe for further broadcast
+        this.initialTimeFrame = timeframe;
       }
     };
 
     this.queryFilterChange = function(query, widget) {
-      //TODO: remove event broadcast and call a widget function instead
-      $scope.$broadcast('onQueryFilterChange', {query: query, source: widget});
-      if (this.onFilterChange) {
-        this.onFilterChange({query: query});
-      }
+        if(this.initialEventCounter > 0) {
+          this.initialEventCounter--;
+        }
+        if(this.initialEventCounter == 0) {
+          //TODO: remove event broadcast and call a widget function instead
+          $scope.$broadcast('onQueryFilterChange', {query: query, source: widget});
+          if (this.onFilterChange) {
+            this.onFilterChange({query: query});
+          }
+          if(this.initialTimeFrame) {
+            $scope.$broadcast('onTimeframeChange', this.initialTimeFrame);
+            if (this.onTimeframeChange) {
+              this.onTimeframeChange({timeframe: this.initialTimeFrame});
+            }
+            delete(this.initialTimeFrame);
+          }
+        } else {
+          //waiting for timeFrameChange event ==> store query for further broadcast
+          this.initialQuery = query;
+        }
     };
 
     this.viewLogs = function() {

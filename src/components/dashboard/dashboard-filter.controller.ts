@@ -38,6 +38,34 @@ class DashboardFilterController {
     });
   }
 
+  $onInit() {
+    //init filters based on stateParams
+    let q = this.$state.params["q"];
+    if (q) {
+      this.decodeQueryFilters(q);
+    } else {
+      this.onFilterChange({query: undefined, widget: this.lastSource});
+    }
+  }
+
+  private decodeQueryFilters(query) {
+    let filters = query.split("AND");
+    for (let i = 0; i < filters.length; i++) {
+      let queryFilter = filters[i].replace(/[()]/g, "");
+      let kv = queryFilter.split(":");
+      let k = kv[0].trim();
+      let v = kv[1].replace(/[\\\"]/g, "").split('OR').map(x => x.trim());
+      
+      let filter: any = {};
+      filter.key = v;
+      filter.name = v
+      filter.field = k;
+      filter.fieldLabel = k;
+
+      this.addFieldFilter(filter);
+    }
+  }
+
   addFieldFilter(filter) {
     let field = this.fields[filter.field] || {filters: {}};
 
@@ -49,7 +77,7 @@ class DashboardFilterController {
     let label = (filter.fieldLabel ? filter.fieldLabel : filter.field)
       + " = '" + filter.name + "'";
 
-    let query = '(' + filter.field + ":" + _.map(_.keys(field.filters)).join(' OR ') + ')';
+    let query = '(' + filter.field + ":" + _.map(_.keys(field.filters), (key) => key.includes('TO')?key:"\\\"" + key + "\\\"").join(' OR ') + ')';
 
     this.filters.push({
       source: filter.widget,
@@ -101,7 +129,7 @@ class DashboardFilterController {
     }
 
     if (! _.isEmpty(fieldObject.filters)) {
-      fieldObject.query = '(' + field + ":" + _.map(_.keys(fieldObject.filters)).join(' OR ') + ')';
+      fieldObject.query = '(' + field + ":" + _.map(_.keys(fieldObject.filters), (key) => key.includes('TO')?key:"\\\"" + key + "\\\"").join(' OR ') + ')';
       this.fields[field] = fieldObject;
     } else {
       delete this.fields[field];

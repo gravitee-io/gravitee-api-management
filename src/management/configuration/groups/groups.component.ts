@@ -64,6 +64,7 @@ const GroupsComponent: ng.IComponentOptions = {
         }
       }).then( (newGroup) => {
         if (newGroup && newGroup.name) {
+          GroupService.updateEventRules(newGroup, newGroup.defaultApi, newGroup.defaultApplication);
           GroupService.create(newGroup).then(() => {
             NotificationService.show('Group ' + newGroup.name + ' has been added.');
             GroupService.list().then( (response) => {

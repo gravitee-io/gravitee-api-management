@@ -16,6 +16,7 @@
 import NotificationService from "../../../services/notification.service";
 import PortalConfigService from "../../../services/portalConfig.service";
 import { StateService } from '@uirouter/core';
+import _ = require('lodash');
 
 const AnalyticsSettingsComponent: ng.IComponentOptions = {
   bindings: {
@@ -28,7 +29,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     Constants: any
   ) {
     'ngInject';
-    this.Constants = Constants;
+    this.settings = _.cloneDeep(Constants);
 
     this.widgets = [
       {'id': 'geo_country', 'label': 'Hits by country'},
@@ -38,17 +39,16 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
       {'id': 'os_name', 'label': 'Hits by OS'}];
 
     this.save = () => {
-      PortalConfigService.save().then( () => {
+      PortalConfigService.save(this.settings).then( (response) => {
+        _.merge(Constants, response.data);
         NotificationService.show("Configuration saved");
         this.formSettings.$setPristine();
       });
     };
 
     this.reset = () => {
-      PortalConfigService.get().then((response) => {
-        this.Constants = response.data;
-        this.formSettings.$setPristine();
-      });
+      this.settings = _.cloneDeep(Constants);
+      this.formSettings.$setPristine();
     };
   }
 };
