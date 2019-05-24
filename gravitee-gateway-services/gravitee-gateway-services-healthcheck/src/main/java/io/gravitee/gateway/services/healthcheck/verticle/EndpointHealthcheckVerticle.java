@@ -30,7 +30,7 @@ import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRuleHandler;
 import io.gravitee.gateway.services.healthcheck.reporter.StatusReporter;
 import io.gravitee.node.api.Node;
-import io.gravitee.plugin.alert.AlertEngineService;
+import io.gravitee.plugin.alert.AlertEventProducer;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import org.slf4j.Logger;
@@ -56,7 +56,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     @Autowired
     private EndpointHealthcheckResolver endpointResolver;
     @Autowired
-    private AlertEngineService alertEngineService;
+    private AlertEventProducer alertEventProducer;
 
     @Autowired
     private Node node;
@@ -131,7 +131,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     private void addTrigger(Api api, EndpointRule rule) {
         HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
         runner.setStatusHandler(statusReporter);
-        runner.setAlertEngineService(alertEngineService);
+        runner.setAlertEventProducer(alertEventProducer);
         runner.setNode(node);
         runner.setPort(port);
 

@@ -20,7 +20,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
 import io.gravitee.node.container.AbstractNode;
-import io.gravitee.plugin.alert.AlertEngineService;
+import io.gravitee.plugin.alert.AlertEventProducerManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -70,7 +70,7 @@ public class GatewayNode extends AbstractNode {
 
         components.addAll(super.components());
 
-        components.add(AlertEngineService.class);
+        components.add(AlertEventProducerManager.class);
         return components;
     }
 }

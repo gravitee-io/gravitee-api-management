@@ -27,13 +27,10 @@ import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
-import io.gravitee.gateway.handlers.api.processor.alert.AlertProcessorSupplier;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.policy.PolicyChainProvider;
 import io.gravitee.gateway.policy.StreamType;
-import io.gravitee.plugin.alert.AlertEngineService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,9 +40,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
-
-    @Autowired
-    private AlertEngineService alertEngineService;
 
     private final List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers = new ArrayList<>();
 
@@ -69,12 +63,6 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
         if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
             providers.add(new ProcessorSupplier<>(() ->
                     new StreamableProcessorDecorator<>(new PathMappingProcessor(api.getPathMappings()))));
-        }
-
-        if (alertEngineService != null) {
-            AlertProcessorSupplier supplier = new AlertProcessorSupplier();
-            applicationContext.getAutowireCapableBeanFactory().autowireBean(supplier);
-            providers.add(new ProcessorSupplier<>(() -> new StreamableProcessorDecorator<>(supplier.get())));
         }
     }
 
