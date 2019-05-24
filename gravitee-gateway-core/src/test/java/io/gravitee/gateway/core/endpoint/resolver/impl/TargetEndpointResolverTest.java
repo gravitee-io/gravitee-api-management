@@ -267,8 +267,35 @@ public class TargetEndpointResolverTest {
         );
     }
 
+    @Test
+    public void shouldNotUseTheRawPath_withEncodedTargetURI() {
+        resolveUserDefinedEndpoint(
+                "http://host:8080/foo/%3Fbar",
+                "http://host:8080/foo%2f%3fbar",
+                "endpoint",
+                "http://host:8080/test",
+                Boolean.FALSE
+        );
+    }
+    
+    @Test
+    public void shouldUseTheRawPath_withEncodedTargetURI() {
+        resolveUserDefinedEndpoint(
+                "http://host:8080/foo%2f%3fbar",
+                "http://host:8080/foo%2f%3fbar",
+                "endpoint",
+                "http://host:8080/test",
+                Boolean.TRUE
+        );
+    }
+    
     private void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget) {
+    	resolveUserDefinedEndpoint(expectedURI, requestEndpoint, endpointName, endpointTarget, Boolean.FALSE);
+    }
+    
+    private void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget, Boolean useRawPath) {
         when(executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT)).thenReturn(requestEndpoint);
+        when(executionContext.getAttribute(ExecutionContext.ATTR_ENDPOINT_RESOLVER_USE_RAW_PATH)).thenReturn(useRawPath);
 
         Endpoint endpoint = mock(Endpoint.class);
         when(endpoint.name()).thenReturn(endpointName);

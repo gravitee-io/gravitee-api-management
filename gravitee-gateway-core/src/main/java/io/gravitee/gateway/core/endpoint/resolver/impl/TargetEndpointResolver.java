@@ -63,7 +63,7 @@ public class TargetEndpointResolver implements EndpointResolver {
         String targetUri = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
 
         return (targetUri != null)
-                ? selectUserDefinedEndpoint(serverRequest, targetUri)
+                ? selectUserDefinedEndpoint(serverRequest, targetUri, executionContext)
                 : selectLoadBalancedEndpoint(serverRequest);
     }
 
@@ -85,7 +85,7 @@ public class TargetEndpointResolver implements EndpointResolver {
     /**
      * Select an endpoint according to the URI passed in the execution request attribute.
      */
-    private ResolvedEndpoint selectUserDefinedEndpoint(Request serverRequest, String target) {
+    private ResolvedEndpoint selectUserDefinedEndpoint(Request serverRequest, String target, ExecutionContext executionContext) {
         // Do we have a relative or an absolute path ?
         if (target.startsWith(URI_HTTP_PREFIX) || target.startsWith(URI_HTTPS_PREFIX)) {
             // When the user selected endpoint which is not defined (according to the given target), the gateway
@@ -97,7 +97,7 @@ public class TargetEndpointResolver implements EndpointResolver {
                     .findFirst()
                     .orElse(endpoints.iterator().next());
 
-            return (reference != null) ? createEndpoint(reference.endpoint(), encode(target, serverRequest.parameters())) : null;
+            return (reference != null) ? createEndpoint(reference.endpoint(), encode(target, serverRequest.parameters(), executionContext)) : null;
         } else if (target.startsWith(URI_PATH_SEPARATOR)) {
             // Get the first group
             LoadBalancedEndpointGroup group = groupManager.getDefault();
@@ -105,7 +105,7 @@ public class TargetEndpointResolver implements EndpointResolver {
             // Resolve to the next endpoint from group LB
             Endpoint endpoint = group.next();
 
-            return createEndpoint(endpoint, (endpoint != null) ? endpoint.target() + encode(target, serverRequest.parameters()) : null);
+            return createEndpoint(endpoint, (endpoint != null) ? endpoint.target() + encode(target, serverRequest.parameters(), executionContext) : null);
         } else if (target.startsWith(Reference.UNKNOWN_REFERENCE)) {
             return null;
         } else {
@@ -126,12 +126,12 @@ public class TargetEndpointResolver implements EndpointResolver {
                 return null;
             }
 
-            String encodedTarget = encode(endpoint.target() + target.substring(refSeparatorIdx+1), serverRequest.parameters());
+            String encodedTarget = encode(endpoint.target() + target.substring(refSeparatorIdx+1), serverRequest.parameters(), executionContext);
             return createEndpoint(endpoint, encodedTarget);
         }
     }
 
-    private String encode(String uri, MultiValueMap<String, String> parameters) {
+    private String encode(String uri, MultiValueMap<String, String> parameters, ExecutionContext executionContext) {
         QueryStringDecoder decoder = new QueryStringDecoder(uri);
         Map<String, List<String>> queryParameters = decoder.parameters();
 
@@ -139,21 +139,28 @@ public class TargetEndpointResolver implements EndpointResolver {
         for(Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
             parameters.put(param.getKey(), param.getValue());
         }
-
-        // Path segments must be encoded to avoid bad URI syntax
-        String path = decoder.path();
-        String [] segments = path.split(URI_PATH_SEPARATOR);
-        StringBuilder builder = new StringBuilder();
-
-        for(String pathSeg : segments) {
-            builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
-        }
-
-        if (path.charAt(path.length() - 1) == URI_PATH_SEPARATOR_CHAR) {
-            return builder.toString();
+        
+        // Retrieve useRawPath config from ExecutionContext
+        Boolean useRawPath = (Boolean) executionContext.getAttribute(ExecutionContext.ATTR_ENDPOINT_RESOLVER_USE_RAW_PATH);
+        if(Boolean.TRUE.equals(useRawPath)) {
+        	return decoder.rawPath();
         } else {
-            return builder.substring(0, builder.length() - 1);
+        	// Path segments must be encoded to avoid bad URI syntax
+            String path  = decoder.path();
+            String [] segments = path.split(URI_PATH_SEPARATOR);
+            StringBuilder builder = new StringBuilder();
+
+            for(String pathSeg : segments) {
+                builder.append(UrlEscapers.urlPathSegmentEscaper().escape(pathSeg)).append(URI_PATH_SEPARATOR);
+            }
+            
+            if (path.charAt(path.length() - 1) == URI_PATH_SEPARATOR_CHAR) {
+                return builder.toString();
+            } else {
+                return builder.substring(0, builder.length() - 1);
+            }
         }
+        
     }
 
     private ResolvedEndpoint createEndpoint(Endpoint endpoint, String uri) {
