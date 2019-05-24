@@ -64,6 +64,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+import org.springframework.util.CollectionUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
@@ -71,6 +72,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.gravitee.management.model.EventType.PUBLISH_API;
@@ -144,11 +146,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Autowired
     private TagService tagService;
     @Autowired
+    private EntrypointService entrypointService;
+    @Autowired
     private WorkflowService workflowService;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
-
+    private static final String ENDPOINTS_DELIMITER = "\n";
     @Override
     public ApiEntity create(final NewApiEntity newApiEntity, final String userId) throws ApiAlreadyExistsException {
         return create(newApiEntity, userId, null, null);
@@ -163,7 +167,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         newApiEntity.setName(swaggerApiEntity.getName());
         newApiEntity.setContextPath(swaggerApiEntity.getContextPath());
         newApiEntity.setDescription(swaggerApiEntity.getDescription());
-        newApiEntity.setEndpoint(swaggerApiEntity.getEndpoint());
+        newApiEntity.setEndpoint(String.join(ENDPOINTS_DELIMITER, swaggerApiEntity.getEndpoint()));
         newApiEntity.setGroups(swaggerApiEntity.getGroups());
 
         return create(newApiEntity, userId, swaggerDescriptor, swaggerApiEntity.getPaths());
@@ -190,7 +194,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         proxy.setContextPath(newApiEntity.getContextPath());
         EndpointGroup group = new EndpointGroup();
         group.setName("default-group");
-        group.setEndpoints(singleton(new HttpEndpoint("default", newApiEntity.getEndpoint())));
+
+        String[] endpoints = null;
+        if (newApiEntity.getEndpoint() != null) {
+            endpoints = newApiEntity.getEndpoint().split(ENDPOINTS_DELIMITER);
+        }
+
+        if (endpoints == null) {
+            group.setEndpoints(singleton(new HttpEndpoint("default", null)));
+        } else if (endpoints.length == 1) {
+            group.setEndpoints(singleton(new HttpEndpoint("default", endpoints[0])));
+        } else {
+            group.setEndpoints(new HashSet<>());
+            for (int i = 0; i < endpoints.length; i++) {
+                group.getEndpoints().add(new HttpEndpoint("server" + (i + 1), endpoints[i]));
+            }
+        }
         proxy.setGroups(singleton(group));
         apiEntity.setProxy(proxy);
 
@@ -282,7 +301,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             page.setType(SWAGGER);
             page.setOrder(1);
             if (INLINE.equals(swaggerDescriptor.getType())) {
-                page.setContent(swaggerDescriptor.getPayload());
+                String modifiedApi = addGraviteeUrl(createdApi.getProxy().getContextPath(), swaggerDescriptor.getPayload());
+                page.setContent(modifiedApi);
             } else {
                 final PageSourceEntity source = new PageSourceEntity();
                 page.setSource(source);
@@ -292,6 +312,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             pageService.createPage(createdApi.getId(), page);
         }
         return createdApi;
+    }
+
+    private String addGraviteeUrl(String apiContextPath, String payload) {
+        List<String> graviteeUrls = new ArrayList<>();
+        String portalEntrypoint = parameterService.findAll(Key.PORTAL_ENTRYPOINT).get(0);
+        if (portalEntrypoint != null) {
+            graviteeUrls.add(portalEntrypoint + apiContextPath);
+        }
+        
+        List<EntrypointEntity> entrypoints = entrypointService.findAll();
+        entrypoints.stream().map(entrypoint -> entrypoint.getValue() + apiContextPath).forEach(graviteeUrls::add);
+        
+        return swaggerService.replaceServerList(payload, graviteeUrls);
     }
 
     private Object generateMockContent(final String responseType, final Map<String, Object> responseProperties) {

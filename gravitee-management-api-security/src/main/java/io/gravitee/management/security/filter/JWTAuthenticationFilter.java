@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.security.filter;
 
+import com.auth0.jwt.JWTExpiredException;
 import com.auth0.jwt.JWTVerifier;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
@@ -110,7 +111,11 @@ public class JWTAuthenticationFilter extends GenericFilterBean {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.error(errorMessage, e);
                     } else {
-                        LOGGER.error(errorMessage);
+                        if (e instanceof JWTExpiredException) {
+                            LOGGER.warn(errorMessage);
+                        } else {
+                            LOGGER.error(errorMessage);
+                        }
                     }
                     res.addCookie(jwtCookieGenerator.generate(null));
                     res.sendError(HttpStatusCode.UNAUTHORIZED_401);

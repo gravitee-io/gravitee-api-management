@@ -72,7 +72,7 @@ public class ApiPageResource extends AbstractResource {
                 || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
             PageEntity pageEntity = pageService.findById(page);
             if (portal) {
-                pageService.transformSwagger(pageEntity);
+                pageService.transformSwagger(pageEntity, api);
                 if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                     pageEntity.getMetadata().clear();
                 }
