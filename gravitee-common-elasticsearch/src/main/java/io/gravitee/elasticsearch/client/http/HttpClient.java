@@ -26,7 +26,9 @@ import io.gravitee.elasticsearch.model.Health;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 import io.reactivex.Single;
+import io.reactivex.functions.Function;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.HttpContext;
@@ -43,7 +45,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -101,7 +102,6 @@ public class HttpClient implements Client {
             final URI elasticEdpt = URI.create(endpoint.getUrl());
 
             WebClientOptions options = new WebClientOptions()
-                    .setUsePooledBuffers(true)
                     .setDefaultHost(elasticEdpt.getHost())
                     .setDefaultPort(elasticEdpt.getPort() != -1 ? elasticEdpt.getPort() :
                             (HTTPS_SCHEME.equals(elasticEdpt.getScheme()) ? 443 : 80));
@@ -171,26 +171,25 @@ public class HttpClient implements Client {
     }
 
     @Override
-    public Single<BulkResponse> bulk(final List<String> data) {
-        if (data != null && !data.isEmpty()) {
-            String content = data.stream().collect(Collectors.joining());
-
-            return httpClient
+    public Single<BulkResponse> bulk(final List<io.vertx.core.buffer.Buffer> data) {
+        return httpClient
                     .post(URL_BULK)
                     .putHeader(HttpHeaders.CONTENT_TYPE, "application/x-ndjson")
-                    .rxSendBuffer(Buffer.buffer(content))
+                    .rxSendStream(Flowable.fromIterable(data).map(new Function<io.vertx.core.buffer.Buffer, Buffer>() {
+                        @Override
+                        public Buffer apply(io.vertx.core.buffer.Buffer buffer) throws Exception {
+                            return Buffer.newInstance(buffer);
+                        }
+                    }))
                     .map(response -> {
                         if (response.statusCode() != HttpStatusCode.OK_200) {
-                            logger.error("Unable to bulk index data: status[{}] data[{}] response[{}]",
-                                    response.statusCode(), content, response.body());
+                            logger.error("Unable to bulk index data: status[{}] response[{}]",
+                                    response.statusCode(), response.body());
                             throw new ElasticsearchException("Unable to bulk index data");
                         }
 
                         return mapper.readValue(response.bodyAsString(), BulkResponse.class);
                     });
-        }
-
-        return Single.never();
     }
 
     @Override

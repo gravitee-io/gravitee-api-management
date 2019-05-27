@@ -35,7 +35,7 @@
 
 	<properties>
 		<!-- Gravitee's project versions -->
-		<gravitee-gateway-api.version>1.16.0</gravitee-gateway-api.version>
+		<gravitee-gateway-api.version>1.15.1</gravitee-gateway-api.version>
 		<gravitee-common.version>1.15.0</gravitee-common.version>
 		<gravitee-reporter-api.version>1.14.0</gravitee-reporter-api.version>
 		<gravitee-policy-api.version>1.5.0</gravitee-policy-api.version>
@@ -110,7 +110,7 @@
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-core</artifactId>
 			<version>${vertx.version}</version>
-			<scope>provided</scope>
+			<scope>compile</scope>
 		</dependency>
 
 		<!-- Spring dependencies -->
