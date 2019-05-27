@@ -19,6 +19,8 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.core.logging.condition.evaluation.ConditionEvaluator;
 import org.springframework.expression.Expression;
+import org.springframework.expression.ParseException;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -32,11 +34,16 @@ public class ExpressionLanguageBasedConditionEvaluator implements ConditionEvalu
     private static final String EXPRESSION_REGEX_SUBSTITUTE = "{'{'}$1";
 
     private Expression expression;
+    private static final Expression FALSE_EXPRESSION = new LiteralExpression("false");
 
     public ExpressionLanguageBasedConditionEvaluator(final String condition) {
         if (condition != null) {
-            this.expression = new SpelExpressionParser().parseExpression(
-                    condition.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE));
+            try {
+                this.expression = new SpelExpressionParser().parseExpression(
+                        condition.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE));
+            } catch (ParseException e) {
+                this.expression = FALSE_EXPRESSION;
+            }
         }
     }
 
