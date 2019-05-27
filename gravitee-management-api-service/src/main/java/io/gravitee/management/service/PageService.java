@@ -58,4 +58,6 @@ public interface PageService {
 	List<PageEntity> importFiles(ImportPageEntity pageEntity);
 
 	List<PageEntity> importFiles(String apiId, ImportPageEntity pageEntity);
+
+	void transformWithTemplate(PageEntity pageEntity, String api);
 }

@@ -34,7 +34,7 @@ public class NewSwaggerApiEntity {
     @NotNull
     private String contextPath;
     @NotNull
-    private String endpoint;
+    private List<String> endpoint;
     private Set<String> groups;
     private List<SwaggerPath> paths;
 
@@ -70,11 +70,11 @@ public class NewSwaggerApiEntity {
         this.contextPath = contextPath;
     }
 
-    public String getEndpoint() {
+    public List<String> getEndpoint() {
         return endpoint;
     }
 
-    public void setEndpoint(String endpoint) {
+    public void setEndpoint(List<String> endpoint) {
         this.endpoint = endpoint;
     }
 

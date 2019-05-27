@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.service;
 
+import java.util.List;
+
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.api.NewSwaggerApiEntity;
@@ -35,4 +37,6 @@ public interface SwaggerService {
     NewSwaggerApiEntity prepare(ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     void transform(PageEntity page);
+
+    String replaceServerList(String payload, List<String> graviteeUrls);
 }

@@ -28,9 +28,17 @@ import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
@@ -142,7 +150,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotUpdateApiBecauseTooLargePicture() {
-        updateApiEntity.setPicture(randomAlphanumeric(100_000));
+        updateApiEntity.setPicture("data:image/png;base64,"+ randomAlphanumeric(1_000_000));
         final Response response = target(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -160,25 +168,21 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertTrue(message, message.contains("The image is not in a valid format"));
     }
 
-    @Test
     public void shouldUploadApiMedia() {
         StreamDataBodyPart filePart = new StreamDataBodyPart("file",
                 this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.valueOf("image/svg+xml"));
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
-
         assertEquals(OK_200, response.getStatus());
     }
 
-    @Test
     public void shouldNotUploadApiMediaBecauseWrongMediaType() {
         StreamDataBodyPart filePart = new StreamDataBodyPart("file",
                 this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.APPLICATION_OCTET_STREAM_TYPE);
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
-
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
         assertTrue(message, message.contains("File format unauthorized"));
@@ -212,9 +216,8 @@ public class ApiResourceTest extends AbstractResourceTest {
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
-
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("The image is not in a valid format"));
+        assertTrue(message, message.contains("Invalid content in the image"));
     }
 }

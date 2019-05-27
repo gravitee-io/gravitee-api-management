@@ -110,7 +110,7 @@ public class SwaggerService_PrepareTest {
     private void validate(NewSwaggerApiEntity api) {
         assertEquals("1.2.3", api.getVersion());
         assertEquals("Gravitee.io Swagger API", api.getName());
-        assertEquals("https://demo.gravitee.io/gateway/echo", api.getEndpoint());
+        assertEquals("https://demo.gravitee.io/gateway/echo", api.getEndpoint().get(0));
         assertEquals(2, api.getPaths().size());
         assertTrue(api.getPaths().stream().filter(swaggerPath -> swaggerPath.getVerbs() == null)
                 .map(SwaggerPath::getPath).collect(toList()).containsAll(asList("/pets", "/pets/:petId")));
@@ -150,7 +150,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("2.0.0", api.getVersion());
         assertEquals("Simple API overview", api.getName());
         assertEquals("simpleapioverview", api.getContextPath());
-        assertEquals("/", api.getEndpoint());
+        assertEquals("/", api.getEndpoint().get(0));
         assertEquals(2, api.getPaths().size());
         assertTrue(api.getPaths().stream().map(SwaggerPath::getPath).collect(toList()).containsAll(asList("/", "/v2")));
         final List<SwaggerVerb> verbs = api.getPaths().iterator().next().getVerbs();
@@ -170,7 +170,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Callback Example", api.getName());
         assertEquals("callbackexample", api.getContextPath());
-        assertEquals("/", api.getEndpoint());
+        assertEquals("/", api.getEndpoint().get(0));
         assertEquals(1, api.getPaths().size());
         assertTrue(api.getPaths().stream().map(SwaggerPath::getPath).collect(toList()).contains("/streams"));
         final List<SwaggerVerb> verbs = api.getPaths().iterator().next().getVerbs();
@@ -191,7 +191,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Link Example", api.getName());
         assertEquals("linkexample", api.getContextPath());
-        assertEquals("/", api.getEndpoint());
+        assertEquals("/", api.getEndpoint().get(0));
         assertEquals(6, api.getPaths().size());
         final SwaggerPath usersUsername = api.getPaths().get(0);
         assertEquals("/2.0/users/:username", usersUsername.getPath());
@@ -236,7 +236,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("1.0.0", api.getVersion());
         assertEquals("/v1", api.getContextPath());
         assertEquals("Swagger Petstore", api.getName());
-        assertEquals("http://petstore.swagger.io/v1", api.getEndpoint());
+        assertEquals("http://petstore.swagger.io/v1", api.getEndpoint().get(0));
         assertEquals(2, api.getPaths().size());
         final SwaggerPath pets = api.getPaths().get(0);
         assertEquals("/pets", pets.getPath());
@@ -265,7 +265,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Swagger Petstore", api.getName());
         assertEquals("/api", api.getContextPath());
-        assertEquals("http://petstore.swagger.io/api", api.getEndpoint());
+        assertEquals("http://petstore.swagger.io/api", api.getEndpoint().get(0));
         assertEquals(2, api.getPaths().size());
         final SwaggerPath pets = api.getPaths().get(0);
         assertEquals("/pets", pets.getPath());
@@ -309,7 +309,9 @@ public class SwaggerService_PrepareTest {
         assertEquals("1.0.0", api.getVersion());
         assertEquals("USPTO Data Set API", api.getName());
         assertEquals("/ds-api", api.getContextPath());
-        assertEquals("{scheme}://developer.uspto.gov/ds-api", api.getEndpoint());
+        assertEquals(2, api.getEndpoint().size());
+        assertTrue(api.getEndpoint().contains("http://developer.uspto.gov/ds-api"));
+        assertTrue(api.getEndpoint().contains("https://developer.uspto.gov/ds-api"));
         assertEquals(3, api.getPaths().size());
         final SwaggerPath metadata = api.getPaths().get(0);
         assertEquals("/", metadata.getPath());
@@ -344,5 +346,40 @@ public class SwaggerService_PrepareTest {
         assertEquals("200", getFields.getResponseStatus());
         assertEquals("string", getFields.getResponseType());
         assertNull(getFields.getResponseProperties());
+    }
+    
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3WithMonoServer() throws IOException {
+        final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/openapi-monoserver.yaml", true);
+        assertEquals("/v1", api.getContextPath());
+        assertEquals(1, api.getEndpoint().size());
+        assertTrue(api.getEndpoint().contains("https://development.gigantic-server.com/v1"));
+    }
+    
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3WithMultiServer() throws IOException {
+        final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/openapi-multiserver.yaml", true);
+        assertEquals("/v1", api.getContextPath());
+        assertEquals(3, api.getEndpoint().size());
+        assertTrue(api.getEndpoint().contains("https://development.gigantic-server.com/v1"));
+        assertTrue(api.getEndpoint().contains("https://staging.gigantic-server.com/v1"));
+        assertTrue(api.getEndpoint().contains("https://api.gigantic-server.com/v1"));
+    }
+    
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3WithNoServer() throws IOException {
+        final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/openapi-noserver.yaml", true);
+        assertEquals("noserver", api.getContextPath());
+        assertEquals(1, api.getEndpoint().size());
+        assertTrue(api.getEndpoint().contains("/"));
+    }
+    
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3WithVariablesInServer() throws IOException {
+        final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/openapi-variables-in-server.yaml", true);
+        assertEquals("/v2", api.getContextPath());
+        assertEquals(2, api.getEndpoint().size());
+        assertTrue(api.getEndpoint().contains("https://demo.gigantic-server.com:443/v2"));
+        assertTrue(api.getEndpoint().contains("https://demo.gigantic-server.com:8443/v2"));
     }
 }

@@ -61,12 +61,13 @@ public class ViewResource extends AbstractViewResource {
         boolean canShowView = hasPermission(RolePermission.PORTAL_VIEW, RolePermissionAction.READ);
         ViewEntity view = viewService.findById(viewId);
 
-        if (canShowView || !view.isHidden()) {
-            // set picture
-            setPicture(view, false);
-            return view;
+        if (!canShowView && view.isHidden()) {
+            throw new UnauthorizedAccessException();
         }
-        throw new UnauthorizedAccessException();
+
+        // set picture
+        setPicture(view, false);
+        return view;
     }
 
 
@@ -83,7 +84,7 @@ public class ViewResource extends AbstractViewResource {
         boolean canShowView = hasPermission(RolePermission.PORTAL_VIEW, RolePermissionAction.READ);
         ViewEntity view = viewService.findById(viewId);
 
-        if (!canShowView || view.isHidden()) {
+        if (!canShowView && view.isHidden()) {
             throw new UnauthorizedAccessException();
         }
 
@@ -129,7 +130,7 @@ public class ViewResource extends AbstractViewResource {
             @Permission(value = RolePermission.PORTAL_VIEW, acls = RolePermissionAction.UPDATE)
     })
     public ViewEntity update(@PathParam("id") String viewId, @Valid @NotNull final UpdateViewEntity view) {
-        checkImage(view.getPicture());
+        checkAndScaleImage(view.getPicture());
 
         ViewEntity viewEntity = viewService.update(viewId, view);
         setPicture(viewEntity, false);

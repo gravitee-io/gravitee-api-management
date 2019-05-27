@@ -72,7 +72,7 @@ public class ApiMediaResource extends AbstractResource {
         } else if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
             throw new UploadUnauthorized("Max size achieved " + fileDetail.getSize());
         } else {
-            checkImageFormat(IOUtils.toString(uploadedInputStream, Charset.defaultCharset()));
+            checkImageContent(IOUtils.toString(uploadedInputStream, Charset.defaultCharset()));
             mediaId = mediaService.saveApiMedia(api, new MediaEntity(
                     uploadedInputStream,
                     body.getMediaType().getType(),
