@@ -336,7 +336,7 @@ function configurationRouterConfig($stateProvider) {
       component: 'editPage',
       resolve: {
         resolvedPage: (DocumentationService: DocumentationService, $stateParams: StateParams) =>
-          DocumentationService.get2($stateParams.pageId).then(response => response.data),
+          DocumentationService.get(null, $stateParams.pageId).then(response => response.data),
         resolvedGroups: (GroupService: GroupService) => {
           return GroupService.list().then(response => {
             return response.data;

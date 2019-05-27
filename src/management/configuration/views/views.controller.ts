@@ -23,6 +23,7 @@ class ViewsController {
   private viewsToUpdate: any[];
   private views: any[];
   private Constants: any;
+  private settings: any;
 
   constructor(
     private ViewService: ViewService,
@@ -33,6 +34,7 @@ class ViewsController {
     private PortalConfigService: PortalConfigService,
     Constants: any) {
     'ngInject';
+    this.settings = _.cloneDeep(Constants);
     this.Constants = Constants;
     this.viewsToUpdate = [];
   }
@@ -76,7 +78,8 @@ class ViewsController {
   }
 
   toggleDisplayMode() {
-    this.PortalConfigService.save().then( () => {
+    this.PortalConfigService.save(this.settings).then( (response) => {
+      _.merge(this.Constants, response.data);
       this.NotificationService.show("Display mode saved!");
     });
   }

@@ -22,7 +22,7 @@ class CircularPercentageController {
     $onInit() {
 
         if (this.score > 0) {
-            this.percentage = this.score * 100;
+            this.percentage = parseInt((this.score * 100).toFixed(0));
             this.percentageCircle = this.percentage;
         }
 

@@ -18,6 +18,7 @@ import { IdentityProvider } from "../../../entities/identityProvider";
 import IdentityProviderService from "../../../services/identityProvider.service";
 import NotificationService from "../../../services/notification.service";
 import PortalConfigService from "../../../services/portalConfig.service";
+import _ = require('lodash');
 
 const IdentityProvidersComponent: ng.IComponentOptions = {
   bindings: {
@@ -34,7 +35,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
 
-    this.Constants = Constants;
+    this.settings = _.cloneDeep(Constants);
 
     this.availableProviders = [
       {'name': 'Gravitee.io AM', 'icon': 'perm_identity', 'type': 'graviteeio_am'},
@@ -77,11 +78,11 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
       PortalConfigService.save({
         authentication: {
           forceLogin: {
-            enabled: this.Constants.authentication.forceLogin.enabled
+            enabled: this.settings.authentication.forceLogin.enabled
           }
         }
       }).then( response => {
-        NotificationService.show("Authentication is now " + (this.Constants.authentication.forceLogin.enabled?"mandatory":"optional") );
+        NotificationService.show("Authentication is now " + (this.settings.authentication.forceLogin.enabled?"mandatory":"optional") );
       });
     };
 
@@ -89,11 +90,11 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
       PortalConfigService.save({
         authentication: {
           localLogin: {
-            enabled: this.Constants.authentication.localLogin.enabled
+            enabled: this.settings.authentication.localLogin.enabled
           }
         }
       }).then( response => {
-        NotificationService.show("Login form is now " + (this.Constants.authentication.localLogin.enabled?"enabled":"disabled"));
+        NotificationService.show("Login form is now " + (this.settings.authentication.localLogin.enabled?"enabled":"disabled"));
       });
     };
   }

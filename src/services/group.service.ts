@@ -76,9 +76,8 @@ class GroupService {
     if (defaultApplication) {
       eventRules.push({event: "APPLICATION_CREATE"});
     }
-    if (eventRules.length > 0) {
-      group["event_rules"] = eventRules;
-    }
+
+    group["event_rules"] = eventRules;
   }
 
   addOrUpdateMember(group, members: any[]): ng.IPromise<any> {

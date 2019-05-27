@@ -23,12 +23,12 @@
 
       <h3>Configuration</h3>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.Constants.authentication.forceLogin.enabled" aria-label="Force login" ng-change="$ctrl.saveForceLogin()">
+        <md-checkbox ng-model="$ctrl.settings.authentication.forceLogin.enabled" aria-label="Force login" ng-change="$ctrl.saveForceLogin()">
           Force authentication to access portal
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.Constants.authentication.localLogin.enabled" aria-label="Show login form" ng-change="$ctrl.saveShowLoginForm()">
+        <md-checkbox ng-model="$ctrl.settings.authentication.localLogin.enabled" aria-label="Show login form" ng-change="$ctrl.saveShowLoginForm()">
           Show login form
         </md-checkbox>
       </md-input-container>

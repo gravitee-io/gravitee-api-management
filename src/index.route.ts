@@ -63,7 +63,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
                     let isMenuItem = routeMenuItem.data.menu.firstLevel;
                     let isMenuAllowed = !routeMenuItem.data.perms || !routeMenuItem.data.perms.only
                       || graviteeUser.allowedTo(routeMenuItem.data.perms.only);
-                    if (Constants.portal.devMode.enabled) {
+                    if (Constants.portal.devMode.enabled && !graviteeUser.isAdmin()) {
                       return isMenuItem && isMenuAllowed && routeMenuItem.data.devMode;
                     }  else {
                       return isMenuItem && isMenuAllowed;
