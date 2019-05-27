@@ -17,7 +17,7 @@
 -->
 <md-step label="Deployment" md-complete="$ctrl.parent.vm.stepData[4].data.completed"  ng-disabled="$ctrl.parent.vm.stepProgress < 5">
   <md-step-body>
-    <md-content flex layout-padding class="api-abstract-content api-creation-content">
+    <md-content flex layout-padding class="gv-abstract-content gv-creation-content">
       <h5>API
         <a ng-click="$ctrl.parent.selectStep(0)">
           <md-tooltip>Jump to general edition</md-tooltip>
@@ -53,7 +53,7 @@
         <span ng-if="$ctrl.parent.api.plans[0].validation === 'AUTO'">can subscribe to this Plan immediately.</span>
         <span ng-if="$ctrl.parent.api.plans[0].validation === 'MANUAL'">have to request approval for access to subscribe to this Plan.</span>
       </p>
-      <p ng-if="$ctrl.parent.api.plans.length == 0" class="api-abstract-warning">
+      <p ng-if="$ctrl.parent.api.plans.length == 0" class="gv-abstract-warning">
         <ng-md-icon icon="warning" style="fill: orange;"></ng-md-icon> No plan means that nobody can subscribe and consume your API.
       </p>
       <h5>Documentation
@@ -65,7 +65,7 @@
       <p ng-if="$ctrl.parent.api.pages.length > 0">
         The API will have the <code ng-repeat-start="page in $ctrl.parent.api.pages" ng-bind="page.name"></code> <span ng-repeat-end></span>documentation to helping users understand and use the API.
       </p>
-      <p ng-if="$ctrl.parent.api.pages.length == 0" class="api-abstract-warning">
+      <p ng-if="$ctrl.parent.api.pages.length == 0" class="gv-abstract-warning">
         <ng-md-icon icon="warning" style="fill: orange;"></ng-md-icon> No documentation provided, remember to provide consumers understandable and accurate information about your API.
       </p>
       <h5>Confirmation</h5>
@@ -81,7 +81,7 @@
       </p>
 
       <div layout="row">
-        <a ng-href="{{$ctrl.url}}" target="_blank" class="api-abstract-documentation-link" flex>To go further on API configuration, please consult <strong>API Management documentation</strong></a>
+        <a ng-href="{{$ctrl.url}}" target="_blank" class="gv-abstract-documentation-link" flex>To go further on API configuration, please consult <strong>API Management documentation</strong></a>
       </div>
     </md-content>
   </md-step-body>

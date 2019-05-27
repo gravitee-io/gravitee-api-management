@@ -207,6 +207,31 @@ class ApplicationService {
   getPermissions(application) {
     return this.$http.get(this.applicationsURL + application + '/members/permissions');
   }
+
+  getType(application: any): string {
+    let applicationType = 'Simple';
+    if (application.settings) {
+      if (application.settings.app && application.settings.app.type) {
+        applicationType = application.settings.app.type;
+      } else if (application.settings.oauth) {
+        switch (application.settings.oauth.application_type) {
+          case "backend_to_backend":
+            applicationType = 'OAuth2 backend to backend';
+            break;
+          case "browser":
+            applicationType = 'OAuth2 browser';
+            break;
+          case "native":
+            applicationType = 'OAuth2 native';
+            break;
+          case "web":
+            applicationType = 'OAuth2 web';
+            break;
+        }
+      }
+    }
+    return applicationType;
+  }
 }
 
 export default ApplicationService;

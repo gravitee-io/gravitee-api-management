@@ -13,31 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import UserService from '../../services/user.service';
-
-const ApiPlanComponent: ng.IComponentOptions = {
+const ApplicationCreationComponent: ng.IComponentOptions = {
   bindings: {
-    plan: '<',
-    subscribable: '<',
-    unsubscribable: '<',
-    onSubscribe: '&',
-    onUnsubscribe: '&'
+    apis: '<'
   },
-  template: require("./api-plan.html"),
-  controller: function (UserService: UserService) {
-    'ngInject';
-
-    this.authenticated = UserService.isAuthenticated();
-
-    this.subscribe = function() {
-      this.onSubscribe(this.plan);
-    }
-
-    this.unsubscribe = function() {
-      this.onUnsubscribe(this.plan);
-    }
-  }
+  template: require('./application-creation.html'),
+  controller: 'ApplicationCreationController'
 };
 
-export default ApiPlanComponent;
+export default ApplicationCreationComponent;

@@ -19,6 +19,8 @@ import * as _ from 'lodash';
 import UserService from "../../services/user.service";
 import {StateParams} from '@uirouter/core';
 import ApiService from "../../services/api.service";
+import TenantService from "../../services/tenant.service";
+import TagService from "../../services/tag.service";
 
 export default applicationsConfig;
 
@@ -51,6 +53,9 @@ function applicationsConfig($stateProvider) {
     .state('management.applications.create', {
       url: '/create',
       component: 'createApplication',
+      resolve: {
+        apis: (ApiService: ApiService) => ApiService.list(null, true).then(response => response.data)
+      },
       data: {
         perms: {
           only: ['portal-application-c']
@@ -59,9 +64,6 @@ function applicationsConfig($stateProvider) {
         docs: {
           page: 'management-create-application'
         }
-      },
-      resolve: {
-        applications: (ApplicationService: ApplicationService) => ApplicationService.list().then(response => response.data)
       }
     })
     .state('management.applications.application', {

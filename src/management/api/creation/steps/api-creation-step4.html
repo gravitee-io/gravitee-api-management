@@ -17,12 +17,12 @@
 -->
 <md-step label="Doc" md-complete="$ctrl.parent.vm.stepData[3].data.completed" ng-disabled="$ctrl.parent.vm.stepProgress < 4">
   <md-step-body>
-    <md-tabs md-dynamic-height md-border-bottom flex layout-padding class="api-creation-content">
+    <md-tabs md-dynamic-height md-border-bottom flex layout-padding class="gv-creation-content">
       <md-tab label="Import file">
         <div class="import-file-drop-box">
           <input type="file" filecontent="$parent.newApiPageFile.content" filename="$parent.newApiPageFile.name" >
         </div>
-        <md-content class="api-creation-pages-content">
+        <md-content class="gv-creation-pages-content">
           <md-table-container ng-if="$ctrl.parent.hasPage()" style="margin-top: 20px;">
             <table md-table style="border: none;">
               <thead md-head style="background: #fff;">

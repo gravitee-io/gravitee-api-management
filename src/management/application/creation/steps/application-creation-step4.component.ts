@@ -13,31 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import UserService from '../../services/user.service';
-
-const ApiPlanComponent: ng.IComponentOptions = {
-  bindings: {
-    plan: '<',
-    subscribable: '<',
-    unsubscribable: '<',
-    onSubscribe: '&',
-    onUnsubscribe: '&'
+const ApplicationCreationStep4Component: ng.IComponentOptions = {
+  require: {
+    parent: '^createApplication'
   },
-  template: require("./api-plan.html"),
-  controller: function (UserService: UserService) {
+  template: require("./application-creation-step4.html"),
+  controller: function(Constants) {
     'ngInject';
-
-    this.authenticated = UserService.isAuthenticated();
-
-    this.subscribe = function() {
-      this.onSubscribe(this.plan);
-    }
-
-    this.unsubscribe = function() {
-      this.onUnsubscribe(this.plan);
+    if (Constants.documentation && Constants.documentation.url) {
+      this.url = Constants.documentation.url;
+    } else {
+      this.url = 'https://docs.gravitee.io';
     }
   }
 };
 
-export default ApiPlanComponent;
+export default ApplicationCreationStep4Component;

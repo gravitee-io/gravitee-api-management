@@ -1,0 +1,56 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-step label="Validation" md-complete="$ctrl.parent.steps[3].completed">
+  <md-step-body>
+    <md-content flex layout-padding class="gv-abstract-content gv-creation-content">
+      <h5>Application
+        <a ng-click="$ctrl.parent.goToStep(0)">
+          <md-tooltip>Jump to general edition</md-tooltip>
+          <ng-md-icon icon="mode_edit" size="20"></ng-md-icon>
+        </a>
+      </h5>
+      <p>
+        You are about to create the application <code>{{$ctrl.parent.application.name}}</code>.
+      </p>
+      <h5>Security
+        <a ng-click="$ctrl.parent.goToStep(1)">
+          <md-tooltip>Jump to security edition</md-tooltip>
+          <ng-md-icon icon="mode_edit" size="20"></ng-md-icon>
+        </a>
+      </h5>
+      <p>The application type is <code>{{$ctrl.parent.applicationType}}</code>.</p>
+      <p ng-if="$ctrl.parent.application.settings.app.client_id">The client id will be <code>{{$ctrl.parent.application.settings.app.client_id}}</code>.</p>
+      <h5>Subscriptions
+        <a ng-click="$ctrl.parent.goToStep(2)">
+          <md-tooltip>Jump to subscriptions edition</md-tooltip>
+          <ng-md-icon icon="mode_edit" size="20"></ng-md-icon>
+        </a>
+      </h5>
+      <p ng-bind-html="$ctrl.parent.getReadableApiSubscriptions()"></p>
+      <h5>Confirmation</h5>
+      <p style="padding-top: 0px;">
+        You can now
+        <strong><md-button class="md-raised" ng-click="$ctrl.parent.create()">create the APPLICATION</md-button></strong> and start to consume APIs.
+      </p>
+
+      <div layout="row">
+        <a ng-href="{{$ctrl.url}}" target="_blank" class="gv-abstract-documentation-link" flex>To go further on APPLICATION configuration, please consult <strong>APPLICATION Management documentation</strong></a>
+      </div>
+    </md-content>
+  </md-step-body>
+</md-step>

@@ -99,7 +99,14 @@ import ApiSubscriptionComponent from '../management/api/portal/subscriptions/sub
 import ApplicationService from '../services/application.service';
 import ApplicationsComponent from './application/applications.component';
 import ApplicationsController from './application/applications.controller';
-import CreateApplicationsComponent from './application/create-application.component';
+
+import CreateApplicationsComponent from './application/creation/steps/application-creation.component';
+import ApplicationCreationController from './application/creation/steps/application-creation.controller';
+import ApplicationCreationStep1Component from './application/creation/steps/application-creation-step1.component';
+import ApplicationCreationStep2Component from './application/creation/steps/application-creation-step2.component';
+import ApplicationCreationStep3Component from './application/creation/steps/application-creation-step3.component';
+import ApplicationCreationStep4Component from './application/creation/steps/application-creation-step4.component';
+
 import ApplicationComponent from './application/details/application.component';
 import ApplicationHeaderComponent from './application/details/header/application-header.component';
 import ApplicationGeneralController from './application/details/general/application-general.controller';
@@ -702,7 +709,14 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   .component('applications', ApplicationsComponent)
   .component('application', ApplicationComponent)
+
   .component('createApplication', CreateApplicationsComponent)
+  .controller('ApplicationCreationController', ApplicationCreationController)
+  .component('applicationCreationStep1', ApplicationCreationStep1Component)
+  .component('applicationCreationStep2', ApplicationCreationStep2Component)
+  .component('applicationCreationStep3', ApplicationCreationStep3Component)
+  .component('applicationCreationStep4', ApplicationCreationStep4Component)
+
   .component('applicationHeader', ApplicationHeaderComponent)
   .component('applicationGeneral', ApplicationGeneralComponent)
   .component('applicationSubscriptions', ApplicationSubscriptionsComponent)

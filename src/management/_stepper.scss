@@ -29,18 +29,18 @@ md-select + .hint {
 md-steppers-canvas {
   background-color: #fff;
   box-shadow: 0 1px 3px 0 rgba(0,0,0,.2),
-              0 1px 1px 0 rgba(0,0,0,.14),
-              0 2px 1px -1px rgba(0,0,0,.12);
+  0 1px 1px 0 rgba(0,0,0,.14),
+  0 2px 1px -1px rgba(0,0,0,.12);
 }
 
 md-steppers-canvas.md-paginated {
   margin: 0 !important;
 }
 
-.api-creation-steppers {
+.gv-creation-steppers {
   box-shadow: 0 1px 3px 0 rgba(0,0,0,.2),
-              0 1px 1px 0 rgba(0,0,0,.14),
-              0 2px 1px -1px rgba(0,0,0,.12);
+  0 1px 1px 0 rgba(0,0,0,.14),
+  0 2px 1px -1px rgba(0,0,0,.12);
   background: #fff;
   margin: 20px 20px 20px 20px;
 }
@@ -62,13 +62,13 @@ md-steppers-canvas.md-paginated {
   }
 }
 
-.md-button.create-api-button {
+.md-button.create-gv-button {
   ng-md-icon {
     top: 8px;
   }
 }
 
-.md-button.import-api-button {
+.md-button.import-gv-button {
   background-color: rgb(68,138,255);
   color: white;
   &:hover:enabled {
@@ -76,7 +76,7 @@ md-steppers-canvas.md-paginated {
   }
 }
 
-.api-abstract-content {
+.gv-abstract-content {
   overflow-y: auto;
   height: calc(100vh - 180px);
   code {
@@ -88,21 +88,21 @@ md-steppers-canvas.md-paginated {
   }
 }
 
-.api-creation-pages-content {
+.gv-creation-pages-content {
   overflow-y: auto;
   height: calc(100vh - 365px);
 }
 
-.api-creation-plan-content {
+.gv-creation-plan-content {
   overflow-y: auto;
   height: calc(100vh - 230px);
 }
 
-.api-creation-content {
+.gv-creation-content {
   top: 10px;
 }
 
-.api-abstract-warning {
+.gv-abstract-warning {
   color: orange;
   border-left: 5px solid orange;
   padding-left: 20px;
@@ -110,7 +110,7 @@ md-steppers-canvas.md-paginated {
   margin-left: 20px;
 }
 
-.api-abstract-documentation-link {
+.gv-abstract-documentation-link {
   display: block;
   text-align: center;
   padding: 16px;
@@ -118,25 +118,25 @@ md-steppers-canvas.md-paginated {
   background-color: #FFF59D;
 }
 
-.api-creation-timeline-wrapper {
+.gv-creation-timeline-wrapper {
   background: #fff;
   margin: 20px 20px 20px 0px;
   box-shadow: 0 1px 3px 0 rgba(0,0,0,.2),
-              0 1px 1px 0 rgba(0,0,0,.14),
-              0 2px 1px -1px rgba(0,0,0,.12);
+  0 1px 1px 0 rgba(0,0,0,.14),
+  0 2px 1px -1px rgba(0,0,0,.12);
   h4 {
     margin-top: 15px;
     margin-bottom: 22px;
   }
 }
 
-.api-creation-timeline .timeline:before {
+.gv-creation-timeline .timeline:before {
   position: absolute;
   width: 1px;
   left: 2%;
 }
 
-.api-creation-timeline ul.timeline li timeline-panel {
+.gv-creation-timeline ul.timeline li timeline-panel {
   width: 90%;
   padding: 5px;
   border: none;
@@ -150,17 +150,17 @@ md-steppers-canvas.md-paginated {
   }
 }
 
-.api-creation-timeline .timeline li timeline-panel:before {
+.gv-creation-timeline .timeline li timeline-panel:before {
   top: 25px !important;
   border: none;
 }
 
-.api-creation-timeline .timeline li timeline-panel:after {
+.gv-creation-timeline .timeline li timeline-panel:after {
   top: 26px !important;
   border: none;
 }
 
-.api-creation-timeline .timeline li.timeline-inverted timeline-panel {
+.gv-creation-timeline .timeline li.timeline-inverted timeline-panel {
   float:left;
   left: 8%;
   code {
@@ -168,7 +168,7 @@ md-steppers-canvas.md-paginated {
   }
 }
 
-.api-creation-timeline .timeline li timeline-badge {
+.gv-creation-timeline .timeline li timeline-badge {
   box-shadow: none;
   width: 30px;
   height: 30px;

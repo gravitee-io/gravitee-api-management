@@ -42,6 +42,7 @@ $backgroundColor: rgb(45, 50, 62);
 @import 'management/configuration/user/user';
 @import 'management/components/notifications/notifications';
 @import 'management/components/circularPercentage/circularPercentage';
+@import 'management/stepper';
 
 html {
   font-family: 'Roboto Slab', serif;

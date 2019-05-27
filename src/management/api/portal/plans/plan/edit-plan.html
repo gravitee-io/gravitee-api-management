@@ -21,7 +21,7 @@
   </div>
 
   <div layout="row" flex>
-    <div class="api-creation-steppers" flex="{{$ctrl.vm.selectedStep !== 4 ? 65: 100}}">
+    <div class="gv-creation-steppers" flex="{{$ctrl.vm.selectedStep !== 4 ? 65: 100}}">
       <md-stepper-card-content class="md-no-padding">
         <md-steppers md-dynamic-height md-stretch-steppers="always" md-disable-tabs-behavior="true"
                      md-selected="$ctrl.vm.selectedStep" md-busy-text="'Processing...'"
@@ -34,7 +34,7 @@
       </md-stepper-card-content>
     </div>
 
-    <div class="api-creation-timeline-wrapper" layout-padding flex ng-show="$ctrl.vm.selectedStep !== 4">
+    <div class="gv-creation-timeline-wrapper" layout-padding flex ng-show="$ctrl.vm.selectedStep !== 4">
       <h4>Preview</h4>
 
       <api-plan plan="$ctrl.plan" subscribable="false"></api-plan>

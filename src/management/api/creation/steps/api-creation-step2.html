@@ -17,7 +17,7 @@
 -->
 <md-step label="Gateway" md-complete="$ctrl.parent.vm.stepData[1].data.completed" ng-disabled="$ctrl.parent.vm.stepProgress < 2">
   <md-step-body>
-    <md-content layout-padding class="api-creation-content">
+    <md-content layout-padding class="gv-creation-content">
       <div layout="row" layout-align="end start"><a ng-click="$ctrl.toggleAdvancedMode()">Advanced mode</a></div>
       <form name="apiGatewayForm" ng-submit="$ctrl.parent.selectEndpoint(); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[1].data)">
         <div layout-gt-sm="row">
