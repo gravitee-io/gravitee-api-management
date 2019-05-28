@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ReactorVerticle extends AbstractVerticle {
@@ -50,13 +50,15 @@ public class ReactorVerticle extends AbstractVerticle {
     @Autowired
     private Vertx vertx;
 
-    @Value("${http.requestTimeout:30000}")
+    @Value("${http.requestTimeout:0}")
     private long requestTimeout;
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
         if (requestTimeout > 0) {
             httpServer.requestHandler(new VertxReactorTimeoutHandler(vertx, reactor, requestTimeout));
+        } else {
+            httpServer.requestHandler(new VertxReactorHandler(reactor));
         }
 
         httpServer.listen(res -> {
