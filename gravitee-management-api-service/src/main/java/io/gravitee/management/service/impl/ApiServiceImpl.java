@@ -63,7 +63,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
-import org.springframework.util.CollectionUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
@@ -262,10 +261,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             header.put("value", "application/json");
                             configuration.put("headers", singletonList(header));
                             try {
-                                if (swaggerVerb.getResponseType() != null || swaggerVerb.getResponseExample() != null) {
-                                    final Object mockContent = swaggerVerb.getResponseExample() == null ?
-                                            generateMockContent(swaggerVerb.getResponseType(), swaggerVerb.getResponseProperties()) : swaggerVerb.getResponseExample();
-                                    configuration.put("content", objectMapper.writeValueAsString(mockContent));
+                                final Map<String, Object> responseProperties = swaggerVerb.getResponseProperties();
+                                if (responseProperties != null) {
+                                    configuration.put("content", objectMapper.writeValueAsString(swaggerVerb.isArray()?
+                                            singletonList(responseProperties): responseProperties));
                                 }
                                 policy.setConfiguration(objectMapper.writeValueAsString(configuration));
                             } catch (final JsonProcessingException e) {
@@ -319,37 +318,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         entrypoints.stream().map(entrypoint -> entrypoint.getValue() + apiContextPath).forEach(graviteeUrls::add);
         
         return swaggerService.replaceServerList(payload, graviteeUrls);
-    }
-
-    private Object generateMockContent(final String responseType, final Map<String, Object> responseProperties) {
-        final Random random = new Random();
-        switch (responseType) {
-            case "string":
-                return "Mocked " + (responseProperties == null ? "response" : responseProperties.getOrDefault("key", "response"));
-            case "boolean":
-                return random.nextBoolean();
-            case "integer":
-                return random.nextInt(1000);
-            case "number":
-                return random.nextDouble();
-            case "array":
-                return responseProperties == null ? emptyList() : singletonList(generateMockContent("object", responseProperties));
-            case "object":
-                if (responseProperties == null) {
-                    return emptyMap();
-                }
-                final Map<String, Object> mock = new HashMap<>(responseProperties.size());
-                responseProperties.forEach((k, v) -> {
-                    if (v instanceof Map) {
-                        mock.put(k, generateMockContent("object", (Map) v));
-                    } else {
-                        mock.put(k, generateMockContent((String) v, singletonMap("key", k)));
-                    }
-                });
-                return mock;
-            default:
-                return emptyMap();
-        }
     }
 
     private ApiEntity create0(UpdateApiEntity api, String userId) throws ApiAlreadyExistsException {
