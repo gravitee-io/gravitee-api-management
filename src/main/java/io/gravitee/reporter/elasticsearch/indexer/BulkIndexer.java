@@ -16,21 +16,14 @@
 package io.gravitee.reporter.elasticsearch.indexer;
 
 import io.gravitee.elasticsearch.client.Client;
-import io.gravitee.elasticsearch.model.bulk.BulkResponse;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
-import io.reactivex.observers.DisposableSingleObserver;
 import io.reactivex.processors.PublishProcessor;
 import io.reactivex.schedulers.Schedulers;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.reactivex.RxHelper;
 import io.vertx.reactivex.core.Vertx;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -68,44 +61,7 @@ public abstract class BulkIndexer extends AbstractIndexer {
 						TimeUnit.SECONDS,
 						configuration.getBulkActions())
 				.filter(payload -> !payload.isEmpty())
-				.subscribe(new Subscriber<List<Buffer>>() {
-					private Subscription subscription;
-
-					@Override
-					public void onSubscribe(Subscription subscription) {
-						this.subscription = subscription;
-						subscription.request(1);
-					}
-
-					@Override
-					public void onNext(List<Buffer> items) {
-						client.bulk(items)
-								.subscribeOn(RxHelper.scheduler(vertx.getDelegate()))
-								.subscribe(new DisposableSingleObserver<BulkResponse>() {
-									@Override
-									public void onSuccess(BulkResponse bulkResponse) {
-										dispose();
-									}
-
-									@Override
-									public void onError(Throwable t) {
-										logger.error("Unexpected error while indexing data", t);
-									}
-								});
-
-						subscription.request(1);
-					}
-
-					@Override
-					public void onError(Throwable t) {
-						logger.error("Unexpected error while indexing data", t);
-					}
-
-					@Override
-					public void onComplete() {
-						// Nothing to do here
-					}
-				});
+				.subscribe(new DocumentBulkProcessor(client, vertx));
 	}
 
 	@Override
