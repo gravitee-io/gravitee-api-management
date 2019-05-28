@@ -34,9 +34,9 @@ import java.util.stream.Collectors;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Api1_15VersionSerializer extends ApiSerializer {
+public class Api1_20VersionSerializer extends ApiSerializer {
 
-    public Api1_15VersionSerializer() {
+    public Api1_20VersionSerializer() {
         super(ApiEntity.class);
     }
 
@@ -44,33 +44,29 @@ public class Api1_15VersionSerializer extends ApiSerializer {
     public void serialize(ApiEntity apiEntity, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         super.serialize(apiEntity, jsonGenerator, serializerProvider);
 
+        // path mappings part
+        if (apiEntity.getPathMappings() != null) {
+            jsonGenerator.writeArrayFieldStart("path_mappings");
+            apiEntity.getPathMappings().forEach(pathMapping -> {
+                try {
+                    jsonGenerator.writeObject(pathMapping);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            jsonGenerator.writeEndArray();
+        }
+
         // proxy part
         if (apiEntity.getProxy() != null) {
-            jsonGenerator.writeObjectFieldStart("proxy");
-            jsonGenerator.writeObjectField("context_path", apiEntity.getProxy().getContextPath());
-            jsonGenerator.writeObjectField("strip_context_path", apiEntity.getProxy().isStripContextPath());
-            if (apiEntity.getProxy().getLogging() == null) {
-                jsonGenerator.writeObjectField("loggingMode", LoggingMode.NONE);
-            } else {
-                jsonGenerator.writeObjectField("loggingMode", apiEntity.getProxy().getLogging().getMode());
+            //remove the http config from groups
+            if (apiEntity.getProxy().getGroups() != null) {
+                apiEntity.getProxy().getGroups().forEach(group -> {
+                    group.setHttpClientOptions(null);
+                    group.setHttpClientSslOptions(null);
+                });
             }
-            jsonGenerator.writeObjectField("endpoints", apiEntity.getProxy().getGroups().stream()
-                    .map(endpointGroup -> endpointGroup.getEndpoints())
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
-
-            // load balancing (get load balancing of the first endpoints group)
-            jsonGenerator.writeObjectField("load_balancing", apiEntity.getProxy().getGroups().iterator().next().getLoadBalancer());
-
-            if (apiEntity.getProxy().getFailover() != null) {
-                jsonGenerator.writeObjectField("failover", apiEntity.getProxy().getFailover());
-            }
-
-            if (apiEntity.getProxy().getCors() != null) {
-                jsonGenerator.writeObjectField("cors", apiEntity.getProxy().getCors());
-            }
-
-            jsonGenerator.writeEndObject();
+            jsonGenerator.writeObjectField("proxy", apiEntity.getProxy());
         }
 
 
@@ -102,6 +98,6 @@ public class Api1_15VersionSerializer extends ApiSerializer {
 
     @Override
     public Version version() {
-        return Version.V_1_15;
+        return Version.V_1_20;
     }
 }

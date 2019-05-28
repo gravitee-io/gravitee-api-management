@@ -30,10 +30,7 @@ import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.impl.ApiServiceImpl;
 import io.gravitee.management.service.jackson.filter.ApiPermissionFilter;
-import io.gravitee.management.service.jackson.ser.api.Api1_15VersionSerializer;
-import io.gravitee.management.service.jackson.ser.api.ApiCompositeSerializer;
-import io.gravitee.management.service.jackson.ser.api.ApiDefaultSerializer;
-import io.gravitee.management.service.jackson.ser.api.ApiSerializer;
+import io.gravitee.management.service.jackson.ser.api.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -115,10 +112,14 @@ public class ApiService_ExportAsJsonTest {
         ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
         apiDefaultSerializer.setApplicationContext(applicationContext);
 
+        //V_1_15
         ApiSerializer apiPrior115VersionSerializer = new Api1_15VersionSerializer();
         apiPrior115VersionSerializer.setApplicationContext(applicationContext);
+        //V_1_20
+        ApiSerializer apiPrior120VersionSerializer = new Api1_20VersionSerializer();
+        apiPrior120VersionSerializer.setApplicationContext(applicationContext);
 
-        apiCompositeSerializer.setSerializers(Arrays.asList(apiDefaultSerializer, apiPrior115VersionSerializer));
+        apiCompositeSerializer.setSerializers(Arrays.asList(apiDefaultSerializer, apiPrior115VersionSerializer, apiPrior120VersionSerializer));
         SimpleModule module = new SimpleModule();
         module.addSerializer(ApiEntity.class, apiCompositeSerializer);
         objectMapper.registerModule(module);
@@ -239,6 +240,11 @@ public class ApiService_ExportAsJsonTest {
     }
 
     @Test
+    public void shouldConvertAsJsonForExport_1_20() throws TechnicalException, IOException {
+        shouldConvertAsJsonForExport(ApiSerializer.Version.V_1_20, "1_20");
+    }
+
+    @Test
     public void shouldConvertAsJsonWithoutMembers() throws IOException {
         shouldConvertAsJsonWithoutMembers(ApiSerializer.Version.DEFAULT, null);
     }
@@ -246,6 +252,11 @@ public class ApiService_ExportAsJsonTest {
     @Test
     public void shouldConvertAsJsonWithoutMembers_1_15() throws IOException {
         shouldConvertAsJsonWithoutMembers(ApiSerializer.Version.V_1_15, "1_15");
+    }
+
+    @Test
+    public void shouldConvertAsJsonWithoutMembers_1_20() throws IOException {
+        shouldConvertAsJsonWithoutMembers(ApiSerializer.Version.V_1_20, "1_20");
     }
 
     @Test
@@ -259,6 +270,11 @@ public class ApiService_ExportAsJsonTest {
     }
 
     @Test
+    public void shouldConvertAsJsonWithoutPages_1_20() throws IOException {
+        shouldConvertAsJsonWithoutPages(ApiSerializer.Version.V_1_20, "1_20");
+    }
+
+    @Test
     public void shouldConvertAsJsonWithoutPlans() throws IOException {
         shouldConvertAsJsonWithoutPlans(ApiSerializer.Version.DEFAULT, null);
     }
@@ -266,6 +282,11 @@ public class ApiService_ExportAsJsonTest {
     @Test
     public void shouldConvertAsJsonWithoutPlans_1_15() throws IOException {
         shouldConvertAsJsonWithoutPlans(ApiSerializer.Version.V_1_15, "1_15");
+    }
+
+    @Test
+    public void shouldConvertAsJsonWithoutPlans_1_20() throws IOException {
+        shouldConvertAsJsonWithoutPlans(ApiSerializer.Version.V_1_20, "1_20");
     }
 
     @Test

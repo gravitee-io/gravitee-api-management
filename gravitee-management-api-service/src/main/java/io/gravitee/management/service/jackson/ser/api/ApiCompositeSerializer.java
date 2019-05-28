@@ -65,6 +65,7 @@ public class ApiCompositeSerializer extends ApiSerializer implements Initializin
     public void afterPropertiesSet() {
         addSerializer(new ApiDefaultSerializer());
         addSerializer(new Api1_15VersionSerializer());
+        addSerializer(new Api1_20VersionSerializer());
     }
 
     private void addSerializer(ApiSerializer apiSerializer) {
