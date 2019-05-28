@@ -68,7 +68,7 @@ public final class HttpEndpointFactory extends TemplateAwareEndpointFactory<io.g
         try {
             URL url = new URL(endpoint.getTarget());
             if (url.getPath().isEmpty()) {
-                logger.warn("HTTP endpoint target URL is malformed for endpoint [{} - {}]. Set default path to '/'",
+                logger.debug("HTTP endpoint target URL is malformed for endpoint [{} - {}]. Set default path to '/'",
                         endpoint.getName(), endpoint.getTarget());
                 endpoint.setTarget(endpoint.getTarget() + '/');
             }
