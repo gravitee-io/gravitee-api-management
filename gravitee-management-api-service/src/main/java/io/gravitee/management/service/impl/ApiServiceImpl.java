@@ -625,11 +625,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apis.addAll(convert(publicApis));
             apis.addAll(convert(userApis));
             apis.addAll(convert(groupApis));
-            return apis;
+            return filterApiByQuery(apis.stream(), apiQuery).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + userId, ex);
         }
+    }
+
+    private Stream<ApiEntity> filterApiByQuery(Stream<ApiEntity> apiEntityStream, ApiQuery query) {
+        if (query == null) {
+            return apiEntityStream;
+        }
+        return apiEntityStream
+                .filter(api -> query.getTag() == null || (api.getTags() != null && api.getTags().contains(query.getTag())))
+                .filter(api -> query.getContextPath() == null || query.getContextPath().equals(api.getProxy().getContextPath()));
+
     }
 
     @Override
@@ -1323,9 +1333,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Collection<ApiEntity> search(final ApiQuery query) {
         try {
             LOGGER.debug("Search APIs by {}", query);
-            return convert(apiRepository.search(queryToCriteria(query).build())).stream()
-                    .filter(api -> query.getTag() == null || (api.getTags() != null && api.getTags().contains(query.getTag())))
-                    .filter(api -> query.getContextPath() == null || query.getContextPath().equals(api.getProxy().getContextPath()))
+            return filterApiByQuery(this.convert(apiRepository.search(queryToCriteria(query).build())).stream(), query)
                     .collect(toList());
         } catch (TechnicalException ex) {
             final String errorMessage = "An error occurs while trying to search for APIs: " + query;
