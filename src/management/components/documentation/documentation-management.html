@@ -22,7 +22,8 @@
          ng-click="$ctrl.importPages()">
          Import multiple files
       </a>
-      <md-button class="md-raised md-primary" type="button" ng-if="$ctrl.hasExternalDoc()" ng-click="$ctrl.fetch()">
+      <md-button class="md-raised md-primary" type="button" ng-if="$ctrl.hasExternalDoc()" ng-click="$ctrl.fetch()"
+                 permission permission-only="['portal-documentation-u', 'api-documentation-u']">
         Fetch all
       </md-button>
     </div>
@@ -41,7 +42,8 @@
                 <md-button type="button"
                            class="md-raised md-primary"
                            ng-click="$ctrl.toggleRenameFolder()"
-                           aria-label="Edit">
+                           aria-label="Edit"
+                           permission permission-only="['portal-documentation-u', 'api-documentation-u']">
                     Rename Folder</md-button>
             </div>
         </div>
@@ -94,33 +96,39 @@
                         <td md-cell width="48px">
                             <ng-md-icon icon="archive" ng-click="$ctrl.moveToFolder(page)"
                                         style="font-size: 24px; height: 24px;"
-                                        ng-if="page.type !== 'folder'">
+                                        ng-if="page.type !== 'folder'"
+                                        permission permission-only="['portal-documentation-u', 'api-documentation-u']">
                                 <md-tooltip md-direction="top" md-visible="false">Move to ...</md-tooltip>
                             </ng-md-icon>
                         </td>
                         <td md-cell width="48px">
                             <ng-md-icon ng-if="!page.published && page.type !== 'folder'" icon="cloud_queue" ng-click="$ctrl.togglePublish(page)"
-                                        style="font-size: 24px; height: 24px;">
+                                        style="font-size: 24px; height: 24px;"
+                                        permission permission-only="['portal-documentation-u', 'api-documentation-u']">
                                 <md-tooltip md-direction="top" md-visible="false">Publish this page</md-tooltip>
                             </ng-md-icon>
                             <ng-md-icon ng-if="page.published && page.type !== 'folder'" icon="cloud_done" ng-click="$ctrl.togglePublish(page)"
-                                        style="font-size: 24px; height: 24px;">
+                                        style="font-size: 24px; height: 24px;"
+                                        permission permission-only="['portal-documentation-u', 'api-documentation-u']">
                                 <md-tooltip md-direction="top" md-visible="false">Unpublish this page</md-tooltip>
                             </ng-md-icon>
                         </td>
                         <td md-cell width="76px" nowrap>
-                            <ng-md-icon ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(page)">
+                            <ng-md-icon ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(page)"
+                                        permission permission-only="['portal-documentation-u', 'api-documentation-u']">
                                 <md-tooltip md-direction="top" md-visible="false">Move upward</md-tooltip>
                             </ng-md-icon>
                             <span ng-if="$first" style="padding-right: 28px"></span>
-                            <ng-md-icon ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(page)">
+                            <ng-md-icon ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(page)"
+                                        permission permission-only="['portal-documentation-u', 'api-documentation-u']">
                                 <md-tooltip md-direction="top" md-visible="false">Move downward</md-tooltip>
                             </ng-md-icon>
                         </td>
                         <td md-cell width="1%" nowrap>{{page.lastModificationDate | date:'medium'}}</td>
                         <td md-cell width="48px">
                             <ng-md-icon icon="delete" ng-click="$ctrl.remove(page)"
-                                        style="font-size: 24px; height: 24px;">
+                                        style="font-size: 24px; height: 24px;"
+                                        permission permission-only="['portal-documentation-u', 'api-documentation-u']">
                                 <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
                             </ng-md-icon>
                         </td>
@@ -141,7 +149,7 @@
                                ng-class="{'md-fab-bottom-right md-fab-scrollable' : $ctrl.pages.length > 0}"
                                class="md-scale">
                 <md-fab-trigger>
-                    <md-button aria-label="menu" class="md-fab md-success">
+                    <md-button aria-label="menu" class="md-fab md-success" permission permission-only="['portal-documentation-u', 'api-documentation-u']">
                         <md-tooltip ng-if="$ctrl.pages.length > 0" md-direction="top" md-visible="false">New page</md-tooltip>
                         <ng-md-icon icon="add"></ng-md-icon>
                     </md-button>
