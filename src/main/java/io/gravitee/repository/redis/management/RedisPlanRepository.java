@@ -134,6 +134,7 @@ public class RedisPlanRepository implements PlanRepository {
         plan.setCommentRequired(redisPlan.isCommentRequired());
         plan.setCommentMessage(redisPlan.getCommentMessage());
         plan.setTags(redisPlan.getTags());
+        plan.setSelectionRule(redisPlan.getSelectionRule());
         return plan;
     }
 
@@ -187,6 +188,7 @@ public class RedisPlanRepository implements PlanRepository {
         redisPlan.setCommentRequired(plan.isCommentRequired());
         redisPlan.setCommentMessage(plan.getCommentMessage());
         redisPlan.setTags(plan.getTags());
+        redisPlan.setSelectionRule(plan.getSelectionRule());
         return redisPlan;
     }
 }
