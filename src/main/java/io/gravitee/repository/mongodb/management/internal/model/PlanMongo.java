@@ -83,6 +83,8 @@ public class PlanMongo extends Auditable {
 
     private Set<String> tags;
 
+    private String selectionRule;
+
     public String getId() {
         return id;
     }
@@ -233,6 +235,14 @@ public class PlanMongo extends Auditable {
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
+    }
+
+    public String getSelectionRule() {
+        return selectionRule;
+    }
+
+    public void setSelectionRule(String selectionRule) {
+        this.selectionRule = selectionRule;
     }
 
     @Override
