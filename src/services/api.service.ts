@@ -275,7 +275,8 @@ class ApiService {
           excluded_groups: plan.excludedGroups,
           comment_required: plan.comment_required,
           comment_message: plan.comment_message,
-          tags: plan.tags
+          tags: plan.tags,
+          selection_rule: plan.selection_rule
         });
     } else {
       return this.$http.post(this.apisURL + apiId + '/plans',
@@ -286,7 +287,8 @@ class ApiService {
           security: plan.security, securityDefinition: plan.securityDefinition, excluded_groups: plan.excludedGroups,
           comment_required: plan.comment_required,
           comment_message: plan.comment_message,
-          tags: plan.tags
+          tags: plan.tags,
+          selection_rule: plan.selection_rule
         });
     }
   }
