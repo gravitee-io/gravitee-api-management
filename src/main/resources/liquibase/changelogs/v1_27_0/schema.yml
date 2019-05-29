@@ -13,3 +13,10 @@ databaseChangeLog:
               constraintName: pk_plan_tags
               columnNames: plan_id, tag
               tableName: plan_tags
+
+          - addColumn:
+              tableName: plans
+              columns:
+                - column:
+                    name: selection_rule
+                    type: nvarchar(256)
