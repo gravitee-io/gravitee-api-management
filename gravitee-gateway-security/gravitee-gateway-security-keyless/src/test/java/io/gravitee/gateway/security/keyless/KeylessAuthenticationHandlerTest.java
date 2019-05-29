@@ -16,7 +16,7 @@
 package io.gravitee.gateway.security.keyless;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import org.junit.Assert;
@@ -41,9 +41,9 @@ public class KeylessAuthenticationHandlerTest {
 
     @Test
     public void shouldHandleRequest() {
-        Request request = mock(Request.class);
+        AuthenticationContext context = mock(AuthenticationContext.class);
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(context);
         Assert.assertTrue(handle);
     }
 

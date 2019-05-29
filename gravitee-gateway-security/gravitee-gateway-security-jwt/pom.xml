@@ -44,5 +44,11 @@
             <version>${gravitee-repository.version}</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>7.2.1</version>
+        </dependency>
     </dependencies>
 </project>

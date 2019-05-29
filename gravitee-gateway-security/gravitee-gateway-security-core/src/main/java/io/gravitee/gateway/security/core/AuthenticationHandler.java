@@ -16,7 +16,6 @@
 package io.gravitee.gateway.security.core;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
 
 import java.util.List;
 
@@ -43,21 +42,10 @@ public interface AuthenticationHandler {
     /**
      * Check that the incoming HTTP request can be handle by the underlying authentication system.
      *
-     * @param request Incoming HTTP request.
-     * @return Flag indicating that the incoming request can be handled by the authentication system.
+     * @param context context data upon which incoming HTTP request can be handled.
+     * @return Flag indicating that the current context can be handled by the authentication system.
      */
-    default boolean canHandle(Request request) {
-        return canHandle(request, null);
-    }
-
-    /**
-     * Check that the incoming HTTP request can be handle by the underlying authentication system.
-     *
-     * @param request Incoming HTTP request.
-     * @param authenticationContext context data upon which incoming HTTP request can be handled.
-     * @return Flag indicating that the incoming request can be handled by the authentication system.
-     */
-    boolean canHandle(Request request, AuthenticationContext authenticationContext);
+    boolean canHandle(AuthenticationContext context);
 
     /**
      * Policies which will be run for each request after authentication method selection

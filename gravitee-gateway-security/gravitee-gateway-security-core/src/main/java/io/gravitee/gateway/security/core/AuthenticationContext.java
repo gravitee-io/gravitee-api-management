@@ -15,19 +15,43 @@
  */
 package io.gravitee.gateway.security.core;
 
+import io.gravitee.gateway.api.Request;
+
+import java.util.Map;
+
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AuthenticationContext {
+public interface AuthenticationContext {
 
-    private String id;
 
-    public String getId() {
-        return id;
-    }
+    Request request();
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    /**
+     * Stores an attribute in this context.
+     *
+     * @param name a String specifying the name of the attribute
+     * @param value the Object to be stored
+     */
+    AuthenticationContext set(String name, Object value);
+
+    /**
+     * Removes an attribute from this context.
+     * long as the request is being handled.
+     *
+     * @param name a String specifying the name of the attribute to remove
+     */
+    AuthenticationContext remove(String name);
+
+    /**
+     * Returns the value of the named attribute as an Object, or <code>null</code> if no attribute of the given
+     * name exists.
+     *
+     * @param name a String specifying the name of the attribute
+     * @return an Object containing the value of the attribute, or null if the attribute does not exist
+     */
+    Object get(String name);
+
+    Map<String, Object> attributes();
 }

@@ -18,11 +18,13 @@ package io.gravitee.gateway.security.oauth2;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.HookAuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import io.gravitee.gateway.security.oauth2.policy.CheckSubscriptionPolicy;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -44,14 +46,23 @@ public class OAuth2AuthenticationHandlerTest {
 
     @InjectMocks
     private OAuth2AuthenticationHandler authenticationHandler = new OAuth2AuthenticationHandler();
+
+    @Mock
+    private AuthenticationContext authenticationContext;
+
     @Mock
     private Request request;
+
+    @Before
+    public void setUp() {
+        when(authenticationContext.request()).thenReturn(request);
+    }
 
     @Test
     public void shouldNotHandleRequest_noAuthorizationHeader() {
         when(request.headers()).thenReturn(new HttpHeaders());
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);
     }
 
@@ -62,7 +73,7 @@ public class OAuth2AuthenticationHandlerTest {
 
         headers.add(HttpHeaders.AUTHORIZATION, "");
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);
     }
 
@@ -73,7 +84,7 @@ public class OAuth2AuthenticationHandlerTest {
 
         headers.add(HttpHeaders.AUTHORIZATION, "Basic xxx-xx-xxx-xx-xx");
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);
     }
 
@@ -84,7 +95,7 @@ public class OAuth2AuthenticationHandlerTest {
 
         headers.add(HttpHeaders.AUTHORIZATION, OAuth2AuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " xxx-xx-xxx-xx-xx");
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);
     }
 
@@ -95,7 +106,7 @@ public class OAuth2AuthenticationHandlerTest {
 
         headers.add(HttpHeaders.AUTHORIZATION, "BeaRer xxx-xx-xxx-xx-xx");
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);
     }
 
@@ -106,7 +117,7 @@ public class OAuth2AuthenticationHandlerTest {
 
         headers.add(HttpHeaders.AUTHORIZATION, OAuth2AuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " ");
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);
     }
 

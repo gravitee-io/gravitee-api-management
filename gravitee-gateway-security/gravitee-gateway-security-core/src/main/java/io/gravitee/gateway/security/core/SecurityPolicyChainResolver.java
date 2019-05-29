@@ -35,26 +35,26 @@ import java.util.stream.Collectors;
  */
 public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
 
-    static final String GATEWAY_MISSING_SECURITY_PROVIDER_KEY = "GATEWAY_MISSING_SECURITY_PROVIDER";
+    private static final String GATEWAY_MISSING_SECURITY_PROVIDER_KEY = "GATEWAY_MISSING_SECURITY_PROVIDER";
 
     @Autowired
-    private SecurityProviderManager securityManager;
+    private AuthenticationHandlerSelector handlerSelector;
 
     @Override
     public PolicyChain resolve(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
         if (streamType == StreamType.ON_REQUEST) {
-            final AuthenticationHandler securityProvider = securityManager.resolve(request);
+            final AuthenticationHandler authenticationHandler = handlerSelector.select(request);
 
-            if (securityProvider != null) {
-                logger.debug("Security provider [{}] has been selected to secure incoming request {}",
-                        securityProvider.name(), request.id());
+            if (authenticationHandler != null) {
+                logger.debug("Authentication handler [{}] has been selected to secure incoming request {}",
+                        authenticationHandler.name(), request.id());
 
-                List<AuthenticationPolicy> policies = securityProvider.handle(executionContext);
+                List<AuthenticationPolicy> policies = authenticationHandler.handle(executionContext);
                 return RequestPolicyChain.create(createAuthenticationChain(policies), executionContext);
             }
 
             // No authentication method selected, must send a 401
-            logger.debug("No security provider has been selected to process request {}. Returning an unauthorized status (401)", request.id());
+            logger.debug("No authentication handler has been selected to process request {}. Returning an unauthorized status (401)", request.id());
             return new DirectPolicyChain(
                     PolicyResult.failure(GATEWAY_MISSING_SECURITY_PROVIDER_KEY, HttpStatusCode.UNAUTHORIZED_401, "Unauthorized"), executionContext);
         } else {
@@ -90,7 +90,7 @@ public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
         throw new IllegalStateException("You must never go there!");
     }
 
-    public void setSecurityManager(SecurityProviderManager securityManager) {
-        this.securityManager = securityManager;
+    public void setAuthenticationHandlerSelector(AuthenticationHandlerSelector handlerSelector) {
+        this.handlerSelector = handlerSelector;
     }
 }

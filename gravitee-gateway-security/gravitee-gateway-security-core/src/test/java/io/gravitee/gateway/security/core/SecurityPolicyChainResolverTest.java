@@ -41,7 +41,7 @@ public class SecurityPolicyChainResolverTest {
     private SecurityPolicyChainResolver securityPolicyChainResolver;
 
     @Mock
-    private SecurityProviderManager securityManager;
+    private AuthenticationHandlerSelector handlerSelector;
 
     @Mock
     private PolicyManager policyManager;
@@ -59,7 +59,7 @@ public class SecurityPolicyChainResolverTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         securityPolicyChainResolver = new SecurityPolicyChainResolver();
-        securityPolicyChainResolver.setSecurityManager(securityManager);
+        securityPolicyChainResolver.setAuthenticationHandlerSelector(handlerSelector);
         securityPolicyChainResolver.setPolicyManager(policyManager);
     }
 
@@ -72,7 +72,7 @@ public class SecurityPolicyChainResolverTest {
 
     @Test
     public void shouldReturnUnauthorizedPolicyChain_onRequest() {
-        when(securityManager.resolve(request)).thenReturn(null);
+        when(handlerSelector.select(request)).thenReturn(null);
 
         PolicyChain policyChain = securityPolicyChainResolver.resolve(StreamType.ON_REQUEST, request, response, executionContext);
 
@@ -87,7 +87,7 @@ public class SecurityPolicyChainResolverTest {
 
         Policy policy = mock(Policy.class);
         when(policyManager.create(StreamType.ON_REQUEST, "my-policy", null)).thenReturn(policy);
-        when(securityManager.resolve(request)).thenReturn(securityProvider);
+        when(handlerSelector.select(request)).thenReturn(securityProvider);
 
         PolicyChain policyChain = securityPolicyChainResolver.resolve(StreamType.ON_REQUEST, request, response, executionContext);
 

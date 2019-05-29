@@ -18,11 +18,10 @@ package io.gravitee.gateway.security.jwt;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.security.core.AuthenticationPolicy;
-import io.gravitee.gateway.security.core.HookAuthenticationPolicy;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
+import io.gravitee.gateway.security.core.*;
 import io.gravitee.gateway.security.jwt.policy.CheckSubscriptionPolicy;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -44,14 +43,22 @@ public class JWTAuthenticationHandlerTest {
 
     @InjectMocks
     private JWTAuthenticationHandler authenticationHandler = new JWTAuthenticationHandler();
+
+    private AuthenticationContext authenticationContext;
+
     @Mock
     private Request request;
+
+    @Before
+    public void setUp() {
+        authenticationContext = new SimpleAuthenticationContext(request);
+    }
 
     @Test
     public void shouldNotHandleRequest_noAuthorizationHeader() {
         when(request.headers()).thenReturn(new HttpHeaders());
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);
     }
 
@@ -62,7 +69,7 @@ public class JWTAuthenticationHandlerTest {
 
         headers.add(HttpHeaders.AUTHORIZATION, "");
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);
     }
 
@@ -73,8 +80,9 @@ public class JWTAuthenticationHandlerTest {
 
         headers.add(HttpHeaders.AUTHORIZATION, "Basic xxx-xx-xxx-xx-xx");
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);
+        Assert.assertNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
     }
 
     @Test
@@ -84,8 +92,9 @@ public class JWTAuthenticationHandlerTest {
 
         headers.add(HttpHeaders.AUTHORIZATION, JWTAuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " xxx-xx-xxx-xx-xx");
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);
+        Assert.assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
     }
 
     @Test
@@ -95,8 +104,9 @@ public class JWTAuthenticationHandlerTest {
 
         headers.add(HttpHeaders.AUTHORIZATION, "BeaRer xxx-xx-xxx-xx-xx");
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);
+        Assert.assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
     }
 
     @Test
@@ -106,8 +116,9 @@ public class JWTAuthenticationHandlerTest {
 
         headers.add(HttpHeaders.AUTHORIZATION, JWTAuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " ");
 
-        boolean handle = authenticationHandler.canHandle(request);
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertFalse(handle);
+        Assert.assertNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
     }
 
     @Test

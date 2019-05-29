@@ -13,48 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.security.keyless;
+package io.gravitee.gateway.handlers.api.policy.security.apikey;
 
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
-import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
+import io.gravitee.repository.management.model.ApiKey;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * A key-less {@link AuthenticationHandler} meaning that no authentication is required to access
- * the public service.
- *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class KeylessAuthenticationHandler implements AuthenticationHandler {
+public class ApiKeyPlanBasedAuthenticationHandler implements AuthenticationHandler {
 
-    static final String KEYLESS_POLICY = "key-less";
+    private final static String APIKEY_CONTEXT_ATTRIBUTE = "apikey";
 
-    private final static List<AuthenticationPolicy> POLICIES = Collections.singletonList(
-            (PluginAuthenticationPolicy) () -> KEYLESS_POLICY);
+    private final AuthenticationHandler handler;
+    private final Plan plan;
+
+    public ApiKeyPlanBasedAuthenticationHandler(final AuthenticationHandler handler, final Plan plan) {
+        this.handler = handler;
+        this.plan = plan;
+    }
 
     @Override
-    public boolean canHandle(AuthenticationContext authenticationContext) {
-        return true;
+    public boolean canHandle(AuthenticationContext context) {
+        boolean handle = handler.canHandle(context);
+
+        if (!handle) {
+            return false;
+        }
+
+        // Check that the plan associated to the api-key matches the current plan
+        Optional<ApiKey> optApikey = (Optional<ApiKey>) context.get(APIKEY_CONTEXT_ATTRIBUTE);
+        return optApikey != null && optApikey.isPresent() && optApikey.get().getPlan().equals(plan.getId());
     }
 
     @Override
     public String name() {
-        return "key_less";
+        return handler.name();
     }
 
     @Override
     public int order() {
-        return 1000;
+        return handler.order();
     }
 
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
-        return POLICIES;
+        return handler.handle(executionContext);
     }
 }
