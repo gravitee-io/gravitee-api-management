@@ -62,6 +62,9 @@ public class UpdatePlanEntity {
 
     private Set<String> tags;
 
+    @JsonProperty("selection_rule")
+    private String selectionRule;
+
     public String getName() {
         return name;
     }
@@ -156,6 +159,14 @@ public class UpdatePlanEntity {
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
+    }
+
+    public String getSelectionRule() {
+        return selectionRule;
+    }
+
+    public void setSelectionRule(String selectionRule) {
+        this.selectionRule = selectionRule;
     }
 
     @Override
