@@ -39,6 +39,8 @@ public class OAuth2AuthenticationHandler implements AuthenticationHandler {
 
     static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
+    final static String JWT_CONTEXT_ATTRIBUTE = "jwt";
+
     private final static List<AuthenticationPolicy> POLICIES = Arrays.asList(
             // First, validate the incoming access_token thanks to an OAuth2 authorization server
             (PluginAuthenticationPolicy) () -> AUTHENTICATION_HANDLER_NAME,
@@ -47,8 +49,8 @@ public class OAuth2AuthenticationHandler implements AuthenticationHandler {
             (HookAuthenticationPolicy) () -> CheckSubscriptionPolicy.class);
 
     @Override
-    public boolean canHandle(Request request, AuthenticationContext authenticationContext) {
-        List<String> authorizationHeaders = request.headers().get(HttpHeaders.AUTHORIZATION);
+    public boolean canHandle(AuthenticationContext context) {
+        List<String> authorizationHeaders = context.request().headers().get(HttpHeaders.AUTHORIZATION);
 
         if (authorizationHeaders == null || authorizationHeaders.isEmpty()) {
             return false;
@@ -63,7 +65,17 @@ public class OAuth2AuthenticationHandler implements AuthenticationHandler {
             return false;
         }
         final String accessToken = authorizationBearerHeader.get().substring(BEARER_AUTHORIZATION_TYPE.length()).trim();
-        return ! accessToken.isEmpty();
+
+        if (accessToken.isEmpty()) {
+            return false;
+        }
+
+        // Update the context with token
+        if (context.get(JWT_CONTEXT_ATTRIBUTE) == null) {
+            context.set(JWT_CONTEXT_ATTRIBUTE, new LazyJwtToken(accessToken));
+        }
+
+        return true;
     }
 
     @Override

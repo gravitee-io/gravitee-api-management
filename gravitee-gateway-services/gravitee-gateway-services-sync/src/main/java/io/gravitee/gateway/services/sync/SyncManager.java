@@ -373,6 +373,7 @@ public class SyncManager {
         plan.setName(repoPlan.getName());
         plan.setApis(repoPlan.getApis());
         plan.setSecurityDefinition(repoPlan.getSecurityDefinition());
+        plan.setSelectionRule(repoPlan.getSelectionRule());
 
         if (repoPlan.getSecurity() != null) {
             plan.setSecurity(repoPlan.getSecurity().name());

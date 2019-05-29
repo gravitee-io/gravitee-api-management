@@ -16,7 +16,6 @@
 package io.gravitee.gateway.security.core;
 
 
-import io.gravitee.gateway.api.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -34,32 +33,17 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityProviderManager implements InitializingBean {
+public class AuthenticationHandlerManager implements InitializingBean {
 
-    private final Logger logger = LoggerFactory.getLogger(SecurityProviderManager.class);
+    private final Logger logger = LoggerFactory.getLogger(AuthenticationHandlerManager.class);
 
     @Autowired
     private SecurityProviderLoader securityProviderLoader;
 
     @Autowired(required = false)
-    private AuthenticationHandlerEnhancer securityProviderFilter;
+    private AuthenticationHandlerEnhancer authenticationHandlerEnhancer;
 
-    private List<AuthenticationHandler> securityProviders;
-
-    /**
-     * Get an {@link AuthenticationHandler} from the incoming HTTP request.
-     * @param request Incoming HTTP request.
-     * @return The security provider to apply got the incoming request.
-     */
-    public AuthenticationHandler resolve(Request request) {
-        for(AuthenticationHandler securityProvider : securityProviders) {
-            if (securityProvider.canHandle(request)) {
-                return securityProvider;
-            }
-        }
-
-        return null;
-    }
+    private List<AuthenticationHandler> authenticationHandlers;
 
     public void afterPropertiesSet() {
         logger.debug("Loading security providers...");
@@ -77,25 +61,25 @@ public class SecurityProviderManager implements InitializingBean {
         });
 
         // Filter security providers if a filter is defined
-        if (securityProviderFilter != null) {
-            securityProviders = securityProviderFilter.filter(availableSecurityProviders);
+        if (authenticationHandlerEnhancer != null) {
+            authenticationHandlers = authenticationHandlerEnhancer.filter(availableSecurityProviders);
         } else {
-            securityProviders = availableSecurityProviders;
+            authenticationHandlers = availableSecurityProviders;
         }
 
         // Sort by order
-        Collections.sort(securityProviders, Comparator.comparingInt(AuthenticationHandler::order));
+        Collections.sort(authenticationHandlers, Comparator.comparingInt(AuthenticationHandler::order));
     }
 
-    public List<AuthenticationHandler> getSecurityProviders() {
-        return securityProviders;
+    public List<AuthenticationHandler> getAuthenticationHandlers() {
+        return authenticationHandlers;
     }
 
     public void setSecurityProviderLoader(SecurityProviderLoader securityProviderLoader) {
         this.securityProviderLoader = securityProviderLoader;
     }
 
-    public void setSecurityProviderFilter(AuthenticationHandlerEnhancer securityProviderFilter) {
-        this.securityProviderFilter = securityProviderFilter;
+    public void setAuthenticationHandlerEnhancer(AuthenticationHandlerEnhancer authenticationHandlerEnhancer) {
+        this.authenticationHandlerEnhancer = authenticationHandlerEnhancer;
     }
 }

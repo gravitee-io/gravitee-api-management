@@ -15,14 +15,19 @@
  */
 package io.gravitee.gateway.security.core;
 
-import java.util.List;
+import io.gravitee.gateway.api.Request;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @FunctionalInterface
-public interface AuthenticationHandlerEnhancer {
+public interface AuthenticationHandlerSelector {
 
-    List<AuthenticationHandler> filter(List<AuthenticationHandler> authenticationHandlers);
+    /**
+     * Get an {@link AuthenticationHandler} from the incoming HTTP request.
+     * @param request Incoming HTTP request.
+     * @return The authentication handler to apply to the incoming request.
+     */
+    AuthenticationHandler select(Request request);
 }

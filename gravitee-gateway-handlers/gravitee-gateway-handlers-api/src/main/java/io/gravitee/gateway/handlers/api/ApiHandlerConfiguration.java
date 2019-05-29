@@ -45,9 +45,7 @@ import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
 import io.gravitee.gateway.resource.internal.ResourceManagerImpl;
-import io.gravitee.gateway.security.core.AuthenticationHandlerEnhancer;
-import io.gravitee.gateway.security.core.SecurityProviderLoader;
-import io.gravitee.gateway.security.core.SecurityProviderManager;
+import io.gravitee.gateway.security.core.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -99,13 +97,18 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public SecurityProviderManager securityManager() {
-        return new SecurityProviderManager();
+    public AuthenticationHandlerManager authenticationHandlerManager() {
+        return new AuthenticationHandlerManager();
     }
 
     @Bean
-    public AuthenticationHandlerEnhancer securityProviderFilter() {
+    public AuthenticationHandlerEnhancer authenticationHandlerEnhancer() {
         return new PlanBasedAuthenticationHandlerEnhancer();
+    }
+
+    @Bean
+    public AuthenticationHandlerSelector authenticationHandlerSelector() {
+        return new DefaultAuthenticationHandlerSelector();
     }
 
     @Bean

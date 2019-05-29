@@ -37,6 +37,8 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
      */
     static final String AUTHENTICATION_HANDLER_NAME = "jwt";
 
+    final static String JWT_CONTEXT_ATTRIBUTE = "jwt";
+
     static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
     private final static List<AuthenticationPolicy> POLICIES = Arrays.asList(
@@ -47,11 +49,26 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
             (HookAuthenticationPolicy) () -> CheckSubscriptionPolicy.class);
 
     @Override
-    public boolean canHandle(Request request, AuthenticationContext authenticationContext) {
+    public boolean canHandle(AuthenticationContext context) {
+        String token = readToken(context.request());
+
+        if (token == null || token.isEmpty()) {
+            return false;
+        }
+
+        // Update the context with token
+        if (context.get(JWT_CONTEXT_ATTRIBUTE) == null) {
+            context.set(JWT_CONTEXT_ATTRIBUTE, new LazyJwtToken(token));
+        }
+
+        return true;
+    }
+
+    private String readToken(Request request) {
         List<String> authorizationHeaders = request.headers().get(HttpHeaders.AUTHORIZATION);
 
         if (authorizationHeaders == null || authorizationHeaders.isEmpty()) {
-            return false;
+            return null;
         }
 
         Optional<String> authorizationBearerHeader = authorizationHeaders
@@ -60,11 +77,10 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
                 .findFirst();
 
         if (! authorizationBearerHeader.isPresent()) {
-            return false;
+            return null;
         }
 
-        final String accessToken = authorizationBearerHeader.get().substring(BEARER_AUTHORIZATION_TYPE.length()).trim();
-        return ! accessToken.isEmpty();
+        return authorizationBearerHeader.get().substring(BEARER_AUTHORIZATION_TYPE.length()).trim();
     }
 
     @Override

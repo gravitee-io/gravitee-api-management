@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.security.core;
 
-import io.gravitee.gateway.api.Request;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -26,7 +25,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,18 +32,18 @@ import static org.mockito.Mockito.when;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityProviderManagerTest {
+public class AuthenticationHandlerManagerTest {
 
     @Mock
     private SecurityProviderLoader securityProviderLoader;
 
-    private SecurityProviderManager securityManager;
+    private AuthenticationHandlerManager authenticationHandlerManager;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        securityManager = new SecurityProviderManager();
-        securityManager.setSecurityProviderLoader(securityProviderLoader);
+        authenticationHandlerManager = new AuthenticationHandlerManager();
+        authenticationHandlerManager.setSecurityProviderLoader(securityProviderLoader);
     }
 
     @Test
@@ -61,8 +59,8 @@ public class SecurityProviderManagerTest {
         when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(
                 securityProvider1, securityProvider2));
 
-        securityManager.afterPropertiesSet();
-        List<AuthenticationHandler> securityProviders = securityManager.getSecurityProviders();
+        authenticationHandlerManager.afterPropertiesSet();
+        List<AuthenticationHandler> securityProviders = authenticationHandlerManager.getAuthenticationHandlers();
 
         assertEquals(2, securityProviders.size());
         assertEquals(securityProvider2.name(), securityProviders.get(0).name());
@@ -86,10 +84,10 @@ public class SecurityProviderManagerTest {
         when(securityProviderFilter.filter(securityProviderLoader.getSecurityProviders()))
                 .thenReturn(Arrays.asList(
                         securityProvider1, securityProvider2));
-        securityManager.setSecurityProviderFilter(securityProviderFilter);
-        securityManager.afterPropertiesSet();
+        authenticationHandlerManager.setAuthenticationHandlerEnhancer(securityProviderFilter);
+        authenticationHandlerManager.afterPropertiesSet();
 
-        List<AuthenticationHandler> securityProviders = securityManager.getSecurityProviders();
+        List<AuthenticationHandler> securityProviders = authenticationHandlerManager.getAuthenticationHandlers();
 
         assertEquals(2, securityProviders.size());
         assertEquals(securityProvider2.name(), securityProviders.get(0).name());
@@ -112,65 +110,11 @@ public class SecurityProviderManagerTest {
         AuthenticationHandlerEnhancer securityProviderFilter = mock(AuthenticationHandlerEnhancer.class);
         when(securityProviderFilter.filter(securityProviderLoader.getSecurityProviders()))
                 .thenReturn(Collections.singletonList(securityProvider1));
-        securityManager.setSecurityProviderFilter(securityProviderFilter);
-        securityManager.afterPropertiesSet();
-        List<AuthenticationHandler> securityProviders = securityManager.getSecurityProviders();
+        authenticationHandlerManager.setAuthenticationHandlerEnhancer(securityProviderFilter);
+        authenticationHandlerManager.afterPropertiesSet();
+        List<AuthenticationHandler> securityProviders = authenticationHandlerManager.getAuthenticationHandlers();
 
         assertEquals(1, securityProviders.size());
         assertEquals(securityProvider1.name(), securityProviders.get(0).name());
-    }
-
-    @Test
-    public void shouldNotResolveSecurityPolicy() {
-        when(securityProviderLoader.getSecurityProviders()).thenReturn(
-                Collections.emptyList());
-
-        Request request = mock(Request.class);
-        securityManager.afterPropertiesSet();
-        AuthenticationHandler securityProvider = securityManager.resolve(request);
-        assertNull(securityProvider);
-    }
-
-    @Test
-    public void shouldResolveSecurityPolicy1() {
-        Request request = mock(Request.class);
-
-        AuthenticationHandler securityProvider1 = mock(AuthenticationHandler.class);
-        when(securityProvider1.name()).thenReturn("keyless");
-        when(securityProvider1.canHandle(request)).thenReturn(true);
-        when(securityProvider1.order()).thenReturn(1000);
-
-        AuthenticationHandler securityProvider2 = mock(AuthenticationHandler.class);
-        when(securityProvider2.name()).thenReturn("apikey");
-        when(securityProvider2.order()).thenReturn(500);
-
-        when(securityProviderLoader.getSecurityProviders()).thenReturn(
-                Arrays.asList(securityProvider1, securityProvider2));
-        securityManager.afterPropertiesSet();
-
-        AuthenticationHandler securityProvider = securityManager.resolve(request);
-        assertEquals(securityProvider1, securityProvider);
-    }
-
-    @Test
-    public void shouldResolveSecurityPolicy2() {
-        Request request = mock(Request.class);
-
-        AuthenticationHandler securityProvider1 = mock(AuthenticationHandler.class);
-        when(securityProvider1.name()).thenReturn("keyless");
-        when(securityProvider1.order()).thenReturn(1000);
-
-        AuthenticationHandler securityProvider2 = mock(AuthenticationHandler.class);
-        when(securityProvider2.name()).thenReturn("apikey");
-        when(securityProvider2.canHandle(request)).thenReturn(true);
-        when(securityProvider2.order()).thenReturn(500);
-
-        when(securityProviderLoader.getSecurityProviders()).thenReturn(
-                Arrays.asList(securityProvider1, securityProvider2));
-
-        securityManager.afterPropertiesSet();
-
-        AuthenticationHandler securityProvider = securityManager.resolve(request);
-        assertEquals(securityProvider2, securityProvider);
     }
 }

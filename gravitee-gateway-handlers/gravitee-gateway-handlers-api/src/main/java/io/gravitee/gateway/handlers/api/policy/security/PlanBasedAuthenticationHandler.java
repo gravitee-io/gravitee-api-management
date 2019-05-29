@@ -16,7 +16,6 @@
 package io.gravitee.gateway.handlers.api.policy.security;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
@@ -33,36 +32,34 @@ import java.util.stream.Collectors;
  */
 public class PlanBasedAuthenticationHandler implements AuthenticationHandler {
 
-    private final AuthenticationHandler wrapper;
-    private final Plan plan;
-    private final AuthenticationContext authenticationContext;
+    protected final AuthenticationHandler handler;
+    protected final Plan plan;
 
-    PlanBasedAuthenticationHandler(final AuthenticationHandler wrapper, final Plan plan) {
-        this.wrapper = wrapper;
+    public PlanBasedAuthenticationHandler(final AuthenticationHandler handler, final Plan plan) {
+        this.handler = handler;
         this.plan = plan;
-        this.authenticationContext = convert(plan);
     }
 
     @Override
-    public boolean canHandle(Request request, AuthenticationContext authenticationContext) {
-        return wrapper.canHandle(request, this.authenticationContext);
+    public boolean canHandle(AuthenticationContext authenticationContext) {
+        return handler.canHandle(authenticationContext);
     }
 
     @Override
     public String name() {
-        return wrapper.name();
+        return handler.name();
     }
 
     @Override
     public int order() {
-        return wrapper.order();
+        return handler.order();
     }
 
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
         executionContext.setAttribute(ExecutionContext.ATTR_PLAN, plan.getId());
 
-        return wrapper.handle(executionContext)
+        return handler.handle(executionContext)
                 .stream()
                 .map(new Function<AuthenticationPolicy, AuthenticationPolicy>() {
                     @Override
@@ -86,11 +83,5 @@ public class PlanBasedAuthenticationHandler implements AuthenticationHandler {
                     }
                 })
                 .collect(Collectors.toList());
-    }
-
-    private AuthenticationContext convert(Plan plan) {
-        AuthenticationContext authenticationContext = new AuthenticationContext();
-        authenticationContext.setId(plan.getId());
-        return authenticationContext;
     }
 }

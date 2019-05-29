@@ -24,7 +24,6 @@ import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.model.ApiKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -34,9 +33,6 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-
-import static io.gravitee.reporter.api.http.SecurityType.*;
 
 /**
  * An api-key based {@link AuthenticationHandler}.
@@ -49,6 +45,8 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
     private final Logger logger = LoggerFactory.getLogger(ApiKeyAuthenticationHandler.class);
 
     static final String API_KEY_POLICY = "api-key";
+
+    private final static String APIKEY_CONTEXT_ATTRIBUTE = "apikey";
 
     private final static List<AuthenticationPolicy> POLICIES = Collections.singletonList(
             (PluginAuthenticationPolicy) () -> API_KEY_POLICY);
@@ -70,9 +68,25 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
     }
 
     @Override
-    public boolean canHandle(Request request, AuthenticationContext authenticationContext) {
-        final String apiKey = lookForApiKey(request);
-        return apiKey != null && isMatchingCriteria(apiKey, authenticationContext, request);
+    public boolean canHandle(AuthenticationContext context) {
+        final String apiKey = readApiKey(context.request());
+
+        if (apiKey == null || apiKey.isEmpty()) {
+            return false;
+        }
+
+        if (apiKeyRepository != null) {
+            // Get the api-key from the repository if not present in the context
+            if (context.get(APIKEY_CONTEXT_ATTRIBUTE) == null) {
+                try {
+                    context.set(APIKEY_CONTEXT_ATTRIBUTE, apiKeyRepository.findById(apiKey));
+                } catch (TechnicalException e) {
+                    // Any API key plan can be selected, the request will be rejected by the API Key policy whatsoever
+                }
+            }
+        }
+
+        return true;
     }
 
     @Override
@@ -90,7 +104,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
         return POLICIES;
     }
 
-    private String lookForApiKey(Request request) {
+    private String readApiKey(Request request) {
         logger.debug("Looking for an API Key from request header: {}", apiKeyHeader);
         // 1_ First, search in HTTP headers
         String apiKey = request.headers().getFirst(apiKeyHeader);
@@ -102,30 +116,5 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
         }
 
         return apiKey;
-    }
-
-    private boolean isMatchingCriteria(String apiKey, AuthenticationContext authenticationContext, Request request) {
-        if (apiKeyRepository == null || authenticationContext == null) {
-            // unable to determine matching criteria, select this plan
-            return true;
-        }
-
-        try {
-            Optional<ApiKey> apiKeyOptional = apiKeyRepository.findById(apiKey);
-            if (!apiKeyOptional.isPresent()) {
-                // no api-key found, any API key plan can be selected, the request will be rejected by the API Key policy whatsoever
-                return true;
-            }
-
-            if (apiKey != null) {
-                request.metrics().setSecurityType(API_KEY);
-                request.metrics().setSecurityToken(apiKey);
-            }
-
-            return apiKeyOptional.get().getPlan().equals(authenticationContext.getId());
-        } catch (TechnicalException e) {
-            // technical exception, any API key plan can be selected, the request will be rejected by the API Key policy whatsoever
-            return true;
-        }
     }
 }

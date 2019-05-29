@@ -40,6 +40,8 @@ public class Plan {
 
     private Set<String> apis;
 
+    private String selectionRule;
+
     public String getId() {
         return id;
     }
@@ -86,6 +88,14 @@ public class Plan {
 
     public void setApis(Set<String> apis) {
         this.apis = apis;
+    }
+
+    public String getSelectionRule() {
+        return selectionRule;
+    }
+
+    public void setSelectionRule(String selectionRule) {
+        this.selectionRule = selectionRule;
     }
 
     @Override
