@@ -39,6 +39,8 @@ public class Plan {
 
     private String securityDefinition;
 
+    private String selectionRule;
+
     /**
      * The way to validate subscriptions
      */
@@ -122,6 +124,7 @@ public class Plan {
         this.characteristics = cloned.getCharacteristics();
         this.excludedGroups = cloned.getExcludedGroups();
         this.needRedeployAt = cloned.getNeedRedeployAt();
+        this.selectionRule = cloned.getSelectionRule();
         this.tags = cloned.getTags();
     }
 
@@ -284,6 +287,14 @@ public class Plan {
 
     public void setCommentMessage(String commentMessage) {
         this.commentMessage = commentMessage;
+    }
+
+    public String getSelectionRule() {
+        return selectionRule;
+    }
+
+    public void setSelectionRule(String selectionRule) {
+        this.selectionRule = selectionRule;
     }
 
     public Set<String> getTags() {
