@@ -141,10 +141,11 @@ const GroupsComponent: ng.IComponentOptions = {
       }
     };
 
-    this.selectGroup = (group: any) => {
+    this.selectGroupUrl = (group: any) => {
       if (group.manageable) {
-        $state.go('management.settings.group', {groupId: group.id});
+        return $state.href('management.settings.group', {groupId: group.id});
       }
+      return null;
     };
   }
 };

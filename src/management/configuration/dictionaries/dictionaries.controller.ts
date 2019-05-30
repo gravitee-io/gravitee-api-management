@@ -26,10 +26,6 @@ class DictionariesController {
     this.$rootScope = $rootScope;
   }
 
-  select = (dictionary) => {
-    this.$state.go('management.settings.dictionaries.dictionary', {dictionaryId: dictionary.id});
-  }
-
 }
 
 export default DictionariesController;

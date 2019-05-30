@@ -46,10 +46,6 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
       {'name': 'OpenID Connect', 'icon': 'perm_identity', 'type': 'oidc'}
     ];
 
-    this.select = (provider: IdentityProvider) => {
-      $state.go('management.settings.identityproviders.identityprovider', {id: provider.id});
-    };
-
     this.create = (type) => {
       $state.go('management.settings.identityproviders.new', {type: type});
     };

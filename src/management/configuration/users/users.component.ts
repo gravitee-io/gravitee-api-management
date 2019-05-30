@@ -66,10 +66,6 @@ const UsersComponent: ng.IComponentOptions = {
       });
     };
 
-    this.selectUser = (user) => {
-      $state.go('management.settings.user', {userId: user.id});
-    };
-
     this.getUserPicture = (user) => {
       return UserService.getUserAvatar(user.id);
     };

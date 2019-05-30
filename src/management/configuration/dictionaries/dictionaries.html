@@ -34,8 +34,12 @@
     </tr>
     </thead>
     <tbody md-body>
-    <tr md-row ng-repeat="dictionary in $ctrl.dictionaries | orderBy: name" ng-click="$ctrl.select(dictionary)">
-      <td md-cell>{{dictionary.id}}</td>
+    <tr md-row ng-repeat="dictionary in $ctrl.dictionaries | orderBy: name">
+      <td md-cell>
+        <a ui-sref="management.settings.dictionaries.dictionary({dictionaryId: dictionary.id})">
+        {{dictionary.id}}
+        </a>
+      </td>
       <td md-cell>{{dictionary.name}}</td>
       <td md-cell>{{dictionary.description}}</td>
       <td md-cell>

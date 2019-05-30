@@ -122,10 +122,6 @@ class ViewsController {
       }
     });
   }
-
-  selectView(view) {
-    this.$state.go('management.settings.view', {viewId: view.id})
-  }
 }
 
 export default ViewsController;

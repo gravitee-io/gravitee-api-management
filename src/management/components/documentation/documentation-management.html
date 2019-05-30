@@ -85,7 +85,7 @@
                             <md-icon md-svg-src="assets/logo_{{page.type | lowercase}}.svg" style="margin-right: 12px;"></md-icon>
                             <span>
                                 <a ng-style="page.published?'':{'font-style': 'italic', 'color': 'grey'}"
-                                   ng-click="$ctrl.open(page)">
+                                   ng-href="{{$ctrl.openUrl(page)}}">
                                     {{page.name}}
                                 </a>
                                 <sup ng-if="page.homepage" class="icon-button-homepage">

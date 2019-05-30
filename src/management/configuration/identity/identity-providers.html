@@ -55,7 +55,7 @@
               <ng-md-icon ng-switch-when="graviteeio_am" icon="perm_identity"></ng-md-icon>
             </td>
             <td md-cell>
-              <a ng-click="$ctrl.select(identityProvider)">{{identityProvider.id}}</a>
+              <a ui-sref="management.settings.identityproviders.identityprovider({id: identityProvider.id})">{{identityProvider.id}}</a>
             </td>
             <td md-cell>{{identityProvider.name}}</td>
             <td md-cell>{{identityProvider.description}}</td>

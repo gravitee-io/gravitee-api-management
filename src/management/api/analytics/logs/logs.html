@@ -56,15 +56,18 @@
           <tr ng-if="logsCtrl.logs.logs.length > 0" md-row
               ng-repeat="log in logsCtrl.logs.logs | limitTo: logsCtrl.query.size"
               md-auto-select md-select="log" md-select-id="key"
-              ng-class="{'log-error': log.status >= 400}"
-              ui-sref="management.apis.detail.analytics.log({
-            logId: log.id,
-            timestamp: log.timestamp,
-            from: logsCtrl.query.from,
-            to: logsCtrl.query.to,
-            q: logsCtrl.query.query
-          })">
-            <td md-cell nowrap>{{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}}</td>
+              ng-class="{'log-error': log.status >= 400}">
+            <td md-cell nowrap>
+              <a ui-sref="management.apis.detail.analytics.log({
+              logId: log.id,
+              timestamp: log.timestamp,
+              from: logsCtrl.query.from,
+              to: logsCtrl.query.to,
+              q: logsCtrl.query.query
+              })">
+                {{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}}
+              </a>
+            </td>
             <td md-cell nowrap><span class="gv-statuscode-{{log.status / 100 | number:0}}xx">{{log.status}}</span></td>
             <td md-cell nowrap>{{logsCtrl.getMetadata(log.application).name}}</td>
             <td ng-if="logsCtrl.Constants.logging.user.displayed" md-cell nowrap>{{log.user}}</td>

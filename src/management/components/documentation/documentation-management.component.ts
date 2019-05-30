@@ -214,18 +214,18 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       }
     };
 
-    this.open = (page: any) => {
+    this.openUrl = (page: any) => {
       if ('FOLDER' === page.type) {
         if (this.apiId) {
-          $state.go('management.apis.detail.portal.documentation', {apiId: this.apiId, parent: page.id});
+          return $state.href('management.apis.detail.portal.documentation', {apiId: this.apiId, parent: page.id});
         } else {
-          $state.go('management.settings.documentation', {parent: page.id});
+          return $state.href('management.settings.documentation', {parent: page.id});
         }
       } else {
         if (this.apiId) {
-          $state.go('management.apis.detail.portal.editdocumentation', {apiId: this.apiId, pageId: page.id});
+          return $state.href('management.apis.detail.portal.editdocumentation', {apiId: this.apiId, pageId: page.id});
         } else {
-          $state.go('management.settings.editdocumentation', {pageId: page.id});
+          return $state.href('management.settings.editdocumentation', {pageId: page.id});
         }
       }
     };
