@@ -35,7 +35,6 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/messages")
 @Api(tags = {"Messages"})
 public class MessagesResource extends AbstractResource {
 

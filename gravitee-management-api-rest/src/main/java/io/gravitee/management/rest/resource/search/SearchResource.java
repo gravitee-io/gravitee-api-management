@@ -25,7 +25,6 @@ import javax.ws.rs.core.Context;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/search")
 @Api(tags = {"Search"})
 public class SearchResource {
 

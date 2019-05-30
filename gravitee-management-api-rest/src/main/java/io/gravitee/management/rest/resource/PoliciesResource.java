@@ -46,7 +46,6 @@ import java.util.stream.Stream;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/policies")
 @Api(tags = {"Plugin", "Policy"})
 public class PoliciesResource {
 

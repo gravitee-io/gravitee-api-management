@@ -29,6 +29,7 @@ import io.gravitee.management.rest.resource.param.VerifyApiParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.*;
+import io.gravitee.management.service.common.GraviteeContext;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.Hook;
@@ -59,7 +60,6 @@ import static java.util.stream.Collectors.toList;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/apis")
 @Api(tags = {"API"})
 public class ApisResource extends AbstractResource {
 
@@ -281,7 +281,7 @@ public class ApisResource extends AbstractResource {
         apiItem.setDescription(api.getDescription());
 
         final UriBuilder ub = uriInfo.getBaseUriBuilder();
-        final UriBuilder uriBuilder = ub.path("apis").path(api.getId()).path("picture");
+        final UriBuilder uriBuilder = ub.path("env").path(GraviteeContext.getCurrentEnvironment()).path("management").path("apis").path(api.getId()).path("picture");
         if (api.getPicture() != null) {
             // force browser to get if updated
             uriBuilder.queryParam("hash", api.getPicture().hashCode());

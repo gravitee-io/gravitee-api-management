@@ -38,7 +38,6 @@ import java.util.stream.Stream;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/fetchers")
 @Api(tags = {"Plugin", "Fetcher"})
 public class FetchersResource {
 

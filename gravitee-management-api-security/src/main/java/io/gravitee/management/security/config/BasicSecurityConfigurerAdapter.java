@@ -194,72 +194,76 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
+        String mainResource = "/env/**";
+        String apiType = "/management";
+        String uriPrefix = mainResource + apiType;
+        
         return security.authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
-                .antMatchers(HttpMethod.POST, "/user/login").permitAll()
-                .antMatchers(HttpMethod.GET, "/user/**").authenticated()
-                .antMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/user/login").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/user/**").authenticated()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/auth/**").permitAll()
 
                 // API requests
-                .antMatchers(HttpMethod.GET, "/apis/hooks").authenticated()
-                .antMatchers(HttpMethod.GET, "/apis/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/apis").authenticated()
-                .antMatchers(HttpMethod.POST, "/apis/**").authenticated()
-                .antMatchers(HttpMethod.PUT, "/apis/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, "/apis/**").authenticated()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/apis/hooks").authenticated()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").permitAll()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/apis").authenticated()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/apis/**").authenticated()
+                .antMatchers(HttpMethod.PUT, uriPrefix + "/apis/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, uriPrefix + "/apis/**").authenticated()
 
                 // Application requests
-                .antMatchers(HttpMethod.POST, "/applications").authenticated()
-                .antMatchers(HttpMethod.POST, "/applications/**").authenticated()
-                .antMatchers(HttpMethod.PUT, "/applications/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, "/applications/**").authenticated()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/applications").authenticated()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/applications/**").authenticated()
+                .antMatchers(HttpMethod.PUT, uriPrefix + "/applications/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, uriPrefix + "/applications/**").authenticated()
 
                 // Subscriptions
-                .antMatchers(HttpMethod.GET, "/subscriptions/**").authenticated()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/subscriptions/**").authenticated()
 
                 // Instance requests
-                .antMatchers(HttpMethod.GET, "/instances/**").authenticated()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/instances/**").authenticated()
 
                 // Platform requests
-                .antMatchers(HttpMethod.GET, "/platform/**").authenticated()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/platform/**").authenticated()
 
                 // User management
-                .antMatchers(HttpMethod.POST, "/users/registration/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/users").authenticated()
-                .antMatchers(HttpMethod.GET, "/users/**").authenticated()
-                .antMatchers(HttpMethod.PUT, "/users/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, "/users/**").authenticated()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/users").authenticated()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/users/**").authenticated()
+                .antMatchers(HttpMethod.PUT, uriPrefix + "/users/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, uriPrefix + "/users/**").authenticated()
 
                 // Swagger
                 .antMatchers(HttpMethod.GET, "/swagger.json").permitAll()
 
                 // Configuration Groups
-                .antMatchers(HttpMethod.GET, "/configuration/groups/**").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/groups/**").permitAll()
 
                 // Configuration Views
-                .antMatchers(HttpMethod.GET, "/configuration/views/**").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/views/**").permitAll()
 
                 // Configuration Tags
-                .antMatchers(HttpMethod.GET, "/configuration/tags/**").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/tags/**").permitAll()
 
                 // Configuration Tenants
-                .antMatchers(HttpMethod.GET, "/configuration/tenants/**").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/tenants/**").permitAll()
 
                 // Configuration role scopes
-                .antMatchers(HttpMethod.GET, "/configuration/rolescopes/**").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/rolescopes/**").permitAll()
 
                 // Configuration
-                .antMatchers("/configuration/**").authenticated()
+                .antMatchers(uriPrefix + "/configuration/**").authenticated()
 
                 // Portal
-                .antMatchers(HttpMethod.GET, "/portal/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/portal/apis/_search").permitAll()
-                .antMatchers(HttpMethod.POST, "/portal/**").authenticated()
-                .antMatchers(HttpMethod.PUT, "/portal/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, "/portal/**").authenticated()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/portal/**").permitAll()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/portal/apis/_search").permitAll()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/portal/**").authenticated()
+                .antMatchers(HttpMethod.PUT, uriPrefix + "/portal/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, uriPrefix + "/portal/**").authenticated()
 
                 // Search
-                .antMatchers(HttpMethod.GET, "/search/users").authenticated()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/search/users").authenticated()
                 .anyRequest().authenticated().and();
     }
 

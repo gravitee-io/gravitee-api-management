@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/subscriptions")
 @Api(tags = {"Subscription"})
 public class SubscriptionsResource {
 

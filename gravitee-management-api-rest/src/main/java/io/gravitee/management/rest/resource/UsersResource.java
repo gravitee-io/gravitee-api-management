@@ -45,7 +45,6 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.READ
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/users")
 @Api(tags = {"User"})
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)

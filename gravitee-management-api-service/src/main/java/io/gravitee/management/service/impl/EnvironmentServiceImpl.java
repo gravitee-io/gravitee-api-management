@@ -157,7 +157,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Override
     public void createDefaultEnvironment() {
         Environment defaultEnvironment = new Environment();
-        defaultEnvironment.setId(GraviteeContext.DEFAULT_ENVIRONMENT);
+        defaultEnvironment.setId(GraviteeContext.getDefaultEnvironment());
         defaultEnvironment.setName("Default environment");
         try {
             environmentRepository.create(defaultEnvironment);

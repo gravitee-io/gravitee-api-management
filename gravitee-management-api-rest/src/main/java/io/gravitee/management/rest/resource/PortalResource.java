@@ -42,7 +42,6 @@ import static io.gravitee.management.model.permissions.RolePermissionAction.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/portal")
 @Api(tags = {"Portal"})
 public class PortalResource {
 

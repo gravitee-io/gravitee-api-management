@@ -45,7 +45,6 @@ import java.util.stream.Stream;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/services-discovery")
 @Api(tags = {"Plugin", "Service Discovery"})
 public class ServicesDiscoveryResource {
 

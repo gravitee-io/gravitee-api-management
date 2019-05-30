@@ -40,7 +40,6 @@ import java.util.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Audit"})
 @Path("/audit")
 public class AuditResource extends AbstractResource  {
 

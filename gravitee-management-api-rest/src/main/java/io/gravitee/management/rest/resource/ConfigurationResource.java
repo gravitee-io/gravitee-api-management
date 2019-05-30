@@ -47,7 +47,6 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/configuration")
 @Api(tags = {"Configuration"})
 public class ConfigurationResource {
 

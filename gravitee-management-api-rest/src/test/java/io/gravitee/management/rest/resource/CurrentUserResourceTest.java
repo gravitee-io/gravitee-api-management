@@ -51,7 +51,7 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
      */
     @Override
     protected String contextPath() {
-        return "/user";
+        return "user";
     }
 
     @Test

@@ -68,7 +68,6 @@ import static javax.ws.rs.core.Response.status;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/user")
 @Api(tags = {"User"})
 public class CurrentUserResource extends AbstractResource {
 

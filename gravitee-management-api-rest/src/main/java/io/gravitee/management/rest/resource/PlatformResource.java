@@ -26,7 +26,6 @@ import javax.ws.rs.core.Context;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/platform")
 @Api(tags = {"Gateway"})
 public class PlatformResource {
 

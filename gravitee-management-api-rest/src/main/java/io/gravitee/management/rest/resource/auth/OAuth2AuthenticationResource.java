@@ -76,7 +76,6 @@ import static org.springframework.security.core.authority.AuthorityUtils.commaSe
  * @author GraviteeSource Team
  */
 @Singleton
-@Path("/auth/oauth2/{identity}")
 @Api(tags = {"Portal", "OAuth2 Authentication"})
 public class OAuth2AuthenticationResource extends AbstractAuthenticationResource {
 

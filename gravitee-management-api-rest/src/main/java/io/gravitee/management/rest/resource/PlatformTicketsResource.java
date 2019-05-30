@@ -33,7 +33,6 @@ import java.net.URI;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/tickets")
 @Api(tags = "Tickets")
 public class PlatformTicketsResource extends AbstractResource  {
 

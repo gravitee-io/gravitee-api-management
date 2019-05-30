@@ -15,6 +15,17 @@
  */
 package io.gravitee.management.rest.resource;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.InstanceListItem;
 import io.gravitee.management.model.permissions.RolePermission;
@@ -25,23 +36,11 @@ import io.gravitee.management.service.InstanceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.stream.Collectors;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/instances")
 @Api(tags = {"Gateway"})
 public class InstancesResource {
 

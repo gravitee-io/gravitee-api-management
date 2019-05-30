@@ -15,14 +15,38 @@
  */
 package io.gravitee.management.service.common;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface GraviteeContext {
-    static final String DEFAULT_ENVIRONMENT = "DEFAULT";
+public class GraviteeContext {
+    private static final String DEFAULT_ENVIRONMENT = "DEFAULT";
     
-    static String getCurrentEnvironment() {
+    private static final String CURRENT_ENVIRONMENT_CONTEXT_KEY = "currentEnvironment";
+    
+            
+    private static final ThreadLocal<Map<String, Object>> contextThread = new ThreadLocal<Map<String, Object>>() {
+        @Override
+        protected Map<String, Object> initialValue() {
+            Map<String, Object> propertiesMap = new HashMap<>();
+            propertiesMap.put(CURRENT_ENVIRONMENT_CONTEXT_KEY, DEFAULT_ENVIRONMENT);
+            return propertiesMap;
+        }
+        
+    };
+    
+    public static String getCurrentEnvironment() {
+        return (String) contextThread.get().get(CURRENT_ENVIRONMENT_CONTEXT_KEY);
+    }
+    
+    public static void setCurrentEnvironment(String currentEnvironment) {
+        contextThread.get().put(CURRENT_ENVIRONMENT_CONTEXT_KEY, currentEnvironment);
+    }
+    
+    public static String getDefaultEnvironment() {
         return DEFAULT_ENVIRONMENT;
     }
 }

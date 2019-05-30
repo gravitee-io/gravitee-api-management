@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/applications")
 @Api(tags = {"Application"})
 public class ApplicationsResource extends AbstractResource {
 

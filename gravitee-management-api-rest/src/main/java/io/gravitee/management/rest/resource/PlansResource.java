@@ -30,11 +30,8 @@ import javax.ws.rs.core.UriInfo;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plans"})
-public class PlansResource extends AbstractResource  {
-
-    @Context
-    private UriInfo uriInfo;
+@Api(tags = {"Portal entrypoints"})
+public class PortalEntryPointsResource extends AbstractResource  {
 
     @Autowired
     private PlanService planService;

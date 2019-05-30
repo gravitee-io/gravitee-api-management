@@ -15,14 +15,34 @@
  */
 package io.gravitee.management.rest.resource;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.Date;
+import java.util.Iterator;
+
+import javax.inject.Inject;
+
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
+
 import com.fasterxml.jackson.databind.JavaType;
+
 import io.gravitee.common.util.Version;
+import io.gravitee.management.rest.filter.GraviteeContextFilter;
 import io.gravitee.management.rest.filter.PermissionsFilter;
 import io.gravitee.management.rest.filter.SecurityContextFilter;
 import io.gravitee.management.rest.mapper.ObjectMapperResolver;
-import io.gravitee.management.rest.provider.*;
-import io.gravitee.management.rest.resource.auth.OAuth2AuthenticationResource;
-import io.gravitee.management.rest.resource.search.SearchResource;
+import io.gravitee.management.rest.provider.BadRequestExceptionMapper;
+import io.gravitee.management.rest.provider.ByteArrayOutputStreamWriter;
+import io.gravitee.management.rest.provider.ConstraintValidationExceptionMapper;
+import io.gravitee.management.rest.provider.ManagementExceptionMapper;
+import io.gravitee.management.rest.provider.NotAllowedExceptionMapper;
+import io.gravitee.management.rest.provider.NotFoundExceptionMapper;
+import io.gravitee.management.rest.provider.ThrowableMapper;
+import io.gravitee.management.rest.provider.UnrecognizedPropertyExceptionMapper;
+import io.gravitee.management.rest.provider.UriBuilderRequestFilter;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
@@ -34,16 +54,6 @@ import io.swagger.models.Model;
 import io.swagger.models.properties.LongProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.ServerProperties;
-
-import javax.inject.Inject;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.util.Date;
-import java.util.Iterator;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -87,26 +97,10 @@ public class GraviteeApplication extends ResourceConfig {
                 return chain.next().resolve(type, context, chain);
             }
         });
-        register(ApisResource.class);
-        register(ApplicationsResource.class);
-        register(SubscriptionsResource.class);
-        register(UsersResource.class);
-        register(PoliciesResource.class);
-        register(NotifiersResource.class);
-        register(ServicesDiscoveryResource.class);
-        register(FetchersResource.class);
-        register(ResourcesResource.class);
-        register(InstancesResource.class);
-        register(CurrentUserResource.class);
-        register(PlatformResource.class);
-        register(ConfigurationResource.class);
-        register(GroupsResource.class);
-        register(PortalResource.class);
-        register(AuditResource.class);
-        register(SearchResource.class);
-        register(MessagesResource.class);
+        //Main resource
+        register(EnvironmentResource.class);
+        
         register(MultiPartFeature.class);
-
         register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);
         register(ConstraintValidationExceptionMapper.class);
@@ -116,11 +110,9 @@ public class GraviteeApplication extends ResourceConfig {
         register(NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
 
-        // Dynamic authentication provider endpoints
-        register(OAuth2AuthenticationResource.class);
-
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
+        register(GraviteeContextFilter.class);
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);

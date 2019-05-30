@@ -50,7 +50,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
     private ApplicationContext applicationContext;
 
-    @Value("${http.api.entrypoint:/management}")
+    @Value("${http.api.entrypoint:/}")
     private String entrypoint;
 
     @Override
