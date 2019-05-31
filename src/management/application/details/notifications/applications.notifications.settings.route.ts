@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
 import NotificationSettingsService from '../../../../services/notificationSettings.service';
 import {Scope} from '../../../../entities/scope';
 import AlertService from "../../../../services/alert.service";
-import {Alert} from "../../../components/notifications/alert/alert";
 import ApplicationService from "../../../../services/application.service";
-import ApiService from "../../../../services/api.service";
+import NotifierService from "../../../../services/notifier.service";
 
 export default applicationsNotificationsRouterConfig;
 
@@ -55,21 +53,12 @@ function applicationsNotificationsRouterConfig($stateProvider) {
             NotificationSettingsService.getNotificationSettings(Scope.APPLICATION, $stateParams.applicationId).then((response) =>
               response.data
         ),
-        application: function ($stateParams, ApplicationService: ApplicationService) {
-          return ApplicationService.get($stateParams.applicationId).then((response) => response.data);
-        },
         alerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts($stateParams.applicationId, 'application').then((response) => response.data),
-        alertMetrics: function (AlertService: AlertService) {
-          return AlertService.listMetrics().then((response) => response.data);
-        },
-        subscriptions: function ($stateParams, ApplicationService: ApplicationService) {
-          return ApplicationService.listSubscriptions($stateParams.applicationId).then((response) => response.data);
-        }
+          AlertService.listAlerts($stateParams.applicationId, 1).then((response) => response.data)
       }
     })
-    .state('management.applications.application.notifications.notificationSetting', {
-      url: '?notificationId',
+    .state('management.applications.application.notifications.notification', {
+      url: '/:notificationId',
       component: 'notificationSettingsComponent',
       data: {
         menu: null,
@@ -81,8 +70,31 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         }
       }
     })
-    .state('management.applications.application.notifications.alert', {
-      url: '?alertId',
+    /*
+    .state('management.applications.application.alerts', {
+      url: '/alerts',
+      component: 'alertsComponent',
+      data: {
+        menu: {
+          label: 'Alerts',
+          icon: 'alarm',
+          parameter: 'alert.enabled'
+        },
+        perms: {
+          only: ['application-alert-r']
+        }
+      },
+      resolve: {
+        alerts: (AlertService: AlertService, $stateParams) =>
+          AlertService.listAlerts($stateParams.applicationId, 1).then((response) => response.data),
+        status: (AlertService: AlertService, $stateParams) =>
+          AlertService.getStatus($stateParams.apiId, 1).then((response) => response.data),
+        notifiers: (NotifierService: NotifierService) =>
+          NotifierService.list().then( (response) => response.data)
+      }
+    })
+    .state('management.applications.application.alertnew', {
+      url: '/alert/create',
       component: 'alertComponent',
       data: {
         menu: null,
@@ -90,8 +102,37 @@ function applicationsNotificationsRouterConfig($stateProvider) {
           page: 'management-alerts'
         },
         perms: {
-          only: ['application-alert-r']
+          only: ['application-alert-c']
         }
+      },
+      resolve: {
+        alerts: (AlertService: AlertService, $stateParams) =>
+          AlertService.listAlerts($stateParams.applicationId, 1).then((response) => response.data),
+        status: (AlertService: AlertService, $stateParams) =>
+          AlertService.getStatus($stateParams.apiId, 1).then((response) => response.data),
+        notifiers: (NotifierService: NotifierService) =>
+          NotifierService.list().then( (response) => response.data)
       }
-    });
+    })
+    .state('management.applications.application.alert', {
+      url: '/alert/:alertId',
+      component: 'alertComponent',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-alerts'
+        },
+        perms: {
+          only: ['application-alert-u']
+        }
+      },
+      resolve: {
+        alerts: (AlertService: AlertService, $stateParams) =>
+          AlertService.listAlerts($stateParams.applicationId, 1).then((response) => response.data),
+        status: (AlertService: AlertService, $stateParams) =>
+          AlertService.getStatus($stateParams.apiId, 1).then((response) => response.data),
+        notifiers: (NotifierService: NotifierService) =>
+          NotifierService.list().then( (response) => response.data)
+      }
+    })*/;
 }

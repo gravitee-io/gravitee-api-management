@@ -13,22 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
+import {DampeningMode, DurationTimeUnit} from "../../../../../entities/alert";
 
-const NotificationsComponent: ng.IComponentOptions = {
+const AlertTriggerDampeningComponent: ng.IComponentOptions = {
   bindings: {
-    notificationSettings: '<',
-    api: '<',
-    application: '<',
+    dampening: '<'
   },
-  template: require('./notifications.html'),
-  controller: function (Constants: any, $state: StateService) {
+  require: {
+    parent: '^alertComponent'
+  },
+  template: require('./trigger-dampening.html'),
+  controller: function () {
     'ngInject';
 
     this.$onInit = () => {
-      $state.go('^.notifications.notification', {notificationId: 'portal'});
+      this.modes = DampeningMode.MODES;
+      this.timeUnits = DurationTimeUnit.TIME_UNITS;
     };
+
+    this.onModeChange = () => {
+      delete this.dampening.duration;
+      delete this.dampening.timeUnit;
+      delete this.dampening.trueEvaluations;
+      delete this.dampening.totalEvaluations;
+    }
   }
 };
 
-export default NotificationsComponent;
+export default AlertTriggerDampeningComponent;

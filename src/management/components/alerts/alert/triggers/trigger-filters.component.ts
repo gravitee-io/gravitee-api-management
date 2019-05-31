@@ -13,19 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class Alert {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  reference_type: string;
-  reference_id: string;
+const AlertTriggerFiltersComponent: ng.IComponentOptions = {
+  bindings: {
+    alert: '<'
+  },
+  template: require('./trigger-filters.html'),
+  controller: function () {
+    'ngInject';
 
-  constructor(name: string, description: string, type: string, reference_type: string, reference_id: string) {
-    this.name = name;
-    this.description = description;
-    this.type = type;
-    this.reference_type = reference_type;
-    this.reference_id = reference_id;
+    this.addFilter = () => {
+      if (this.alert.filters === undefined) {
+        this.alert.filters = [];
+      }
+
+      this.alert.filters.push({});
+    };
+
+    this.removeFilter = (idx: number) => {
+      this.alert.filters.splice(idx, 1);
+    };
   }
-}
+};
+
+export default AlertTriggerFiltersComponent;

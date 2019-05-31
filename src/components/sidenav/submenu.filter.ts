@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import _ = require('lodash');
 import UserService from '../../services/user.service';
 import { StateService } from '@uirouter/core';
-
-export const submenuFilter = function ($state: StateService, UserService: UserService) {
+export const submenuFilter = function ($state: StateService, UserService: UserService, Constants) {
   'ngInject';
   return function (menuItems) {
     let universeLevels: string[] = $state.current.name.split('.').splice(0, 2);
@@ -27,7 +27,8 @@ export const submenuFilter = function ($state: StateService, UserService: UserSe
       return menuItems.filter((cState) => !cState.abstract &&
         cState.data && cState.data.menu && !cState.data.menu.firstLevel &&
         cState.name.indexOf(universe) === 0 &&
-        (!cState.data.perms || !cState.data.perms.only || UserService.isUserHasPermissions(cState.data.perms.only))
+        (!cState.data.perms || !cState.data.perms.only || UserService.isUserHasPermissions(cState.data.perms.only)) &&
+        (!cState.data.menu.parameter || _.get(Constants, cState.data.menu.parameter))
       );
     } else {
       return [];

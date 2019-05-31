@@ -13,22 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
+import {DurationTimeUnit} from "../../../../../entities/alert";
 
-const NotificationsComponent: ng.IComponentOptions = {
+const AlertNotificationsComponent: ng.IComponentOptions = {
   bindings: {
-    notificationSettings: '<',
-    api: '<',
-    application: '<',
+    alert: '<'
   },
-  template: require('./notifications.html'),
-  controller: function (Constants: any, $state: StateService) {
+  require: {
+    parent: '^alertComponent'
+  },
+  template: require('./alert-notifications.html'),
+  controller: function() {
     'ngInject';
 
-    this.$onInit = () => {
-      $state.go('^.notifications.notification', {notificationId: 'portal'});
+    this.addNotification = () => {
+      if (this.alert.notifications === undefined) {
+        this.alert.notifications = [];
+      }
+
+      this.alert.notifications.push({});
+    };
+
+    this.removeNotification = (idx: number) => {
+      this.alert.notifications.splice(idx, 1);
     };
   }
 };
 
-export default NotificationsComponent;
+export default AlertNotificationsComponent;

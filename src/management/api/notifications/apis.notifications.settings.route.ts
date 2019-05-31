@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
 import NotificationSettingsService from '../../../services/notificationSettings.service';
 import {Scope} from '../../../entities/scope';
 import AlertService from "../../../services/alert.service";
-import {Alert} from "../../components/notifications/alert/alert";
 import ApiService from "../../../services/api.service";
+import NotifierService from "../../../services/notifier.service";
 
 export default apisNotificationsRouterConfig;
 
@@ -34,7 +33,7 @@ function apisNotificationsRouterConfig($stateProvider) {
           icon: 'notifications',
         },
         perms: {
-          only: ['api-notification-r', 'api-alert-r']
+          only: ['api-notification-r']
         }
       },
       resolve: {
@@ -57,18 +56,13 @@ function apisNotificationsRouterConfig($stateProvider) {
         api: function ($stateParams, ApiService) {
           return ApiService.get($stateParams.apiId).then((response) => response.data);
         },
-        alerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts($stateParams.apiId, 'api').then((response) => response.data),
-        alertMetrics: function (AlertService: AlertService) {
-          return AlertService.listMetrics().then((response) => response.data);
-        },
         plans: function ($stateParams, ApiService: ApiService) {
           return ApiService.getPublishedApiPlans($stateParams.apiId).then((response) => response.data);
         }
       }
     })
-    .state('management.apis.detail.notifications.notificationSetting', {
-      url: '?notificationId',
+    .state('management.apis.detail.notifications.notification', {
+      url: '/:notificationId',
       component: 'notificationSettingsComponent',
       data: {
         menu: null,
@@ -80,8 +74,33 @@ function apisNotificationsRouterConfig($stateProvider) {
         }
       }
     })
-    .state('management.apis.detail.notifications.alert', {
-      url: '?alertId',
+    .state('management.apis.detail.alerts', {
+      url: '/alerts',
+      component: 'alertsComponent',
+      data: {
+        menu: {
+          label: 'Alerts',
+          icon: 'alarm',
+          parameter: 'alert.enabled'
+        },
+        perms: {
+          only: ['api-alert-r']
+        }
+      },
+      resolve: {
+        api: function ($stateParams, ApiService) {
+          return ApiService.get($stateParams.apiId).then((response) => response.data);
+        },
+        alerts: (AlertService: AlertService, $stateParams) =>
+          AlertService.listAlerts($stateParams.apiId, 0).then((response) => response.data),
+        status: (AlertService: AlertService, $stateParams) =>
+          AlertService.getStatus($stateParams.apiId, 0).then((response) => response.data),
+        notifiers: (NotifierService: NotifierService) =>
+          NotifierService.list().then( (response) => response.data)
+      }
+    })
+    .state('management.apis.detail.alertnew', {
+      url: '/alert/create',
       component: 'alertComponent',
       data: {
         menu: null,
@@ -89,8 +108,37 @@ function apisNotificationsRouterConfig($stateProvider) {
           page: 'management-alerts'
         },
         perms: {
-          only: ['api-alert-r']
+          only: ['api-alert-c']
         }
+      },
+      resolve: {
+        alerts: (AlertService: AlertService, $stateParams) =>
+          AlertService.listAlerts($stateParams.apiId, 0).then((response) => response.data),
+      status: (AlertService: AlertService, $stateParams) =>
+        AlertService.getStatus($stateParams.apiId, 0).then((response) => response.data),
+      notifiers: (NotifierService: NotifierService) =>
+        NotifierService.list().then( (response) => response.data)
+      }
+    })
+    .state('management.apis.detail.alert', {
+      url: '/alert/:alertId?:tab',
+      component: 'alertComponent',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-alerts'
+        },
+        perms: {
+          only: ['api-alert-u']
+        }
+      },
+      resolve: {
+        alerts: (AlertService: AlertService, $stateParams) =>
+          AlertService.listAlerts($stateParams.apiId, 0).then((response) => response.data),
+        status: (AlertService: AlertService, $stateParams) =>
+          AlertService.getStatus($stateParams.apiId, 0).then((response) => response.data),
+        notifiers: (NotifierService: NotifierService) =>
+          NotifierService.list().then( (response) => response.data)
       }
     });
 }

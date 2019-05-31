@@ -26,7 +26,8 @@ const SettingsComponent: ng.IComponentOptions = {
     $rootScope: IScope,
     SidenavService: SidenavService,
     $state: StateService,
-    UserService: UserService
+    UserService: UserService,
+    Constants
   ) {
     'ngInject';
     this.$state = $state;
@@ -130,9 +131,12 @@ const SettingsComponent: ng.IComponentOptions = {
 
       // ALERT
       notifications: {
-        perm: UserService.isUserHasPermissions(
-          ['management-notification-r']),
+        perm: UserService.isUserHasPermissions(['management-notification-r']),
         goTo: 'management.settings.notifications'
+      },
+      alerts: {
+        perm: UserService.isUserHasPermissions(['management-alert-r']) && Constants.alert && Constants.alert.enabled,
+        goTo: 'management.settings.alerts'
       }};
 
     this.$onInit = () => {

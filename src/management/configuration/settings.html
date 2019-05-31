@@ -135,15 +135,19 @@
                 </li>
             </ul>
 
-
-            <div class="aui-nav-heading"
-                 ng-if="$ctrl.settingsMenu.notifications.perm">
+            <div class="aui-nav-heading" ng-if="$ctrl.settingsMenu.notifications.perm || $ctrl.settingsMenu.alerts.perm">
                 <strong>Notifications</strong>
             </div>
             <ul class="aui-nav">
-              <li class="iterable-item" ui-sref-active="aui-nav-selected"
-                  ng-if="$ctrl.settingsMenu.notifications.perm">
+              <li class="iterable-item" ui-sref-active="aui-nav-selected" ng-if="$ctrl.settingsMenu.notifications.perm">
                 <a class="execute" ui-sref="{{$ctrl.settingsMenu.notifications.goTo}}">Notifications</a>
+              </li>
+            </ul>
+            <ul class="aui-nav">
+              <li class="iterable-item"
+                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.alerts') || $ctrl.$state.includes('management.settings.alertnew') || $ctrl.$state.includes('management.settings.alert') }"
+                  ng-if="$ctrl.settingsMenu.alerts.perm">
+                <a class="execute" ui-sref="{{$ctrl.settingsMenu.alerts.goTo}}">Alerts</a>
               </li>
             </ul>
         </div>

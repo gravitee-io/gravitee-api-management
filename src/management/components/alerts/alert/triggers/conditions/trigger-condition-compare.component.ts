@@ -13,22 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
 
-const NotificationsComponent: ng.IComponentOptions = {
+import _ = require('lodash');
+import {Metrics} from "../../../../../../entities/alert";
+
+const AlertTriggerConditionCompareComponent: ng.IComponentOptions = {
   bindings: {
-    notificationSettings: '<',
-    api: '<',
-    application: '<',
+    condition: '<',
+    metrics: '<'
   },
-  template: require('./notifications.html'),
-  controller: function (Constants: any, $state: StateService) {
+  template: require('./trigger-condition-compare.html'),
+  controller: function () {
     'ngInject';
 
     this.$onInit = () => {
-      $state.go('^.notifications.notification', {notificationId: 'portal'});
+
+      this.metrics = _.filter(this.metrics as Metrics[],
+          metric => metric.conditions.indexOf('compare') !== -1 && metric.key !== this.condition.property);
     };
+
   }
 };
 
-export default NotificationsComponent;
+export default AlertTriggerConditionCompareComponent;

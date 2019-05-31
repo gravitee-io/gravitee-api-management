@@ -13,22 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
 
-const NotificationsComponent: ng.IComponentOptions = {
+const AlertTriggerNodeLifecycleChangedComponent: ng.IComponentOptions = {
   bindings: {
-    notificationSettings: '<',
-    api: '<',
-    application: '<',
+    alert: '<'
   },
-  template: require('./notifications.html'),
-  controller: function (Constants: any, $state: StateService) {
+  template: require('./trigger-node-lifecycle-changed.html'),
+  controller: function() {
     'ngInject';
 
     this.$onInit = () => {
-      $state.go('^.notifications.notification', {notificationId: 'portal'});
+      // New alert, initialize it with the condition model
+      if (this.alert.id === undefined) {
+        this.alert.conditions = [{
+          "type": "STRING",
+          "operator": "MATCHES",
+          "property": "node.event",
+          "pattern": "NODE_START|NODE_STOP"
+        }];
+
+        this.alert.dampening = {
+          "mode": "strict_count",
+          "trueEvaluations": 1,
+          "totalEvaluations": 1
+        };
+      }
     };
   }
 };
 
-export default NotificationsComponent;
+export default AlertTriggerNodeLifecycleChangedComponent;

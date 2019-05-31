@@ -78,7 +78,7 @@ class InstanceMonitoringController {
     this.monitoringCpuChartData = {
       series: [{
         name: 'CPU',
-        data: [this.monitoringData.cpu && this.monitoringData.cpu.percent_use]
+        data: [this.monitoringData.process && this.monitoringData.process.cpu_percent]
       }]
     };
     this.monitoringHeapChartData = {

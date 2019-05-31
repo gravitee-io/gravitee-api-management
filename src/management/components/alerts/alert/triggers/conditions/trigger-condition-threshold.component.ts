@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
-
-const NotificationsComponent: ng.IComponentOptions = {
+const AlertTriggerConditionThresholdComponent: ng.IComponentOptions = {
   bindings: {
-    notificationSettings: '<',
-    api: '<',
-    application: '<',
+    condition: '<'
   },
-  template: require('./notifications.html'),
-  controller: function (Constants: any, $state: StateService) {
+  template: require('./trigger-condition-threshold.html'),
+  controller: function () {
     'ngInject';
-
-    this.$onInit = () => {
-      $state.go('^.notifications.notification', {notificationId: 'portal'});
-    };
   }
 };
 
-export default NotificationsComponent;
+export default AlertTriggerConditionThresholdComponent;

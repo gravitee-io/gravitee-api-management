@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Alert} from "./alert";
+const AlertTriggerConditionThresholdRangeComponent: ng.IComponentOptions = {
+  bindings: {
+    condition: '<'
+  },
+  template: require('./trigger-condition-threshold-range.html'),
+  controller: function () {
+    'ngInject';
 
-function DialogAddAlertController($scope, $mdDialog: angular.material.IDialogService, $stateParams) {
-  'ngInject';
+    this.$onInit = () => {
+      /*
+      // Delete properties which have nothing to do with threshold range condition
+      delete this.condition.pattern;
+      delete this.condition.threshold;
+      */
 
-  this.hide = function () {
-    $mdDialog.hide();
-  };
+      this.condition.operatorLow = 'INCLUSIVE';
+      this.condition.operatorHigh = 'INCLUSIVE';
+    };
+  }
+};
 
-  this.save = function () {
-    $mdDialog.hide(new Alert(this.name, this.description, 'REQUEST', 'API', $stateParams.apiId));
-  };
-}
-
-export default DialogAddAlertController;
+export default AlertTriggerConditionThresholdRangeComponent;

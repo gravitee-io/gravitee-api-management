@@ -1,4 +1,4 @@
-# Configure your Alerts
+# Configure alerts
 
 ## Alerts
 

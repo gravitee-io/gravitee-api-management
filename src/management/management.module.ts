@@ -62,6 +62,7 @@ import NotificationService from '../services/notification.service';
 import PolicyService from '../services/policy.service';
 import ResourceService from '../services/resource.service';
 import FetcherService from '../services/fetcher.service';
+import NotifierService from '../services/notifier.service';
 import ServiceDiscoveryService from '../services/serviceDiscovery.service';
 import LoginController from '../user/login/login.controller';
 import DiffDirective from '../components/diff/diff.directive';
@@ -369,8 +370,25 @@ import NewApiPortalHeaderDialogController
 import Base64Service from "../services/base64.service";
 // Alerts
 import AlertService from "../services/alert.service";
-import AlertComponent from "./components/notifications/alert/alert.component";
-import DialogAddAlertController from "./components/notifications/alert/addAlert.dialog.controller";
+import AlertsComponent from "./components/alerts/alerts.component";
+import AlertComponent from "./components/alerts/alert/alert.component";
+import AlertNotificationsComponent from "./components/alerts/alert/notifications/alert-notifications";
+import AlertNotificationComponent from "./components/alerts/alert/notifications/alert-notification";
+import AlertTriggerDampeningComponent from "./components/alerts/alert/triggers/trigger-dampening.component";
+import AlertTriggerWindowComponent from "./components/alerts/alert/triggers/trigger-window.component";
+import AlertTriggerFiltersComponent from "./components/alerts/alert/triggers/trigger-filters.component";
+import AlertTriggerFilterComponent from "./components/alerts/alert/triggers/trigger-filter.component";
+import AlertTriggerConditionComponent from "./components/alerts/alert/triggers/trigger-condition.component";
+import AlertTriggerConditionThresholdComponent from "./components/alerts/alert/triggers/conditions/trigger-condition-threshold.component";
+import AlertTriggerConditionThresholdRangeComponent from "./components/alerts/alert/triggers/conditions/trigger-condition-threshold-range.component";
+import AlertTriggerConditionStringComponent from "./components/alerts/alert/triggers/conditions/trigger-condition-string.component";
+import AlertTriggerConditionCompareComponent from "./components/alerts/alert/triggers/conditions/trigger-condition-compare.component";
+import AlertTriggerMetricsSimpleConditionComponent from "./components/alerts/alert/triggers/trigger-metrics-simple-condition.component";
+import AlertTriggerMetricsAggregationComponent from "./components/alerts/alert/triggers/trigger-metrics-aggregation.component";
+import AlertTriggerMetricsRateComponent from "./components/alerts/alert/triggers/trigger-metrics-rate.component";
+import AlertTriggerApiHealthCheckEndpointStatusChangedComponent from "./components/alerts/alert/triggers/trigger-api-hc-endpoint-status-changed.component";
+import AlertTriggerNodeLifecycleChangedComponent from "./components/alerts/alert/triggers/trigger-node-lifecycle-changed.component";
+import AlertTriggerApplicationQuotaComponent from "./components/alerts/alert/triggers/trigger-application-quota.component";
 
 import CircularPercentageComponent from "./components/circularPercentage/circularPercentage.component";
 import CircularPercentageController from "./components/circularPercentage/circularPercentage.controller";
@@ -644,6 +662,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('InstancesService', InstancesService)
   .service('NotificationService', NotificationService)
   .service('PolicyService', PolicyService)
+  .service('NotifierService', NotifierService)
   .service('UserService', UserService)
   .service("Base64Service", Base64Service)
   .service('ResourceService', ResourceService)
@@ -876,8 +895,25 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   // Alerts
   .service('AlertService', AlertService)
+  .component('alertsComponent', AlertsComponent)
   .component('alertComponent', AlertComponent)
-  .controller('DialogAddAlertController', DialogAddAlertController)
+  .component('gvAlertNotification', AlertNotificationComponent)
+  .component('gvAlertNotifications', AlertNotificationsComponent)
+  .component('gvAlertTriggerWindow', AlertTriggerWindowComponent)
+  .component('gvAlertTriggerDampening', AlertTriggerDampeningComponent)
+  .component('gvAlertTriggerCondition', AlertTriggerConditionComponent)
+  .component('gvAlertTriggerFilters', AlertTriggerFiltersComponent)
+  .component('gvAlertTriggerFilter', AlertTriggerFilterComponent)
+  .component('gvAlertTriggerConditionThreshold', AlertTriggerConditionThresholdComponent)
+  .component('gvAlertTriggerConditionThresholdRange', AlertTriggerConditionThresholdRangeComponent)
+  .component('gvAlertTriggerConditionString', AlertTriggerConditionStringComponent)
+  .component('gvAlertTriggerConditionCompare', AlertTriggerConditionCompareComponent)
+  .component('gvAlertTriggerMetricsSimpleCondition', AlertTriggerMetricsSimpleConditionComponent)
+  .component('gvAlertTriggerMetricsAggregation', AlertTriggerMetricsAggregationComponent)
+  .component('gvAlertTriggerMetricsRate', AlertTriggerMetricsRateComponent)
+  .component('gvAlertTriggerApiHealthCheckStatusChanged', AlertTriggerApiHealthCheckEndpointStatusChangedComponent)
+  .component('gvAlertTriggerNodeLifecycleChanged', AlertTriggerNodeLifecycleChangedComponent)
+  .component('gvAlertTriggerApplicationQuota', AlertTriggerApplicationQuotaComponent)
 
   // CircularPercentageComponent
   .component("circularPercentage", CircularPercentageComponent)

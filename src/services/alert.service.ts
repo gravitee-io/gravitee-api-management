@@ -15,7 +15,7 @@
  */
 
 import {IHttpPromise} from "angular";
-import {Alert} from "../management/components/notifications/alert/alert";
+import {Alert, Scope} from "../entities/alert";
 
 class AlertService {
   private apisURL: string;
@@ -27,7 +27,7 @@ class AlertService {
     'ngInject';
     this.apisURL = `${Constants.baseURL}apis/`;
     this.applicationsURL = `${Constants.baseURL}applications/`;
-    this.configurationURL = `${Constants.baseURL}configuration/`;
+    this.configurationURL = `${Constants.baseURL}platform/`;
     this.alertsURL = `${Constants.baseURL}alerts/`;
   }
 
@@ -35,29 +35,59 @@ class AlertService {
     return this.$http.get(this.alertsURL + 'metrics');
   }
 
-  listAlerts(referenceId?: string, referenceType?: string): IHttpPromise<any> {
+  getStatus(referenceId?: string, referenceType?: Scope): IHttpPromise<any> {
+    return this.$http.get(this.getReferenceURL(referenceType, referenceId) + 'alerts/status');
+  }
+
+  listAlerts(referenceId?: string, referenceType?: Scope): IHttpPromise<any> {
     return this.$http.get(this.getReferenceURL(referenceType, referenceId) + 'alerts');
   }
 
   create(alert: Alert): IHttpPromise<any> {
-    return this.$http.post(this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts', alert);
+    return this.$http.post(
+      this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts', {
+        name: alert.name,
+        severity: alert.severity,
+        source: alert.source,
+        description: alert.description,
+        type: alert.type,
+        enabled: alert.enabled,
+        reference_type: Scope[alert.reference_type],
+        reference_id: alert.reference_id,
+        conditions: alert.conditions,
+        notifications: alert.notifications,
+        filters: alert.filters,
+        dampening: alert.dampening
+      });
   }
 
   update(alert: Alert): IHttpPromise<any> {
-    delete alert['created_at'];
-    delete alert['updated_at'];
-    return this.$http.put(this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts/' + alert.id, alert);
+    return this.$http.put(this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts/' + alert.id, {
+      id: alert.id,
+      name: alert.name,
+      severity: alert.severity,
+      source: alert.source,
+      description: alert.description,
+      type: alert.type,
+      enabled: alert.enabled,
+      reference_type: Scope[alert.reference_type],
+      reference_id: alert.reference_id,
+      conditions: alert.conditions,
+      notifications: alert.notifications,
+      filters: alert.filters,
+      dampening: alert.dampening
+    });
   }
 
   delete(alert: Alert) {
     return this.$http.delete(this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts/' + alert.id);
   }
 
-  private getReferenceURL(referenceType: string, referenceId: string) {
+  private getReferenceURL(referenceType: Scope, referenceId: string) {
     switch (referenceType) {
-      case 'api':
+      case Scope.API:
         return this.apisURL + referenceId + '/';
-      case 'application':
+      case Scope.APPLICATION:
         return this.applicationsURL + referenceId + '/';
       default:
         return this.configurationURL;

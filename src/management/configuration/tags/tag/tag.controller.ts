@@ -15,7 +15,7 @@
  */
 import NotificationService from '../../../../services/notification.service';
 import GroupService from "../../../../services/group.service";
-import {Alert} from "../../../components/notifications/alert/alert";
+import {Alert} from "../../../../entities/alert";
 import TagService from "../../../../services/tag.service";
 class TagController {
   private tag: any;

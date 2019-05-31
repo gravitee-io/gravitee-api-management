@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
+class NotifierService {
+  private notifiersURL: string;
 
-const NotificationsComponent: ng.IComponentOptions = {
-  bindings: {
-    notificationSettings: '<',
-    api: '<',
-    application: '<',
-  },
-  template: require('./notifications.html'),
-  controller: function (Constants: any, $state: StateService) {
+  constructor(private $http, Constants) {
     'ngInject';
-
-    this.$onInit = () => {
-      $state.go('^.notifications.notification', {notificationId: 'portal'});
-    };
+    this.notifiersURL = `${Constants.baseURL}notifiers/`;
   }
-};
 
-export default NotificationsComponent;
+  list() {
+    return this.$http.get(this.notifiersURL);
+  }
+
+  getSchema(notifier: string) {
+    return this.$http.get(this.notifiersURL + notifier + '/schema');
+  }
+}
+
+export default NotifierService;

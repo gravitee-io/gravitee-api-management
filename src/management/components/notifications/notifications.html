@@ -24,26 +24,12 @@
     </div>
 
     <ul class="aui-nav">
-      <li class="iterable-item" ng-class="{'aui-nav-selected': $ctrl.isNotificationActive(notificationSetting)}"
+      <li class="iterable-item" ui-sref-active="aui-nav-selected"
           ng-repeat="notificationSetting in $ctrl.notificationSettings"
           ng-click="$ctrl.selectNotificationSetting(notificationSetting)">
-        <a class="execute" ui-sref=".notificationSetting({notificationId: notificationSetting.id})">{{notificationSetting.name}}</a>
+        <a class="execute" ui-sref="^.notifications.notification({notificationId: notificationSetting.id || 'portal'})">{{notificationSetting.name}}</a>
       </li>
     </ul>
-
-    <div ng-if="$ctrl.alertEnabled">
-      <div class="aui-nav-heading">
-        <strong>Alerts</strong>
-      </div>
-
-      <ul class="aui-nav">
-        <li class="iterable-item" ng-class="{'aui-nav-selected': $ctrl.isAlertActive(alert)}"
-            ng-repeat="alert in $ctrl.alerts"
-            ng-click="$ctrl.selectAlert(alert)">
-          <a class="execute" ui-sref=".alert({alertId: alert.id})">{{alert.name}}</a>
-        </li>
-      </ul>
-    </div>
   </div>
   <div flex class="notifications-content" ui-view layout="column"></div>
 </div>

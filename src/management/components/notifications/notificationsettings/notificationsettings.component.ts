@@ -73,7 +73,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
         vm.selectedNotifier = undefined;
       }
       $timeout(function () {
-        $state.params.notificationId = vm.selectedNotificationSetting.id;
+        $state.params.notificationId = vm.selectedNotificationSetting.id || 'portal';
         $state.transitionTo($state.current, $state.params, {reload: reload});
       });
     };

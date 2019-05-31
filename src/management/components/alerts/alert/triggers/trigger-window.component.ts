@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
+import {DurationTimeUnit} from "../../../../../entities/alert";
 
-const NotificationsComponent: ng.IComponentOptions = {
+const AlertTriggerWindowComponent: ng.IComponentOptions = {
   bindings: {
-    notificationSettings: '<',
-    api: '<',
-    application: '<',
+    condition: '<'
   },
-  template: require('./notifications.html'),
-  controller: function (Constants: any, $state: StateService) {
+  template: require('./trigger-window.html'),
+  controller: function () {
     'ngInject';
 
     this.$onInit = () => {
-      $state.go('^.notifications.notification', {notificationId: 'portal'});
-    };
+      this.timeUnits = DurationTimeUnit.TIME_UNITS;
+    }
   }
 };
 
-export default NotificationsComponent;
+export default AlertTriggerWindowComponent;

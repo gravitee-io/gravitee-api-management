@@ -39,8 +39,9 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     this.save = () => {
       PortalConfigService.save(this.settings).then( (response) => {
         _.merge(Constants, response.data);
-        NotificationService.show("Configuration saved !");
+        NotificationService.show("Configuration saved");
         this.formSettings.$setPristine();
+        $state.reload();
       });
     };
 
@@ -54,7 +55,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
       return this.settings.authentication.google.clientId ||
        this.settings.authentication.github.clientId ||
        this.settings.authentication.oauth2.clientId;
-    }
+    };
   }
 };
 
