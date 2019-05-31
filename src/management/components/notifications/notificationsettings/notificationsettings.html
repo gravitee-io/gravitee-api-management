@@ -78,7 +78,8 @@
     </form>
   </div>
   <md-button permission permission-only="['api-notification-c', 'application-notification-c', 'management-notification-c']"
-             class="md-fab md-fab-bottom-right"
+             class="md-fab md-fab-bottom-right md-fab-scrollable"
+             ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
              aria-label="Add"
              ng-click="$ctrl.addDialog()">
     <ng-md-icon icon="add"></ng-md-icon>

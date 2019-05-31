@@ -19,6 +19,7 @@ import ApiHeaderService from "../../../services/apiHeader.service";
 import {ApiPortalHeader} from "../../../entities/apiPortalHeader";
 import PortalConfigService from "../../../services/portalConfig.service";
 import _ = require('lodash');
+import {IScope} from "angular";
 
 const ApiPortalHeaderComponent: ng.IComponentOptions = {
   bindings: {
@@ -30,9 +31,11 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     NotificationService: NotificationService,
     PortalConfigService: PortalConfigService,
     $mdDialog: angular.material.IDialogService,
-    Constants
+    Constants,
+    $rootScope: IScope
   ) {
     'ngInject';
+    this.$rootScope = $rootScope;
     this.$mdDialog = $mdDialog;
     this.settings = _.cloneDeep(Constants);
 

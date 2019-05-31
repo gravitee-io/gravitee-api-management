@@ -69,7 +69,8 @@
 
 <md-button permission permission-only="'portal-api_header-c'"
            aria-label="Add"
-           class="md-fab md-fab-bottom-right"
+           class="md-fab md-fab-bottom-right md-fab-scrollable"
+           ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
            ng-click="$ctrl.createHeader()">
     <md-tooltip md-direction="top" md-visible="false">Add a new header</md-tooltip>
     <ng-md-icon icon="add"></ng-md-icon>

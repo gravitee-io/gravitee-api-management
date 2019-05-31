@@ -18,6 +18,7 @@ import TagService from '../../../services/tag.service';
 import NotificationService from '../../../services/notification.service';
 import EntrypointService from "../../../services/entrypoint.service";
 import PortalConfigService from "../../../services/portalConfig.service";
+import {IScope} from 'angular';
 
 class TagsController {
   private tags: any;
@@ -30,8 +31,10 @@ class TagsController {
     private $mdDialog: angular.material.IDialogService,
     private EntrypointService: EntrypointService,
     private Constants,
-    private PortalConfigService: PortalConfigService) {
+    private PortalConfigService: PortalConfigService,
+    private $rootScope: IScope) {
     'ngInject';
+    this.$rootScope = $rootScope;
   }
 
   deleteTag(tag) {

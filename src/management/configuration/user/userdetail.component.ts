@@ -18,6 +18,7 @@ import NotificationService from "../../../services/notification.service";
 import UserService from "../../../services/user.service";
 import RoleService from "../../../services/role.service";
 import _ = require('lodash');
+import {IScope} from "angular";
 
 interface IUserDetailComponentScope extends ng.IScope {
   selectedMgmtRole: string,
@@ -41,9 +42,11 @@ const UserDetailComponent: ng.IComponentOptions = {
     GroupService: GroupService,
     UserService: UserService,
     RoleService: RoleService,
-    $scope: IUserDetailComponentScope
+    $scope: IUserDetailComponentScope,
+    $rootScope: IScope
   ) {
     'ngInject';
+    this.$rootScope = $rootScope;
     this.$onInit = () => {
       let idxPortalRole = this.selectedUser.roles[0].scope === 'portal' ? 0:1;
       let idxMgmtRole =   this.selectedUser.roles[0].scope === 'portal' ? 1:0;

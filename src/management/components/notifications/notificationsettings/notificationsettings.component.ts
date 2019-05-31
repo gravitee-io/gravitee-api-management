@@ -20,6 +20,7 @@ import NotificationSettingsService from '../../../../services/notificationSettin
 import NotificationService from '../../../../services/notification.service';
 import {Scope} from '../../../../entities/scope';
 import { StateService } from '@uirouter/core';
+import {IScope} from 'angular';
 
 const NotificationSettingsComponent: ng.IComponentOptions = {
   bindings: {
@@ -34,10 +35,12 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     NotificationSettingsService: NotificationSettingsService,
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
-    $timeout
+    $timeout: ng.ITimeoutService,
+    $rootScope: IScope
   ) {
     'ngInject';
     const vm = this;
+    this.$rootScope = $rootScope;
     vm.$mdDialog = $mdDialog;
 
     vm.$onInit = () => {

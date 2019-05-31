@@ -19,6 +19,7 @@ import IdentityProviderService from "../../../services/identityProvider.service"
 import NotificationService from "../../../services/notification.service";
 import PortalConfigService from "../../../services/portalConfig.service";
 import _ = require('lodash');
+import {IScope} from 'angular';
 
 const IdentityProvidersComponent: ng.IComponentOptions = {
   bindings: {
@@ -31,10 +32,11 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     PortalConfigService: PortalConfigService,
     NotificationService: NotificationService,
     $state: StateService,
-    Constants
+    Constants,
+    $rootScope: IScope
   ) {
     'ngInject';
-
+    this.$rootScope = $rootScope;
     this.settings = _.cloneDeep(Constants);
 
     this.availableProviders = [

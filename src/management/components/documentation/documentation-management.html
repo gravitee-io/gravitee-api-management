@@ -146,7 +146,7 @@
 
             <md-fab-speed-dial md-direction="{{$ctrl.pages.length > 0 ? 'left' : 'down'}}"
                                md-open="false"
-                               ng-class="{'md-fab-bottom-right md-fab-scrollable' : $ctrl.pages.length > 0}"
+                               ng-class="{'md-fab-bottom-right md-fab-scrollable' : $ctrl.pages.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
                                class="md-scale">
                 <md-fab-trigger>
                     <md-button aria-label="menu" class="md-fab md-success" permission permission-only="['portal-documentation-u', 'api-documentation-u']">

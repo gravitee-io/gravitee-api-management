@@ -109,7 +109,7 @@
   <gravitee-empty-state ng-if="$ctrl.tags.length == 0" icon="label" message="There is no sharding tag to manage"></gravitee-empty-state>
   <div ng-style="{'text-align': $ctrl.tags.length == 0 ? 'center' : 'none' }">
     <md-button permission permission-only="['management-tag-c']"
-               ng-class="{'md-fab-bottom-right': $ctrl.tags.length > 0}" class="md-fab"
+               ng-class="{'md-fab-bottom-right md-fab-scrollable': $ctrl.tags.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}" class="md-fab"
                aria-label="Add"
                ng-click="$ctrl.showAddTagModal()" ui-sref="management.settings.tag({tagId: 'new'})">
       <ng-md-icon icon="add"></ng-md-icon>

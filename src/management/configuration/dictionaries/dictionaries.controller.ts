@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 import { StateService } from "@uirouter/core";
+import {IScope} from "angular";
 
 class DictionariesController {
 
   constructor(
-    private $state: StateService
+    private $state: StateService,
+    private $rootScope: IScope
   ) {
     'ngInject';
+    this.$rootScope = $rootScope;
   }
 
   select = (dictionary) => {

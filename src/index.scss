@@ -610,12 +610,12 @@ md-progress-circular {
 
 .md-fab-scrollable {
   position: fixed !important;
+  transition: right .40s !important;
+  -moz-transition: right .40s !important;
+  -webkit-transition: right .40s !important;
+  -o-transition: right .40s !important;
 
   &.gv-help-displayed {
-    left: calc(100vw - 500px) !important;
-  }
-
-  &.gv-help-displayed-btn {
-    left: calc(100vw - 390px) !important;
+    right: 320px !important;
   }
 }

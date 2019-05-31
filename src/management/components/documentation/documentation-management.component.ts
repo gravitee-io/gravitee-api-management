@@ -35,9 +35,11 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     DocumentationService: DocumentationService,
     $state: StateService,
     $scope: IDocumentationManagementScope,
-    $mdDialog: angular.material.IDialogService
+    $mdDialog: angular.material.IDialogService,
+    $rootScope: IScope
   ) {
     'ngInject';
+    this.$rootScope = $rootScope;
     this.apiId = $state.params.apiId;
 
     this.$onInit = () => {

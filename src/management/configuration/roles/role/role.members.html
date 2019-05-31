@@ -57,7 +57,8 @@
     </div>
 </div>
 <md-button permission permission-only="['management-role-u']"
-           class="md-fab md-fab-bottom-right"
+           class="md-fab md-fab-bottom-right md-fab-scrollable"
+           ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
            aria-label="Add"
            ng-click="$ctrl.addUserRole()">
     <ng-md-icon icon="add"></ng-md-icon>

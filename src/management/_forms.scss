@@ -1,5 +1,7 @@
 .gv-forms {
   max-width: 960px;
+  margin-bottom: 48px;
+
   h1 {
     font-size: 2em;
     margin: 16px 0 4px;
@@ -16,6 +18,7 @@
       display: inline-block;
 
     }
+
     ng-md-icon {
       vertical-align: super;
       padding-left: 12px;
@@ -32,21 +35,26 @@
     h2 {
       color: #d73a49;
     }
+
     .gv-form-content {
       border-color: #d73a49;
     }
+
     .gv-form-danger-text {
       font-size: 1.1em;
       font-weight: 500;
     }
   }
+
   .gv-form {
     .md-errors-spacer {
       display: none;
     }
+
     .gv-input-container-dense {
       margin: 0;
     }
+
     .gv-filters {
       margin: 16px 0 32px;
     }
@@ -66,12 +74,13 @@
   h3 {
     font-size: 1.3em;
   }
+
   .gv-form-content {
     border: 1px solid #e2e5e7;
     border-radius: 4px;
     padding: 16px;
 
-    .hint{
+    .hint {
       position: initial;
       bottom: -18px !important;
     }
