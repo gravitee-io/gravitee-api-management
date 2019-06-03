@@ -19,6 +19,10 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
+import io.gravitee.reporter.api.health.EndpointStatus;
+import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.log.Log;
+import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.Indexer;
 import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
@@ -130,6 +134,14 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 	Single rxReport(Reportable reportable) {
 		indexer.index(reportable);
 		return Single.just(reportable);
+	}
+
+	@Override
+	public boolean canHandle(Reportable reportable) {
+		return reportable instanceof Metrics ||
+				reportable instanceof EndpointStatus ||
+				reportable instanceof Monitor ||
+				reportable instanceof Log;
 	}
 
 	@Override
