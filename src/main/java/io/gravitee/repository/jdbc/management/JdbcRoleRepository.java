@@ -204,7 +204,7 @@ public class JdbcRoleRepository implements RoleRepository {
 
     @Override
     public Optional<Role> findById(RoleScope scope, String name) throws TechnicalException {
-        LOGGER.info("JdbcRoleRepository.findById({}, {})", scope, name);
+        LOGGER.debug("JdbcRoleRepository.findById({}, {})", scope, name);
         try {
             JdbcHelper.CollatingRowMapperTwoColumn<Role> rowMapper = new JdbcHelper.CollatingRowMapperTwoColumn<>(ORM.getRowMapper(), CHILD_ADDER, SCOPE_FIELD, "name");
             jdbcTemplate.query("select * from roles r"

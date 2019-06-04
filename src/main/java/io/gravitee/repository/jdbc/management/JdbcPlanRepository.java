@@ -73,22 +73,6 @@ public class JdbcPlanRepository implements PlanRepository {
             .addColumn("selection_rule", Types.NVARCHAR, String.class)
             .build(); 
     
-    private static final JdbcHelper.ChildAdder<Plan> CHILD_ADDER = (Plan parent, ResultSet rs) -> {
-        Set<String> apis = parent.getApis();
-        if (apis == null) {
-            apis = new HashSet<>();
-            parent.setApis(apis);
-        }
-        if (rs.getString("api") != null) {
-            apis.add(rs.getString("api"));
-        }
-    };
-    
-    private void addApis(Plan parent) {
-        List<String> apis = getApis(parent.getId());
-        parent.setApis(new HashSet<>(apis));
-    }
-
     private void addTags(Plan parent) {
         List<String> tags = getTags(parent.getId());
         parent.setTags(new HashSet<>(tags));
@@ -167,7 +151,6 @@ public class JdbcPlanRepository implements PlanRepository {
     public void delete(String id) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.delete({})", id);
         try {
-            jdbcTemplate.update("delete from plan_apis where plan_id = ?", id);
             jdbcTemplate.update("delete from plan_tags where plan_id = ?", id);
             jdbcTemplate.update("delete from plan_characteristics where plan_id = ?", id);
             jdbcTemplate.update("delete from plan_excluded_groups where plan_id = ?", id);
@@ -178,11 +161,6 @@ public class JdbcPlanRepository implements PlanRepository {
         }
     }
     
-    private List<String> getApis(String planId) {
-        LOGGER.debug("JdbcPlanRepository.getApis({})", planId);
-        return jdbcTemplate.queryForList("select api from plan_apis where plan_id = ?", String.class, planId);
-    }
-
     private List<String> getTags(String planId) {
         LOGGER.debug("JdbcPlanRepository.getTags({})", planId);
         return jdbcTemplate.queryForList("select tag from plan_tags where plan_id = ?", String.class, planId);
@@ -267,7 +245,6 @@ public class JdbcPlanRepository implements PlanRepository {
             for (Plan plan : plans) {
                 addCharacteristics(plan);
                 addExcludedGroups(plan);
-                addApis(plan);
                 addTags(plan);
             }
             return new HashSet<>(plans);
