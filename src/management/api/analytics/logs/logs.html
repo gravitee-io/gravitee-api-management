@@ -63,7 +63,9 @@
               timestamp: log.timestamp,
               from: logsCtrl.query.from,
               to: logsCtrl.query.to,
-              q: logsCtrl.query.query
+              q: logsCtrl.query.query,
+              page: logsCtrl.query.page,
+              size: logsCtrl.query.size
               })">
                 {{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}}
               </a>

@@ -215,7 +215,7 @@ function applicationsConfig($stateProvider) {
       }
     })
     .state('management.applications.application.logs', {
-      url: '/logs?from&to&q',
+      url: '/logs?from&to&q&page&size',
       component: 'applicationLogs',
       data: {
         menu: {
@@ -242,6 +242,14 @@ function applicationsConfig($stateProvider) {
         q: {
           type: 'string',
           dynamic: true
+        },
+        page: {
+          type: 'int',
+          dynamic: true
+        },
+        size: {
+          type: 'int',
+          dynamic: true
         }
       },
       resolve: {
@@ -250,7 +258,7 @@ function applicationsConfig($stateProvider) {
       }
     })
     .state('management.applications.application.log', {
-      url: '/logs/:logId?timestamp&from&to&q',
+      url: '/logs/:logId?timestamp&from&to&q&page&size',
       component: 'applicationLog',
       resolve: {
         log: ($stateParams, ApplicationService: ApplicationService) =>

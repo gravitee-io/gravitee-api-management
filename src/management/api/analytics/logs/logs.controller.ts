@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiService, { LogsQuery } from '../../../../services/api.service';
-import { StateService } from '@uirouter/core';
+import ApiService, {LogsQuery} from '../../../../services/api.service';
+import {StateService} from '@uirouter/core';
+import {IScope} from 'angular';
 import _ = require('lodash');
 
 class ApiLogsController {
@@ -35,13 +36,14 @@ class ApiLogsController {
     private plans: any,
     private applications: any,
     private tenants: any,
-    private $scope,
+    private $scope: IScope,
     private Constants,
     private $state: StateService
   ) {
   'ngInject';
     this.ApiService = ApiService;
     this.$scope = $scope;
+    this.$state = $state;
     this.api = resolvedApi.data;
     this.metadata = {
       applications: applications.data,
@@ -59,8 +61,8 @@ class ApiLogsController {
     this.onPaginate = this.onPaginate.bind(this);
 
     this.query = new LogsQuery();
-    this.query.size = 15;
-    this.query.page = 1;
+    this.query.page = this.$state.params['page'] || 1;
+    this.query.size = this.$state.params['size'] || 15;
     this.query.from = this.$state.params['from'];
     this.query.to = this.$state.params['to'];
     this.query.query = this.$state.params['q'];
@@ -77,7 +79,7 @@ class ApiLogsController {
     this.init = true;
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
-    this.query.page = 1;
+    this.query.page = this.$state.params['page'] || 1;
     this.refresh();
   }
 
@@ -87,6 +89,17 @@ class ApiLogsController {
   }
 
   refresh() {
+    this.$state.transitionTo(
+      this.$state.current,
+      {
+        apiId: this.api.id,
+        page: this.query.page,
+        size: this.query.size,
+        from: this.query.from,
+        to: this.query.to,
+        q: this.query.query
+      },
+      {notify: false});
     this.ApiService.findLogs(this.api.id, this.query).then((logs) => {
       this.logs = logs.data;
     });
@@ -97,7 +110,7 @@ class ApiLogsController {
   }
 
   filtersChange(filters) {
-    this.query.page = 1;
+    this.query.page = this.$state.params['page'] || 1;
     this.query.query = filters;
     this.refresh();
   }

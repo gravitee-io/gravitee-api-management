@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
+import {StateService} from '@uirouter/core';
 
-import ApplicationService, { LogsQuery } from "../../../../services/application.service";
+import ApplicationService, {LogsQuery} from "../../../../services/application.service";
+import {IScope} from 'angular';
+import _ = require('lodash');
 
 class ApplicationLogsController {
 
@@ -31,16 +33,16 @@ class ApplicationLogsController {
   constructor(
     private ApplicationService: ApplicationService,
     private $state: StateService,
-    private $scope
+    private $scope: IScope
   ) {
-  'ngInject';
+    'ngInject';
     this.ApplicationService = ApplicationService;
 
     this.onPaginate = this.onPaginate.bind(this);
 
     this.query = new LogsQuery();
-    this.query.size = 15;
-    this.query.page = 1;
+    this.query.page = this.$state.params['page'] || 1;
+    this.query.size = this.$state.params['size'] || 15;
   }
 
   $onInit() {
@@ -64,7 +66,7 @@ class ApplicationLogsController {
     this.init = true;
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
-    this.query.page = 1;
+    this.query.page = this.$state.params['page'] || 1;
     this.refresh();
   }
 
@@ -74,13 +76,24 @@ class ApplicationLogsController {
   }
 
   refresh() {
+    this.$state.transitionTo(
+      this.$state.current,
+      {
+        applicationId: this.application.id,
+        page: this.query.page,
+        size: this.query.size,
+        from: this.query.from,
+        to: this.query.to,
+        q: this.query.query
+      },
+      {notify: false});
     this.ApplicationService.findLogs(this.application.id, this.query).then((logs) => {
       this.logs = logs.data;
     });
   }
 
   filtersChange(filters) {
-    this.query.page = 1;
+    this.query.page = this.$state.params['page'] || 1;
     this.query.query = filters;
     this.refresh();
   }

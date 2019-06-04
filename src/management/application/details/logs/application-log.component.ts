@@ -26,6 +26,8 @@ const ApplicationLogComponent: ng.IComponentOptions = {
       from: $state.params['from'],
       to: $state.params['to'],
       q: $state.params['q'],
+      page: $state.params['page'],
+      size: $state.params['size']
     };
     this.getMimeType = function(log) {
 

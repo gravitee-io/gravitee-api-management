@@ -58,7 +58,7 @@ function apisAnalyticsRouterConfig($stateProvider) {
       }
     })
     .state('management.apis.detail.analytics.logs', {
-      url: '/logs?from&to&q',
+      url: '/logs?from&to&q&page&size',
       template: require('./logs/logs.html'),
       controller: 'ApiLogsController',
       controllerAs: 'logsCtrl',
@@ -81,6 +81,14 @@ function apisAnalyticsRouterConfig($stateProvider) {
         },
         q: {
           type: 'string',
+          dynamic: true
+        },
+        page: {
+          type: 'int',
+          dynamic: true
+        },
+        size: {
+          type: 'int',
           dynamic: true
         }
       },
@@ -108,7 +116,7 @@ function apisAnalyticsRouterConfig($stateProvider) {
       }
     })
     .state('management.apis.detail.analytics.log', {
-      url: '/logs/:logId?timestamp&from&to&q',
+      url: '/logs/:logId?timestamp&from&to&q&page&size',
       component: 'log',
       resolve: {
         log: ($stateParams: StateParams, ApiService: ApiService) =>
