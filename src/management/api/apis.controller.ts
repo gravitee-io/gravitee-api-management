@@ -66,7 +66,7 @@ export class ApisController {
     this.apisProvider = _.filter(resolvedApis.data, 'manageable');
     if (!this.apisProvider.length) {
       // if no APIs, maybe the auth token has been expired
-      UserService.current(true);
+      UserService.current();
     }
 
     this.apisScrollAreaHeight = this.$state.current.name === 'apis.list' ? 195 : 90;

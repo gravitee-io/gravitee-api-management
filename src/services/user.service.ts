@@ -94,11 +94,11 @@ class UserService {
     return this.currentUser && this.currentUser.allowedTo(permissions);
   }
 
-  current(forceRefresh?): ng.IPromise<User> {
+  current(): ng.IPromise<User> {
     let that = this;
 
-    if (forceRefresh || !this.currentUser || !this.currentUser.authenticated) {
-      const promises = [this.$http.get(this.userURL, {silentCall: true, forceSessionExpired: forceRefresh} as ng.IRequestShortcutConfig)];
+    if (!this.currentUser || !this.currentUser.authenticated) {
+      const promises = [this.$http.get(this.userURL, {silentCall: true, forceSessionExpired: true} as ng.IRequestShortcutConfig)];
 
       const applicationRegex = /applications\/([\w|\-]+)/;
       let applicationId = applicationRegex.exec(this.$location.$$path);

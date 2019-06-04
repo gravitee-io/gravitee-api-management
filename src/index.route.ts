@@ -82,7 +82,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       }
     })
     .state('login', {
-      url: '/login',
+      url: '/login?redirectUri',
       template: require('./user/login/login.html'),
       controller: 'LoginController',
       controllerAs: '$ctrl',
@@ -96,6 +96,11 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
           }
         },
         identityProviders: (PortalService: PortalService) => PortalService.listSocialIdentityProviders().then(response => response.data)
+      },
+      params: {
+        redirectUri: {
+          type: 'string'
+        }
       }
     })
     .state('registration', {
