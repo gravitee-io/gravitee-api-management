@@ -1,0 +1,5 @@
+title: |
+  [${api.name}] Apikey Expired
+message: |
+  An apikey has expired for plan "${plan.name}" 
+  and application "${application.name}".

@@ -19,7 +19,7 @@ You can find Gravitee.io API Management documentation from https://docs.gravitee
 ```
 $ git clone https://github.com/gravitee-io/gravitee-management-rest-api
 $ cd gravitee-management-rest-api
-$ mvn clean compile exec:java -Pdev -pl gravitee-management-api-standalone/gravitee-management-api-standalone-container
+$ mvn clean compile exec:java -Pdev -pl gravitee-rest-api-standalone/gravitee-rest-api-standalone-container
 ...
 <app starts and listens on port 8083>
 ```

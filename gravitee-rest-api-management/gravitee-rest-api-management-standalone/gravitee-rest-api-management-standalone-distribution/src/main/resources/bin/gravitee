@@ -1,0 +1,167 @@
+#!/bin/sh
+
+DIRNAME=`dirname $0`
+PROGNAME=`basename $0`
+
+# OS specific support (must be 'true' or 'false').
+cygwin=false;
+darwin=false;
+linux=false;
+case "`uname`" in
+    CYGWIN*)
+        cygwin=true
+        ;;
+
+    Darwin*)
+        darwin=true
+        ;;
+
+    Linux)
+        linux=true
+        ;;
+esac
+
+# Force IPv4 on Linux systems since IPv6 doesn't work correctly with jdk5 and lower
+if [ "$linux" = "true" ]; then
+   JAVA_OPTS="$JAVA_OPTS -Djava.net.preferIPv4Stack=true"
+fi
+
+# Searching for configuration 
+GRAVITEE_OPTS=""
+if [ -f "/etc/gravitee-management/gravitee.yml" ]
+then
+	GRAVITEE_OPTS="-Dgravitee.conf=/etc/gravitee-management/gravitee.yml"
+fi
+
+# Setup GRAVITEE_HOME
+if [ "x$GRAVITEE_HOME" = "x" ]; then
+    # get the full path (without any relative bits)
+    GRAVITEE_HOME=`cd $DIRNAME/..; pwd -P`
+fi
+
+export GRAVITEE_HOME
+
+# Move to the context home
+cd $GRAVITEE_HOME
+
+export JAVA_OPTS
+
+# Setup the JVM
+if [ "x$JAVA" = "x" ]; then
+    if [ "x$JAVA_HOME" != "x" ]; then
+    JAVA="$JAVA_HOME/bin/java"
+    else
+    JAVA="java"
+    fi
+fi
+
+# Setup the classpath
+runjar=`find $GRAVITEE_HOME -name "gravitee-rest-api-management-standalone-bootstrap-*.jar"`
+if [ ! -f "$runjar" ]; then
+    die "Missing required file: $runjar"
+fi
+GRAVITEE_BOOT_CLASSPATH="$runjar"
+
+if [ "x$GIO_MIN_MEM" = "x" ]; then
+    GIO_MIN_MEM=1024m
+fi
+if [ "x$GIO_MAX_MEM" = "x" ]; then
+    GIO_MAX_MEM=2048m
+fi
+
+# min and max heap sizes should be set to the same value to avoid
+# stop-the-world GC pauses during resize
+JAVA_OPTS="$JAVA_OPTS -Xms${GIO_MIN_MEM}"
+JAVA_OPTS="$JAVA_OPTS -Xmx${GIO_MAX_MEM}"
+
+# set to headless, just in case
+JAVA_OPTS="$JAVA_OPTS -Djava.awt.headless=true"
+
+# Force the JVM to use IPv4 stack
+if [ "x$GIO_USE_IPV4" != "x" ]; then
+  JAVA_OPTS="$JAVA_OPTS -Djava.net.preferIPv4Stack=true"
+fi
+
+# Causes the JVM to dump its heap on OutOfMemory.
+JAVA_OPTS="$JAVA_OPTS -XX:+HeapDumpOnOutOfMemoryError"
+# The path to the heap dump location, note directory must exists and have enough
+# space for a full heap dump.
+#JAVA_OPTS="$JAVA_OPTS -XX:HeapDumpPath=$GRAVITEE_HOME/logs/heapdump.hprof"
+
+# Disables explicit GC
+JAVA_OPTS="$JAVA_OPTS -XX:+DisableExplicitGC"
+
+# Ensure UTF-8 encoding by default (e.g. filenames)
+JAVA_OPTS="$JAVA_OPTS -Dfile.encoding=UTF-8"
+
+# Convert paths for Java on Windows
+if $cygwin; then
+    GRAVITEE_BOOT_CLASSPATH=$(cygpath -w $GRAVITEE_BOOT_CLASSPATH)
+    GRAVITEE_HOME=$(cygpath -w $GRAVITEE_HOME)
+fi
+
+# Display our environment
+echo "========================================================================="
+echo ""
+echo "  Gravitee.IO Management Standalone Runtime Bootstrap Environment"
+echo ""
+echo "  GRAVITEE_HOME: $GRAVITEE_HOME"
+echo ""
+echo "  GRAVITEE_OPTS: $GRAVITEE_OPTS"
+echo ""
+echo "  JAVA: $JAVA"
+echo ""
+echo "  JAVA_OPTS: $JAVA_OPTS"
+echo ""
+echo "  CLASSPATH: $GRAVITEE_BOOT_CLASSPATH"
+echo ""
+echo "========================================================================="
+echo ""
+
+# Execute the JVM in the foreground
+daemon=`echo $* | egrep -- '(^-d |-d$| -d |--daemon$|--daemon )'`
+if [ -z "$daemon" ] ; then
+	exec "$JAVA" $JAVA_OPTS \
+        -cp "$GRAVITEE_BOOT_CLASSPATH" \
+        -Dgravitee.home=$GRAVITEE_HOME \
+        -Dvertx.disableFileCaching=true \
+        -Dvertx.disableFileCPResolving=true \
+        -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
+        $GRAVITEE_OPTS \
+        io.gravitee.rest.api.management.standalone.boostrap.Bootstrap \
+        "$@"
+else
+	while [ $# -gt 0 ]; do
+		case "$1" in
+    		-p=*)
+      			pid_file="${1#*=}"
+      			;;
+  		esac
+  		shift
+	done
+
+	if [ -z "$pid_file" ] ; then
+		pid_file=/var/run/graviteeio-apim-mgmt.pid
+	fi
+
+	exec "$JAVA" $JAVA_OPTS \
+        -cp "$GRAVITEE_BOOT_CLASSPATH" \
+        -Dgravitee.home=$GRAVITEE_HOME \
+        -Dvertx.disableFileCaching=true \
+        -Dvertx.disableFileCPResolving=true \
+        -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
+        $GRAVITEE_OPTS \
+        io.gravitee.rest.api.management.standalone.boostrap.Bootstrap \
+        "$@" <&- &
+
+    retval=$?
+    pid=$!
+
+    [ $retval -eq 0 ] || exit $retval
+    if ! ps -p $pid > /dev/null ; then
+        exit 1
+    fi
+
+    echo $pid > $pid_file
+    exit 0
+fi

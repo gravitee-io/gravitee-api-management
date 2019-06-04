@@ -1,0 +1,1829 @@
+openapi: 3.0.1
+info:
+  title: Gravitee.io Portal Rest API
+  description: API dedicated to the devportal part of Gravitee
+  termsOfService: terms
+  contact:
+    name: The Gravitee Team
+    url: https://gravitee.io
+    email: contact@graviteesource.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+  version: "0.5.2"
+servers:
+  - url: http://demo.gravitee.io/portal/{envId}
+    description: The portal API for a given environment
+    variables:
+      envId:
+        default: DEFAULT
+        description: ID of the environment
+tags: 
+  - name: Analytics
+    description: All about application analytics
+  - name: API
+    description: All about APIs
+  - name: Applications
+    description: All about applications
+  - name: Documentation
+    description: All about documentation of the portal
+  - name: Subscription
+    description: All about subscriptions
+  - name: User
+    description: All about the current user
+  - name: Users
+    description: All about the portal users
+
+security:
+  - BasicAuth: []
+
+paths: 
+  /apis:
+    get:
+      tags:
+        - API
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Get an API List, filtered with queryparam if present
+      operationId: getApis
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/ApisSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /apis/{apiId}:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+    get:
+      tags:
+        - API
+      parameters:
+        - $ref: '#/components/parameters/apiIncludeParam'
+      description: Get an API
+      operationId: getApiByApiId
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/ApiSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /apis/{apiId}/pages:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+    get:
+      tags:
+        - API
+        - Documentation
+      parameters: 
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/homePageQueryParam'
+        - $ref: '#/components/parameters/rootPageQueryParam'
+        - $ref: '#/components/parameters/parentPageQueryParam'
+      description: Get documentation of an API
+      operationId: getPagesByApiId
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/PagesSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /apis/{apiId}/pages/{pageId}:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+      - $ref: '#/components/parameters/pageIdParam'
+    get:
+      tags:
+        - API
+        - Documentation
+      description: Get a single documentation page of an API
+      operationId: getPageByApiIdAndPageId
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/PageSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /apis/{apiId}/picture:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+    get:
+      tags:
+        - API
+      description: Get picture of an API
+      operationId: getPictureByApiId
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/PictureSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /apis/{apiId}/plans:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+    get:
+      tags:
+        - API
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/statusPlanQueryParam'
+      description: Get plans of an API
+      operationId: getApiPlansByApiId
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/PlansSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /apis/{apiId}/ratings:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+
+    get:
+      tags:
+        - API
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Get plans of an API
+      operationId: getApiRatingsByApiId
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/RatingsSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    post:
+      tags:
+        - API
+      description: Create a rating for an API
+      operationId: createApiRatingForApi
+      requestBody:
+        $ref: '#/components/requestBodies/ratingInputBody'
+      security:
+        - BasicAuth: []
+      responses:
+        200:
+          $ref: '#/components/responses/RatingSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+
+  /applications:
+    get:
+      tags:
+        - Applications
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Get an application List
+      operationId: getApplications
+      responses:
+        200:
+          $ref: '#/components/responses/ApplicationsSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    post:
+      tags:
+        - Applications
+      requestBody:
+        $ref: '#/components/requestBodies/applicationCreateInputBody'
+      description: Create an application
+      operationId: createApplication
+      responses:
+        201:
+          $ref: '#/components/responses/ApplicationSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /applications/{applicationId}:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Applications
+      parameters:
+        - $ref: '#/components/parameters/applicationIncludeParam'
+      description: Get an application
+      operationId: getApplicationByApplicationId
+      responses:
+        200:
+          $ref: '#/components/responses/ApplicationSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    put:
+      tags:
+        - Applications
+      requestBody:
+        $ref: '#/components/requestBodies/applicationUpdateInputBody'
+      description: Update an application
+      operationId: updateApplicationByApplicationId
+      responses:
+        200:
+          $ref: '#/components/responses/ApplicationSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    delete: 
+      tags:
+        - Applications
+      description: Delete an application
+      operationId: deleteApplicationByApplicationId
+      responses:
+        204:
+          description: No-Content
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /applications/{applicationId}/picture:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Applications
+      description: Get an application picture
+      operationId: getApplicationPictureByApplicationId
+      responses:
+        200:
+          $ref: '#/components/responses/PictureSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    put:
+      tags:
+        - Applications
+      requestBody:
+        $ref: '#/components/requestBodies/pictureUpdateInputBody'
+      description: Update an application picture
+      operationId: updateApplicationPictureByApplicationId
+      responses:
+        200:
+          $ref: '#/components/responses/PictureSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  
+  /applications/{applicationId}/notifications:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Applications
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Get application notifications
+      operationId: getNotificationsByApplicationId
+      responses:
+        200:
+          $ref: '#/components/responses/NotificationsSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    post:
+      tags:
+        - Applications
+      requestBody:
+        $ref: '#/components/requestBodies/notificationCreateInputBody'
+      description: Create a notification for an application
+      operationId: createApplicationNotification
+      responses:
+        200:
+          $ref: '#/components/responses/NotificationSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /applications/{applicationId}/notifications/{notificationId}:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+      - $ref: '#/components/parameters/notificationIdParam'
+    get:
+      tags:
+        - Applications
+      description: Get an application notification
+      operationId: getApplicationNotificationByNotificationIdAndApplicationId
+      responses:
+        200:
+          $ref: '#/components/responses/NotificationSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    put:
+      tags:
+        - Applications
+      requestBody:
+        $ref: '#/components/requestBodies/notificationUpdateInputBody'
+      description: Update notification for an application
+      operationId: updateApplicationNotification
+      responses:
+        200:
+          $ref: '#/components/responses/NotificationSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    delete: 
+      tags:
+        - Applications
+      description: Delete a notification
+      operationId: deleteApplicationNotificationByNotificationId
+      responses:
+        204:
+          description: No-Content
+        500:
+          $ref: '#/components/responses/GeneralError'
+  
+  /applications/{applicationId}/members:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Applications
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Get application members
+      operationId: getMembersByApplicationId
+      responses:
+        200:
+          $ref: '#/components/responses/MembersSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    post:
+      tags:
+        - Applications
+      requestBody:
+        $ref: '#/components/requestBodies/memberCreateInputBody'
+      description: Create a member for an application
+      operationId: createApplicationMember
+      responses:
+        200:
+          $ref: '#/components/responses/MemberSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /applications/{applicationId}/members/_transfer_ownership:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    post:
+      tags:
+        - Applications
+      requestBody:
+        $ref: '#/components/requestBodies/memberTransferOwnershipInputBody'
+      description: transfer ownership of an application
+      operationId: transferMemberOwnership
+      responses:
+        204:
+          description: No-Content
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /applications/{applicationId}/members/{memberId}:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+      - $ref: '#/components/parameters/memberIdParam'
+    get:
+      tags:
+        - Applications
+      description: get a member
+      operationId: getApplicationMemberByApplicationIdAndMemberId
+      responses:
+        200:
+          $ref: '#/components/responses/MemberSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    put:
+      tags:
+        - Applications
+      requestBody:
+        $ref: '#/components/requestBodies/memberUpdateInputBody'
+      description: update a member
+      operationId: updateApplicationMemberByApplicationIdAndMemberId
+      responses:
+        200:
+          $ref: '#/components/responses/MemberSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    delete:
+      tags:
+        - Applications
+      description: delete a member
+      operationId: deleteApplicationMember
+      responses:
+        204:
+          description: No-Content
+        500:
+          $ref: '#/components/responses/GeneralError'
+  
+  /applications/{applicationId}/analytics:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Applications
+        - Analytics
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Get application analytics
+      operationId: getApplicationAnalytics
+      responses:
+        200:
+          $ref: '#/components/responses/AnalyticsSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /applications/{applicationId}/metrics:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Applications
+        - Analytics
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Get application metrics
+      operationId: getApplicationMetrics
+      responses:
+        200:
+          $ref: '#/components/responses/MetricsSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /applications/{applicationId}/logs:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Applications
+        - Analytics
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Get application logs
+      operationId: getApplicationLogs
+      responses:
+        200:
+          $ref: '#/components/responses/LogsSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /applications/{applicationId}/logs/_export:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    post:
+      tags:
+        - Applications
+        - Analytics
+      description: Export logs in CSV format
+      operationId: exportApplicationLogsByApplicationId
+      responses:
+        200:
+          $ref: '#/components/responses/LogsExportSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /applications/{applicationId}/logs/{logId}:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+      - $ref: '#/components/parameters/logIdParam'
+    get:
+      tags:
+        - Applications
+        - Analytics
+      description: get a single log of an application
+      operationId: getApplicationLogByApplicationIdAndLogId
+      responses:
+        200:
+          $ref: '#/components/responses/LogSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'      
+  /applications/{applicationId}/_renew_secret:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    post:
+      tags:
+        - Applications
+      description: Renew secret of this application
+      operationId: renewApplicationSecret
+      responses:
+        200:
+          $ref: '#/components/responses/ApplicationSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+
+  /pages:
+    get:
+      tags:
+        - Documentation
+      parameters: 
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/homePageQueryParam'
+        - $ref: '#/components/parameters/rootPageQueryParam'
+        - $ref: '#/components/parameters/parentPageQueryParam'
+      description: Get all the documention pages of the portal
+      operationId: getPages
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/PagesSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /pages/{pageId}:
+    parameters:
+      - $ref: '#/components/parameters/pageIdParam'
+    get:
+      tags:
+        - Documentation
+      parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+      - $ref: '#/components/parameters/pageIdParam'
+      description: Get a documention page of the portal
+      operationId: getPageByPageId
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/PageSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  
+  /subscriptions:
+    get:
+      tags:
+        - Subscription
+      parameters:
+        - $ref: '#/components/parameters/subscriptionApiQueryParam'
+        - $ref: '#/components/parameters/subscriptionApplicationQueryParam'
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: get a list of subscriptions, filtered by api and/or by application
+      operationId: getSubscriptions
+      responses:
+        200:
+          $ref: '#/components/responses/SubscriptionsSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    post:
+      tags:
+        - Subscription
+      requestBody:
+        $ref: '#/components/requestBodies/subscriptionCreateInputBody'
+      description: create a subscription
+      operationId: createSubscription
+      responses:
+        200:
+          $ref: '#/components/responses/SubscriptionSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+          
+  /subscriptions/{subscriptionId}:
+    parameters:
+      - $ref: '#/components/parameters/subscriptionIdParam'
+    get:
+      tags:
+        - Subscription
+      description: get a subscription
+      operationId: getSubscriptionBuySubscriptionId
+      responses:
+        200:
+          $ref: '#/components/responses/SubscriptionSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+          
+  /subscriptions/{subscriptionId}/_close:
+    parameters:
+      - $ref: '#/components/parameters/subscriptionIdParam'
+    post:
+      tags:
+        - Subscription
+      description: close a subscription
+      operationId: closeSubscription
+      responses:
+        204:
+          description: No-Content
+        500:
+          $ref: '#/components/responses/GeneralError'
+          
+  /subscriptions/{subscriptionId}/keys/_renew:
+    parameters:
+      - $ref: '#/components/parameters/subscriptionIdParam'
+    post:
+      tags:
+        - Subscription
+      requestBody:
+        $ref: '#/components/requestBodies/subscriptionKeysRenewInputBody'
+      description: renew a key subscription
+      operationId: renewKeySubscription
+      responses:
+        500:
+          $ref: '#/components/responses/GeneralError'
+          
+  /subscriptions/{subscriptionId}/keys/{keyId}/_revoke:
+    parameters:
+      - $ref: '#/components/parameters/subscriptionIdParam'
+      - name: keyId
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - Subscription
+      description: revoke a key subscription
+      operationId: revokeKeySubscription
+      responses:
+        204:
+          description: No-Content
+        500:
+          $ref: '#/components/responses/GeneralError'
+
+  /users:
+    get:
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Retrieve all user
+      operationId: getUsers
+      responses:
+        200:
+          $ref: '#/components/responses/UsersSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /user:
+    get:
+      tags:
+        - User
+      description: Retrieve user's information
+      operationId: getCurrentUser
+      responses:
+        200:
+          $ref: '#/components/schemas/User'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    put:
+      tags:
+        - User
+      requestBody:
+        $ref: '#/components/requestBodies/userUpdateInputBody'
+      description: Modify user's information
+      operationId: updateCurrentUser
+      responses:
+        200:
+          $ref: '#/components/responses/UserSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /user/tasks:
+    get:
+      tags:
+        - User
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Retrieve user's tasks
+      operationId: getCurrentUserTasks
+      responses:
+        200:
+          $ref: '#/components/responses/TasksSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /user/notifications:
+    get:
+      tags:
+       - User
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+      description: Retrieve user's notifications
+      operationId: getCurrentUserNotifications
+      responses:
+        200:
+          $ref: '#/components/responses/NotificationsSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    delete:
+      tags:
+       - User
+      description: Delete all notifications of the current user
+      operationId: deleteAllCurrentUserNotifications
+      responses:
+        204:
+          description: No-Content
+        500:
+          $ref: '#/components/responses/GeneralError'
+          
+  /user/notifications/{notificationId}:
+    parameters:
+        - $ref: '#/components/parameters/notificationIdParam'
+    delete:
+      tags:
+       - User
+      description: Delete a specific notification from the current user
+      operationId: deleteCurrentUserNotificationByNotificationId
+      responses:
+        204:
+          description: No-Content
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /user/avatar:
+    get:
+      tags:
+        - User
+      description: Retrieve user's avatar
+      operationId: getUserAvatar
+      responses:
+        200:
+          $ref: '#/components/responses/PictureSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+    put:
+      tags:
+        - User
+      requestBody:
+        $ref: '#/components/requestBodies/pictureUpdateInputBody'
+      description: Change user's avatar
+      operationId: setUserAvatar
+      responses:
+        200:
+          $ref: '#/components/responses/PictureSuccess'
+        500:
+          $ref: '#/components/responses/GeneralError'
+  
+  /configuration:
+    get:
+      tags: 
+        - Portal
+      responses:
+        500:
+          $ref: '#/components/responses/GeneralError'
+  
+  /configuration/identities:
+    get:
+      tags: 
+        - Portal
+      responses:
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /info:
+    get:
+      tags: 
+        - Portal
+      responses:
+        500:
+          $ref: '#/components/responses/GeneralError'
+
+  /auth/login:
+    post:
+      tags: 
+        - Authentication
+      responses:
+        500:
+          $ref: '#/components/responses/GeneralError'
+  /auth/logout:
+    post:
+      tags: 
+        - Authentication
+      responses:
+        500:
+          $ref: '#/components/responses/GeneralError'
+  
+  /auth/oauth2/{identity}:
+    post:
+      tags: 
+        - Authentication
+      parameters:
+        - name: identity
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        500:
+          $ref: '#/components/responses/GeneralError'
+  
+components:
+  requestBodies:
+    ratingInputBody:
+      description: use to add a rating to an api
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RatingInput'
+    applicationCreateInputBody:
+      description: use to create an application
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApplicationInput'
+    applicationUpdateInputBody:
+      description: use to update an application
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Application'
+    pictureUpdateInputBody:
+      description: use to update an application
+      content:
+        'image/*':
+          schema:
+            type: string
+            format: binary
+    notificationCreateInputBody:
+      description: use to create an notification
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotificationInput'
+    notificationUpdateInputBody:
+      description: use to update an notification
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Notification'
+    memberCreateInputBody:
+      description: use to create a member
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MemberInput'
+    memberUpdateInputBody:
+      description: use to update a member
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MemberInput'
+    memberTransferOwnershipInputBody:
+      description: use to transfer ownership of an application
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransferOwnershipInput'
+    subscriptionCreateInputBody:
+      description: use to create a subscription
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubscriptionInput'
+    subscriptionKeysRenewInputBody:
+      description: use to renew keys of a subscription
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: string
+    userUpdateInputBody:
+      description: use to update a user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+  parameters:
+    apiIdParam: 
+      name: apiId
+      in: path
+      required: true
+      description: id of an API
+      schema:
+        type: string
+    pageIdParam: 
+      name: pageId
+      in: path
+      required: true
+      description: id of a documentation page
+      schema:
+        type: string
+    pageNumberParam:
+      name: page
+      in: query
+      required: false
+      description: the page number for pagination
+      schema:
+        type: integer
+        default: 1
+    pageSizeParam:
+      name: size
+      in: query
+      required: false
+      description: the number of items per page required, for pagination
+      schema:
+        type: integer
+        default: 10
+    apiIncludeParam:
+      name: include
+      in: query
+      required: false
+      description: comma-separated list of related object to include in the response
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - pages
+            - plans
+    homePageQueryParam:
+      name: homepage
+      in: query
+      required: false
+      description: if true, only the documentation page homepage of the portal is returned
+      schema:
+        type: boolean
+    rootPageQueryParam:
+      name: root
+      in: query
+      required: false
+      description: if true, only the root documentation page of the portal is returned
+      schema:
+        type: boolean
+    parentPageQueryParam:
+      name: parent
+      in: query
+      required: false
+      description: the name of the parent documentation page. If not null, only this page and its children are returned
+      schema:
+        type: string
+    statusPlanQueryParam:  
+      name: status
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: 
+          - published
+    applicationIdParam: 
+      name: applicationId
+      in: path
+      required: true
+      description: id of an Application
+      schema:
+        type: string
+    applicationIncludeParam:
+      name: include
+      in: query
+      required: false
+      description: comma-separated list of related object to include in the response
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - analytics
+            - logs
+            - members
+            - metrics
+            - notifications
+            - plans
+
+    notificationIdParam: 
+      name: notificationId
+      in: path
+      required: true
+      description: id of a notification
+      schema:
+        type: string
+        
+    memberIdParam: 
+      name: memberId
+      in: path
+      required: true
+      description: id of a member
+      schema:
+        type: string
+    logIdParam: 
+      name: logId
+      in: path
+      required: true
+      description: id of a log
+      schema:
+        type: string
+
+    subscriptionIdParam: 
+      name: subscriptionId
+      in: path
+      required: true
+      description: id of a subscription
+      schema:
+        type: string
+    subscriptionApiQueryParam:
+      name: api
+      in: query
+      required: false
+      description: id of an api
+      schema:
+        type: string
+    subscriptionApplicationQueryParam:
+      name: application
+      in: query
+      required: false
+      description: id of an application
+      schema:
+        type: string
+  schemas:
+    #####################
+    # Responses Objects #
+    #####################
+    ErrorResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/Error'
+    
+    ApisResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Api'
+        links:
+          $ref: '#/components/schemas/Links'
+    
+    PagesResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Page'
+        links:
+          $ref: '#/components/schemas/Links'
+    
+    PlansResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Plan'
+        links:
+          $ref: '#/components/schemas/Links'
+    
+    RatingsResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+        links:
+          $ref: '#/components/schemas/Links'
+
+    ApplicationsResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Application'
+        links:
+          $ref: '#/components/schemas/Links'
+
+    NotificationsResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        links:
+          $ref: '#/components/schemas/Links'
+
+    MembersResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
+        links:
+          $ref: '#/components/schemas/Links'
+    
+    AnalyticsResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Analytic'
+        links:
+          $ref: '#/components/schemas/Links'
+
+    MetricsResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Metric'
+        links:
+          $ref: '#/components/schemas/Links'
+    
+    LogsResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Log'
+        links:
+          $ref: '#/components/schemas/Links'
+    
+    SubscriptionsResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+        links:
+          $ref: '#/components/schemas/Links'
+    
+    UsersResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        links:
+          $ref: '#/components/schemas/Links'
+    
+    TasksResponse:
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        links:
+          $ref: '#/components/schemas/Links'
+
+    #####################
+    # Resources Objects #
+    #####################
+    Error:
+      properties:
+        code:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+    Api:
+      required:
+        - id
+        - name
+        - version
+        - description
+        - owner
+      properties:
+        id: 
+          type: string
+        name: 
+          type: string
+        version: 
+          type: string
+        description:
+          type: string
+        entrypoints:
+          type: array
+          items:
+            type: string
+        labels: 
+          type: array
+          items:
+            type: string
+        tags: 
+          type: array
+          items:
+            type: string
+        views: 
+          type: array
+          items:
+            type: string
+        subscribed:
+          type: boolean
+        rating_summary: 
+          $ref: '#/components/schemas/RatingSummary'
+        _links:
+          $ref: '#/components/schemas/ApiLinks'
+        
+        ###################
+        # may be included #
+        ###################
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Page'
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/Plan'
+        
+    Page:
+      required:
+        - id
+        - name
+        - type
+        - order
+      properties:
+        id: 
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+           - SWAGGER
+           - MARKDOWN
+           - FOLDER
+           - ROOT
+        order:
+          type: integer
+        parent:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
+        content:
+          type: string
+        configuraton:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageConfiguration'
+        metadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/Metadata'
+    Plan:
+      required:
+        - id
+        - name
+        - security
+        - type
+        - description
+        - validation
+        - order
+        - comment_required
+      properties:
+        id: 
+          type: string
+        name:
+          type: string
+        security:
+          type: string
+          enum:
+            - API_KEY
+            - KEY_LESS
+            - JWT
+            - OAUTH2
+        description:
+          type: string
+        characteristics:
+          type: array
+          items:
+            type: string
+        validation:
+          type: string
+          enum:
+            - AUTO
+            - MANUAL
+        order:
+          type: integer
+        subscribed:
+          type: boolean
+        comment_required:
+          type: boolean
+        comment_question:
+          type: string
+    Rating:
+      required:
+        - id
+        - value
+        - comment
+      properties:
+        id: 
+          type: string
+        value:
+          type: integer
+        author:
+          $ref: '#/components/schemas/Author'
+        date:
+          type: string
+          format: date-time
+        comment:
+          type: string
+        answers: 
+          type: array
+          items:
+            $ref: '#/components/schemas/RatingAnswer'
+    Application:
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        applicationType:
+          type: string
+        owner:
+          $ref: '#/components/schemas/Person'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        groups:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        settings:
+          $ref: '#/components/schemas/ApplicationSettings'
+        _links:
+          $ref: '#/components/schemas/ApplicationLinks'
+
+        ###################
+        # may be included #
+        ###################
+        analytics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Analytic'
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Log'
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Metric'
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/Plan'
+    Notification:
+      properties:
+        content:
+          type: string
+    Member:
+      required:
+       - id
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        display_name:
+          type: string
+        email:
+          type: string
+        id:
+          type: string
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        updated_at:
+          type: string
+          format: date-time
+
+    Analytic:
+      properties:
+        content:
+          type: string
+    Metric:
+      properties:
+        content:
+          type: string
+    Log:
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+    
+    Subscription:
+      required:
+        - id
+        - api
+        - application
+        - plan
+        - status
+      properties:
+        id:
+          type: string
+        api:
+          type: string
+        application:
+          type: string
+        plan:
+          type: string
+        request:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        processed_at:
+          type: string
+          format: date-time
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+            - PENDING
+            - ACCEPTED
+            - REJECTED
+        ###################
+        # may be included #
+        ###################
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/Key'
+    User:
+      required:
+        - id
+      properties:
+        id: 
+          type: string
+        name:
+          type: string
+        avatar:
+          type: string
+    Task:
+      properties:
+        content:
+          type: string
+    #################
+    # Input Objects #
+    #################
+    RatingInput:
+      properties:
+        value:
+          type: integer
+          minimum: 0
+          maximum: 5
+        comment:
+          type: string
+    ApplicationInput:
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        groups:
+          type: array
+          items:
+            type: string
+        settings:
+          $ref: '#/components/schemas/ApplicationSettings'
+
+    NotificationInput:
+      properties:
+        content:
+          type: string
+    MemberInput:
+      properties:
+        user:
+         type: string
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+    SubscriptionInput:
+      properties:
+        application:
+          description: id of the application which subscribe
+          type: string
+        plan:
+          description: id of the plan to which the application subscribe
+          type: string
+        request:
+          description: a request message to the api owner why a user want to subscribe
+          type: string
+    TransferOwnershipInput:
+      properties:
+        new_primary_owner:
+         type: string
+        primary_owner_newrole:
+          $ref: '#/components/schemas/RoleEnum'
+    #######################
+    # Composition Objects #
+    #######################
+    RoleEnum:
+      type: string
+      enum:
+        - PRIMARY_OWNER
+        - OWNER
+        - USER 
+    ApplicationSettings:
+      properties:
+        app:
+          $ref: '#/components/schemas/SimpleApplicationSettings'
+        oauth:
+          $ref: '#/components/schemas/OAuthClientSettings'
+    SimpleApplicationSettings:
+      properties:
+        type:
+          type: string
+        client_id:
+          type: string
+    OAuthClientSettings:
+      properties:
+        client_secret:
+          type: string
+        client_id:
+          type: string
+        redirect_uris:
+          type: array
+          items:
+            type: string
+        client_uri:
+          type: string
+        logo_uri:
+          type: string
+        response_types:
+          type: array
+          items:
+            type: string
+        grant_types:
+          type: array
+          items:
+            type: string
+        application_type:
+          type: string
+        renew_client_secret_supported:
+          type: boolean
+    Author:
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+    Metadata:
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        order:
+          type: string
+    Person:
+      properties:
+        id:
+          type: string
+    RatingSummary:
+      properties:
+        average:
+          type: number
+          format: double
+        count:
+          type: number
+        one_star:
+          type: number
+          format: double
+        two_star:
+          type: number
+          format: double
+        three_star:
+          type: number
+          format: double
+        four_star:
+          type: number
+          format: double
+        five_star:
+          type: number
+          format: double
+    PageConfiguration:
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+    RatingAnswer:
+      properties: 
+        author:
+          $ref: '#/components/schemas/Author'
+        date:
+          type: string
+          format: date-time
+        comment:
+          type: string
+    Key:
+      properties:
+        id:
+          type: string
+        api:
+          type: string
+        application:
+          type: string
+        plan:
+          type: string
+        paused:
+          type: boolean
+        revoked:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        revoked_at:
+          type: string
+          format: date-time
+    #####################
+    # Structure Objects #
+    #####################
+    Links:
+      properties:
+        self:
+          type: string
+        first:
+          type: string
+        last:
+          type: string
+        prev:
+          type: string
+        next:
+          type: string
+    ApiLinks:
+      properties:
+        self:
+          type: string
+        pages:
+          type: string
+        picture:
+          type: string
+        plans:
+          type: string
+        ratings:
+          type: string
+    ApplicationLinks:
+      properties:
+        self:
+          type: string
+        analytics:
+          type: string
+        logs:
+          type: string
+        members:
+          type: string
+        metrics:
+          type: string
+        notifications:
+          type: string
+        picture:
+          type: string
+        plans:
+          type: string
+  responses:
+    GeneralError:
+      description: General Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ApiSuccess:
+      description: One API
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Api'
+    ApisSuccess:
+      description: List of APIs
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApisResponse'
+    PageSuccess:
+      description: One page
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Page'
+    PagesSuccess:
+      description: List of pages
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PagesResponse'
+    PictureSuccess:
+      description: an API picture
+      content:
+        'image/*':
+          schema:
+            type: string
+            format: binary
+    PlansSuccess:
+      description: List of plans
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PlansResponse'
+    RatingSuccess:
+      description: One rating
+      content:
+        application/json:
+          schema:  
+            $ref: '#/components/schemas/Rating'
+    RatingsSuccess:
+      description: List of subscriptions
+      content:
+        application/json:
+          schema:  
+            $ref: '#/components/schemas/RatingsResponse'
+    ApplicationSuccess:
+      description: One Application
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Application'
+    ApplicationsSuccess:
+      description: List of Applications
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApplicationsResponse'
+    MemberSuccess:
+      description: A member
+      content:
+        application/json:
+          schema:  
+            $ref: '#/components/schemas/Member'
+    MembersSuccess:
+      description: List of members
+      content:
+        application/json:
+          schema:  
+            $ref: '#/components/schemas/MembersResponse'
+    NotificationSuccess:
+      description: A notification
+      content:
+        application/json:
+          schema:  
+            $ref: '#/components/schemas/Notification'
+    NotificationsSuccess:
+      description: List of notifications
+      content:
+        application/json:
+          schema:  
+            $ref: '#/components/schemas/NotificationsResponse'
+    AnalyticsSuccess:
+      description: List of analytics
+      content:
+        application/json:
+          schema:  
+            $ref: '#/components/schemas/AnalyticsResponse'
+    MetricsSuccess:
+      description: List of metrics
+      content:
+        application/json:
+          schema:  
+            $ref: '#/components/schemas/MetricsResponse'
+    LogSuccess:
+      description: A log
+      content:
+        application/json:
+          schema:  
+           $ref: '#/components/schemas/Log'
+    LogsSuccess:
+      description: List of logs
+      content:
+        application/json:
+          schema:  
+            $ref: '#/components/schemas/LogsResponse'
+    LogsExportSuccess:
+      description: CSV export of the logs
+      content:
+        text/plain:
+          schema:  
+            type: string
+    SubscriptionSuccess:
+      description: One subscription
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Subscription'
+    SubscriptionsSuccess:
+      description: List of Subscriptions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubscriptionsResponse'
+    UserSuccess:
+      description: The current user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    UsersSuccess:
+      description: List of platform users
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UsersResponse'
+    TasksSuccess:
+      description: List of current tasks
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TasksResponse'
+    
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic

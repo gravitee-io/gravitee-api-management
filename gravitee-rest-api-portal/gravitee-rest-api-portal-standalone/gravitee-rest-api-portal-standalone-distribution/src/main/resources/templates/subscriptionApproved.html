@@ -1,0 +1,16 @@
+<html>
+	<body style="text-align: center;">
+		<header>
+			<#include "header.html" />
+		</header>
+		<div style="margin-top: 50px; color: #424e5a;">
+			<h3>Hi,</h3>
+			<p>The subscription to the API <b>${api.name}</b> with plan <b>${plan.name}</b> has been approved.</p>
+
+			<#if subscription.reason??>
+			Message
+			<p style="border: 1px solid grey; margin: 0 32px; padding: 16px; font-style: italic;">${subscription.reason}</p>
+		</#if>
+		</div>
+	</body>
+</html>

@@ -26,11 +26,11 @@
         <version>17</version>
     </parent>
 
-    <groupId>io.gravitee.management</groupId>
-    <artifactId>gravitee-management-api</artifactId>
+    <groupId>io.gravitee.rest.api</groupId>
+    <artifactId>gravitee-rest-api</artifactId>
     <packaging>pom</packaging>
     <version>3.0.0-SNAPSHOT</version>
-    <name>Gravitee.io APIM - Management</name>
+    <name>Gravitee.io Rest APIs</name>
 
     <properties>
         <gravitee-node.version>1.6.0</gravitee-node.version>
@@ -61,15 +61,15 @@
     </properties>
 
     <modules>
-        <module>gravitee-management-api-model</module>
-        <module>gravitee-management-api-service</module>
-        <module>gravitee-management-api-rest</module>
-        <module>gravitee-management-api-standalone</module>
-        <module>gravitee-management-api-security</module>
-        <module>gravitee-management-api-idp</module>
-        <module>gravitee-management-api-repository</module>
-        <module>gravitee-management-api-fetcher</module>
-        <module>gravitee-management-api-services</module>
+        <module>gravitee-rest-api-fetcher</module>
+        <module>gravitee-rest-api-model</module>
+        <module>gravitee-rest-api-idp</module>        
+        <module>gravitee-rest-api-repository</module>
+        <module>gravitee-rest-api-service</module>
+        <module>gravitee-rest-api-security</module>
+        <module>gravitee-rest-api-services</module>
+        <module>gravitee-rest-api-management</module>
+        <module>gravitee-rest-api-portal</module>
     </modules>
 
     <dependencyManagement>

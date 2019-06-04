@@ -1,6 +1,0 @@
-io.gravitee.plugin.core.api.PluginHandler=\
-    io.gravitee.management.repository.plugins.RepositoryPluginHandler
-
-io.gravitee.node.api.healthcheck.Probe=\
-    io.gravitee.management.repository.healthcheck.ManagementRepositoryProbe,\
-    io.gravitee.management.repository.healthcheck.AnalyticsRepositoryProbe

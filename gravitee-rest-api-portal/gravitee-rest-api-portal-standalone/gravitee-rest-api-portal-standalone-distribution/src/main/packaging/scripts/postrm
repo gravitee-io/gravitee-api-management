@@ -1,0 +1,95 @@
+${packaging.scripts.header}
+
+#
+# This script is executed in the post-removal phase
+#
+#   On Debian,
+#       $1=remove    : indicates a removal
+#       $1=purge     : indicates an upgrade
+#
+#   On RedHat,
+#       $1=0         : indicates a removal
+#       $1=1         : indicates an upgrade
+
+
+
+SOURCE_ENV_FILE=true
+REMOVE_DIRS=false
+REMOVE_SERVICE=false
+REMOVE_USER_AND_GROUP=false
+
+case "$1" in
+
+    # Debian ####################################################
+    remove)
+        REMOVE_DIRS=true
+        REMOVE_SERVICE=true
+    ;;
+
+    purge)
+        REMOVE_USER_AND_GROUP=true
+        SOURCE_ENV_FILE=false
+    ;;
+    failed-upgrade|abort-install|abort-upgrade|disappear|upgrade|disappear)
+    ;;
+
+    # RedHat ####################################################
+    0)
+        REMOVE_DIRS=true
+        REMOVE_SERVICE=true
+        REMOVE_USER_AND_GROUP=true
+    ;;
+    1)
+        # If $1=1 this is an upgrade
+        IS_UPGRADE=true
+    ;;
+
+    *)
+        echo "post remove script called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+    
+esac
+
+PID_DIR=${packaging.gravitee.management.pid.dir}
+LOG_DIR=${packaging.gravitee.management.log.dir}
+CONF_DIR=${packaging.gravitee.management.conf.dir} 
+PLUGINS_DIR=${packaging.gravitee.management.plugins.dir}
+GRAVITEE_USER=${packaging.gravitee.management.user}
+GRAVITEE_GROUP=${packaging.gravitee.management.group}
+    
+if [ "$REMOVE_DIRS" = "true" ]; then
+
+    if [ -d "$LOG_DIR" ]; then
+        echo -n "Deleting log directory..."
+        rm -rf "$LOG_DIR"
+        echo " OK"
+    fi
+
+    if [ -d "$PLUGINS_DIR" ]; then
+        echo -n "Deleting plugins directory..."
+        rm -rf "$PLUGINS_DIR"
+        echo " OK"
+    fi
+
+    if [ -d "$PID_DIR" ]; then
+        echo -n "Deleting PID directory..."
+        rm -rf "$PID_DIR"
+        echo " OK"
+    fi
+
+fi
+
+# Don't remove users and groups for this moment
+REMOVE_USER_AND_GROUP=false
+
+if [ "$REMOVE_USER_AND_GROUP" = "true" ]; then
+    if id "$GRAVITEE_USER" > /dev/null 2>&1 ; then
+        userdel "$GRAVITEE_USER"
+    fi
+
+    if getent group "$GRAVITEE_GROUP" > /dev/null 2>&1 ; then
+        groupdel "$GRAVITEE_GROUP"
+    fi
+fi
+

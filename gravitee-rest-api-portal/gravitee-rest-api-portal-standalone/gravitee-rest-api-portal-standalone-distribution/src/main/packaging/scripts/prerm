@@ -1,0 +1,44 @@
+${packaging.scripts.header}
+
+#
+# This script is executed in the pre-remove phase
+#
+#   On Debian,
+#       $1=remove    : indicates a removal
+#       $1=upgrade   : indicates an upgrade
+#
+#   On RedHat,
+#       $1=0         : indicates a removal
+#       $1=1         : indicates an upgrade
+
+
+
+STOP_REQUIRED=false
+
+case "$1" in
+
+    # RedHat ####################################################
+    0)
+        STOP_REQUIRED=true
+    ;;
+    1)
+        # Dont do anything on upgrade, because the preun script in redhat gets executed after the postinst (madness!)
+    ;;
+
+    *)
+        echo "pre remove script called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+# Stops the service
+if [ "$STOP_REQUIRED" = "true" ]; then
+    echo -n "Stopping gravitee management service..."
+   
+	if [ -x /etc/init.d/gravitee-management ]; then
+		/etc/init.d/gravitee-management stop
+    fi
+    echo " OK"
+fi
+
+${packaging.scripts.footer}

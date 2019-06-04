@@ -1,0 +1,9 @@
+{
+  "sub":"janedoe@example.com",
+  "name":"Jane Doe",
+  "given_name":"Jane",
+  "family_name":"Doe",
+  "email":"janedoe@example.com",
+  "picture":"http://example.com/janedoe/me.jpg",
+  "job_id": "API_BREAKER"
+}
