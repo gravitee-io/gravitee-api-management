@@ -25,21 +25,18 @@ import java.util.Objects;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "alerts")
-public class AlertMongo {
+@Document(collection = "alert_triggers")
+public class AlertTriggerMongo {
 
 	@Id
 	private String id;
 	private String name;
+	private String type;
 	private String description;
 	private String referenceType;
 	private String referenceId;
-	private String type;
-	private String metricType;
-	private String metric;
-	private String thresholdType;
-	private Double threshold;
-	private String plan;
+	private String definition;
+	private String severity;
 	private boolean enabled;
 	private Date createdAt;
 	private Date updatedAt;
@@ -58,6 +55,14 @@ public class AlertMongo {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	public String getDescription() {
@@ -84,52 +89,12 @@ public class AlertMongo {
 		this.referenceId = referenceId;
 	}
 
-	public String getType() {
-		return type;
+	public String getDefinition() {
+		return definition;
 	}
 
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public String getMetricType() {
-		return metricType;
-	}
-
-	public void setMetricType(String metricType) {
-		this.metricType = metricType;
-	}
-
-	public String getMetric() {
-		return metric;
-	}
-
-	public void setMetric(String metric) {
-		this.metric = metric;
-	}
-
-	public String getThresholdType() {
-		return thresholdType;
-	}
-
-	public void setThresholdType(String thresholdType) {
-		this.thresholdType = thresholdType;
-	}
-
-	public Double getThreshold() {
-		return threshold;
-	}
-
-	public void setThreshold(Double threshold) {
-		this.threshold = threshold;
-	}
-
-	public String getPlan() {
-		return plan;
-	}
-
-	public void setPlan(String plan) {
-		this.plan = plan;
+	public void setDefinition(String definition) {
+		this.definition = definition;
 	}
 
 	public boolean isEnabled() {
@@ -156,11 +121,19 @@ public class AlertMongo {
 		this.updatedAt = updatedAt;
 	}
 
+	public String getSeverity() {
+		return severity;
+	}
+
+	public void setSeverity(String severity) {
+		this.severity = severity;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (!(o instanceof AlertMongo)) return false;
-		AlertMongo that = (AlertMongo) o;
+		if (!(o instanceof AlertTriggerMongo)) return false;
+		AlertTriggerMongo that = (AlertTriggerMongo) o;
 		return Objects.equals(id, that.id);
 	}
 
@@ -177,12 +150,6 @@ public class AlertMongo {
 				", description='" + description + '\'' +
 				", referenceType='" + referenceType + '\'' +
 				", referenceId='" + referenceId + '\'' +
-				", type='" + type + '\'' +
-				", metricType='" + metricType + '\'' +
-				", metric='" + metric + '\'' +
-				", thresholdType='" + thresholdType + '\'' +
-				", threshold=" + threshold +
-				", plan='" + plan + '\'' +
 				", enabled=" + enabled +
 				", createdAt=" + createdAt +
 				", updatedAt=" + updatedAt +

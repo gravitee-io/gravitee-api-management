@@ -16,10 +16,10 @@
 package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.AlertRepository;
-import io.gravitee.repository.management.model.Alert;
+import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.repository.mongodb.management.internal.api.AlertMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.AlertMongo;
+import io.gravitee.repository.mongodb.management.internal.model.AlertTriggerMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Component
-public class MongoAlertRepository implements AlertRepository {
+public class MongoAlertRepository implements AlertTriggerRepository {
 
     private final Logger LOGGER = LoggerFactory.getLogger(MongoAlertRepository.class);
 
@@ -47,114 +47,108 @@ public class MongoAlertRepository implements AlertRepository {
     private GraviteeMapper mapper;
 
     @Override
-    public Optional<Alert> findById(String alertId) throws TechnicalException {
-        LOGGER.debug("Find alert by ID [{}]", alertId);
+    public Optional<AlertTrigger> findById(String triggerId) throws TechnicalException {
+        LOGGER.debug("Find an alert trigger by ID [{}]", triggerId);
 
-        final AlertMongo alert = internalAlertRepo.findById(alertId).orElse(null);
+        final AlertTriggerMongo alert = internalAlertRepo.findById(triggerId).orElse(null);
 
-        LOGGER.debug("Find alert by ID [{}] - Done", alertId);
-        return Optional.ofNullable(mapper.map(alert, Alert.class));
+        LOGGER.debug("Find an alert trigger by ID [{}] - Done", triggerId);
+        return Optional.ofNullable(mapper.map(alert, AlertTrigger.class));
     }
 
     @Override
-    public Alert create(Alert alert) throws TechnicalException {
-        LOGGER.debug("Create alert [{}]", alert.getName());
+    public AlertTrigger create(AlertTrigger trigger) throws TechnicalException {
+        LOGGER.debug("Create alert trigger [{}]", trigger.getName());
 
-        AlertMongo alertMongo = mapper.map(alert, AlertMongo.class);
-        AlertMongo createdAlertMongo = internalAlertRepo.insert(alertMongo);
+        AlertTriggerMongo alertTriggerMongo = mapper.map(trigger, AlertTriggerMongo.class);
+        AlertTriggerMongo createdAlertTriggerMongo = internalAlertRepo.insert(alertTriggerMongo);
 
-        Alert res = mapper.map(createdAlertMongo, Alert.class);
+        AlertTrigger res = mapper.map(createdAlertTriggerMongo, AlertTrigger.class);
 
-        LOGGER.debug("Create alert [{}] - Done", alert.getName());
+        LOGGER.debug("Create alert trigger [{}] - Done", trigger.getName());
 
         return res;
     }
 
     @Override
-    public Alert update(Alert alert) throws TechnicalException {
-        if (alert == null || alert.getName() == null) {
-            throw new IllegalStateException("Alert to update must have a name");
+    public AlertTrigger update(AlertTrigger trigger) throws TechnicalException {
+        if (trigger == null || trigger.getName() == null) {
+            throw new IllegalStateException("Alert trigger to update must have a name");
         }
 
-        final AlertMongo alertMongo = internalAlertRepo.findById(alert.getId()).orElse(null);
+        final AlertTriggerMongo alertTriggerMongo = internalAlertRepo.findById(trigger.getId()).orElse(null);
 
-        if (alertMongo == null) {
-            throw new IllegalStateException(String.format("No alert found with id [%s]", alert.getId()));
+        if (alertTriggerMongo == null) {
+            throw new IllegalStateException(String.format("No alert trigger found with id [%s]", trigger.getId()));
         }
 
         try {
             //Update
-            alertMongo.setName(alert.getName());
-            alertMongo.setDescription(alert.getDescription());
-            alertMongo.setReferenceType(alert.getReferenceType());
-            alertMongo.setReferenceId(alert.getReferenceId());
-            alertMongo.setType(alert.getType());
-            alertMongo.setMetricType(alert.getMetricType());
-            alertMongo.setMetric(alert.getMetric());
-            alertMongo.setThresholdType(alert.getThresholdType());
-            alertMongo.setThreshold(alert.getThreshold());
-            alertMongo.setPlan(alert.getPlan());
-            alertMongo.setEnabled(alert.isEnabled());
-            alertMongo.setCreatedAt(alert.getCreatedAt());
-            alertMongo.setUpdatedAt(alert.getUpdatedAt());
+            alertTriggerMongo.setName(trigger.getName());
+            alertTriggerMongo.setType(trigger.getType());
+            alertTriggerMongo.setDescription(trigger.getDescription());
+            alertTriggerMongo.setReferenceType(trigger.getReferenceType());
+            alertTriggerMongo.setReferenceId(trigger.getReferenceId());
+            alertTriggerMongo.setEnabled(trigger.isEnabled());
+            alertTriggerMongo.setSeverity(trigger.getSeverity());
+            alertTriggerMongo.setDefinition(trigger.getDefinition());
+            alertTriggerMongo.setCreatedAt(trigger.getCreatedAt());
+            alertTriggerMongo.setUpdatedAt(trigger.getUpdatedAt());
 
-            AlertMongo alertMongoUpdated = internalAlertRepo.save(alertMongo);
-            return mapper.map(alertMongoUpdated, Alert.class);
+            AlertTriggerMongo alertTriggerMongoUpdated = internalAlertRepo.save(alertTriggerMongo);
+            return mapper.map(alertTriggerMongoUpdated, AlertTrigger.class);
 
         } catch (Exception e) {
 
-            LOGGER.error("An error occured when updating alert", e);
-            throw new TechnicalException("An error occured when updating alert");
+            LOGGER.error("An error occurs when updating alert trigger", e);
+            throw new TechnicalException("An error occurs when updating alert trigger");
         }
     }
 
     @Override
-    public void delete(String alertId) throws TechnicalException {
+    public void delete(String triggerId) throws TechnicalException {
         try {
-            internalAlertRepo.deleteById(alertId);
+            internalAlertRepo.deleteById(triggerId);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting alert [{}]", alertId, e);
-            throw new TechnicalException("An error occured when deleting alert");
+            LOGGER.error("An error occurs when deleting alert trigger [{}]", triggerId, e);
+            throw new TechnicalException("An error occurs when deleting alert trigger");
         }
     }
 
     @Override
-    public Set<Alert> findAll() {
-        final List<AlertMongo> alerts = internalAlertRepo.findAll();
+    public Set<AlertTrigger> findAll() {
+        final List<AlertTriggerMongo> alerts = internalAlertRepo.findAll();
         return alerts.stream()
                 .map(this::map)
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public List<Alert> findByReference(String referenceType, String referenceId) {
-        LOGGER.debug("Find alert by reference '{}' / '{}'", referenceType, referenceId);
+    public List<AlertTrigger> findByReference(String referenceType, String referenceId) {
+        LOGGER.debug("Find alert trigger by reference '{}' / '{}'", referenceType, referenceId);
 
-        final List<AlertMongo> alerts = internalAlertRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
+        final List<AlertTriggerMongo> triggers = internalAlertRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
 
-        LOGGER.debug("Find alert by reference '{}' / '{}' done", referenceType, referenceId);
-        return alerts.stream().map(this::map).collect(Collectors.toList());
+        LOGGER.debug("Find alert trigger by reference '{}' / '{}' done", referenceType, referenceId);
+        return triggers.stream().map(this::map).collect(Collectors.toList());
     }
 
-    private Alert map(final AlertMongo alertMongo) {
-        if (alertMongo == null) {
+    private AlertTrigger map(final AlertTriggerMongo alertTriggerMongo) {
+        if (alertTriggerMongo == null) {
             return null;
         }
-        final Alert alert = new Alert();
-        alert.setId(alertMongo.getId());
-        alert.setReferenceType(alertMongo.getReferenceType());
-        alert.setReferenceId(alertMongo.getReferenceId());
-        alert.setName(alertMongo.getName());
-        alert.setDescription(alertMongo.getDescription());
-        alert.setMetricType(alertMongo.getMetricType());
-        alert.setMetric(alertMongo.getMetric());
-        alert.setType(alertMongo.getType());
-        alert.setPlan(alertMongo.getPlan());
-        alert.setThresholdType(alertMongo.getThresholdType());
-        alert.setThreshold(alertMongo.getThreshold());
-        alert.setEnabled(alertMongo.isEnabled());
-        alert.setCreatedAt(alertMongo.getCreatedAt());
-        alert.setUpdatedAt(alertMongo.getUpdatedAt());
-        return alert;
+        final AlertTrigger trigger = new AlertTrigger();
+        trigger.setId(alertTriggerMongo.getId());
+        trigger.setReferenceType(alertTriggerMongo.getReferenceType());
+        trigger.setReferenceId(alertTriggerMongo.getReferenceId());
+        trigger.setName(alertTriggerMongo.getName());
+        trigger.setSeverity(alertTriggerMongo.getSeverity());
+        trigger.setType(alertTriggerMongo.getType());
+        trigger.setDescription(alertTriggerMongo.getDescription());
+        trigger.setDefinition(alertTriggerMongo.getDefinition());
+        trigger.setEnabled(alertTriggerMongo.isEnabled());
+        trigger.setCreatedAt(alertTriggerMongo.getCreatedAt());
+        trigger.setUpdatedAt(alertTriggerMongo.getUpdatedAt());
+        return trigger;
     }
 }

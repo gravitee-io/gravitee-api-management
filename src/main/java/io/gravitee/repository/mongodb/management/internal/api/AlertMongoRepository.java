@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import io.gravitee.repository.mongodb.management.internal.model.AlertMongo;
+import io.gravitee.repository.mongodb.management.internal.model.AlertTriggerMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -26,8 +26,8 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 @Repository
-public interface AlertMongoRepository extends MongoRepository<AlertMongo, String> {
-    List<AlertMongo> findByReferenceTypeAndReferenceId(String referenceType, String referenceId);
+public interface AlertMongoRepository extends MongoRepository<AlertTriggerMongo, String> {
+    List<AlertTriggerMongo> findByReferenceTypeAndReferenceId(String referenceType, String referenceId);
 }
 
 
