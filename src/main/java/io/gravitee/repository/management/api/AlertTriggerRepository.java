@@ -16,16 +16,18 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Alert;
+import io.gravitee.repository.management.model.AlertTrigger;
 
 import java.util.List;
 import java.util.Set;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface AlertRepository extends CrudRepository<Alert, String>{
-    Set<Alert> findAll() throws TechnicalException;
-    List<Alert> findByReference(String referenceType, String referenceId) throws TechnicalException;
+public interface AlertTriggerRepository extends CrudRepository<AlertTrigger, String> {
+
+    Set<AlertTrigger> findAll() throws TechnicalException;
+
+    List<AlertTrigger> findByReference(String referenceType, String referenceId) throws TechnicalException;
 }

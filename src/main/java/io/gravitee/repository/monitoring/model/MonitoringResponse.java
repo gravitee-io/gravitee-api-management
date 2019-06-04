@@ -65,8 +65,10 @@ public class MonitoringResponse {
     private int jvmGCCollectorsOldCollectionCount;
     private long jvmGCCollectorsOldCollectionTimeInMillis;
 
-    private int jvmProcessOpenFileDescriptors;
-    private int jvmProcessMaxFileDescriptors;
+    // Process
+    private int processOpenFileDescriptors;
+    private int processMaxFileDescriptors;
+    private int processCPUPercent;
 
     // OS
 
@@ -311,20 +313,20 @@ public class MonitoringResponse {
         this.jvmGCCollectorsOldCollectionTimeInMillis = jvmGCCollectorsOldCollectionTimeInMillis;
     }
 
-    public int getJvmProcessOpenFileDescriptors() {
-        return jvmProcessOpenFileDescriptors;
+    public int getProcessOpenFileDescriptors() {
+        return processOpenFileDescriptors;
     }
 
-    public void setJvmProcessOpenFileDescriptors(int jvmProcessOpenFileDescriptors) {
-        this.jvmProcessOpenFileDescriptors = jvmProcessOpenFileDescriptors;
+    public void setProcessOpenFileDescriptors(int processOpenFileDescriptors) {
+        this.processOpenFileDescriptors = processOpenFileDescriptors;
     }
 
-    public int getJvmProcessMaxFileDescriptors() {
-        return jvmProcessMaxFileDescriptors;
+    public int getProcessMaxFileDescriptors() {
+        return processMaxFileDescriptors;
     }
 
-    public void setJvmProcessMaxFileDescriptors(int jvmProcessMaxFileDescriptors) {
-        this.jvmProcessMaxFileDescriptors = jvmProcessMaxFileDescriptors;
+    public void setProcessMaxFileDescriptors(int processMaxFileDescriptors) {
+        this.processMaxFileDescriptors = processMaxFileDescriptors;
     }
 
     public long getOsMemTotalInBytes() {
@@ -381,5 +383,13 @@ public class MonitoringResponse {
 
     public void setOsCPUPercent(int osCPUPercent) {
         this.osCPUPercent = osCPUPercent;
+    }
+
+    public int getProcessCPUPercent() {
+        return processCPUPercent;
+    }
+
+    public void setProcessCPUPercent(int processCPUPercent) {
+        this.processCPUPercent = processCPUPercent;
     }
 }
