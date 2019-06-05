@@ -1,6 +1,6 @@
 {
   "common": {
-    "copyToClipboard": "Copieer naar clipboard",
+    "copyToClipboard": "Kopieer naar klembord",
     "NANOSECONDS": "nanoseconden",
     "MICROSECONDS": "microseconden",
     "MILLISECONDS": "milliseconden",
@@ -10,7 +10,7 @@
     "DAYS": "dagen",
     "close": "Sluiten",
     "create": "Creëer",
-    "cancel": "Anuleer",
+    "cancel": "Annuleer",
     "ok": "OK",
     "submit": "Bevestig",
     "answer": "Antwoord",
@@ -66,7 +66,7 @@
       },
       "step2": {
         "title": "Selecteer een applicatie",
-        "subtitle": "Een Applicatie is de relatie tussen jou, de consumer, en het abonnement op het API plan",
+        "subtitle": "Een applicatie is de relatie tussen jou, de consumer, en het abonnement op het API plan",
         "application": {
           "placeholder": "Selecteer een applicatie..."
         },
@@ -77,14 +77,14 @@
         "apikey": {
           "key": "Je kan de API benaderen mbv de volgende API sleutel:",
           "curl": "Aanroep voorbeeld mbv curl:",
-          "clipboard": "De API sleutel is gecopieerd naar het klembord."
+          "clipboard": "De API sleutel is gekopieerd naar het klembord."
         },
         "oauth2": {
-          "bearer": "Je hebt een access_token nodig van de authorization server before om deze API te consumeren.",
+          "bearer": "Je hebt een access_token nodig van de authorization server om deze API te consumeren.",
           "curl": "Aanroep voorbeeld mbv curl:"
         },
         "jwt": {
-          "bearer": "Je hebt een access_token nodig van de authorization server before om deze API te consumeren.",
+          "bearer": "Je hebt een access_token nodig van de authorization server om deze API te consumeren.",
           "curl": "Aanroep voorbeeld mbv curl:"
         },
         "pending": {
