@@ -468,6 +468,7 @@ require('angular-loading-bar');
 // Highcharts
 
 const Highcharts = require('highcharts');
+(<any>window).Highcharts = Highcharts;
 const HighchartsMore = require('../../node_modules/highcharts/js/highcharts-more.js');
 const SolidGauge = require('../../node_modules/highcharts/js/modules/solid-gauge.js');
 const NoDataToDisplay = require('../../node_modules/highcharts/js/modules/no-data-to-display.js');
@@ -478,7 +479,6 @@ SolidGauge(Highcharts);
 NoDataToDisplay(Highcharts);
 Map(Highcharts);
 
-(<any>window).Highcharts = Highcharts;
 require('../../node_modules/@highcharts/map-collection/custom/world.js');
 
 (<any>window).jsyaml = jsyaml;

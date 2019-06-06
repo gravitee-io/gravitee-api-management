@@ -88,7 +88,8 @@ module.exports = {
       $: 'jquery',
       jQuery: 'jquery',
       moment: 'moment',
-      tinycolor: 'tinycolor2'
+      tinycolor: 'tinycolor2',
+      Highcharts: 'highcharts'
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
