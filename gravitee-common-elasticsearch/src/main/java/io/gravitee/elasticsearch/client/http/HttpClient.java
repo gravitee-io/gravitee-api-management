@@ -24,6 +24,7 @@ import io.gravitee.elasticsearch.config.Endpoint;
 import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.model.Health;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.elasticsearch.model.bulk.BulkItemResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -45,6 +46,8 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -188,7 +191,18 @@ public class HttpClient implements Client {
                             throw new ElasticsearchException("Unable to bulk index data");
                         }
 
-                        return mapper.readValue(response.bodyAsString(), BulkResponse.class);
+                        BulkResponse bulkResponse = mapper.readValue(response.bodyAsString(), BulkResponse.class);
+
+                        if (bulkResponse.getErrors()) {
+                            bulkResponse.getItems().stream()
+                                    .filter(bulkItemResponse -> bulkItemResponse.getIndex().getError() != null)
+                                    .forEach(bulkItemResponse ->
+                                            logger.error("An error occurs while indexing data into ES: indice[{}] error[{}]",
+                                                    bulkItemResponse.getIndex().getIndexName(),
+                                                    bulkItemResponse.getIndex().getError().getReason()));
+                        }
+
+                        return bulkResponse;
                     });
     }
 
