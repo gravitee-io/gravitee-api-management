@@ -77,6 +77,7 @@ public class ElasticsearchRepositoryConfiguration {
         clientConfiguration.setEndpoints(repositoryConfiguration.getEndpoints());
         clientConfiguration.setUsername(repositoryConfiguration.getUsername());
         clientConfiguration.setPassword(repositoryConfiguration.getPassword());
+        clientConfiguration.setRequestTimeout(repositoryConfiguration.getRequestTimeout());
         return new HttpClient(clientConfiguration);
     }
     

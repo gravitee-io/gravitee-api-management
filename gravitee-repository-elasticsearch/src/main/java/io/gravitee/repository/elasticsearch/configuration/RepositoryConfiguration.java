@@ -61,6 +61,12 @@ public class RepositoryConfiguration {
 	private String password;
 
 	/**
+	 * Configurable request timeout for http requests to elasticsearch
+	 */
+	@Value("${analytics.elasticsearch.http.timeout:10000}")
+	private Long requestTimeout;
+
+	/**
 	 * Elasticsearch endpoints
 	 */
 	private List<Endpoint> endpoints;
@@ -79,6 +85,14 @@ public class RepositoryConfiguration {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public Long getRequestTimeout() {
+		return requestTimeout;
+	}
+
+	public void setRequestTimeout(Long requestTimeout) {
+		this.requestTimeout = requestTimeout;
 	}
 
 	public List<Endpoint> getEndpoints() {
