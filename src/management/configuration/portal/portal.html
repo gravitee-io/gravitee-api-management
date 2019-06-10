@@ -194,6 +194,10 @@
                     </md-option>
                 </md-select>
             </md-input-container>
+            <md-input-container class="md-block" flex-gt-sm>
+                <label>HTTP Client Timeout</label>
+                <input type="number" min="0" ng-model="$ctrl.settings.analytics.clientTimeout">
+            </md-input-container>
         </div>
     </div>
 
