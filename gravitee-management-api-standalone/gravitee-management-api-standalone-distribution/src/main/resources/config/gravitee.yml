@@ -151,6 +151,12 @@ analytics:
 #    settings:
 #      number_of_shards: 5
 #      number_of_replicas: 1
+#    security:
+#      username: user
+#      password: secret
+#    http:
+#      timeout: 30000 # in milliseconds
+#
 
 # Authentication and identity sources
 # Users can have following roles (authorities):
