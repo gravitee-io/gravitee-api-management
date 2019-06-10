@@ -15,7 +15,6 @@
  */
 import _ = require('lodash');
 import { StateService } from '@uirouter/core';
-import PortalService from "../../../../services/portal.service";
 
 class ApiAnalyticsController {
 
@@ -392,7 +391,6 @@ class ApiAnalyticsController {
     } else {
       this.dashboard = this.dashboards[0];
     }
-    this.setDashboard(this.dashboard.id);
 
     _.forEach(this.dashboards, (dashboard) => {
       _.forEach(dashboard.widgets, (widget) => {
@@ -421,12 +419,10 @@ class ApiAnalyticsController {
     this.setDashboard(this.dashboard.id);
   }
 
-  private setDashboard(dashboardId) {
-    this.$timeout(() => {
-      this.$state.transitionTo(
-        'management.apis.detail.analytics.overview',
-        _.merge(this.$state.params, {dashboard: dashboardId}));
-    });
+  private setDashboard(dashboardId: string) {
+    this.$state.transitionTo(
+      this.$state.current,
+      _.merge(this.$state.params, {dashboard: dashboardId}), {reload: true});
   }
 }
 

@@ -23,7 +23,6 @@ class DashboardController {
   private selectedEventTypes: any[];
   private lastFrom: any;
   private lastTo: any;
-  private analyticsData: any;
   private events: any;
   private query: any;
   private dashboards: any;
@@ -36,8 +35,7 @@ class DashboardController {
     private ApplicationService,
     private $scope,
     private Constants,
-    private $state,
-    private $timeout
+    private $state
   ) {
     'ngInject';
     this.eventLabels = {};
@@ -386,7 +384,6 @@ class DashboardController {
     } else {
       this.dashboard = this.dashboards[0];
     }
-    this.setDashboard(this.dashboard.id);
 
     _.forEach(this.dashboards, (dashboard) => {
       _.forEach(dashboard.widgets, (widget) => {
@@ -412,17 +409,10 @@ class DashboardController {
     this.searchEvents = this.searchEvents.bind(this);
   }
 
-  onDashboardChanged() {
-    this.$scope.$broadcast('dashboardReload');
-    this.setDashboard(this.dashboard.id);
-  }
-
-  private setDashboard(dashboardId) {
-    this.$timeout(() => {
-      this.$state.transitionTo(
-        'management.platform',
-        _.merge(this.$state.params, {dashboard: dashboardId}));
-    });
+  onDashboardChanged(dashboardId: string) {
+    this.$state.transitionTo(
+      this.$state.current,
+      _.merge(this.$state.params, {dashboard: dashboardId}));
   }
 
   onTimeframeChange(timeframe) {

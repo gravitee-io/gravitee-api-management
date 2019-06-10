@@ -186,10 +186,6 @@ class DashboardTimeframeController {
     } else {
       this.setTimeframe(this.$state.params['timeframe'] || '1d', true);
     }
-
-    this.$scope.$on('dashboardReload', () => {
-      this.updateRangeDate();
-    });
   };
 
   updateTimeframe(timeframeId) {

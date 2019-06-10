@@ -62,7 +62,7 @@ const DashboardComponent: ng.IComponentOptions = {
         if(this.initialQuery) {
             $scope.$broadcast('onQueryFilterChange', {query: this.initialQuery, source: undefined});
             if (this.onFilterChange) {
-                this.onFilterChange({query: this.initialQuery});
+              this.onFilterChange({query: this.initialQuery});
             }
             delete(this.initialQuery);
         }
@@ -73,7 +73,7 @@ const DashboardComponent: ng.IComponentOptions = {
     };
 
     this.queryFilterChange = function(query, widget) {
-        if(this.initialEventCounter > 0) {
+      if(this.initialEventCounter > 0) {
           this.initialEventCounter--;
         }
         if(this.initialEventCounter == 0) {
@@ -101,10 +101,9 @@ const DashboardComponent: ng.IComponentOptions = {
       }
     };
 
-    this.$onInit = function() {
-      const that = this;
-      _.each(this.model, function(widget) {
-        widget.$uid = that.guid();
+    this.$onInit = () => {
+      _.each(this.model, widget => {
+        widget.$uid = this.guid();
       });
     };
 

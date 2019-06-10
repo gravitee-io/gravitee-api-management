@@ -50,7 +50,7 @@ const WidgetComponent: ng.IComponentOptions = {
       that.reload();
     });
 
-    $scope.$on('onQueryFilterChange', function (event, query) {
+    let unregisterFn = $scope.$on('onQueryFilterChange', function (event, query) {
       // Associate the new query filter to the chart request
       that.widget.chart.request.additionalQuery = query.query;
 
@@ -59,6 +59,8 @@ const WidgetComponent: ng.IComponentOptions = {
         that.reload();
       }
     });
+
+    $scope.$on('$destroy', unregisterFn);
 
     this.reload = function() {
       // Call the analytics service

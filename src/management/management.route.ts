@@ -129,8 +129,7 @@ function managementRouterConfig($stateProvider) {
           dynamic: true
         },
         dashboard: {
-          type: 'string',
-          dynamic: true
+          type: 'string'
         }
       }
     })
