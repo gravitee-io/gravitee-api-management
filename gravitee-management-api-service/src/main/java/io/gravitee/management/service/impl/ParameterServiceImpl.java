@@ -147,7 +147,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 if (value == null) {
                     parameterRepository.delete(key.key());
                     return null;
-                } else {
+                } else if (!value.equals(optionalParameter.get().getValue())) {
                     final Parameter updatedParameter = parameterRepository.update(parameter);
                     auditService.createPortalAuditLog(
                             singletonMap(PARAMETER, updatedParameter.getKey()),
@@ -156,6 +156,8 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                             optionalParameter.get(),
                             updatedParameter);
                     return updatedParameter;
+                } else {
+                    return optionalParameter.get();
                 }
             } else {
                 if (value == null) {
