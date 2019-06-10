@@ -216,16 +216,16 @@ class ApplicationService {
       } else if (application.settings.oauth) {
         switch (application.settings.oauth.application_type) {
           case "backend_to_backend":
-            applicationType = 'OAuth2 backend to backend';
+            applicationType = 'Backend to backend';
             break;
           case "browser":
-            applicationType = 'OAuth2 browser';
+            applicationType = 'Browser';
             break;
           case "native":
-            applicationType = 'OAuth2 native';
+            applicationType = 'Native';
             break;
           case "web":
-            applicationType = 'OAuth2 web';
+            applicationType = 'Web';
             break;
         }
       }
