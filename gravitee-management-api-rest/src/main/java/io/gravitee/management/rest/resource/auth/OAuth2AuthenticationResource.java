@@ -139,6 +139,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                         .entity(introspectPayload)
                         .build();
             }
+        } else {
+            LOGGER.debug("Token exchange failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
         }
 
         return Response
@@ -163,6 +165,10 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 .post(Entity.form(accessData));
         accessData.clear();
 
+        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+            LOGGER.debug("Exchange authorization code failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
+        }
+
         final String accessToken = (String) getResponseEntity(response).get(serverConfiguration.getAccessTokenProperty());
         return authenticateUser(accessToken, servletResponse);
     }
@@ -182,6 +188,10 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                                 serverConfiguration.getAuthorizationHeader(),
                                 accessToken))
                 .get();
+
+        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+            LOGGER.debug("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
+        }
 
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
