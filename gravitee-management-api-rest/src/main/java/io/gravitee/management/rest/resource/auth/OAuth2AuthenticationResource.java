@@ -189,14 +189,13 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                                 accessToken))
                 .get();
 
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            LOGGER.debug("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
-        }
 
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             return processUser(userInfo, servletResponse);
+        } else {
+            LOGGER.debug("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
         }
 
         return Response.status(response.getStatusInfo()).build();
