@@ -31,6 +31,9 @@
     "clientId": "my-client-id",
     "clientSecret": "my-client-secret",
     "scopes": ["scope1", "scope2", "scope3"],
+    "renewClientSecretSupport": true,
+    "renewClientSecretEndpoint": "http://localhost/endpoint",
+    "renewClientSecretMethod": "POST",
     "createdAt": 1000000000000,
     "updatedAt": 1486771200000
   }

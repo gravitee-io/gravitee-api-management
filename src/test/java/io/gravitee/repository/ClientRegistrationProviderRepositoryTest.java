@@ -62,6 +62,9 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         assertEquals("my-client-secret", clientRegistrationProvider.getClientSecret());
         assertEquals(3, clientRegistrationProvider.getScopes().size());
         assertEquals("scope1", clientRegistrationProvider.getScopes().iterator().next());
+        assertTrue(clientRegistrationProvider.isRenewClientSecretSupport());
+        assertEquals("http://localhost/endpoint", clientRegistrationProvider.getRenewClientSecretEndpoint());
+        assertEquals("POST", clientRegistrationProvider.getRenewClientSecretMethod());
     }
 
     @Test

@@ -93,6 +93,9 @@ public class ClientRegistrationProviderRepositoryMock extends AbstractRepository
         clientRegistrationProvider3.setClientId("my-client-id");
         clientRegistrationProvider3.setClientSecret("my-client-secret");
         clientRegistrationProvider3.setScopes(Arrays.asList("scope1", "scope2", "scope3"));
+        clientRegistrationProvider3.setRenewClientSecretSupport(true);
+        clientRegistrationProvider3.setRenewClientSecretEndpoint("http://localhost/endpoint");
+        clientRegistrationProvider3.setRenewClientSecretMethod("POST");
 
         clientRegistrationProvider3.setCreatedAt(new Date(1000000000000L));
         clientRegistrationProvider3.setUpdatedAt(new Date(1486771200000L));
