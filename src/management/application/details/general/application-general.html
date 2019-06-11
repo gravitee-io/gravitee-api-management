@@ -116,6 +116,14 @@
                         ngclipboard-success="$ctrl.onCopyClientSecretSuccess(e);" role="button">
             </ng-md-icon>
           </span>
+
+          <md-button class="md-raised md-primary" type="button"
+                     style="height: 36px"
+                     ng-if="$ctrl.application.settings.oauth.renew_client_secret_supported"
+                     ng-click="$ctrl.renewClientSecret($event)"
+                     permission permission-only="'application-definition-u'">
+            Renew secret
+          </md-button>
         </div>
 
         <md-input-container class="md-block">

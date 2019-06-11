@@ -99,6 +99,31 @@ class ApplicationGeneralController {
     });
   }
 
+  renewClientSecret(ev) {
+    ev.stopPropagation();
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        msg: 'By renewing the client secret, you will no longer be able to generate new access tokens and call APIs.',
+        title: 'Are you sure to renew the client secret?',
+        confirmButton: 'Renew'
+      }
+    }).then( (response) => {
+      if (response) {
+        this.ApplicationService.renewClientSecret(this.application.id)
+          .then((response) => {
+            this.NotificationService.show('Client secret has been renew');
+            this.application = response.data;
+            this.initialApplication = _.cloneDeep(this.application);
+            this.$scope.formApplication.$setPristine();
+          });
+      }
+    });
+  }
+
   updateGrantTypes() {
     this.application.settings.oauth.response_types =
       _.flatMap(this.application.settings.oauth.grant_types,

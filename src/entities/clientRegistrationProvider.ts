@@ -24,6 +24,9 @@ export class ClientRegistrationProvider {
   public client_secret: string;
   public scopes: string[];
   public initial_access_token: string;
+  public renew_client_secret_support: boolean;
+  public renew_client_secret_endpoint: string;
+  public renew_client_secret_method: string;
 
   constructor() {
     'ngInject';

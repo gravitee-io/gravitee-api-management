@@ -208,6 +208,10 @@ class ApplicationService {
     return this.$http.get(this.applicationsURL + application + '/members/permissions');
   }
 
+  renewClientSecret(applicationId: string): ng.IHttpPromise<any> {
+    return this.$http.post(`${this.applicationsURL}${applicationId}/renew_secret`, {});
+  }
+
   getType(application: any): string {
     let applicationType = 'Simple';
     if (application.settings) {

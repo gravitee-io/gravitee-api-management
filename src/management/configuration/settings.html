@@ -41,11 +41,13 @@
                   ng-if="$ctrl.settingsMenu.apiPortalHeader.perm">
                   <a class="execute" ui-sref="{{$ctrl.settingsMenu.apiPortalHeader.goTo}}">API Portal Headers</a>
               </li>
-              <li class="iterable-item" ui-sref-active="aui-nav-selected"
+              <li class="iterable-item"
+                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.identityproviders') }"
                   ng-if="$ctrl.settingsMenu.identityProviders.perm">
                 <a class="execute" ui-sref="{{$ctrl.settingsMenu.identityProviders.goTo}}">Authentication</a>
               </li>
-              <li class="iterable-item" ui-sref-active="aui-nav-selected"
+              <li class="iterable-item"
+                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.clientregistrationproviders') }"
                   ng-if="$ctrl.settingsMenu.clientRegistration.perm">
                 <a class="execute" ui-sref="{{$ctrl.settingsMenu.clientRegistration.goTo}}">Client Registration</a>
               </li>
@@ -68,7 +70,8 @@
                     <a class="execute" ui-sref="{{$ctrl.settingsMenu.topApis.goTo}}">Top APIs</a>
                 </li>
 
-              <li class="iterable-item" ui-sref-active="aui-nav-selected"
+              <li class="iterable-item"
+                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.views') || $ctrl.$state.includes('management.settings.view') || $ctrl.$state.includes('management.settings.viewnew')}"
                   ng-if="$ctrl.settingsMenu.views.perm">
                 <a class="execute" ui-sref="{{$ctrl.settingsMenu.views.goTo}}">Views</a>
               </li>

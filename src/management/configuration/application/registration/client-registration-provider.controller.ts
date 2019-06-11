@@ -32,6 +32,7 @@ class ClientRegistrationProviderController {
   private initialClientRegistrationProvider: ClientRegistrationProvider;
   private updateMode: boolean;
   private initialAccessTokenTypes: any[];
+  private renewClientSecretMethods: string[];
 
   constructor(
     private $scope: IClientRegistrationProviderScope,
@@ -46,6 +47,8 @@ class ClientRegistrationProviderController {
   }
 
   $onInit() {
+    this.renewClientSecretMethods = ['POST', 'PATCH', 'PUT'];
+
     this.initialAccessTokenTypes = [];
     this.initialAccessTokenTypes.push({
       name: 'Client Credentials',
