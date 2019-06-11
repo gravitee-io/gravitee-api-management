@@ -88,7 +88,9 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
             clientRegistrationProviderMongo.setClientSecret(clientRegistrationProvider.getClientSecret());
             clientRegistrationProviderMongo.setScopes(clientRegistrationProvider.getScopes());
             clientRegistrationProviderMongo.setInitialAccessToken(clientRegistrationProvider.getInitialAccessToken());
-
+            clientRegistrationProviderMongo.setRenewClientSecretSupport(clientRegistrationProvider.isRenewClientSecretSupport());
+            clientRegistrationProviderMongo.setRenewClientSecretMethod(clientRegistrationProvider.getRenewClientSecretMethod());
+            clientRegistrationProviderMongo.setRenewClientSecretEndpoint(clientRegistrationProvider.getRenewClientSecretEndpoint());
 
             ClientRegistrationProviderMongo clientRegistrationProviderMongoUpdated = internalClientRegistrationProviderRepository.save(clientRegistrationProviderMongo);
             return map(clientRegistrationProviderMongoUpdated);

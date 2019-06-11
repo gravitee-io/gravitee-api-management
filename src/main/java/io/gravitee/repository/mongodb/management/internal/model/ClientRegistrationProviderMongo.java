@@ -64,6 +64,12 @@ public class ClientRegistrationProviderMongo extends Auditable {
 
     private String initialAccessToken;
 
+    private boolean renewClientSecretSupport;
+
+    private String renewClientSecretEndpoint;
+
+    private String renewClientSecretMethod;
+
     public String getId() {
         return id;
     }
@@ -134,6 +140,30 @@ public class ClientRegistrationProviderMongo extends Auditable {
 
     public void setInitialAccessToken(String initialAccessToken) {
         this.initialAccessToken = initialAccessToken;
+    }
+
+    public boolean isRenewClientSecretSupport() {
+        return renewClientSecretSupport;
+    }
+
+    public void setRenewClientSecretSupport(boolean renewClientSecretSupport) {
+        this.renewClientSecretSupport = renewClientSecretSupport;
+    }
+
+    public String getRenewClientSecretEndpoint() {
+        return renewClientSecretEndpoint;
+    }
+
+    public void setRenewClientSecretEndpoint(String renewClientSecretEndpoint) {
+        this.renewClientSecretEndpoint = renewClientSecretEndpoint;
+    }
+
+    public String getRenewClientSecretMethod() {
+        return renewClientSecretMethod;
+    }
+
+    public void setRenewClientSecretMethod(String renewClientSecretMethod) {
+        this.renewClientSecretMethod = renewClientSecretMethod;
     }
 
     @Override
