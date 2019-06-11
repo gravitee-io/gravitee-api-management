@@ -45,6 +45,9 @@ public class OAuthClientSettings {
     @JsonProperty("application_type")
     private String applicationType;
 
+    @JsonProperty("renew_client_secret_supported")
+    private boolean renewClientSecretSupported;
+
     public List<String> getRedirectUris() {
         return redirectUris;
     }
@@ -107,5 +110,13 @@ public class OAuthClientSettings {
 
     public void setApplicationType(String applicationType) {
         this.applicationType = applicationType;
+    }
+
+    public boolean isRenewClientSecretSupported() {
+        return renewClientSecretSupported;
+    }
+
+    public void setRenewClientSecretSupported(boolean renewClientSecretSupported) {
+        this.renewClientSecretSupported = renewClientSecretSupported;
     }
 }

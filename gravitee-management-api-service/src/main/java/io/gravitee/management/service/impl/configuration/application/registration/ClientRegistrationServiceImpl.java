@@ -18,8 +18,10 @@ package io.gravitee.management.service.impl.configuration.application.registrati
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.model.configuration.application.registration.ClientRegistrationProviderEntity;
@@ -45,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
@@ -119,6 +122,10 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             }
 
             ClientRegistrationProvider clientRegistrationProvider = convert(newClientRegistrationProvider);
+
+            // Check renew_client_secret configuration
+            renewClientSecretSupport(clientRegistrationProvider);
+
             clientRegistrationProvider.setId(UUID.toString(UUID.random()));
 
             DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(
@@ -166,6 +173,10 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             }
 
             ClientRegistrationProvider clientRegistrationProvider = convert(updateClientRegistrationProvider);
+
+            // Check renew_client_secret configuration
+            renewClientSecretSupport(clientRegistrationProvider);
+
             clientRegistrationProvider.setId(id);
 
             DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(
@@ -195,6 +206,23 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update client registration provider {}", updateClientRegistrationProvider, ex);
             throw new TechnicalManagementException("An error occurs while trying to update " + updateClientRegistrationProvider, ex);
+        }
+    }
+
+    private void renewClientSecretSupport(ClientRegistrationProvider provider) {
+        if ( provider.isRenewClientSecretSupport() ) {
+            HttpMethod method = HttpMethod.valueOf(provider.getRenewClientSecretMethod().toUpperCase());
+            if ( method != HttpMethod.POST && method != HttpMethod.PUT && method != HttpMethod.PATCH ) {
+                throw new InvalidRenewClientSecretException();
+            }
+
+            if ( provider.getRenewClientSecretEndpoint() == null ||
+                    (
+                        !provider.getRenewClientSecretEndpoint().startsWith("http://") &&
+                        !provider.getRenewClientSecretEndpoint().startsWith("https://")
+                    )) {
+                throw new InvalidRenewClientSecretException();
+            }
         }
     }
 
@@ -337,6 +365,51 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         }
     }
 
+    @Override
+    public ClientRegistrationResponse renewClientSecret(String previousRegistrationResponse) {
+        try {
+            ClientRegistrationResponse registrationResponse = mapper.readValue(
+                    previousRegistrationResponse, ClientRegistrationResponse.class);
+
+            if (registrationResponse.getRegistrationAccessToken() == null
+                    || registrationResponse.getRegistrationAccessToken().isEmpty()
+                    || registrationResponse.getRegistrationClientUri() == null
+                    || registrationResponse.getRegistrationClientUri().isEmpty()) {
+                throw new RegisteredClientNotUpdatableException();
+            }
+
+            Set<ClientRegistrationProviderEntity> providers = findAll();
+            if (providers == null || providers.isEmpty()) {
+                throw new MissingDynamicClientRegistrationProviderException();
+            }
+
+            // For now, take the first provider
+            ClientRegistrationProviderEntity provider = providers.iterator().next();
+
+            // Get provider client
+            DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(false,
+                    provider);
+
+            String renewClientSecretEndpoint = provider.getRenewClientSecretEndpoint();
+
+            TemplateEngine templateEngine = TemplateEngine.templateEngine();
+            templateEngine.getTemplateContext().setVariable("client_id", registrationResponse.getClientId());
+
+            if (registrationProviderClient instanceof DiscoveryBasedDynamicClientRegistrationProviderClient) {
+                ((DiscoveryBasedDynamicClientRegistrationProviderClient) registrationProviderClient).getMetadata()
+                        .forEach((s, o) -> templateEngine.getTemplateContext().setVariable(s, o));
+            }
+
+            return registrationProviderClient.renewClientSecret(
+                    provider.getRenewClientSecretMethod(),
+                    templateEngine.getValue(renewClientSecretEndpoint, String.class),
+                    registrationResponse.getRegistrationAccessToken());
+        } catch (IOException ioe) {
+            LOGGER.error("Unexpected error while updating a client", ioe);
+            return null;
+        }
+    }
+
     private ClientRegistrationRequest convert(ClientRegistrationRequest request, UpdateApplicationEntity application) {
         request.setClientName(application.getName());
         request.setApplicationType(application.getSettings().getoAuthClient().getApplicationType());
@@ -370,6 +443,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         entity.setName(clientRegistrationProvider.getName());
         entity.setDescription(clientRegistrationProvider.getDescription());
         entity.setDiscoveryEndpoint(clientRegistrationProvider.getDiscoveryEndpoint());
+        entity.setRenewClientSecretSupport(clientRegistrationProvider.isRenewClientSecretSupport());
+        entity.setRenewClientSecretMethod(clientRegistrationProvider.getRenewClientSecretMethod());
+        entity.setRenewClientSecretEndpoint(clientRegistrationProvider.getRenewClientSecretEndpoint());
 
         if (clientRegistrationProvider.getInitialAccessTokenType() == null ||
                 clientRegistrationProvider.getInitialAccessTokenType() == ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS) {
@@ -394,6 +470,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         provider.setName(newClientRegistrationProvider.getName());
         provider.setDescription(newClientRegistrationProvider.getDescription());
         provider.setDiscoveryEndpoint(newClientRegistrationProvider.getDiscoveryEndpoint());
+        provider.setRenewClientSecretSupport(newClientRegistrationProvider.isRenewClientSecretSupport());
+        provider.setRenewClientSecretMethod(newClientRegistrationProvider.getRenewClientSecretMethod());
+        provider.setRenewClientSecretEndpoint(newClientRegistrationProvider.getRenewClientSecretEndpoint());
 
         if (newClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
             provider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
@@ -414,6 +493,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         provider.setName(updateClientRegistrationProvider.getName());
         provider.setDescription(updateClientRegistrationProvider.getDescription());
         provider.setDiscoveryEndpoint(updateClientRegistrationProvider.getDiscoveryEndpoint());
+        provider.setRenewClientSecretSupport(updateClientRegistrationProvider.isRenewClientSecretSupport());
+        provider.setRenewClientSecretMethod(updateClientRegistrationProvider.getRenewClientSecretMethod());
+        provider.setRenewClientSecretEndpoint(updateClientRegistrationProvider.getRenewClientSecretEndpoint());
 
         if (updateClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
             provider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);

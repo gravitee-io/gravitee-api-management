@@ -20,12 +20,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.service.impl.configuration.application.registration.client.register.ClientRegistrationRequest;
 import io.gravitee.management.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -51,64 +54,6 @@ public abstract class DynamicClientRegistrationProviderClient {
     protected CloseableHttpClient httpClient;
 
     protected String registrationEndpoint;
-
-    /*
-    public String getInitialAccessToken() {
-        HttpPost tokenRequest = new HttpPost(tokenEndpoint);
-
-        List<NameValuePair> tokenRequestParams = new ArrayList<>();
-        tokenRequestParams.add(new BasicNameValuePair("grant_type", "client_credentials"));
-
-        if (client.getScopes() != null && !client.getScopes().isEmpty()) {
-            tokenRequestParams.add(new BasicNameValuePair("scope", String.join(" ", client.getScopes())));
-        }
-
-        // In the future, we must being able to handle client authentication according to the
-        // `token_endpoint_auth_methods_supported` property from discovery.
-        tokenRequest.setHeader(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder()
-                .encodeToString((client.getClientId() + ':' + client.getClientSecret()).getBytes()));
-        tokenRequest.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
-        try {
-            tokenRequest.setEntity(new UrlEncodedFormEntity(tokenRequestParams));
-
-            return httpClient.execute(tokenRequest, response -> {
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    HttpEntity entity = response.getEntity();
-
-                    if (entity != null) {
-                        TokenResponse token = mapper.readValue(EntityUtils.toString(entity),
-                                TokenResponse.class);
-
-                        return token.getAccessToken();
-                    } else {
-                        throw new DynamicClientRegistrationException("Token response does not contain any body");
-                    }
-                } else {
-                    String responsePayload = EntityUtils.toString(response.getEntity());
-                    if (responsePayload != null && !responsePayload.isEmpty()) {
-                        try {
-                            JsonNode node = mapper.readTree(responsePayload);
-                            String error = node.path("error").asText();
-                            String description = node.path("error_description").asText();
-                            logger.error("Unexpected response from OIDC Token endpoint: error[{}] description[{}]", error, description);
-                            throw new DynamicClientRegistrationException("Unexpected response from OIDC Token endpoint: error[" + error + "] description["+ description+"]");
-                        } catch (JsonProcessingException ex) {
-                            logger.error("Unexpected response from OIDC Token endpoint: status[{}] message[{}]", status, responsePayload);
-                            throw new DynamicClientRegistrationException("Unexpected response from OIDC Token endpoint: status[" + status + "] message["+ responsePayload+"]");
-                        }
-                    } else {
-                        logger.error("Unexpected response from OIDC Token endpoint: status[{}]", status);
-                        throw new DynamicClientRegistrationException("Unexpected response from OIDC Token endpoint: status[" + status + "]");
-                    }
-                }
-            });
-        } catch (Exception ex) {
-            logger.error("Unexpected error while generating an access_token: " + ex.getMessage(), ex);
-            throw new DynamicClientRegistrationException("Unexpected error while generating an access_token: " + ex.getMessage(), ex);
-        }
-    }
-    */
 
     protected ClientRegistrationResponse register(String initialAccessToken, ClientRegistrationRequest request) {
         HttpPost registerRequest = new HttpPost(registrationEndpoint);
@@ -170,7 +115,7 @@ public abstract class DynamicClientRegistrationProviderClient {
                 ((ObjectNode) reqNode).remove("scope");
             }
 
-            ((ObjectNode) reqNode).put("client_id", "0d7be850-e1ac-4d7a-9cf3-4f1ebd2c4ccb");
+        //    ((ObjectNode) reqNode).put("client_id", "0d7be850-e1ac-4d7a-9cf3-4f1ebd2c4ccb");
 
             updateRequest.setEntity(new StringEntity(
                     mapper.writeValueAsString(reqNode),
@@ -208,6 +153,56 @@ public abstract class DynamicClientRegistrationProviderClient {
         } catch (Exception ex) {
             logger.error("Unexpected error while registering client: " + ex.getMessage(), ex);
             throw new DynamicClientRegistrationException("Unexpected error while registering client: " + ex.getMessage(), ex);
+        }
+    }
+
+    public ClientRegistrationResponse renewClientSecret(String method, String endpoint, String registrationAccessToken) {
+        HttpRequestBase renewRequest = null;
+
+        if (method.equalsIgnoreCase(HttpMethod.POST.name())) {
+            renewRequest = new HttpPost(endpoint);
+        } else if (method.equalsIgnoreCase(HttpMethod.PUT.name())) {
+            renewRequest = new HttpPut(endpoint);
+        } else if (method.equalsIgnoreCase(HttpMethod.PATCH.name())) {
+            renewRequest = new HttpPatch(endpoint);
+        }
+
+        renewRequest.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + registrationAccessToken);
+        renewRequest.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
+
+        try {
+            return httpClient.execute(renewRequest, response -> {
+                int status = response.getStatusLine().getStatusCode();
+                if (status >= 200 && status < 300) {
+                    HttpEntity entity = response.getEntity();
+
+                    if (entity != null) {
+                        return mapper.readValue(EntityUtils.toString(entity), ClientRegistrationResponse.class);
+                    } else {
+                        throw new DynamicClientRegistrationException("Renew client secret response does not contain any body");
+                    }
+                } else {
+                    String responsePayload = EntityUtils.toString(response.getEntity());
+                    if (responsePayload != null && !responsePayload.isEmpty()) {
+                        try {
+                            JsonNode node = mapper.readTree(responsePayload);
+                            String error = node.path("error").asText();
+                            String description = node.path("error_description").asText();
+                            logger.error("Unexpected response from renew client secret endpoint: error[{}] description[{}]", error, description);
+                            throw new DynamicClientRegistrationException("Unexpected response from renew client secret endpoint: error[" + error + "] description["+ description+"]");
+                        } catch (JsonProcessingException ex) {
+                            logger.error("Unexpected response from renew client secret endpoint: status[{}] message[{}]", status, responsePayload);
+                            throw new DynamicClientRegistrationException("Unexpected response from new client secret endpoint: status[" + status + "] message["+ responsePayload+"]");
+                        }
+                    } else {
+                        logger.error("Unexpected response from renew client secret endpoint: status[{}]", status);
+                        throw new DynamicClientRegistrationException("Unexpected response from renew client secret endpoint: status[" + status + "]");
+                    }
+                }
+            });
+        } catch (Exception ex) {
+            logger.error("Unexpected error while renewing client secret: " + ex.getMessage(), ex);
+            throw new DynamicClientRegistrationException("Unexpected error while renewing client secret: " + ex.getMessage(), ex);
         }
     }
 

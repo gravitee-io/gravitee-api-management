@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.application.*;
+import io.gravitee.management.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.management.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -110,6 +111,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     LOGGER.error("The Application {} doesn't have any primary owner.", applicationId);
                     throw new TechnicalException("The Application " + applicationId + " doesn't have any primary owner.");
                 }
+
                 return convert(application.get(), userService.findById(primaryOwnerMembership.get().getUserId()));
             }
 
@@ -419,6 +421,66 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
+    @Override
+    public ApplicationEntity renewClientSecret(String applicationId) {
+        try {
+            LOGGER.debug("Renew client secret for application {}", applicationId);
+
+            Optional<Application> optApplicationToUpdate = applicationRepository.findById(applicationId);
+            if (!optApplicationToUpdate.isPresent()) {
+                throw new ApplicationNotFoundException(applicationId);
+            }
+
+            // Check that client registration is enabled
+            checkClientRegistrationEnabled();
+
+            Application application = optApplicationToUpdate.get();
+            ApplicationEntity applicationEntity = findById(applicationId);
+
+            // Check that the application can be updated with a new client secret
+            if (applicationEntity.getSettings().getoAuthClient() != null &&
+                    applicationEntity.getSettings().getoAuthClient().isRenewClientSecretSupported()) {
+
+
+                ClientRegistrationResponse registrationResponse = clientRegistrationService.renewClientSecret(
+                        application.getMetadata().get("registration_payload"));
+
+                // Update application metadata
+                Map<String, String> metadata = new HashMap<>();
+
+                try {
+                    metadata.put("client_id", registrationResponse.getClientId());
+                    metadata.put("registration_payload", mapper.writeValueAsString(registrationResponse));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+
+                application.setUpdatedAt(new Date());
+
+                metadata.forEach((key, value) -> application.getMetadata().put(key, value));
+
+                Application updatedApplication =  applicationRepository.update(application);
+
+                // Audit
+                auditService.createApplicationAuditLog(
+                        updatedApplication.getId(),
+                        Collections.emptyMap(),
+                        APPLICATION_UPDATED,
+                        updatedApplication.getUpdatedAt(),
+                        optApplicationToUpdate.get(),
+                        updatedApplication);
+
+                return convert(Collections.singleton(updatedApplication)).iterator().next();
+            }
+
+            throw new ApplicationRenewClientSecretException(application.getName());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to renew client secret {}", applicationId, ex);
+            throw new TechnicalManagementException(String.format(
+                    "An error occurs while trying to renew client secret %s", applicationId), ex);
+        }
+    }
+
     private void checkClientRegistrationEnabled() {
         if (!isClientRegistrationEnabled()) {
             throw new IllegalStateException("The client registration is disabled");
@@ -601,6 +663,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                         clientSettings.setResponseTypes(registrationResponse.getResponseTypes());
                         clientSettings.setRedirectUris(registrationResponse.getRedirectUris());
                         clientSettings.setGrantTypes(registrationResponse.getGrantTypes());
+                    }
+
+                    Iterator<ClientRegistrationProviderEntity> clientRegistrationProviderIte = clientRegistrationService.findAll().iterator();
+                    if(clientRegistrationProviderIte.hasNext()) {
+                        clientSettings.setRenewClientSecretSupported(clientRegistrationProviderIte.next().isRenewClientSecretSupport());
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

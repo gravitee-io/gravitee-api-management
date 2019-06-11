@@ -53,6 +53,15 @@ public class NewClientRegistrationProviderEntity {
     @JsonProperty("initial_access_token")
     private String initialAccessToken;
 
+    @JsonProperty("renew_client_secret_support")
+    private boolean renewClientSecretSupport;
+
+    @JsonProperty("renew_client_secret_endpoint")
+    private String renewClientSecretEndpoint;
+
+    @JsonProperty("renew_client_secret_method")
+    private String renewClientSecretMethod;
+
     public String getName() {
         return name;
     }
@@ -115,6 +124,30 @@ public class NewClientRegistrationProviderEntity {
 
     public void setInitialAccessToken(String initialAccessToken) {
         this.initialAccessToken = initialAccessToken;
+    }
+
+    public boolean isRenewClientSecretSupport() {
+        return renewClientSecretSupport;
+    }
+
+    public void setRenewClientSecretSupport(boolean renewClientSecretSupport) {
+        this.renewClientSecretSupport = renewClientSecretSupport;
+    }
+
+    public String getRenewClientSecretEndpoint() {
+        return renewClientSecretEndpoint;
+    }
+
+    public void setRenewClientSecretEndpoint(String renewClientSecretEndpoint) {
+        this.renewClientSecretEndpoint = renewClientSecretEndpoint;
+    }
+
+    public String getRenewClientSecretMethod() {
+        return renewClientSecretMethod;
+    }
+
+    public void setRenewClientSecretMethod(String renewClientSecretMethod) {
+        this.renewClientSecretMethod = renewClientSecretMethod;
     }
 
     @Override

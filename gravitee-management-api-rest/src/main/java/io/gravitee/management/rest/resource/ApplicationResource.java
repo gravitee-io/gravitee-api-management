@@ -100,6 +100,22 @@ public class ApplicationResource extends AbstractResource {
         return applicationService.update(application, updatedApplication);
     }
 
+    @POST
+    @Path("/renew_secret")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Renew the client secret for an OAuth2 application",
+            notes = "User must have APPLICATION_DEFINITION[UPDATE] permission to update an application.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Updated application", response = ApplicationEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
+    })
+    public ApplicationEntity renewClientSecret(
+            @PathParam("application") String application) {
+        return applicationService.renewClientSecret(application);
+    }
+
     @DELETE
     @ApiOperation(value = "Delete an application",
             notes = "User must have the DELETE permission to use this service")

@@ -34,6 +34,7 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
     private final String discoveryEndpoint;
     private final InitialAccessTokenProvider initialAccessTokenProvider;
     private final Map<String, String> attributes = new HashMap<>();
+    private final Map<String, Object> metadata = new HashMap<>();
 
     public DiscoveryBasedDynamicClientRegistrationProviderClient(String discoveryEndpoint, InitialAccessTokenProvider initialAccessTokenProvider) {
         this.discoveryEndpoint = discoveryEndpoint;
@@ -64,10 +65,16 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
 
             registrationEndpoint = discovery.getRegistrationEndpoint();
             attributes.put("token_endpoint", discovery.getTokenEndpoint());
+            metadata.put("registration_endpoint", discovery.getRegistrationEndpoint());
+            metadata.put("token_endpoint", discovery.getTokenEndpoint());
         } catch (Exception ex) {
             logger.error("Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(), ex);
             throw new DynamicClientRegistrationException("Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(), ex);
         }
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
     }
 
     @Override

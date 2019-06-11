@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.configuration.application;
 
+import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.NewApplicationEntity;
 import io.gravitee.management.model.UpdateApplicationEntity;
 import io.gravitee.management.model.configuration.application.registration.ClientRegistrationProviderEntity;
@@ -43,4 +44,6 @@ public interface ClientRegistrationService {
     ClientRegistrationResponse register(NewApplicationEntity application);
 
     ClientRegistrationResponse update(String previousRegistrationResponse, UpdateApplicationEntity application);
+
+    ClientRegistrationResponse renewClientSecret(String previousRegistrationResponse);
 }

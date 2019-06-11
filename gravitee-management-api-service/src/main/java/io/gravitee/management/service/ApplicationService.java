@@ -44,5 +44,7 @@ public interface ApplicationService {
 
     ApplicationEntity update(String applicationId, UpdateApplicationEntity application);
 
+    ApplicationEntity renewClientSecret(String applicationId);
+
     void archive(String applicationId);
 }
