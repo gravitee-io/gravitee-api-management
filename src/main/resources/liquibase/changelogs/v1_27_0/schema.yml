@@ -20,3 +20,16 @@ databaseChangeLog:
                 - column:
                     name: selection_rule
                     type: nvarchar(256)
+
+          - addColumn:
+              tableName: client_registration_providers
+              columns:
+                - column:
+                    name: renew_client_secret_support
+                    type: boolean
+                - column:
+                    name: renew_client_secret_endpoint
+                    type: nvarchar(1000)
+                - column:
+                    name: renew_client_secret_method
+                    type: nvarchar(64)
