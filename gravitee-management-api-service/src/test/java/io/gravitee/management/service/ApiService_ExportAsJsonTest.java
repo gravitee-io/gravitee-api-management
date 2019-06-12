@@ -149,6 +149,12 @@ public class ApiService_ExportAsJsonTest {
             io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
             apiDefinition.setPaths(Collections.emptyMap());
             apiDefinition.setProxy(proxy);
+            ResponseTemplates responseTemplates = new ResponseTemplates();
+            ResponseTemplate responseTemplate = new ResponseTemplate();
+            responseTemplate.setStatusCode(400);
+            responseTemplate.setBody("{\"bad\":\"news\"}");
+            responseTemplates.setTemplates(Collections.singletonMap("*/*", responseTemplate));
+            apiDefinition.setResponseTemplates(Collections.singletonMap("API_KEY_MISSING", responseTemplates));
             String definition = objectMapper.writeValueAsString(apiDefinition);
             api.setDefinition(definition);
         } catch (Exception e) {

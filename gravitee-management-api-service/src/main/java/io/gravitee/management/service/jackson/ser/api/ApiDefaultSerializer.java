@@ -17,9 +17,12 @@ package io.gravitee.management.service.jackson.ser.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.management.model.api.ApiEntity;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -51,6 +54,19 @@ public class ApiDefaultSerializer extends ApiSerializer {
         // proxy part
         if (apiEntity.getProxy() != null) {
             jsonGenerator.writeObjectField("proxy", apiEntity.getProxy());
+        }
+
+        // response templates
+        if (apiEntity.getResponseTemplates() != null) {
+            jsonGenerator.writeObjectFieldStart("response_templates");
+            for(Map.Entry<String, ResponseTemplates> rt : apiEntity.getResponseTemplates().entrySet()) {
+                jsonGenerator.writeObjectFieldStart(rt.getKey());
+                for(Map.Entry<String, ResponseTemplate> entry : rt.getValue().getTemplates().entrySet()) {
+                    jsonGenerator.writeObjectField(entry.getKey(), entry.getValue());
+                }
+                jsonGenerator.writeEndObject();
+            }
+            jsonGenerator.writeEndObject();
         }
 
         // must end the writing process
