@@ -273,20 +273,6 @@ class DashboardController {
     }, {
       row: 1,
       col: 0,
-      sizeY: 2,
-      sizeX: 6,
-      title: 'Geomap',
-      subhead: 'Hits by location',
-      chart: {
-        type: 'map',
-        request: {
-          type: 'group_by',
-          field: 'geoip.country_iso_code'
-        }
-      }
-    }, {
-      row: 3,
-      col: 0,
       sizeY: 1,
       sizeX: 2,
       title: 'Geolocation by country',
@@ -304,8 +290,8 @@ class DashboardController {
         }
       }
     }, {
-      row: 3,
-      col: 2,
+      row: 2,
+      col: 0,
       sizeY: 1,
       sizeX: 2,
       title: 'Geolocation by city',
@@ -320,6 +306,20 @@ class DashboardController {
           field: 'geoip.city_name',
           fieldLabel: 'city',
           size: 20
+        }
+      }
+    }, {
+      row: 1,
+      col: 2,
+      sizeY: 2,
+      sizeX: 4,
+      title: 'Geomap',
+      subhead: 'Hits by location',
+      chart: {
+        type: 'map',
+        request: {
+          type: 'group_by',
+          field: 'geoip.country_iso_code'
         }
       }
     }];

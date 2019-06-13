@@ -245,7 +245,7 @@ class ApiAnalyticsController {
       row: 0,
       col: 0,
       sizeY: 1,
-      sizeX: 2,
+      sizeX: 3,
       title: 'Top applications',
       subhead: 'Ordered by application calls',
       chart: {
@@ -261,9 +261,9 @@ class ApiAnalyticsController {
       }
     }, {
       row: 0,
-      col: 2,
+      col: 3,
       sizeY: 1,
-      sizeX: 2,
+      sizeX: 3,
       title: 'Top plans',
       subhead: 'Hits repartition by API plan',
       chart: {
@@ -279,20 +279,6 @@ class ApiAnalyticsController {
       }
     }, {
       row: 1,
-      col: 0,
-      sizeY: 2,
-      sizeX: 6,
-      title: 'Geomap',
-      subhead: 'Hits by location',
-      chart: {
-        type: 'map',
-        request: {
-          type: 'group_by',
-          field: 'geoip.country_iso_code'
-        }
-      }
-    }, {
-      row: 3,
       col: 0,
       sizeY: 1,
       sizeX: 2,
@@ -311,8 +297,8 @@ class ApiAnalyticsController {
         }
       }
     }, {
-      row: 3,
-      col: 2,
+      row: 2,
+      col: 0,
       sizeY: 1,
       sizeX: 2,
       title: 'Geolocation by city',
@@ -327,6 +313,20 @@ class ApiAnalyticsController {
           field: 'geoip.city_name',
           fieldLabel: 'city',
           size: 20
+        }
+      }
+    }, {
+      row: 1,
+      col: 2,
+      sizeY: 2,
+      sizeX: 4,
+      title: 'Geomap',
+      subhead: 'Hits by location',
+      chart: {
+        type: 'map',
+        request: {
+          type: 'group_by',
+          field: 'geoip.country_iso_code'
         }
       }
     }];
