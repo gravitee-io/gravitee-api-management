@@ -43,8 +43,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -166,7 +165,7 @@ public class ParameterServiceTest {
     }
 
     @Test
-    public void shouldCreateMultipleValueWithExistingParameter() throws TechnicalException {
+    public void shouldNotCreateMultipleValueWithExistingParameter() throws TechnicalException {
         final Parameter parameter = new Parameter();
         parameter.setKey(PORTAL_TOP_APIS.key());
         parameter.setValue("api1");
@@ -176,13 +175,11 @@ public class ParameterServiceTest {
         newParameter.setValue("api1;api1");
 
         when(parameterRepository.findById(PORTAL_TOP_APIS.key())).thenReturn(of(parameter));
-        when(parameterRepository.update(newParameter)).thenReturn(newParameter);
 
         parameterService.save(PORTAL_TOP_APIS, Collections.singletonList("api1"));
 
-        verify(parameterRepository).update(newParameter);
-        verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_UPDATED),
-                any(), eq(parameter), eq(newParameter));
+        verify(parameterRepository, never()).update(newParameter);
+        verify(auditService, never()).createPortalAuditLog(any(), any(), any(), any(), any());
     }
 
     @Test
