@@ -172,24 +172,23 @@ public class HttpClient implements Client {
 
     @Override
     public Single<BulkResponse> bulk(final List<io.vertx.core.buffer.Buffer> data) {
-        return httpClient
-                    .post(URL_BULK)
-                    .putHeader(HttpHeaders.CONTENT_TYPE, "application/x-ndjson")
-                    .rxSendStream(Flowable.fromIterable(data).map(new Function<io.vertx.core.buffer.Buffer, Buffer>() {
-                        @Override
-                        public Buffer apply(io.vertx.core.buffer.Buffer buffer) throws Exception {
-                            return Buffer.newInstance(buffer);
-                        }
-                    }))
-                    .map(response -> {
-                        if (response.statusCode() != HttpStatusCode.OK_200) {
-                            logger.error("Unable to bulk index data: status[{}] response[{}]",
-                                    response.statusCode(), response.body());
-                            throw new ElasticsearchException("Unable to bulk index data");
-                        }
+        // Compact buffer
+        Buffer payload = Buffer.buffer();
+        data.forEach(buffer -> payload.appendBuffer(Buffer.newInstance(buffer)));
 
-                        return mapper.readValue(response.bodyAsString(), BulkResponse.class);
-                    });
+        return httpClient
+                .post(URL_BULK)
+                .putHeader(HttpHeaders.CONTENT_TYPE, "application/x-ndjson")
+                .rxSendBuffer(payload)
+                .map(response -> {
+                    if (response.statusCode() != HttpStatusCode.OK_200) {
+                        logger.error("Unable to bulk index data: status[{}] response[{}]",
+                                response.statusCode(), response.body());
+                        throw new ElasticsearchException("Unable to bulk index data");
+                    }
+
+                    return mapper.readValue(response.bodyAsString(), BulkResponse.class);
+                });
     }
 
     @Override

@@ -60,7 +60,6 @@ class DocumentBulkProcessor implements Subscriber<List<Buffer>> {
     @Override
     public void onNext(List<Buffer> items) {
         client.bulk(items)
-                .subscribeOn(RxHelper.scheduler(vertx.getDelegate()))
                 .subscribe(new DisposableSingleObserver<BulkResponse>() {
                     @Override
                     public void onSuccess(BulkResponse bulkResponse) {
