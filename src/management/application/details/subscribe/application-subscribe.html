@@ -1,0 +1,105 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="gv-forms" layout="column">
+  <application-header application="$ctrl.application" hide-subscribe-link="true"></application-header>
+  <div layout="column" layout-align="space-around center" class="layout-padding">
+    <div layout="row" layout-align="space-around center" class="layout-padding" style="width: 100%;">
+      <md-autocomplete md-input-id="new-view-apis-autocomplete-id"
+                       flex="70"
+                       md-search-text="$ctrl.filterAPI"
+                       md-selected-item-change="$ctrl.onSelectAPI(api)"
+                       md-items="api in $ctrl.apis | filter:$ctrl.filterAPI"
+                       md-item-text="api.name"
+                       placeholder="Select an API to subscribe"
+                       md-autofocus="false"
+                       md-min-length="0"
+                       md-no-cache="true"
+                       md-menu-class="autocomplete-custom-template">
+        <md-item-template>
+          <md-list-item class="md-2-line contact-item">
+            <div class="md-list-item-text" style="margin: 15px 0;">
+              <h3>{{api.name}} <small>{{api.version}}</small></h3>
+            </div>
+          </md-list-item>
+        </md-item-template>
+        <md-not-found>
+          No API matching "{{$ctrl.filterAPI}}" were found.
+        </md-not-found>
+      </md-autocomplete>
+    </div>
+
+    <div class="gv-forms" style="width: 100%;">
+      <div class="gv-form">
+        <div class="gv-form-content">
+          <gravitee-empty-state ng-if="$ctrl.subscribedAPIs.length === 0 && !$ctrl.selectedAPI"
+                                icon="dashboard"
+                                model="API"
+                                message="No API selected for your application"></gravitee-empty-state>
+
+          <div layout="row" layout-wrap class="inset" ng-if="$ctrl.subscribedAPIs.length > 0">
+            <md-table-container style="width: 100%; min-height: 100px; text-align: center;">
+              <table md-table>
+                <thead md-head md-order="query.order">
+                <tr md-row>
+                  <th md-column width="1%" md-order-by="name"><span>Name</span></th>
+                  <th md-column width="1%">Plans</th>
+                  <th md-column width="1%"></th>
+                </tr>
+                </thead>
+                <tbody md-body>
+                <tr md-row ng-repeat="api in $ctrl.subscribedAPIs track by api.id">
+                  <td md-cell nowrap>
+                    <img style="max-height:40px; max-width: 40px;margin-right: 8px;" ng-src="{{::api.picture_url}}"/>
+                    {{api.name}}
+                  </td>
+                  <td md-cell>{{api.plans}}</td>
+                  <td md-cell>
+                    <md-button class="md-icon-button" aria-label="Edit Plans" ng-click="$ctrl.onSelectAPI(api);">
+                      <ng-md-icon icon="settings"></ng-md-icon>
+                      <md-tooltip md-direction="left">Edit Plans</md-tooltip>
+                    </md-button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </md-table-container>
+          </div>
+
+          <div ng-if="$ctrl.plans && $ctrl.selectedAPI" layout="column" flex layout-align="center" class="layout-padding" style="overflow: auto; align-items: center">
+            <div style="width: 100%;">
+              <div flex layout="row">
+                <h4>Choose <b>Echo</b> plans that suit your business</h4>
+                <span flex></span>
+                <md-button class="md-icon-button" aria-label="Finish">
+                  <ng-md-icon icon="close" ng-click="$ctrl.selectedAPI = null; $ctrl.filterAPI = '';"></ng-md-icon>
+                  <md-tooltip>Close the API</md-tooltip>
+                </md-button>
+              </div>
+              <md-divider></md-divider>
+              <div layout="row" layout-align="center" class="layout-padding" flex layout-wrap>
+                <api-plan ng-repeat="plan in $ctrl.plans" plan="plan" subscribable="true" unsubscribable="true" on-subscribe="$ctrl.onSubscribe($ctrl.selectedAPI, plan)" on-unsubscribe="$ctrl.onUnsubscribe($ctrl.selectedAPI, plan)"></api-plan>
+                <h3 ng-if="$ctrl.plans.length === 0">There is no published plan for this API that you can subscribe with this type of application</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

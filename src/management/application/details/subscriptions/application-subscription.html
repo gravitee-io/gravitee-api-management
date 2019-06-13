@@ -16,10 +16,8 @@
 
 -->
 <div class="gv-forms" layout="column">
+  <application-header application="$ctrl.application"></application-header>
   <div class="gv-forms-header">
-    <h1>{{$ctrl.application.name}}
-      <small ng-if="$ctrl.application.type" style="color:grey;">( {{$ctrl.application.type}} )</small>
-    </h1>
     <a ui-sref="management.applications.application.subscriptions.list">Back to subscriptions</a>
   </div>
 

@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationHeaderComponent: ng.IComponentOptions = {
+const ApplicationSubscribeComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
-    hideSubscribeLink: '<'
+    apis: '<',
+    subscriptions: '<'
   },
-  template: require("./application-header.html")
+  template: require('./application-subscribe.html'),
+  controller: 'ApplicationSubscribeController'
 };
 
-export default ApplicationHeaderComponent;
+export default ApplicationSubscribeComponent;

@@ -16,10 +16,7 @@
 
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
-    <h1>{{$ctrl.application.name}}
-        <small ng-if="$ctrl.application.type" style="color:grey;">( {{$ctrl.application.type}} )</small>
-    </h1>
-
+  <application-header application="$ctrl.application"></application-header>
     <div class="gv-form">
         <h2>Analytics</h2>
         <gv-dashboard model="$ctrl.applicationDashboard" on-view-log-click="$ctrl.viewLogs()" access-logs="true"></gv-dashboard>

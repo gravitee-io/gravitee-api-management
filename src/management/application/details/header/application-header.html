@@ -15,29 +15,29 @@
     limitations under the License.
 
 -->
-<div layout="column" layout-align="end-start" layout-padding class="gravitee-application-header" flex>
-  <div class="gravitee-api-header-content inset">
-    <div layout="row" layout-align="start center">
-      <div class="gravitee-application-header-image" layout="column" layout-align="center center"></div>
-      <div flex="70">
-        <h4>{{$ctrl.application.name}}
-          <small ng-if="$ctrl.application.settings.app.type" style="color:grey;">( {{$ctrl.application.settings.app.type}} )</small>
-        </h4>
-        <md-content flex class="gravitee-api-header-description">
-          <div class="gravitee-api-header-read-more" read-more ng-model="$ctrl.application.description" words="false" length="150"></div>
-        </md-content>
-      </div>
+<div layout="column" flex>
+  <div layout="row" layout-align="start center">
+    <div class="gravitee-application-header-image" layout="column" layout-align="center center"></div>
+    <div flex="70">
 
-      <div flex="30" style="text-align: right">
-        <p style="padding: 0; margin: 0;">
-          <span>{{$ctrl.application.owner.displayName}}<md-tooltip md-direction="left">Owner</md-tooltip></span>
-          <span><ng-md-icon icon="person"></ng-md-icon></span>
-        </p>
-        <p style="padding: 0; margin: 0;">
-          <span>{{$ctrl.application.created_at | humanDateFilter}}<md-tooltip md-direction="left">Created at</md-tooltip></span>
-          <span><ng-md-icon icon="timer"></ng-md-icon></span>
-        </p>
-      </div>
+      <h1>{{$ctrl.application.name}}
+        <small ng-if="$ctrl.application.type" style="color:grey;">( {{$ctrl.application.type}} )</small>
+        <md-button ng-if="!$ctrl.hideSubscribeLink" class="md-primary" ui-sref="management.applications.application.subscriptions.subscribe">Subscribe to APIs</md-button>
+      </h1>
+      <md-content flex class="gravitee-api-header-description">
+        <div class="gravitee-api-header-read-more" read-more ng-model="$ctrl.application.description" words="false" length="150"></div>
+      </md-content>
+    </div>
+
+    <div flex="30" style="text-align: right">
+      <p style="padding: 0; margin: 0;">
+        <span>{{$ctrl.application.owner.displayName}}<md-tooltip md-direction="left">Owner</md-tooltip></span>
+        <span><ng-md-icon icon="person"></ng-md-icon></span>
+      </p>
+      <p style="padding: 0; margin: 0;">
+        <span>{{$ctrl.application.created_at | humanDateFilter}}<md-tooltip md-direction="left">Created at</md-tooltip></span>
+        <span><ng-md-icon icon="timer"></ng-md-icon></span>
+      </p>
     </div>
   </div>
 </div>

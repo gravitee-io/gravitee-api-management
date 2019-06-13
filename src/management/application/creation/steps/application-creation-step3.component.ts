@@ -57,12 +57,12 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
       return authorizedSecurity;
     };
 
-    this.getSelectedAPIs = (apis): any[] => {
-      let selectedAPIs = _.uniqBy(this.parent.selectedAPIs, 'id')
+    this.getSelectedAPIs = (): any[] => {
+      let selectedAPIs = _.uniqBy(this.parent.selectedAPIs, 'id');
       _.map(selectedAPIs, (api) => {
         let selectedPlans = _.filter(this.parent.selectedPlans, (plan) => {
           return plan.apis.indexOf(api.id) !== -1;
-        })
+        });
         api.plans = _.join(_.map(selectedPlans, 'name'), ', ');
       });
       return selectedAPIs;

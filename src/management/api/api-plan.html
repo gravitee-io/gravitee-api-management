@@ -24,9 +24,9 @@
           <span style="font-size: 12px;">Authentication: {{$ctrl.plan.security}}</span>
         </div>
         <span flex></span>
-        <span ng-if="$ctrl.plan.alreadySubscribed && $ctrl.unsubscribable">
+        <span ng-if="$ctrl.plan.alreadySubscribed && $ctrl.unsubscribable && !$ctrl.plan.pending">
             <md-tooltip md-direction="top">Unsubscribe</md-tooltip>
-            <ng-md-icon style="fill: grey;" icon="cancel" ng-click="$ctrl.unsubscribe();"></ng-md-icon>
+            <ng-md-icon style="fill: grey;" icon="cancel" ng-click="$ctrl.unsubscribe();" disabled></ng-md-icon>
           </span>
       </div>
     </md-toolbar>
@@ -46,6 +46,7 @@
       <md-button ng-if="$ctrl.plan.security !== 'key_less' || $ctrl.plan.security === undefined" class="md-primary md-raised" aria-label="Execute"
                  ng-click="$ctrl.subscribe()" ng-disabled="!$ctrl.subscribable || $ctrl.plan.alreadySubscribed">
         {{$ctrl.plan.alreadySubscribed ? 'Subscribed' : ($ctrl.plan.validation === 'auto'?'Subscribe': 'Request for subscription')}}
+        {{$ctrl.plan.pending ? '(pending)' : ''}}
       </md-button>
       <md-button ng-if="$ctrl.plan.security === 'key_less'" class="md-primary md-raised" aria-label="Execute" ng-disabled="true">
         No subscription required

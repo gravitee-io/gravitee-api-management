@@ -17,10 +17,7 @@
 -->
 <form name="formApplication" ng-submit="$ctrl.update()" novalidate>
   <div class="gv-forms" layout="column" permission permission-only="'application-definition-r'">
-    <h1>{{$ctrl.application.name}}
-      <small ng-if="$ctrl.application.type" style="color:grey;">( {{$ctrl.application.type}} )</small>
-    </h1>
-
+    <application-header application="$ctrl.application"></application-header>
     <div class="gv-form">
       <h2>General</h2>
       <div class="gv-form-content" layout="column">

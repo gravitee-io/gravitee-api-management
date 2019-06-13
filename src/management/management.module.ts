@@ -100,7 +100,7 @@ import ApplicationService from '../services/application.service';
 import ApplicationsComponent from './application/applications.component';
 import ApplicationsController from './application/applications.controller';
 
-import CreateApplicationsComponent from './application/creation/steps/application-creation.component';
+import ApplicationCreationComponent from './application/creation/steps/application-creation.component';
 import ApplicationCreationController from './application/creation/steps/application-creation.controller';
 import ApplicationCreationStep1Component from './application/creation/steps/application-creation-step1.component';
 import ApplicationCreationStep2Component from './application/creation/steps/application-creation-step2.component';
@@ -398,6 +398,8 @@ import angular = require('angular');
 import ngInfiniteScroll = require('ng-infinite-scroll');
 import DialogReviewController from "./api/review/reviewDialog.controller";
 import DialogRequestForChangesController from "./api/portal/general/dialog/requestForChanges.controller";
+import ApplicationSubscribeComponent from "./application/details/subscribe/application-subscribe.component";
+import ApplicationSubscribeController from "./application/details/subscribe/application-subscribe.controller";
 
 (<any>window).traverse = traverse;
 
@@ -710,7 +712,10 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('applications', ApplicationsComponent)
   .component('application', ApplicationComponent)
 
-  .component('createApplication', CreateApplicationsComponent)
+  .component('applicationSubscribe', ApplicationSubscribeComponent)
+  .controller('ApplicationSubscribeController', ApplicationSubscribeController)
+
+  .component('createApplication', ApplicationCreationComponent)
   .controller('ApplicationCreationController', ApplicationCreationController)
   .component('applicationCreationStep1', ApplicationCreationStep1Component)
   .component('applicationCreationStep2', ApplicationCreationStep2Component)

@@ -155,6 +155,21 @@ function applicationsConfig($stateProvider) {
         }
       }
     })
+    .state('management.applications.application.subscriptions.subscribe', {
+      url: '/subscribe',
+      component: 'applicationSubscribe',
+      resolve: {
+        apis: (ApiService: ApiService) => ApiService.list(null, true).then(response => response.data),
+        subscriptions: ($stateParams, ApplicationService: ApplicationService) =>
+          ApplicationService.listSubscriptions($stateParams.applicationId).then(response => response.data)
+      },
+      data: {
+        devMode: true,
+        perms: {
+          only: ['application-subscription-r']
+        }
+      }
+    })
     .state('management.applications.application.members', {
       url: '/members',
       component: 'applicationMembers',
