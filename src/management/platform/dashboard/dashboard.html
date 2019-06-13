@@ -19,13 +19,16 @@
   <div class="gv-forms gv-forms-fluid" layout="column">
     <div layout="row">
       <h1 flex>Platform Overview</h1>
-      <md-input-container>
-        <md-select ng-model="dashboardCtrl.dashboard" ng-change="dashboardCtrl.onDashboardChanged(dashboardCtrl.dashboard.id)" aria-label="Dashboard selection">
-          <md-option ng-repeat="dashboard in dashboardCtrl.dashboards" ng-value="dashboard">
-            {{dashboard.label}}
-          </md-option>
-        </md-select>
-      </md-input-container>
+      <div layout="row">
+        <label style="padding: 27px">Select a dashboard</label>
+        <md-input-container>
+          <md-select ng-model="dashboardCtrl.dashboard" ng-change="dashboardCtrl.onDashboardChanged(dashboardCtrl.dashboard.id)" aria-label="Dashboard selection">
+            <md-option ng-repeat="dashboard in dashboardCtrl.dashboards" ng-value="dashboard">
+              {{dashboard.label}}
+            </md-option>
+          </md-select>
+        </md-input-container>
+      </div>
     </div>
 
     <div class="gv-form">
