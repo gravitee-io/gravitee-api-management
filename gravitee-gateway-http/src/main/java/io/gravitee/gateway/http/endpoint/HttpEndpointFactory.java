@@ -24,8 +24,9 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -65,23 +66,20 @@ public final class HttpEndpointFactory extends TemplateAwareEndpointFactory<io.g
     @Override
     protected HttpEndpoint create0(io.gravitee.definition.model.endpoint.HttpEndpoint endpoint) {
 
-        try {
-            URL url = new URL(endpoint.getTarget());
-            if (url.getPath().isEmpty()) {
-                logger.warn("HTTP endpoint target URL is malformed for endpoint [{} - {}]. Set default path to '/'",
-                        endpoint.getName(), endpoint.getTarget());
-                endpoint.setTarget(endpoint.getTarget() + '/');
-            }
+        URI uri = getURI(endpoint.getTarget());
 
-            VertxHttpClient httpClient = new VertxHttpClient(endpoint);
-
-            applicationContext.getAutowireCapableBeanFactory().autowireBean(httpClient);
-
-            return new HttpEndpoint(endpoint, httpClient);
-        } catch (MalformedURLException murle) {
-            logger.error("HTTP endpoint target URL is malformed", murle);
-            throw new IllegalStateException("HTTP endpoint target URL is malformed: " + endpoint.getTarget());
+        if (uri.getPath().isEmpty()) {
+            logger.debug("HTTP endpoint target URL is malformed for endpoint [{} - {}]. Set default path to '/'",
+                    endpoint.getName(), endpoint.getTarget());
+            endpoint.setTarget(endpoint.getTarget() + '/');
         }
+
+        VertxHttpClient httpClient = new VertxHttpClient(endpoint);
+
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(httpClient);
+
+        return new HttpEndpoint(endpoint, httpClient);
+
     }
 
     private String convert(String value) {
@@ -90,6 +88,22 @@ public final class HttpEndpointFactory extends TemplateAwareEndpointFactory<io.g
         }
 
         return value;
+    }
+
+    private URI getURI(String target) {
+        if (target != null) {
+            try {
+                URI uri = new URI(target);
+                Objects.requireNonNull(uri.getScheme(), "no null scheme accepted");
+                Objects.requireNonNull(uri.getHost(), "no null host accepted");
+                return uri;
+            } catch (URISyntaxException e) {
+                logger.error("HTTP endpoint target URL is malformed", e);
+                throw new IllegalStateException("HTTP endpoint target URI is malformed: " + target);
+            }
+        }
+        logger.error("HTTP endpoint target URL is null");
+        throw new IllegalStateException("HTTP endpoint target URI is null");
     }
 
     @Override
