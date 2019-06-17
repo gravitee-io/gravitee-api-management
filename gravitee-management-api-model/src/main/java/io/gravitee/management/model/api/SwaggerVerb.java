@@ -26,9 +26,8 @@ public class SwaggerVerb {
     private String verb;
     private String description;
     private String responseStatus;
-    private String responseType;
     private Map<String, Object> responseProperties;
-    private Object responseExample;
+    private boolean array;
 
     public String getVerb() {
         return verb;
@@ -54,14 +53,6 @@ public class SwaggerVerb {
         this.responseStatus = responseStatus;
     }
 
-    public String getResponseType() {
-        return responseType;
-    }
-
-    public void setResponseType(String responseType) {
-        this.responseType = responseType;
-    }
-
     public Map<String, Object> getResponseProperties() {
         return responseProperties;
     }
@@ -70,11 +61,11 @@ public class SwaggerVerb {
         this.responseProperties = responseProperties;
     }
 
-    public Object getResponseExample() {
-        return responseExample;
+    public boolean isArray() {
+        return array;
     }
 
-    public void setResponseExample(Object responseExample) {
-        this.responseExample = responseExample;
+    public void setArray(boolean array) {
+        this.array = array;
     }
 }

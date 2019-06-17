@@ -30,6 +30,8 @@ import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -167,7 +169,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
     }
 
     public enum Version {
-        DEFAULT("default"), V_1_15("1.15");
+        DEFAULT("default"), V_1_15("1.15"), V_1_20("1.20");
         private final String version;
 
         Version(String version) {
@@ -220,5 +222,19 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         public void setUsername(String username) {
             this.username = username;
         }
+    }
+
+
+    private static Pattern uid = Pattern.compile("uid=(.*?),");
+    public static  String getUsernameFromSourceId(String sourceId) {
+        if (sourceId == null) {
+            return null;
+        }
+
+        Matcher matcher = uid.matcher(sourceId);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return sourceId;
     }
 }

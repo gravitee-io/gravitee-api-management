@@ -37,6 +37,7 @@ import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
@@ -67,7 +68,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.util.Collections.emptyMap;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toMap;
 
@@ -328,7 +329,7 @@ public class SwaggerServiceImpl implements SwaggerService {
                             if (responseSchema != null) {
                                 if (responseSchema instanceof ArrayModel) {
                                     final ArrayModel arrayModel = (ArrayModel) responseSchema;
-                                    swaggerVerb.setResponseType(arrayModel.getType());
+                                    swaggerVerb.setArray(true);
                                     if (arrayModel.getItems() instanceof RefProperty) {
                                         final String simpleRef = ((RefProperty) arrayModel.getItems()).getSimpleRef();
                                         swaggerVerb.setResponseProperties(getResponseFromSimpleRef(swagger, simpleRef));
@@ -336,18 +337,15 @@ public class SwaggerServiceImpl implements SwaggerService {
                                         swaggerVerb.setResponseProperties(getResponseProperties(swagger, ((ObjectProperty) arrayModel.getItems()).getProperties()));
                                     }
                                 } else if (responseSchema instanceof RefModel) {
-                                    swaggerVerb.setResponseType("object");
                                     final String simpleRef = ((RefModel) responseSchema).getSimpleRef();
                                     swaggerVerb.setResponseProperties(getResponseFromSimpleRef(swagger, simpleRef));
                                 } else if (responseSchema instanceof ModelImpl) {
                                     final ModelImpl model = (ModelImpl) responseSchema;
-                                    swaggerVerb.setResponseType(model.getType());
+                                    swaggerVerb.setArray("array".equals(model.getType()));
                                     if ("object".equals(model.getType())) {
                                         if (model.getAdditionalProperties() != null) {
                                             swaggerVerb.setResponseProperties(Collections.singletonMap("additionalProperty", model.getAdditionalProperties().getType()));
                                         }
-                                    } else {
-                                        swaggerVerb.setResponseType(model.getType());
                                     }
                                 }
                             }
@@ -490,9 +488,10 @@ public class SwaggerServiceImpl implements SwaggerService {
             final io.swagger.v3.oas.models.media.MediaType mediaType =
                     responseEntry.getValue().getContent().entrySet().iterator().next().getValue();
             if (mediaType.getExample() != null) {
-                swaggerVerb.setResponseExample(mapper.convertValue(mediaType.getExample(), Map.class));
+                swaggerVerb.setResponseProperties(mapper.convertValue(mediaType.getExample(), Map.class));
             } else if (mediaType.getExamples() != null) {
-                swaggerVerb.setResponseExample(mediaType.getExamples().entrySet().iterator().next().getValue().getValue());
+                final Entry<String, Example> next = mediaType.getExamples().entrySet().iterator().next();
+                swaggerVerb.setResponseProperties(singletonMap(next.getKey(), next.getValue().getValue()));
             } else {
                 final Schema responseSchema = mediaType.getSchema();
                 if (responseSchema != null) {
@@ -511,26 +510,44 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     private void processResponseSchema(SwaggerParseResult swagger, SwaggerVerb swaggerVerb, String type, Schema responseSchema) {
         if (responseSchema.getProperties() == null) {
-            swaggerVerb.setResponseType(type);
+            swaggerVerb.setArray("array".equals(type));
             if (responseSchema.getAdditionalProperties() != null) {
                 swaggerVerb.setResponseProperties(Collections.singletonMap("additionalProperty", ((ObjectSchema) responseSchema.getAdditionalProperties()).getType()));
             } else if (responseSchema.get$ref() != null) {
                 if (!"array".equals(type)) {
-                    final String typeByRef = getTypeByRef(swagger, responseSchema.get$ref());
-                    if (typeByRef != null) {
-                        swaggerVerb.setResponseType(typeByRef);
-                    }
+                    swaggerVerb.setArray(isRefArray(swagger, responseSchema.get$ref()));
                 }
                 swaggerVerb.setResponseProperties(getResponseFromSimpleRef(swagger, responseSchema.get$ref()));
+            } else {
+                swaggerVerb.setResponseProperties(singletonMap(responseSchema.getType(), getResponsePropertiesFromType(responseSchema.getType())));
             }
         } else {
-            swaggerVerb.setResponseExample(getResponseExample(responseSchema.getProperties()));
+            swaggerVerb.setResponseProperties(getResponseExample(responseSchema.getProperties()));
         }
     }
 
-    private String getTypeByRef(SwaggerParseResult swagger, String ref) {
+    private boolean isRefArray(SwaggerParseResult swagger, final String ref) {
         final String simpleRef = ref.substring(ref.lastIndexOf('/') + 1);
-        return swagger.getOpenAPI().getComponents().getSchemas().get(simpleRef).getType();
+        final Schema schema = swagger.getOpenAPI().getComponents().getSchemas().get(simpleRef);
+        return schema instanceof ArraySchema;
+    }
+
+    private Object getResponsePropertiesFromType(final String responseType) {
+        final Random random = new Random();
+        switch (responseType) {
+            case "string":
+                return "Mocked string";
+            case "boolean":
+                return random.nextBoolean();
+            case "integer":
+                return random.nextInt(1000);
+            case "number":
+                return random.nextDouble();
+            case "array":
+                return singletonList(getResponsePropertiesFromType("string"));
+            default:
+                return emptyMap();
+        }
     }
 
     private Map<String, Object> getResponseFromSimpleRef(SwaggerParseResult swagger, String ref) {
@@ -538,7 +555,12 @@ public class SwaggerServiceImpl implements SwaggerService {
         final Schema schema = swagger.getOpenAPI().getComponents().getSchemas().get(simpleRef);
 
         if (schema instanceof ArraySchema) {
-            return getResponseFromSimpleRef(swagger, ((ArraySchema) schema).getItems().get$ref());
+            final Schema<?> items = ((ArraySchema) schema).getItems();
+            if (items.get$ref() != null) {
+                return getResponseFromSimpleRef(swagger, items.get$ref());
+            } else {
+                return singletonMap(items.getType(), singletonList(items.getExample()));
+            }
         } else if (schema instanceof ComposedSchema) {
             final Map<String, Object> response = new HashMap<>();
             ((ComposedSchema) schema).getAllOf().forEach(composedSchema -> {
@@ -560,10 +582,32 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     private Map<String, Object> getResponseProperties(final SwaggerParseResult swagger, final Map<String, Schema> properties) {
         return properties.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> {
-            if (e.getValue().getType() != null) {
-                return e.getValue().getType();
+            final String type = e.getValue().getType();
+            if (type != null) {
+                final Object example = e.getValue().getExample();
+                if (example == null) {
+                    final List enums = e.getValue().getEnum();
+                    if (enums == null) {
+                        if (type.equals("object")) {
+                            return getResponseProperties(swagger, e.getValue().getProperties());
+                        } else if (type.equals("array")) {
+                            return singletonList(((ArraySchema) e.getValue()).getItems().getExample());
+                        }
+                        return getResponsePropertiesFromType(type);
+                    } else {
+                        return enums.get(0);
+                    }
+                } else {
+                    return example;
+                }
             } else {
-                return getResponseFromSimpleRef(swagger, e.getValue().get$ref());
+                final String simpleRef = e.getValue().get$ref().substring(e.getValue().get$ref().lastIndexOf('/') + 1);
+                final Schema schema = swagger.getOpenAPI().getComponents().getSchemas().get(simpleRef);
+                if (schema instanceof ArraySchema) {
+                    return singletonList(((ArraySchema) schema).getItems().getExample());
+                } else {
+                    return getResponseFromSimpleRef(swagger, e.getValue().get$ref());
+                }
             }
         }));
     }
