@@ -112,17 +112,17 @@ public abstract class AbstractIndexer implements Indexer {
     }
 
     protected Buffer transform(Reportable reportable) {
-                        if (reportable instanceof Metrics) {
-                            return getSource((Metrics) reportable, pipelineConfiguration.getPipeline());
-                        } else if (reportable instanceof EndpointStatus) {
-                            return getSource((EndpointStatus) reportable);
-                        } else if (reportable instanceof Monitor) {
-                            return getSource((Monitor) reportable);
-                        } else if (reportable instanceof Log) {
-                            return getSource((Log) reportable);
-                        }
+        if (reportable instanceof Metrics) {
+            return getSource((Metrics) reportable, pipelineConfiguration.getPipeline());
+        } else if (reportable instanceof EndpointStatus) {
+            return getSource((EndpointStatus) reportable);
+        } else if (reportable instanceof Monitor) {
+            return getSource((Monitor) reportable);
+        } else if (reportable instanceof Log) {
+            return getSource((Log) reportable);
+        }
 
-                        return null;
+        return null;
     }
 
     /**
