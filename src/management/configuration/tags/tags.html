@@ -38,10 +38,10 @@
           </tr>
           </thead>
           <tbody md-body>
-          <tr md-row ng-repeat="tag in $ctrl.tags | orderBy: order" ui-sref="management.settings.tag({tagId: tag.id})"
+          <tr md-row ng-repeat="tag in $ctrl.tags | orderBy: order"
               ng-mouseover="hovered = true && tag.id" ng-mouseout="hovered = false">
             <td md-cell>
-              {{tag.id}}
+              <a ui-sref="management.settings.tag({tagId: tag.id})">{{tag.id}}</a>
               <span style="position: absolute">
                   <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
                   <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"
@@ -109,7 +109,7 @@
   <gravitee-empty-state ng-if="$ctrl.tags.length == 0" icon="label" message="There is no sharding tag to manage"></gravitee-empty-state>
   <div ng-style="{'text-align': $ctrl.tags.length == 0 ? 'center' : 'none' }">
     <md-button permission permission-only="['management-tag-c']"
-               ng-class="{'md-fab-bottom-right': $ctrl.tags.length > 0}" class="md-fab"
+               ng-class="{'md-fab-bottom-right md-fab-scrollable': $ctrl.tags.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}" class="md-fab"
                aria-label="Add"
                ng-click="$ctrl.showAddTagModal()" ui-sref="management.settings.tag({tagId: 'new'})">
       <ng-md-icon icon="add"></ng-md-icon>

@@ -15,11 +15,17 @@
  */
 import * as _ from 'lodash';
 import TopApiService from '../../../services/top-api.service';
+import NotificationService from "../../../services/notification.service";
+import {IScope} from 'angular';
 
 class TopApisController {
   private topApis: any[];
 
-  constructor(private TopApiService: TopApiService, private $mdDialog: angular.material.IDialogService, private NotificationService) {
+  constructor(private TopApiService: TopApiService,
+              private $mdDialog: angular.material.IDialogService,
+              private NotificationService: NotificationService,
+              private $rootScope: IScope) {
+    this.$rootScope = $rootScope;
     'ngInject';
   }
 

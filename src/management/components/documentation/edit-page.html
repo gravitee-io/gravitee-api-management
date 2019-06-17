@@ -35,7 +35,8 @@
           <md-button ng-if="$ctrl.page.metadata.edit_url" type="button" style="padding: 0 6px;"
                      target="_blank" href="{{$ctrl.page.metadata.edit_url}}"
                      aria-label="Edit">
-            <ng-md-icon icon="open_in_new" style="fill: #212121;padding: 0;vertical-align: inherit;"></ng-md-icon>
+              <md-icon md-svg-icon="assets/logo_{{$ctrl.page.metadata.provider_name | lowercase}}-fetcher.svg"
+                       style="height:24px; padding:0; vertical-align:inherit;"></md-icon>
             Edit on {{$ctrl.page.metadata.provider_name}}
           </md-button>
         </div>
@@ -62,7 +63,7 @@
         <div class="gv-form-content" layout="column">
 
             <div ng-if="editorReadonly" class="gv-page-draft-banner">
-                <ng-md-icon icon="warning" style="fill: #ce4844"></ng-md-icon>
+                <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
                 Page's content is retrieved from an external source. If you want to edit content manually, <a ng-click="$ctrl.goToExternalSource()">please change the configuration</a>.
             </div>
             <md-tabs md-dynamic-height md-selected="$ctrl.selectedTab">
@@ -127,7 +128,10 @@
                         <div ng-if="$ctrl.page.type === 'SWAGGER'" layout="column">
                             <h3>Swagger</h3>
                             <md-checkbox ng-model="$ctrl.page.configuration.tryIt" ng-true-value="'true'" ng-false-value="'false'">
-                                Enable "Try it!" mode
+                              Enable "Try it!" mode
+                            </md-checkbox>
+                            <md-checkbox ng-model="$ctrl.page.configuration.tryItAnonymous" ng-true-value="'true'" ng-false-value="'false'">
+                              Allow "Try it!" for anonymous users
                             </md-checkbox>
                             <md-input-container class="md-block">
                                 <label>Base URL</label>

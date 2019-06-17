@@ -17,6 +17,7 @@ import * as _ from 'lodash';
 import MetadataService from '../../../services/metadata.service';
 import NotificationService from '../../../services/notification.service';
 import UserService from "../../../services/user.service";
+import {IScope} from 'angular';
 
 class MetadataController {
   private metadata: any;
@@ -26,8 +27,10 @@ class MetadataController {
     private MetadataService: MetadataService,
     private NotificationService: NotificationService,
     private $mdDialog: angular.material.IDialogService,
-    private UserService: UserService) {
+    private UserService: UserService,
+    private $rootScope: IScope) {
     'ngInject';
+    this.$rootScope = $rootScope;
   }
 
   newMetadata() {

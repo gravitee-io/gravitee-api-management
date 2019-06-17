@@ -18,7 +18,7 @@
 <div layout="row">
   <div id="page-content" layout-padding ng-switch="$ctrl.page.type" flex="{{ $ctrl.sidenav ? 75 : 100 }}">
     <div class="gv-page-draft-banner" ng-if="!$ctrl.edit && !$ctrl.page.published">
-      <ng-md-icon icon="warning" style="fill: #ce4844"></ng-md-icon>
+      <ng-md-icon icon="warning" class="gv-warning" ></ng-md-icon>
       This page is not published yet and will not be visible to other users
     </div>
     
@@ -38,7 +38,7 @@
 
     <div ng-switch-when="RAML">
       <div class="gv-page-draft-banner">
-        <ng-md-icon icon="warning" style="fill: #ce4844"></ng-md-icon>
+        <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
         The RAML format is no longer supported and will be completely removed in a future version
       </div>
       {{$ctrl.page.content}}

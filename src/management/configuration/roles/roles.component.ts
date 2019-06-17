@@ -43,10 +43,6 @@ const RolesComponent: ng.IComponentOptions = {
       this.rolesByScope['APPLICATION'] = this.applicationRoles;
     };
 
-    this.editRole = (role) => {
-      $state.go('management.settings.roleedit', {roleScope: role.scope, role: role.name});
-    };
-
     this.newRole = (roleScope) => {
       $state.go('management.settings.rolenew', {roleScope: roleScope});
     };

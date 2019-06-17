@@ -43,10 +43,13 @@
               </tr>
               </thead>
               <tbody md-body>
-              <tr md-row ui-sref="management.applications.application.general({applicationId: application.id})"
-                  ng-repeat="application in $ctrl.applicationsToDisplay track by application.id">
-                <td md-cell nowrap><div style="min-width: 70px" class="api-box-icon default"></div></td>
-                <td md-cell>{{application.name}}</td>
+              <tr md-row ng-repeat="application in $ctrl.applicationsToDisplay track by application.id">
+                <td md-cell nowrap><div style="min-width: 70px;" class="api-box-icon default"></div></td>
+                <td md-cell>
+                  <a ui-sref="management.applications.application.general({applicationId: application.id})">
+                    {{application.name}}
+                  </a>
+                </td>
                 <td md-cell nowrap>{{application.type | lowercase}}</td>
                 <td md-cell nowrap>
               <span>

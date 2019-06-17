@@ -18,6 +18,7 @@ import GroupService from "../../../services/group.service";
 import NotificationService from "../../../services/notification.service";
 import UserService from "../../../services/user.service";
 import { StateService } from '@uirouter/core';
+import {IScope} from 'angular';
 
 const GroupsComponent: ng.IComponentOptions = {
   bindings: {
@@ -29,10 +30,11 @@ const GroupsComponent: ng.IComponentOptions = {
     UserService: UserService,
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
-    $state: StateService
+    $state: StateService,
+    $rootScope: IScope
   ) {
     'ngInject';
-
+    this.$rootScope = $rootScope;
     this.$onInit = () => {
       this.initEventRules();
     };
@@ -139,10 +141,11 @@ const GroupsComponent: ng.IComponentOptions = {
       }
     };
 
-    this.selectGroup = (group: any) => {
+    this.selectGroupUrl = (group: any) => {
       if (group.manageable) {
-        $state.go('management.settings.group', {groupId: group.id});
+        return $state.href('management.settings.group', {groupId: group.id});
       }
+      return null;
     };
   }
 };

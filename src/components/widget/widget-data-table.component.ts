@@ -70,9 +70,9 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
 
     this.goto = function(key) {
       if (this.widget.chart.link === 'api') {
-        this.$state.go('management.apis.detail.analytics.overview', {apiId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q:this.widget.chart.request.query});
+        return this.$state.href('management.apis.detail.analytics.overview', {apiId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q:this.widget.chart.request.query});
       } else if (this.widget.chart.link === 'application') {
-        this.$state.go('management.applications.application.analytics', {applicationId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q:this.widget.chart.request.query});
+        return this.$state.href('management.applications.application.analytics', {applicationId: key, from: this.widget.chart.request.from, to: this.widget.chart.request.to, q:this.widget.chart.request.query});
       }
     }
   }

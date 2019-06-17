@@ -17,6 +17,7 @@ import UserService from "../../../services/user.service";
 import NotificationService from "../../../services/notification.service";
 import {User} from "../../../entities/user";
 import { StateService } from '@uirouter/core';
+import {IScope} from "angular";
 
 const UsersComponent: ng.IComponentOptions = {
   bindings: {
@@ -27,10 +28,11 @@ const UsersComponent: ng.IComponentOptions = {
     UserService: UserService,
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
-    $state: StateService
+    $state: StateService,
+    $rootScope: IScope
   ) {
     'ngInject';
-
+    this.$rootScope = $rootScope;
     this.$onInit = () => {
       this.onPaginate = this.onPaginate.bind(this);
       this.query = $state.params.q;
@@ -62,10 +64,6 @@ const UsersComponent: ng.IComponentOptions = {
       UserService.list(this.query, page).then((response)=> {
         this.usersPage = response.data;
       });
-    };
-
-    this.selectUser = (user) => {
-      $state.go('management.settings.user', {userId: user.id});
     };
 
     this.getUserPicture = (user) => {

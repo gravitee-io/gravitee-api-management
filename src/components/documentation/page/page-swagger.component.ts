@@ -49,7 +49,8 @@ const PageSwaggerComponent: ng.IComponentOptions = {
       }
 
       this.tryItEnabled = () => {
-        return !_.isNil(this.page.configuration) && this.page.configuration.tryIt === 'true' && UserService.isAuthenticated();
+        return !_.isNil(this.page.configuration) && this.page.configuration.tryIt === 'true' &&
+          (UserService.isAuthenticated() || this.page.configuration.tryItAnonymous === 'true');
       };
 
       const plugins = [];

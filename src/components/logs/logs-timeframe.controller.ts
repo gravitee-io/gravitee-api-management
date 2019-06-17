@@ -216,7 +216,9 @@ class LogsTimeframeController {
     };
 
     this.$state.transitionTo(
-      this.$state.current, _.merge(this.$state.params, this.current));
+      this.$state.current,
+      _.merge(this.$state.params, this.current),
+      {notify: false});
 
     this.pickerStartDate = moment(timeframe.from);
     this.pickerEndDate = moment(timeframe.to);

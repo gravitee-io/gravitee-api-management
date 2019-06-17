@@ -44,7 +44,7 @@
         <tbody md-body>
         <tr md-row ng-repeat="user in $ctrl.usersPage.data | orderBy: orderUser">
             <td md-cell>
-              <a ng-click="$ctrl.selectUser(user)">
+              <a ui-sref="management.settings.user({userId: user.id})">
                 <img ng-src="{{$ctrl.getUserPicture(user)}}" class="md-avatar" alt="User picture" />
                 {{user.displayName}}
               </a>
@@ -72,7 +72,9 @@
     </div>
 </div>
 
-<md-button ng-click="$ctrl.newUser()" aria-label="Add user" class="md-fab md-fab-bottom-right">
+
+<md-button ng-click="$ctrl.newUser()" aria-label="Add user" class="md-fab md-fab-bottom-right md-fab-scrollable"
+           ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}">
   <md-tooltip md-direction="top" md-visible="false">Add user</md-tooltip>
   <ng-md-icon icon="add"></ng-md-icon>
 </md-button>

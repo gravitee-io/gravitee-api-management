@@ -272,7 +272,7 @@
 
 <md-button ng-if="!$ctrl.isSuperAdmin() && !($ctrl.group.system_invitation && $ctrl.group.email_invitation) && ($ctrl.group.system_invitation || $ctrl.group.email_invitation)"
            ng-click="$ctrl.group.system_invitation?$ctrl.showAddMemberModal(): $ctrl.showInviteMemberModal()" aria-label="Add member" class="md-fab md-fab-bottom-right md-fab-scrollable"
-           ng-class="{'gv-help-displayed-btn': $ctrl.$rootScope.helpDisplayed}">
+           ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}">
   <md-tooltip md-direction="top" md-visible="false">Add member</md-tooltip>
   <ng-md-icon icon="add"></ng-md-icon>
 </md-button>

@@ -63,8 +63,8 @@
         <section>
           <md-subheader>Subscriptions</md-subheader>
 
-          <div layout-gt-sm="row">
-            <md-input-container class="md-block" flex>
+          <div layout-gt-md="row">
+            <md-input-container class="md-block" flex-gt-md>
               <md-switch aria-label="Auto validate subscriptions"
                          ng-model="$ctrl.parent.plan.validation" ng-true-value="'auto'" ng-disabled="plan.security == 'key_less'" ng-false-value="'manual'">
                 Auto validate subscription.
@@ -72,14 +72,14 @@
             </md-input-container>
           </div>
 
-          <div layout-gt-sm="row">
-            <md-input-container class="md-block" flex>
+          <div layout-gt-md="row">
+            <md-input-container class="md-block" flex-gt-md>
               <md-switch aria-label="Consumer comment"
                          ng-model="$ctrl.parent.plan.comment_required" ng-disabled="plan.security == 'key_less'">
                 Consumer must provide a comment when subscribing to the plan.
               </md-switch>
             </md-input-container>
-            <md-input-container class="md-block" flex>
+            <md-input-container class="md-block" flex-gt-md>
               <label>Custom message to display to consumer</label>
               <input ng-model="$ctrl.parent.plan.comment_message" type="text" name="comment_message" md-maxlength="64">
               <div ng-messages="$ctrl.planGeneralForm.comment_message.$error">

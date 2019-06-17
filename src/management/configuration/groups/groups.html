@@ -33,9 +33,13 @@
         </tr>
         </thead>
         <tbody md-body>
-        <tr md-row ng-click="$ctrl.selectGroup(group)"
+        <tr md-row
             ng-repeat="group in $ctrl.groups | orderBy: orderGrp">
-            <td md-cell>{{group.name}}</td>
+            <td md-cell>
+                <a ng-href="{{$ctrl.selectGroupUrl(group)}}">
+                    {{group.name}}
+                </a>
+            </td>
             <td md-cell style="text-align: center;">
                 <md-checkbox ng-model="$ctrl.apiByDefault[group.id]"
                              ng-change="$ctrl.saveEventRules(group)"
@@ -73,7 +77,7 @@
                       ></gravitee-empty-state>
 <div ng-style="{'text-align': $ctrl.groups.length == 0 ? 'center' : 'none' }">
     <md-button permission permission-only="['management-group-c']"
-               ng-class="{'md-fab-bottom-right': $ctrl.groups.length > 0}" class="md-fab"
+               ng-class="{'md-fab-bottom-right md-fab-scrollable': $ctrl.groups.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}" class="md-fab"
                aria-label="Add"
                ng-click="$ctrl.showAddGroupModal()">
         <ng-md-icon icon="add"></ng-md-icon>

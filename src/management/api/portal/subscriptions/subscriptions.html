@@ -68,10 +68,11 @@
       </thead>
       <tbody md-body>
         <tr md-row
-            ui-sref="management.apis.detail.portal.subscriptions.subscription({subscriptionId: subscription.id})"
             ng-repeat="subscription in $ctrl.subscriptions.data track by subscription.id">
           <td md-cell>
-            <span style="font-weight: bold">{{$ctrl.subscriptions.metadata[subscription.plan].name}}</span>
+            <a  style="font-weight: bold" ui-sref="management.apis.detail.portal.subscriptions.subscription({subscriptionId: subscription.id})">
+              {{$ctrl.subscriptions.metadata[subscription.plan].name}}
+            </a>
           </td>
           <td md-cell>{{$ctrl.subscriptions.metadata[subscription.application].name}}</td>
           <td md-cell>{{subscription.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>

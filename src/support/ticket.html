@@ -30,7 +30,7 @@
   <form name="supportTicketCtrl.formTicket" ng-submit="supportTicketCtrl.create()" novalidate ng-if="supportTicketCtrl.isAuthenticated"
     style="width: 70%; margin: 0 auto;">
     <h5 ng-if="!supportTicketCtrl.userHasAnEmail" style="color: red;margin-left: 10px;">
-      <ng-md-icon icon="warning" style="fill: red"></ng-md-icon>
+      <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
       <span translate="support.ticket.userWithoutEmail.message"></span>
     </h5>
 
