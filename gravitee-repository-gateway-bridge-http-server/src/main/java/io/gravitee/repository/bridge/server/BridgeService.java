@@ -104,6 +104,9 @@ public class BridgeService  extends AbstractService {
             bridgeRouter.route().handler(BodyHandler.create());
 
             // Create and associate handler
+            RootHandler rootHandler = new RootHandler();
+            bridgeRouter.get("/").handler(rootHandler);
+
             // APIs handler
             ApisHandler apisHandler = new ApisHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(apisHandler);

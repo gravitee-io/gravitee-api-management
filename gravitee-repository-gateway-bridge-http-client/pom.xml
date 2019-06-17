@@ -74,6 +74,12 @@
             <artifactId>vertx-web-common</artifactId>
             <version>${vertx.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-circuit-breaker</artifactId>
+            <version>${vertx.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
     </dependencies>
 
