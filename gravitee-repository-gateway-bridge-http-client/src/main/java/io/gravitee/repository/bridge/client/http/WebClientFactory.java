@@ -16,13 +16,21 @@
 package io.gravitee.repository.bridge.client.http;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.Version;
+import io.gravitee.repository.bridge.client.utils.VertxCompletableFuture;
+import io.vertx.circuitbreaker.CircuitBreaker;
+import io.vertx.circuitbreaker.CircuitBreakerOptions;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
+import io.vertx.ext.web.codec.BodyCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
@@ -50,9 +58,15 @@ public class WebClientFactory implements FactoryBean<WebClient> {
 
     private final String propertyPrefix;
 
+    private CircuitBreaker circuitBreaker;
+
+    private String clientVersion = Version.RUNTIME_VERSION.MAJOR_VERSION;
+
     public WebClientFactory(String propertyPrefix) {
         this.propertyPrefix = propertyPrefix + ".http.";
     }
+
+    private static final long retryDuration = 5000L;
 
     @Override
     public WebClient getObject() throws Exception {
@@ -69,7 +83,62 @@ public class WebClientFactory implements FactoryBean<WebClient> {
             client.addInterceptor(new BasicAuthorizationInterceptor(username, password));
         }
 
-        return client;
+        circuitBreaker = CircuitBreaker.create(
+                "cb-repository-bridge-client",
+                vertx,
+                new CircuitBreakerOptions()
+                        .setMaxRetries(Integer.MAX_VALUE)
+                        .setTimeout(2000))
+        .retryPolicy(retryCount -> retryDuration);
+
+        VertxCompletableFuture<WebClientInternal> completableConnection = VertxCompletableFuture.from(vertx, validateConnection(client));
+        if (completableConnection.isCompletedExceptionally()) {
+            throw new IllegalStateException("Unable to connect to the bridge server.");
+        }
+
+        return completableConnection.get();
+    }
+
+    private Future<WebClientInternal> validateConnection(WebClientInternal client) {
+        logger.info("Validate Bridge Server connection ...");
+        return circuitBreaker.execute(
+                future -> client.get("/_bridge").as(BodyCodec.string()).send(response -> {
+                    if (response.succeeded()) {
+                        HttpResponse<String> httpResponse = response.result();
+
+                        if (httpResponse.statusCode() == HttpStatusCode.OK_200) {
+                            JsonObject jsonObject = new JsonObject(httpResponse.body());
+                            JsonObject version = jsonObject.getJsonObject("version");
+                            if (version == null || !version.containsKey("MAJOR_VERSION")) {
+                                String msg = "Invalid format response from Bridge Server. Retry.";
+                                logger.error(msg);
+                                future.fail(msg);
+                            } else {
+                                String serverVersion = version.getString("MAJOR_VERSION");
+
+                                if (serverVersion.equals(clientVersion)) {
+                                    logger.info("Bridge Server connection successful.");
+                                    future.complete(client);
+                                } else {
+                                    String msg = String.format(
+                                            "Bridge client and server versions vary (client:%s - server:%s). They must be the same.",
+                                            clientVersion,
+                                            serverVersion);
+                                    logger.error(msg);
+                                    throw new IllegalStateException(msg);
+                                }
+                            }
+                        } else {
+                            String msg = String.format("Invalid Bridge Server response. Retry in %s ms.", retryDuration);
+                            logger.error(msg);
+                            future.fail(msg);
+                        }
+                    } else {
+                        String msg = String.format("Unable to connect to the Bridge Server. Retry in %s ms.", retryDuration);
+                        logger.error(msg);
+                        future.fail(msg);
+                    }
+                }));
     }
 
     private WebClientOptions getWebClientOptions() {
