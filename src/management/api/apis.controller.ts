@@ -40,6 +40,7 @@ export class ApisController {
   private portalTitle: string;
   private selectedApis: any[];
   private isQualityDisplayed: boolean;
+  private timer: any;
   private canceler: any;
 
   constructor(private ApiService: ApiService,
@@ -78,10 +79,9 @@ export class ApisController {
     this.qualityScores = [];
     this.isQualityDisplayed = Constants.apiQualityMetrics && Constants.apiQualityMetrics.enabled;
 
-    let timer;
     $scope.$watch('$ctrl.query', (query: string, previousQuery: string) => {
-      $timeout.cancel(timer);
-      timer = $timeout(() => {
+      $timeout.cancel(this.timer);
+      this.timer = $timeout(() => {
         if (query !== undefined && query !== previousQuery && query.length > 3) {
           this.search();
         }
@@ -91,6 +91,9 @@ export class ApisController {
   }
 
   search() {
+    // if search is already executed, cancel timer
+    this.$timeout.cancel(this.timer);
+
     this.$scope.searchResult = true;
     this.$scope.apisLoading = true;
     this.canceler.resolve();
@@ -109,11 +112,10 @@ export class ApisController {
       promise = this.ApiService.list(null, false, promOpts);
     }
 
-    let that = this;
     promise.then( (response) => {
-      that.apisProvider = _.filter(response.data, 'manageable');
-      that.loadMore(this.query['order'], true);
-      that.$scope.apisLoading = false;
+      this.apisProvider = _.filter(response.data, 'manageable');
+      this.loadMore(this.query['order'], false);
+      this.$scope.apisLoading = false;
     });
   }
 
@@ -173,7 +175,7 @@ export class ApisController {
     }
   }
 
-  loadMore = function (order, showNext) {
+  loadMore = (order, showNext) => {
     const doNotLoad = showNext && (this.apisProvider && this.apisProvider.length) === (this.apis && this.apis.length);
     if (!doNotLoad && this.apisProvider) {
       let apisProvider = _.clone(this.apisProvider);
