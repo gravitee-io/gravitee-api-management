@@ -644,6 +644,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // if user changes sharding tags, then check if he is allowed to do it
             checkShardingTags(updateApiEntity, apiToCheck);
 
+            // if lifecycle state not provide, set the saved one
+            if (updateApiEntity.getLifecycleState() == null) {
+                updateApiEntity.setLifecycleState(apiToCheck.getLifecycleState());
+            }
+
             // check lifecycle state
             checkLifecycleState(updateApiEntity, apiToCheck);
 

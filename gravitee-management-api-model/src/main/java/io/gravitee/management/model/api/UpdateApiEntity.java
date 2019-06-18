@@ -74,7 +74,6 @@ public class UpdateApiEntity {
     @JsonProperty(value = "response_templates")
     private Map<String, ResponseTemplates> responseTemplates;
 
-    @NotNull
     @JsonProperty(value = "lifecycle_state")
     private ApiLifecycleState lifecycleState;
 
