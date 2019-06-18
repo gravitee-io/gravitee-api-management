@@ -32,6 +32,7 @@ export class PortalApiListController {
   private tilesMode: boolean;
   private tilesModeKey = 'gv-tiles-mode';
   private apisLoading: boolean;
+  private timer: any;
   private canceler: any;
 
   constructor (private $scope: IScope,
@@ -78,10 +79,9 @@ export class PortalApiListController {
       })
     }
 
-    let timer;
     $scope.$watch('apisCtrl.query', (query: string, previousQuery: string) => {
-      $timeout.cancel(timer);
-      timer = $timeout(() => {
+      $timeout.cancel(this.timer);
+      this.timer = $timeout(() => {
         if (query !== undefined && query !== previousQuery && query.length > 3) {
           this.search();
         }
@@ -91,6 +91,9 @@ export class PortalApiListController {
   }
 
   search() {
+    // if search is already executed, cancel timer
+    this.$timeout.cancel(this.timer);
+
     this.apisLoading = true;
     this.canceler.resolve();
     this.canceler = this.$q.defer();
