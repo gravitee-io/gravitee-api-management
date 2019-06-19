@@ -226,6 +226,8 @@ security:
 #        GRAVITEE-ADMINS: ADMIN,
 #        GRAVITEE-USERS: USER,
 #      }
+      # Specifies the attribute name which contains the user photo (URL or binary)
+#      user-photo-attribute: "jpegPhoto"
 #    - type: google # Allow to authenticate to portal using a Google Plus account
 #      clientId: xxxx-xxx-xxx-xxx
 #      clientSecret: xxxx-xxx-xxx-xxxx

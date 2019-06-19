@@ -84,11 +84,17 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
 				new io.gravitee.management.idp.api.authentication.UserDetails(
 						ctx.getStringAttribute(identifierAttribute), "", mappedAuthorities);
 
+		String userPhotoAttribute = environment.getProperty("user-photo-attribute");
+        if(userPhotoAttribute == null) {
+            userPhotoAttribute = "jpegPhoto";
+        }
+		
 		userDetails.setFirstname(ctx.getStringAttribute(LDAP_ATTRIBUTE_FIRSTNAME));
 		userDetails.setLastname(ctx.getStringAttribute(LDAP_ATTRIBUTE_LASTNAME));
 		userDetails.setEmail(ctx.getStringAttribute(LDAP_ATTRIBUTE_MAIL));
 		userDetails.setSource(LdapIdentityProvider.PROVIDER_TYPE);
 		userDetails.setSourceId(ctx.getNameInNamespace());
+		userDetails.setPicture((byte [])ctx.getObjectAttribute(userPhotoAttribute));
 
 		return userDetails;
 	}

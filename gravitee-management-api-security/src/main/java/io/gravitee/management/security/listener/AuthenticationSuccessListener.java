@@ -15,6 +15,21 @@
  */
 package io.gravitee.management.security.listener;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URLConnection;
+import java.util.Collection;
+import java.util.Optional;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.GrantedAuthority;
+
 import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.NewExternalUserEntity;
 import io.gravitee.management.model.RoleEntity;
@@ -29,13 +44,6 @@ import io.gravitee.management.service.exceptions.RoleNotFoundException;
 import io.gravitee.management.service.exceptions.UserNotFoundException;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
-import org.springframework.security.core.GrantedAuthority;
-
-import java.util.Collection;
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -43,6 +51,8 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public class AuthenticationSuccessListener implements ApplicationListener<AuthenticationSuccessEvent> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationSuccessListener.class);
 
     @Autowired
     private UserService userService;
@@ -70,6 +80,12 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             newUser.setFirstname(details.getFirstname());
             newUser.setLastname(details.getLastname());
             newUser.setEmail(details.getEmail());
+            
+            byte[] pictureData = details.getPicture();
+            if(pictureData != null && pictureData.length > 0) {
+                String picture = computePicture(pictureData);
+                newUser.setPicture(picture);
+            }
 
             boolean addDefaultRole = false;
             if (event.getAuthentication().getAuthorities() == null || event.getAuthentication().getAuthorities().isEmpty()) {
@@ -87,6 +103,34 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
 
 
         userService.connect(details.getUsername());
+    }
+
+    public String computePicture(final byte[] pictureData) {
+        String pictureContent = new String(pictureData);
+        if(pictureContent.toUpperCase().startsWith("HTTP")) {
+            return pictureContent;
+        }
+        
+        try {
+            String contentType = URLConnection.guessContentTypeFromStream(new ByteArrayInputStream(pictureData));
+            if(contentType != null) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("data:");
+                sb.append(contentType);
+                sb.append(";base64,");
+                sb.append(StringUtils.newStringUtf8(Base64.encodeBase64(pictureData, false)));
+                return sb.toString();
+            } else {
+                //null contentType means that pictureData is a String but doesn't starts with HTTP
+                LOGGER.warn("Unable to compute the user picture from URL.");
+            }
+            
+        } catch (IOException e) {
+            LOGGER.warn("Problem while parsing picture", e);
+        }
+        
+        return null;
+        
     }
 
     private void updateRegisteredUser(UserEntity registeredUser, UserDetails details) {
