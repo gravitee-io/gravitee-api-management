@@ -94,7 +94,9 @@
                       icon="vpn_key"
                       model="Subscription"
                       message="Application's subscriptions will appear here"></gravitee-empty-state>
-      <md-button class="md-raised" style="width: 200px; margin: 0 auto;" ui-sref="management.applications.application.subscriptions.subscribe">Start playing with APIs</md-button>
+      <md-button ng-if="$ctrl.subscriptions.data.length === 0"
+                 class="md-raised" style="width: 200px; margin: 0 auto;"
+                 ui-sref="management.applications.application.subscriptions.subscribe">Start playing with APIs</md-button>
     </div>
   </div>
 </div>
