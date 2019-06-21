@@ -31,6 +31,7 @@ class ApiHealthCheckController {
   constructor (
     private ApiService: ApiService,
     private $scope,
+    private $rootScope,
     private $state: StateService,
     private ChartService,
     private $q,
@@ -46,12 +47,17 @@ class ApiHealthCheckController {
     this.query = new LogsQuery();
     this.query.size = 10;
     this.query.page = 1;
-    this.query.query = this.$state.params['q'];
 
+    this.query.from = this.$state.params['from'];
+    this.query.to = this.$state.params['to'];
     this.updateChart();
   }
 
-
+  timeframeChange(timeframe) {
+    this.query.from = timeframe.from;
+    this.query.to = timeframe.to;
+    this.refresh();
+  }
 
   updateChart() {
     this.ApiService.apiHealth(this.api.id, 'availability')
@@ -76,7 +82,18 @@ class ApiHealthCheckController {
     this.refresh();
   }
 
-  refresh(averageFrom?, averageTo?) {
+  refresh() {
+    this.$state.transitionTo(
+      this.$state.current,
+      {
+        apiId: this.api.id,
+        page: this.query.page,
+        size: this.query.size,
+        from: this.query.from,
+        to: this.query.to
+      },
+      {notify: false});
+
     this.ApiService.apiHealthLogs(this.api.id, this.query).then((logs) => {
       this.logs = logs.data;
     });
@@ -84,9 +101,11 @@ class ApiHealthCheckController {
       this.transitionLogs = logs.data;
     });
 
-    let from = averageFrom || moment().subtract(1, 'months');
-    let to = averageTo || moment();
-    let interval = Math.floor((to - from)/30);
+    let from: any;
+    let to: any;
+    from = this.query.from || moment().subtract(1, 'days');
+    to = this.query.to || moment();
+    let interval = Math.floor((to - from)/24);
     let promises = [
       this.ApiService.apiHealthAverage(this.api.id, {from: from, to: to,
         interval: interval, type: 'RESPONSE_TIME'}),
@@ -162,7 +181,13 @@ class ApiHealthCheckController {
           events: {
             selection: (event) => {
               if (!event.resetSelection) {
-                this.refresh(Math.floor(event.xAxis[0].min), Math.floor(event.xAxis[0].max));
+                this.query.from = Math.floor(event.xAxis[0].min);
+                this.query.to = Math.floor(event.xAxis[0].max);
+                this.$rootScope.$broadcast("timeframeZoom", {
+                  from: this.query.from,
+                  to: this.query.to
+                });
+                this.refresh();
               }
             }
           }
