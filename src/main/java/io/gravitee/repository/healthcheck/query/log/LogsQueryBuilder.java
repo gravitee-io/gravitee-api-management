@@ -45,4 +45,15 @@ public class LogsQueryBuilder extends AbstractQueryBuilder<LogsQueryBuilder, Log
         query.transition(transition);
         return this;
     }
+    
+    public LogsQueryBuilder from(long from) {
+        query.from(from);
+        return this;
+    }
+    
+    public LogsQueryBuilder to(long to) {
+        query.to(to);
+        return this;
+    }
+    
 }
