@@ -10,6 +10,14 @@
               "value" : "${query.root().id()}"
             }
           }
+        },
+        {
+          "range": {
+            "@timestamp": {
+              "from": ${roundedFrom},
+              "to": ${roundedTo}
+            }
+          }
         }
       ],
       "disable_coord" : false,

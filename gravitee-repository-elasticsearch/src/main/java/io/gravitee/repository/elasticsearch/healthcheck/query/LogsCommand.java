@@ -60,18 +60,21 @@ public class LogsCommand extends AbstractElasticsearchQueryCommand<LogsResponse>
 	public LogsResponse executeQuery(Query<LogsResponse> query) throws AnalyticsException {
 		final LogsQuery logsQuery = (LogsQuery) query;
 
-		final String sQuery = this.createQuery(TEMPLATE, logsQuery);
+		long queryFrom = logsQuery.from();
+		long queryTo = logsQuery.to();
+		
+		final String sQuery = this.createQuery(TEMPLATE, logsQuery, queryFrom, queryTo);
 
 		try {
-			final long now = System.currentTimeMillis();
-			final long from = ZonedDateTime
-					.ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault())
+			final long to = queryTo > 0 ? queryTo : System.currentTimeMillis();
+			final long from = queryFrom > 0 ? queryFrom : ZonedDateTime
+					.ofInstant(Instant.ofEpochMilli(to), ZoneId.systemDefault())
 					.minus(1, ChronoUnit.MONTHS)
 					.toInstant()
 					.toEpochMilli();
 
 			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now),
+					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to),
 					Type.HEALTH_CHECK.getType(),
 					sQuery);
 			return this.toLogsResponse(result.blockingGet());
