@@ -205,6 +205,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                             .size(query.getSize())
                             .query(query.getQuery())
                             .transition(transition)
+                            .from(query.getFrom())
+                            .to(query.getTo())
                             .build());
 
             return convert(response);

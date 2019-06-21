@@ -142,6 +142,8 @@ public class ApiHealthResource extends AbstractResource {
         logQuery.setQuery(param.getQuery());
         logQuery.setPage(param.getPage());
         logQuery.setSize(param.getSize());
+        logQuery.setFrom(param.getFrom());
+        logQuery.setTo(param.getTo());
 
         return healthCheckService.findByApi(api, logQuery, param.isTransition());
     }

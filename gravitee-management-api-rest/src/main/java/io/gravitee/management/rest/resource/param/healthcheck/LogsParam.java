@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.rest.resource.param.healthcheck;
 
+import javax.validation.constraints.Min;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
@@ -25,6 +26,14 @@ import javax.ws.rs.WebApplicationException;
  * @author GraviteeSource Team
  */
 public class LogsParam {
+
+    @Min(0)
+    @QueryParam("from")
+    private long from;
+
+    @Min(0)
+    @QueryParam("to")
+    private long to;
 
     @QueryParam("query")
     private String query;
@@ -39,6 +48,23 @@ public class LogsParam {
 
     @QueryParam("transition")
     private Boolean transition;
+
+    
+    public long getFrom() {
+        return from;
+    }
+
+    public void setFrom(long from) {
+        this.from = from;
+    }
+
+    public long getTo() {
+        return to;
+    }
+
+    public void setTo(long to) {
+        this.to = to;
+    }
 
     public String getQuery() {
         return query;
