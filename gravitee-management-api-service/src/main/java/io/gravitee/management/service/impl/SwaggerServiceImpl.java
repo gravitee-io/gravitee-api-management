@@ -522,7 +522,7 @@ public class SwaggerServiceImpl implements SwaggerService {
                 swaggerVerb.setResponseProperties(singletonMap(responseSchema.getType(), getResponsePropertiesFromType(responseSchema.getType())));
             }
         } else {
-            swaggerVerb.setResponseProperties(getResponseExample(responseSchema.getProperties()));
+            swaggerVerb.setResponseProperties(getResponseProperties(swagger, responseSchema.getProperties()));
         }
     }
 
@@ -610,10 +610,6 @@ public class SwaggerServiceImpl implements SwaggerService {
                 }
             }
         }));
-    }
-
-    private Map<String, Object> getResponseExample(final Map<String, Schema> properties) {
-        return properties.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().getExample()));
     }
 
     @Override
