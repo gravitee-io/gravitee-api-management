@@ -56,6 +56,7 @@ import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Visibility;
+import io.vertx.core.buffer.Buffer;
 import io.gravitee.repository.management.model.*;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -148,10 +149,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private EntrypointService entrypointService;
     @Autowired
     private WorkflowService workflowService;
-
+    @Autowired
+    private HttpClientService httpClientService;
+    
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
     private static final String ENDPOINTS_DELIMITER = "\n";
+    
     @Override
     public ApiEntity create(final NewApiEntity newApiEntity, final String userId) throws ApiAlreadyExistsException {
         return create(newApiEntity, userId, null, null);
@@ -1098,7 +1102,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity createOrUpdateWithDefinition(final ApiEntity apiEntity, String apiDefinition, String userId) {
+    public ApiEntity createOrUpdateWithDefinition(final ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
+        
+        String apiDefinition = apiDefinitionOrURL;
+        if(apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
+            apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
+        }
+        
         try {
             final UpdateApiEntity importedApi = objectMapper
                     // because definition could contains other values than the api itself (pages, members)
@@ -1272,8 +1282,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return createdOrUpdatedApiEntity;
         } catch (final IOException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
+            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
         }
-        return null;
+    }
+
+    private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {
+        Buffer buffer = httpClientService.request(HttpMethod.GET, apiDefinitionOrURL, null, null, null);
+        return buffer.toString();
     }
 
     @Override

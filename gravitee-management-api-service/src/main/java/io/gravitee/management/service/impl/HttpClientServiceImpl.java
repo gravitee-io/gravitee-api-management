@@ -13,51 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.notifiers.impl;
-
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.http.MediaType;
-import io.gravitee.common.utils.UUID;
-import io.gravitee.fetcher.api.FetcherException;
-import io.gravitee.management.model.*;
-import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
-import io.gravitee.management.service.notification.Hook;
-import io.gravitee.management.service.notifiers.WebNotifierService;
-import io.gravitee.management.service.notifiers.WebhookNotifierService;
-import io.gravitee.management.service.vertx.VertxCompletableFuture;
-import io.gravitee.repository.management.model.GenericNotificationConfig;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.ProxyOptions;
-import io.vertx.core.net.ProxyType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+package io.gravitee.management.service.impl;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static io.gravitee.management.service.notification.NotificationParamsBuilder.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.http.MediaType;
+import io.gravitee.common.utils.UUID;
+import io.gravitee.management.service.HttpClientService;
+import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.vertx.VertxCompletableFuture;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class WebNotifierServiceImpl implements WebNotifierService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(WebNotifierServiceImpl.class);
+public class HttpClientServiceImpl extends AbstractService implements HttpClientService {
+    private final Logger LOGGER = LoggerFactory.getLogger(HttpClientServiceImpl.class);
 
     private static final String HTTPS_SCHEME = "https";
 
@@ -83,19 +74,15 @@ public class WebNotifierServiceImpl implements WebNotifierService {
     private String httpClientProxyHttpsUsername;
     @Value("${httpClient.proxy.https.password:#{null}}")
     private String httpClientProxyHttpsPassword;
-
+    
+    @Value("#{systemProperties['httpClient.proxy'] == null ? false : true }")
+    private boolean isProxyConfigured;
+    
     @Autowired
     private Vertx vertx;
-
-    public void request(HttpMethod method, final String uri, final Map<String, String> headers, String body, boolean useSystemProxy) {
-        if (uri == null || uri.isEmpty()) {
-            LOGGER.error("Webhook Notifier configuration is empty");
-            return;
-        }
-
-        CompletableFuture<Buffer> future = new VertxCompletableFuture<>(vertx);
-        URI requestUri = URI.create(uri);
-        boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
+    
+    private HttpClient getHttpClient(String uriScheme, Boolean useSystemProxy) {
+        boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(uriScheme);
 
         final HttpClientOptions options = new HttpClientOptions()
                 .setSsl(ssl)
@@ -104,11 +91,11 @@ public class WebNotifierServiceImpl implements WebNotifierService {
                 .setKeepAlive(false)
                 .setTcpKeepAlive(false)
                 .setConnectTimeout(httpClientTimeout);
-
-        if (useSystemProxy) {
+        
+        if ((useSystemProxy != null && useSystemProxy == Boolean.TRUE) || (useSystemProxy == null && this.isProxyConfigured)) {
             ProxyOptions proxyOptions = new ProxyOptions();
             proxyOptions.setType(ProxyType.valueOf(httpClientProxyType));
-            if (HTTPS_SCHEME.equals(requestUri.getScheme())) {
+            if (HTTPS_SCHEME.equals(uriScheme)) {
                 proxyOptions.setHost(httpClientProxyHttpsHost);
                 proxyOptions.setPort(httpClientProxyHttpsPort);
                 proxyOptions.setUsername(httpClientProxyHttpsUsername);
@@ -121,8 +108,21 @@ public class WebNotifierServiceImpl implements WebNotifierService {
             }
             options.setProxyOptions(proxyOptions);
         }
+        
+        return vertx.createHttpClient(options);
+    }
 
-        final HttpClient httpClient = vertx.createHttpClient(options);
+    @Override
+    public Buffer request(HttpMethod method, String uri, Map<String, String> headers, String body, Boolean useSystemProxy) {
+        if (uri == null || uri.isEmpty()) {
+            LOGGER.error("HttpClient configuration is empty");
+            return null;
+        }
+        
+        CompletableFuture<Buffer> future = new VertxCompletableFuture<>(vertx);
+        URI requestUri = URI.create(uri);
+
+        final HttpClient httpClient = this.getHttpClient(requestUri.getScheme(), useSystemProxy);
 
         final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
                 (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
@@ -137,11 +137,15 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         request.setTimeout(httpClientTimeout);
 
         //headers
-        request.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-        request.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
-        headers.forEach(request::putHeader);
+        if(headers != null) {
+            headers.forEach(request::putHeader);
+        }
+        if(body != null) {
+            request.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+            request.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
+            request.write(body);
+        }
         request.putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
-        request.write(body);
 
         request.handler(response -> {
             if (response.statusCode() == HttpStatusCode.OK_200) {
@@ -169,10 +173,12 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         request.end();
 
         try {
-            future.get();
+            return future.get();
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             throw new TechnicalManagementException(e.getMessage(), e);
         }
     }
+
+
 }

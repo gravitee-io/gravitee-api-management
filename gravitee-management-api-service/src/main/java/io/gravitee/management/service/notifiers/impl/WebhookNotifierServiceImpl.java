@@ -18,8 +18,8 @@ package io.gravitee.management.service.notifiers.impl;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.service.HttpClientService;
 import io.gravitee.management.service.notification.Hook;
-import io.gravitee.management.service.notifiers.WebNotifierService;
 import io.gravitee.management.service.notifiers.WebhookNotifierService;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.vertx.core.json.JsonObject;
@@ -43,7 +43,7 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
     private final Logger LOGGER = LoggerFactory.getLogger(WebhookNotifierServiceImpl.class);
 
     @Autowired
-    WebNotifierService webNotifierService;
+    HttpClientService httpClientService;
 
     @Override
     public void trigger(final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
@@ -56,7 +56,7 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
         headers.put("X-Gravitee-Event", hook.name());
         headers.put("X-Gravitee-Event-Scope", hook.getScope().name());
 
-        webNotifierService.request(HttpMethod.POST, genericNotificationConfig.getConfig(), headers, body, genericNotificationConfig.isUseSystemProxy());
+        httpClientService.request(HttpMethod.POST, genericNotificationConfig.getConfig(), headers, body, Boolean.valueOf(genericNotificationConfig.isUseSystemProxy()));
     }
 
     private String toJson(final Hook hook, final Map<String, Object> params) {

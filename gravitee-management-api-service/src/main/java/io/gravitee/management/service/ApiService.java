@@ -68,8 +68,8 @@ public interface ApiService {
 
     String exportAsJson(String apiId, String exportVersion, String... filteredFields);
 
-    ApiEntity createOrUpdateWithDefinition(ApiEntity apiEntity, String apiDefinition, String userId);
-    
+    ApiEntity createOrUpdateWithDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId);
+
     InlinePictureEntity getPicture(String apiId);
 
     byte[] getDefaultPicture();

@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.service.notifiers;
-
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.management.service.notification.Hook;
-import io.gravitee.repository.management.model.GenericNotificationConfig;
+package io.gravitee.management.service;
 
 import java.util.Map;
 
+import io.gravitee.common.http.HttpMethod;
+import io.vertx.core.buffer.Buffer;
+
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface WebNotifierService {
-    void request(HttpMethod method, final String uri, final Map<String, String> headers, String body, boolean useSystemProxy);
+public interface HttpClientService {
+
+    Buffer request(HttpMethod method, final String uri, final Map<String, String> headers, String body, Boolean useSystemProxy);
 }

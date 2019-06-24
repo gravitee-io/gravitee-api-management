@@ -29,7 +29,6 @@ import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.Hook;
 import io.gravitee.management.service.notification.PortalHook;
-import io.gravitee.management.service.notifiers.WebNotifierService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -87,7 +86,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     private Configuration freemarkerConfiguration;
 
     @Autowired
-    WebNotifierService webNotifierService;
+    HttpClientService httpClientService;
 
     @Value("${email.from}")
     private String defaultFrom;
@@ -159,12 +158,12 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                 return recipientsId.size();
 
             case HTTP:
-                webNotifierService.request(
+                httpClientService.request(
                         HttpMethod.POST,
                         recipientsId.iterator().next(),
                         message.getParams(),
                         getPostMessage(api, message),
-                        message.isUseSystemProxy());
+                        Boolean.valueOf(message.isUseSystemProxy()));
                 return 1;
             default:
                 return 0;
