@@ -180,7 +180,8 @@ function portalRouterConfig($stateProvider) {
           return DocumentationService
             .search(q, $stateParams['apiId'])
             .then(response => response.data);
-        }
+        },
+        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.listForPortal().then(response => response.data)
       },
     })
     .state('portal.api.pages.page', {
@@ -203,6 +204,9 @@ function portalRouterConfig($stateProvider) {
       views: {
         'header': {component: 'apiPortalHeader'},
         'content': {component: 'apiSupport'}
+      },
+      resolve: {
+        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.listForPortal().then(response => response.data)
       }
     })
     .state('portal.pages', {
@@ -265,7 +269,9 @@ function portalRouterConfig($stateProvider) {
         rating: ($stateParams, ApiService: ApiService) =>
           ApiService.getApiRatingForConnectedUser($stateParams['apiId']).then(response => response.data),
         ratings: ($stateParams, ApiService: ApiService) =>
-          ApiService.getApiRatings($stateParams['apiId'], $stateParams['pageNumber']).then(response => response.data)
+          ApiService.getApiRatings($stateParams['apiId'], $stateParams['pageNumber']).then(response => response.data),
+        entrypoints: (EntrypointService: EntrypointService) =>
+          EntrypointService.listForPortal().then(response => response.data)
       }
     });
 }
