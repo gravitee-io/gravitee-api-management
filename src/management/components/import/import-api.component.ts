@@ -44,6 +44,11 @@ const ImportComponent: ng.IComponentOptions = {
       this.enableFileImport = false;
       this.importFileMode= true;
       this.importURLMode= false;
+      this.importURLTypes = [
+        {id: "SWAGGER", name: "Swagger / OpenAPI"},
+        {id: "GRAVITEE", name: "API Definition"}
+      ];
+      this.importURLType = "SWAGGER";
       this.apiDescriptorURL = null;
       this.importAPIFile = null;
       this.importCreateDocumentation = true;
@@ -57,11 +62,23 @@ const ImportComponent: ng.IComponentOptions = {
       });
     }
 
+    this.placeholder = () => {
+      if(this.importURLType == 'SWAGGER') {
+        return "Enter Swagger descriptor URL";
+      } else if(this.importURLType == 'GRAVITEE') {
+        return "Enter API definition URL";
+      }
+    }
+
     this.cancel = () => {
       this.cancelAction();
     }
 
     this.isSwaggerImport = () => {
+      if (this.importURLMode && this.importURLType == 'SWAGGER') {
+        return true;
+      }
+
       if (this.importFileMode && this.importAPIFile) {
         var extension = this.importAPIFile.name.split('.').pop();
         switch (extension) {
@@ -128,8 +145,10 @@ const ImportComponent: ng.IComponentOptions = {
             this.enableFileImport = false;
             NotificationService.showError("Input file must be a valid API definition file.");
         }
-      } else {
+      } else if(this.importURLType == 'SWAGGER') {
         this.importSwagger();
+      } else if(this.importURLType == 'GRAVITEE') {
+        this.importGraviteeIODefinition();
       }
       if(this.isForUpdate()) {
         this.cancel();
@@ -137,17 +156,17 @@ const ImportComponent: ng.IComponentOptions = {
     }
   
     this.importGraviteeIODefinition = () => {
-      if(this.isForUpdate()) {
-        ApiService.import(this.apiId, this.importAPIFile.content).then(function (api) {
-          NotificationService.show('API updated');
+      var id = (this.isForUpdate() ? this.apiId : null);
+      var apiDefinition = (this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL);
+      var isUpdate = this.isForUpdate();
+      ApiService.import(id, apiDefinition).then(function (api) {
+        NotificationService.show('API updated');
+        if(isUpdate) {
           $state.reload();
-        });
-      } else {
-        ApiService.import(null, this.importAPIFile.content).then(function (api) {
-          NotificationService.show('API created');
+        } else {
           $state.go('management.apis.detail.portal.general', {apiId: api.data.id});
-        });
-      }
+        }
+      });
     }
 
     this.importSwagger = () => { 

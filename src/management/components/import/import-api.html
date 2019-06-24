@@ -24,13 +24,17 @@
     </md-tab>
     <md-tab label="Import from link" ng-click="$ctrl.importFileMode= false; $ctrl.importURLMode= true;">
       <div class="input-group import-file-from-url">
-        <input class="form-control" ng-model="$ctrl.apiDescriptorURL" required type="url" placeholder="Enter Swagger descriptor URL"/>
+        <input class="form-control" ng-model="$ctrl.apiDescriptorURL" required type="url" placeholder="{{$ctrl.placeholder()}}"/>
       </div>
+      <md-radio-group ng-model="$ctrl.importURLType" style="margin:0px 24px">
+          <md-radio-button class="import-file-from-url" ng-repeat="type in $ctrl.importURLTypes" value="{{type.id}}">{{type.name}}</md-radio-button>
+        </md-radio-group>
     </md-tab>
   </md-tabs>
 
-  <div style="margin:24px;" layout="column" ng-if="$ctrl.importURLMode || $ctrl.isSwaggerImport()">
+  <div style="margin:24px;" layout="column" ng-if="$ctrl.isSwaggerImport()">
     <h4>Swagger import configurations:</h4>
+    <div class="gv-warn" ng-show="$ctrl.isForUpdate()">This will overwrite the name, the description and the version.</div>
     <md-checkbox ng-model="$ctrl.importCreateDocumentation" aria-label="($ctrl.isForUpdate() ? 'Update' : 'Create') documentation pages" flex ng-change="$ctrl.updateWarnText()">
       {{($ctrl.isForUpdate() ? 'Update' : 'Create')}} documentation
       <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update the' : 'Add a')}} documentation page with the content of the swagger descriptor.</div>
@@ -53,11 +57,11 @@
       <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update' : 'Add')}} mocks on each path from the swagger descriptor.</div>
       <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreateMocks">This will overwrite all the mocks.</div>
     </md-checkbox>
-    <div class="gv-warn" ng-show="$ctrl.isForUpdate()">This will overwrite the name, the description and the version.</div>
-
   </div>
-  <md-dialog-actions layout="row">
-      <md-button md-no-ink ng-click="$ctrl.cancel()" ng-show=$ctrl.isForUpdate()>Cancel</md-button>
-      <md-button ng-disabled="!$ctrl.enableImport()" ng-click="$ctrl.importAPI()" class="md-raised import-api-button" ng-class="{'md-warn': $ctrl.isForUpdate()}">Import</md-button>
-  </md-dialog>
+</div>
+<div>
+  <md-dialog-actions layout="row" style="position: fixed; bottom: 0;right: 0;">
+    <md-button md-no-ink ng-click="$ctrl.cancel()" ng-show=$ctrl.isForUpdate()>Cancel</md-button>
+    <md-button ng-disabled="!$ctrl.enableImport()" ng-click="$ctrl.importAPI()" class="md-raised import-api-button" ng-class="{'md-warn': $ctrl.isForUpdate()}">Import</md-button>
+</md-dialog>
 </div>

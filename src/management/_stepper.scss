@@ -48,14 +48,24 @@ md-steppers-canvas.md-paginated {
 .import-file-drop-box {
   background: #F8F8F8;
   border: 1px dashed #DDD;
-  margin-top: 10px;
+  margin: 10px auto;
   padding: 7px 7px 7px 7px;
+  width: 90%
+}
+
+md-radio-button.import-file-from-url {
+  margin-right: 30px;
+  display: inline;
+  .md-label {
+    vertical-align: inherit;
+    line-height: 30px;
+  }
 }
 
 .import-file-from-url {
-  width: 100%;
+  width: 90%;
+  margin: 10px auto;
   input {
-    margin-top: 10px;
     background: #F8F8F8;
     border: 1px solid #DDD;
     box-shadow: none;
