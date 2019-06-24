@@ -128,6 +128,7 @@ class ApiPortalController {
 
     this.$scope.$on('apiChangeSuccess', (event, args) => {
       this.api = args.api;
+      this.computeQualityMetrics();
     });
 
     this.isQualityEnabled = Constants.apiQualityMetrics && Constants.apiQualityMetrics.enabled;
