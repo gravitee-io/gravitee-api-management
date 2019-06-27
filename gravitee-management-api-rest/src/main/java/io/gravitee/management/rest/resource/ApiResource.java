@@ -19,7 +19,6 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.ApiLifecycleState;
-import io.gravitee.management.model.WorkflowState;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.api.header.ApiHeaderEntity;
 import io.gravitee.management.model.notification.NotifierEntity;
@@ -36,6 +35,7 @@ import io.gravitee.management.service.MessageService;
 import io.gravitee.management.service.NotifierService;
 import io.gravitee.management.service.ParameterService;
 import io.gravitee.management.service.QualityMetricsService;
+import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.exceptions.ApiNotFoundException;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -44,6 +44,7 @@ import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.glassfish.jersey.message.internal.MatchingEntityTag;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -51,6 +52,7 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayOutputStream;
+import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -82,6 +84,8 @@ public class ApiResource extends AbstractResource {
     private MessageService messageService;
     @Autowired
     private ParameterService parameterService;
+    @Inject
+    private SwaggerService swaggerService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -388,6 +392,31 @@ public class ApiResource extends AbstractResource {
                 .build();
     }
 
+    
+    @POST
+    @Path("import/swagger")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Update the API with an existing Swagger descriptor",
+            notes = "User must have the MANAGE_APPLICATION permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API successfully updated from Swagger descriptor", response = ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
+    })
+    public Response updateWithSwagger(
+            @PathParam("api") String api,
+            @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        final ApiEntity updatedApi = apiService.update(api, swaggerService.prepareForUpdate(swaggerDescriptor), swaggerDescriptor);
+        return Response
+                .ok(updatedApi)
+                .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+                .lastModified(updatedApi.getUpdatedAt())
+                .build();
+    }
+    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("export")

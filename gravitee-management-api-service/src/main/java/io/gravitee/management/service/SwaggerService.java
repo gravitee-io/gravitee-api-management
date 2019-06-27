@@ -20,6 +20,7 @@ import java.util.List;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.api.NewSwaggerApiEntity;
+import io.gravitee.management.model.api.UpdateSwaggerApiEntity;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,6 +36,8 @@ public interface SwaggerService {
      * @return The API from the Swagger descriptor
      */
     NewSwaggerApiEntity prepare(ImportSwaggerDescriptorEntity swaggerDescriptor);
+
+    UpdateSwaggerApiEntity prepareForUpdate(ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     void transform(PageEntity page);
 

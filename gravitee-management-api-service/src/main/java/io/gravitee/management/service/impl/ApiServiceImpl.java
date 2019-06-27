@@ -173,7 +173,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiEntity create(final NewApiEntity newApiEntity, final String userId,
-    final ImportSwaggerDescriptorEntity swaggerDescriptor, final List<SwaggerPath> swaggerPaths) throws ApiAlreadyExistsException {
+            final ImportSwaggerDescriptorEntity swaggerDescriptor, final List<SwaggerPath> swaggerPaths) throws ApiAlreadyExistsException {
         UpdateApiEntity apiEntity = new UpdateApiEntity();
 
         apiEntity.setName(newApiEntity.getName());
@@ -212,12 +212,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         proxy.setGroups(singleton(group));
         apiEntity.setProxy(proxy);
 
-        final List<String> declaredPaths;
-        if (swaggerPaths != null) {
-            declaredPaths = swaggerPaths.stream().map(SwaggerPath::getPath).collect(toList());
-        } else {
-            declaredPaths = newApiEntity.getPaths() != null ? newApiEntity.getPaths() : new ArrayList<>();
-        }
+        final List<String> declaredPaths = newApiEntity.getPaths() != null ? newApiEntity.getPaths() : new ArrayList<>();
         if (!declaredPaths.contains("/")) {
           declaredPaths.add(0, "/");
         }
@@ -233,84 +228,117 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setPathMappings(new HashSet<>(declaredPaths));
 
         if (swaggerDescriptor != null) {
-            if (!swaggerDescriptor.isWithPolicyPaths()) {
-                final Path path = new Path();
-                path.setPath("/");
-                apiEntity.setPaths(singletonMap("/", path));
-            } else if (swaggerPaths != null && !swaggerPaths.isEmpty()) {
-                final Map<String, Path> pathWithMocks = new HashMap<>(swaggerPaths.size());
-                swaggerPaths.forEach(swaggerPath -> {
-                    final Path path = new Path();
-                    path.setPath(swaggerPath.getPath());
-
-                    if (swaggerDescriptor.isWithPolicyMocks()) {
-                        final List<Rule> rules = new ArrayList<>();
-                        swaggerPath.getVerbs().forEach(swaggerVerb -> {
-                            final Rule rule = new Rule();
-                            rule.setEnabled(true);
-                            rule.setDescription(swaggerVerb.getDescription());
-                            rule.setMethods(singleton(HttpMethod.valueOf(swaggerVerb.getVerb())));
-                            final Policy policy = new Policy();
-                            policy.setName("mock");
-
-                            final Map<String, Object> configuration = new HashMap<>();
-
-                            String responseStatus = swaggerVerb.getResponseStatus();
-                            try {
-                                Integer.parseInt(responseStatus);
-                            } catch (final NumberFormatException nfe) {
-                                responseStatus = "200";
-                            }
-                            configuration.put("status", responseStatus);
-                            final Map<Object, Object> header = new HashMap<>(2);
-                            header.put("name", "Content-Type");
-                            header.put("value", "application/json");
-                            configuration.put("headers", singletonList(header));
-                            try {
-                                final Map<String, Object> responseProperties = swaggerVerb.getResponseProperties();
-                                if (responseProperties != null) {
-                                    configuration.put("content", objectMapper.writeValueAsString(swaggerVerb.isArray()?
-                                            singletonList(responseProperties): responseProperties));
-                                }
-                                policy.setConfiguration(objectMapper.writeValueAsString(configuration));
-                            } catch (final JsonProcessingException e) {
-                                e.printStackTrace();
-                            }
-
-                            rule.setPolicy(policy);
-                            rules.add(rule);
-                        });
-
-                        path.setRules(rules);
-                    }
-                    pathWithMocks.put(swaggerPath.getPath(), path);
-                });
-                apiEntity.setPaths(pathWithMocks);
-            }
-            if (!swaggerDescriptor.isWithPathMapping()) {
-                apiEntity.setPathMappings(null);
-            }
+            fillApiEntityFromSwagger(apiEntity, swaggerDescriptor, swaggerPaths);
         }
 
         final ApiEntity createdApi = create0(apiEntity, userId);
 
-        if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
-            final NewPageEntity page = new NewPageEntity();
-            page.setName("Swagger");
-            page.setType(SWAGGER);
-            page.setOrder(1);
-            if (INLINE.equals(swaggerDescriptor.getType())) {
-                String modifiedApi = addGraviteeUrl(createdApi.getProxy().getContextPath(), swaggerDescriptor.getPayload());
-                page.setContent(modifiedApi);
-            } else {
-                final PageSourceEntity source = new PageSourceEntity();
-                page.setSource(source);
-                source.setType("http-fetcher");
-                source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
-            }
-            pageService.createPage(createdApi.getId(), page);
-        }
+        createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
+        
         return createdApi;
+    }
+
+    private void createOrUpdateDocumentation(final ImportSwaggerDescriptorEntity swaggerDescriptor,
+            final ApiEntity api, boolean isForCreation) {
+        List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder()
+                .api(api.getId())
+                .type(PageType.SWAGGER)
+                .build()
+                );
+        
+        if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
+            if(isForCreation || (apiDocs == null || apiDocs.isEmpty())) { 
+                final NewPageEntity page = new NewPageEntity();
+                page.setName("Swagger");
+                page.setType(SWAGGER);
+                page.setOrder(1);
+                if (INLINE.equals(swaggerDescriptor.getType())) {
+                    String modifiedApi = addGraviteeUrl(api.getProxy().getContextPath(), swaggerDescriptor.getPayload());
+                    page.setContent(modifiedApi);
+                } else {
+                    final PageSourceEntity source = new PageSourceEntity();
+                    page.setSource(source);
+                    source.setType("http-fetcher");
+                    source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
+                }
+                pageService.createPage(api.getId(), page);
+            } else if(apiDocs.size() == 1) {
+                PageEntity pageToUpdate = apiDocs.get(0);
+                final UpdatePageEntity page = new UpdatePageEntity();
+                page.setName(pageToUpdate.getName());
+                page.setOrder(pageToUpdate.getOrder());
+                if (INLINE.equals(swaggerDescriptor.getType())) {
+                    String modifiedApi = addGraviteeUrl(api.getProxy().getContextPath(), swaggerDescriptor.getPayload());
+                    page.setContent(modifiedApi);
+                } else {
+                    final PageSourceEntity source = new PageSourceEntity();
+                    page.setSource(source);
+                    source.setType("http-fetcher");
+                    source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
+                }
+                pageService.update(pageToUpdate.getId(), page);
+            }
+        }
+    }
+
+    private void fillApiEntityFromSwagger(UpdateApiEntity apiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor, List<SwaggerPath> swaggerPaths) {
+        if (swaggerDescriptor.isWithPolicyPaths() && swaggerPaths != null && !swaggerPaths.isEmpty()) {
+            final Map<String, Path> pathWithMocks = new HashMap<>(swaggerPaths.size());
+            swaggerPaths.forEach(swaggerPath -> {
+                final Path path = new Path();
+                path.setPath(swaggerPath.getPath());
+
+                if (swaggerDescriptor.isWithPolicyMocks()) {
+                    addMockToPath(swaggerPath, path);
+                }
+                pathWithMocks.put(swaggerPath.getPath(), path);
+            });
+            apiEntity.setPaths(pathWithMocks);
+        }
+        if (swaggerDescriptor.isWithPathMapping()) {
+            apiEntity.setPathMappings(swaggerPaths.stream().map(SwaggerPath::getPath).collect(toSet()));
+        }
+    }
+    
+    private void addMockToPath(SwaggerPath swaggerPath, final Path path) {
+        final List<Rule> rules = new ArrayList<>();
+        swaggerPath.getVerbs().forEach(swaggerVerb -> {
+            final Rule rule = new Rule();
+            rule.setEnabled(true);
+            rule.setDescription(swaggerVerb.getDescription());
+            rule.setMethods(singleton(HttpMethod.valueOf(swaggerVerb.getVerb())));
+            final Policy policy = new Policy();
+            policy.setName("mock");
+
+            final Map<String, Object> configuration = new HashMap<>();
+
+            String responseStatus = swaggerVerb.getResponseStatus();
+            try {
+                Integer.parseInt(responseStatus);
+            } catch (final NumberFormatException nfe) {
+                responseStatus = "200";
+            }
+            configuration.put("status", responseStatus);
+            final Map<Object, Object> header = new HashMap<>(2);
+            header.put("name", "Content-Type");
+            header.put("value", "application/json");
+            configuration.put("headers", singletonList(header));
+            try {
+                final Map<String, Object> responseProperties = swaggerVerb.getResponseProperties();
+                if (responseProperties != null) {
+                    configuration.put("content", objectMapper.writeValueAsString(swaggerVerb.isArray()?
+                            singletonList(responseProperties): responseProperties));
+                }
+                policy.setConfiguration(objectMapper.writeValueAsString(configuration));
+            } catch (final JsonProcessingException e) {
+                e.printStackTrace();
+            }
+
+            rule.setPolicy(policy);
+            rules.add(rule);
+        });
+
+        path.setRules(rules);
     }
 
     private String addGraviteeUrl(String apiContextPath, String payload) {
@@ -622,6 +650,42 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
+    public ApiEntity update(String apiId, UpdateSwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+
+        final UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        ApiEntity apiEntityToUpdate = this.findById(apiId);
+        
+        //init update From existing api
+        updateApiEntity.setLabels(apiEntityToUpdate.getLabels());
+        updateApiEntity.setLifecycleState(apiEntityToUpdate.getLifecycleState());
+        updateApiEntity.setPicture(apiEntityToUpdate.getPicture());
+        updateApiEntity.setProperties(apiEntityToUpdate.getProperties());
+        updateApiEntity.setProxy(apiEntityToUpdate.getProxy());
+        updateApiEntity.setResources(apiEntityToUpdate.getResources());
+        updateApiEntity.setResponseTemplates(apiEntityToUpdate.getResponseTemplates());
+        updateApiEntity.setServices(apiEntityToUpdate.getServices());
+        updateApiEntity.setTags(apiEntityToUpdate.getTags());
+        updateApiEntity.setViews(apiEntityToUpdate.getViews());
+        updateApiEntity.setVisibility(apiEntityToUpdate.getVisibility());
+        updateApiEntity.setPaths(apiEntityToUpdate.getPaths());
+        updateApiEntity.setPathMappings(apiEntityToUpdate.getPathMappings());
+        
+        
+        //overwrite from swagger
+        updateApiEntity.setVersion(swaggerApiEntity.getVersion());
+        updateApiEntity.setName(swaggerApiEntity.getName());
+        updateApiEntity.setDescription(swaggerApiEntity.getDescription());
+        updateApiEntity.setGroups(swaggerApiEntity.getGroups());
+
+        //overwrite from swagger, if asked
+        List<SwaggerPath> swaggerPaths = swaggerApiEntity.getPaths();
+        fillApiEntityFromSwagger(updateApiEntity, swaggerDescriptor, swaggerPaths);
+        createOrUpdateDocumentation(swaggerDescriptor, apiEntityToUpdate, false);
+
+        return update(apiId, updateApiEntity);
+    }
+    
+    @Override
     public ApiEntity update(String apiId, UpdateApiEntity updateApiEntity) {
         try {
             LOGGER.debug("Update API {}", apiId);
@@ -684,7 +748,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (updateApiEntity.getViews() == null) {
                     api.setViews(apiToUpdate.getViews());
                 }
-
+                
+                
                 Api updatedApi = apiRepository.update(api);
 
                 // Audit
@@ -705,7 +770,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 searchEngineService.index(apiEntity, false);
                 return apiEntity;
             } else {
-                LOGGER.error("Unable to update API {} because of previous error.", api.getId());
+                LOGGER.error("Unable to update API {} because of previous error.", apiId);
                 throw new TechnicalManagementException("Unable to update API " + apiId);
             }
         } catch (TechnicalException ex) {
@@ -1667,16 +1732,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiDefinition.setName(updateApiEntity.getName());
             apiDefinition.setVersion(updateApiEntity.getVersion());
             apiDefinition.setProxy(updateApiEntity.getProxy());
+            
             apiDefinition.setPaths(updateApiEntity.getPaths());
-
-            apiDefinition.setServices(updateApiEntity.getServices());
-            apiDefinition.setResources(updateApiEntity.getResources());
-            apiDefinition.setProperties(updateApiEntity.getProperties());
-            apiDefinition.setTags(updateApiEntity.getTags());
             if (updateApiEntity.getPathMappings() != null) {
                 apiDefinition.setPathMappings(updateApiEntity.getPathMappings().stream()
                         .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(""))));
             }
+            
+            apiDefinition.setServices(updateApiEntity.getServices());
+            apiDefinition.setResources(updateApiEntity.getResources());
+            apiDefinition.setProperties(updateApiEntity.getProperties());
+            apiDefinition.setTags(updateApiEntity.getTags());
+            
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
 
             String definition = objectMapper.writeValueAsString(apiDefinition);

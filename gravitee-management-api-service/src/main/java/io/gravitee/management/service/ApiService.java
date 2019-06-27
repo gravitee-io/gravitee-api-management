@@ -43,6 +43,7 @@ public interface ApiService {
     ApiEntity create(NewSwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     ApiEntity update(String apiId, UpdateApiEntity api);
+    ApiEntity update(String apiId, UpdateSwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     void delete(String apiId);
 
@@ -68,7 +69,7 @@ public interface ApiService {
     String exportAsJson(String apiId, String exportVersion, String... filteredFields);
 
     ApiEntity createOrUpdateWithDefinition(ApiEntity apiEntity, String apiDefinition, String userId);
-
+    
     InlinePictureEntity getPicture(String apiId);
 
     byte[] getDefaultPicture();
@@ -116,4 +117,5 @@ public interface ApiService {
     ApiEntity askForReview(String apiId, String userId, ReviewEntity reviewEntity);
     ApiEntity acceptReview(String apiId, String userId, ReviewEntity reviewEntity);
     ApiEntity rejectReview(String apiId, String userId, ReviewEntity reviewEntity);
+
 }

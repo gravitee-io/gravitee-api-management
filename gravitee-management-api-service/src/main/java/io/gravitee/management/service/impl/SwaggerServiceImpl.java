@@ -23,6 +23,7 @@ import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.api.NewSwaggerApiEntity;
 import io.gravitee.management.model.api.SwaggerPath;
 import io.gravitee.management.model.api.SwaggerVerb;
+import io.gravitee.management.model.api.UpdateSwaggerApiEntity;
 import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.exceptions.SwaggerDescriptorException;
 import io.swagger.models.*;
@@ -627,5 +628,20 @@ public class SwaggerServiceImpl implements SwaggerService {
             return Yaml.pretty(openApi);
         }
         return payload;
+    }
+
+    @Override
+    public UpdateSwaggerApiEntity prepareForUpdate(ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        NewSwaggerApiEntity newSwaggerApiEntity = prepare(swaggerDescriptor);
+        UpdateSwaggerApiEntity result = new UpdateSwaggerApiEntity();
+        result.setContextPath(newSwaggerApiEntity.getContextPath());
+        result.setDescription(newSwaggerApiEntity.getDescription());
+        result.setEndpoint(newSwaggerApiEntity.getEndpoint());
+        result.setGroups(newSwaggerApiEntity.getGroups());
+        result.setName(newSwaggerApiEntity.getName());
+        result.setPaths(newSwaggerApiEntity.getPaths());
+        result.setVersion(newSwaggerApiEntity.getVersion());
+        
+        return result;
     }
 }

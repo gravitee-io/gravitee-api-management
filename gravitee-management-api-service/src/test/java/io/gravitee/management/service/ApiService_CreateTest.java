@@ -78,6 +78,8 @@ public class ApiService_CreateTest {
     @Mock
     private GroupService groupService;
     @Mock
+    private PageService pageService;
+    @Mock
     private UserService userService;
     @Mock
     private AuditService auditService;
@@ -108,6 +110,7 @@ public class ApiService_CreateTest {
         when(newApi.getDescription()).thenReturn("Ma description");
         when(newApi.getContextPath()).thenReturn("/context");
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
+        when(pageService.search(any())).thenReturn(null);
 
         when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
 
@@ -191,6 +194,7 @@ public class ApiService_CreateTest {
 
         when(newApi.getContextPath()).thenReturn(contextPathToCreate);
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
+        when(pageService.search(any())).thenReturn(null);
 
         apiService.create(newApi, USER_NAME);
     }
