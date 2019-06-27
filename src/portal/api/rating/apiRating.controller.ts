@@ -68,6 +68,7 @@ class ApiPortalRatingController {
         this.onModification();
         this.NotificationService.show('api.rating.successUpdate');
         this.justCreated = false;
+        this.$state.reload();
       });
     } else {
       this.ApiService.createRating(this.api.id, this.rating).then(() => {
@@ -76,9 +77,10 @@ class ApiPortalRatingController {
         if (!this.commentMandatory) {
           this.justCreated = true;
         }
+        this.$state.reload();
       }, () => delete this.rating);
     }
-    this.formRating.$setPristine();
+    //this.formRating.$setPristine();
   }
 
   saveRate() {
@@ -155,7 +157,8 @@ class ApiPortalRatingController {
           this.onModification();
           this.NotificationService.show('api.rating.successDeletion');
           this.justCreated = false;
-          this.formRating.$setPristine();
+          //this.formRating.$setPristine();
+          this.$state.reload();
         });
       }
     }, () => {

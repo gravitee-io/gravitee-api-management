@@ -89,7 +89,7 @@
             <!-- import file -->
             <div ng-if="'import' === getContentMode" style="display: inline-block;">
                 <h3>Select a file to import:</h3>
-                <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" >
+                <input type="file" filecontent="$ctrl.page.content" filename="$ctrl.page.name" >
             </div>
 
             <!-- Import via fetchers -->

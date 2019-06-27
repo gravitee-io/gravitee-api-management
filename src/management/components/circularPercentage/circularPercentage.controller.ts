@@ -19,8 +19,7 @@ class CircularPercentageController {
     private percentageCircle: number = 100;
     private qualityMetricCssClass: string;
 
-    $onInit() {
-
+    getScore() {
         if (this.score > 0) {
             this.percentage = parseInt((this.score * 100).toFixed(0));
             this.percentageCircle = this.percentage;
@@ -33,6 +32,7 @@ class CircularPercentageController {
         } else {
         this.qualityMetricCssClass =  "gravitee-qm-score-good";
         }
+        return this.percentage;
     }
 }
 

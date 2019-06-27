@@ -22,6 +22,7 @@ class ApiHealthCheckConfigureController {
   private timeUnits: string[];
   private httpMethods: string[];
   private endpoint: any;
+  private endpointToDisplay: any;
   private rootHealthcheckEnabled: boolean;
 
   constructor (
@@ -54,10 +55,11 @@ class ApiHealthCheckConfigureController {
       } else {
         this.healthcheck = this.endpoint.healthcheck;
       }
+      this.endpointToDisplay = this.endpoint;
     } else {
       // Health-check for all endpoint
       if(this.api.proxy.groups.length == 1 && this.api.proxy.groups[0].endpoints.length == 1) {
-        this.endpoint = this.api.proxy.groups[0].endpoints[0];
+        this.endpointToDisplay = this.api.proxy.groups[0].endpoints[0];
       }
 
       this.healthcheck = this.api.services && this.api.services['health-check'];
@@ -143,21 +145,21 @@ class ApiHealthCheckConfigureController {
   buildRequest() {
     let request = "";
 
-    request += ((this.healthcheck.steps && this.healthcheck.steps[0].request.method) + " ") || "{method} ";
+    request += (((this.healthcheck.steps && this.healthcheck.steps[0].request.method)) || "{method}") + " ";
 
     if ( this.healthcheck.steps && this.healthcheck.steps[0].request.fromRoot ) {
-      if ( this.endpoint ) {
+      if ( this.endpointToDisplay ) {
         try {
-          request += new URL(this.endpoint.target).origin;
+          request += new URL(this.endpointToDisplay.target).origin;
         } catch (e) {
-          request += this.endpoint.target;
+          request += this.endpointToDisplay.target;
         }
       } else {
         request += "{endpoint}";
       }
       request += (this.healthcheck.steps && this.healthcheck.steps[0].request.path) || "/{path}";
     } else {
-      request += ((this.endpoint) ? this.endpoint.target : "{endpoint}");
+      request += ((this.endpointToDisplay) ? this.endpointToDisplay.target : "{endpoint}");
       request += (this.healthcheck.steps && this.healthcheck.steps[0].request.path) || "/{path}";
     }
 
@@ -213,3 +215,4 @@ class ApiHealthCheckConfigureController {
 }
 
 export default ApiHealthCheckConfigureController;
+
