@@ -181,6 +181,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("POST", postStreams.getVerb());
         assertNotNull(postStreams.getResponseProperties());
         assertEquals("2531329f-fb09-4ef7-887e-84e648214436", (postStreams.getResponseProperties()).get("subscriptionId"));
+        assertEquals("Mocked string", (postStreams.getResponseProperties()).get("message"));
     }
 
     @Test
