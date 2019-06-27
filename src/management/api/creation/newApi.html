@@ -37,44 +37,7 @@
       <div layout="column">
         <h4>... or import API definition or your Swagger descriptor file</h4>
 
-        <md-tabs md-dynamic-height md-border-bottom>
-          <md-tab label="Import file" ng-click="newApiCtrl.importFileMode= true; newApiCtrl.importURLMode= false;">
-            <div class="import-file-drop-box">
-              <input type="file" filecontent="importAPIFile.content" filename="importAPIFile.name" >
-            </div>
-          </md-tab>
-          <md-tab label="Import from link" ng-click="newApiCtrl.importFileMode= false; newApiCtrl.importURLMode= true;">
-            <div class="input-group import-file-from-url">
-              <input class="form-control" ng-model="newApiCtrl.apiDescriptorURL" required type="url" placeholder="Enter Swagger descriptor URL"/>
-            </div>
-          </md-tab>
-        </md-tabs>
-
-        <div style="margin-top:24px;" layout="column" ng-if="newApiCtrl.importURLMode || newApiCtrl.isSwaggerImport()">
-          <h4>Swagger import configurations:</h4>
-          <md-checkbox ng-model="newApiCtrl.importCreateDocumentation" aria-label="Create documentation pages" flex>
-            Create documentation
-            <div class="ipsum" style="color: grey;">Add a documentation page with the content of the swagger descriptor.</div>
-          </md-checkbox>
-          <md-checkbox ng-model="newApiCtrl.importCreatePathMapping" aria-label="Create the path-mapping for analytics" flex>
-            Create the path-mapping for analytics
-            <div class="ipsum" style="color: grey;">Create each paths from the swagger descriptor.</div>
-          </md-checkbox>
-          <md-checkbox ng-model="newApiCtrl.importCreatePolicyPaths" aria-label="Create paths for policies"
-                       ng-click="newApiCtrl.importCreateMocks = false" flex>
-            Create policies on paths
-            <div class="ipsum" style="color: grey;">Create each paths from the swagger descriptor.</div>
-          </md-checkbox>
-          <md-checkbox ng-model="newApiCtrl.importCreateMocks" aria-label="Create mocks on paths of policies" flex
-                       ng-disabled="!newApiCtrl.importCreatePolicyPaths" style="margin-left: 20px;">
-            With mocks
-            <div class="ipsum" style="color: grey;">Add mocks on each paths from the swagger descriptor.</div>
-          </md-checkbox>
-        </div>
-
-        <div layout="row">
-          <md-button style="margin: 10px auto;" ng-disabled="!newApiCtrl.enableImport()" ng-click="newApiCtrl.importAPI()" class="md-raised import-api-button">Import</md-button>
-        </div>
+        <gv-api-import></gv-api-import>
       </div>
     </div>
   </div>

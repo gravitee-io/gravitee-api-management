@@ -15,21 +15,6 @@
     limitations under the License.
 
 -->
-<md-dialog>
-  <form name="formApiDefinition" ng-submit="import()" novalidate>
-  <md-dialog-content layout-padding>
-      <h4>Import API definition from file</h4>
-      <div flex layout="column" layout-align="center center" class="gravitee-api-definition-dialog">
-        <input type="file" filecontent="pageContentFile.content" filename="pageContentFile.name" />
-      </div>
-  </md-dialog-content>
-    <md-dialog-actions layout="row">
-    <md-button md-no-ink ng-click="hide()">
-      Cancel
-    </md-button>
-    <md-button class="md-raised md-primary" type="submit" ng-disabled="formApiDefinition.$invalid">
-     Import
-    </md-button>
-    </md-dialog-actions>
-  </form>
+<md-dialog style="width: 30%; height:55%">
+  <gv-api-import cancel-action="hide()" api-id="apiId"></gv-api-import>
 </md-dialog>

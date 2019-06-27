@@ -45,7 +45,6 @@ import HttpConfigurationComponent from '../management/api/proxy/backend/endpoint
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import ApiResourcesController from '../management/api/design/resources/resources.controller';
 import ApiPathMappingsController from '../management/api/analytics/pathMappings/pathMappings.controller';
-import NewApiController from '../management/api/creation/newApi.controller';
 import ApiPropertiesController from '../management/api/design/properties/properties.controller';
 import ApiEventsController from '../management/api/audit/events/apiEvents.controller';
 import ApiHistoryController from '../management/api/audit/history/apiHistory.controller';
@@ -81,6 +80,8 @@ import ApiCreationStep2Component from '../management/api/creation/steps/api-crea
 import ApiCreationStep3Component from '../management/api/creation/steps/api-creation-step3.component';
 import ApiCreationStep4Component from '../management/api/creation/steps/api-creation-step4.component';
 import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
+import ApiImportComponent from '../management/components/import/import-api.component';
+
 // API Plan
 import ApiPlanComponent from '../management/api/api-plan.component';
 import ApiEditPlanController from '../management/api/portal/plans/plan/edit-plan.controller';
@@ -562,7 +563,6 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('ApiPathMappingsController', ApiPathMappingsController)
   .controller('DialogAddPathMappingController', DialogAddPathMappingController)
   .controller('DialogImportPathMappingController', DialogImportPathMappingController)
-  .controller('NewApiController', NewApiController)
   .controller('DialogAddPropertyController', DialogAddPropertyController)
   .controller('DialogAddMemberApiController', DialogAddMemberApiController)
   .controller('DialogTransferApiController', DialogTransferApiController)
@@ -687,6 +687,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('apiCreationStep3', ApiCreationStep3Component)
   .component('apiCreationStep4', ApiCreationStep4Component)
   .component('apiCreationStep5', ApiCreationStep5Component)
+  .component('gvApiImport', ApiImportComponent)
   .component('apiMetadata', ApiMetadataComponent)
   .component('gvDashboard', DashboardComponent)
   .component('gvDashboardFilter', DashboardFilterComponent)

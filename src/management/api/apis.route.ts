@@ -80,8 +80,6 @@ function apisRouterConfig($stateProvider: StateProvider) {
     .state('management.apis.new', {
       url: '/new',
       template: require('./creation/newApi.html'),
-      controller: 'NewApiController',
-      controllerAs: 'newApiCtrl',
       data: {
         perms: {
           only: ['management-api-c']

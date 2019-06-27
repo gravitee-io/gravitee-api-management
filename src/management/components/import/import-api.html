@@ -1,0 +1,63 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div>
+  <md-tabs md-dynamic-height md-border-bottom style="min-width: 380px">
+    <md-tab label="Import file" ng-click="$ctrl.importFileMode= true; $ctrl.importURLMode= false;">
+      <div class="import-file-drop-box">
+        <input type="file" filecontent="$ctrl.importAPIFile.content" filename="$ctrl.importAPIFile.name" >
+      </div>
+    </md-tab>
+    <md-tab label="Import from link" ng-click="$ctrl.importFileMode= false; $ctrl.importURLMode= true;">
+      <div class="input-group import-file-from-url">
+        <input class="form-control" ng-model="$ctrl.apiDescriptorURL" required type="url" placeholder="Enter Swagger descriptor URL"/>
+      </div>
+    </md-tab>
+  </md-tabs>
+
+  <div style="margin:24px;" layout="column" ng-if="$ctrl.importURLMode || $ctrl.isSwaggerImport()">
+    <h4>Swagger import configurations:</h4>
+    <md-checkbox ng-model="$ctrl.importCreateDocumentation" aria-label="($ctrl.isForUpdate() ? 'Update' : 'Create') documentation pages" flex ng-change="$ctrl.updateWarnText()">
+      {{($ctrl.isForUpdate() ? 'Update' : 'Create')}} documentation
+      <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update the' : 'Add a')}} documentation page with the content of the swagger descriptor.</div>
+      <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreateDocumentation">This will overwrite the swagger documentation if there is only one existing, or create it if it does not exist yet.</div>
+    </md-checkbox>
+    <md-checkbox ng-model="$ctrl.importCreatePathMapping" aria-label="($ctrl.isForUpdate() ? 'Update' : 'Create') the path-mapping for analytics" flex ng-change="$ctrl.updateWarnText()">
+      {{($ctrl.isForUpdate() ? 'Update' : 'Create')}} the path-mapping for analytics
+      <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update' : 'Create')}} each path from the swagger descriptor.</div>
+      <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreatePathMapping">This will overwrite all the path-mappings.</div>
+    </md-checkbox>
+    <md-checkbox ng-model="$ctrl.importCreatePolicyPaths" aria-label="($ctrl.isForUpdate() ? 'Update' : 'Create') paths for policies"
+                  ng-click="$ctrl.importCreateMocks = false" flex ng-change="$ctrl.updateWarnText()">
+                  {{($ctrl.isForUpdate() ? 'Update' : 'Create')}} policies on paths
+      <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update' : 'Create')}} each path from the swagger descriptor.</div>
+      <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreatePolicyPaths">This will overwrite all the policies.</div>
+    </md-checkbox>
+    <md-checkbox ng-model="$ctrl.importCreateMocks" aria-label="($ctrl.isForUpdate() ? 'Update' : 'Create') mocks on paths of policies" flex ng-change="$ctrl.updateWarnText()"
+                  ng-disabled="!$ctrl.importCreatePolicyPaths" style="margin-left: 20px;">
+      With mocks
+      <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update' : 'Add')}} mocks on each path from the swagger descriptor.</div>
+      <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreateMocks">This will overwrite all the mocks.</div>
+    </md-checkbox>
+    <div class="gv-warn" ng-show="$ctrl.isForUpdate()">This will overwrite the name, the description and the version.</div>
+
+  </div>
+  <md-dialog-actions layout="row">
+      <md-button md-no-ink ng-click="$ctrl.cancel()" ng-show=$ctrl.isForUpdate()>Cancel</md-button>
+      <md-button ng-disabled="!$ctrl.enableImport()" ng-click="$ctrl.importAPI()" class="md-raised import-api-button" ng-class="{'md-warn': $ctrl.isForUpdate()}">Import</md-button>
+  </md-dialog>
+</div>

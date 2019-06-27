@@ -16,7 +16,7 @@
 function DialogApiImportController($scope, $mdDialog, ApiService, apiId) {
   'ngInject';
 
-  $scope.pageContentFile = {content: '', name : ''};
+  $scope.apiId = apiId;
 
   $scope.hide = function() {
     $mdDialog.hide();
