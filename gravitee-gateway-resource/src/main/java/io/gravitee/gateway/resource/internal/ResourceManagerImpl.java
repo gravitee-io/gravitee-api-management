@@ -109,7 +109,7 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
         ResourceClassLoaderFactory rclf = applicationContext.getBean(ResourceClassLoaderFactory.class);
         ResourceConfigurationFactory rcf = applicationContext.getBean(ResourceConfigurationFactory.class);
         ReactorHandler rh = applicationContext.getBean(ReactorHandler.class);
-        Reactable reactable = rh.reactable();
+        Reactable reactable = applicationContext.getBean(Reactable.class);
 
         Set<Resource> resourceDeps = reactable.dependencies(Resource.class);
 
@@ -121,7 +121,7 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
             }
 
             PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(
-                    resourcePlugin.id(), s -> rclf.getOrCreateClassLoader(resourcePlugin, rh.classloader()));
+                    resourcePlugin.id(), s -> rclf.getOrCreateClassLoader(resourcePlugin, rh.getClass().getClassLoader()));
             
             logger.debug("Loading resource {} for {}", resource.getName(), rh);
 

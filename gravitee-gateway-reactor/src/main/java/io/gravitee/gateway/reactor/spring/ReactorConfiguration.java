@@ -16,15 +16,16 @@
 package io.gravitee.gateway.reactor.spring;
 
 import io.gravitee.gateway.reactor.Reactor;
+import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
+import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.context.provider.NodeTemplateVariableProvider;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
-import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerResolver;
-import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
-import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
-import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
+import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
+import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
+import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,13 +42,18 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public ReactorHandlerResolver reactorHandlerResolver() {
-        return new DefaultReactorHandlerResolver();
+    public EntrypointResolver reactorHandlerResolver() {
+        return new DefaultEntrypointResolver();
     }
 
     @Bean
     public ReactorHandlerRegistry reactorHandlerManager() {
         return new DefaultReactorHandlerRegistry();
+    }
+
+    @Bean
+    public ReactorHandlerFactoryManager reactorHandlerFactoryManager() {
+        return new ReactorHandlerFactoryManager();
     }
 
     @Bean

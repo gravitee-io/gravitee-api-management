@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactor.Reactable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,16 +38,6 @@ public class DummyReactorHandler extends AbstractReactorHandler {
     public Reactable reactable() {
         return new Reactable() {
             @Override
-            public Object item() {
-                return null;
-            }
-
-            @Override
-            public String contextPath() {
-                return "";
-            }
-
-            @Override
             public boolean enabled() {
                 return true;
             }
@@ -60,17 +51,16 @@ public class DummyReactorHandler extends AbstractReactorHandler {
             public Map<String, Object> properties() {
                 return null;
             }
+
+            public List<Entrypoint> entrypoints() {
+                return null;
+            }
         };
     }
 
     @Override
     public void handle(ExecutionContext context) {
         doHandle(context);
-    }
-
-    @Override
-    public String contextPath() {
-        return null;
     }
 
     @Override

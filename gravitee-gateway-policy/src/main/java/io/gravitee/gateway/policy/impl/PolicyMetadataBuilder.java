@@ -16,7 +16,12 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyConfiguration;
+import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnRequestContent;
+import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.annotations.OnResponseContent;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -35,6 +40,8 @@ public class PolicyMetadataBuilder {
     private Class<?> policy;
 
     private Map<Class<? extends Annotation>, Method> methods;
+
+    private ClassLoader classLoader;
 
     public PolicyMetadataBuilder setId(String id) {
         this.id = id;
@@ -56,6 +63,11 @@ public class PolicyMetadataBuilder {
         return this;
     }
 
+    public PolicyMetadataBuilder setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+        return this;
+    }
+
     public PolicyMetadata build() {
         return new PolicyMetadata() {
             @Override
@@ -74,8 +86,21 @@ public class PolicyMetadataBuilder {
             }
 
             @Override
+            public ClassLoader classloader() {
+                return classLoader;
+            }
+
+            @Override
             public Method method(Class<? extends Annotation> type) {
                 return methods.get(type);
+            }
+
+            @Override
+            public boolean accept(StreamType stream) {
+                return (stream == StreamType.ON_REQUEST &&
+                        (method(OnRequest.class) != null || method(OnRequestContent.class) != null)) ||
+                        (stream == StreamType.ON_RESPONSE && (
+                                method(OnResponse.class) != null || method(OnResponseContent.class) != null));
             }
         };
     }

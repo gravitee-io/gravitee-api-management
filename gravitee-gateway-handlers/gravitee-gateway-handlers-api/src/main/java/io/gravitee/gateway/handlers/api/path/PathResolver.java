@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.path;
 
+import io.gravitee.gateway.api.Request;
+
 /**
  * This resolver is used to determine the configured {@link Path} from
  * the API definition {@link io.gravitee.definition.model.Api} for the given
@@ -29,8 +31,8 @@ public interface PathResolver {
     /**
      * The "resolved" path.
      *
-     * @param path The request path.
+     * @param request The incoming request.
      * @return The "resolved" path for current request.
      */
-    Path resolve(String path);
+    Path resolve(String entrypointPath, Request request);
 }

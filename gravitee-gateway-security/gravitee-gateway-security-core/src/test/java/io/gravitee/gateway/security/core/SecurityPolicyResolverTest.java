@@ -18,27 +18,25 @@ package io.gravitee.gateway.security.core;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.policy.*;
-import io.gravitee.gateway.policy.impl.PolicyChain;
-import io.gravitee.gateway.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.policy.StreamType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
+import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class SecurityPolicyChainResolverTest {
+public class SecurityPolicyResolverTest {
 
-    private SecurityPolicyChainResolver securityPolicyChainResolver;
+    private SecurityPolicyResolver securityPolicyResolver;
 
     @Mock
     private AuthenticationHandlerSelector handlerSelector;
@@ -50,33 +48,24 @@ public class SecurityPolicyChainResolverTest {
     private Request request;
 
     @Mock
-    private Response response;
-
-    @Mock
     private ExecutionContext executionContext;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        securityPolicyChainResolver = new SecurityPolicyChainResolver();
-        securityPolicyChainResolver.setAuthenticationHandlerSelector(handlerSelector);
-        securityPolicyChainResolver.setPolicyManager(policyManager);
-    }
+        securityPolicyResolver = new SecurityPolicyResolver();
+        securityPolicyResolver.setAuthenticationHandlerSelector(handlerSelector);
 
-    @Test
-    public void shouldReturnNoOpPolicyChain_onResponse() {
-        PolicyChain policyChain = securityPolicyChainResolver.resolve(StreamType.ON_RESPONSE, request, response, executionContext);
-
-        assertEquals(NoOpPolicyChain.class, policyChain.getClass());
+        when(executionContext.request()).thenReturn(request);
     }
 
     @Test
     public void shouldReturnUnauthorizedPolicyChain_onRequest() {
         when(handlerSelector.select(request)).thenReturn(null);
 
-        PolicyChain policyChain = securityPolicyChainResolver.resolve(StreamType.ON_REQUEST, request, response, executionContext);
+        List<Policy> policies = securityPolicyResolver.resolve(StreamType.ON_REQUEST, executionContext);
 
-        assertEquals(DirectPolicyChain.class, policyChain.getClass());
+        assertNull(policies);
     }
 
     @Test
@@ -89,8 +78,8 @@ public class SecurityPolicyChainResolverTest {
         when(policyManager.create(StreamType.ON_REQUEST, "my-policy", null)).thenReturn(policy);
         when(handlerSelector.select(request)).thenReturn(securityProvider);
 
-        PolicyChain policyChain = securityPolicyChainResolver.resolve(StreamType.ON_REQUEST, request, response, executionContext);
+        List<Policy> policies = securityPolicyResolver.resolve(StreamType.ON_REQUEST, executionContext);
 
-        assertEquals(RequestPolicyChain.class, policyChain.getClass());
+        assertNotNull(policies);
     }
 }

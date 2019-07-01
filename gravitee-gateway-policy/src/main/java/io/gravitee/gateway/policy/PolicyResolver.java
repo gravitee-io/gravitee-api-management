@@ -16,27 +16,23 @@
 package io.gravitee.gateway.policy;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.core.processor.StreamableProcessor;
-import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
-import io.gravitee.gateway.policy.impl.PolicyChain;
+
+import java.util.List;
 
 /**
+ * This resolver is used to calculate the list of {@link Policy} to apply.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyChainResolver extends ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>> {
+public interface PolicyResolver {
 
     /**
-     * Return a specific implementation of {@link PolicyChain} based on the stream type
+     * Get the list of {@link Policy} to execute according the current request context
      *
      * @param streamType
-     * @param request
-     * @param response
-     * @param executionContext
+     * @param context
      * @return
      */
-    PolicyChain resolve(StreamType streamType, Request request, Response response, ExecutionContext executionContext);
+    List<Policy> resolve(StreamType streamType, ExecutionContext context);
 }

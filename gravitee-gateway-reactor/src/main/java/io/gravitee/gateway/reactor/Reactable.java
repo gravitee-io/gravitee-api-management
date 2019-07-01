@@ -15,22 +15,25 @@
  */
 package io.gravitee.gateway.reactor;
 
+import io.gravitee.gateway.reactor.handler.Entrypoint;
+
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * A reactable is an element which is deployed into the proxy.
+ *
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Reactable<T> {
-
-    T item();
-
-    String contextPath();
+public interface Reactable {
 
     boolean enabled();
 
     <D> Set<D> dependencies(Class<D> type);
 
     Map<String, Object> properties();
+
+    List<Entrypoint> entrypoints();
 }

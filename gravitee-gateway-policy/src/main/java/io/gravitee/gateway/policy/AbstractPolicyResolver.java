@@ -13,30 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler;
+package io.gravitee.gateway.policy;
 
-import io.gravitee.gateway.reactor.Reactable;
-
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReactorHandlerRegistry {
+public abstract class AbstractPolicyResolver implements PolicyResolver {
 
-    void create(Reactable reactable);
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    void update(Reactable reactable);
+    @Autowired
+    private PolicyManager policyManager;
 
-    void remove(Reactable reactable);
-
-    void clear();
-
-    /**
-     * An ordered collection of registered entrypoints.
-     *
-     * @return
-     */
-    List<HandlerEntrypoint> getEntrypoints();
+    protected Policy create(StreamType streamType, String policy, String configuration) {
+        return policyManager.create(streamType, policy, configuration);
+    }
 }

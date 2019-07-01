@@ -15,56 +15,39 @@
  */
 package io.gravitee.gateway.security.core;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.policy.*;
-import io.gravitee.gateway.policy.impl.PolicyChain;
-import io.gravitee.gateway.policy.impl.RequestPolicyChain;
-import io.gravitee.policy.api.PolicyResult;
+import io.gravitee.gateway.policy.AbstractPolicyResolver;
+import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.StreamType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
-
-    private static final String GATEWAY_MISSING_SECURITY_PROVIDER_KEY = "GATEWAY_MISSING_SECURITY_PROVIDER";
+public class SecurityPolicyResolver extends AbstractPolicyResolver {
 
     @Autowired
     private AuthenticationHandlerSelector handlerSelector;
 
-    public SecurityPolicyChainResolver() {
-        super(StreamType.ON_REQUEST);
-    }
-
     @Override
-    public PolicyChain resolve(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
-        if (streamType == StreamType.ON_REQUEST) {
-            final AuthenticationHandler authenticationHandler = handlerSelector.select(request);
+    public List<Policy> resolve(StreamType streamType, ExecutionContext context) {
+        final AuthenticationHandler authenticationHandler = handlerSelector.select(context.request());
 
-            if (authenticationHandler != null) {
-                logger.debug("Authentication handler [{}] has been selected to secure incoming request {}",
-                        authenticationHandler.name(), request.id());
-
-                List<AuthenticationPolicy> policies = authenticationHandler.handle(executionContext);
-                return RequestPolicyChain.create(createAuthenticationChain(policies), executionContext);
-            }
-
+        if (authenticationHandler == null) {
             // No authentication method selected, must send a 401
-            logger.debug("No authentication handler has been selected to process request {}. Returning an unauthorized status (401)", request.id());
-            return new DirectPolicyChain(
-                    PolicyResult.failure(GATEWAY_MISSING_SECURITY_PROVIDER_KEY, HttpStatusCode.UNAUTHORIZED_401, "Unauthorized"), executionContext);
-        } else {
-            // In the case of response flow, there is no need for authentication.
-            return new NoOpPolicyChain(executionContext);
+            logger.debug("No authentication handler has been selected to process request {}. Returning an unauthorized status (401)",
+                    context.request().id());
+
+            // TODO: it's probably better to throw an exception ?
+            return null;
         }
+
+        logger.debug("Authentication handler [{}] has been selected to secure incoming request {}",
+                authenticationHandler.name(), context.request().id());
+
+        List<AuthenticationPolicy> policies = authenticationHandler.handle(context);
+        return createAuthenticationChain(policies);
     }
 
     private List<Policy> createAuthenticationChain(List<AuthenticationPolicy> securityPolicies) {
@@ -87,11 +70,6 @@ public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
                 return null;
             }
         }).collect(Collectors.toList());
-    }
-
-    @Override
-    protected List<Policy> calculate(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
-        throw new IllegalStateException("You must never go there!");
     }
 
     public void setAuthenticationHandlerSelector(AuthenticationHandlerSelector handlerSelector) {

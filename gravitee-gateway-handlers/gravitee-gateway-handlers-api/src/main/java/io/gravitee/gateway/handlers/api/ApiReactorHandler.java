@@ -33,20 +33,16 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiReactorHandler extends AbstractReactorHandler implements InitializingBean {
-
-    private final Logger logger = LoggerFactory.getLogger(ApiReactorHandler.class);
+public class ApiReactorHandler extends AbstractReactorHandler {
 
     @Autowired
     protected Api api;
@@ -57,8 +53,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
      */
     @Autowired
     private Invoker invoker;
-
-    private String contextPath;
 
     @Autowired
     private RequestProcessorChainFactory requestProcessorChain;
@@ -168,12 +162,8 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         final StreamableProcessor<ExecutionContext, Buffer> chain = responseProcessorChain.create();
 
         chain
-                .errorHandler(failure -> {
-                    handleError(context, failure);
-                })
-                .streamErrorHandler(failure -> {
-                    handleError(context, failure);
-                })
+                .errorHandler(failure -> handleError(context, failure))
+                .streamErrorHandler(failure -> handleError(context, failure))
                 .exitHandler(__ -> handler.handle(context))
                 .handler(stream -> {
                     chain
@@ -212,16 +202,6 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     }
 
     @Override
-    public void afterPropertiesSet() {
-        contextPath = reactable().contextPath() + '/';
-    }
-
-    @Override
-    public String contextPath() {
-        return contextPath;
-    }
-
-    @Override
     public Reactable reactable() {
         return api;
     }
@@ -237,14 +217,15 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
         applicationContext.getBean(PolicyManager.class).start();
         applicationContext.getBean(GroupLifecyleManager.class).start();
 
+        dumpVirtualHosts();
+
         long endTime = System.currentTimeMillis(); // Get the end Time
-        logger.info("API handler started in {} ms and now ready to accept requests on {}/*",
-                (endTime - startTime), api.getProxy().getContextPath());
+        logger.info("API handler started in {} ms", (endTime - startTime));
     }
 
     @Override
     protected void doStop() throws Exception {
-        logger.info("API handler is now stopping, closing context...");
+        logger.info("API handler is now stopping, closing context for {} ...", this);
 
         applicationContext.getBean(PolicyManager.class).stop();
         applicationContext.getBean(ResourceLifecycleManager.class).stop();
@@ -256,10 +237,23 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ApiReactorHandler{");
-        sb.append("contextPath=").append(api.getProxy().getContextPath());
-        sb.append('}');
-        return sb.toString();
+        return "Handler API id[" + api.getId() +
+                "] name[" + api.getName() +
+                "] version[" + api.getVersion() +
+                ']';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApiReactorHandler that = (ApiReactorHandler) o;
+        return api.equals(that.api);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(api);
     }
 
     private final static ProcessorFailure TIMEOUT_PROCESSOR_FAILURE = new ProcessorFailure() {

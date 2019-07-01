@@ -46,7 +46,8 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         if (api.isEnabled()) {
             AbstractApplicationContext internalApplicationContext = createApplicationContext(api);
             ApiReactorHandler handler = internalApplicationContext.getBean(ApiReactorHandler.class);
-            handler.setClassLoader(internalApplicationContext.getClassLoader());
+            // TODO: check that the handle classloader is the same as the internalApplicationContext
+            // handler.setClassLoader(internalApplicationContext.getClassLoader());
             return handler;
         } else {
             logger.warn("Api is disabled !");

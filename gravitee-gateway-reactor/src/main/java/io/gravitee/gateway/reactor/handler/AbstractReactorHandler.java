@@ -23,6 +23,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
 import org.slf4j.Logger;
@@ -32,7 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.util.ClassUtils;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -42,23 +44,17 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    protected ApplicationContext applicationContext;
+    public final static String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
 
-    private ClassLoader classLoader;
+    protected ApplicationContext applicationContext;
 
     @Autowired
     private ExecutionContextFactory executionContextFactory;
 
     protected Handler<ExecutionContext> handler;
 
-    @Override
-    public ClassLoader classloader() {
-        return (this.classLoader != null ? this.classLoader : ClassUtils.getDefaultClassLoader());
-    }
-
-    public void setClassLoader(ClassLoader classLoader) {
-        this.classLoader = classLoader;
-    }
+    @Autowired
+    private Reactable reactable;
 
     @Override
     protected void doStart() throws Exception {
@@ -86,7 +82,8 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
     @Override
     public void handle(ExecutionContext context) {
         // Wrap the actual request to contextualize it
-        ((MutableExecutionContext) context).request(new ContextualizedHttpServerRequest(reactable().contextPath(), context.request()));
+        ((MutableExecutionContext) context).request(new ContextualizedHttpServerRequest(
+                ((Entrypoint) context.getAttribute(ATTR_ENTRYPOINT)).path(), context.request()));
 
         try {
             doHandle(executionContextFactory.create(context));
@@ -101,6 +98,14 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
 
             handler.handle(context);
         }
+    }
+
+    protected void dumpVirtualHosts() {
+        List<Entrypoint> entrypoints = reactable.entrypoints();
+        logger.info("{} ready to accept requests on:", this);
+        entrypoints.forEach(entrypoint -> {
+            logger.info("\thost[{}] - path[{}/*]", null, entrypoint.path());
+        });
     }
 
     protected abstract void doHandle(ExecutionContext executionContext);

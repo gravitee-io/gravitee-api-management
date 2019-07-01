@@ -54,7 +54,7 @@ public class ApiManagerImpl implements ApiManager {
 
         // Deploy the API only if there is at least one plan
         if (!api.getPlans().isEmpty()) {
-            logger.info("Deploying {} plan(s) for API {}:", api.getPlans().size(), api.getId());
+            logger.info("Deploying {} plan(s) for {}:", api.getPlans().size(), api);
             for (Plan plan : api.getPlans()) {
                 logger.info("\t- {}", plan.getName());
             }
@@ -69,7 +69,7 @@ public class ApiManagerImpl implements ApiManager {
                     logger.debug("{} is not enabled. Skip deployment.", api);
                 }
             } catch (ValidationException ve) {
-                logger.error("API {} can't be deployed because of validation errors", api, ve);
+                logger.error("{} can't be deployed because of validation errors", api, ve);
             }
         } else {
             logger.warn("There is no published plan associated to this API, skipping deployment...");
@@ -84,7 +84,7 @@ public class ApiManagerImpl implements ApiManager {
         logger.info("Updating {}", api);
 
         if (! api.getPlans().isEmpty()) {
-            logger.info("Deploying {} plan(s) for API {}:", api.getPlans().size(), api.getId());
+            logger.info("Deploying {} plan(s) for {}:", api.getPlans().size(), api);
             for(Plan plan: api.getPlans()) {
                 logger.info("\t- {}", plan.getName());
             }
@@ -95,7 +95,7 @@ public class ApiManagerImpl implements ApiManager {
                 apis.put(api.getId(), api);
                 eventManager.publishEvent(ReactorEvent.UPDATE, api);
             } catch (ValidationException ve) {
-                logger.error("API {} can't be updated because of validation errors", api, ve);
+                logger.error("{} can't be updated because of validation errors", api, ve);
             }
         } else {
             logger.warn("There is no published plan associated to this API, undeploy it...");
@@ -113,7 +113,7 @@ public class ApiManagerImpl implements ApiManager {
             logger.info("Undeployment of {}", currentApi);
 
             eventManager.publishEvent(ReactorEvent.UNDEPLOY, currentApi);
-            logger.info("{} has been undeployed", apiId);
+            logger.info("{} has been undeployed", currentApi);
         }
         MDC.remove("api");
     }
