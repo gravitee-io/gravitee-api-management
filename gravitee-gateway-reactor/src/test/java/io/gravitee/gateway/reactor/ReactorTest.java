@@ -17,20 +17,13 @@ package io.gravitee.gateway.reactor;
 
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.impl.SimpleEvent;
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactor.handler.DummyReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
+import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
-import io.gravitee.reporter.api.http.Metrics;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -39,8 +32,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.*;
 
@@ -55,7 +46,7 @@ public class ReactorTest {
     private DefaultReactor reactor;
 
     @Mock
-    private ReactorHandlerResolver handlerResolver;
+    private EntrypointResolver handlerResolver;
 
     @Mock
     private ReactorHandlerRegistry reactorHandlerRegistry;

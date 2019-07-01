@@ -15,28 +15,13 @@
  */
 package io.gravitee.gateway.reactor.handler;
 
-import io.gravitee.gateway.reactor.Reactable;
-
-import java.util.List;
+import io.gravitee.gateway.api.ExecutionContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReactorHandlerRegistry {
+public interface EntrypointResolver {
 
-    void create(Reactable reactable);
-
-    void update(Reactable reactable);
-
-    void remove(Reactable reactable);
-
-    void clear();
-
-    /**
-     * An ordered collection of registered entrypoints.
-     *
-     * @return
-     */
-    List<HandlerEntrypoint> getEntrypoints();
+    HandlerEntrypoint resolve(ExecutionContext context);
 }

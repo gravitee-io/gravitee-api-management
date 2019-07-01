@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api.validator;
 
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.gateway.handlers.api.definition.Api;
 
 /**
@@ -34,18 +35,18 @@ public class ProxyValidator implements Validator {
             throw new ValidationException("An API must have a proxy part");
         }
 
-        /*
-        if (proxyDefinition.getEndpoints() == null || proxyDefinition.getEndpoints().isEmpty()) {
-            throw new ValidationException("An API must have a valid target endpoint(s)");
-        }
-        */
-
-        if (proxyDefinition.getContextPath() == null || proxyDefinition.getContextPath().matches(CONTEXT_PATH_PATTERN)) {
-            throw new ValidationException("An API must have a valid context path");
+        if (proxyDefinition.getVirtualHosts() == null || proxyDefinition.getVirtualHosts().isEmpty()) {
+            throw new ValidationException("An API must contain at least of virtual_host");
         }
 
-        if (! proxyDefinition.getContextPath().startsWith("/")) {
-            throw new ValidationException("An API must have a valid context-path starting with '/'");
+        for(VirtualHost host : proxyDefinition.getVirtualHosts()) {
+            if (host.getPath() == null || host.getPath().matches(CONTEXT_PATH_PATTERN)) {
+                throw new ValidationException("An API must have a valid context path");
+            }
+
+            if (! host.getPath().startsWith("/")) {
+                throw new ValidationException("An API must have a valid context-path starting with '/'");
+            }
         }
     }
 }

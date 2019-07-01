@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.validator;
 
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import org.junit.Test;
@@ -32,7 +33,7 @@ public class ProxyValidatorTest {
     @Test(expected = ValidationException.class)
     public void validate_proxy_badContextPath() {
         Proxy proxyDefinition = new Proxy();
-        proxyDefinition.setContextPath("context-path");
+        proxyDefinition.setVirtualHosts(Collections.singletonList(new VirtualHost("context-path")));
 
         Api definition = new Api();
         definition.setProxy(proxyDefinition);
@@ -57,7 +58,7 @@ public class ProxyValidatorTest {
     @Test
     public void validate_proxy_correctContextPathAndTarget() {
         Proxy proxyDefinition = new Proxy();
-        proxyDefinition.setContextPath("/context-path");
+        proxyDefinition.setVirtualHosts(Collections.singletonList(new VirtualHost("/context-path")));
         proxyDefinition.setGroups(Collections.singleton(new EndpointGroup()));
         proxyDefinition.getGroups().iterator().next().setEndpoints(Collections.singleton(new HttpEndpoint("name", "http://localhost")));
 

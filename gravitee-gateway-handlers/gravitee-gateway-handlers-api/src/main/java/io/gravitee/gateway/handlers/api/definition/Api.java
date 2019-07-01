@@ -20,6 +20,8 @@ import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.reactor.handler.Entrypoint;
+import io.gravitee.gateway.reactor.handler.VirtualHost;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Api extends io.gravitee.definition.model.Api implements Reactable<Api> {
+public class Api extends io.gravitee.definition.model.Api implements Reactable {
 
     private boolean enabled = true;
     private Date deployedAt;
@@ -80,16 +82,6 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
         for(Plan plan : plans) {
             this.plans.put(plan.getId(), plan);
         }
-    }
-
-    @Override
-    public Api item() {
-        return this;
-    }
-
-    @Override
-    public String contextPath() {
-        return getProxy().getContextPath();
     }
 
     @Override
@@ -176,5 +168,23 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable<A
         }
 
         return Collections.emptyMap();
+    }
+
+    @Override
+    public List<Entrypoint> entrypoints() {
+        return getProxy()
+                .getVirtualHosts()
+                .stream()
+                .map(virtualHost -> new VirtualHost(virtualHost.getHost(), virtualHost.getPath()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public String toString() {
+        return "API " +
+                "id[" + this.getId() +
+                "] name[" + this.getName() +
+                "] version[" + this.getVersion() +
+                ']';
     }
 }

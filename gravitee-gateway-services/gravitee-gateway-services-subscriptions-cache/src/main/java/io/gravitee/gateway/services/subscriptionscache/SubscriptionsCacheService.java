@@ -150,7 +150,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
 
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> event) {
-        final Api api = (Api) event.content().item();
+        final Api api = (Api) event.content();
 
         switch (event.type()) {
             case DEPLOY:

@@ -210,53 +210,57 @@ public class SyncManager {
 
     private void computeApiEvents(Map<String, Event> apiEvents) {
         apiEvents.forEach((apiId, apiEvent) -> {
-            switch (apiEvent.getType()) {
-                case UNPUBLISH_API:
-                case STOP_API:
-                    apiManager.undeploy(apiId);
-                    break;
-                case START_API:
-                case PUBLISH_API:
-                    try {
-                        // Read API definition from event
-                        io.gravitee.repository.management.model.Api eventPayload =
-                                objectMapper.readValue(apiEvent.getPayload(), io.gravitee.repository.management.model.Api.class);
+            try {
+                switch (apiEvent.getType()) {
+                    case UNPUBLISH_API:
+                    case STOP_API:
+                        apiManager.undeploy(apiId);
+                        break;
+                    case START_API:
+                    case PUBLISH_API:
+                        try {
+                            // Read API definition from event
+                            io.gravitee.repository.management.model.Api eventPayload =
+                                    objectMapper.readValue(apiEvent.getPayload(), io.gravitee.repository.management.model.Api.class);
 
-                        io.gravitee.definition.model.Api eventApiDefinition =
-                                objectMapper.readValue(eventPayload.getDefinition(), io.gravitee.definition.model.Api.class);
+                            io.gravitee.definition.model.Api eventApiDefinition =
+                                    objectMapper.readValue(eventPayload.getDefinition(), io.gravitee.definition.model.Api.class);
 
-                        // Update definition with required information for deployment phase
-                        final Api api = new Api(eventApiDefinition);
-                        api.setEnabled(eventPayload.getLifecycleState() == LifecycleState.STARTED);
-                        api.setDeployedAt(eventPayload.getDeployedAt());
+                            // Update definition with required information for deployment phase
+                            final Api api = new Api(eventApiDefinition);
+                            api.setEnabled(eventPayload.getLifecycleState() == LifecycleState.STARTED);
+                            api.setDeployedAt(eventPayload.getDeployedAt());
 
-                        // Get deployed API
-                        Api deployedApi = apiManager.get(api.getId());
+                            // Get deployed API
+                            Api deployedApi = apiManager.get(api.getId());
 
-                        // Does the API have a matching sharding tags ?
-                        if (hasMatchingTags(api.getTags())) {
-                            // API to deploy
-                            enhanceWithData(api);
+                            // Does the API have a matching sharding tags ?
+                            if (hasMatchingTags(api.getTags())) {
+                                // API to deploy
+                                enhanceWithData(api);
 
-                            // API is not yet deployed, so let's do it !
-                            if (deployedApi == null) {
-                                apiManager.deploy(api);
-                            } else if (deployedApi.getDeployedAt().before(api.getDeployedAt())) {
-                                apiManager.update(api);
+                                // API is not yet deployed, so let's do it !
+                                if (deployedApi == null) {
+                                    apiManager.deploy(api);
+                                } else if (deployedApi.getDeployedAt().before(api.getDeployedAt())) {
+                                    apiManager.update(api);
+                                }
+                            } else {
+                                logger.debug("The API {} has been ignored because not in configured tags {}", api.getName(), api.getTags());
+
+                                // Check that the API was not previously deployed with other tags
+                                // In that case, we must undeploy it
+                                if (deployedApi != null) {
+                                    apiManager.undeploy(apiId);
+                                }
                             }
-                        } else {
-                            logger.debug("The API {} has been ignored because not in configured tags {}", api.getName(), api.getTags());
-
-                            // Check that the API was not previously deployed with other tags
-                            // In that case, we must undeploy it
-                            if (deployedApi != null) {
-                                apiManager.undeploy(apiId);
-                            }
+                        } catch (Exception e) {
+                            logger.error("Error while determining deployed APIs store into events payload", e);
                         }
-                    } catch (Exception e) {
-                        logger.error("Error while determining deployed APIs store into events payload", e);
-                    }
-                    break;
+                        break;
+                }
+            } catch (Throwable t) {
+                logger.error("An unexpected error occurs while managing the deployment of API id[{}]", apiId, t);
             }
         });
     }

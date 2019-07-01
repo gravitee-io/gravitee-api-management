@@ -27,10 +27,6 @@ import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.policy.internal.PolicyMethodResolver;
 import io.gravitee.policy.api.PolicyConfiguration;
-import io.gravitee.policy.api.annotations.OnRequest;
-import io.gravitee.policy.api.annotations.OnRequestContent;
-import io.gravitee.policy.api.annotations.OnResponse;
-import io.gravitee.policy.api.annotations.OnResponseContent;
 import io.gravitee.resource.api.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +60,7 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
     @Autowired
     private PolicyConfigurationFactory policyConfigurationFactory;
 
-    private final Map<String, RegisteredPolicy> policies = new HashMap<>();
+    private final Map<String, PolicyMetadata> policies = new HashMap<>();
 
     @Override
     protected void doStart() throws Exception {
@@ -76,12 +72,12 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
     protected void doStop() throws Exception {
         // Close policy classloaders
         policies.values().forEach(policy -> {
-            ClassLoader policyClassLoader = policy.classLoader;
+            ClassLoader policyClassLoader = policy.classloader();
             if (policyClassLoader instanceof PluginClassLoader) {
                 try {
                     ((PluginClassLoader)policyClassLoader).close();
                 } catch (IOException e) {
-                    logger.error("Unable to close policy classloader for policy {}", policy.metadata.id());
+                    logger.error("Unable to close policy classloader for policy {}", policy.id());
                 }
             }
         });
@@ -99,7 +95,7 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
         PolicyClassLoaderFactory pclf = applicationContext.getBean(PolicyClassLoaderFactory.class);
         ReactorHandler rh = applicationContext.getBean(ReactorHandler.class);
         ResourceLifecycleManager rm = applicationContext.getBean(ResourceLifecycleManager.class);
-        Reactable reactable = rh.reactable();
+        Reactable reactable = applicationContext.getBean(Reactable.class);
 
         Set<Policy> requiredPlugins = reactable.dependencies(Policy.class);
 
@@ -110,7 +106,7 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
                 throw new IllegalStateException("Policy ["+policy.getName()+"] can not be found in policy registry");
             }
 
-            PluginClassLoader policyClassLoader = null;
+            PluginClassLoader policyClassLoader;
 
             // Load dependant resources to enhance policy classloader
             Collection<? extends Resource> resources = rm.getResources();
@@ -122,10 +118,10 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
                     }
                 }).toArray(ClassLoader[]::new);
 
-                DelegatingClassLoader parentClassLoader = new DelegatingClassLoader(rh.classloader(), resourceClassLoaders);
+                DelegatingClassLoader parentClassLoader = new DelegatingClassLoader(rh.getClass().getClassLoader(), resourceClassLoaders);
                 policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, parentClassLoader);
             } else {
-                policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, rh.classloader());
+                policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, rh.getClass().getClassLoader());
             }
 
             logger.debug("Loading policy {} for {}", policy.getName(), rh);
@@ -139,17 +135,14 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
 
                 builder
                         .setPolicy(policyClass)
+                        .setClassLoader(policyClassLoader)
                         .setMethods(new PolicyMethodResolver().resolve(policyClass));
 
                 if (policyPlugin.configuration() != null) {
                     builder.setConfiguration((Class<? extends PolicyConfiguration>) ClassUtils.forName(policyPlugin.configuration().getName(), policyClassLoader));
                 }
 
-                RegisteredPolicy registeredPolicy = new RegisteredPolicy();
-                registeredPolicy.classLoader = policyClassLoader;
-                registeredPolicy.metadata = builder.build();
-
-                policies.put(policy.getName(), registeredPolicy);
+                policies.put(policy.getName(), builder.build());
             } catch (Exception ex) {
                 logger.error("Unable to load policy metadata", ex);
 
@@ -176,34 +169,18 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
 
     @Override
     public io.gravitee.gateway.policy.Policy create(StreamType streamType, String policy, String configuration) {
-        RegisteredPolicy registeredPolicy = policies.get(policy);
-        PolicyMetadata policyMetadata = (registeredPolicy != null) ? registeredPolicy.metadata : null;
+        PolicyMetadata metadata = policies.get(policy);
 
-        if (policyMetadata == null) {
-            logger.error("Policy {} has no metadata.", policy);
-        }
-
-        if ((streamType == StreamType.ON_REQUEST && policyMetadata != null &&
-                (policyMetadata.method(OnRequest.class) != null || policyMetadata.method(OnRequestContent.class) != null)) ||
-                (streamType == StreamType.ON_RESPONSE && policyMetadata != null && (
-                        policyMetadata.method(OnResponse.class) != null || policyMetadata.method(OnResponseContent.class) != null))) {
+        if (metadata != null && metadata.accept(streamType)) {
             PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
-                    policyMetadata.configuration(), configuration);
+                    metadata.configuration(), configuration);
 
-            Object policyInst = policyFactory.create(policyMetadata, policyConfiguration);
+            Object policyInst = policyFactory.create(metadata, policyConfiguration);
 
-            logger.debug("Policy {} has been added to the policy chain", policyMetadata.id());
-            return PolicyImpl
-                    .target(policyInst)
-                    .definition(policyMetadata)
-                    .build();
+            logger.debug("Policy {} has been added to the policy chain", metadata.id());
+            return PolicyImpl.target(policyInst).definition(metadata).build();
         }
 
         return null;
-    }
-
-    private static class RegisteredPolicy {
-        PolicyMetadata metadata;
-        ClassLoader classLoader;
     }
 }

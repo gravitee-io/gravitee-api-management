@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.path.impl;
 
+import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.handlers.api.path.Path;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -38,28 +39,22 @@ public abstract class AbstractPathResolver implements PathResolver {
 
     private final List<Path> registeredPaths = new ArrayList<>();
 
-    private final String contextPath;
 
-    protected AbstractPathResolver(String contextPath) {
-        if (contextPath.lastIndexOf((int)'/') != contextPath.length() - 1) {
-            this.contextPath = contextPath + URL_PATH_SEPARATOR;
-        } else {
-            this.contextPath = contextPath;
-        }
+    protected AbstractPathResolver() {
+
     }
 
     @Override
-    public Path resolve(final String path) {
+    public Path resolve(final String entrypointPath, final Request request) {
         if (registeredPaths.size() == 1) {
             return registeredPaths.get(0);
         }
 
-        String decodedPath;
+        String decodedPath = request.path().substring(entrypointPath.length() - 1);
 
         try {
-            decodedPath = QueryStringDecoder.decodeComponent(path, Charset.defaultCharset());
+            decodedPath = QueryStringDecoder.decodeComponent(decodedPath, Charset.defaultCharset());
         } catch (IllegalArgumentException iae) {
-            decodedPath = path;
         }
 
         int pieces = -1;
@@ -80,10 +75,8 @@ public abstract class AbstractPathResolver implements PathResolver {
     }
 
     protected void register(Path path) {
-        String [] branches = path.getResolvedPath().split(URL_PATH_SEPARATOR);
-        StringBuilder buffer = new StringBuilder(contextPath);
-
-        path.setPath(buffer.substring(0, buffer.length() - 1) + path.getResolvedPath());
+        String [] branches = path.getPath().split(URL_PATH_SEPARATOR);
+        StringBuilder buffer = new StringBuilder(URL_PATH_SEPARATOR);
 
         for(String branch : branches) {
             if (! branch.isEmpty()) {

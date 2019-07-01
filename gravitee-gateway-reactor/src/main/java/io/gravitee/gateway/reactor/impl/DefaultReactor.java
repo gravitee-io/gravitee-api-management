@@ -32,9 +32,9 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.gateway.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactor.handler.HandlerEntrypoint;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerResolver;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import org.slf4j.Logger;
@@ -61,7 +61,7 @@ public class DefaultReactor extends AbstractService implements
     private ReactorHandlerRegistry reactorHandlerRegistry;
 
     @Autowired
-    private ReactorHandlerResolver reactorHandlerResolver;
+    private EntrypointResolver entrypointResolver;
 
     @Autowired
     private GatewayConfiguration gatewayConfiguration;
@@ -76,7 +76,7 @@ public class DefaultReactor extends AbstractService implements
     public void route(Request serverRequest, Response serverResponse, Handler<ExecutionContext> handler) {
         LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
 
-        // Prepare request execution context
+        // Prepare invocation execution context
         ExecutionContext context = new SimpleExecutionContext(serverRequest, serverResponse);
 
         // Set gateway tenant
@@ -86,9 +86,11 @@ public class DefaultReactor extends AbstractService implements
         requestProcessorChainFactory
                 .create()
                 .handler(ctx -> {
-                    ReactorHandler reactorHandler = reactorHandlerResolver.resolve(ctx.request());
-                    if (reactorHandler != null) {
-                        reactorHandler
+                    HandlerEntrypoint entrypoint = entrypointResolver.resolve(ctx);
+
+                    if (entrypoint != null) {
+                        entrypoint
+                                .target()
                                 .handler(context1 -> {
                                     // Ensure that response has been ended before going further
                                     context1.response().end();

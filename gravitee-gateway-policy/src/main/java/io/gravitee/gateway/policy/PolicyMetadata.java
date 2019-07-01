@@ -32,5 +32,9 @@ public interface PolicyMetadata {
 
     Class<? extends PolicyConfiguration> configuration();
 
+    ClassLoader classloader();
+
     Method method(Class<? extends Annotation> type);
+
+    boolean accept(StreamType stream);
 }

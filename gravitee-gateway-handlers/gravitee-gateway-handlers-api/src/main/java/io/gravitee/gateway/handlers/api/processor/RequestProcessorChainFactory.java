@@ -24,13 +24,16 @@ import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
 import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
-import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
-import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
+import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainProvider;
+import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyResolver;
+import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
+import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.logging.ApiLoggableRequestProcessor;
-import io.gravitee.gateway.policy.PolicyChainResolver;
+import io.gravitee.gateway.policy.PolicyChainProvider;
 import io.gravitee.gateway.policy.StreamType;
-import io.gravitee.gateway.security.core.SecurityPolicyChainResolver;
+import io.gravitee.gateway.security.core.SecurityPolicyChainProvider;
+import io.gravitee.gateway.security.core.SecurityPolicyResolver;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
@@ -49,12 +52,21 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
     private int maxSizeLogMessage;
 
     public void afterPropertiesSet() {
-        PolicyChainResolver apiPolicyResolver = new ApiPolicyChainResolver(StreamType.ON_REQUEST);
-        PolicyChainResolver securityPolicyResolver = new SecurityPolicyChainResolver();
-        PolicyChainResolver planPolicyResolver = new PlanPolicyChainResolver(StreamType.ON_REQUEST);
+        ApiPolicyResolver apiPolicyResolver = new ApiPolicyResolver();
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPolicyResolver);
+        PolicyChainProvider apiPolicyChainProvider = new ApiPolicyChainProvider(StreamType.ON_REQUEST, apiPolicyResolver);
 
+
+        SecurityPolicyResolver securityPolicyResolver = new SecurityPolicyResolver();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(securityPolicyResolver);
+        PolicyChainProvider securityPolicyChainProvider = new SecurityPolicyChainProvider(securityPolicyResolver);
+
+        PlanPolicyResolver planPolicyResolver = new PlanPolicyResolver();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(planPolicyResolver);
+        PolicyChainProvider planPolicyChainProvider = new PlanPolicyChainProvider(StreamType.ON_REQUEST, planPolicyResolver);
+
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(securityPolicyChainProvider);
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(planPolicyChainProvider);
         applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPolicyResolver);
 
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
@@ -62,7 +74,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                     new StreamableProcessorDecorator<>(new CorsPreflightRequestProcessor(api.getProxy().getCors()))));
         }
 
-        providers.add(securityPolicyResolver);
+        providers.add(securityPolicyChainProvider);
 
         if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
             providers.add(new ProcessorSupplier<>(new Supplier<StreamableProcessor<ExecutionContext, Buffer>>() {
@@ -79,8 +91,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             ));
         }
 
-        providers.add(planPolicyResolver);
-        providers.add(apiPolicyResolver);
+        providers.add(planPolicyChainProvider);
+        providers.add(apiPolicyChainProvider);
     }
 
     @Override

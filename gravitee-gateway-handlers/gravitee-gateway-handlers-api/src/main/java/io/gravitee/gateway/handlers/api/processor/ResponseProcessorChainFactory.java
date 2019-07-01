@@ -23,12 +23,14 @@ import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
 import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
-import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
-import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
+import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainProvider;
+import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyResolver;
+import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
+import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.alert.AlertProcessorSupplier;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
-import io.gravitee.gateway.policy.PolicyChainResolver;
+import io.gravitee.gateway.policy.PolicyChainProvider;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.plugin.alert.AlertEngineService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +50,16 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
     private final List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers = new ArrayList<>();
 
     public void afterPropertiesSet() {
-        PolicyChainResolver apiResponsePolicyResolver = new ApiPolicyChainResolver(StreamType.ON_RESPONSE);
-        PolicyChainResolver planPolicyResolver = new PlanPolicyChainResolver(StreamType.ON_RESPONSE);
-        applicationContext.getAutowireCapableBeanFactory().autowireBean(apiResponsePolicyResolver);
+        ApiPolicyResolver apiPolicyResolver = new ApiPolicyResolver();
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPolicyResolver);
+        PolicyChainProvider apiPolicyChainProvider = new ApiPolicyChainProvider(StreamType.ON_RESPONSE, apiPolicyResolver);
+
+        PlanPolicyResolver planPolicyResolver = new PlanPolicyResolver();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(planPolicyResolver);
-        providers.add(apiResponsePolicyResolver);
-        providers.add(planPolicyResolver);
+        PolicyChainProvider planPolicyChainProvider = new PlanPolicyChainProvider(StreamType.ON_RESPONSE, planPolicyResolver);
+
+        providers.add(apiPolicyChainProvider);
+        providers.add(planPolicyChainProvider);
 
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
             providers.add(new ProcessorSupplier<>(() ->

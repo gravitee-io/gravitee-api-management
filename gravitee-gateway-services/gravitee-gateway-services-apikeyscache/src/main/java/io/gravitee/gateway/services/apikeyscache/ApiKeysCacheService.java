@@ -147,7 +147,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> event) {
-        final Api api = (Api) event.content().item();
+        final Api api = (Api) event.content();
 
         switch (event.type()) {
             case DEPLOY:
@@ -173,7 +173,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             refresher.setApiKeyRepository(apiKeyRepository);
             refresher.initialize();
 
-            LOGGER.info("Add a task to refresh api-keys each {} {} for API [name: {}] [id: {}]", delay, unit.name(), api.getName(), api.getId());
+            LOGGER.info("Add a task to refresh api-keys each {} {} for API name[{}] id[{}]", delay, unit.name(), api.getName(), api.getId());
             ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
                     refresher, 0, delay, unit);
 

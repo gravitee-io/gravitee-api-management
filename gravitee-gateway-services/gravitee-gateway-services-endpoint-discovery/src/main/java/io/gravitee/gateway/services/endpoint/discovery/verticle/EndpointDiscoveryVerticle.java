@@ -65,7 +65,7 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
 
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> event) {
-        final Api api = (Api) event.content().item();
+        final Api api = (Api) event.content();
 
         switch (event.type()) {
             case DEPLOY:

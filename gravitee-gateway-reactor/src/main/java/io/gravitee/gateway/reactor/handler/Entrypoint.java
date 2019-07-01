@@ -15,28 +15,35 @@
  */
 package io.gravitee.gateway.reactor.handler;
 
-import io.gravitee.gateway.reactor.Reactable;
-
-import java.util.List;
+import io.gravitee.gateway.api.Request;
 
 /**
+ * This class represents a listening entrypoint to a {@link ReactorHandler}.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReactorHandlerRegistry {
-
-    void create(Reactable reactable);
-
-    void update(Reactable reactable);
-
-    void remove(Reactable reactable);
-
-    void clear();
+public interface Entrypoint {
 
     /**
-     * An ordered collection of registered entrypoints.
+     * Listening path.
      *
      * @return
      */
-    List<HandlerEntrypoint> getEntrypoints();
+    String path();
+
+    /**
+     * Priority of the entrypoint.
+     *
+     * @return
+     */
+    int priority();
+
+    /**
+     * Does the entrypoint accepts the incoming request ?
+     *
+     * @param request
+     * @return
+     */
+    boolean accept(Request request);
 }

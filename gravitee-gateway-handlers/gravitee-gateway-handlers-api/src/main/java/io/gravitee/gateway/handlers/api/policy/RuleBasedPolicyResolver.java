@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.path.impl;
+package io.gravitee.gateway.handlers.api.policy;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.policy.AbstractPolicyResolver;
+import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.StreamType;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * A simple path resolver based on context paths definition.
- *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiPathResolverImpl extends AbstractPathResolver {
+public abstract class RuleBasedPolicyResolver extends AbstractPolicyResolver {
 
-    public ApiPathResolverImpl(Api api) {
-        super();
-
-        api.getPaths().entrySet().forEach(declaredPath -> {
-            io.gravitee.gateway.handlers.api.path.Path path = new io.gravitee.gateway.handlers.api.path.Path();
-            path.setPath(declaredPath.getKey());
-
-            // Keeping only enabled rules
-            path.setRules(declaredPath.getValue().getRules().stream().filter(Rule::isEnabled).collect(Collectors.toList()));
-
-            register(path);
-        });
+    protected List<Policy> resolve(StreamType streamType, ExecutionContext context, List<Rule> rules) {
+        return rules.stream()
+                .filter(rule -> rule.isEnabled() && rule.getMethods().contains(context.request().method()))
+                .map(rule -> create(streamType, rule.getPolicy().getName(), rule.getPolicy().getConfiguration()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

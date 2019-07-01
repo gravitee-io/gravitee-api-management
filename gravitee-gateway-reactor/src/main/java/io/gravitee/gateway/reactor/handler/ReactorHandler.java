@@ -21,16 +21,20 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.Reactable;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ReactorHandler extends LifecycleComponent<ReactorHandler>, Handler<ExecutionContext> {
 
-    String contextPath();
-
-    ClassLoader classloader();
-
+    /**
+     * A reactable element associated to the current handler.
+     */
     Reactable reactable();
 
+    /**
+     * Response handler.
+     *
+     * @param handler Handler called when the response is processed.
+     */
     ReactorHandler handler(Handler<ExecutionContext> handler);
 }

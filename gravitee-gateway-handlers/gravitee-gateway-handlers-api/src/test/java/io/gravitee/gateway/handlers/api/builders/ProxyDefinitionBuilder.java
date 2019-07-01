@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.builders;
 
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 
 import java.util.Collections;
@@ -30,7 +31,7 @@ public class ProxyDefinitionBuilder {
     private final Proxy proxyDefinition = new Proxy();
 
     public ProxyDefinitionBuilder contextPath(String contextPath) {
-        this.proxyDefinition.setContextPath(contextPath);
+        this.proxyDefinition.setVirtualHosts(Collections.singletonList(new VirtualHost(contextPath)));
         return this;
     }
 

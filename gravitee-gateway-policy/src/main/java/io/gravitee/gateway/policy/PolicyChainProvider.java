@@ -13,30 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler;
+package io.gravitee.gateway.policy;
 
-import io.gravitee.gateway.reactor.Reactable;
-
-import java.util.List;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.core.processor.StreamableProcessor;
+import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReactorHandlerRegistry {
+public interface PolicyChainProvider extends ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>> {
 
-    void create(Reactable reactable);
-
-    void update(Reactable reactable);
-
-    void remove(Reactable reactable);
-
-    void clear();
-
-    /**
-     * An ordered collection of registered entrypoints.
-     *
-     * @return
-     */
-    List<HandlerEntrypoint> getEntrypoints();
 }

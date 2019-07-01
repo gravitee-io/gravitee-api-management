@@ -32,11 +32,6 @@ public class Path {
     private String path;
 
     /**
-     * Path without context-path
-     */
-    private String resolvedPath;
-
-    /**
      * Regex used to match this path
      */
     private Pattern pattern;
@@ -52,14 +47,6 @@ public class Path {
 
     public void setPath(String path) {
         this.path = path;
-    }
-
-    public String getResolvedPath() {
-        return resolvedPath;
-    }
-
-    public void setResolvedPath(String resolvedPath) {
-        this.resolvedPath = resolvedPath;
     }
 
     public List<Rule> getRules() {
