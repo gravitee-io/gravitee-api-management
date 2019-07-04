@@ -38,6 +38,10 @@ public class SecurityPolicyChainResolver extends AbstractPolicyChainResolver {
     @Autowired
     private SecurityProviderManager securityManager;
 
+    public SecurityPolicyChainResolver() {
+        super(StreamType.ON_REQUEST);
+    }
+
     @Override
     public PolicyChain resolve(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
         if (streamType == StreamType.ON_REQUEST) {

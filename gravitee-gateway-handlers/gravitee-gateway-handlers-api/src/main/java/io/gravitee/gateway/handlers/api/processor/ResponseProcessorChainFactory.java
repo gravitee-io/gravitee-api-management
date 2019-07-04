@@ -23,11 +23,13 @@ import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
 import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
-import io.gravitee.gateway.handlers.api.policy.api.ApiResponsePolicyChainResolver;
+import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainResolver;
+import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
 import io.gravitee.gateway.handlers.api.processor.alert.AlertProcessorSupplier;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.policy.PolicyChainResolver;
+import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.plugin.alert.AlertEngineService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -46,8 +48,11 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
     private final List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers = new ArrayList<>();
 
     public void afterPropertiesSet() {
-        PolicyChainResolver apiResponsePolicyResolver = new ApiResponsePolicyChainResolver();
+        PolicyChainResolver apiResponsePolicyResolver = new ApiPolicyChainResolver(StreamType.ON_RESPONSE);
+        PolicyChainResolver planPolicyResolver = new PlanPolicyChainResolver(StreamType.ON_RESPONSE);
         applicationContext.getAutowireCapableBeanFactory().autowireBean(apiResponsePolicyResolver);
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(planPolicyResolver);
+        providers.add(planPolicyResolver);
         providers.add(apiResponsePolicyResolver);
 
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
