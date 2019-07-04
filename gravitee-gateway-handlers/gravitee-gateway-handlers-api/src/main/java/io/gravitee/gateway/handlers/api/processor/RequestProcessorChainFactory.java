@@ -29,6 +29,7 @@ import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.logging.ApiLoggableRequestProcessor;
 import io.gravitee.gateway.policy.PolicyChainResolver;
+import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.security.core.SecurityPolicyChainResolver;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -48,9 +49,9 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
     private int maxSizeLogMessage;
 
     public void afterPropertiesSet() {
-        PolicyChainResolver apiPolicyResolver = new ApiPolicyChainResolver();
+        PolicyChainResolver apiPolicyResolver = new ApiPolicyChainResolver(StreamType.ON_REQUEST);
         PolicyChainResolver securityPolicyResolver = new SecurityPolicyChainResolver();
-        PolicyChainResolver planPolicyResolver = new PlanPolicyChainResolver();
+        PolicyChainResolver planPolicyResolver = new PlanPolicyChainResolver(StreamType.ON_REQUEST);
 
         applicationContext.getAutowireCapableBeanFactory().autowireBean(securityPolicyResolver);
         applicationContext.getAutowireCapableBeanFactory().autowireBean(planPolicyResolver);

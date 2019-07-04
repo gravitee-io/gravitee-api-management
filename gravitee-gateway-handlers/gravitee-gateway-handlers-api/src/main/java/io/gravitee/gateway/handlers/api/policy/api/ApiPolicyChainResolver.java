@@ -41,6 +41,10 @@ public class ApiPolicyChainResolver extends AbstractPolicyChainResolver {
     @Autowired
     private PathResolver pathResolver;
 
+    public ApiPolicyChainResolver(StreamType streamType) {
+        super(streamType);
+    }
+
     @Override
     protected List<Policy> calculate(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
         // Resolve the "configured" path according to the inbound request
