@@ -145,6 +145,8 @@ class VertxProxyConnection implements ProxyConnection {
             this.writeHeaders();
         }
 
-        httpClientRequest.end();
+        if (! canceled) {
+            httpClientRequest.end();
+        }
     }
 }
