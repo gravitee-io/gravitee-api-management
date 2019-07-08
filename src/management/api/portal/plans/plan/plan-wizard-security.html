@@ -51,10 +51,10 @@
         <form name="$ctrl.planGeneralForm">
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex-gt-sm>
-              <label>Rule</label>
               <input ng-model="$ctrl.parent.plan.selection_rule" type="text" placeholder="Selection Rule" name="selectionrule">
-              <div class="hint">
-                Define an additional rule when you're managing multiple plans of the same type to improve the plan's selection process. <br> For example, if you want to check the issuer of a jwt token: #context.attributes['jwt'].claims['iss'] == 'my-issuer'
+              <div class="hint" style="top: 40px;">
+                Define an additional rule when you're managing multiple plans of the same type to improve the plan's selection process.
+                For example, if you want to check the issuer of a jwt token: #context.attributes['jwt'].claims['iss'] == 'my-issuer'
               </div>
             </md-input-container>
           </div>
