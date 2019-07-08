@@ -61,5 +61,13 @@
         }
       }
     ]
+  },
+  "response_templates": {
+    "API_KEY_MISSING": {
+      "*/*": {
+        "status": 400,
+        "body": "{\"bad\":\"news\"}"
+      }
+    }
   }
 }
