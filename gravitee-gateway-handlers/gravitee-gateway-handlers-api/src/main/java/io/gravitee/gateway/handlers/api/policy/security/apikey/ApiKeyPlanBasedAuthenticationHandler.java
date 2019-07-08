@@ -51,6 +51,10 @@ public class ApiKeyPlanBasedAuthenticationHandler implements AuthenticationHandl
 
         // Check that the plan associated to the api-key matches the current plan
         Optional<ApiKey> optApikey = (Optional<ApiKey>) context.get(APIKEY_CONTEXT_ATTRIBUTE);
+        if (optApikey != null && !optApikey.isPresent()) {
+            return true;
+        }
+
         return optApikey != null && optApikey.isPresent() && optApikey.get().getPlan().equals(plan.getId());
     }
 
