@@ -17,14 +17,22 @@ package io.gravitee.management.services.dynamicproperties;
 
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
+import io.gravitee.management.idp.api.authentication.UserDetails;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.EventType;
+import io.gravitee.management.model.permissions.RoleScope;
+import io.gravitee.management.model.permissions.SystemRole;
 import io.gravitee.management.service.ApiService;
 import io.gravitee.management.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.management.services.dynamicproperties.provider.Provider;
 import io.vertx.core.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,9 +53,59 @@ public class DynamicPropertyUpdater implements Handler<Long> {
         this.api = api;
     }
 
+    private void authenticateAsAdmin() {
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return new Authentication() {
+                    @Override
+                    public Collection<? extends GrantedAuthority> getAuthorities() {
+                        return AuthorityUtils.createAuthorityList(RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name());
+                    }
+
+                    @Override
+                    public Object getCredentials() {
+                        return null;
+                    }
+
+                    @Override
+                    public Object getDetails() {
+                        return null;
+                    }
+
+                    @Override
+                    public Object getPrincipal() {
+                        return new UserDetails("DynamicPropertyUpdater", "*****", Collections.emptyList());
+                    }
+
+                    @Override
+                    public boolean isAuthenticated() {
+                        return true;
+                    }
+
+                    @Override
+                    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+
+                    }
+
+                    @Override
+                    public String getName() {
+                        return null;
+                    }
+                };
+            }
+
+            @Override
+            public void setAuthentication(Authentication authentication) {
+
+            }
+        });
+    }
+
     @Override
     public void handle(Long event) {
         logger.debug("Running dynamic-properties poller for {}", api);
+        authenticateAsAdmin();
 
         provider.get()
                 .whenComplete((dynamicProperties, throwable) -> {
