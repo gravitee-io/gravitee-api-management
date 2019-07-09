@@ -37,3 +37,25 @@ md-sidenav.healthcheck {
   background-color: #d9534f;
   color: black;
 }
+
+.healthcheck-summary-timeline {
+  .timeline:before {
+    left: 10%;
+  }
+  timeline-badge {
+    left: 10%;
+    top: 10px;
+  }
+
+  timeline-panel {
+    width: 76%;
+    min-height: 70px;
+  }
+
+  timeline-panel:before {
+    top:20px
+  }
+  timeline-panel:after {
+    top:21px
+  }
+}
