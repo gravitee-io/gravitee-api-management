@@ -91,7 +91,7 @@ class ApiProxyController {
         value: 'WEIGHTED_RANDOM'
       }];
 
-    this.$scope.methods = ['GET','DELETE','PATCH','POST','PUT','TRACE','HEAD'];
+    this.$scope.methods = ['GET','DELETE','PATCH','POST','PUT','OPTIONS','TRACE','HEAD'];
 
     this.initState();
 
