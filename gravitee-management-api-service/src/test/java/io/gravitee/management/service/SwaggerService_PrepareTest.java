@@ -121,7 +121,7 @@ public class SwaggerService_PrepareTest {
     }
 
     private NewSwaggerApiEntity prepareInline(String file, boolean withMocks) throws IOException {
-        URL url =  Resources.getResource(file);
+        URL url = Resources.getResource(file);
         String descriptor = Resources.toString(url, Charsets.UTF_8);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
         swaggerDescriptor.setType(ImportSwaggerDescriptorEntity.Type.INLINE);
@@ -132,7 +132,7 @@ public class SwaggerService_PrepareTest {
     }
 
     private NewSwaggerApiEntity prepareUrl(String file) {
-        URL url =  Resources.getResource(file);
+        URL url = Resources.getResource(file);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
         swaggerDescriptor.setType(ImportSwaggerDescriptorEntity.Type.URL);
         try {
@@ -180,8 +180,8 @@ public class SwaggerService_PrepareTest {
         assertEquals("201", postStreams.getResponseStatus());
         assertEquals("POST", postStreams.getVerb());
         assertNotNull(postStreams.getResponseProperties());
-        assertEquals("2531329f-fb09-4ef7-887e-84e648214436", (postStreams.getResponseProperties()).get("subscriptionId"));
-        assertEquals("Mocked string", (postStreams.getResponseProperties()).get("message"));
+        assertEquals("2531329f-fb09-4ef7-887e-84e648214436", ((Map) postStreams.getResponseProperties()).get("subscriptionId"));
+        assertEquals("Mocked string", ((Map) postStreams.getResponseProperties()).get("message"));
     }
 
     @Test
@@ -209,8 +209,8 @@ public class SwaggerService_PrepareTest {
         assertEquals("GET", getUserByName.getVerb());
         assertEquals("200", getUserByName.getResponseStatus());
         assertNotNull(getUserByName.getResponseProperties());
-        assertEquals("Mocked string", getUserByName.getResponseProperties().get("username"));
-        assertEquals("Mocked string", getUserByName.getResponseProperties().get("uuid"));
+        assertEquals("Mocked string", ((Map) getUserByName.getResponseProperties()).get("username"));
+        assertEquals("Mocked string", ((Map) getUserByName.getResponseProperties()).get("uuid"));
 
         final List<SwaggerVerb> repositoriesUsernameVerbs = repositoriesUsername.getVerbs();
         assertNotNull(repositoriesUsernameVerbs);
@@ -221,9 +221,9 @@ public class SwaggerService_PrepareTest {
         assertEquals("200", getRepositoriesByOwner.getResponseStatus());
         assertNotNull(getRepositoriesByOwner.getResponseProperties());
         assertTrue(getRepositoriesByOwner.isArray());
-        assertEquals("Mocked string", getRepositoriesByOwner.getResponseProperties().get("slug"));
-        assertEquals("Mocked string", ((Map) getRepositoriesByOwner.getResponseProperties().get("owner")).get("username"));
-        assertEquals("Mocked string", ((Map) getRepositoriesByOwner.getResponseProperties().get("owner")).get("uuid"));
+        assertEquals("Mocked string", ((Map) getRepositoriesByOwner.getResponseProperties()).get("slug"));
+        assertEquals("Mocked string", ((Map) ((Map) getRepositoriesByOwner.getResponseProperties()).get("owner")).get("username"));
+        assertEquals("Mocked string", ((Map) ((Map) getRepositoriesByOwner.getResponseProperties()).get("owner")).get("uuid"));
     }
 
     @Test
@@ -248,10 +248,10 @@ public class SwaggerService_PrepareTest {
         assertEquals("200", findPets.getResponseStatus());
         assertNotNull(findPets.getResponseProperties());
         assertTrue(findPets.isArray());
-        assertEquals(3, findPets.getResponseProperties().size());
-        assertEquals("Mocked string", findPets.getResponseProperties().get("name"));
-        assertEquals("Mocked string", findPets.getResponseProperties().get("tag"));
-        assertTrue(findPets.getResponseProperties().get("id") instanceof Integer);
+        assertEquals(3, ((Map) findPets.getResponseProperties()).size());
+        assertEquals("Mocked string", ((Map) findPets.getResponseProperties()).get("name"));
+        assertEquals("Mocked string", ((Map) findPets.getResponseProperties()).get("tag"));
+        assertTrue(((Map) findPets.getResponseProperties()).get("id") instanceof Integer);
     }
 
     @Test
@@ -276,10 +276,10 @@ public class SwaggerService_PrepareTest {
         assertEquals("200", findPets.getResponseStatus());
         assertNotNull(findPets.getResponseProperties());
         assertTrue(findPets.isArray());
-        assertEquals(3, findPets.getResponseProperties().size());
-        assertEquals("Mocked string", findPets.getResponseProperties().get("name"));
-        assertEquals("Mocked string", findPets.getResponseProperties().get("tag"));
-        assertTrue(findPets.getResponseProperties().get("id") instanceof Integer);
+        assertEquals(3, ((Map) findPets.getResponseProperties()).size());
+        assertEquals("Mocked string", ((Map) findPets.getResponseProperties()).get("name"));
+        assertEquals("Mocked string", ((Map) findPets.getResponseProperties()).get("tag"));
+        assertTrue(((Map) findPets.getResponseProperties()).get("id") instanceof Integer);
 
         final List<SwaggerVerb> petsIdVerbs = petsId.getVerbs();
         assertNotNull(petsIdVerbs);
@@ -289,10 +289,10 @@ public class SwaggerService_PrepareTest {
         assertEquals("GET", findPetsId.getVerb());
         assertEquals("200", findPetsId.getResponseStatus());
         assertNotNull(findPetsId.getResponseProperties());
-        assertEquals(3, findPetsId.getResponseProperties().size());
-        assertEquals("Mocked string", findPetsId.getResponseProperties().get("name"));
-        assertEquals("Mocked string", findPetsId.getResponseProperties().get("tag"));
-        assertTrue(findPetsId.getResponseProperties().get("id") instanceof Integer);
+        assertEquals(3, ((Map) findPetsId.getResponseProperties()).size());
+        assertEquals("Mocked string", ((Map) findPetsId.getResponseProperties()).get("name"));
+        assertEquals("Mocked string", ((Map) findPetsId.getResponseProperties()).get("tag"));
+        assertTrue(((Map) findPetsId.getResponseProperties()).get("id") instanceof Integer);
     }
 
     @Test
@@ -320,7 +320,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("GET", getMetadata.getVerb());
         assertEquals("200", getMetadata.getResponseStatus());
         assertNotNull(getMetadata.getResponseProperties());
-        final Map responseExample = getMetadata.getResponseProperties();
+        final Map responseExample = ((Map) getMetadata.getResponseProperties());
         assertEquals(2, responseExample.size());
         assertEquals(2, responseExample.get("total"));
         final List<Map<String, String>> apis = (List) responseExample.get("apis");
@@ -335,7 +335,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("GET", getFields.getVerb());
         assertEquals("200", getFields.getResponseStatus());
         assertNotNull(getFields.getResponseProperties());
-        assertEquals("Mocked string", getFields.getResponseProperties().get("string"));
+        assertEquals("Mocked string", ((Map) getFields.getResponseProperties()).get("string"));
     }
 
     @Test
@@ -359,7 +359,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("200", getRoot.getResponseStatus());
         assertNotNull(getRoot.getResponseProperties());
         assertFalse(getRoot.isArray());
-        final Map responseExample = getRoot.getResponseProperties();
+        final Map responseExample = ((Map) getRoot.getResponseProperties());
         assertEquals(10, responseExample.size());
         assertEquals("Mocked string", responseExample.get("optionalValue"));
         assertEquals("Mocked string", responseExample.get("stringValue"));
@@ -375,7 +375,7 @@ public class SwaggerService_PrepareTest {
         assertEquals("itemValue", ((List) responseExample.get("inlinedArrayValue")).get(0));
         assertEquals("itemValue", ((List) responseExample.get("arrayValue")).get(0));
     }
-    
+
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithMonoServer() throws IOException {
         final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/openapi-monoserver.yaml", true);
@@ -383,7 +383,7 @@ public class SwaggerService_PrepareTest {
         assertEquals(1, api.getEndpoint().size());
         assertTrue(api.getEndpoint().contains("https://development.gigantic-server.com/v1"));
     }
-    
+
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithMultiServer() throws IOException {
         final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/openapi-multiserver.yaml", true);
@@ -393,7 +393,7 @@ public class SwaggerService_PrepareTest {
         assertTrue(api.getEndpoint().contains("https://staging.gigantic-server.com/v1"));
         assertTrue(api.getEndpoint().contains("https://api.gigantic-server.com/v1"));
     }
-    
+
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithNoServer() throws IOException {
         final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/openapi-noserver.yaml", true);
@@ -401,7 +401,7 @@ public class SwaggerService_PrepareTest {
         assertEquals(1, api.getEndpoint().size());
         assertTrue(api.getEndpoint().contains("/"));
     }
-    
+
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithVariablesInServer() throws IOException {
         final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/openapi-variables-in-server.yaml", true);
@@ -409,5 +409,66 @@ public class SwaggerService_PrepareTest {
         assertEquals(2, api.getEndpoint().size());
         assertTrue(api.getEndpoint().contains("https://demo.gigantic-server.com:443/v2"));
         assertTrue(api.getEndpoint().contains("https://demo.gigantic-server.com:8443/v2"));
+    }
+
+    @Test
+    public void shouldPrepareAPIFromSwaggerV3WithComplexReferences() throws IOException {
+        final NewSwaggerApiEntity api = prepareInline("io/gravitee/management/service/mock/json-api.yml", true);
+
+        assertEquals(2, api.getPaths().size());
+        final SwaggerPath swaggerPath = api.getPaths().get(0);
+        assertEquals("/drives", swaggerPath.getPath());
+
+        final List<SwaggerVerb> swaggerVerbs = swaggerPath.getVerbs();
+        assertNotNull(swaggerVerbs);
+        assertEquals(2, swaggerVerbs.size());
+        final SwaggerVerb getDrives = swaggerVerbs.iterator().next();
+        assertEquals("List the Drive sites", getDrives.getDescription());
+        assertEquals("GET", getDrives.getVerb());
+        assertEquals("200", getDrives.getResponseStatus());
+        assertNotNull(getDrives.getResponseProperties());
+        assertFalse(getDrives.isArray());
+        final Map responseExample = ((Map) getDrives.getResponseProperties());
+        assertEquals(3, responseExample.size());
+
+        assertNotNull(responseExample.get("data"));
+        final Map data = (Map) responseExample.get("data");
+        assertEquals(5, data.size());
+        assertEquals("823", data.get("id"));
+        assertEquals("drives", data.get("type"));
+        final Map dataRelationships = ((Map) data.get("relationships"));
+        assertEquals("https://host/drives/823/time-slots", ((Map) ((Map) dataRelationships.get("timeSlots")).get("links")).get("related"));
+        final Map dataLinks = ((Map) data.get("links"));
+        assertEquals("https://host/drives/823", dataLinks.get("self"));
+        final Map dataAttributes = ((Map) data.get("attributes"));
+        assertEquals("Lille", dataAttributes.get("name"));
+
+        final Map dataAttributesAdress = ((Map) dataAttributes.get("address"));
+        assertEquals("59260", dataAttributesAdress.get("zipCode"));
+        assertEquals("RUE DES XXX", dataAttributesAdress.get("streetName"));
+        assertEquals("New York", dataAttributesAdress.get("city"));
+        assertEquals("7 bis", dataAttributesAdress.get("streetNumber"));
+
+        final Map dataAttributesLocation = ((Map) dataAttributes.get("location"));
+        assertEquals("3.121271", dataAttributesLocation.get("latitude").toString());
+        assertEquals("50.615205", dataAttributesLocation.get("longitude").toString());
+
+        assertNotNull(responseExample.get("meta"));
+        final Map meta = (Map) responseExample.get("meta");
+        assertEquals(5, meta.size());
+        assertEquals(50, meta.get("per-page"));
+        assertEquals(489, meta.get("total"));
+        assertEquals(3, meta.get("current-page"));
+        assertEquals(101, meta.get("from"));
+        assertEquals(150, meta.get("to"));
+
+        assertNotNull(responseExample.get("links"));
+        final Map links = (Map) responseExample.get("links");
+        assertEquals(5, links.size());
+        assertEquals("https://host/drives?page[number]=4&page[size]=50", links.get("next"));
+        assertEquals("https://host/drives?page[number]=10&page[size]=50", links.get("last"));
+        assertEquals("https://host/drives?page[number]=2&page[size]=50", links.get("prev"));
+        assertEquals("https://host/drives?page[number]=3&page[size]=50", links.get("self"));
+        assertEquals("https://host/drives?page[number]=1&page[size]=50", links.get("first"));
     }
 }

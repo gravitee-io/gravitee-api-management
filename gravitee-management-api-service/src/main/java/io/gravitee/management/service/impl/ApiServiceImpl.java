@@ -261,7 +261,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             header.put("value", "application/json");
                             configuration.put("headers", singletonList(header));
                             try {
-                                final Map<String, Object> responseProperties = swaggerVerb.getResponseProperties();
+                                final Object responseProperties = swaggerVerb.getResponseProperties();
                                 if (responseProperties != null) {
                                     configuration.put("content", objectMapper.writeValueAsString(swaggerVerb.isArray()?
                                             singletonList(responseProperties): responseProperties));

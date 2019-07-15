@@ -63,10 +63,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toCollection;
@@ -533,6 +533,9 @@ public class SwaggerServiceImpl implements SwaggerService {
     }
 
     private Object getResponsePropertiesFromType(final String responseType) {
+        if (responseType == null) {
+            return null;
+        }
         final Random random = new Random();
         switch (responseType) {
             case "string":
@@ -550,22 +553,72 @@ public class SwaggerServiceImpl implements SwaggerService {
         }
     }
 
-    private Map<String, Object> getResponseFromSimpleRef(SwaggerParseResult swagger, String ref) {
+    private Object getResponseFromSimpleRef(SwaggerParseResult swagger, String ref) {
+        if (ref == null){
+            return null;
+        }
         final String simpleRef = ref.substring(ref.lastIndexOf('/') + 1);
         final Schema schema = swagger.getOpenAPI().getComponents().getSchemas().get(simpleRef);
+        return getSchemaValue(swagger, schema);
+    }
+
+    private Map<String, Object> getResponseProperties(final SwaggerParseResult swagger, final Map<String, Schema> properties) {
+        if (properties == null) {
+            return null;
+        }
+        return properties.entrySet()
+                .stream()
+                .collect(
+                        toMap(
+                                Map.Entry::getKey,
+                                e -> this.getSchemaValue(swagger, e.getValue())));
+    }
+
+    private Object getSchemaValue(final SwaggerParseResult swagger, Schema schema) {
+        if (schema == null) {
+            return null;
+        }
+
+        final Object example = schema.getExample();
+        if (example != null) {
+            return example;
+        }
+
+        final List enums = schema.getEnum();
+        if (enums != null) {
+            return enums.get(0);
+        }
+
+        if (schema instanceof ObjectSchema) {
+            return getResponseProperties(swagger, schema.getProperties());
+        }
 
         if (schema instanceof ArraySchema) {
-            final Schema<?> items = ((ArraySchema) schema).getItems();
+            Schema<?> items = ((ArraySchema) schema).getItems();
+            Object sample = items.getExample();
+            if (sample != null) {
+                return singletonList(sample);
+            }
+
+            if (items.getEnum() != null) {
+                return singletonList(items.getEnum().get(0));
+            }
+
             if (items.get$ref() != null) {
                 return getResponseFromSimpleRef(swagger, items.get$ref());
-            } else {
-                return singletonMap(items.getType(), singletonList(items.getExample()));
             }
-        } else if (schema instanceof ComposedSchema) {
+
+            return singleton(getResponsePropertiesFromType(items.getType()));
+        }
+
+        if (schema instanceof ComposedSchema) {
             final Map<String, Object> response = new HashMap<>();
             ((ComposedSchema) schema).getAllOf().forEach(composedSchema -> {
                 if (composedSchema.get$ref() != null) {
-                    response.putAll(getResponseFromSimpleRef(swagger, composedSchema.get$ref()));
+                    Object responseFromSimpleRef = getResponseFromSimpleRef(swagger, composedSchema.get$ref());
+                    if (responseFromSimpleRef instanceof Map) {
+                        response.putAll((Map) responseFromSimpleRef);
+                    }
                 }
                 if (composedSchema.getProperties() != null) {
                     response.putAll(getResponseProperties(swagger, composedSchema.getProperties()));
@@ -574,42 +627,15 @@ public class SwaggerServiceImpl implements SwaggerService {
             return response;
         }
 
-        if (schema == null || schema.getProperties() == null) {
-            return emptyMap();
+        if (schema.getProperties() != null) {
+            return getResponseProperties(swagger, schema.getProperties());
         }
-        return getResponseProperties(swagger, schema.getProperties());
-    }
 
-    private Map<String, Object> getResponseProperties(final SwaggerParseResult swagger, final Map<String, Schema> properties) {
-        return properties.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> {
-            final String type = e.getValue().getType();
-            if (type != null) {
-                final Object example = e.getValue().getExample();
-                if (example == null) {
-                    final List enums = e.getValue().getEnum();
-                    if (enums == null) {
-                        if (type.equals("object")) {
-                            return getResponseProperties(swagger, e.getValue().getProperties());
-                        } else if (type.equals("array")) {
-                            return singletonList(((ArraySchema) e.getValue()).getItems().getExample());
-                        }
-                        return getResponsePropertiesFromType(type);
-                    } else {
-                        return enums.get(0);
-                    }
-                } else {
-                    return example;
-                }
-            } else {
-                final String simpleRef = e.getValue().get$ref().substring(e.getValue().get$ref().lastIndexOf('/') + 1);
-                final Schema schema = swagger.getOpenAPI().getComponents().getSchemas().get(simpleRef);
-                if (schema instanceof ArraySchema) {
-                    return singletonList(((ArraySchema) schema).getItems().getExample());
-                } else {
-                    return getResponseFromSimpleRef(swagger, e.getValue().get$ref());
-                }
-            }
-        }));
+        if (schema.get$ref() != null) {
+            return getResponseFromSimpleRef(swagger, schema.get$ref());
+        }
+
+        return getResponsePropertiesFromType(schema.getType());
     }
 
     @Override
