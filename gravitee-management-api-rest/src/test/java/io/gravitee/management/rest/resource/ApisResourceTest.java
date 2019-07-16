@@ -43,6 +43,22 @@ public class ApisResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldNotCreateApi_emptyName() {
+        final NewApiEntity apiEntity = new NewApiEntity();
+        apiEntity.setName("");
+        apiEntity.setVersion("v1");
+        apiEntity.setDescription("my description");
+
+        ApiEntity returnedApi = new ApiEntity();
+        returnedApi.setId("my-beautiful-api");
+        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
+                Mockito.eq(USER_NAME));
+
+        final Response response = target().request().post(Entity.json(apiEntity));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
     public void shouldNotCreateApi_withoutPath() {
         final NewApiEntity apiEntity = new NewApiEntity();
         apiEntity.setName("My beautiful api");
