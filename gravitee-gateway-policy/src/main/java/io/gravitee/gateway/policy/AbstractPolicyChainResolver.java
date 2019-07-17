@@ -36,9 +36,14 @@ import java.util.List;
 public abstract class AbstractPolicyChainResolver implements PolicyChainResolver {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final StreamType streamType;
 
     @Autowired
     private PolicyManager policyManager;
+
+    public AbstractPolicyChainResolver(StreamType streamType) {
+        this.streamType = streamType;
+    }
 
     @Override
     public PolicyChain resolve(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
@@ -63,7 +68,7 @@ public abstract class AbstractPolicyChainResolver implements PolicyChainResolver
 
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context) {
-        return resolve(StreamType.ON_REQUEST, context.request(), context.response(), context);
+        return resolve(streamType, context.request(), context.response(), context);
     }
 
     public void setPolicyManager(PolicyManager policyManager) {
