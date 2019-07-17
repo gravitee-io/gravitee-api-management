@@ -31,8 +31,6 @@ class ComponentCtrl implements ng.IComponentController {
 
     let content = "";
     let sectionOpen = false;
-    this.three_columns = true;
-
 
     var sectionValue = "";
     for (let c = 0; c < ast.children.length; c++) {
@@ -46,8 +44,13 @@ class ComponentCtrl implements ng.IComponentController {
         sectionValue += "</section>";
       }
 
-      let id = child.children[0].value.replace(new RegExp(' ', 'g'), '').toLowerCase();
-      sectionValue += "<section id='" + id + "'>";
+      let value = this.findChildrenValue(child.children);
+      if (value) {
+        let id = value.replace(new RegExp(' ', 'g'), '').toLowerCase();
+        sectionValue += "<section id='" + id + "'>";
+      } else {
+        sectionValue += "<section>";
+      }
       sectionOpen = true;
 
       ast.children.splice(c, 0, {
@@ -79,6 +82,18 @@ class ComponentCtrl implements ng.IComponentController {
       useDefaultHTMLSanitizer: false
     }, this.options));
   }
+
+  findChildrenValue = (children: any, count: number = 0) => {
+    if (count > 5) {
+      return;
+    }
+    count++;
+
+    if (children && Array.isArray(children) && children.length > 0) {
+      return (children[0].type === 'text') ? children[0].value : this.findChildrenValue(children[0].children, count);
+    }
+    return;
+  };
 }
 
 const PageEditorMarkdownViewerComponent: ng.IComponentOptions = {
