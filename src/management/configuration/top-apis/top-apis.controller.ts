@@ -25,8 +25,8 @@ class TopApisController {
               private $mdDialog: angular.material.IDialogService,
               private NotificationService: NotificationService,
               private $rootScope: IScope) {
-    this.$rootScope = $rootScope;
     'ngInject';
+    this.$rootScope = $rootScope;
   }
 
   refreshTopApis() {
