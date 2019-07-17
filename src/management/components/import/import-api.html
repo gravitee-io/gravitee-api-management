@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div>
+<md-dialog-content>
   <md-tabs md-dynamic-height md-border-bottom style="min-width: 380px">
     <md-tab label="Import file" ng-click="$ctrl.importFileMode= true; $ctrl.importURLMode= false;">
       <div class="import-file-drop-box">
@@ -32,9 +32,9 @@
     </md-tab>
   </md-tabs>
 
-  <div style="margin:24px;" layout="column" ng-if="$ctrl.isSwaggerImport()">
+  <div style="margin:24px;" ng-class="{'gv-swagger-conf-update': $ctrl.isForUpdate() }" layout="column" ng-if="$ctrl.isSwaggerImport()">
     <h4>Swagger import configurations:</h4>
-    <div class="gv-warn" ng-show="$ctrl.isForUpdate()">This will overwrite the name, the description and the version.</div>
+    <div class="gv-warn" style="padding-bottom: 10px" ng-show="$ctrl.isForUpdate()">This will overwrite the name, the description and the version.</div>
     <md-checkbox ng-model="$ctrl.importCreateDocumentation" aria-label="($ctrl.isForUpdate() ? 'Update' : 'Create') documentation pages" flex ng-change="$ctrl.updateWarnText()">
       {{($ctrl.isForUpdate() ? 'Update' : 'Create')}} documentation
       <div class="ipsum" style="color: grey;">{{($ctrl.isForUpdate() ? 'Update the' : 'Add a')}} documentation page with the content of the swagger descriptor.</div>
@@ -58,10 +58,8 @@
       <div class="gv-warn" ng-show="$ctrl.isForUpdate() && $ctrl.importCreateMocks">This will overwrite all the mocks.</div>
     </md-checkbox>
   </div>
-</div>
-<div>
-  <md-dialog-actions layout="row" style="position: fixed; bottom: 0;right: 0;">
-    <md-button md-no-ink ng-click="$ctrl.cancel()" ng-show=$ctrl.isForUpdate()>Cancel</md-button>
-    <md-button ng-disabled="!$ctrl.enableImport()" ng-click="$ctrl.importAPI()" class="md-raised import-api-button" ng-class="{'md-warn': $ctrl.isForUpdate()}">Import</md-button>
-</md-dialog>
-</div>
+</md-dialog-content>
+<md-dialog-actions layout="row">
+  <md-button md-no-ink ng-click="$ctrl.cancel()" ng-show=$ctrl.isForUpdate()>Cancel</md-button>
+  <md-button ng-disabled="!$ctrl.enableImport()" ng-click="$ctrl.importAPI()" class="md-raised gv-import-api-button" ng-class="{'md-warn': $ctrl.isForUpdate()}">Import</md-button>
+</md-dialog-actions>
