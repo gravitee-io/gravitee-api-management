@@ -347,7 +347,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private String addGraviteeUrl(String apiContextPath, String payload) {
         List<String> graviteeUrls = new ArrayList<>();
-        String portalEntrypoint = parameterService.findAll(Key.PORTAL_ENTRYPOINT).get(0);
+        String portalEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
         if (portalEntrypoint != null) {
             graviteeUrls.add(portalEntrypoint + apiContextPath);
         }
