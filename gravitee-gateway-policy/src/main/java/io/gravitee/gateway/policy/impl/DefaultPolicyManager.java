@@ -169,9 +169,13 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
         RegisteredPolicy registeredPolicy = policies.get(policy);
         PolicyMetadata policyMetadata = (registeredPolicy != null) ? registeredPolicy.metadata : null;
 
-        if ((streamType == StreamType.ON_REQUEST &&
+        if (policyMetadata == null) {
+            logger.error("Policy {} has no metadata.", policy);
+        }
+
+        if ((streamType == StreamType.ON_REQUEST && policyMetadata != null &&
                 (policyMetadata.method(OnRequest.class) != null || policyMetadata.method(OnRequestContent.class) != null)) ||
-                (streamType == StreamType.ON_RESPONSE && (
+                (streamType == StreamType.ON_RESPONSE && policyMetadata != null && (
                         policyMetadata.method(OnResponse.class) != null || policyMetadata.method(OnResponseContent.class) != null))) {
             PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(
                     policyMetadata.configuration(), configuration);

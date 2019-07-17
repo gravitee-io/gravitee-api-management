@@ -50,6 +50,10 @@ public class PlanPolicyChainResolver extends AbstractPolicyChainResolver {
     @Autowired
     protected Api api;
 
+    public PlanPolicyChainResolver(StreamType streamType) {
+        super(streamType);
+    }
+
     @Override
     public PolicyChain resolve(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
         // Calculate the list of policies to apply under this policy chain
@@ -74,34 +78,35 @@ public class PlanPolicyChainResolver extends AbstractPolicyChainResolver {
 
     @Override
     protected List<Policy> calculate(StreamType streamType, Request request, Response response, ExecutionContext executionContext) {
+        String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
+
         if (streamType == StreamType.ON_REQUEST) {
-            String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
             String application = (String) executionContext.getAttribute(ExecutionContext.ATTR_APPLICATION);
 
             request.metrics().setUser((String) executionContext.getAttribute(ExecutionContext.ATTR_USER));
             request.metrics().setPlan(plan);
             request.metrics().setApplication(application);
+        }
 
-            Plan apiPlan = api.getPlan(plan);
-            // No plan is matching the plan associated to the secured request
-            // The call is probably not relative to the same API.
-            if (plan != null && apiPlan != null) {
-                Map<String, Path> paths = api.getPlan(plan).getPaths();
+        Plan apiPlan = api.getPlan(plan);
+        // No plan is matching the plan associated to the secured request
+        // The call is probably not relative to the same API.
+        if (plan != null && apiPlan != null) {
+            Map<String, Path> paths = api.getPlan(plan).getPaths();
 
-                if (paths != null && ! paths.isEmpty()) {
-                    // For 1.0.0, there is only a single root path defined
-                    // Must be reconsidered when user will be able to manage policies at the plan level by himself
-                    Path rootPath = paths.values().iterator().next();
-                    return rootPath.getRules().stream()
-                            .filter(rule -> rule.isEnabled() && rule.getMethods().contains(request.method()))
-                            .map(rule -> create(streamType, rule.getPolicy().getName(), rule.getPolicy().getConfiguration()))
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toList());
-                }
-            } else {
-                logger.warn("No plan has been selected to process request {}. Returning an unauthorized HTTP status (401)", request.id());
-                return null;
+            if (paths != null && ! paths.isEmpty()) {
+                // For 1.0.0, there is only a single root path defined
+                // Must be reconsidered when user will be able to manage policies at the plan level by himself
+                Path rootPath = paths.values().iterator().next();
+                return rootPath.getRules().stream()
+                        .filter(rule -> rule.isEnabled() && rule.getMethods().contains(request.method()))
+                        .map(rule -> create(streamType, rule.getPolicy().getName(), rule.getPolicy().getConfiguration()))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
             }
+        } else {
+            logger.warn("No plan has been selected to process request {}. Returning an unauthorized HTTP status (401)", request.id());
+            return null;
         }
 
         return Collections.emptyList();
