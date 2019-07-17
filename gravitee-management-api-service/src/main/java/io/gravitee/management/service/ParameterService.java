@@ -30,7 +30,7 @@ import java.util.function.Predicate;
  */
 public interface ParameterService {
 
-
+    String find(Key key);
     boolean findAsBoolean(Key key);
     List<String> findAll(Key key);
     Map<String, List<String>> findAll(List<Key> keys);

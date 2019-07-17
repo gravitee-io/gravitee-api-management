@@ -60,7 +60,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     private AuditService auditService;
 
     @Override
-    public boolean findAsBoolean(final Key key) {
+    public String find(final Key key) {
         final List<String> values = findAll(key);
         final String value;
         if (values == null || values.isEmpty()) {
@@ -68,7 +68,12 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         } else {
             value = values.get(0);
         }
-        return Boolean.valueOf(value);
+        return value;
+    }
+
+    @Override
+    public boolean findAsBoolean(final Key key) {
+        return Boolean.valueOf(find(key));
     }
 
     @Override
