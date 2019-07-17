@@ -26,7 +26,7 @@ public class SwaggerVerb {
     private String verb;
     private String description;
     private String responseStatus;
-    private Map<String, Object> responseProperties;
+    private Object responseProperties;
     private boolean array;
 
     public String getVerb() {
@@ -53,11 +53,11 @@ public class SwaggerVerb {
         this.responseStatus = responseStatus;
     }
 
-    public Map<String, Object> getResponseProperties() {
+    public Object getResponseProperties() {
         return responseProperties;
     }
 
-    public void setResponseProperties(Map<String, Object> responseProperties) {
+    public void setResponseProperties(Object responseProperties) {
         this.responseProperties = responseProperties;
     }
 

@@ -127,6 +127,7 @@ if [ -z "$daemon" ] ; then
         -Dvertx.disableFileCaching=true \
         -Dvertx.disableFileCPResolving=true \
         -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
+        $GRAVITEE_OPTS \
         io.gravitee.management.standalone.boostrap.Bootstrap \
         "$@"
 else
@@ -149,6 +150,7 @@ else
         -Dvertx.disableFileCaching=true \
         -Dvertx.disableFileCPResolving=true \
         -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory \
+        $GRAVITEE_OPTS \
         io.gravitee.management.standalone.boostrap.Bootstrap \
         "$@" <&- &
 

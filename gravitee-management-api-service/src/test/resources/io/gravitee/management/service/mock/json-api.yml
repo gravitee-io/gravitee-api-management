@@ -1,0 +1,569 @@
+openapi: '3.0.2'
+info:
+  title: Example with both JSON and JSON:API
+  version: v1
+servers:
+  - url: https://host1.com/api/json-json-api-example
+    description: Backend 1
+paths:
+  /drives:
+    get:
+      summary: List the Drive sites
+      operationId: listDrives
+      tags:
+        - Drives
+      parameters:
+        - $ref: '#/components/parameters/pagination'
+        - $ref: '#/components/parameters/drivesFilters'
+        - $ref: '#/components/parameters/drivesSort'
+        - $ref: '#/components/parameters/oldPaginationSize'
+        - $ref: '#/components/parameters/oldPaginationNumber'
+        - $ref: '#/components/parameters/oldDrivesFiltersZipCode'
+      responses:
+        200:
+          $ref: '#/components/responses/Drives'
+        400:
+          $ref: '#/components/responses/400-BadRequest'
+    post:
+      summary: Create a Drive site
+      description: New Drive site creation is only available for administrators
+      operationId: createDrive
+      tags:
+        - Drives
+      requestBody:
+        $ref: '#/components/requestBodies/CreateDrive'
+      responses:
+        201:
+          $ref: '#/components/responses/Drive'
+        400:
+          $ref: '#/components/responses/400-BadRequest'
+        401:
+          $ref: '#/components/responses/401-Unauthorized'
+        403:
+          $ref: '#/components/responses/403-Forbidden'
+  /drives/{driveId}:
+    get:
+      summary: Get a Drive site details
+      operationId: getDrive
+      tags:
+        - Drives
+      parameters:
+        - $ref: '#/components/parameters/driveId'
+      responses:
+        200:
+          $ref: '#/components/responses/Drive'
+        404:
+          $ref: '#/components/responses/404-NotFound'
+    patch:
+      summary: Update a Drive site
+      description: Drive site update is only available for administrators
+      operationId: updateDrive
+      tags:
+        - Drives
+      parameters:
+        - $ref: '#/components/parameters/driveId'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateDrive'
+      responses:
+        204:
+          description: Drive has been updated
+        400:
+          $ref: '#/components/responses/400-BadRequest'
+        401:
+          $ref: '#/components/responses/401-Unauthorized'
+        403:
+          $ref: '#/components/responses/403-Forbidden'
+        404:
+          $ref: '#/components/responses/404-NotFound'
+        409:
+          $ref: '#/components/responses/409-Conflict'
+        412:
+          $ref: '#/components/responses/412-PreconditionFailed'
+    delete:
+      summary: Delete a Drive site
+      description: Drive site deletion is only available for administrators
+      operationId: deleteDrive
+      tags:
+        - Drives
+      parameters:
+        - $ref: '#/components/parameters/driveId'
+      responses:
+        204:
+          description: Drive has been deleted
+        401:
+          $ref: '#/components/responses/401-Unauthorized'
+        403:
+          $ref: '#/components/responses/403-Forbidden'
+        404:
+          $ref: '#/components/responses/404-NotFound'
+        409:
+          $ref: '#/components/responses/409-Conflict'
+        412:
+          $ref: '#/components/responses/412-PreconditionFailed'
+components:
+  parameters:
+    pagination:
+      name: page
+      in: query
+      style: deepObject
+      explode: true
+      description: Collection pagination
+      schema:
+        type: object
+        properties:
+          number:
+            type: integer
+            description: Collection page number
+            default: 1
+            minimum: 1
+            example: 1
+          size:
+            type: integer
+            description: Collection page size
+            default: 50
+            minimum: 1
+            example: 50
+    oldPaginationNumber:
+      name: pageNumber
+      in: query
+      deprecated: true
+      description: Collection pagination number (old style). Prefer using _page[number]_
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+        example: 1
+    oldPaginationSize:
+      name: pageSize
+      in: query
+      deprecated: true
+      description: Collection pagination size (old style). Prefer using _page[size]_
+      schema:
+        type: integer
+        default: 50
+        minimum: 1
+        example: 50
+    drivesFilters:
+      name: filter
+      in: query
+      style: deepObject
+      explode: true
+      description: Collection filters
+      schema:
+        type: object
+        properties:
+          zipCode:
+            type: string
+            description: Zip code filter. Retrieve all drives that are at a distance of 20 kilometers max
+            example: '59650'
+    oldDrivesFiltersZipCode:
+      name: zipCode
+      in: query
+      deprecated: true
+      description: Zip code filter (old style). Retrieve all drives that are at a distance of 20 kilometers max. Prefer using _filter[zipCode]_
+      schema:
+        type: string
+        example: '59650'
+    drivesSort:
+      name: sort
+      in: query
+      description: Collection sorting order
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum: [ 'name', '-name', 'address.zipCode', '-address.zipCode', 'address.city', '-address.city' ]
+    driveId:
+      name: driveId
+      in: path
+      description: Drive identifier
+      required: true
+      schema:
+        type: string
+        example: '823'
+  requestBodies:
+    CreateDrive:
+      required: true
+      description: Drive creation request
+      content:
+        application/vnd.api+json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                type: object
+                required:
+                  - type
+                  - attributes
+                properties:
+                  type:
+                    $ref: '#/components/schemas/DriveResourceType'
+                  attributes:
+                    $ref: '#/components/schemas/Drive'
+                additionalProperties: false
+            additionalProperties: false
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Drive'
+    UpdateDrive:
+      required: true
+      description: Drive update request
+      content:
+        application/vnd.api+json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                type: object
+                required:
+                  - type
+                  - id
+                  - attributes
+                properties:
+                  type:
+                    $ref: '#/components/schemas/DriveResourceType'
+                  id:
+                    $ref: '#/components/schemas/DriveResourceId'
+                  attributes:
+                    type: object
+                    properties:
+                      name:
+                        $ref: '#/components/schemas/DriveName'
+                      address:
+                        $ref: '#/components/schemas/Address'
+                      coordinates:
+                        $ref: '#/components/schemas/Coordinates'
+                additionalProperties: false
+            additionalProperties: false
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                $ref: '#/components/schemas/DriveName'
+              address:
+                $ref: '#/components/schemas/Address'
+              coordinates:
+                $ref: '#/components/schemas/Coordinates'
+  responses:
+    Drives:
+      description: Drives response collection resource
+      content:
+        application/vnd.api+json:
+          schema:
+            type: object
+            required:
+              - data
+              - links
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DriveResource'
+              links:
+                type: object
+                required:
+                  - self
+                properties:
+                  self:
+                    type: string
+                    example: 'https://host/drives?page[number]=3&page[size]=50'
+                  first:
+                    type: string
+                    example: 'https://host/drives?page[number]=1&page[size]=50'
+                  prev:
+                    type: string
+                    example: 'https://host/drives?page[number]=2&page[size]=50'
+                  next:
+                    type: string
+                    example: 'https://host/drives?page[number]=4&page[size]=50'
+                  last:
+                    type: string
+                    example: 'https://host/drives?page[number]=10&page[size]=50'
+              meta:
+                $ref: '#/components/schemas/CollectionPaginationMetaData'
+            additionalProperties: false
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              allOf:
+                - $ref: '#/components/schemas/Drive'
+              required:
+                - id
+              properties:
+                id:
+                  $ref: '#/components/schemas/DriveResourceId'
+    Drive:
+      description: Drive response resource
+      content:
+        application/vnd.api+json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/DriveResource'
+            additionalProperties: false
+        application/json:
+          schema:
+            type: object
+            allOf:
+              - $ref: '#/components/schemas/Drive'
+            required:
+              - id
+            properties:
+              id:
+                $ref: '#/components/schemas/DriveResourceId'
+    400-BadRequest:
+      description: Bad syntax or incorrect request
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Error'
+    401-Unauthorized:
+      description: An authentication is required
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    403-Forbidden:
+      description: Authenticated user does not have access to resource
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    404-NotFound:
+      description: Resource does not exist
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    409-Conflict:
+      description: Resource is in a different state than the expected one
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    412-PreconditionFailed:
+      description: Resource has already been updated since read
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    DriveResource:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+        - links
+        - relationships
+      properties:
+        type:
+          $ref: '#/components/schemas/DriveResourceType'
+        id:
+          $ref: '#/components/schemas/DriveResourceId'
+        attributes:
+          $ref: '#/components/schemas/Drive'
+        links:
+          $ref: '#/components/schemas/DriveLinks'
+        relationships:
+          $ref: '#/components/schemas/DriveRelationships'
+      additionalProperties: false
+    DriveResourceType:
+      type: string
+      enum: [ 'drives' ]
+    DriveResourceId:
+      type: string
+      minLength: 1
+      example: '823'
+    Drive:
+      description: Drive business object definition
+      type: object
+      required:
+        - name
+        - address
+        - location
+      properties:
+        name:
+          $ref: '#/components/schemas/DriveName'
+        address:
+          $ref: '#/components/schemas/RequiredAddress'
+        location:
+          $ref: '#/components/schemas/RequiredCoordinates'
+    DriveName:
+      type: string
+      minLength: 1
+      example: 'Lille'
+    DriveLinks:
+      type: object
+      readOnly: true
+      required:
+        - self
+      properties:
+        self:
+          type: string
+          example: 'https://host/drives/823'
+    DriveRelationships:
+      type: object
+      readOnly: true
+      properties:
+        timeSlots:
+          $ref: '#/components/schemas/DriveTimeSlotsRelationship'
+    DriveTimeSlotsRelationship:
+      type: object
+      required:
+        - links
+      properties:
+        links:
+          type: object
+          readOnly: true
+          required:
+            - related
+          properties:
+            related:
+              type: string
+              readOnly: true
+              example: 'https://host/drives/823/time-slots'
+          additionalProperties: false
+      additionalProperties: false
+    Address:
+      type: object
+      properties:
+        streetName:
+          type: string
+          minLength: 1
+          example: 'RUE DES XXX'
+        streetNumber:
+          type: string
+          minLength: 1
+          example: '7 bis'
+        zipCode:
+          type: string
+          minLength: 1
+          example: '59260'
+        city:
+          type: string
+          minLength: 1
+          example: 'New York'
+    RequiredAddress:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Address'
+      required:
+        - streetName
+        - streetNumber
+        - zipCode
+        - city
+    Coordinates:
+      type: object
+      properties:
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+          example: 50.615205
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+          example: 3.121271
+    RequiredCoordinates:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Coordinates'
+      required:
+        - longitude
+        - latitude
+    CollectionPaginationMetaData:
+      type: object
+      properties:
+        current-page:
+          type: integer
+          example: 3
+        per-page:
+          type: integer
+          example: 50
+        from:
+          type: integer
+          example: 101
+        to:
+          type: integer
+          example: 150
+        total:
+          type: integer
+          example: 489
+    Errors:
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          description: the HTTP status code applicable to this problem
+          example: 400
+        code:
+          type: string
+          description: an application-specific error code
+          minLength: 1
+          example: INVALID_RESOURCE_STRUCTURE
+        title:
+          type: string
+          description: a short, human-readable summary of the problem that SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization
+          minLength: 1
+          example: Invalid drive name
+        detail:
+          type: string
+          description: a human-readable explanation specific to this occurrence of the problem. Like `title`, this field’s value can be localized
+          minLength: 1
+          example: The drive name cannot be empty
+        source:
+          type: object
+          description: an object containing references to the source of the error
+          properties:
+            pointer:
+              type: string
+              description: a JSON Pointer [[RFC6901](https://tools.ietf.org/html/rfc6901)] to the associated entity in the request document
+              minLength: 1
+              example: '/data/attributes/name'
+            parameter:
+              type: string
+              description: a string indicating which URI query parameter caused the error
+              minLength: 1
+              example: driveId
