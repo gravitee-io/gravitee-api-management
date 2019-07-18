@@ -59,6 +59,10 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-oauth2-provider-api</artifactId>
+        </dependency>
         <!-- To override Spring commons-logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
