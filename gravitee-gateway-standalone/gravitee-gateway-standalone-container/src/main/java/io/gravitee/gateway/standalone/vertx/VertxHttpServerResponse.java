@@ -59,7 +59,9 @@ public class VertxHttpServerResponse implements Response {
 
     @Override
     public Response reason(String reason) {
-        httpServerResponse.setStatusMessage(reason);
+        if (reason != null) {
+            httpServerResponse.setStatusMessage(reason);
+        }
         return this;
     }
 
