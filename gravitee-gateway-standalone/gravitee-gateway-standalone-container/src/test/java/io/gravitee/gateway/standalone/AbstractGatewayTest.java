@@ -28,7 +28,6 @@ import io.gravitee.gateway.standalone.policy.PolicyRegister;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.netty.util.internal.logging.InternalLoggerFactory;
-import io.netty.util.internal.logging.Log4JLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import org.junit.BeforeClass;
 import org.junit.Rule;

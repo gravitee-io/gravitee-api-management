@@ -32,6 +32,8 @@
 #    truststore:
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
+#  websocket:
+#    enabled: false
 
 # Plugins repository
 #plugins:

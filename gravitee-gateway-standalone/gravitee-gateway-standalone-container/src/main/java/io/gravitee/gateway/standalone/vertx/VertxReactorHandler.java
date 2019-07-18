@@ -15,15 +15,10 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.reactor.Reactor;
-import io.gravitee.gateway.standalone.vertx.ws.VertxWebSocketServerRequest;
-import io.gravitee.gateway.standalone.vertx.ws.VertxWebSocketServerResponse;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.Handler;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 
 /**
@@ -35,36 +30,19 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
 
     private final Reactor reactor;
 
-    VertxReactorHandler(final Reactor reactor) {
+    public VertxReactorHandler(final Reactor reactor) {
         this.reactor = reactor;
     }
 
     @Override
     public void handle(HttpServerRequest httpServerRequest) {
-        Request request;
-        Response response;
-
-        if (isWebSocket(httpServerRequest)) {
-            request = new VertxWebSocketServerRequest(httpServerRequest);
-            response = new VertxWebSocketServerResponse(httpServerRequest, request);
-        } else {
-            request = new VertxHttpServerRequest(httpServerRequest);
-            response = new VertxHttpServerResponse(httpServerRequest, request.metrics());
-        }
+        Request request = new VertxHttpServerRequest(httpServerRequest);
+        Response response = new VertxHttpServerResponse(httpServerRequest, request.metrics());
 
         route(request, response);
     }
 
     protected void route(final Request request, final Response response) {
         reactor.route(request, response, __ -> {});
-    }
-
-    private boolean isWebSocket(HttpServerRequest httpServerRequest) {
-        String connectionHeader = httpServerRequest.getHeader(HttpHeaders.CONNECTION);
-        String upgradeHeader = httpServerRequest.getHeader(HttpHeaders.UPGRADE);
-
-        return httpServerRequest.method() == HttpMethod.GET &&
-                HttpHeaderValues.UPGRADE.contentEqualsIgnoreCase(connectionHeader) &&
-                HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader);
     }
 }

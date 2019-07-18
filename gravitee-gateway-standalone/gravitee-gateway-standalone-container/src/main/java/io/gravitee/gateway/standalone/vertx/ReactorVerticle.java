@@ -16,6 +16,7 @@
 package io.gravitee.gateway.standalone.vertx;
 
 import io.gravitee.gateway.reactor.Reactor;
+import io.gravitee.gateway.standalone.vertx.ws.VertxWebSocketReactorHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -53,13 +54,24 @@ public class ReactorVerticle extends AbstractVerticle {
     @Value("${http.requestTimeout:0}")
     private long requestTimeout;
 
+    @Value("${http.websocket.enabled:false}")
+    private boolean websocketEnabled;
+
     @Override
     public void start(Future<Void> startFuture) throws Exception {
-        if (requestTimeout > 0) {
-            httpServer.requestHandler(new VertxReactorTimeoutHandler(vertx, reactor, requestTimeout));
+        VertxReactorHandler handler;
+
+        if (websocketEnabled) {
+            handler = new VertxWebSocketReactorHandler(reactor);
         } else {
-            httpServer.requestHandler(new VertxReactorHandler(reactor));
+            handler = new VertxReactorHandler(reactor);
         }
+
+        if (requestTimeout > 0) {
+            handler = new VertxReactorTimeoutHandler(reactor, handler, vertx, requestTimeout);
+        }
+
+        httpServer.requestHandler(handler);
 
         httpServer.listen(res -> {
             if (res.succeeded()) {
