@@ -27,12 +27,15 @@ import io.vertx.core.Vertx;
  */
 public class VertxReactorTimeoutHandler extends VertxReactorHandler {
 
+    private final VertxReactorHandler handler;
+
     private final Vertx vertx;
 
     private final long timeout;
 
-    VertxReactorTimeoutHandler(final Vertx vertx, final Reactor reactor, final long timeout) {
-        super( reactor );
+    VertxReactorTimeoutHandler(final Reactor reactor, final VertxReactorHandler handler, final Vertx vertx, final long timeout) {
+        super(reactor);
+        this.handler = handler;
         this.vertx = vertx;
         this.timeout = timeout;
     }
@@ -47,9 +50,9 @@ public class VertxReactorTimeoutHandler extends VertxReactorHandler {
             });
 
             // Release timeout when response ends
-            super.route(request, new TimeoutServerResponse(vertx, response, timeoutId));
+            handler.route(request, new TimeoutServerResponse(vertx, response, timeoutId));
         } else {
-            super.route(request, response);
+            handler.route(request, response);
         }
     }
 }

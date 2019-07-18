@@ -76,6 +76,9 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
         options.setMaxChunkSize(httpServerConfiguration.getMaxChunkSize());
         options.setMaxHeaderSize(httpServerConfiguration.getMaxHeaderSize());
 
+        // Configure websocket
+        System.setProperty("vertx.disableWebsockets", Boolean.toString(!httpServerConfiguration.isWebsocketEnabled()));
+
         return vertx.createHttpServer(options);
     }
 

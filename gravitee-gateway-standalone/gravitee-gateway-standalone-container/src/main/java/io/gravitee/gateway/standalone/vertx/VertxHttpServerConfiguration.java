@@ -66,6 +66,9 @@ public class VertxHttpServerConfiguration {
     @Value("${http.maxChunkSize:8192}")
     private int maxChunkSize;
 
+    @Value("${http.websocket.enabled:false}")
+    private boolean websocketEnabled;
+
     public int getPort() {
         return port;
     }
@@ -176,5 +179,13 @@ public class VertxHttpServerConfiguration {
 
     public void setMaxChunkSize(int maxChunkSize) {
         this.maxChunkSize = maxChunkSize;
+    }
+
+    public boolean isWebsocketEnabled() {
+        return websocketEnabled;
+    }
+
+    public void setWebsocketEnabled(boolean websocketEnabled) {
+        this.websocketEnabled = websocketEnabled;
     }
 }
