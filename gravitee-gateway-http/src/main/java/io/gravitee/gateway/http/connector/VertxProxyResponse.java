@@ -31,18 +31,21 @@ class VertxProxyResponse implements ProxyResponse {
     private Handler<Buffer> bodyHandler;
     private Handler<Void> endHandler;
 
-    private final int status;
     private final HttpHeaders httpHeaders = new HttpHeaders();
     private final HttpClientResponse httpClientResponse;
 
     VertxProxyResponse(final HttpClientResponse httpClientResponse) {
         this.httpClientResponse = httpClientResponse;
-        this.status = httpClientResponse.statusCode();
     }
 
     @Override
     public int status() {
-        return this.status;
+        return httpClientResponse.statusCode();
+    }
+
+    @Override
+    public String reason() {
+        return httpClientResponse.statusMessage();
     }
 
     @Override
