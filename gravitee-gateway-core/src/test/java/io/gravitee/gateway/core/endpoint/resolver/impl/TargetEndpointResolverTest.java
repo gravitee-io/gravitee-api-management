@@ -298,6 +298,16 @@ public class TargetEndpointResolverTest {
     }
 
     @Test
+    public void shouldResolveUserDefinedEndpointAndKeepLastSlash_selectFirstEndpoint_wss() {
+        resolveUserDefinedEndpoint(
+                "wss://host:8080/test/",
+                "wss://host:8080/test/",
+                "endpoint",
+                "wss://endpoint:8080/test/"
+        );
+    }
+
+    @Test
     public void shouldResolveEndpoint_withColonInPath() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/foo:",

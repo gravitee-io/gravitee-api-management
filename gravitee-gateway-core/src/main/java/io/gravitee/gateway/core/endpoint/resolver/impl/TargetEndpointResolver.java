@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 public class TargetEndpointResolver implements EndpointResolver {
 
     // Pattern reuse for duplicate slash removal
-    private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
+    private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:|wss:|ws:))[//]+");
 
     private static final String URI_PATH_SEPARATOR = "/";
     private static final char URI_PATH_SEPARATOR_CHAR = '/';
@@ -51,6 +51,10 @@ public class TargetEndpointResolver implements EndpointResolver {
     private static final String URI_HTTP_PREFIX = "http://";
 
     private static final String URI_HTTPS_PREFIX = "https://";
+
+    private static final String URI_WS_PREFIX = "ws://";
+
+    private static final String URI_WSS_PREFIX = "wss://";
 
     @Autowired
     private ReferenceRegister referenceRegister;
@@ -87,7 +91,8 @@ public class TargetEndpointResolver implements EndpointResolver {
      */
     private ResolvedEndpoint selectUserDefinedEndpoint(Request serverRequest, String target, ExecutionContext executionContext) {
         // Do we have a relative or an absolute path ?
-        if (target.startsWith(URI_HTTP_PREFIX) || target.startsWith(URI_HTTPS_PREFIX)) {
+        if (target.startsWith(URI_HTTP_PREFIX) || target.startsWith(URI_HTTPS_PREFIX)
+                || target.startsWith(URI_WS_PREFIX) || target.startsWith(URI_WSS_PREFIX)) {
             // When the user selected endpoint which is not defined (according to the given target), the gateway
             // is always returning the first endpoints reference and took into account its configuration.
             Collection<EndpointReference> endpoints = referenceRegister.referencesByType(EndpointReference.class);
