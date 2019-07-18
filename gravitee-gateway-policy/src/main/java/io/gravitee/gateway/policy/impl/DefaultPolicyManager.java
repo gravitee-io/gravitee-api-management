@@ -160,6 +160,16 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
                         logger.error("Unable to close classloader for policy", ioe);
                     }
                 }
+            } catch (Error error) {
+                logger.error("Unable to load policy id[" + policyPlugin.id() + "]. This error mainly occurs when the policy is linked to a missing resource, for example a cache or an oauth2 resource. Please check your policy configuration!", error);
+
+                if (policyClassLoader != null) {
+                    try {
+                        policyClassLoader.close();
+                    } catch (IOException ioe) {
+                        logger.error("Unable to close classloader for policy", ioe);
+                    }
+                }
             }
         });
     }
