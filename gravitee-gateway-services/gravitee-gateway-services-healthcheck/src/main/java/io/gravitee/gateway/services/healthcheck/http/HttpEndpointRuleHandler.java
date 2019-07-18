@@ -68,7 +68,7 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
     private final Logger logger = LoggerFactory.getLogger(HttpEndpointRuleHandler.class);
 
     // Pattern reuse for duplicate slash removal
-    private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
+    private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:|wss:|ws:))[//]+");
     private static final String HTTPS_SCHEME = "https";
 
     private final EndpointRule rule;

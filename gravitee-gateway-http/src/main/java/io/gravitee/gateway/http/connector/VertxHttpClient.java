@@ -67,6 +67,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
     private final Logger LOGGER = LoggerFactory.getLogger(VertxHttpClient.class);
 
     private static final String HTTPS_SCHEME = "https";
+    private static final String WSS_SCHEME = "wss";
     private static final int DEFAULT_HTTP_PORT = 80;
     private static final int DEFAULT_HTTPS_PORT = 443;
     private static final Set<CharSequence> HOP_HEADERS;
@@ -130,7 +131,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
 
         final URI uri = proxyRequest.uri();
         final int port = uri.getPort() != -1 ? uri.getPort() :
-                (HTTPS_SCHEME.equals(uri.getScheme()) ? 443 : 80);
+                (HTTPS_SCHEME.equals(uri.getScheme()) || WSS_SCHEME.equals(uri.getScheme()) ? 443 : 80);
 
         final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
                 uri.getHost() : uri.getHost() + ':' + port;
