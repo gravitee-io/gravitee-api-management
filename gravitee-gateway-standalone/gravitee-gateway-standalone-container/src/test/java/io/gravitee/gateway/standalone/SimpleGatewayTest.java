@@ -57,4 +57,20 @@ public class SimpleGatewayTest extends AbstractGatewayTest {
 
         wireMockRule.verify(postRequestedFor(urlPathEqualTo("/team/my_team")));
     }
+
+    @Test
+    public void call_get_started_api_withStatusMessage() throws Exception {
+        final String request = "This is a dummy request payload";
+
+        wireMockRule.stubFor(post("/team/my_team").willReturn(ok().withStatusMessage("dummy-message")));
+
+        final HttpResponse response = Request.Post("http://localhost:8082/test/my_team")
+                .bodyString(request, ContentType.TEXT_PLAIN)
+                .execute().returnResponse();
+
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        assertEquals("dummy-message", response.getStatusLine().getReasonPhrase());
+
+        wireMockRule.verify(postRequestedFor(urlPathEqualTo("/team/my_team")));
+    }
 }

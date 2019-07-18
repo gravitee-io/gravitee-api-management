@@ -160,6 +160,7 @@ public class ApiReactorHandler extends AbstractReactorHandler implements Initial
     private void handleClientResponse(final ExecutionContext context, final ProxyResponse proxyResponse) {
         // Set the status
         context.response().status(proxyResponse.status());
+        context.response().reason(proxyResponse.reason());
 
         // Copy HTTP headers
         proxyResponse.headers().forEach((headerName, headerValues) -> context.response().headers().put(headerName, headerValues));

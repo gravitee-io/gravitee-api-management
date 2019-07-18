@@ -86,6 +86,16 @@ public class LoggableClientResponse implements Response {
     }
 
     @Override
+    public String reason() {
+        return response.reason();
+    }
+
+    @Override
+    public Response reason(String reason) {
+        return response.reason(reason);
+    }
+
+    @Override
     public HttpHeaders headers() {
         return response.headers();
     }

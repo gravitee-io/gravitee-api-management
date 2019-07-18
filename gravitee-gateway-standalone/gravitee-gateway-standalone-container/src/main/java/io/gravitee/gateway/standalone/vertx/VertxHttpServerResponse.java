@@ -53,6 +53,17 @@ public class VertxHttpServerResponse implements Response {
     }
 
     @Override
+    public String reason() {
+        return httpServerResponse.getStatusMessage();
+    }
+
+    @Override
+    public Response reason(String reason) {
+        httpServerResponse.setStatusMessage(reason);
+        return this;
+    }
+
+    @Override
     public Response status(int statusCode) {
         httpServerResponse.setStatusCode(statusCode);
         return this;
