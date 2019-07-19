@@ -31,7 +31,7 @@ import static java.util.stream.Collectors.toSet;
  */
 public class PipelineConfiguration {
 
-    private static final List<String> INGEST_PLUGINS = Arrays.asList("geoip", "user_agent");
+    private static final List<String> INGEST_PLUGINS = Arrays.asList("geoip", "user_agent", "gravitee");
 
     @Value("${reporters.elasticsearch.pipeline.plugins.ingest:#{null}}")
     private String ingestorPlugins;
