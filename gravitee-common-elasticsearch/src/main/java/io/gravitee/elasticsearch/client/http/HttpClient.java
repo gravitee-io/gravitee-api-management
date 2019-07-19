@@ -46,6 +46,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
+import static java.lang.String.format;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -261,7 +263,9 @@ public class HttpClient implements Client {
                             break;
                     }
 
-                    return Completable.error(new ElasticsearchException("Unable to create ES pipeline: " + pipelineName));
+                    return Completable.error(new ElasticsearchException(
+                            format("Unable to create ES pipeline '%s': status[%s] response[%s]",
+                                    pipelineName, response.statusCode(), response.body())));
                 });
     }
 
