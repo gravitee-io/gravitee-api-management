@@ -40,7 +40,7 @@
 		<gravitee-common.version>1.15.0</gravitee-common.version>
 
 		<!-- External project versions -->
-		<jetty.version>9.2.27.v20190403</jetty.version>
+		<jetty.version>9.2.28.v20190418</jetty.version>
 	</properties>
 
 	<dependencies>
