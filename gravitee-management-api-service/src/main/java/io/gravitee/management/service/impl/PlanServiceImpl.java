@@ -306,11 +306,11 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setUpdatedAt(plan.getClosedAt());
             plan.setNeedRedeployAt(plan.getClosedAt());
 
-            // Close active subscriptions and reject pending
+            // Close active/paused subscriptions and reject pending
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
                 subscriptionService.findByPlan(planId)
                         .stream()
-                        .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED)
+                        .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED || subscriptionEntity.getStatus() == SubscriptionStatus.PAUSED)
                         .forEach(subscription -> subscriptionService.close(subscription.getId()));
 
                 final String planName = plan.getName();
