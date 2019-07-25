@@ -72,4 +72,7 @@
   <#if metrics.getErrorKey()??>
   ,"error-key":"${metrics.getErrorKey()}"
   </#if>
+  <#if metrics.getSubscription()??>
+  ,"subscription":"${metrics.getSubscription()}"
+  </#if>
 }</@compress>
