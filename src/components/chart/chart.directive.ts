@@ -257,6 +257,83 @@ class ChartDirective {
                   }
                 };
               }
+            } else if (scope.type && scope.type === 'sparkline') {
+              let maxValue = _.max(newOptions.series[0].data);
+              newOptions = _.merge(newOptions, {
+                chart: {
+                  backgroundColor: null,
+                  borderWidth: 0,
+                  type: 'area',
+                  margin: [0, 0, 2, 0],
+                  // small optimalization, saves 1-2 ms each sparkline
+                  skipClone: true
+                },
+                title: {
+                  text: ''
+                },
+                credits: {
+                  enabled: false
+                },
+                xAxis: {
+                  labels: {
+                    enabled: false
+                  },
+                  title: {
+                    text: null
+                  },
+                  startOnTick: false,
+                  endOnTick: false,
+                  tickPositions: []
+                },
+                yAxis: {
+                  max: maxValue === 0 ? 1 : maxValue,
+                  endOnTick: false,
+                  startOnTick: false,
+                  labels: {
+                    enabled: false
+                  },
+                  title: {
+                    text: null
+                  },
+                  tickPositions: [0]
+                },
+                legend: {
+                  enabled: false
+                },
+                tooltip: {
+                  hideDelay: 0,
+                  outside: true,
+                  shared: true,
+                  headerFormat: '',
+                  pointFormat: '<b>{point.y}</b> hits'
+                },
+                plotOptions: {
+                  series: {
+                    animation: false,
+                    lineWidth: 2,
+                    shadow: false,
+                    states: {
+                      hover: {
+                        lineWidth: 2
+                      }
+                    },
+                    marker: {
+                      enabled: false,
+                      radius: 1,
+                      states: {
+                        hover: {
+                          radius: 2
+                        }
+                      }
+                    },
+                    fillOpacity: 0.25
+                  },
+                  column: {
+                    negativeColor: '#910000',
+                    borderColor: 'silver'
+                  }
+                }
+              });
             }
 
             if (scope.type === 'map') {

@@ -69,6 +69,7 @@
         <th md-column>Start at</th>
         <th md-column>End at</th>
         <th md-column>Status</th>
+        <th md-column></th>
       </tr>
       </thead>
       <tbody md-body>
@@ -94,6 +95,9 @@
           <td md-cell style="text-transform: capitalize;">
             <md-tooltip ng-if="subscription.reason" md-direction="left">{{subscription.reason}}</md-tooltip>
             {{subscription.status}}
+          </td>
+          <td md-cell>
+            <gravitee-chart options="subscription.chartData" type="sparkline" height="20" width="120"></gravitee-chart>
           </td>
         </tr>
       </tbody>

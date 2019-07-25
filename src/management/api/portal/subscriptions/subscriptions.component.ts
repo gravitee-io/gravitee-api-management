@@ -18,6 +18,7 @@ import ApiService from "../../../../services/api.service";
 import NotificationService from "../../../../services/notification.service";
 import { PagedResult } from "../../../../entities/pagedResult";
 import { StateService } from '@uirouter/core';
+import * as moment from 'moment';
 
 export class SubscriptionQuery {
   status?: string[] = ['ACCEPTED', 'PENDING', 'PAUSED'];
@@ -85,6 +86,10 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       }
     }
 
+    $onInit() {
+      this.getSubscriptionAnalytics();
+    }
+
     onPaginate(page) {
       this.query.page = page;
       this.doSearch();
@@ -140,7 +145,40 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
       this.ApiService.getSubscriptions(this.api.id, query).then((response) => {
         this.subscriptions = response.data as PagedResult;
+
+        this.getSubscriptionAnalytics();
       });
+    }
+
+    getSubscriptionAnalytics() {
+      if (this.subscriptions.data && this.subscriptions.data.length) {
+        this.ApiService.analytics(this.api.id,{
+          type: 'date_histo',
+          aggs: 'field:subscription',
+          interval: 86400000,
+          from: moment().endOf("day").subtract(1, 'months'),
+          to: moment().endOf("day")
+        }).then((result) => {
+          if (result.data.values && result.data.values.length) {
+            _.forEach(this.subscriptions.data, (subscription) => {
+              let subBucket = _.find(result.data.values[0].buckets, (bucket) => {
+                return bucket.name === subscription.id;
+              });
+              let subBucketData;
+              if (subBucket) {
+                subBucketData = subBucket.data;
+              } else {
+                if (result.data.values[0].buckets[0] && result.data.values[0].buckets[0].data && result.data.values[0].buckets[0].data.length) {
+                  subBucketData = _.fill(Array(result.data.values[0].buckets[0].data.length), 0);
+                } else {
+                  subBucketData = [0];
+                }
+              }
+              subscription.chartData = {series: [{data: subBucketData}]};
+            });
+          }
+        });
+      }
     }
 
     showAddSubscriptionModal() {
