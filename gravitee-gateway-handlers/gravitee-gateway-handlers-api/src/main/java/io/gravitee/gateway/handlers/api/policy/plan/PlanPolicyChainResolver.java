@@ -81,11 +81,10 @@ public class PlanPolicyChainResolver extends AbstractPolicyChainResolver {
         String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
 
         if (streamType == StreamType.ON_REQUEST) {
-            String application = (String) executionContext.getAttribute(ExecutionContext.ATTR_APPLICATION);
-
             request.metrics().setUser((String) executionContext.getAttribute(ExecutionContext.ATTR_USER));
             request.metrics().setPlan(plan);
-            request.metrics().setApplication(application);
+            request.metrics().setApplication((String) executionContext.getAttribute(ExecutionContext.ATTR_APPLICATION));
+            request.metrics().setSubscription((String) executionContext.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
         }
 
         Plan apiPlan = api.getPlan(plan);
