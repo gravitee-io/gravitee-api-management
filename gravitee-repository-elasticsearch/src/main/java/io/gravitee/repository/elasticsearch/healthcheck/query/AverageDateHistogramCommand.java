@@ -87,7 +87,7 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
 			//"from" and "to" are rounded according to the internal. It allows to exec the same request during the "interval" and make use of ES cache
 			final long interval = dateHistogramQuery.timeRange().interval().toMillis();
 			final long roundedFrom = (from / interval) * interval;
-			final long roundedTo = (to / interval) * interval;
+			final long roundedTo = ((to / interval) * interval) + interval;
 
 			final String sQuery = this.createQuery(TEMPLATE, dateHistogramQuery, roundedFrom, roundedTo);
 			final Single<SearchResponse> result = this.client.search(
