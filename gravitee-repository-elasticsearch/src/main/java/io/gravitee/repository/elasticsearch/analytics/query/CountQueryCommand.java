@@ -54,7 +54,7 @@ public class CountQueryCommand extends AbstractElasticsearchQueryCommand<CountRe
 
 	private CountResponse toCountResponse(final SearchResponse response) {
 		final CountResponse countResponse = new CountResponse();
-		countResponse.setCount(response.getSearchHits().getTotal());
+		countResponse.setCount(response.getSearchHits().getTotal().getValue());
 		return countResponse;
 	}
 }

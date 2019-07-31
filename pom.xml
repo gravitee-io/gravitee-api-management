@@ -212,6 +212,17 @@
 							</systemPropertyVariables>
 						</configuration>
 					</execution>
+					<execution>
+						<id>es7x</id>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<systemPropertyVariables>
+								<elasticsearch>7x</elasticsearch>
+							</systemPropertyVariables>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
@@ -310,6 +321,47 @@
 					<groupId>io.netty</groupId>
 					<artifactId>netty-all</artifactId>
 					<version>4.1.13.Final</version>
+					<scope>test</scope>
+				</dependency>
+
+				<dependency>
+					<groupId>org.apache.logging.log4j</groupId>
+					<artifactId>log4j-core</artifactId>
+					<version>2.9.1</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>es-7x</id>
+			<activation>
+				<property>
+					<name>elasticsearch</name>
+					<value>7x</value>
+				</property>
+			</activation>
+			<properties>
+				<elasticsearch.version>7.3.0</elasticsearch.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.elasticsearch</groupId>
+					<artifactId>elasticsearch</artifactId>
+					<version>${elasticsearch.version}</version>
+					<scope>test</scope>
+				</dependency>
+
+				<dependency>
+					<groupId>org.elasticsearch.client</groupId>
+					<artifactId>transport</artifactId>
+					<version>${elasticsearch.version}</version>
+					<scope>test</scope>
+				</dependency>
+
+				<dependency>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-all</artifactId>
+					<version>4.1.36.Final</version>
 					<scope>test</scope>
 				</dependency>
 
