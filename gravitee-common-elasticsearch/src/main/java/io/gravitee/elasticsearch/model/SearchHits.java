@@ -40,7 +40,8 @@ public class SearchHits implements Serializable {
 	/**
 	 * The total number of hits that matches the search request.
 	 */
-	private Long total;
+	@JsonProperty("total")
+	private TotalHits total;
 
 	/**
 	 * The maximum score of this query.
@@ -53,11 +54,11 @@ public class SearchHits implements Serializable {
 	 */
 	private List<SearchHit> hits;
 
-	public Long getTotal() {
+	public TotalHits getTotal() {
 		return total;
 	}
 
-	public void setTotal(Long total) {
+	public void setTotal(TotalHits total) {
 		this.total = total;
 	}
 

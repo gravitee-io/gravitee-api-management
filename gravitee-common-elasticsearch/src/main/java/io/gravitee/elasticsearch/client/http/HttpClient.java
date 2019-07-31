@@ -25,6 +25,7 @@ import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.model.Health;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
@@ -140,20 +141,12 @@ public class HttpClient implements Client {
     }
 
     @Override
-    public Single<Integer> getVersion() throws ElasticsearchException {
+    public Single<ElasticsearchInfo> getInfo() throws ElasticsearchException {
         return httpClient
                 .get(URL_ROOT)
                 .rxSend()
                 .doOnError(throwable -> logger.error("Unable to get a connection to Elasticsearch", throwable))
-                .map(response -> mapper.readTree(response.bodyAsString()).path("version").path("number").asText())
-                .map(sVersion -> {
-                    float result = Float.valueOf(sVersion.substring(0, 3));
-                    int version = Integer.valueOf(sVersion.substring(0, 1));
-                    if (result < 2) {
-                        logger.warn("Please upgrade to Elasticsearch 2 or later. version={}", version);
-                    }
-                    return version;
-                });
+                .map(response -> mapper.readValue(response.bodyAsString(), ElasticsearchInfo.class));
     }
 
     /**

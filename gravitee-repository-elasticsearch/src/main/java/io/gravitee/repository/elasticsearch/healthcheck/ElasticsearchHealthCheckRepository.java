@@ -94,11 +94,11 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
         try {
             final Single<SearchResponse> result = this.client.search(
                     this.indexNameGenerator.getWildcardIndexName(Type.HEALTH_CHECK),
-                    Type.HEALTH_CHECK.getType(),
+                    (info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
                     sQuery);
 
             SearchResponse searchResponse = result.blockingGet();
-            if (searchResponse.getSearchHits().getTotal() == 0) {
+            if (searchResponse.getSearchHits().getTotal().getValue() == 0) {
                 throw new AnalyticsException("Health [" + id + "] does not exist");
             }
 

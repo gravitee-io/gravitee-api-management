@@ -72,7 +72,7 @@ public class LogsCommand extends AstractElasticsearchQueryCommand<LogsResponse> 
 
 			final Single<SearchResponse> result = this.client.search(
 					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now),
-					Type.HEALTH_CHECK.getType(),
+					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
 					sQuery);
 			return this.toLogsResponse(result.blockingGet());
 		} catch (ElasticsearchException eex) {
@@ -83,7 +83,7 @@ public class LogsCommand extends AstractElasticsearchQueryCommand<LogsResponse> 
 
 	private LogsResponse toLogsResponse(final SearchResponse response) {
 		SearchHits hits = response.getSearchHits();
-		LogsResponse logsResponse = new LogsResponse(hits.getTotal());
+		LogsResponse logsResponse = new LogsResponse(hits.getTotal().getValue());
 
 		List<Log> logs = new ArrayList<>(hits.getHits().size());
 		for (SearchHit hit : hits.getHits()) {

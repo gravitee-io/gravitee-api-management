@@ -56,7 +56,7 @@ public class GroupByQueryCommand extends AstractElasticsearchQueryCommand<GroupB
 
 			final Single<SearchResponse> result = this.client.search(
 					this.indexNameGenerator.getIndexName(Type.REQUEST, from, to),
-					Type.REQUEST.getType(),
+					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.REQUEST.getType(),
 					sQuery);
 			return this.toGroupByResponse(result.blockingGet());
 		} catch (Exception eex) {

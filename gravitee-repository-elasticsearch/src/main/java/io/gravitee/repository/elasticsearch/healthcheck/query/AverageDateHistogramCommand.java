@@ -79,7 +79,7 @@ public class AverageDateHistogramCommand extends AstractElasticsearchQueryComman
 
 			final Single<SearchResponse> result = this.client.search(
 					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to),
-					Type.HEALTH_CHECK.getType(),
+					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
 					sQuery);
 			return this.toAvailabilityResponseResponse(result.blockingGet(), dateHistogramQuery);
 		} catch (Exception eex) {

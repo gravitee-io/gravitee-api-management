@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.analytics.query;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.Response;
 import io.gravitee.repository.elasticsearch.analytics.ElasticsearchQueryCommand;
@@ -61,6 +62,9 @@ public abstract class AstractElasticsearchQueryCommand<T extends Response> imple
 	 */
 	@Autowired
 	protected IndexNameGenerator indexNameGenerator;
+
+	@Autowired
+	protected ElasticsearchInfo info;
 
 	/**
 	 * Create the elasticsearch query

@@ -54,12 +54,12 @@ public class CountQueryCommand extends AstractElasticsearchQueryCommand<CountRes
 
 				result = this.client.search(
 						this.indexNameGenerator.getIndexName(Type.REQUEST, from, to),
-						Type.REQUEST.getType(),
+						(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.REQUEST.getType(),
 						sQuery);
 			} else {
 				result = this.client.search(
 						this.indexNameGenerator.getTodayIndexName(Type.REQUEST),
-						Type.REQUEST.getType(),
+						(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.REQUEST.getType(),
 						sQuery);
 			}
 
@@ -73,7 +73,7 @@ public class CountQueryCommand extends AstractElasticsearchQueryCommand<CountRes
 
 	private CountResponse toCountResponse(final SearchResponse response) {
 		final CountResponse countResponse = new CountResponse();
-		countResponse.setCount(response.getSearchHits().getTotal());
+		countResponse.setCount(response.getSearchHits().getTotal().getValue());
 		return countResponse;
 	}
 }
