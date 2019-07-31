@@ -25,9 +25,9 @@ function apisProxyRouterConfig($stateProvider) {
     .state('management.apis.detail.proxy', {
       template: require("./apis.proxy.route.html")
     })
-    .state('management.apis.detail.proxy.general', {
+    .state('management.apis.detail.proxy.entrypoints', {
       url: '/proxy',
-      template: require('./general/apiProxyGeneral.html'),
+      template: require('./general/apiProxyEntrypoints.html'),
       controller: 'ApiProxyController',
       controllerAs: 'apiProxyCtrl',
       resolve: {

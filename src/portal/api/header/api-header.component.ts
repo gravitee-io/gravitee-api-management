@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import _ = require('lodash');
 import ApiService from "../../../services/api.service";
 import TicketService from "../../../services/ticket.service";
 
@@ -20,8 +21,7 @@ const ApiHeaderComponent: ng.IComponentOptions = {
   bindings: {
     api: '<',
     apiRatingSummary: '<',
-    apiPortalHeaders: '<',
-    entrypoints: '<'
+    apiPortalHeaders: '<'
   },
   template: require('./api-header.html'),
   controller: function (
@@ -45,8 +45,6 @@ const ApiHeaderComponent: ng.IComponentOptions = {
     });
 
     this.$onInit = () => {
-      this.resolvedEntrypoints = ApiService.getTagEntrypoints(this.api, this.entrypoints);
-
       $timeout(function () {
 
         const apiNavbar = document.getElementById("api-navbar");
@@ -68,6 +66,10 @@ const ApiHeaderComponent: ng.IComponentOptions = {
           }
         };
       }, 0);
+    };
+
+    this.uniqueEntrypoints = () => {
+      return _.uniq(_.map(this.api.entrypoints, 'target'));
     };
   }
 };

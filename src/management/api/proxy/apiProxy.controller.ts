@@ -36,6 +36,7 @@ class ApiProxyController {
   private apiPublic: boolean;
   private headers: string[];
   private discovery: any;
+  private virtualHostModeEnabled: boolean;
 
   constructor(
     private ApiService: ApiService,
@@ -75,6 +76,8 @@ class ApiProxyController {
     this.$scope.searchHeaders = null;
 
     this.api.labels = this.api.labels || [];
+
+    this.virtualHostModeEnabled = this.api.proxy.virtual_hosts.length > 1 || this.api.proxy.virtual_hosts[0].host !== undefined;
 
     this.$scope.lbs = [
       {
@@ -258,7 +261,6 @@ class ApiProxyController {
   }
 
   deleteGroup(groupname) {
-    var _that = this;
     let that = this;
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
@@ -272,7 +274,7 @@ class ApiProxyController {
       }
     }).then(function (response) {
       if (response) {
-          _(_that.api.proxy.groups).forEach(function (group, index, object) {
+          _(that.api.proxy.groups).forEach(function (group, index, object) {
             if (group.name !== undefined && group.name === groupname) {
               object.splice(index, 1);
               that.update(that.api);
@@ -298,6 +300,53 @@ class ApiProxyController {
 
   isTagDisabled(tag: any): boolean {
     return !_.includes(this.userTags, tag.id);
+  }
+
+  switchVirtualHostMode() {
+    if (this.virtualHostModeEnabled) {
+      let that = this;
+      this.$mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Switch to context-path mode',
+          msg: 'By moving back to context-path you will loose all virtual-hosts. Are you sure to continue?',
+          confirmButton: 'Switch'
+        }
+      }).then(function (response) {
+        if (response) {
+          // Keep only the first virtual_host and remove the host
+          that.api.proxy.virtual_hosts.splice(1);
+          that.api.proxy.virtual_hosts[0].host = undefined;
+
+          that.virtualHostModeEnabled = !that.virtualHostModeEnabled;
+
+          that.update(that.api);
+        }
+      });
+    } else if (this.formApi.$dirty) {
+      this.virtualHostModeEnabled = !this.virtualHostModeEnabled;
+      this.update(this.api);
+    } else {
+      this.virtualHostModeEnabled = !this.virtualHostModeEnabled;
+    }
+  }
+
+  addVirtualHost() {
+    if (this.api.proxy.virtual_hosts === undefined) {
+      this.api.proxy.virtual_hosts = [];
+    }
+
+    this.api.proxy.virtual_hosts.push({host: undefined, path: undefined});
+  }
+
+  removeVirtualHost(idx) {
+    if (this.api.proxy.virtual_hosts !== undefined) {
+      this.api.proxy.virtual_hosts.splice(idx, 1);
+      this.formApi.$setDirty();
+    }
   }
 }
 

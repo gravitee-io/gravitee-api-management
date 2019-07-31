@@ -15,12 +15,10 @@
  */
 class EntrypointService {
   private entrypointsURL: string;
-  private portalEntrypointsURL: string;
 
   constructor(private $http, Constants) {
     'ngInject';
     this.entrypointsURL = `${Constants.baseURL}configuration/entrypoints/`;
-    this.portalEntrypointsURL = `${Constants.baseURL}entrypoints/`;
   }
 
   findById(entrypoint) {
@@ -29,10 +27,6 @@ class EntrypointService {
 
   list() {
     return this.$http.get(this.entrypointsURL);
-  }
-
-  listForPortal() {
-    return this.$http.get(this.portalEntrypointsURL);
   }
 
   create(entrypoint) {

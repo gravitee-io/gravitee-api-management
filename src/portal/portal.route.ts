@@ -163,8 +163,7 @@ function portalRouterConfig($stateProvider) {
         homepage: ($stateParams, DocumentationService: DocumentationService) =>
           DocumentationService.getApiHomepage($stateParams['apiId']).then(response => response.data),
         isAuthenticated: ($stateParams, UserService: UserService) =>
-          UserService.isAuthenticated(),
-        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.listForPortal().then(response => response.data)
+          UserService.isAuthenticated()
       }
     })
     .state('portal.api.pages', {
@@ -180,8 +179,7 @@ function portalRouterConfig($stateProvider) {
           return DocumentationService
             .search(q, $stateParams['apiId'])
             .then(response => _.filter(response.data, (p)=> p.type !== "ROOT"));
-        },
-        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.listForPortal().then(response => response.data)
+        }
       },
     })
     .state('portal.api.pages.page', {
@@ -204,9 +202,6 @@ function portalRouterConfig($stateProvider) {
       views: {
         'header': {component: 'apiPortalHeader'},
         'content': {component: 'apiSupport'}
-      },
-      resolve: {
-        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.listForPortal().then(response => response.data)
       }
     })
     .state('portal.pages', {
@@ -247,8 +242,7 @@ function portalRouterConfig($stateProvider) {
         plans: ($stateParams, ApiService: ApiService) =>
           ApiService.getPublishedApiPlans($stateParams['apiId']).then(response => response.data),
         applications: (ApplicationService: ApplicationService) =>
-          ApplicationService.list().then(response => response.data),
-        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.listForPortal().then(response => response.data)
+          ApplicationService.list().then(response => response.data)
       }
     })
     .state('portal.api.rating', {
@@ -269,9 +263,7 @@ function portalRouterConfig($stateProvider) {
         rating: ($stateParams, ApiService: ApiService) =>
           ApiService.getApiRatingForConnectedUser($stateParams['apiId']).then(response => response.data),
         ratings: ($stateParams, ApiService: ApiService) =>
-          ApiService.getApiRatings($stateParams['apiId'], $stateParams['pageNumber']).then(response => response.data),
-        entrypoints: (EntrypointService: EntrypointService) =>
-          EntrypointService.listForPortal().then(response => response.data)
+          ApiService.getApiRatings($stateParams['apiId'], $stateParams['pageNumber']).then(response => response.data)
       }
     });
 }

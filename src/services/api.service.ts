@@ -538,18 +538,6 @@ class ApiService {
     return _.filter(endpointsName, (endpointName) => name === endpointName).length > (onCreate ? 0 : 1);
   }
 
-  getTagEntrypoints(api, entrypoints) {
-    if (!api.tags || api.tags.length === 0) {
-      return [{tags: ["default"], value: this.Constants.portal.entrypoint}];
-    } else {
-      let tagEntrypoints = _.filter(entrypoints, (entrypoint) => _.intersection(entrypoint.tags, api.tags).length > 0);
-      if (!tagEntrypoints || tagEntrypoints.length === 0) {
-        return [this.Constants.portal.entrypoint];
-      }
-      return tagEntrypoints;
-    }
-  }
-
   askForReview(api, message?): ng.IPromise<any> {
     return this.$http.post(this.apisURL + api.id + '/reviews?action=ASK', {message: message}, {headers: {'If-Match': api.etag}});
   }

@@ -37,7 +37,7 @@
               <tr md-row>
                 <th md-column width="1%" md-order-by="name" ng-click="$ctrl.loadMore(query.order, false)"><span>Name</span></th>
                 <th md-column width="1%"></th>
-                <th md-column md-order-by="context_path" ng-click="$ctrl.loadMore(query.order, false)">Context path</th>
+                <th md-column md-order-by="virtual_hosts" ng-click="$ctrl.loadMore(query.order, false)">Context paths</th>
                 <th md-column width="1%">Tags</th>
                 <th md-column width="1%" ng-if="$ctrl.isQualityDisplayed">Quality</th>
                 <th md-column width="1%">Owner</th>
@@ -79,7 +79,9 @@
                     {{$ctrl.getWorkflowStateLabel(api)}}
                   </span>
                 </td>
-                <td md-cell>{{api.context_path}}</td>
+                <td md-cell style="padding: 5px !important;">
+                  {{$ctrl.getEntrypoints(api)}}
+                </td>
                 <td md-cell nowrap>{{api.tags.join(', ')}}</td>
                 <td md-cell nowrap ng-if="$ctrl.isQualityDisplayed">
                   <span class="gravitee-qm-score-small" ng-class="$ctrl.getQualityMetricCssClass($ctrl.qualityScores[api.id])">

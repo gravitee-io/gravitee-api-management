@@ -125,14 +125,29 @@ const ApiSubscribeComponent: ng.IComponentOptions = {
     }
 
     getCurlSample() {
-      let entrypoints = this.ApiService.getTagEntrypoints(this.api, this.entrypoints);
-      let planEntrypoints = _.filter(entrypoints, (entrypoint) => _.intersection(entrypoint.tags, this.selectedPlan.tags).length > 0);
+      let planEntrypoints = _.filter(this.api.entrypoints, (entrypoint) => entrypoint.tags !== undefined && _.intersection(entrypoint.tags, this.selectedPlan.tags).length === entrypoint.tags.length);
 
-      return _.map(planEntrypoints, (entrypoint) => {
-        return 'curl -X GET "' + entrypoint.value + this.api.context_path + '" -H "' + (this.apiKey ?
-          this.Constants.portal.apikeyHeader + ': ' + (this.apiKey ? this.apiKey : 'given_api_key') + '"' :
-          '"Authorization: Bearer xxxx-xxxx-xxxx-xxxx"');
-      });
+      if (planEntrypoints.length > 0) {
+        return _.map(planEntrypoints, (entrypoint) => {
+          let base = 'curl -X GET "' + entrypoint.target + '"';
+          let host = (entrypoint.host !== undefined) ? ' -H "Host: ' + entrypoint.host + '"' : undefined;
+          let auth = ' -H "' + (this.apiKey ?
+            this.Constants.portal.apikeyHeader + ': ' + (this.apiKey ? this.apiKey : 'given_api_key') + '"' :
+            '"Authorization: Bearer xxxx-xxxx-xxxx-xxxx"');
+
+          return base + ((host !== undefined) ? host : '') + auth;
+        });
+      } else {
+        return _.map(this.api.entrypoints, (entrypoint) => {
+          let base = 'curl -X GET "' + entrypoint.target + '"';
+          let host = (entrypoint.host !== undefined) ? ' -H "Host: ' + entrypoint.host + '"' : undefined;
+          let auth = ' -H "' + (this.apiKey ?
+            this.Constants.portal.apikeyHeader + ': ' + (this.apiKey ? this.apiKey : 'given_api_key') + '"' :
+            '"Authorization: Bearer xxxx-xxxx-xxxx-xxxx"');
+
+          return base + ((host !== undefined) ? host : '') + auth;
+        });
+      }
     }
   }
 };

@@ -228,6 +228,10 @@ export class ApisController {
         return '#d73a49';
     }
   }
+
+  getEntrypoints(api) {
+    return _.uniq(_.map(api.virtual_hosts, 'path')).join(' - ');
+  }
 }
 
 export default ApisController;

@@ -144,12 +144,12 @@
           <h5 translate="api.subscription.step3.apikey.curl"></h5>
           <div layout="row" ng-repeat="curl in $ctrl.getCurlSample()">
             <blockquote flex="80">
-              <p id="example-curl-apikey">{{curl}}</p>
+              <p id="example-curl-apikey-{{$index}}">{{curl}}</p>
             </blockquote>
             <span>
               <md-tooltip md-direction="right">{{'common.copyToClipboard' | translate}}</md-tooltip>
               <ng-md-icon size="20" icon="content_copy" style="fill: #424E5A;"
-                          ngclipboard data-clipboard-target="#example-curl-apikey"
+                          ngclipboard data-clipboard-target="#example-curl-apikey-{{$index}}"
                           role="button"></ng-md-icon>
             </span>
           </div>
@@ -174,12 +174,12 @@
           <h5 translate="api.subscription.step3.oauth2.curl"></h5>
           <div layout="row" ng-repeat="curl in $ctrl.getCurlSample()">
             <blockquote flex="80">
-              <p id="example-curl-oauth2">{{curl}}</p>
+              <p id="example-curl-oauth2-{{$index}}">{{curl}}</p>
             </blockquote>
             <span>
               <md-tooltip md-direction="right">{{'common.copyToClipboard' | translate}}</md-tooltip>
               <ng-md-icon size="20" icon="content_copy" style="fill: #424E5A;"
-                          ngclipboard data-clipboard-target="#example-curl-oauth2"
+                          ngclipboard data-clipboard-target="#example-curl-oauth2-{{$index}}"
                           role="button"></ng-md-icon>
             </span>
           </div>
@@ -204,12 +204,12 @@
           <h5 translate="api.subscription.step3.jwt.curl"></h5>
           <div layout="row" ng-repeat="curl in $ctrl.getCurlSample()">
             <blockquote flex="80">
-              <p id="example-curl-jwt">{{curl}}</p>
+              <p id="example-curl-jwt-{{$index}}">{{curl}}</p>
             </blockquote>
             <span>
               <md-tooltip md-direction="right">{{'common.copyToClipboard' | translate}}</md-tooltip>
               <ng-md-icon size="20" icon="content_copy" style="fill: #424E5A;"
-                          ngclipboard data-clipboard-target="#example-curl-jwt"
+                          ngclipboard data-clipboard-target="#example-curl-jwt-{{$index}}"
                           role="button"></ng-md-icon>
             </span>
           </div>
