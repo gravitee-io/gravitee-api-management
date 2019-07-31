@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.healthcheck.query;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.repository.elasticsearch.healthcheck.ElasticsearchQueryCommand;
 import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.Response;
@@ -61,6 +62,9 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 	 */
 	@Autowired
 	protected IndexNameGenerator indexNameGenerator;
+
+	@Autowired
+	protected ElasticsearchInfo info;
 
 	/**
 	 * Create the elasticsearch query

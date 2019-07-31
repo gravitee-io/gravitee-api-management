@@ -73,7 +73,7 @@ public class AverageAvailabilityCommand extends AbstractElasticsearchQueryComman
 
 			final Single<SearchResponse> result = this.client.search(
 					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now),
-					Type.HEALTH_CHECK.getType(),
+					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
 					sQuery);
 
 			return this.toAvailabilityResponseResponse(result.blockingGet());

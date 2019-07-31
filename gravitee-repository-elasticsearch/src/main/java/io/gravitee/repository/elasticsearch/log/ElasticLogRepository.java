@@ -80,7 +80,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 			if (isEmpty(logQueryString)) {
 				final Single<SearchResponse> result = this.client.search(
 						this.indexNameGenerator.getIndexName(Type.REQUEST, from, to),
-						Type.REQUEST.getType(),
+						(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.REQUEST.getType(),
 						this.createElasticsearchJsonQuery(query));
 
 				return this.toTabularResponse(result.blockingGet());
@@ -88,7 +88,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 				final String sQuery = this.createElasticsearchJsonQuery(tabularQueryBuilder.query(logQueryString).build());
 				Single<SearchResponse> result = this.client.search(
 						this.indexNameGenerator.getIndexName(Type.LOG, from, to),
-						Type.LOG.getType(),
+						(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.LOG.getType(),
 						sQuery);
 
 				final SearchResponse searchResponse = result.blockingGet();
@@ -106,7 +106,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 					}
 					result = this.client.search(
 							this.indexNameGenerator.getIndexName(Type.REQUEST, from, to),
-							Type.REQUEST.getType(),
+							(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.REQUEST.getType(),
 							this.createElasticsearchJsonQuery(tqb.build()));
 				}
 
@@ -163,11 +163,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 		try {
 			Single<SearchResponse> result = this.client.search(
 					(timestamp == null) ? this.indexNameGenerator.getWildcardIndexName(Type.REQUEST) : this.indexNameGenerator.getIndexName(Type.REQUEST, Instant.ofEpochMilli(timestamp)),
-					Type.REQUEST.getType(),
+					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.REQUEST.getType(),
 					sQuery);
 
 			SearchResponse searchResponse = result.blockingGet();
-			if (searchResponse.getSearchHits().getTotal() == 0) {
+			if (searchResponse.getSearchHits().getTotal().getValue() == 0) {
 				throw new AnalyticsException("Request [" + requestId + "] does not exist");
 			}
 
@@ -179,11 +179,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 			// Search index must be updated in case of per-type index
 			searchHitIndex = searchHitIndex.replaceAll(Type.REQUEST.getType(), Type.LOG.getType());
 
-			result = this.client.search(searchHitIndex, Type.LOG.getType(), sQuery);
+			result = this.client.search(searchHitIndex, (info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.LOG.getType(), sQuery);
 			searchResponse = result.blockingGet();
 
 			JsonNode log = null;
-			if (searchResponse.getSearchHits().getTotal() != 0) {
+			if (searchResponse.getSearchHits().getTotal().getValue() != 0) {
 				log = searchResponse.getSearchHits().getHits().get(0).getSource();
 			}
 
@@ -196,7 +196,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
 	private TabularResponse toTabularResponse(final SearchResponse response) {
 		final SearchHits hits = response.getSearchHits();
-		final TabularResponse tabularResponse = new TabularResponse(hits.getTotal());
+		final TabularResponse tabularResponse = new TabularResponse(hits.getTotal().getValue());
 		final List<Log> logs = new ArrayList<>(hits.getHits().size());
 		for (int i = 0; i < hits.getHits().size(); i++) {
 			logs.add(LogBuilder.createLog(hits.getHits().get(i)));

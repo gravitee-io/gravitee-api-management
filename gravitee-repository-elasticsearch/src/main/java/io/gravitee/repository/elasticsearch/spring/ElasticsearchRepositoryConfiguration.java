@@ -22,6 +22,7 @@ import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.index.MultiTypeIndexNameGenerator;
 import io.gravitee.elasticsearch.index.PerTypeIndexNameGenerator;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.repository.elasticsearch.analytics.spring.AnalyticsConfiguration;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.healthcheck.spring.HealthCheckConfiguration;
@@ -82,20 +83,23 @@ public class ElasticsearchRepositoryConfiguration {
     }
 
     @Bean
-    public IndexNameGenerator indexNameGenerator(RepositoryConfiguration repositoryConfiguration, Client client) {
+    public IndexNameGenerator indexNameGenerator(RepositoryConfiguration repositoryConfiguration, ElasticsearchInfo info) {
+        if (info.getVersion().getMajorVersion() == 6 || info.getVersion().getMajorVersion() == 7 || repositoryConfiguration.isPerTypeIndex()) {
+            return new PerTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
+        } else {
+            return new MultiTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
+        }
+    }
+
+    @Bean
+    public ElasticsearchInfo elasticsearchInfo(Client client) {
         // Wait for a connection to ES and retry each 5 seconds
-        Single<Integer> singleVersion = client.getVersion()
+        Single<ElasticsearchInfo> singleVersion = client.getInfo()
                 .retryWhen(error -> error.flatMap(
                         throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST)));
 
         singleVersion.subscribe();
 
-        Integer version = singleVersion.blockingGet();
-
-        if (version == 6 || repositoryConfiguration.isPerTypeIndex()) {
-            return new PerTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
-        } else {
-            return new MultiTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
-        }
+        return singleVersion.blockingGet();
     }
 }

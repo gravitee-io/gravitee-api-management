@@ -20,6 +20,7 @@ import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
 import io.gravitee.elasticsearch.config.Endpoint;
 import io.gravitee.elasticsearch.embedded.ElasticsearchNode;
 import io.gravitee.elasticsearch.model.Health;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
 import io.vertx.reactivex.core.Vertx;
@@ -61,9 +62,9 @@ public class HttpClientTest {
 
     @Test
     public void shouldGetVersion() throws InterruptedException, ExecutionException, IOException {
-        Single<Integer> version = client.getVersion();
+        Single<ElasticsearchInfo> info = client.getInfo();
 
-        TestObserver<Integer> observer = version.test();
+        TestObserver<ElasticsearchInfo> observer = info.test();
         observer.awaitTerminalEvent();
 
         observer.assertNoErrors();

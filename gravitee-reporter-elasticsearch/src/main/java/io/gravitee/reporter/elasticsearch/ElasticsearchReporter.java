@@ -17,6 +17,7 @@ package io.gravitee.reporter.elasticsearch;
 
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.elasticsearch.client.Client;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
 import io.gravitee.reporter.api.health.EndpointStatus;
@@ -29,6 +30,7 @@ import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
 import io.gravitee.reporter.elasticsearch.spring.context.Elastic2xBeanRegistrer;
 import io.gravitee.reporter.elasticsearch.spring.context.Elastic5xBeanRegistrer;
 import io.gravitee.reporter.elasticsearch.spring.context.Elastic6xBeanRegistrer;
+import io.gravitee.reporter.elasticsearch.spring.context.Elastic7xBeanRegistrer;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.CompletableObserver;
 import io.reactivex.Observable;
@@ -68,19 +70,19 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 			logger.info("Starting Elastic reporter engine...");
 
 			// Wait for a connection to ES and retry each 5 seconds
-			Single<Integer> singleVersion = client.getVersion()
+			Single<ElasticsearchInfo> singleVersion = client.getInfo()
 					.retryWhen(error -> error.flatMap(
 							throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST)));
 
 			singleVersion.subscribe();
 
-			Integer version = singleVersion.blockingGet();
+			ElasticsearchInfo version = singleVersion.blockingGet();
 
 			boolean registered = true;
 
 			DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
 
-			switch (version) {
+			switch (version.getVersion().getMajorVersion()) {
 				case 2:
 					new Elastic2xBeanRegistrer().register(beanFactory, configuration.isPerTypeIndex());
 					break;
@@ -89,6 +91,9 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 					break;
 				case 6:
 					new Elastic6xBeanRegistrer().register(beanFactory);
+					break;
+				case 7:
+					new Elastic7xBeanRegistrer().register(beanFactory);
 					break;
 				default:
 					registered = false;

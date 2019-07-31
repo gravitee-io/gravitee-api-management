@@ -20,6 +20,7 @@ import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.repository.analytics.query.AbstractQuery;
 import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.Response;
@@ -73,6 +74,9 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 	@Autowired
 	protected RepositoryConfiguration configuration;
 
+	@Autowired
+	protected ElasticsearchInfo info;
+
 	private final static String TENANT_FIELD = "tenant";
 
 	/**
@@ -122,12 +126,12 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 
 			result = this.client.search(
 					this.indexNameGenerator.getIndexName(type, from, to, clusters),
-					type.getType(),
+					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : type.getType(),
 					sQuery);
 		} else {
 			result = this.client.search(
 					this.indexNameGenerator.getTodayIndexName(type, clusters),
-					type.getType(),
+					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : type.getType(),
 					sQuery);
 		}
 

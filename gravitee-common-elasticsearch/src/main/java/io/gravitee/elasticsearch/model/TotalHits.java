@@ -13,31 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.elasticsearch.utils;
+package io.gravitee.elasticsearch.model;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.gravitee.elasticsearch.model.jackson.TotalHitsDeserializer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum Type {
+@JsonDeserialize(using = TotalHitsDeserializer.class)
+public class TotalHits {
+    private long value;
 
-    REQUEST("request"),
-    HEALTH_CHECK("health"),
-    LOG("log"),
-    MONITOR("monitor"),
-
-    // For ES7 support
-    DOC("_doc");
-
-    private String type;
-
-    public final static Type[] TYPES = new Type[] {REQUEST, MONITOR, HEALTH_CHECK, LOG};
-
-    Type(final String type) {
-        this.type = type;
+    public TotalHits(final long value) {
+        this.value = value;
     }
 
-    public String getType() {
-        return type;
+    public long getValue() {
+        return value;
+    }
+
+    public void setValue(long value) {
+        this.value = value;
     }
 }

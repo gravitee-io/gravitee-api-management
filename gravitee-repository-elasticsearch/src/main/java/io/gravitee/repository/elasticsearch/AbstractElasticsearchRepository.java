@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -45,4 +46,7 @@ public abstract class AbstractElasticsearchRepository {
      */
     @Autowired
     protected IndexNameGenerator indexNameGenerator;
+
+    @Autowired
+    protected ElasticsearchInfo info;
 }
