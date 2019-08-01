@@ -43,6 +43,8 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_defaultHttpConfig() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
 
+        Assert.assertTrue(api.getProxy().isPreserveHost());
+
         Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertEquals("http://localhost:1234", endpoint.getTarget());
         Assert.assertSame(HttpEndpoint.class, endpoint.getClass());
@@ -77,13 +79,16 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_reformatContextPath() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-reformat-contextpath.json", Api.class);
 
-        Assert.assertNotNull(api.getProxy().getContextPath());
-        Assert.assertEquals("/my-api/team", api.getProxy().getContextPath());
+        Assert.assertNotNull(api.getProxy().getVirtualHosts());
+        Assert.assertFalse(api.getProxy().getVirtualHosts().isEmpty());
+        Assert.assertEquals("/my-api/team", api.getProxy().getVirtualHosts().iterator().next().getPath());
+        Assert.assertNull(api.getProxy().getVirtualHosts().iterator().next().getHost());
+        Assert.assertFalse(api.getProxy().getVirtualHosts().iterator().next().isOverrideEntrypoint());
     }
 
     @Test(expected = JsonMappingException.class)
     public void definition_contextPathExpected() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-no-contextpath.json", Api.class);
+        load("/io/gravitee/definition/jackson/api-no-contextpath.json", Api.class);
     }
 
     @Test
@@ -616,5 +621,24 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertEquals("{}", responseTemplate.getBody());
         Assert.assertEquals("header1", responseTemplate.getHeaders().get("x-header1"));
         Assert.assertEquals("header2", responseTemplate.getHeaders().get("x-header2"));
+    }
+
+    @Test
+    public void definition_virtualhosts() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-virtualhosts.json", Api.class);
+
+        Assert.assertNotNull(api.getProxy().getVirtualHosts());
+        Assert.assertEquals(2, api.getProxy().getVirtualHosts().size());
+
+        VirtualHost host1 = api.getProxy().getVirtualHosts().get(0);
+        VirtualHost host2 = api.getProxy().getVirtualHosts().get(1);
+
+        Assert.assertEquals("localhost", host1.getHost());
+        Assert.assertEquals("/my-api", host1.getPath());
+        Assert.assertTrue(host1.isOverrideEntrypoint());
+
+        Assert.assertNull(host2.getHost());
+        Assert.assertEquals("/my-api2", host2.getPath());
+        Assert.assertFalse(host2.isOverrideEntrypoint());
     }
 }

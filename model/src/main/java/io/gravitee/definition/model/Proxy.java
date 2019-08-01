@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,7 +24,7 @@ import java.util.Set;
  */
 public class Proxy {
 
-    private String contextPath;
+    private List<VirtualHost> virtualHosts;
 
     private Set<EndpointGroup> groups;
 
@@ -35,13 +36,7 @@ public class Proxy {
 
     private boolean stripContextPath = false;
 
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
-    }
+    private boolean preserveHost = false;
 
     public boolean isStripContextPath() {
         return stripContextPath;
@@ -49,6 +44,14 @@ public class Proxy {
 
     public void setStripContextPath(boolean stripContextPath) {
         this.stripContextPath = stripContextPath;
+    }
+
+    public List<VirtualHost> getVirtualHosts() {
+        return virtualHosts;
+    }
+
+    public void setVirtualHosts(List<VirtualHost> virtualHosts) {
+        this.virtualHosts = virtualHosts;
     }
 
     public boolean failoverEnabled() {
@@ -85,5 +88,13 @@ public class Proxy {
 
     public void setLogging(Logging logging) {
         this.logging = logging;
+    }
+
+    public boolean isPreserveHost() {
+        return preserveHost;
+    }
+
+    public void setPreserveHost(boolean preserveHost) {
+        this.preserveHost = preserveHost;
     }
 }

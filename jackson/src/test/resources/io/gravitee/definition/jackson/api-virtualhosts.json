@@ -1,0 +1,23 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "proxy": {
+    "virtual_hosts": [
+      {
+        "host": "localhost",
+        "path": "/my-api",
+        "override_entrypoint": true
+      },
+      {
+        "path": "/my-api2"
+      }
+    ],
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:1234"
+      }
+    ],
+    "strip_context_path": false
+  }
+}

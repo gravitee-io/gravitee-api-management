@@ -33,12 +33,13 @@ public class EndpointDiscoveryServiceSerializerTest extends AbstractTest {
     @Test
     public void definition_withoutEndpointDiscovery() throws Exception {
         String definition = "/io/gravitee/definition/jackson/services/discovery/api-withoutservice.json";
+        String expectedDefinition = "/io/gravitee/definition/jackson/services/discovery/api-withoutservice-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assert.assertNotNull(generatedJsonDefinition);
 
-        String expected = IOUtils.toString(read(definition));
+        String expected = IOUtils.toString(read(expectedDefinition));
         JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
 
         EndpointDiscoveryService endpointDiscoveryService = api.getService(EndpointDiscoveryService.class);
@@ -49,12 +50,14 @@ public class EndpointDiscoveryServiceSerializerTest extends AbstractTest {
     @Ignore("Service discovery service has been moved from API to group")
     public void definition_withEndpointDiscovery_consul() throws Exception {
         String definition = "/io/gravitee/definition/jackson/services/discovery/api-withservice-consul.json";
+        String expectedDefinition = "/io/gravitee/definition/jackson/services/discovery/api-withservice-consul-expected.json";
+
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assert.assertNotNull(generatedJsonDefinition);
 
-        String expected = IOUtils.toString(read(definition));
+        String expected = IOUtils.toString(read(expectedDefinition));
         JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
     }
 }

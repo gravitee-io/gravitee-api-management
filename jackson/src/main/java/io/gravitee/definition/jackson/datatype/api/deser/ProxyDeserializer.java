@@ -23,10 +23,7 @@ import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.*;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,12 +42,34 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         JsonNode node = jp.getCodec().readTree(jp);
 
         Proxy proxy = new Proxy();
-        final JsonNode contextPath = node.get("context_path");
-        if (contextPath != null) {
-            String sContextPath = formatContextPath(contextPath.asText());
-            proxy.setContextPath(sContextPath);
-        } else {
-            throw ctxt.mappingException("[api] API must have a valid context path");
+
+        // To ensure backward compatibility
+        final JsonNode contextPathNode = node.get("context_path");
+        if (contextPathNode != null) {
+            String sContextPath = formatContextPath(contextPathNode.asText());
+            VirtualHost defaultHost = new VirtualHost();
+            defaultHost.setPath(sContextPath);
+            proxy.setVirtualHosts(Collections.singletonList(defaultHost));
+        }
+
+        final JsonNode virtualHostsNode = node.get("virtual_hosts");
+        if (virtualHostsNode != null && virtualHostsNode.isArray()) {
+            List<VirtualHost> virtualHosts = new ArrayList<>();
+            virtualHostsNode.elements().forEachRemaining(node1 ->
+            {
+                try {
+                    virtualHosts.add(node1.traverse(jp.getCodec()).readValueAs(VirtualHost.class));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+
+            proxy.setVirtualHosts(virtualHosts);
+        }
+
+        // Check that there is, at least, a virtual host
+        if (proxy.getVirtualHosts() == null || proxy.getVirtualHosts().isEmpty()) {
+            ctxt.reportBadDefinition(Proxy.class, "[api] API must define at least a single context_path or one or multiple virtual_hosts");
         }
 
         final JsonNode nodeEndpoints = node.get("endpoints");
@@ -73,7 +92,7 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
                 if (group.getEndpoints() != null) {
                     for (Endpoint endpoint : group.getEndpoints()) {
                         if (endpointNames.contains(endpoint.getName())) {
-                            throw ctxt.mappingException("[api] API endpoint names and group names must be unique");
+                            ctxt.reportBadDefinition(Proxy.class, "[api] API endpoint names and group names must be unique");
                         }
                         endpointNames.add(endpoint.getName());
                     }
@@ -85,6 +104,11 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
         JsonNode stripContextNode = node.get("strip_context_path");
         if (stripContextNode != null) {
             proxy.setStripContextPath(stripContextNode.asBoolean(false));
+        }
+
+        JsonNode preserveHostNode = node.get("preserve_host");
+        if (preserveHostNode != null) {
+            proxy.setPreserveHost(preserveHostNode.asBoolean(false));
         }
 
         JsonNode failoverNode = node.get("failover");
@@ -131,7 +155,7 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             EndpointGroup group = jsonNode.traverse(codec).readValueAs(EndpointGroup.class);
             boolean added = groups.add(group);
             if (!added) {
-                throw ctxt.mappingException("[api] API must have single endpoint group names");
+                ctxt.reportBadDefinition(Proxy.class, "[api] API must have single endpoint group names");
             }
         }
 

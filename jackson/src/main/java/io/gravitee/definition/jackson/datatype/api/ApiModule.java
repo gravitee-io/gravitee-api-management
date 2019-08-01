@@ -69,6 +69,7 @@ public class ApiModule extends GraviteeModule {
         addDeserializer(PKCS12TrustStore.class, new PKCS12TrustStoreDeserializer(PKCS12TrustStore.class));
         addDeserializer(ResponseTemplates.class, new ResponseTemplatesDeserializer(ResponseTemplates.class));
         addDeserializer(ResponseTemplate.class, new ResponseTemplateDeserializer(ResponseTemplate.class));
+        addDeserializer(VirtualHost.class, new VirtualHostDeserializer(VirtualHost.class));
 
         // then serializers:
         addSerializer(Api.class, new ApiSerializer(Api.class));
@@ -96,5 +97,6 @@ public class ApiModule extends GraviteeModule {
         addSerializer(PKCS12TrustStore.class, new PKCS12TrustStoreSerializer(PKCS12TrustStore.class));
         addSerializer(ResponseTemplates.class, new ResponseTemplatesSerializer(ResponseTemplates.class));
         addSerializer(ResponseTemplate.class, new ResponseTemplateSerializer(ResponseTemplate.class));
+        addSerializer(VirtualHost.class, new VirtualHostSerializer(VirtualHost.class));
     }
 }

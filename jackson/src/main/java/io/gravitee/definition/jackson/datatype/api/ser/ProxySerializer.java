@@ -37,8 +37,22 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
     @Override
     public void serialize(Proxy proxy, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
-        jgen.writeStringField("context_path", proxy.getContextPath());
+
+        if (proxy.getVirtualHosts() != null) {
+            jgen.writeArrayFieldStart("virtual_hosts");
+            proxy.getVirtualHosts().forEach(vhost -> {
+                try {
+                    jgen.writeObject(vhost);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            jgen.writeEndArray();
+        }
+
         jgen.writeBooleanField("strip_context_path", proxy.isStripContextPath());
+
+        jgen.writeBooleanField("preserve_host", proxy.isPreserveHost());
 
         if (proxy.getLogging() != null) {
             jgen.writeObjectField("logging", proxy.getLogging());

@@ -9,6 +9,7 @@
         "target": "http://localhost:1234"
       }
     ],
-    "strip_context_path": false
+    "strip_context_path": false,
+    "preserve_host": true
   }
 }
