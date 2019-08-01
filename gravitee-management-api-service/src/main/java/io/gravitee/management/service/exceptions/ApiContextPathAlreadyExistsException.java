@@ -36,6 +36,6 @@ public class ApiContextPathAlreadyExistsException extends AbstractManagementExce
 
     @Override
     public String getMessage() {
-        return "The api context path [" + apiContextPath + "] already exists.";
+        return "The path [" + apiContextPath + "] is already covered by an other API.";
     }
 }

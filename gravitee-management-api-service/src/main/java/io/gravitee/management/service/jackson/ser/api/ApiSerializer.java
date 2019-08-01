@@ -169,7 +169,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
     }
 
     public enum Version {
-        DEFAULT("default"), V_1_15("1.15"), V_1_20("1.20");
+        DEFAULT("default"), V_1_15("1.15"), V_1_20("1.20"),  V_1_25("1.25");
         private final String version;
 
         Version(String version) {

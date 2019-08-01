@@ -135,7 +135,7 @@ public class PortalApisResource extends AbstractResource {
         }
 
         if (api.getProxy() != null) {
-            apiItem.setContextPath(api.getProxy().getContextPath());
+            apiItem.setVirtualHosts(api.getProxy().getVirtualHosts());
         }
 
         if (ratingService.isEnabled()) {

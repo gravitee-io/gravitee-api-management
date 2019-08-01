@@ -23,6 +23,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -96,6 +97,9 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
     private UpdateApiEntity existingApi;
 
+    @Mock
+    private VirtualHostService virtualHostService;
+
     @Before
     public void setUp()  throws TechnicalException {
         existingApi = new UpdateApiEntity();
@@ -115,7 +119,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                 .thenReturn(Collections.singleton(po));
         final Proxy proxy = new Proxy();
         existingApi.setProxy(proxy);
-        proxy.setContextPath("/context");
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
         existingApi.setLifecycleState(io.gravitee.management.model.api.ApiLifecycleState.CREATED);
 
         mockStatic(System.class);

@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.management.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.management.model.RatingSummaryEntity;
 import io.gravitee.management.model.WorkflowState;
@@ -27,10 +28,7 @@ import io.gravitee.management.rest.resource.param.ApisParam;
 import io.gravitee.management.rest.resource.param.VerifyApiParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
-import io.gravitee.management.service.ApiService;
-import io.gravitee.management.service.RatingService;
-import io.gravitee.management.service.SwaggerService;
-import io.gravitee.management.service.TopApiService;
+import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.management.service.notification.Hook;
@@ -78,6 +76,8 @@ public class ApisResource extends AbstractResource {
     private TopApiService topApiService;
     @Inject
     private RatingService ratingService;
+    @Inject
+    private VirtualHostService virtualHostService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -214,13 +214,9 @@ public class ApisResource extends AbstractResource {
             @Permission(value = RolePermission.MANAGEMENT_API, acls = RolePermissionAction.CREATE)
     })
     public Response verify(@Valid VerifyApiParam verifyApiParam) {
-        try {
-            // TODO : create verify service to query repository with criteria
-            apiService.checkContextPath(verifyApiParam.getContextPath());
-            return Response.ok().entity("API context [" + verifyApiParam.getContextPath() + "] is available").build();
-        } catch (TechnicalException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("The api context path [" + verifyApiParam.getContextPath() + "] already exists.").build();
-        }
+        // TODO : create verify service to query repository with criteria
+        virtualHostService.validate(Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath())));
+        return Response.ok().entity("API context [" + verifyApiParam.getContextPath() + "] is available").build();
     }
 
     @GET
@@ -307,7 +303,7 @@ public class ApisResource extends AbstractResource {
         }
 
         if (api.getProxy() != null) {
-            apiItem.setContextPath(api.getProxy().getContextPath());
+            apiItem.setVirtualHosts(api.getProxy().getVirtualHosts());
         }
 
         if (ratingService.isEnabled()) {

@@ -56,9 +56,6 @@ public class ApiEntity implements Indexable {
     private String description;
     private Set<String> groups;
 
-    @JsonProperty(value = "context_path")
-    private String contextPath;
-
     @NotNull
     @DeploymentRequired
     @JsonProperty(value = "proxy", required = true)
@@ -124,6 +121,8 @@ public class ApiEntity implements Indexable {
 
     @JsonProperty(value = "workflow_state")
     private WorkflowState workflowState;
+
+    private List<ApiEntrypointEntity> entrypoints;
 
     public String getId() {
         return id;
@@ -293,14 +292,6 @@ public class ApiEntity implements Indexable {
         this.labels = labels;
     }
 
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
-    }
-
     public Set<String> getPathMappings() {
         return pathMappings;
     }
@@ -339,6 +330,14 @@ public class ApiEntity implements Indexable {
 
     public void setWorkflowState(WorkflowState workflowState) {
         this.workflowState = workflowState;
+    }
+
+    public List<ApiEntrypointEntity> getEntrypoints() {
+        return entrypoints;
+    }
+
+    public void setEntrypoints(List<ApiEntrypointEntity> entrypoints) {
+        this.entrypoints = entrypoints;
     }
 
     @Override

@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class UserDocumentTransformer implements DocumentTransformer {
+public class UserDocumentTransformer implements DocumentTransformer<UserEntity> {
 
     private final static String FIELD_ID = "id";
     private final static String FIELD_TYPE = "type";
@@ -43,9 +43,8 @@ public class UserDocumentTransformer implements DocumentTransformer {
     private final static String FIELD_REFERENCE = "reference";
 
     @Override
-    public Document transform(Indexable indexable) {
+    public Document transform(UserEntity user) {
         Document doc = new Document();
-        UserEntity user = (UserEntity) indexable;
 
         doc.add(new StringField(FIELD_ID, user.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));

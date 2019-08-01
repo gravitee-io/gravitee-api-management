@@ -49,7 +49,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             put("name", 12.0f);
             put("name_lowercase", 12.0f);
             put("name_split", 10.0f);
-            put("path", 10.0f);
+            put("paths", 10.0f);
+            put("hosts", 10.0f);
             put("labels", 8.0f);
             put("description", 6.0f);
         }
@@ -75,8 +76,10 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 "labels",
                 "tags",
                 "views",
-                "path",
-                "path_split"
+                "paths",
+                "paths_split",
+                "hosts",
+                "hosts_split",
         }, analyzer, API_FIELD_BOOST);
         apiParser.setFuzzyMinSim(0.6f);
         apiParser.setAllowLeadingWildcard(true);
@@ -102,7 +105,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             apiFieldsQuery.add(parse, BooleanClause.Occur.SHOULD);
             apiFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             apiFieldsQuery.add(new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')), BooleanClause.Occur.SHOULD);
-            apiFieldsQuery.add(new WildcardQuery(new Term("path", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(new WildcardQuery(new Term("paths", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(new WildcardQuery(new Term("hosts", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
 
             apiQuery.add(apiFieldsQuery.build(), BooleanClause.Occur.MUST);
             apiQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.MUST);

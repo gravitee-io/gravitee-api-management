@@ -56,8 +56,8 @@ import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import io.vertx.core.buffer.Buffer;
 import io.gravitee.repository.management.model.*;
+import io.vertx.core.buffer.Buffer;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +70,8 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -98,6 +100,10 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
+
+    private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
+
+    private static final String URI_PATH_SEPARATOR = "/";
 
     @Autowired
     private ApiRepository apiRepository;
@@ -151,7 +157,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private WorkflowService workflowService;
     @Autowired
     private HttpClientService httpClientService;
-    
+    @Autowired
+    private VirtualHostService virtualHostService;
+
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
     private static final String ENDPOINTS_DELIMITER = "\n";
@@ -194,7 +202,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setGroups(newApiEntity.getGroups());
 
         Proxy proxy = new Proxy();
-        proxy.setContextPath(newApiEntity.getContextPath());
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost(newApiEntity.getContextPath())));
         EndpointGroup group = new EndpointGroup();
         group.setName("default-group");
 
@@ -257,7 +265,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 page.setType(SWAGGER);
                 page.setOrder(1);
                 if (INLINE.equals(swaggerDescriptor.getType())) {
-                    String modifiedApi = addGraviteeUrl(api.getProxy().getContextPath(), swaggerDescriptor.getPayload());
+                    String modifiedApi = addGraviteeUrl(api.getProxy().getVirtualHosts(), swaggerDescriptor.getPayload());
                     page.setContent(modifiedApi);
                 } else {
                     final PageSourceEntity source = new PageSourceEntity();
@@ -272,7 +280,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 page.setName(pageToUpdate.getName());
                 page.setOrder(pageToUpdate.getOrder());
                 if (INLINE.equals(swaggerDescriptor.getType())) {
-                    String modifiedApi = addGraviteeUrl(api.getProxy().getContextPath(), swaggerDescriptor.getPayload());
+                    String modifiedApi = addGraviteeUrl(api.getProxy().getVirtualHosts(), swaggerDescriptor.getPayload());
                     page.setContent(modifiedApi);
                 } else {
                     final PageSourceEntity source = new PageSourceEntity();
@@ -345,15 +353,29 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         path.setRules(rules);
     }
 
-    private String addGraviteeUrl(String apiContextPath, String payload) {
+    private String addGraviteeUrl(List<VirtualHost> virtualHosts, String payload) {
         List<String> graviteeUrls = new ArrayList<>();
         String portalEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
         if (portalEntrypoint != null) {
-            graviteeUrls.add(portalEntrypoint + apiContextPath);
+            virtualHosts.forEach(new Consumer<VirtualHost>() {
+                @Override
+                public void accept(VirtualHost virtualHost) {
+                    if (virtualHost.getHost() == null) {
+                        graviteeUrls.add(portalEntrypoint + virtualHost.getPath());
+                    } else {
+                        graviteeUrls.add(portalEntrypoint + virtualHost.getPath());
+                    }
+                }
+            });
         }
         
         List<EntrypointEntity> entrypoints = entrypointService.findAll();
-        entrypoints.stream().map(entrypoint -> entrypoint.getValue() + apiContextPath).forEach(graviteeUrls::add);
+        entrypoints.stream().flatMap(new Function<EntrypointEntity, Stream<String>>() {
+            @Override
+            public Stream<String> apply(EntrypointEntity entrypoint) {
+                return virtualHosts.stream().map(virtualHost -> entrypoint.getValue() + virtualHost.getPath());
+            }
+        }).forEach(graviteeUrls::add);
         
         return swaggerService.replaceServerList(payload, graviteeUrls);
     }
@@ -372,7 +394,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             checkShardingTags(api, null);
 
             // format context-path and check if context path is unique
-            checkContextPath(api.getProxy().getContextPath());
+            virtualHostService.validate(api.getProxy().getVirtualHosts());
 
             // check endpoints name
             checkEndpointsName(api);
@@ -455,37 +477,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    public void checkContextPath(final String newContextPath) throws TechnicalException {
-        checkContextPath(newContextPath, null);
-    }
-
-    private void checkContextPath(String newContextPath, final String apiId) throws TechnicalException {
-        if (newContextPath.charAt(0) != '/') {
-            newContextPath = '/' + newContextPath;
-        }
-        if (newContextPath.charAt(newContextPath.length() - 1) == '/') {
-            newContextPath = newContextPath.substring(0, newContextPath.length() - 1);
-        }
-
-        final int indexOfEndOfNewSubContextPath = newContextPath.lastIndexOf('/', 1);
-        final String newSubContextPath = newContextPath.substring(0, indexOfEndOfNewSubContextPath <= 0 ?
-                newContextPath.length() : indexOfEndOfNewSubContextPath) + '/';
-
-        final boolean contextPathExists = apiRepository.search(null).stream()
-                .filter(api -> !api.getId().equals(apiId))
-                .anyMatch(api -> {
-                    final String contextPath = convert(api, null).getProxy().getContextPath();
-                    final int indexOfEndOfSubContextPath = contextPath.lastIndexOf('/', 1);
-                    final String subContextPath = contextPath.substring(0, indexOfEndOfSubContextPath <= 0 ?
-                            contextPath.length() : indexOfEndOfSubContextPath) + '/';
-
-                    return subContextPath.startsWith(newSubContextPath) || newSubContextPath.startsWith(subContextPath);
-                });
-        if (contextPathExists) {
-            throw new ApiContextPathAlreadyExistsException(newSubContextPath);
-        }
-    }
-
     private void checkEndpointsName(UpdateApiEntity api) {
         if (api.getProxy() != null && api.getProxy().getGroups() != null) {
             for (EndpointGroup group : api.getProxy().getGroups()) {
@@ -558,7 +549,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     throw new TechnicalException("The API " + apiId + " doesn't have any primary owner.");
                 }
 
-                return convert(api.get(), userService.findById(primaryOwnerMembership.get().getUserId()));
+                ApiEntity apiEntity = convert(api.get(), userService.findById(primaryOwnerMembership.get().getUserId()));
+
+                // Compute entrypoints
+                calculateEntrypoints(apiEntity);
+
+                return apiEntity;
             }
 
             throw new ApiNotFoundException(apiId);
@@ -566,6 +562,56 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
+    }
+
+    private void calculateEntrypoints(ApiEntity api) {
+        List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
+
+        if (api.getProxy() != null) {
+            if (api.getTags() != null && !api.getTags().isEmpty()) {
+                List<EntrypointEntity> entrypoints = entrypointService.findAll();
+                entrypoints.forEach(new Consumer<EntrypointEntity>() {
+                    @Override
+                    public void accept(EntrypointEntity entrypoint) {
+                        Set<String> tagEntrypoints = new HashSet<>(Arrays.asList(entrypoint.getTags()));
+                        tagEntrypoints.retainAll(api.getTags());
+
+                        if (tagEntrypoints.size() == entrypoint.getTags().length) {
+                            api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
+                                @Override
+                                public void accept(VirtualHost virtualHost) {
+                                    apiEntrypoints.add(new ApiEntrypointEntity(
+                                            tagEntrypoints,
+                                            DUPLICATE_SLASH_REMOVER
+                                                    .matcher(entrypoint.getValue() + URI_PATH_SEPARATOR + virtualHost.getPath())
+                                                    .replaceAll(URI_PATH_SEPARATOR),
+                                            virtualHost.getHost())
+                                    );
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+
+            // If empty, get the default entrypoint
+            if (apiEntrypoints.isEmpty()) {
+                String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
+
+                api.getProxy().getVirtualHosts().forEach(new Consumer<VirtualHost>() {
+                    @Override
+                    public void accept(VirtualHost virtualHost) {
+                        apiEntrypoints.add(new ApiEntrypointEntity(
+                                DUPLICATE_SLASH_REMOVER
+                                        .matcher(defaultEntrypoint + URI_PATH_SEPARATOR + virtualHost.getPath())
+                                        .replaceAll(URI_PATH_SEPARATOR), virtualHost.getHost())
+                        );
+                    }
+                });
+            }
+        }
+
+        api.setEntrypoints(apiEntrypoints);
     }
 
     @Override
@@ -649,8 +695,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
         return apiEntityStream
                 .filter(api -> query.getTag() == null || (api.getTags() != null && api.getTags().contains(query.getTag())))
-                .filter(api -> query.getContextPath() == null || query.getContextPath().equals(api.getProxy().getContextPath()));
-
+                .filter(api -> query.getContextPath() == null || api.getProxy().getVirtualHosts().stream().anyMatch(
+                        virtualHost -> query.getContextPath().equals(virtualHost.getPath())));
     }
 
     @Override
@@ -699,8 +745,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 throw new ApiNotFoundException(apiId);
             }
 
-            // check if context path is unique
-            checkContextPath(updateApiEntity.getProxy().getContextPath(), apiId);
+            // check if entrypoints are unique
+            virtualHostService.validate(updateApiEntity.getProxy().getVirtualHosts(), apiId);
 
             // check endpoints name
             checkEndpointsName(updateApiEntity);
@@ -1453,7 +1499,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Map<String, Object> model = new HashMap<>();
             model.put("api", apiEntity);
             entities.forEach(entity -> {
-                if (entity.getValue().contains("${")) {
+                // Skip api.endpoint which is no more required for entrypoints
+                // this avoid exception with existing header which is trying to get value from context-path
+                if (! entity.getName().equals("api.endpoint") && entity.getValue().contains("${")) {
                     try {
                         Template template = new Template(entity.getId() + entity.getUpdatedAt().toString(), entity.getValue(), freemarkerConfiguration);
                         entity.setValue(FreeMarkerTemplateUtils.processTemplateIntoString(template, model));

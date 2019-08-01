@@ -95,6 +95,8 @@ public class ApiService_CreateWithDefinitionTest {
     private SearchEngineService searchEngineService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private VirtualHostService virtualHostService;
 
     @Before
     public void init() {

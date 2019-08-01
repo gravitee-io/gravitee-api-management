@@ -17,6 +17,7 @@ package io.gravitee.management.rest.resource;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.ApiLifecycleState;
@@ -39,6 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Date;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
@@ -70,7 +72,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setName(API);
-        mockApi.setProxy(new Proxy());
+        Proxy proxy = new Proxy();
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
+        mockApi.setProxy(proxy);
         mockApi.setUpdatedAt(new Date());
         doReturn(mockApi).when(apiService).findById(API);
         doThrow(ApiNotFoundException.class).when(apiService).findById(UNKNOWN_API);
@@ -80,7 +84,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         updateApiEntity.setVisibility(Visibility.PUBLIC);
         updateApiEntity.setName(API);
         updateApiEntity.setVersion("v1");
-        updateApiEntity.setProxy(new Proxy());
+        proxy = new Proxy();
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
+        updateApiEntity.setProxy(proxy);
         updateApiEntity.setLifecycleState(ApiLifecycleState.CREATED);
         doReturn(mockApi).when(apiService).update(eq(API), any());
     }

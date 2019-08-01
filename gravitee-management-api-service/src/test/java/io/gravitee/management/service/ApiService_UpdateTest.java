@@ -22,6 +22,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.UpdateApiEntity;
 import io.gravitee.management.model.parameters.Key;
@@ -96,6 +97,8 @@ public class ApiService_UpdateTest {
     private ParameterService parameterService;
     @Mock
     private WorkflowService workflowService;
+    @Mock
+    private VirtualHostService virtualHostService;
 
     @Before
     public void setUp() {
@@ -134,7 +137,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getDescription()).thenReturn("Ma description");
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
-        when(proxy.getContextPath()).thenReturn("/context");
+        when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
         when(existingApi.getLifecycleState()).thenReturn(CREATED);
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
@@ -144,86 +147,16 @@ public class ApiService_UpdateTest {
         apiService.update(API_ID, existingApi);
     }
 
-    @Test
-    public void shouldUpdateForUserBecauseContextPathNotExists() throws TechnicalException {
-        testUpdateWithContextPath("/context", "/context2");
-    }
-
-    @Test(expected = ApiContextPathAlreadyExistsException.class)
-    public void shouldNotUpdateForUserBecauseContextPathExists() throws TechnicalException {
-        testUpdateWithContextPath("/context", "/context");
-    }
-
-    @Test(expected = ApiContextPathAlreadyExistsException.class)
-    public void shouldNotUpdateForUserBecauseSubContextPathExists() throws TechnicalException {
-        testUpdateWithContextPath("/context/toto", "/context");
-    }
-
-    @Test(expected = ApiContextPathAlreadyExistsException.class)
-    public void shouldNotUpdateForUserBecauseSubContextPathExists2() throws TechnicalException {
-        testUpdateWithContextPath("/context", "/context/toto");
-    }
-
-    @Test(expected = ApiContextPathAlreadyExistsException.class)
-    public void shouldNotUpdateForUserBecauseContextPathExistsWithSlash() throws TechnicalException {
-        testUpdateWithContextPath("/context", "/context/");
-    }
-
-    @Test(expected = ApiContextPathAlreadyExistsException.class)
-    public void shouldNotUpdateForUserBecauseSubContextPathExistsWithSlash() throws TechnicalException {
-        testUpdateWithContextPath("/context/toto", "/context/");
-    }
-
-    @Test(expected = ApiContextPathAlreadyExistsException.class)
-    public void shouldNotUpdateForUserBecauseSubContextPathExists2WithSlash() throws TechnicalException {
-        testUpdateWithContextPath("/context", "/context/toto/");
-    }
-
-    private void testUpdateWithContextPath(String existingContextPath, String contextPathToCreate) throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(apiRepository.update(any())).thenReturn(api);
-        when(api.getId()).thenReturn(API_ID2);
-        when(api.getName()).thenReturn(API_NAME);
-        when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.CREATED);
-
-        when(existingApi.getName()).thenReturn(API_NAME);
-        when(existingApi.getVersion()).thenReturn("v1");
-        when(existingApi.getDescription()).thenReturn("Ma description");
-        final Proxy proxy = mock(Proxy.class);
-        when(existingApi.getProxy()).thenReturn(proxy);
-        when(proxy.getContextPath()).thenReturn(contextPathToCreate);
-        when(existingApi.getLifecycleState()).thenReturn(CREATED);
-
-        when(apiRepository.search(null)).thenReturn(singletonList(api));
-        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"" + existingContextPath + "\"}}");
-
-        Membership po2 = new Membership("admin", API_ID2, MembershipReferenceType.API);
-        po2.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
-        when(membershipRepository.findByReferencesAndRole(
-                MembershipReferenceType.API,
-                singletonList(API_ID2),
-                RoleScope.API,
-                SystemRole.PRIMARY_OWNER.name()))
-                .thenReturn(Collections.singleton(po2));
-
-        apiService.update(API_ID, existingApi);
-    }
-
     @Test(expected = EndpointNameInvalidException.class)
     public void shouldNotUpdateWithInvalidEndpointGroupName() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(api.getId()).thenReturn(API_ID2);
-        when(api.getName()).thenReturn(API_NAME);
 
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
-        when(proxy.getContextPath()).thenReturn("/new");
+        when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/new")));
         final EndpointGroup group = mock(EndpointGroup.class);
         when(group.getName()).thenReturn("inva:lid");
         when(proxy.getGroups()).thenReturn(singleton(group));
-
-        when(apiRepository.search(null)).thenReturn(singletonList(api));
-        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
 
         apiService.update(API_ID, existingApi);
 
@@ -233,21 +166,16 @@ public class ApiService_UpdateTest {
     @Test(expected = EndpointNameInvalidException.class)
     public void shouldNotUpdateWithInvalidEndpointName() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(api.getId()).thenReturn(API_ID2);
-        when(api.getName()).thenReturn(API_NAME);
 
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
-        when(proxy.getContextPath()).thenReturn("/new");
+        when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/new")));
         final EndpointGroup group = mock(EndpointGroup.class);
         when(group.getName()).thenReturn("group");
         when(proxy.getGroups()).thenReturn(singleton(group));
         Endpoint endpoint = mock(Endpoint.class);
         when(endpoint.getName()).thenReturn("inva:lid");
         when(group.getEndpoints()).thenReturn(singleton(endpoint));
-
-        when(apiRepository.search(null)).thenReturn(singletonList(api));
-        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
 
         apiService.update(API_ID, existingApi);
 
@@ -266,7 +194,7 @@ public class ApiService_UpdateTest {
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
         when(existingApi.getLifecycleState()).thenReturn(CREATED);
-        when(proxy.getContextPath()).thenReturn("/context");
+        when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
         Membership po = new Membership(USER_NAME, API_ID, MembershipReferenceType.API);
         po.setRoles(Collections.singletonMap(RoleScope.API.getId(), SystemRole.PRIMARY_OWNER.name()));
         when(membershipRepository.findByReferencesAndRole(any(), any(), any(), any()))
@@ -322,7 +250,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getTags()).thenReturn(singleton("private"));
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
-        when(proxy.getContextPath()).thenReturn("/context");
+        when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
         when(tagService.findByUser(any())).thenReturn(emptySet());
         apiService.update(API_ID, existingApi);
     }
@@ -334,7 +262,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getTags()).thenReturn(singleton("private"));
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
-        when(proxy.getContextPath()).thenReturn("/context");
+        when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
         when(tagService.findByUser(any())).thenReturn(singleton("public"));
         apiService.update(API_ID, existingApi);
     }
@@ -346,7 +274,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getTags()).thenReturn(emptySet());
         final Proxy proxy = mock(Proxy.class);
         when(existingApi.getProxy()).thenReturn(proxy);
-        when(proxy.getContextPath()).thenReturn("/context");
+        when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
         when(tagService.findByUser(any())).thenReturn(singleton("private"));
         apiService.update(API_ID, existingApi);
     }

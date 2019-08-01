@@ -71,6 +71,8 @@ public class ApiService_FindByIdTest {
     private UserService userService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private EntrypointService entrypointService;
 
     @Before
     public void setUp() {

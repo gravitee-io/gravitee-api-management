@@ -78,8 +78,6 @@ public interface ApiService {
 
     void deleteTagFromAPIs(String tagId);
 
-    void checkContextPath(String newContextPath) throws TechnicalException;
-
     ApiModelEntity findByIdForTemplates(String apiId);
 
     boolean exists(String apiId);

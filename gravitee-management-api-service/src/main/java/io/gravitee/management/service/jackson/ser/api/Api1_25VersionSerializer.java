@@ -17,7 +17,9 @@ package io.gravitee.management.service.jackson.ser.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.UserEntity;
@@ -29,21 +31,34 @@ import io.gravitee.repository.management.model.RoleScope;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Api1_15VersionSerializer extends ApiSerializer {
+public class Api1_25VersionSerializer extends ApiSerializer {
 
-    public Api1_15VersionSerializer() {
+    public Api1_25VersionSerializer() {
         super(ApiEntity.class);
     }
 
     @Override
     public void serialize(ApiEntity apiEntity, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         super.serialize(apiEntity, jsonGenerator, serializerProvider);
+
+        // path mappings part
+        if (apiEntity.getPathMappings() != null) {
+            jsonGenerator.writeArrayFieldStart("path_mappings");
+            apiEntity.getPathMappings().forEach(pathMapping -> {
+                try {
+                    jsonGenerator.writeObject(pathMapping);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            jsonGenerator.writeEndArray();
+        }
 
         // proxy part
         if (apiEntity.getProxy() != null) {
@@ -56,18 +71,23 @@ public class Api1_15VersionSerializer extends ApiSerializer {
             }
 
             jsonGenerator.writeObjectField("strip_context_path", apiEntity.getProxy().isStripContextPath());
-            if (apiEntity.getProxy().getLogging() == null) {
-                jsonGenerator.writeObjectField("loggingMode", LoggingMode.NONE);
-            } else {
-                jsonGenerator.writeObjectField("loggingMode", apiEntity.getProxy().getLogging().getMode());
+            if (apiEntity.getProxy().getLogging() != null) {
+                jsonGenerator.writeObjectField("logging", apiEntity.getProxy().getLogging());
             }
-            jsonGenerator.writeObjectField("endpoints", apiEntity.getProxy().getGroups().stream()
-                    .map(endpointGroup -> endpointGroup.getEndpoints())
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
 
-            // load balancing (get load balancing of the first endpoints group)
-            jsonGenerator.writeObjectField("load_balancing", apiEntity.getProxy().getGroups().iterator().next().getLoadBalancer());
+            jsonGenerator.writeArrayFieldStart("groups");
+            apiEntity.getProxy().getGroups().forEach(new Consumer<EndpointGroup>() {
+                @Override
+                public void accept(EndpointGroup endpointGroup) {
+                    try {
+                        jsonGenerator.writeObject(endpointGroup);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            jsonGenerator.writeEndArray();
 
             if (apiEntity.getProxy().getFailover() != null) {
                 jsonGenerator.writeObjectField("failover", apiEntity.getProxy().getFailover());
@@ -80,25 +100,17 @@ public class Api1_15VersionSerializer extends ApiSerializer {
             jsonGenerator.writeEndObject();
         }
 
-        // handle filtered fields list
-        List<String> filteredFieldsList = (List<String>) apiEntity.getMetadata().get(METADATA_FILTERED_FIELDS_LIST);
-
-        // members
-        if (!filteredFieldsList.contains("members")) {
-            Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembers(MembershipReferenceType.API, apiEntity.getId(), RoleScope.API);
-            List<Member> members = (memberEntities == null ? Collections.emptyList() : new ArrayList<>(memberEntities.size()));
-            if (memberEntities != null && !memberEntities.isEmpty()) {
-                memberEntities.forEach(m -> {
-                    UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
-                    if (userEntity != null) {
-                        Member member = new Member();
-                        member.setUsername(getUsernameFromSourceId(userEntity.getSourceId()));
-                        member.setRole(m.getRole());
-                        members.add(member);
-                    }
-                });
+        // response templates
+        if (apiEntity.getResponseTemplates() != null) {
+            jsonGenerator.writeObjectFieldStart("response_templates");
+            for(Map.Entry<String, ResponseTemplates> rt : apiEntity.getResponseTemplates().entrySet()) {
+                jsonGenerator.writeObjectFieldStart(rt.getKey());
+                for(Map.Entry<String, ResponseTemplate> entry : rt.getValue().getTemplates().entrySet()) {
+                    jsonGenerator.writeObjectField(entry.getKey(), entry.getValue());
+                }
+                jsonGenerator.writeEndObject();
             }
-            jsonGenerator.writeObjectField("members", members);
+            jsonGenerator.writeEndObject();
         }
 
         // must end the writing process
@@ -107,6 +119,6 @@ public class Api1_15VersionSerializer extends ApiSerializer {
 
     @Override
     public Version version() {
-        return Version.V_1_15;
+        return Version.V_1_25;
     }
 }

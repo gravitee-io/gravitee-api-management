@@ -2,7 +2,6 @@
   "description" : "Gravitee.io",
   "paths" : { },
   "resources" : [ ],
-  "path_mappings":[],
   "groups" : [ "My Group" ],
   "members" : [ {
     "source":"johndoe-source",
@@ -17,9 +16,13 @@
     "published" : false,
     "homepage" : false
   } ],
+  "path_mappings":[],
   "proxy": {
-    "context_path": "/test",
+    "virtual_hosts": [{
+      "path": "/test"
+    }],
     "strip_context_path": false,
+    "preserve_host":false,
     "logging": {
       "mode": "CLIENT_PROXY",
       "condition": "condition"

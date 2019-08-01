@@ -88,6 +88,8 @@ public class ApiService_UpdateWithDefinitionTest {
     private SearchEngineService searchEngineService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private VirtualHostService virtualHostService;
 
     @Before
     public void init() {

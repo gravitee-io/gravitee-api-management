@@ -23,7 +23,7 @@ import org.apache.lucene.document.Document;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface DocumentTransformer extends TypedHandler {
+public interface DocumentTransformer<T extends Indexable> extends TypedHandler {
 
-    Document transform(Indexable indexable);
+    Document transform(T indexable);
 }

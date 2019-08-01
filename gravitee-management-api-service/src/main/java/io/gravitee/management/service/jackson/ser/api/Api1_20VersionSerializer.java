@@ -17,7 +17,9 @@ package io.gravitee.management.service.jackson.ser.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;
@@ -28,6 +30,7 @@ import io.gravitee.repository.management.model.RoleScope;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -66,10 +69,44 @@ public class Api1_20VersionSerializer extends ApiSerializer {
                     group.setHttpClientSslOptions(null);
                 });
             }
-            jsonGenerator.writeObjectField("proxy", apiEntity.getProxy());
+
+            jsonGenerator.writeObjectFieldStart("proxy");
+
+            // We assume that the API is containing a single virtual host
+            Iterator<VirtualHost> virtualHostIterator = apiEntity.getProxy().getVirtualHosts().iterator();
+            if (virtualHostIterator.hasNext()) {
+                jsonGenerator.writeObjectField("context_path", virtualHostIterator.next().getPath());
+            }
+
+            jsonGenerator.writeObjectField("strip_context_path", apiEntity.getProxy().isStripContextPath());
+            if (apiEntity.getProxy().getLogging() != null) {
+                jsonGenerator.writeObjectField("logging", apiEntity.getProxy().getLogging());
+            }
+
+            jsonGenerator.writeArrayFieldStart("groups");
+            apiEntity.getProxy().getGroups().forEach(new Consumer<EndpointGroup>() {
+                @Override
+                public void accept(EndpointGroup endpointGroup) {
+                    try {
+                        jsonGenerator.writeObject(endpointGroup);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            jsonGenerator.writeEndArray();
+
+            if (apiEntity.getProxy().getFailover() != null) {
+                jsonGenerator.writeObjectField("failover", apiEntity.getProxy().getFailover());
+            }
+
+            if (apiEntity.getProxy().getCors() != null) {
+                jsonGenerator.writeObjectField("cors", apiEntity.getProxy().getCors());
+            }
+
+            jsonGenerator.writeEndObject();
         }
-
-
 
         // handle filtered fields list
         List<String> filteredFieldsList = (List<String>) apiEntity.getMetadata().get(METADATA_FILTERED_FIELDS_LIST);

@@ -260,9 +260,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                 // Search
                 .antMatchers(HttpMethod.GET, "/search/users").authenticated()
-
-                // Entrypoints
-                .antMatchers(HttpMethod.GET, "/entrypoints/**").permitAll()
                 .anyRequest().authenticated().and();
     }
 

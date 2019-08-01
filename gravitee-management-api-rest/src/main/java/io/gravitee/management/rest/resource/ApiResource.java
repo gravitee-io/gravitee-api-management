@@ -100,7 +100,8 @@ public class ApiResource extends AbstractResource {
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
             setPicture(apiEntity);
-            apiEntity.setContextPath(apiEntity.getProxy().getContextPath());
+            //TODO DBY: what is the purpose of this ?
+            //apiEntity.setContextPath(apiEntity.getProxy().getContextPath());
             filterSensitiveData(apiEntity);
 
             return Response
@@ -243,7 +244,7 @@ public class ApiResource extends AbstractResource {
         // Force context-path if user is not the primary_owner or an administrator
         if (!hasPermission(RolePermission.API_GATEWAY_DEFINITION, api, RolePermissionAction.UPDATE) &&
                 !Objects.equals(currentApi.getPrimaryOwner().getId(), getAuthenticatedUser()) && !isAdmin()) {
-            apiToUpdate.getProxy().setContextPath(currentApi.getProxy().getContextPath());
+            apiToUpdate.getProxy().setVirtualHosts(currentApi.getProxy().getVirtualHosts());
         }
 
         final ApiEntity updatedApi = apiService.update(api, apiToUpdate);
