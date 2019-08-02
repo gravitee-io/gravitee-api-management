@@ -84,7 +84,7 @@ public class ElasticsearchRepositoryConfiguration {
 
     @Bean
     public IndexNameGenerator indexNameGenerator(RepositoryConfiguration repositoryConfiguration, ElasticsearchInfo info) {
-        if (info.getVersion().getMajorVersion() == 6 || info.getVersion().getMajorVersion() == 7 || repositoryConfiguration.isPerTypeIndex()) {
+        if (info.getVersion().getMajorVersion() >= 6 || repositoryConfiguration.isPerTypeIndex()) {
             return new PerTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
         } else {
             return new MultiTypeIndexNameGenerator(repositoryConfiguration.getIndexName());

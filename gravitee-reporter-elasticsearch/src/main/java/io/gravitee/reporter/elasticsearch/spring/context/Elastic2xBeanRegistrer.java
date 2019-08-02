@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Deprecated
 public class Elastic2xBeanRegistrer {
 
     public void register(DefaultListableBeanFactory beanFactory, boolean perTypeIndex) {

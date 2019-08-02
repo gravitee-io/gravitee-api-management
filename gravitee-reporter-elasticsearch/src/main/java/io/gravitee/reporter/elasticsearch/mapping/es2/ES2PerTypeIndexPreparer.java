@@ -27,6 +27,7 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Deprecated
 public class ES2PerTypeIndexPreparer extends PerTypeIndexPreparer {
 
     @Override

@@ -84,6 +84,9 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 
 			switch (version.getVersion().getMajorVersion()) {
 				case 2:
+					logger.warn("Elasticsearch 2.x is now deprecated and will be removed from a future version of Gravitee.io");
+					logger.warn("Please ensure to move to an Elasticsearch version >= 5.x");
+
 					new Elastic2xBeanRegistrer().register(beanFactory, configuration.isPerTypeIndex());
 					break;
 				case 5:
