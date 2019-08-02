@@ -22,6 +22,7 @@ import io.reactivex.Completable;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Deprecated
 public class ES2MultiTypeIndexPreparer extends AbstractIndexPreparer {
 
     @Override
