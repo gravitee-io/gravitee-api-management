@@ -77,8 +77,10 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
         when(id2update.getId()).thenReturn("id2update");
         final User user2delete = mock(User.class);
         when(user2delete.getId()).thenReturn("user2delete");
+        final User userSpecialChar = mock(User.class);
+        when(userSpecialChar.getId()).thenReturn("idSpecialChar");
         io.gravitee.common.data.domain.Page<User> searchAllResult = new io.gravitee.common.data.domain.Page<>(
-                asList(user0, user1, user3, user5, user2, user4, id2update, user2delete),0, 0, 8);
+                asList(user0, user1, user3, user5, user2, user4, id2update, userSpecialChar, user2delete),0, 0, 8);
 
         when(userRepository.search(isNull(UserCriteria.class), any())).thenReturn(searchAllResult);
         when(userRepository.search(
@@ -101,7 +103,7 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
                         && UserStatus.ACTIVE.equals(o.getStatuses()[0])
                 ), any()))
                 .thenReturn(new io.gravitee.common.data.domain.Page<>(
-                        asList(user, mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class)),0, 0, 6));
+                        asList(user, mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class), mock(User.class)),0, 0, 6));
         when(userRepository.search(
                 argThat(o -> o != null
                         && o.getStatuses() == null
@@ -125,6 +127,7 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
         when(userRepository.findBySource("gravitee", "user1")).thenReturn(of(user1));
         when(userRepository.findBySource("gravitee", "USER1")).thenReturn(of(user1));
         when(userRepository.findBySource("gravitee", "user")).thenReturn(empty());
+        when(userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me")).thenReturn(of(userSpecialChar));
         when(userRepository.findById("user1")).thenReturn(of(user1));
         when(userRepository.findByIds(asList("user1", "user5"))).thenReturn(new HashSet<>(asList(user1, user5)));
 

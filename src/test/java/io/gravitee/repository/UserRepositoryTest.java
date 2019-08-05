@@ -117,7 +117,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         ).getContent();
 
         assertNotNull(users);
-        assertEquals("Invalid user numbers in search", 8, users.size());
+        assertEquals("Invalid user numbers in search", 9, users.size());
         assertEquals("user0", users.get(0).getId());
         assertEquals("user1", users.get(1).getId());
         assertEquals("user3", users.get(2).getId());
@@ -125,7 +125,8 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         assertEquals("user2", users.get(4).getId());
         assertEquals("user4", users.get(5).getId());
         assertEquals("id2update", users.get(6).getId());
-        assertEquals("user2delete", users.get(7).getId());
+        assertEquals("idSpecialChar", users.get(7).getId());
+        assertEquals("user2delete", users.get(8).getId());
     }
 
     @Test
@@ -156,6 +157,12 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void findUserBySourceSpecialCharacters() throws Exception {
+        Optional<User> user = userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me");
+        assertTrue(user.isPresent());
+    }
+
+    @Test
     public void shouldSearchUsersWithNoStatus() throws Exception {
         List<User> users = userRepository.search(new UserCriteria.Builder().noStatus().build(),
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
@@ -172,7 +179,7 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
         ).getContent();
 
         Assert.assertNotNull(users);
-        assertEquals("Invalid user numbers in find active", 6, users.size());
+        assertEquals("Invalid user numbers in find active", 7, users.size());
     }
 
     @Test
