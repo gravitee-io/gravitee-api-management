@@ -21,7 +21,7 @@
     <h2></h2>
     <div class="gv-form-content" layout="column">
     <div class="gv-filters" flex>
-        <form ng-submit="$ctrl.doSearch()" name="$ctrl.subscriptionsFiltersForm">
+        <form ng-submit="$ctrl.search()" name="$ctrl.subscriptionsFiltersForm">
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex-gt-sm flex="30">
               <label>Plan</label>
@@ -32,7 +32,7 @@
             <md-input-container class="md-block" flex-gt-sm flex="30">
               <label>Application</label>
               <md-select ng-model="$ctrl.query.applications" placeholder="Applications" multiple>
-                <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id">{{ subscriber.name }} () </md-option>
+                <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id">{{ subscriber.name }}</md-option>
               </md-select>
             </md-input-container>
             <md-input-container class="md-block" flex-gt-sm flex="20">
@@ -70,7 +70,14 @@
         <tr md-row
             ng-repeat="subscription in $ctrl.subscriptions.data track by subscription.id">
           <td md-cell>
-            <a  style="font-weight: bold" ui-sref="management.apis.detail.portal.subscriptions.subscription({subscriptionId: subscription.id})">
+            <a  style="font-weight: bold" ui-sref="management.apis.detail.portal.subscriptions.subscription({
+              subscriptionId: subscription.id,
+              page: $ctrl.query.page,
+              size: $ctrl.query.size,
+              status: $ctrl.query.status,
+              application: $ctrl.query.applications,
+              plan: $ctrl.query.plans
+            })">
               {{$ctrl.subscriptions.metadata[subscription.plan].name}}
             </a>
           </td>
@@ -90,9 +97,9 @@
 
   <md-table-pagination
     ng-if="$ctrl.subscriptions.data.length > 0"
-    md-limit="$ctrl.query.size"
+    md-limit="$ctrl.subscriptions.page.per_page"
     md-limit-options="[10, 25, 50, 75, 100]"
-    md-page="$ctrl.query.page"
+    md-page="$ctrl.subscriptions.page.current"
     md-total="{{$ctrl.subscriptions.page.total_elements}}"
     md-on-paginate="$ctrl.onPaginate"
     md-page-select

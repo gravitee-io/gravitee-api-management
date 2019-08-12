@@ -118,11 +118,23 @@ function applicationsConfig($stateProvider) {
       template: '<div ui-view></div>'
     })
     .state('management.applications.application.subscriptions.list', {
-      url: '',
+      url: '?page&size&:api&:status',
       component: 'applicationSubscriptions',
       resolve: {
-        subscriptions: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.listSubscriptions($stateParams.applicationId).then(response => response.data),
+        subscriptions: ($stateParams, ApplicationService: ApplicationService) => {
+          let query = "?page=" + $stateParams["page"]
+            + "&size=" + $stateParams["size"];
+
+          if ($stateParams["status"]) {
+            query += "&status=" + $stateParams["status"];
+          }
+
+          if ($stateParams["api"]) {
+            query += "&api=" + $stateParams["api"]
+          }
+
+          return ApplicationService.listSubscriptions($stateParams.applicationId, query).then(response => response.data)
+        },
 
         subscribers: ($stateParams, ApplicationService: ApplicationService) =>
           ApplicationService.getSubscribedAPI($stateParams.applicationId).then(response => response.data)
@@ -139,10 +151,30 @@ function applicationsConfig($stateProvider) {
         docs: {
           page: 'management-application-subscriptions'
         }
+      },
+      params: {
+        status: {
+          type: "string",
+          dynamic: true
+        },
+        api: {
+          type: "string",
+          dynamic: true
+        },
+        page: {
+          type: 'int',
+          value: 1,
+          dynamic: true
+        },
+        size: {
+          type: 'int',
+          value: 10,
+          dynamic: true
+        }
       }
     })
     .state('management.applications.application.subscriptions.subscription', {
-      url: '/:subscriptionId',
+      url: '/:subscriptionId?page&size&:api&:status',
       component: 'applicationSubscription',
       resolve: {
         subscription: ($stateParams, ApplicationService: ApplicationService) =>
@@ -154,6 +186,26 @@ function applicationsConfig($stateProvider) {
         },
         docs: {
           page: 'management-application-subscriptions'
+        }
+      },
+      params: {
+        status: {
+          type: "string",
+          dynamic: true
+        },
+        api: {
+          type: "string",
+          dynamic: true
+        },
+        page: {
+          type: 'int',
+          value: 1,
+          dynamic: true
+        },
+        size: {
+          type: 'int',
+          value: 10,
+          dynamic: true
         }
       }
     })

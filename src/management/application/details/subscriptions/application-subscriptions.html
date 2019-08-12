@@ -23,12 +23,12 @@
       <h2>Subscriptions</h2>
       <div class="gv-form-content" layout="column">
 
-        <form ng-submit="$ctrl.doSearch()" name="$ctrl.subscriptionsFiltersForm">
+        <form ng-submit="$ctrl.search()" name="$ctrl.subscriptionsFiltersForm">
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex-gt-sm flex="40">
               <label>Api</label>
               <md-select ng-model="$ctrl.query.apis" placeholder="Apis" multiple>
-                <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id">{{ subscriber.name }} () </md-option>
+                <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id">{{ subscriber.name }}</md-option>
               </md-select>
             </md-input-container>
             <md-input-container class="md-block" flex-gt-sm flex="40">
@@ -65,7 +65,13 @@
       <tr md-row
           ng-repeat="subscription in $ctrl.subscriptions.data track by subscription.id">
         <td md-cell>
-          <a style="font-weight: bold" ui-sref="management.applications.application.subscriptions.subscription({subscriptionId: subscription.id})">
+          <a style="font-weight: bold" ui-sref="management.applications.application.subscriptions.subscription({
+            subscriptionId: subscription.id,
+            page: $ctrl.query.page,
+            size: $ctrl.query.size,
+            status: $ctrl.query.status,
+            api: $ctrl.query.apis
+          })">
             {{$ctrl.subscriptions.metadata[subscription.api].name}}
           </a>
         </td>
@@ -85,9 +91,9 @@
 
   <md-table-pagination
     ng-if="$ctrl.subscriptions.data.length > 0"
-    md-limit="$ctrl.query.size"
+    md-limit="$ctrl.subscriptions.page.per_page"
     md-limit-options="[10, 25, 50, 75, 100]"
-    md-page="$ctrl.query.page"
+    md-page="$ctrl.subscriptions.page.current"
     md-total="{{$ctrl.subscriptions.page.total_elements}}"
     md-on-paginate="$ctrl.onPaginate"
     md-page-select>

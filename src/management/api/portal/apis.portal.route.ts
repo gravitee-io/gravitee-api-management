@@ -122,11 +122,27 @@ function apisPortalRouterConfig($stateProvider) {
       }
     })
     .state('management.apis.detail.portal.subscriptions.list', {
-      url: '',
+      url: '?page&size&:application&:status&:plan',
       component: 'apiSubscriptions',
       resolve: {
-        subscriptions: ($stateParams, ApiService: ApiService) =>
-          ApiService.getSubscriptions($stateParams.apiId).then(response => response.data),
+        subscriptions: ($stateParams, ApiService: ApiService) => {
+          let query = "?page=" + $stateParams["page"]
+            + "&size=" + $stateParams["size"];
+
+          if ($stateParams["status"]) {
+            query += "&status=" + $stateParams["status"];
+          }
+
+          if ($stateParams["application"]) {
+            query += "&application=" + $stateParams["application"]
+          }
+
+          if ($stateParams["plan"]) {
+            query += "&plan=" + $stateParams["plan"];
+          }
+
+          return ApiService.getSubscriptions($stateParams.apiId, query).then(response => response.data)
+        },
 
         subscribers: ($stateParams, ApiService: ApiService) =>
           ApiService.getSubscribers($stateParams.apiId).then(response => response.data),
@@ -141,10 +157,34 @@ function apisPortalRouterConfig($stateProvider) {
         docs: {
           page: 'management-api-subscriptions'
         }
+      },
+      params: {
+        status: {
+          type: "string",
+          dynamic: true
+        },
+        application: {
+          type: "string",
+          dynamic: true
+        },
+        plan: {
+          type: "string",
+          dynamic: true
+        },
+        page: {
+          type: 'int',
+          value: 1,
+          dynamic: true
+        },
+        size: {
+          type: 'int',
+          value: 10,
+          dynamic: true
+        }
       }
     })
     .state('management.apis.detail.portal.subscriptions.subscription', {
-      url: '/:subscriptionId',
+      url: '/:subscriptionId?:page&:size&:application&:status&:plan',
       component: 'apiSubscription',
       resolve: {
         subscription: ($stateParams, ApiService: ApiService) =>
@@ -156,6 +196,30 @@ function apisPortalRouterConfig($stateProvider) {
         },
         docs: {
           page: 'management-api-subscriptions'
+        }
+      },
+      params: {
+        status: {
+          type: "string",
+          dynamic: true
+        },
+        application: {
+          type: "string",
+          dynamic: true
+        },
+        plan: {
+          type: "string",
+          dynamic: true
+        },
+        page: {
+          type: 'int',
+          value: 1,
+          dynamic: true
+        },
+        size: {
+          type: 'int',
+          value: 10,
+          dynamic: true
         }
       }
     })
