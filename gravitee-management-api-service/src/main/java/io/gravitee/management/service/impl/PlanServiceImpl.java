@@ -306,23 +306,17 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setUpdatedAt(plan.getClosedAt());
             plan.setNeedRedeployAt(plan.getClosedAt());
 
-            // Close active/paused subscriptions and reject pending
+            // Close subscriptions
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
                 subscriptionService.findByPlan(planId)
                         .stream()
-                        .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED || subscriptionEntity.getStatus() == SubscriptionStatus.PAUSED)
-                        .forEach(subscription -> subscriptionService.close(subscription.getId()));
-
-                final String planName = plan.getName();
-                subscriptionService.findByPlan(planId)
-                        .stream()
-                        .filter(subscriptionEntity -> subscriptionEntity.getStatus() == SubscriptionStatus.PENDING)
                         .forEach(subscription -> {
-                            ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
-                            processSubscriptionEntity.setId(subscription.getId());
-                            processSubscriptionEntity.setAccepted(false);
-                            processSubscriptionEntity.setReason("Plan " + planName + " has been closed.");
-                            subscriptionService.process(processSubscriptionEntity, userId);
+                            try {
+                                subscriptionService.close(subscription.getId());
+                            } catch (SubscriptionNotClosableException snce) {
+                                // subscription status could not be closed (already closed or rejected)
+                                // ignore it
+                            }
                         });
             }
 
