@@ -27,7 +27,6 @@ import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.core.endpoint.resolver.EndpointResolver;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -35,10 +34,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Collections;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -177,14 +173,26 @@ public class TargetEndpointResolverTest {
     }
 
     @Test
-    @Ignore // : is forbidden thanks to https://github.com/gravitee-io/issues/issues/1939
+    // : is forbidden thanks to https://github.com/gravitee-io/issues/issues/1939
     public void shouldResolveUserDefinedEndpoint_withPointsInName() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test",
-                "lo:cal:",
-                "lo:cal",
-                "http://host:8080/test"
-        );
+        String expectedURI = "http://host:8080/test";
+        String requestEndpoint = "lo:cal:";
+        String endpointName = "lo:cal";
+        String endpointTarget = "http://host:8080/test";
+        when(executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT)).thenReturn(requestEndpoint);
+
+        Endpoint endpoint = mock(Endpoint.class);
+        when(endpoint.name()).thenReturn(endpointName);
+        referenceRegister.add(new EndpointReference(endpoint));
+
+        EndpointResolver.ResolvedEndpoint resolvedEndpoint = resolver.resolve(serverRequest, executionContext);
+
+        Assert.assertNull(resolvedEndpoint);
+        verify(endpoint, never()).target();
+        verify(endpoint, never()).available();
+
+        verify(groupManager, never()).getDefault();
+        verify(loadBalancedEndpointGroup, never()).next();
     }
 
     @Test
@@ -261,8 +269,8 @@ public class TargetEndpointResolverTest {
     public void shouldResolveUserDefinedEndpoint_withEndpointDiscoveryName() {
         resolveUserDefinedEndpoint(
                 "http://host:8080/test",
-                "consul:endpoint_id:",
-                "consul:endpoint_id",
+                "consul#endpoint_id:",
+                "consul#endpoint_id",
                 "http://host:8080/test"
         );
     }
@@ -277,7 +285,7 @@ public class TargetEndpointResolverTest {
                 Boolean.FALSE
         );
     }
-    
+
     @Test
     public void shouldUseTheRawPath_withEncodedTargetURI() {
         resolveUserDefinedEndpoint(
@@ -286,6 +294,17 @@ public class TargetEndpointResolverTest {
                 "endpoint",
                 "http://host:8080/test",
                 Boolean.TRUE
+        );
+    }
+
+    @Test
+    public void shouldResolveEndpoint_withColonInPath() {
+        resolveUserDefinedEndpoint(
+                "http://host:8080/foo:",
+                "endpoint:/foo:",
+                "endpoint",
+                "http://host:8080/",
+                Boolean.FALSE
         );
     }
     
