@@ -20,6 +20,9 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
+import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
+import io.gravitee.repository.healthcheck.query.AbstractQuery;
 import io.gravitee.repository.healthcheck.query.Bucket;
 import io.gravitee.repository.healthcheck.query.FieldBucket;
 import io.gravitee.repository.healthcheck.query.Query;
@@ -28,6 +31,7 @@ import io.gravitee.repository.healthcheck.query.availability.AvailabilityRespons
 import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -41,6 +45,7 @@ import java.util.List;
  * Command used to handle AverageResponseTime.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class AverageAvailabilityCommand extends AbstractElasticsearchQueryCommand<AvailabilityResponse> {
@@ -52,6 +57,9 @@ public class AverageAvailabilityCommand extends AbstractElasticsearchQueryComman
 
 	private final static String TEMPLATE = "healthcheck/avg-availability.ftl";
 
+	@Autowired
+	protected RepositoryConfiguration configuration;
+
 	@Override
 	public Class<? extends Query<AvailabilityResponse>> getSupportedQuery() {
 		return AvailabilityQuery.class;
@@ -62,6 +70,7 @@ public class AverageAvailabilityCommand extends AbstractElasticsearchQueryComman
 		final AvailabilityQuery availabilityQuery = (AvailabilityQuery) query;
 
 		final String sQuery = this.createQuery(TEMPLATE, availabilityQuery);
+		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(availabilityQuery, configuration);
 
 		try {
 			final long now = System.currentTimeMillis();
@@ -72,7 +81,7 @@ public class AverageAvailabilityCommand extends AbstractElasticsearchQueryComman
 					.toEpochMilli();
 
 			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now),
+					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now, clusters),
 					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
 					sQuery);
 

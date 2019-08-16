@@ -21,6 +21,7 @@ import java.time.Instant;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface IndexNameGenerator {
@@ -31,11 +32,11 @@ public interface IndexNameGenerator {
      * @param type Type of metrics
      * @return the ES index name
      */
-    String getIndexName(Type type, Instant timestamp, String ... clusters);
+    String getIndexName(Type type, Instant timestamp, String[] clusters);
 
-    String getIndexName(Type type, long from, long to, String ... clusters);
+    String getIndexName(Type type, long from, long to, String[] clusters);
 
-    String getTodayIndexName(Type type, String ... clusters);
+    String getTodayIndexName(Type type, String[] clusters);
 
-    String getWildcardIndexName(Type type, String ... clusters);
+    String getWildcardIndexName(Type type, String[] clusters);
 }

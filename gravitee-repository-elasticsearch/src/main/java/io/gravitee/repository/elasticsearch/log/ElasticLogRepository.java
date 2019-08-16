@@ -24,12 +24,15 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.tabular.TabularQuery;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
+import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
+import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.log.model.Log;
 import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -39,6 +42,7 @@ import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  * @author Sebastien Devaux (Zenika)
  * @author Guillaume Waignier (Zenika)
@@ -60,16 +64,20 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 	 */
 	private static final String LOG_BY_ID_TEMPLATE = "log/logById.ftl";
 
+	@Autowired
+	protected RepositoryConfiguration configuration;
+
 	@Override
 	public TabularResponse query(final TabularQuery query) throws AnalyticsException {
 		final String sQuery = this.createElasticsearchJsonQuery(query);
 		
 		final Long from = query.timeRange().range().from();
 		final Long to = query.timeRange().range().to();
+		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
 
 		try {
 			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.REQUEST, from, to),
+					this.indexNameGenerator.getIndexName(Type.REQUEST, from, to, clusters),
 					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.REQUEST.getType(),
 					sQuery);
 
@@ -98,10 +106,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 		data.put("requestId", requestId);
 
 		String sQuery = this.freeMarkerComponent.generateFromTemplate(LOG_BY_ID_TEMPLATE, data);
+		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
 
 		try {
 			Single<SearchResponse> result = this.client.search(
-					(timestamp == null) ? this.indexNameGenerator.getWildcardIndexName(Type.REQUEST) : this.indexNameGenerator.getIndexName(Type.REQUEST, Instant.ofEpochMilli(timestamp)),
+					(timestamp == null) ? this.indexNameGenerator.getWildcardIndexName(Type.REQUEST, clusters) : this.indexNameGenerator.getIndexName(Type.REQUEST, Instant.ofEpochMilli(timestamp), clusters),
 					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.REQUEST.getType(),
 					sQuery);
 

@@ -22,18 +22,22 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.analytics.ElasticsearchAnalyticsRepository;
+import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
+import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  * @author Guillaume Waignier (zenika)
  * @author Sebastien Devaux (zenika)
@@ -60,13 +64,17 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Autowired
+    protected RepositoryConfiguration configuration;
+
     @Override
     public MonitoringResponse query(final String gatewayId) {
     	final String sQuery = this.createElasticsearchJsonQuery(gatewayId);
-    	
+        String[] clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
+
         try {
             final Single<SearchResponse> result = this.client.search(
-                    this.indexNameGenerator.getTodayIndexName(Type.MONITOR),
+                    this.indexNameGenerator.getTodayIndexName(Type.MONITOR, clusters),
                     (info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.MONITOR.getType(),
                     sQuery);
 

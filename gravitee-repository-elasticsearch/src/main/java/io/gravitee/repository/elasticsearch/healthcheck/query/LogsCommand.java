@@ -21,6 +21,8 @@ import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
+import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.log.Log;
 import io.gravitee.repository.healthcheck.query.log.LogsQuery;
@@ -28,6 +30,7 @@ import io.gravitee.repository.healthcheck.query.log.LogsResponse;
 import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -40,6 +43,7 @@ import java.util.List;
  * Command used to handle AverageResponseTime.
  *
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class LogsCommand extends AbstractElasticsearchQueryCommand<LogsResponse> {
@@ -51,6 +55,9 @@ public class LogsCommand extends AbstractElasticsearchQueryCommand<LogsResponse>
 
 	private final static String TEMPLATE = "healthcheck/logs.ftl";
 
+	@Autowired
+	protected RepositoryConfiguration configuration;
+
 	@Override
 	public Class<? extends Query<LogsResponse>> getSupportedQuery() {
 		return LogsQuery.class;
@@ -61,6 +68,7 @@ public class LogsCommand extends AbstractElasticsearchQueryCommand<LogsResponse>
 		final LogsQuery logsQuery = (LogsQuery) query;
 
 		final String sQuery = this.createQuery(TEMPLATE, logsQuery);
+		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(logsQuery, configuration);
 
 		try {
 			final long now = System.currentTimeMillis();
@@ -71,7 +79,7 @@ public class LogsCommand extends AbstractElasticsearchQueryCommand<LogsResponse>
 					.toEpochMilli();
 
 			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now),
+					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now, clusters),
 					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
 					sQuery);
 			return this.toLogsResponse(result.blockingGet());

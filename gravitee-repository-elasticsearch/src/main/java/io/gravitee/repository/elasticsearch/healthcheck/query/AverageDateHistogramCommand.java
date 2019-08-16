@@ -23,12 +23,15 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.AggregationType;
 import io.gravitee.repository.analytics.query.response.histogram.Bucket;
 import io.gravitee.repository.analytics.query.response.histogram.Data;
+import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
+import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.healthcheck.query.DateHistogramQuery;
 import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.response.histogram.DateHistogramResponse;
 import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -40,6 +43,7 @@ import java.util.*;
  * Command used to handle DateHistogramResponse.
  *
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class AverageDateHistogramCommand extends AbstractElasticsearchQueryCommand<DateHistogramResponse> {
@@ -50,6 +54,9 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
 	private final Logger logger = LoggerFactory.getLogger(AverageDateHistogramCommand.class);
 
 	private final static String TEMPLATE = "healthcheck/avg-date-histogram.ftl";
+
+	@Autowired
+	protected RepositoryConfiguration configuration;
 
 	@Override
 	public Class<? extends Query<DateHistogramResponse>> getSupportedQuery() {
@@ -75,6 +82,7 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
 						.toEpochMilli();
 			}
 
+			String[] clusters = ClusterUtils.extractClusterIndexPrefixes(dateHistogramQuery, configuration);
 
 			//"from" and "to" are rounded according to the internal. It allows to exec the same request during the "interval" and make use of ES cache
 			final long interval = dateHistogramQuery.timeRange().interval().toMillis();
@@ -83,7 +91,7 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
 
 			final String sQuery = this.createQuery(TEMPLATE, dateHistogramQuery, roundedFrom, roundedTo);
 			final Single<SearchResponse> result = this.client.search(
-					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to),
+					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to, clusters),
 					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
 					sQuery);
 			return this.toAvailabilityResponseResponse(result.blockingGet(), dateHistogramQuery);

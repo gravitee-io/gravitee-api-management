@@ -26,6 +26,7 @@ import io.gravitee.repository.analytics.query.Query;
 import io.gravitee.repository.analytics.query.response.Response;
 import io.gravitee.repository.elasticsearch.analytics.ElasticsearchQueryCommand;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
+import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +40,12 @@ import java.util.stream.Stream;
  * Abstract class used to execute an analytic Elasticsearch query.
  * 
  * Based on Command Design Pattern.
- * 
+ *
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author Guillaume Waignier (Zenika)
  * @author Sebastien Devaux (Zenika)
- *
+ * @author GraviteeSource Team
  */
 public abstract class AbstractElasticsearchQueryCommand<T extends Response> implements ElasticsearchQueryCommand<T> {
 
@@ -51,8 +54,6 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 	 */
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	private static final String[] ALL_CLUSTERS = {"*"};
-	
 	/**
 	 * Elasticsearch client to perform search request.
 	 */
@@ -76,8 +77,6 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 
 	@Autowired
 	protected ElasticsearchInfo info;
-
-	private final static String TENANT_FIELD = "tenant";
 
 	/**
 	 * Create the elasticsearch query
@@ -113,11 +112,7 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 	Single<SearchResponse> execute(AbstractQuery<T> query, Type type, String sQuery) {
 		final Single<SearchResponse> result;
 
-		String [] clusters = null;
-
-		if (configuration.hasCrossClusterMapping()) {
-			clusters = extractCluster(query);
-		}
+		String[] clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
 
 		sQuery = sQuery.replaceAll(":(((\\/)(\\w|-)*)|((\\w|-)*:(\\d)*))", ":\\\\\"$1\\\\\"");
 		if (query.timeRange() != null) {
@@ -136,23 +131,5 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 		}
 
 		return result;
-	}
-
-	String [] extractCluster(AbstractQuery<T> query) {
-		// Extract tenant(s) filtering
-		if (query != null && query.query() != null && query.query().filter() != null) {
-			String filter = query.query().filter();
-			int idx = filter.indexOf(TENANT_FIELD);
-			if (idx != -1) {
-				idx += TENANT_FIELD.length() + 1;
-				String tenantQuery = filter.substring(idx, filter.indexOf(')', idx));
-				return Stream
-						.of(tenantQuery.split(" OR "))
-						.map(fieldValue ->
-								configuration.getCrossClusterMapping().get(fieldValue.substring(2, fieldValue.length() - 2)))
-						.toArray(String[]::new);
-			}
-		}
-		return ALL_CLUSTERS;
 	}
 }
