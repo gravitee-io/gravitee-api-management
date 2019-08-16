@@ -143,8 +143,10 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
 
     private DiscoveredEndpoint createEndpoint(final Service service, final EndpointGroup group) {
         final String scheme = (service.port() == 443) ? "https" : "http";
+        // : is forbidden thanks to https://github.com/gravitee-io/issues/issues/1939
+        final String serviceName = "sd#" + service.id().replaceAll(":", "#");
         final DiscoveredEndpoint discoveredEndpoint = new DiscoveredEndpoint(
-                "sd:" + service.id(),
+                serviceName,
                 scheme + "://" + service.host() + ':' + service.port());
         discoveredEndpoint.setHttpClientOptions(group.getHttpClientOptions());
         discoveredEndpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
