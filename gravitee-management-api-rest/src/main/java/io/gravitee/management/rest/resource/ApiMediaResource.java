@@ -67,12 +67,10 @@ public class ApiMediaResource extends AbstractResource {
             @FormDataParam("file") final FormDataBodyPart body
     ) throws IOException {
         final String mediaId;
-        if (!body.getMediaType().getType().equals("image")) {
-            throw new UploadUnauthorized("File format unauthorized " + body.getMediaType().getType()+"/"+body.getMediaType().getSubtype());
-        } else if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
+        checkImageFormat(body.getMediaType());
+        if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
             throw new UploadUnauthorized("Max size achieved " + fileDetail.getSize());
         } else {
-            checkImageContent(IOUtils.toString(uploadedInputStream, Charset.defaultCharset()));
             mediaId = mediaService.saveApiMedia(api, new MediaEntity(
                     uploadedInputStream,
                     body.getMediaType().getType(),
