@@ -230,7 +230,8 @@ ds:
 #tenant: europe
 
 #policy:
-# Customize the api-key header and / or query parameter
+# Customize the api-key header and / or query parameter.
+# Set an empty value to prohibit its use.
 #  api-key:
 #    header: X-Gravitee-Api-Key
 #    param: api-key
