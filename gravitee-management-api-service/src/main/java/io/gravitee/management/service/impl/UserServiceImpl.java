@@ -663,6 +663,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             user.setUpdatedAt(new Date());
 
             if (anonymizeOnDelete) {
+                user.setSourceId("deleted-" + user.getId());
                 user.setFirstname("Unknown");
                 user.setLastname("");
                 user.setEmail("");
