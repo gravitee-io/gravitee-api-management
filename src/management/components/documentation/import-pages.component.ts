@@ -85,6 +85,7 @@ const ImportPagesComponent: ng.IComponentOptions = {
     };
 
     this.import = () => {
+      this.importInProgress = true;
       this.page.name="import";
       DocumentationService.import(this.page, this.apiId)
         .then( (response: any) => {
@@ -98,6 +99,8 @@ const ImportPagesComponent: ng.IComponentOptions = {
           } else {
             $state.go("management.settings.documentation");
           }
+      }).finally( () => {
+        this.importInProgress = false;
       });
     };
 

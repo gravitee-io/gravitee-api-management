@@ -179,7 +179,7 @@ function portalRouterConfig($stateProvider) {
           q.homepage = false;
           return DocumentationService
             .search(q, $stateParams['apiId'])
-            .then(response => response.data);
+            .then(response => _.filter(response.data, (p)=> p.type !== "ROOT"));
         },
         entrypoints: (EntrypointService: EntrypointService) => EntrypointService.listForPortal().then(response => response.data)
       },
@@ -218,7 +218,7 @@ function portalRouterConfig($stateProvider) {
           q.homepage = false;
           return DocumentationService
             .search(q)
-            .then(response => response.data);
+            .then(response => _.filter(response.data, (p)=> p.type !== "ROOT"));
         }
       }
     })
