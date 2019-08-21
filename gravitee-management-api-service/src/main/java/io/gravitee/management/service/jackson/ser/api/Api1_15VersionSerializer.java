@@ -21,9 +21,12 @@ import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.management.model.MemberEntity;
+import io.gravitee.management.model.PlanEntity;
+import io.gravitee.management.model.PlanStatus;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.service.MembershipService;
+import io.gravitee.management.service.PlanService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
@@ -100,6 +103,18 @@ public class Api1_15VersionSerializer extends ApiSerializer {
                 });
             }
             jsonGenerator.writeObjectField("members", members);
+        }
+
+        //plans
+        if (!filteredFieldsList.contains("plans")) {
+            Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());
+            Set<PlanEntityBefore_3_00> plansToAdd = plans == null
+                    ? Collections.emptySet()
+                    : plans.stream()
+                    .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
+                    .map(PlanEntityBefore_3_00::fromNewPlanEntity)
+                    .collect(Collectors.toSet());
+            jsonGenerator.writeObjectField("plans", plansToAdd);
         }
 
         // must end the writing process

@@ -22,7 +22,7 @@
     "security" : "API_KEY",
     "type" : "API",
     "status" : "PUBLISHED",
-    "api" : "id-api",
+    "apis" : [ "id-api" ],
     "order" : 0,
     "paths" : {
       "/" : [ {

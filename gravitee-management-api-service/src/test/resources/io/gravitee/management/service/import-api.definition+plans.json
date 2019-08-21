@@ -129,7 +129,7 @@
       "security" : "KEY_LESS",
       "type" : "API",
       "status" : "PUBLISHED",
-      "apis" : [ "id-api" ],
+      "api" : "id-api",
       "order" : 0,
       "paths" : {
         "/" : [ {

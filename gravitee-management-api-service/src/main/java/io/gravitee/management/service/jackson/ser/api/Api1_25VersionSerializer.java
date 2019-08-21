@@ -21,17 +21,15 @@ import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.management.model.MemberEntity;
-import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;
-import io.gravitee.management.service.MembershipService;
-import io.gravitee.management.service.UserService;
-import io.gravitee.repository.management.model.MembershipReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.management.model.PlanEntity;
+import io.gravitee.management.model.PlanStatus;
+import io.gravitee.management.service.PlanService;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -111,6 +109,21 @@ public class Api1_25VersionSerializer extends ApiSerializer {
                 jsonGenerator.writeEndObject();
             }
             jsonGenerator.writeEndObject();
+        }
+
+        // handle filtered fields list
+        List<String> filteredFieldsList = (List<String>) apiEntity.getMetadata().get(METADATA_FILTERED_FIELDS_LIST);
+
+        //plans
+        if (!filteredFieldsList.contains("plans")) {
+            Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());
+            Set<PlanEntityBefore_3_00> plansToAdd = plans == null
+                    ? Collections.emptySet()
+                    : plans.stream()
+                    .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
+                    .map(PlanEntityBefore_3_00::fromNewPlanEntity)
+                    .collect(Collectors.toSet());
+            jsonGenerator.writeObjectField("plans", plansToAdd);
         }
 
         // must end the writing process
