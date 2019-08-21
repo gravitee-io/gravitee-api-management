@@ -37,6 +37,8 @@ public class UserDetails extends User {
     private String sourceId;
     private List<UserDetailRole> roles;
     private String username;
+    private byte[] picture;
+
 
     public UserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
@@ -161,5 +163,13 @@ public class UserDetails extends User {
                 ", source='" + lastname + '\'' +
                 ", external_reference='" + lastname + '\'' +
                 "}";
+    }
+
+    public byte[] getPicture() {
+        return picture;
+    }
+
+    public void setPicture(byte[] picture) {
+        this.picture = picture;
     }
 }

@@ -733,6 +733,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         user.setSource(newExternalUserEntity.getSource());
         user.setSourceId(newExternalUserEntity.getSourceId());
         user.setStatus(UserStatus.ACTIVE);
+        user.setPicture(newExternalUserEntity.getPicture());
         return user;
     }
 
