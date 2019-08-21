@@ -74,18 +74,14 @@ public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private ApplicationService applicationService;
-
     @Mock
     private RoleService roleService;
-
-    @Mock MembershipService membershipService;
-
+    @Mock
+    private MembershipService membershipService;
     @Mock
     private ConfigurableEnvironment environment;
-
     @Mock
     private NewExternalUserEntity newUser;
     @Mock
@@ -390,7 +386,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldDeleteUnanonymize() throws TechnicalException {
-        reset(userRepository);
         String userId = "userId";
         String firstName = "first";
         String lastName = "last";
@@ -400,8 +395,8 @@ public class UserServiceTest {
         User user = new User();
         user.setId(userId);
         user.setSourceId("sourceId");
-        Date now = new Date();
-        user.setUpdatedAt(now);
+        Date updatedAt = new Date(1234567890L);
+        user.setUpdatedAt(updatedAt);
         user.setFirstname(firstName);
         user.setLastname(lastName);
         user.setEmail(email);
@@ -418,7 +413,7 @@ public class UserServiceTest {
                 return userId.equals(user.getId())
                         && UserStatus.ARCHIVED.equals(user.getStatus())
                         && "deleted-sourceId".equals(user.getSourceId())
-                        && !now.equals(user.getUpdatedAt())
+                        && !updatedAt.equals(user.getUpdatedAt())
                         && firstName.equals(user.getFirstname())
                         && lastName.equals(user.getLastname())
                         && email.equals(user.getEmail());
@@ -429,7 +424,6 @@ public class UserServiceTest {
 
     @Test
     public void shouldDeleteAnonymize() throws TechnicalException {
-        reset(userRepository);
         setField(userService, "anonymizeOnDelete", true);
 
         String userId = "userId";
@@ -441,8 +435,8 @@ public class UserServiceTest {
         User user = new User();
         user.setId(userId);
         user.setSourceId("sourceId");
-        Date now = new Date();
-        user.setUpdatedAt(now);
+        Date updatedAt = new Date(1234567890L);
+        user.setUpdatedAt(updatedAt);
         user.setFirstname(firstName);
         user.setLastname(lastName);
         user.setEmail(email);
@@ -458,8 +452,8 @@ public class UserServiceTest {
             public boolean matches(User user) {
                 return userId.equals(user.getId())
                         && UserStatus.ARCHIVED.equals(user.getStatus())
-                        && "deleted-userId".equals(user.getSourceId())
-                        && !now.equals(user.getUpdatedAt())
+                        && ("deleted-" + userId).equals(user.getSourceId())
+                        && !updatedAt.equals(user.getUpdatedAt())
                         && "Unknown".equals(user.getFirstname())
                         && user.getLastname().isEmpty()
                         && user.getEmail().isEmpty();
