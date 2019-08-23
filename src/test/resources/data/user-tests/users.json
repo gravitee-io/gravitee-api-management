@@ -76,5 +76,19 @@
       "createdAt": 1439022010883,
       "updatedAt": 1439032010883,
       "lastConnectionAt": 1439042010883
+   },
+   {
+      "id": "idSpecialChar",
+      "source":"sourceSpecialChar",
+      "sourceId":"sourceIdSpecialChar+test@me",
+      "password":"passwordSpecialChar",
+      "email":"emailSpecialChar",
+      "status": "ACTIVE",
+      "firstname":"FirstnameSpecialChar",
+      "lastname":"LastnameSpecialChar",
+      "picture":"pictureSpecialChar",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439032010883,
+      "lastConnectionAt": 1439042010883
    }
 ]
