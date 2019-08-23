@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
-
-import ApplicationService from "../../../../services/applications.service";
+import ApplicationService from "../../../../services/application.service";
 import NotificationService from "../../../../services/notification.service";
+import { StateService } from '@uirouter/core';
 
 const ApplicationSubscriptionComponent: ng.IComponentOptions = {
   bindings: {
@@ -29,13 +28,22 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
     private subscription:any;
     private keys:any[];
     private application: any;
+    private backStateParams: any;
 
     constructor(
       private $mdDialog: angular.material.IDialogService,
       private NotificationService: NotificationService,
-      private ApplicationService: ApplicationService
+      private ApplicationService: ApplicationService,
+      private $state: StateService
     ) {
       'ngInject';
+
+      this.backStateParams = {
+        api: $state.params['api'],
+        status: $state.params['status'],
+        page: $state.params['page'],
+        size: $state.params['size']
+      };
     }
 
     $onInit() {

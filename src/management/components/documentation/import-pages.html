@@ -63,7 +63,7 @@
             </div>
 
             <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;">
-                <md-button class="md-raised md-primary" type="submit" ng-click="$ctrl.import()" ng-disabled="!$ctrl.page.source.type">
+                <md-button class="md-raised md-primary" type="submit" ng-click="$ctrl.import()" ng-disabled="!$ctrl.page.source.type || $ctrl.importInProgress">
                    Import
                 </md-button>
             </div>

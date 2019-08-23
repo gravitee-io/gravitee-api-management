@@ -22,7 +22,7 @@
          ng-click="$ctrl.importPages()">
          Import multiple files
       </a>
-      <md-button class="md-raised md-primary" type="button" ng-if="$ctrl.hasExternalDoc()" ng-click="$ctrl.fetch()"
+      <md-button class="md-raised md-primary" type="button" ng-if="$ctrl.hasExternalDoc()" ng-click="$ctrl.fetch()" ng-disabled="$ctrl.fetchAllInProgress"
                  permission permission-only="['portal-documentation-u', 'api-documentation-u']">
         Fetch all
       </md-button>

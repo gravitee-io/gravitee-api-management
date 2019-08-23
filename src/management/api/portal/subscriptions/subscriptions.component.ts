@@ -24,7 +24,7 @@ export class SubscriptionQuery {
   applications?: string[];
   plans?: string[];
   page?: number = 1;
-  size?: number = 20;
+  size?: number = 10;
 }
 
 const ApiSubscriptionsComponent: ng.IComponentOptions = {
@@ -61,6 +61,27 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       'ngInject';
 
       this.onPaginate = this.onPaginate.bind(this);
+      if(this.$state.params["status"]) {
+        if (Array.isArray(this.$state.params["status"])) {
+          this.query.status = this.$state.params["status"];
+        } else {
+          this.query.status = [this.$state.params["status"]];
+        }
+      }
+      if(this.$state.params["application"]) {
+        if (Array.isArray(this.$state.params["application"])) {
+          this.query.applications = this.$state.params["application"];
+        } else {
+          this.query.applications = [this.$state.params["application"]];
+        }
+      }
+      if(this.$state.params["plan"]) {
+        if (Array.isArray(this.$state.params["plan"])) {
+          this.query.plans = this.$state.params["plan"];
+        } else {
+          this.query.plans = [this.$state.params["plan"]];
+        }
+      }
     }
 
     onPaginate(page) {
@@ -76,7 +97,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     search() {
       this.query.page = 1;
-      this.query.size = 20;
+      this.query.size = 10;
       this.doSearch();
     }
 
@@ -105,6 +126,16 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     doSearch() {
       let query = this.buildQuery();
+      this.$state.transitionTo(
+        this.$state.current,
+        _.merge(this.$state.params, {
+          status: this.query.status ? this.query.status.join(",") : "",
+          application: this.query.applications ? this.query.applications.join(",") : "",
+          plan: this.query.plans ? this.query.plans.join(",") : "",
+          page: this.query.page,
+          size: this.query.size
+        }),
+        {notify: false});
 
       this.ApiService.getSubscriptions(this.api.id, query).then((response) => {
         this.subscriptions = response.data as PagedResult;

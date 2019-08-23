@@ -20,12 +20,13 @@ import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
 import { PagedResult } from "../../../../entities/pagedResult";
+import { StateService } from '@uirouter/core';
 
 export class SubscriptionQuery {
   status?: string[] = ['ACCEPTED', 'PENDING','PAUSED'];
   apis?: string[];
   page?: number = 1;
-  size?: number = 20;
+  size?: number = 10;
 }
 
 class ApplicationSubscriptionsController {
@@ -50,11 +51,26 @@ class ApplicationSubscriptionsController {
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
     private $mdDialog: angular.material.IDialogService,
-    private ApiService: ApiService
+    private ApiService: ApiService,
+    private $state: StateService
   ) {
     'ngInject';
 
     this.onPaginate = this.onPaginate.bind(this);
+    if(this.$state.params["status"]) {
+      if (Array.isArray(this.$state.params["status"])) {
+        this.query.status = this.$state.params["status"];
+      } else {
+        this.query.status = [this.$state.params["status"]];
+      }
+    }
+    if(this.$state.params["api"]) {
+      if (Array.isArray(this.$state.params["api"])) {
+        this.query.apis = this.$state.params["api"];
+      } else {
+        this.query.apis = [this.$state.params["api"]];
+      }
+    }
   }
 
   onPaginate(page) {
@@ -70,7 +86,7 @@ class ApplicationSubscriptionsController {
 
   search() {
     this.query.page = 1;
-    this.query.size = 20;
+    this.query.size = 10;
     this.doSearch();
   }
 
@@ -95,6 +111,15 @@ class ApplicationSubscriptionsController {
 
   doSearch() {
     let query = this.buildQuery();
+    this.$state.transitionTo(
+      this.$state.current,
+      _.merge(this.$state.params, {
+        status: this.query.status ? this.query.status.join(",") : "",
+        api: this.query.apis ? this.query.apis.join(",") : "",
+        page: this.query.page,
+        size: this.query.size
+      }),
+      {notify: false});
 
     this.ApplicationService.listSubscriptions(this.application.id, query).then((response) => {
       this.subscriptions = response.data as PagedResult;

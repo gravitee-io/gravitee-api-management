@@ -61,11 +61,11 @@ class DashboardTimeframeController {
         key: '',
         label: 'All'
       }, {
-        key: 'api-response-time',
+        key: 'endpoint',
         field: '_exists_',
         label: 'Only hits to the backend endpoint'
       }, {
-        key: 'api-response-time',
+        key: 'endpoint',
         field: '!_exists_',
         label: 'Without hits to the backend endpoint'
       }];

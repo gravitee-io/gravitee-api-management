@@ -239,9 +239,12 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.fetch = () => {
+      this.fetchAllInProgress = true;
       DocumentationService.fetchAll(this.apiId).then( () => {
         this.refresh();
         NotificationService.show('Pages has been successfully fetched');
+      }).finally(() => {
+        this.fetchAllInProgress = false;
       });
     };
 

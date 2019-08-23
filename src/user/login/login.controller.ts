@@ -21,6 +21,7 @@ import RouterService from "../../services/router.service";
 import * as _ from 'lodash';
 import { IdentityProvider } from "../../entities/identityProvider";
 import AuthenticationService from "../../services/authentication.service";
+import {log} from "util";
 
 class LoginController {
   user: any = {};
@@ -34,7 +35,8 @@ class LoginController {
     private Constants,
     private $rootScope: IScope,
     private RouterService: RouterService,
-    private identityProviders
+    private identityProviders,
+    private $window
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.portal.userCreation.enabled;
@@ -62,12 +64,17 @@ class LoginController {
   loginSuccess(user: User) {
     this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : user});
 
-    let route = this.RouterService.getLastRoute();
-    if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm') {
-      this.$state.go(route.from.name, route.fromParams);
+    if (this.$state.params.redirectUri) {
+      this.$window.location.href = '#!' + this.$state.params.redirectUri;
     } else {
-      this.$state.go('portal.home');
+      let route = this.RouterService.getLastRoute();
+      if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm') {
+        this.$state.go(route.from.name, route.fromParams);
+      } else {
+        this.$state.go('portal.home');
+      }
     }
+
   }
 }
 
