@@ -13,30 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.elasticsearch.index;
+package io.gravitee.elasticsearch.model;
 
-import io.gravitee.elasticsearch.utils.Type;
-
-import java.time.Instant;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.gravitee.elasticsearch.model.jackson.TotalHitsDeserializer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface IndexNameGenerator {
+@JsonDeserialize(using = TotalHitsDeserializer.class)
+public class TotalHits {
+    private long value;
 
-    /**
-     * Create the ES index name given the timestamp inside the metric.
-     *
-     * @param type Type of metrics
-     * @return the ES index name
-     */
-    String getIndexName(Type type, Instant timestamp, String[] clusters);
+    public TotalHits(final long value) {
+        this.value = value;
+    }
 
-    String getIndexName(Type type, long from, long to, String[] clusters);
+    public long getValue() {
+        return value;
+    }
 
-    String getTodayIndexName(Type type, String[] clusters);
-
-    String getWildcardIndexName(Type type, String[] clusters);
+    public void setValue(long value) {
+        this.value = value;
+    }
 }

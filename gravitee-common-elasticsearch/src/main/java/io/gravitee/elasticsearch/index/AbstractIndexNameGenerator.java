@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class AbstractIndexNameGenerator implements IndexNameGenerator {
@@ -40,12 +41,18 @@ public abstract class AbstractIndexNameGenerator implements IndexNameGenerator {
     private final DateTimeFormatter ES_DAILY_INDICE = DateTimeFormatter.ofPattern("yyyy.MM.dd").withZone(ZoneId.systemDefault());
 
     @Override
-    public String getIndexName(Type type, Instant instant, String ... clusters) {
-        return getIndexPrefix(type) + '-' + ES_DAILY_INDICE.format(instant);
+    public String getIndexName(Type type, Instant instant, String[] clusters) {
+        if (clusters == null || clusters.length == 0) {
+            return getIndexPrefix(type) + INDEX_DATE_SEPARATOR + ES_DAILY_INDICE.format(instant);
+        } else {
+            return Stream.of(clusters)
+                    .map(cluster -> cluster + CLUSTER_SEPARATOR + getIndexPrefix(type) + INDEX_DATE_SEPARATOR + ES_DAILY_INDICE.format(instant))
+                    .collect(Collectors.joining(INDEX_SEPARATOR));
+        }
     }
 
     @Override
-    public String getIndexName(Type type, long from, long to, String ... clusters) {
+    public String getIndexName(Type type, long from, long to, String[] clusters) {
         if (clusters == null || clusters.length == 0) {
             return DateUtils.rangedIndices(from, to)
                     .stream()
@@ -61,7 +68,7 @@ public abstract class AbstractIndexNameGenerator implements IndexNameGenerator {
     }
 
     @Override
-    public String getTodayIndexName(Type type, String ... clusters) {
+    public String getTodayIndexName(Type type, String[] clusters) {
         final String suffixDay = LocalDate.now().format(ES_DAILY_INDICE);
         if (clusters == null || clusters.length == 0) {
             return getIndexPrefix(type) + INDEX_DATE_SEPARATOR + suffixDay;
@@ -73,7 +80,7 @@ public abstract class AbstractIndexNameGenerator implements IndexNameGenerator {
     }
 
     @Override
-    public String getWildcardIndexName(Type type, String ... clusters) {
+    public String getWildcardIndexName(Type type, String[] clusters) {
         if (clusters == null || clusters.length == 0) {
             return getIndexPrefix(type) + INDEX_DATE_SEPARATOR + INDEX_WILDCARD;
         } else {

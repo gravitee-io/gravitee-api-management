@@ -24,7 +24,10 @@ public enum Type {
     REQUEST("request"),
     HEALTH_CHECK("health"),
     LOG("log"),
-    MONITOR("monitor");
+    MONITOR("monitor"),
+
+    // For ES7 support
+    DOC("_doc");
 
     private String type;
 

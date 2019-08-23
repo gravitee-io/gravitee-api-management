@@ -26,10 +26,9 @@ import io.gravitee.elasticsearch.model.Health;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkItemResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.reactivex.Completable;
-import io.reactivex.Flowable;
 import io.reactivex.Single;
-import io.reactivex.functions.Function;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.HttpContext;
@@ -48,6 +47,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+
+import static java.lang.String.format;
 
 import static java.lang.String.format;
 
@@ -145,20 +146,12 @@ public class HttpClient implements Client {
     }
 
     @Override
-    public Single<Integer> getVersion() throws ElasticsearchException {
+    public Single<ElasticsearchInfo> getInfo() throws ElasticsearchException {
         return httpClient
                 .get(URL_ROOT)
                 .rxSend()
                 .doOnError(throwable -> logger.error("Unable to get a connection to Elasticsearch", throwable))
-                .map(response -> mapper.readTree(response.bodyAsString()).path("version").path("number").asText())
-                .map(sVersion -> {
-                    float result = Float.valueOf(sVersion.substring(0, 3));
-                    int version = Integer.valueOf(sVersion.substring(0, 1));
-                    if (result < 2) {
-                        logger.warn("Please upgrade to Elasticsearch 2 or later. version={}", version);
-                    }
-                    return version;
-                });
+                .map(response -> mapper.readValue(response.bodyAsString(), ElasticsearchInfo.class));
     }
 
     /**

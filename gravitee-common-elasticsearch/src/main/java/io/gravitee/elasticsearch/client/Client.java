@@ -19,6 +19,7 @@ import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.model.Health;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.vertx.core.buffer.Buffer;
@@ -31,7 +32,7 @@ import java.util.List;
  */
 public interface Client {
 
-    Single<Integer> getVersion() throws ElasticsearchException;
+    Single<ElasticsearchInfo> getInfo() throws ElasticsearchException;
 
     Single<Health> getClusterHealth();
 

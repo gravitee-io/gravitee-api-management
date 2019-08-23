@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.healthcheck.query;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.repository.elasticsearch.healthcheck.ElasticsearchQueryCommand;
 import io.gravitee.repository.healthcheck.query.Query;
 import io.gravitee.repository.healthcheck.query.Response;
@@ -32,10 +33,9 @@ import java.util.Map;
  * Abstract class used to execute an analytic Elasticsearch query.
  * 
  * Based on Command Design Pattern.
- * 
+ *
  * @author Guillaume Waignier (Zenika)
  * @author Sebastien Devaux (Zenika)
- *
  */
 public abstract class AbstractElasticsearchQueryCommand<T extends Response> implements ElasticsearchQueryCommand<T> {
 
@@ -61,6 +61,9 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 	 */
 	@Autowired
 	protected IndexNameGenerator indexNameGenerator;
+
+	@Autowired
+	protected ElasticsearchInfo info;
 
 	/**
 	 * Create the elasticsearch query
