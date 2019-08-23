@@ -384,7 +384,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
 
             subscription.setProcessedBy(userId);
-            subscription.setProcessedAt(new Date());
+            Date now = new Date();
+            subscription.setProcessedAt(now);
+            subscription.setUpdatedAt(now);
 
             if (processSubscription.isAccepted()) {
                 subscription.setStatus(Subscription.Status.ACCEPTED);
@@ -457,56 +459,63 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             Subscription subscription = optSubscription.get();
 
-            if (subscription.getStatus() == Subscription.Status.ACCEPTED ||
-                    subscription.getStatus() == Subscription.Status.PAUSED) {
-                Subscription previousSubscription = new Subscription(subscription);
-                final Date now = new Date();
-                subscription.setUpdatedAt(now);
-                subscription.setStatus(Subscription.Status.CLOSED);
+            switch (subscription.getStatus()) {
+                case ACCEPTED:
+                case PAUSED:
+                    Subscription previousSubscription = new Subscription(subscription);
+                    final Date now = new Date();
+                    subscription.setUpdatedAt(now);
+                    subscription.setStatus(Subscription.Status.CLOSED);
 
-                subscription.setClosedAt(new Date());
+                    subscription.setClosedAt(new Date());
 
-                subscription = subscriptionRepository.update(subscription);
+                    subscription = subscriptionRepository.update(subscription);
 
-                // Send an email to subscriber
-                final ApplicationEntity application = applicationService.findById(subscription.getApplication());
-                final PlanEntity plan = planService.findById(subscription.getPlan());
-                String apiId = plan.getApis().iterator().next();
-                final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
-                final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-                final Map<String, Object> params = new NotificationParamsBuilder()
-                        .owner(owner)
-                        .api(api)
-                        .plan(plan)
-                        .application(application)
-                        .build();
+                    // Send an email to subscriber
+                    final ApplicationEntity application = applicationService.findById(subscription.getApplication());
+                    final PlanEntity plan = planService.findById(subscription.getPlan());
+                    String apiId = plan.getApis().iterator().next();
+                    final ApiModelEntity api = apiService.findByIdForTemplates(apiId);
+                    final PrimaryOwnerEntity owner = application.getPrimaryOwner();
+                    final Map<String, Object> params = new NotificationParamsBuilder()
+                            .owner(owner)
+                            .api(api)
+                            .plan(plan)
+                            .application(application)
+                            .build();
 
-                notifierService.trigger(ApiHook.SUBSCRIPTION_CLOSED, apiId, params);
-                notifierService.trigger(ApplicationHook.SUBSCRIPTION_CLOSED, application.getId(), params);
-                createAudit(
-                        apiId,
-                        subscription.getApplication(),
-                        SUBSCRIPTION_CLOSED,
-                        subscription.getUpdatedAt(),
-                        previousSubscription,
-                        subscription);
+                    notifierService.trigger(ApiHook.SUBSCRIPTION_CLOSED, apiId, params);
+                    notifierService.trigger(ApplicationHook.SUBSCRIPTION_CLOSED, application.getId(), params);
+                    createAudit(
+                            apiId,
+                            subscription.getApplication(),
+                            SUBSCRIPTION_CLOSED,
+                            subscription.getUpdatedAt(),
+                            previousSubscription,
+                            subscription);
 
-                // API Keys are automatically revoked
-                Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
-                for (ApiKeyEntity apiKey : apiKeys) {
-                    Date expireAt = apiKey.getExpireAt();
-                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
-                        apiKey.setExpireAt(now);
-                        apiKey.setRevokedAt(now);
-                        apiKey.setRevoked(true);
-                        apiKeyService.revoke(apiKey.getKey(), false);
+                    // API Keys are automatically revoked
+                    Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                    for (ApiKeyEntity apiKey : apiKeys) {
+                        Date expireAt = apiKey.getExpireAt();
+                        if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
+                            apiKey.setExpireAt(now);
+                            apiKey.setRevokedAt(now);
+                            apiKey.setRevoked(true);
+                            apiKeyService.revoke(apiKey.getKey(), false);
+                        }
                     }
-                }
 
-                return convert(subscription);
+                    return convert(subscription);
+                case PENDING:
+                    ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
+                    processSubscriptionEntity.setId(subscription.getId());
+                    processSubscriptionEntity.setAccepted(false);
+                    processSubscriptionEntity.setReason("Subscription has been closed.");
+                    return this.process(processSubscriptionEntity, getAuthenticatedUsername());
+                default:
+                    throw new SubscriptionNotClosableException(subscription);
             }
-
-            throw new SubscriptionNotClosableException(subscription);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to close subscription {}", subscriptionId, ex);
             throw new TechnicalManagementException(String.format(

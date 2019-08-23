@@ -168,6 +168,26 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertTrue(message, message.contains("The image is not in a valid format"));
     }
 
+    @Test
+    public void shouldNotUpdateApiBecauseSVGImage() {
+        updateApiEntity.setPicture("data:image/svg+xml;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("SVG format is not supported"));
+    }
+
+    @Test
+    public void shouldNotUpdateApiBecauseNotAnImage() {
+        updateApiEntity.setPicture("data:text/plain;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
+        final Response response = target(API).request().put(Entity.json(updateApiEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message, message.contains("Image file format unauthorized text/plain"));
+    }
+
     public void shouldUploadApiMedia() {
         StreamDataBodyPart filePart = new StreamDataBodyPart("file",
                 this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.valueOf("image/svg+xml"));
@@ -218,6 +238,6 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Invalid content in the image"));
+        assertTrue(message, message.contains("SVG format is not supported"));
     }
 }

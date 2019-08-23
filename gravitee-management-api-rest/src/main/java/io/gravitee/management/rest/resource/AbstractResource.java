@@ -32,6 +32,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -52,7 +53,6 @@ public abstract class AbstractResource {
 
     public final static String MANAGEMENT_ADMIN = RoleScope.MANAGEMENT.name() + ':' + SystemRole.ADMIN.name();
     public final static String PORTAL_ADMIN = RoleScope.PORTAL.name() + ':' + SystemRole.ADMIN.name();
-    private final static Pattern PATTERN = Pattern.compile("<script");
 
     @Context
     protected SecurityContext securityContext;
@@ -157,12 +157,20 @@ public abstract class AbstractResource {
         if (!mediaType.startsWith("image/")) {
             throw new UploadUnauthorized("Image file format unauthorized " + mediaType);
         }
+
+        if (mediaType.contains("svg")) {
+            throw new UploadUnauthorized("SVG format is not supported");
+        }
     }
 
-    void checkImageContent(final String picture) {
-        final Matcher matcher = PATTERN.matcher(picture);
-        if (matcher.find()) {
-            throw new UploadUnauthorized("Invalid content in the image");
+    void checkImageFormat(final MediaType mediaType) {
+
+        if (!"image".equals(mediaType.getType())) {
+            throw new UploadUnauthorized("Image file format unauthorized " + mediaType);
+        }
+
+        if (mediaType.getSubtype() != null && mediaType.getSubtype().contains("svg")) {
+            throw new UploadUnauthorized("SVG format is not supported");
         }
     }
 }
