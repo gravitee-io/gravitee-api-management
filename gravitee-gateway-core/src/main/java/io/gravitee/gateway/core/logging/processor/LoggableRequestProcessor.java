@@ -58,7 +58,7 @@ public class LoggableRequestProcessor extends AbstractProcessor<ExecutionContext
                         new LimitedLoggableClientResponse(context.request(), context.response(), maxSizeLogMessage));
             }
         } catch (Exception ex) {
-            logger.warn("Unexpected error while evaluating logging condition: {}", ex.getMessage());
+            logger.warn("Unexpected error while evaluating logging condition for the API {} and context path {} : {}", context.getAttribute(ExecutionContext.ATTR_API), context.getAttribute(ExecutionContext.ATTR_CONTEXT_PATH), ex.getMessage());
         }
 
         next.handle(context);
