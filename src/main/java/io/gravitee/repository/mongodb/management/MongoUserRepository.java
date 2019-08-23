@@ -32,15 +32,18 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class MongoUserRepository implements UserRepository {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
+	private Pattern escaper = Pattern.compile("([^a-zA-z0-9])");
 
 	@Autowired
 	private UserMongoRepository internalUserRepo;
@@ -49,10 +52,11 @@ public class MongoUserRepository implements UserRepository {
 	private GraviteeMapper mapper;
 
 	@Override
-	public Optional<User> findBySource(String source, String sourceId) throws TechnicalException {
+	public Optional<User> findBySource(final String source, final String sourceId) throws TechnicalException {
 		logger.debug("Find user by name source[{}] user[{}]", source, sourceId);
 
-		UserMongo user = internalUserRepo.findBySourceAndSourceId(source, sourceId);
+		String escapedSourceId = escaper.matcher(sourceId).replaceAll("\\\\$1");
+		UserMongo user = internalUserRepo.findBySourceAndSourceId(source, escapedSourceId);
 		User res = mapper.map(user, User.class);
 
 		return Optional.ofNullable(res);
