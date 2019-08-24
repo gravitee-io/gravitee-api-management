@@ -103,7 +103,7 @@ management:
 ratelimit:
   type: mongodb
   mongodb:
-    uri: mongodb://${ds.mongodb.host}/${ds.mongodb.dbname}
+    uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
 
 cache:
   type: ehcache
