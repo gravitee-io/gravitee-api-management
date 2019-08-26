@@ -56,7 +56,8 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       private ApiService: ApiService,
       private NotificationService: NotificationService,
       private $mdDialog: angular.material.IDialogService,
-      private $state: StateService
+      private $state: StateService,
+      private $timeout: ng.ITimeoutService
     ) {
       'ngInject';
 
@@ -165,6 +166,23 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
             });
           }
         });
+      });
+    }
+
+    exportAsCSV() {
+      this.ApiService.exportSubscriptionsAsCSV(this.api.id, this.buildQuery()).then((response) => {
+        let hiddenElement = document.createElement('a');
+        hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response.data);
+        hiddenElement.target = '_self';
+        let fileName = 'subscriptions-' + this.api.name + '-' + this.api.version + '-' + _.now();
+        fileName = fileName.replace(/[\s]/gi, '-');
+        fileName = fileName.replace(/[^\w]/gi, '-');
+        hiddenElement.download = fileName + '.csv';
+        document.getElementById('hidden-export-container').appendChild(hiddenElement);
+        this.$timeout(() => {
+          hiddenElement.click();
+        });
+        document.getElementById('hidden-export-container').removeChild(hiddenElement);
       });
     }
   }

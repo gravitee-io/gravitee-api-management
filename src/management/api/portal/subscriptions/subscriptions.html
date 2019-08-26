@@ -48,6 +48,11 @@
               <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="$ctrl.subscriptionsFiltersForm.$pristine">
                 Clear
               </md-button>
+                <md-button type="button" class="md-raised" ng-click="$ctrl.exportAsCSV()" ng-disabled="!$ctrl.subscriptions.data || $ctrl.subscriptions.data.length === 0">
+                  Export as CSV
+                  <div id="hidden-export-container" style="display:none;"></div>
+                </md-button>
+              </div>
             </div>
           </div>
         </form>

@@ -38,7 +38,8 @@ class ApiLogsController {
     private tenants: any,
     private $scope: IScope,
     private Constants,
-    private $state: StateService
+    private $state: StateService,
+    private $timeout: ng.ITimeoutService
   ) {
   'ngInject';
     this.ApiService = ApiService;
@@ -124,9 +125,11 @@ class ApiLogsController {
       fileName = fileName.replace(/[\s]/gi, '-');
       fileName = fileName.replace(/[^\w]/gi, '-');
       hiddenElement.download = fileName + '.csv';
-      document.getElementById('container').appendChild(hiddenElement);
-      hiddenElement.click();
-      document.getElementById('container').removeChild(hiddenElement);
+      document.getElementById('hidden-export-container').appendChild(hiddenElement);
+      this.$timeout(() => {
+        hiddenElement.click();
+      });
+      document.getElementById('hidden-export-container').removeChild(hiddenElement);
     });
   }
 }

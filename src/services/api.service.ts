@@ -321,6 +321,15 @@ class ApiService {
     return this.$http.get(req);
   }
 
+  exportSubscriptionsAsCSV(apiId: string, query?: string): ng.IPromise<any> {
+    let req = this.apisURL + apiId + '/subscriptions/export';
+    if (query !== undefined) {
+      req += query;
+    }
+
+    return this.$http.get(req, {timeout: 30000});
+  }
+
   getSubscribers(apiId: string): ng.IHttpPromise<any> {
     return this.$http.get(this.apisURL + apiId + '/subscribers');
   }
