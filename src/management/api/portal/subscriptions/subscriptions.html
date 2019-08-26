@@ -97,7 +97,7 @@
 
   <md-table-pagination
     ng-if="$ctrl.subscriptions.data.length > 0"
-    md-limit="$ctrl.subscriptions.page.per_page"
+    md-limit="$ctrl.query.size"
     md-limit-options="[10, 25, 50, 75, 100]"
     md-page="$ctrl.subscriptions.page.current"
     md-total="{{$ctrl.subscriptions.page.total_elements}}"
