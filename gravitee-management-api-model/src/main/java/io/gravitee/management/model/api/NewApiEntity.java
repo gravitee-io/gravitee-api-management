@@ -16,6 +16,7 @@
 package io.gravitee.management.model.api;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Set;
 
@@ -27,6 +28,7 @@ import java.util.Set;
 public class NewApiEntity {
 
     @NotNull
+    @Size(min = 4, message = "API's name must contain at least 4 characters")
     private String name;
 
     @NotNull
