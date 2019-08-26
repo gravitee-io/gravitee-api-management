@@ -15,6 +15,7 @@
  */
 /* global setInterval:false, clearInterval:false, screen:false */
 import UserService from '../services/user.service';
+import {log} from "util";
 
 function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
                   $timeout, UserService: UserService, Constants, PermissionStrategies) {
@@ -42,8 +43,8 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
     }
   });
 
-  $rootScope.$on('graviteeLogout', function () {
-    $window.location.href = $window.location.pathname;
+  $rootScope.$on('graviteeLogout', function (event, params) {
+    $state.go('login', {redirectUri: params.redirectUri});
   });
 
   $rootScope.$watch(function () {

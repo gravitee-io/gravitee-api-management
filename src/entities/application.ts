@@ -91,7 +91,8 @@ export class ApplicationType {
     {
       oauth: {
         application_type: 'backend_to_backend',
-        grant_types: ['client_credentials']
+        grant_types: ['client_credentials'],
+        redirect_uris: []
       }
     });
 

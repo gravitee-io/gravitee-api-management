@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
-
 import NotificationService from '../services/notification.service';
 
 function interceptorConfig(
@@ -27,25 +25,28 @@ function interceptorConfig(
 
   let sessionExpired;
 
-  const interceptorUnauthorized = ($q: angular.IQService, $injector: angular.auto.IInjectorService, $state): angular.IHttpInterceptor => ({
+  const interceptorUnauthorized = ($q: angular.IQService, $injector: angular.auto.IInjectorService, $location, $state): angular.IHttpInterceptor => ({
     responseError: function (error) {
       if (error.config && !error.config.tryItMode) {
         const unauthorizedError = !error || error.status === 401;
         let errorMessage = '';
 
         const notificationService = ($injector.get('NotificationService') as NotificationService);
+        const $timeout = $injector.get('$timeout');
         if (unauthorizedError) {
           if (error.config.headers.Authorization) {
             sessionExpired = false;
             errorMessage = 'Wrong user or password';
           } else {
-            const $timeout = $injector.get('$timeout');
+            // if on portal home do not redirect
+            error.config.forceSessionExpired = $location.$$path !== '' && $location.$$path !== '/' && !$location.$$path.startWith("/registration/confirm");
             if (error.config.forceSessionExpired || (!sessionExpired && !error.config.silentCall)) {
               sessionExpired = true;
               // session expired
-              notificationService.showError(error, 'Session expired, redirecting to home...');
+              notificationService.showError(error, 'Session expired, redirecting to login...');
+              let redirectUri = $location.$$path;
               $timeout(function () {
-                $injector.get('$rootScope').$broadcast('graviteeLogout');
+                $injector.get('$rootScope').$broadcast('graviteeLogout', {redirectUri: redirectUri});
               }, 2000);
             } /*else {
               $timeout(function () {
@@ -64,6 +65,10 @@ function interceptorConfig(
         }
         if (!sessionExpired && error && error.status > 0 && !error.config.silentCall) {
           notificationService.showError(error, errorMessage);
+          if (error.status === 403) {
+            // if the user try to access a forbidden resource (after redirection for example), do not stay on login form
+            $timeout(function () {$state.go('portal.home');});
+          }
         }
       }
 
