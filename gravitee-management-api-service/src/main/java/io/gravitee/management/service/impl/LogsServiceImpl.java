@@ -310,8 +310,29 @@ public class LogsServiceImpl implements LogsService {
             return "";
         }
         final StringBuilder sb = new StringBuilder();
-        for (final Object log : searchLogResponse.getLogs()) {
-            if (log instanceof ApiRequestItem) {
+        sb.append("Date");
+        sb.append(separator);
+        sb.append("Request Id");
+        sb.append(separator);
+        sb.append("Transaction Id");
+        sb.append(separator);
+        sb.append("Method");
+        sb.append(separator);
+        sb.append("Path");
+        sb.append(separator);
+        sb.append("Status");
+        sb.append(separator);
+        sb.append("Response Time");
+        sb.append(separator);
+        sb.append("Plan");
+        sb.append(separator);
+
+        //get the first item to define the type of export
+        if (searchLogResponse.getLogs().get(0) instanceof ApiRequestItem) {
+            sb.append("Application");
+            sb.append(lineSeparator());
+
+            for (final Object log : searchLogResponse.getLogs()) {
                 final ApiRequestItem apiLog = (ApiRequestItem) log;
                 sb.append(dateFormatter.format(apiLog.getTimestamp()));
                 sb.append(separator);
@@ -333,7 +354,13 @@ public class LogsServiceImpl implements LogsService {
                 final Object application = searchLogResponse.getMetadata().get(apiLog.getApplication());
                 sb.append(getName(application));
                 sb.append(lineSeparator());
-            } else if (log instanceof ApplicationRequestItem) {
+            }
+
+        } else if (searchLogResponse.getLogs().get(0) instanceof ApplicationRequestItem) {
+            sb.append("API");
+            sb.append(lineSeparator());
+
+            for (final Object log : searchLogResponse.getLogs()) {
                 final ApplicationRequestItem applicationLog = (ApplicationRequestItem) log;
                 sb.append(dateFormatter.format(applicationLog.getTimestamp()));
                 sb.append(separator);
@@ -352,8 +379,8 @@ public class LogsServiceImpl implements LogsService {
                 final Object plan = searchLogResponse.getMetadata().get(applicationLog.getPlan());
                 sb.append(getName(plan));
                 sb.append(separator);
-                final Object application = searchLogResponse.getMetadata().get(applicationLog.getApi());
-                sb.append(getName(application));
+                final Object api = searchLogResponse.getMetadata().get(applicationLog.getApi());
+                sb.append(getName(api));
                 sb.append(lineSeparator());
             }
         }
