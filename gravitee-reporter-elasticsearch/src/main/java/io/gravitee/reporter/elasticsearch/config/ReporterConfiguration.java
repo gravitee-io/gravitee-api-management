@@ -100,7 +100,7 @@ public class ReporterConfiguration {
 	/**
 	 * Extended request mapping template
 	 */
-	@Value("${reporters.elasticsearch.templates.extended_request_mapping:#{null}}")
+	@Value("${reporters.elasticsearch.template_mapping.extended_request_mapping:#{null}}")
 	private String extendedRequestMappingTemplate;
 
 	public List<Endpoint> getEndpoints() {

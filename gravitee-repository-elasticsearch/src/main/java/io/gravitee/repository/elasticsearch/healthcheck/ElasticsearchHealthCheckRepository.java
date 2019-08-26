@@ -20,7 +20,9 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
+import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.healthcheck.query.LogBuilder;
+import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.query.Query;
@@ -38,6 +40,7 @@ import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author Guillaume Waignier (Zenika)
  * @author Sebastien Devaux (Zenika)
  * @author GraviteeSource Team
@@ -54,6 +57,9 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
      */
     @Autowired
     private List<ElasticsearchQueryCommand<?>> listQueryCommands;
+
+    @Autowired
+    protected RepositoryConfiguration configuration;
 
     /**
      * Freemarker template name for health-check log by id.
@@ -90,10 +96,11 @@ public class ElasticsearchHealthCheckRepository extends AbstractElasticsearchRep
         data.put("id", id);
 
         String sQuery = this.freeMarkerComponent.generateFromTemplate(HEALTHCHECK_BY_ID_TEMPLATE, data);
+        String[] clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
 
         try {
             final Single<SearchResponse> result = this.client.search(
-                    this.indexNameGenerator.getWildcardIndexName(Type.HEALTH_CHECK),
+                    this.indexNameGenerator.getWildcardIndexName(Type.HEALTH_CHECK, clusters),
                     (info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
                     sQuery);
 

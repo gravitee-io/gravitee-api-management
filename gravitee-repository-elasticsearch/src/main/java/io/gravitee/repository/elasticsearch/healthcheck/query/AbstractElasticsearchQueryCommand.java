@@ -33,10 +33,9 @@ import java.util.Map;
  * Abstract class used to execute an analytic Elasticsearch query.
  * 
  * Based on Command Design Pattern.
- * 
+ *
  * @author Guillaume Waignier (Zenika)
  * @author Sebastien Devaux (Zenika)
- *
  */
 public abstract class AbstractElasticsearchQueryCommand<T extends Response> implements ElasticsearchQueryCommand<T> {
 
