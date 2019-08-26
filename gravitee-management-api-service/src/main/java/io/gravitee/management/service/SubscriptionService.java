@@ -23,6 +23,7 @@ import io.gravitee.management.model.subscription.SubscriptionQuery;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -65,4 +66,5 @@ public interface SubscriptionService {
 
     Metadata getMetadata(List<SubscriptionEntity> subscriptions);
     SubscriptionEntity transfer(TransferSubscriptionEntity transferSubscription, String userId);
+    String exportAsCsv(Collection<SubscriptionEntity> subscriptions, Map<String, Map<String, Object>> metadata);
 }

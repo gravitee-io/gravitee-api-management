@@ -18,6 +18,7 @@ package io.gravitee.management.rest.resource;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.*;
+import io.gravitee.management.model.log.SearchLogResponse;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.model.subscription.SubscriptionQuery;
@@ -26,6 +27,7 @@ import io.gravitee.management.rest.model.PagedResult;
 import io.gravitee.management.rest.model.Subscription;
 import io.gravitee.management.rest.resource.param.ListStringParam;
 import io.gravitee.management.rest.resource.param.ListSubscriptionStatusParam;
+import io.gravitee.management.rest.resource.param.LogsParam;
 import io.gravitee.management.rest.security.Permission;
 import io.gravitee.management.rest.security.Permissions;
 import io.gravitee.management.service.ApplicationService;
@@ -40,9 +42,12 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Date;
+
+import static java.lang.String.format;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -120,6 +125,25 @@ public class ApiSubscriptionsResource extends AbstractResource {
         return Response
                 .created(URI.create("/apis/" + api + "/subscriptions/" + subscription.getId()))
                 .entity(convert(subscription))
+                .build();
+    }
+
+    @GET
+    @Path("export")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Export API logs as CSV")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API logs as CSV"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
+    public Response exportAPILogsAsCSV(
+            @PathParam("api") String api,
+            @BeanParam SubscriptionParam subscriptionParam,
+            @Valid @BeanParam Pageable pageable) {
+        final PagedResult<SubscriptionEntity> subscriptions = listApiSubscriptions(subscriptionParam, pageable);
+        return Response
+                .ok(subscriptionService.exportAsCsv(subscriptions.getData(), subscriptions.getMetadata()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=subscriptions-%s-%s.csv", api, System.currentTimeMillis()))
                 .build();
     }
 
