@@ -280,13 +280,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
         final UserEntity user = userService.findById(rating.getUser());
         ratingEntity.setUser(user.getId());
-
-        if (user.getFirstname() != null && user.getLastname() != null) {
-            ratingEntity.setUserDisplayName(user.getFirstname() + ' ' + user.getLastname());
-        } else {
-            ratingEntity.setUserDisplayName(user.getEmail());
-        }
-
+        ratingEntity.setUserDisplayName(user.getDisplayName());
         ratingEntity.setId(rating.getId());
         ratingEntity.setApi(rating.getApi());
         ratingEntity.setTitle(rating.getTitle());
