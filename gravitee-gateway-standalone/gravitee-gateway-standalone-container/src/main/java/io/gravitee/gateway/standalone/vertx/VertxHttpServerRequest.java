@@ -20,6 +20,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
+import io.gravitee.common.util.URIUtils;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -36,6 +37,7 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume GILLON (guillaume.gillon at outlook.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 class VertxHttpServerRequest implements Request {
@@ -51,10 +53,13 @@ class VertxHttpServerRequest implements Request {
 
     private final Metrics metrics;
 
-    VertxHttpServerRequest(HttpServerRequest httpServerRequest) {
+    private final boolean legacyDecodeUrlParams;
+
+    VertxHttpServerRequest(HttpServerRequest httpServerRequest, boolean legacyDecodeUrlParams) {
         this.httpServerRequest = httpServerRequest;
         this.timestamp = System.currentTimeMillis();
         this.id = UUID.toString(UUID.random());
+        this.legacyDecodeUrlParams = legacyDecodeUrlParams;
 
         this.metrics = Metrics.on(timestamp).build();
         this.metrics.setRequestId(id());
@@ -99,11 +104,15 @@ class VertxHttpServerRequest implements Request {
     @Override
     public MultiValueMap<String, String> parameters() {
         if (queryParameters == null) {
-            MultiMap parameters = httpServerRequest.params();
-            queryParameters = new LinkedMultiValueMap<>(parameters.size());
+            if (legacyDecodeUrlParams) {
+                MultiMap parameters = httpServerRequest.params();
+                queryParameters = new LinkedMultiValueMap<>(parameters.size());
 
-            for(Map.Entry<String, String> param : httpServerRequest.params()) {
-                queryParameters.put(param.getKey(), parameters.getAll(param.getKey()));
+                for (Map.Entry<String, String> param : httpServerRequest.params()) {
+                    queryParameters.put(param.getKey(), parameters.getAll(param.getKey()));
+                }
+            } else {
+                queryParameters = URIUtils.parameters(httpServerRequest.uri());
             }
         }
 
