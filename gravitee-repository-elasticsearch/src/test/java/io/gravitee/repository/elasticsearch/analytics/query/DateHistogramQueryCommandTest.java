@@ -19,31 +19,18 @@ import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.elasticsearch.version.ElasticsearchInfo;
+import io.gravitee.elasticsearch.version.Version;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.DateHistogramQuery;
 import io.gravitee.repository.analytics.query.DateRange;
 import io.gravitee.repository.analytics.query.TimeRangeFilter;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
-import io.reactivex.Observable;
-import io.reactivex.Single;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.observers.TestObserver;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.configuration.DefaultMockitoConfiguration;
-import org.mockito.internal.stubbing.defaultanswers.ReturnsEmptyValues;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static io.reactivex.Single.just;
 import static org.mockito.ArgumentMatchers.*;
@@ -74,6 +61,10 @@ public class DateHistogramQueryCommandTest {
     private TimeRangeFilter timeRangeFilter;
     @Mock
     private DateRange dateRange;
+    @Mock
+    protected ElasticsearchInfo info;
+    @Mock
+    protected Version version;
 
     @Test
     public void shouldExecuteQuery() throws AnalyticsException {
@@ -81,6 +72,8 @@ public class DateHistogramQueryCommandTest {
         when(client.search(isNull(), anyString(), anyString())).thenReturn(just(new SearchResponse()));
         when(dateHistogramQuery.timeRange()).thenReturn(timeRangeFilter);
         when(timeRangeFilter.range()).thenReturn(dateRange);
+        when(info.getVersion()).thenReturn(version);
+        when(version.getMajorVersion()).thenReturn(6);
 
         checkDateRange(1561477219132L, 1564069219132L, 600000);
         checkDateRange(1561477219132L, 1564069219132L, 43200000);
