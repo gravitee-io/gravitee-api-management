@@ -39,17 +39,17 @@ const SettingsComponent: ng.IComponentOptions = {
       },
       apiPortalHeader: {
         perm: UserService.isUserHasPermissions(
-          ['portal-api_header-c', 'portal-api_header-r', 'portal-api_header-u', 'portal-api_header-d']),
+          ['portal-api_header-r']),
         goTo: 'management.settings.apiPortalHeader'
       },
       clientRegistration: {
         perm: UserService.isUserHasPermissions(
-          ['portal-client_registration_provider-c', 'portal-client_registration_provider-r', 'portal-client_registration_provider-u', 'portal-client_registration_provider-d']),
+          ['portal-client_registration_provider-r']),
         goTo: 'management.settings.clientregistrationproviders.list'
       },
       identityProviders: {
         perm: UserService.isUserHasPermissions(
-          ['portal-identity_provider-c', 'portal-identity_provider-r', 'portal-identity_provider-u', 'portal-identity_provider-d']),
+          ['portal-identity_provider-r']),
         goTo: 'management.settings.identityproviders.list'
       },
       documentations: {
@@ -59,7 +59,7 @@ const SettingsComponent: ng.IComponentOptions = {
       },
       metadata: {
         perm: UserService.isUserHasPermissions(
-          ['portal-metadata-c', 'portal-metadata-u', 'portal-metadata-d']),
+          ['portal-metadata-r']),
         goTo: 'management.settings.metadata'
       },
       portalSettings: {
@@ -69,46 +69,46 @@ const SettingsComponent: ng.IComponentOptions = {
       },
       topApis: {
         perm: UserService.isUserHasPermissions(
-          ['portal-top_apis-c', 'portal-top_apis-u', 'portal-top_apis-d']),
+          ['portal-top_apis-r']),
         goTo: 'management.settings.top-apis'
       },
       views: {
         perm: UserService.isUserHasPermissions(
-          ['portal-view-c', 'portal-view-u', 'portal-view-d']),
+          ['portal-view-r']),
         goTo: 'management.settings.views'
       },
 
       // GATEWAYS
       api_logging: {
         perm: UserService.isUserHasPermissions(
-          ['portal-settings-c']),
+          ['portal-settings-r']),
         goTo: 'management.settings.api_logging'
       },
       dictionaries: {
         perm: UserService.isUserHasPermissions(
-          ['management-dictionary-c', 'management-dictionary-r', 'management-dictionary-u', 'management-dictionary-d']),
+          ['management-dictionary-r']),
         goTo: 'management.settings.dictionaries.list'
       },
       tags: {
         perm: UserService.isUserHasPermissions(
-          ['management-tag-c', 'management-tag-u', 'management-tag-d']),
+          ['management-tag-r']),
         goTo: 'management.settings.tags'
       },
       tenants: {
         perm: UserService.isUserHasPermissions(
-          ['management-tenant-c', 'management-tenant-u', 'management-tenant-d']),
+          ['management-tenant-r']),
         goTo: 'management.settings.tenants'
       },
 
       // USER MANAGEMENT
       users: {
         perm: UserService.isUserHasPermissions(
-          ['management-user-c', 'management-user-u', 'management-user-d']),
+          ['management-user-r']),
         goTo: 'management.settings.users'
       },
       groups: {
         perm: UserService.isUserHasPermissions(
-          ['management-group-c', 'management-group-r', 'management-group-u', 'management-group-d']),
+          ['management-group-r']),
         goTo: 'management.settings.groups'
       },
       roles: {
@@ -120,7 +120,7 @@ const SettingsComponent: ng.IComponentOptions = {
       // ALERT
       notifications: {
         perm: UserService.isUserHasPermissions(
-          ['management-notification-c', 'management-notification-u', 'management-notification-d']),
+          ['management-notification-r']),
         goTo: 'management.settings.notifications'
       }};
 

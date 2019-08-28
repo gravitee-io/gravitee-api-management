@@ -710,10 +710,6 @@ function configurationRouterConfig($stateProvider) {
     .state('management.settings.api_logging', {
       url: '/api_logging',
       component: 'apiLogging',
-      resolve: {
-        dictionaries: (DictionaryService: DictionaryService) =>
-          DictionaryService.list().then(response => response.data)
-      },
       data: {
         menu: null,
         docs: {
