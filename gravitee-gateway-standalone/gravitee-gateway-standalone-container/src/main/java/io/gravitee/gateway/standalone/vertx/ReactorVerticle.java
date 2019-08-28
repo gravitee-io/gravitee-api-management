@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david at graviteesource.com)
@@ -42,12 +43,15 @@ public class ReactorVerticle extends AbstractVerticle {
     @Autowired
     private Reactor reactor;
 
+    @Value("${legacy.decode-url-params:false}")
+    private boolean legacyDecodeUrlParams;
+
     @Autowired
     private VertxHttpServerConfiguration httpServerConfiguration;
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
-        httpServer.requestHandler(new VertxReactorHandler(reactor));
+        httpServer.requestHandler(new VertxReactorHandler(reactor, this.legacyDecodeUrlParams));
 
         httpServer.listen(res -> {
             if (res.succeeded()) {

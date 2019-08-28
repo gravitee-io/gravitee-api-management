@@ -33,6 +33,7 @@ import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.core.proxy.DirectProxyConnection;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -40,12 +41,22 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EndpointInvoker implements Invoker {
+
+    private static final String URI_PARAM_SEPARATOR = "&";
+    private static final char URI_PARAM_SEPARATOR_CHAR = '&';
+    private static final char URI_PARAM_VALUE_SEPARATOR_CHAR = '=';
+    private static final char URI_QUERY_DELIMITER_CHAR = '?';
+    private static final CharSequence URI_QUERY_DELIMITER_CHAR_SEQUENCE = "?";
+
+    @Value("${legacy.decode-url-params:false}")
+    private boolean legacyDecodeUrlParams;
 
     @Autowired
     private EndpointResolver endpointResolver;
@@ -62,7 +73,11 @@ public class EndpointInvoker implements Invoker {
         } else {
             URI uri = null;
             try {
-                uri = encodeQueryParameters(endpoint.getUri(), context.request().parameters());
+                if (legacyDecodeUrlParams) {
+                    uri = legacyEncodeQueryParameters(endpoint.getUri(), context.request().parameters());
+                } else {
+                    uri = buildURI(endpoint.getUri(), context);
+                }
             } catch (Exception ex) {
                 context.request().metrics().setMessage(getStackTraceAsString(ex));
 
@@ -73,8 +88,6 @@ public class EndpointInvoker implements Invoker {
             }
 
             if (uri != null) {
-                // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the request
-                context.request().metrics().setEndpoint(uri.toString());
 
                 ProxyRequest proxyRequest = ProxyRequestBuilder.from(context.request())
                         .uri(uri)
@@ -116,22 +129,52 @@ public class EndpointInvoker implements Invoker {
         context.request().resume();
     }
 
-    private URI encodeQueryParameters(String uri, MultiValueMap<String, String> parameters) throws URISyntaxException {
+    private URI legacyEncodeQueryParameters(String uri, MultiValueMap<String, String> parameters) throws URISyntaxException {
         if (parameters != null && !parameters.isEmpty()) {
             QueryStringEncoder encoder = new QueryStringEncoder(uri);
-
             for (Map.Entry<String, List<String>> queryParam : parameters.entrySet()) {
                 if (queryParam.getValue() != null) {
                     for (String value : queryParam.getValue()) {
                         encoder.addParam(queryParam.getKey(), (value != null && !value.isEmpty()) ? value : null);
+
                     }
                 }
             }
-
             return encoder.toUri();
         }
-
         return URI.create(uri);
+    }
+
+    private URI buildURI(String uri, ExecutionContext executionContext) {
+        MultiValueMap<String, String> parameters = executionContext.request().parameters();
+
+        if (parameters == null || parameters.isEmpty()) {
+            return URI.create(uri);
+        }
+
+        return addQueryParameters(uri, parameters);
+    }
+
+    private URI addQueryParameters(String uri, MultiValueMap<String, String> parameters) {
+        StringJoiner parametersAsString = new StringJoiner(URI_PARAM_SEPARATOR);
+        parameters.forEach( (paramName, paramValues) -> {
+            if (paramValues != null) {
+                for (String paramValue: paramValues) {
+                    if (paramValue == null) {
+                        parametersAsString.add(paramName);
+                    } else {
+                        parametersAsString.add(paramName + URI_PARAM_VALUE_SEPARATOR_CHAR + paramValue);
+                    }
+                }
+            }
+        });
+
+        if (uri.contains(URI_QUERY_DELIMITER_CHAR_SEQUENCE)) {
+            return URI.create(uri + URI_PARAM_SEPARATOR_CHAR + parametersAsString.toString());
+        } else {
+            return URI.create(uri + URI_QUERY_DELIMITER_CHAR + parametersAsString.toString());
+
+        }
     }
 
     private HttpMethod setHttpMethod(ExecutionContext context) {

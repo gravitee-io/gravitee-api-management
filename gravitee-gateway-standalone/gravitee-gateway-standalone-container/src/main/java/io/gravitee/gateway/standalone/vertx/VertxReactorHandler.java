@@ -29,14 +29,16 @@ import io.vertx.core.http.HttpServerRequest;
 public class VertxReactorHandler implements Handler<HttpServerRequest> {
 
     private final Reactor reactor;
+    private boolean legacyDecodeUrlParams;
 
-    VertxReactorHandler(Reactor reactor) {
+    VertxReactorHandler(Reactor reactor, boolean legacyDecodeUrlParams) {
         this.reactor = reactor;
+        this.legacyDecodeUrlParams = legacyDecodeUrlParams;
     }
 
     @Override
     public void handle(HttpServerRequest httpServerRequest) {
-        final Request request = new VertxHttpServerRequest(httpServerRequest);
+        final Request request = new VertxHttpServerRequest(httpServerRequest, legacyDecodeUrlParams);
         final Response response = new VertxHttpServerResponse(httpServerRequest, request.metrics());
 
         reactor.route(request, response, __ -> {});
