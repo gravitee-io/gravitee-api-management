@@ -29,40 +29,38 @@ const WidgetComponent: ng.IComponentOptions = {
       $scope.$broadcast('onWidgetResize');
     });
 
-    let that = this;
-
-    $scope.$on('onTimeframeChange', function (event, timeframe) {
+    $scope.$on('onTimeframeChange', (event, timeframe) => {
       let query;
 
-      if (that.widget.chart.request.query) {
-        query = that.widget.chart.request.query;
+      if (this.widget.chart.request.query) {
+        query = this.widget.chart.request.query;
       }
 
       // Associate the new timeframe to the chart request
-      _.assignIn(that.widget.chart.request, {
+      _.assignIn(this.widget.chart.request, {
         interval: timeframe.interval,
         from: timeframe.from,
         to: timeframe.to,
         query: query,
-        additionalQuery: that.widget.chart.request.additionalQuery
+        additionalQuery: this.widget.chart.request.additionalQuery
       });
 
-      that.reload();
+      this.reload();
     });
 
-    let unregisterFn = $scope.$on('onQueryFilterChange', function (event, query) {
+    let unregisterFn = $scope.$on('onQueryFilterChange', (event, query) => {
       // Associate the new query filter to the chart request
-      that.widget.chart.request.additionalQuery = query.query;
+      this.widget.chart.request.additionalQuery = query.query;
 
       // Reload only if not the same widget which applied the latest filter
-      if (that.widget.$uid !== query.source) {
-        that.reload();
+      if (this.widget.$uid !== query.source) {
+        this.reload();
       }
     });
 
     $scope.$on('$destroy', unregisterFn);
 
-    this.reload = function() {
+    this.reload = () => {
       // Call the analytics service
       this.fetchData = true;
 
@@ -89,8 +87,25 @@ const WidgetComponent: ng.IComponentOptions = {
       chart.service.function
         .apply(chart.service.caller, args)
         .then(response => {
-          this.fetchData = false;
-          this.results = response.data;
+
+          if (this.widget.chart.percent) {
+            delete args[0].query;
+            chart.service.function
+              .apply(chart.service.caller, args)
+              .then(responseTotal => {
+                this.fetchData = false;
+                _.forEach(response.data.values, (value, key) => {
+                  let total = _.find(responseTotal.data.values, (v, k) => {
+                    return k === key;
+                  });
+                  response.data.values[key] = value + '/' + _.ceil((value / total) * 100, 1);
+                });
+                this.results = response.data;
+              });
+          } else {
+            this.fetchData = false;
+            this.results = response.data;
+          }
         });
     };
   }

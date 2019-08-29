@@ -112,6 +112,7 @@ class ApplicationAnalyticsController {
         selectable: true,
         columns: ['API', 'Hits'],
         paging: 5,
+        percent: true,
         request: {
           type: 'group_by',
           field: 'api',

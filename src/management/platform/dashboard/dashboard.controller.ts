@@ -94,6 +94,7 @@ class DashboardController {
         link: 'api',
         columns: ['API', 'Hits'],
         paging: 5,
+        percent: true,
         request: {
           type: 'group_by',
           field: 'api',

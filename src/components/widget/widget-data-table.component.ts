@@ -40,9 +40,16 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
         let data = changes.data.currentValue;
         this.paging = 1;
         this.results = _.map(data.values, function (value, key) {
+          let percent;
+          if (_.includes(value, '/')) {
+            let splittedValue = value.split('/');
+            value = splittedValue[0];
+            percent = splittedValue[1];
+          }
           return {
             key: key,
             value: value,
+            percent: percent,
             metadata: (data && data.metadata) ? data.metadata[key] : undefined
           };
         });
