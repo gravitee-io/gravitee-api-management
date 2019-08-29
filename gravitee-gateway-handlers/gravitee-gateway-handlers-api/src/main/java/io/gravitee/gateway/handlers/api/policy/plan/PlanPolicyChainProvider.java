@@ -52,6 +52,7 @@ public class PlanPolicyChainProvider extends AbstractPolicyChainProvider {
         context.request().metrics().setUser((String) context.getAttribute(ExecutionContext.ATTR_USER));
         context.request().metrics().setPlan(plan);
         context.request().metrics().setApplication(application);
+        context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
 
         // Calculate the list of policies to apply under this policy chain
         List<Policy> policies = policyResolver.resolve(streamType, context);
