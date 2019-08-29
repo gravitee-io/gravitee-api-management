@@ -82,7 +82,7 @@ export class PortalApiListController {
     $scope.$watch('apisCtrl.query', (query: string, previousQuery: string) => {
       $timeout.cancel(this.timer);
       this.timer = $timeout(() => {
-        if (query !== undefined && query !== previousQuery && query.length > 3) {
+        if (query !== undefined && query !== previousQuery) {
           this.search();
         }
       }, 300);
