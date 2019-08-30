@@ -297,6 +297,9 @@ public class ApplicationSubscriptionsResource {
         @ApiModelProperty(dataType = "string", allowableValues = "accepted, pending, rejected, closed", value = "Subscription status")
         private ListSubscriptionStatusParam status;
 
+        @QueryParam("api_key")
+        private String apiKey;
+
         public ListStringParam getPlans() {
             return plans;
         }
@@ -329,6 +332,14 @@ public class ApplicationSubscriptionsResource {
             this.status = status;
         }
 
+        public String getApiKey() {
+            return apiKey;
+        }
+
+        public void setApiKey(String apiKey) {
+            this.apiKey = apiKey;
+        }
+
         private SubscriptionQuery toQuery() {
             SubscriptionQuery query = new SubscriptionQuery();
 
@@ -346,6 +357,9 @@ public class ApplicationSubscriptionsResource {
                 query.setStatuses(status.getStatus());
             }
 
+            if (apiKey != null) {
+                query.setApiKey(apiKey);
+            }
             return query;
         }
     }

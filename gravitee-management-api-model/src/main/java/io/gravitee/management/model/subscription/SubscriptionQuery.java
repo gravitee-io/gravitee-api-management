@@ -35,6 +35,8 @@ public class SubscriptionQuery {
 
     private Collection<String> applications;
 
+    private String apiKey;
+
     private long from, to;
 
     public Collection<String> getApis() {
@@ -81,6 +83,14 @@ public class SubscriptionQuery {
         this.applications = Collections.singleton(application);
     }
 
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
     public long getFrom() {
         return from;
     }
@@ -107,11 +117,12 @@ public class SubscriptionQuery {
                 Objects.equals(apis, that.apis) &&
                 Objects.equals(plans, that.plans) &&
                 Objects.equals(statuses, that.statuses) &&
-                Objects.equals(applications, that.applications);
+                Objects.equals(applications, that.applications) &&
+                Objects.equals(apiKey, that.apiKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(apis, plans, statuses, applications, from, to);
+        return Objects.hash(apis, plans, statuses, applications, apiKey, from, to);
     }
 }

@@ -45,11 +45,14 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.*;
 import static java.lang.System.lineSeparator;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -119,7 +122,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             query.setApplication(application);
         } else if (isAuthenticated()) {
             Set<ApplicationListItem> applications = applicationService.findByUser(getAuthenticatedUsername());
-            query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
+            query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toList()));
         }
 
         return search(query);
@@ -702,10 +705,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         .collect(Collectors.toSet()));
             }
 
-            List<SubscriptionEntity> subscriptions = subscriptionRepository.search(builder.build())
-                    .stream().map(this::convert).collect(Collectors.toList());
-            return subscriptions;
-
+            Stream<SubscriptionEntity> subscriptionsStream =
+                    subscriptionRepository.search(builder.build()).stream().map(this::convert);
+            if (query.getApiKey() != null && !query.getApiKey().isEmpty()) {
+                subscriptionsStream = subscriptionsStream.filter(subscriptionEntity -> {
+                    final Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscriptionEntity.getId());
+                    return apiKeys.stream().anyMatch(apiKeyEntity -> apiKeyEntity.getKey().equals(query.getApiKey()));
+                });
+            }
+            return subscriptionsStream.collect(toList());
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to search for subscriptions: {}", query, ex);
             throw new TechnicalManagementException(
@@ -739,11 +747,20 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                                     .pageSize(pageable.getPageSize())
                                     .build());
 
-            List<SubscriptionEntity> content = pageSubscription.getContent()
-                    .stream().map(this::convert).collect(Collectors.toList());
+            Stream<SubscriptionEntity> subscriptionsStream = pageSubscription.getContent().stream().map(this::convert);
 
-            return new Page<>(content, pageSubscription.getPageNumber() + 1,
-                    (int) pageSubscription.getPageElements(), pageSubscription.getTotalElements());
+            if (query.getApiKey() != null && !query.getApiKey().isEmpty()) {
+                subscriptionsStream = subscriptionsStream.filter(subscriptionEntity -> {
+                    final Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscriptionEntity.getId());
+                    return apiKeys.stream().anyMatch(apiKeyEntity -> apiKeyEntity.getKey().equals(query.getApiKey()));
+                });
+                final Optional<SubscriptionEntity> sub = subscriptionsStream.findAny();
+                List<SubscriptionEntity> subscriptionEntities = sub.map(Collections::singletonList).orElse(emptyList());
+                return new Page<>(subscriptionEntities, 1, subscriptionEntities.size(), subscriptionEntities.size());
+            } else {
+                return new Page<>(subscriptionsStream.collect(toList()), pageSubscription.getPageNumber() + 1,
+                        (int) pageSubscription.getPageElements(), pageSubscription.getTotalElements());
+            }
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to search for pageable subscriptions: {}", query, ex);
             throw new TechnicalManagementException(

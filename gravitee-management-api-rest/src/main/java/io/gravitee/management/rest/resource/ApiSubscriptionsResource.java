@@ -207,6 +207,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @ApiModelProperty(dataType = "string", allowableValues = "accepted, pending, rejected, closed", value = "Subscription status")
         private ListSubscriptionStatusParam status;
 
+        @QueryParam("api_key")
+        private String apiKey;
+
         public String getApi() {
             return api;
         }
@@ -239,6 +242,14 @@ public class ApiSubscriptionsResource extends AbstractResource {
             this.status = status;
         }
 
+        public String getApiKey() {
+            return apiKey;
+        }
+
+        public void setApiKey(String apiKey) {
+            this.apiKey = apiKey;
+        }
+
         private SubscriptionQuery toQuery() {
             SubscriptionQuery query = new SubscriptionQuery();
 
@@ -255,6 +266,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
             if (applications != null && applications.getValue() != null) {
                 query.setApplications(applications.getValue());
             }
+
+            query.setApiKey(this.apiKey);
 
             return query;
         }
