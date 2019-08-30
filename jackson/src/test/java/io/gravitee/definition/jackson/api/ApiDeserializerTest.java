@@ -284,6 +284,11 @@ public class ApiDeserializerTest extends AbstractTest {
         PEMTrustStore trustStore = (PEMTrustStore) endpoint.getHttpClientSslOptions().getTrustStore();
         Assert.assertNotNull(trustStore.getContent());
         Assert.assertNull(trustStore.getPath());
+        Assert.assertEquals(5000L, endpoint.getHttpClientOptions().getIdleTimeout());
+        Assert.assertEquals(5000L, endpoint.getHttpClientOptions().getConnectTimeout());
+        Assert.assertTrue(endpoint.getHttpClientOptions().isFollowRedirects());
+        Assert.assertTrue(endpoint.getHttpClientOptions().isKeepAlive());
+        Assert.assertTrue(endpoint.getHttpClientOptions().isEncodeURI());
     }
 
     @Test
@@ -299,9 +304,15 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_withclientoptions_nooptions() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json", Api.class);
 
-        Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
-        Assert.assertNotNull(((HttpEndpoint) endpoint).getHttpClientOptions());
-        Assert.assertNull(((HttpEndpoint) endpoint).getHttpClientSslOptions());
+        HttpEndpoint  endpoint = (HttpEndpoint) api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
+        Assert.assertNotNull(endpoint.getHttpClientOptions());
+        Assert.assertNull(endpoint.getHttpClientSslOptions());
+
+        Assert.assertEquals(HttpClientOptions.DEFAULT_IDLE_TIMEOUT, endpoint.getHttpClientOptions().getIdleTimeout());
+        Assert.assertEquals(HttpClientOptions.DEFAULT_CONNECT_TIMEOUT, endpoint.getHttpClientOptions().getConnectTimeout());
+        Assert.assertEquals(HttpClientOptions.DEFAULT_FOLLOW_REDIRECTS, endpoint.getHttpClientOptions().isFollowRedirects());
+        Assert.assertEquals(HttpClientOptions.DEFAULT_KEEP_ALIVE, endpoint.getHttpClientOptions().isKeepAlive());
+        Assert.assertEquals(HttpClientOptions.DEFAULT_ENCODE_URI, endpoint.getHttpClientOptions().isEncodeURI());
     }
 
     @Test
