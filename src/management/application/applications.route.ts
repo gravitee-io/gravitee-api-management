@@ -116,7 +116,7 @@ function applicationsConfig($stateProvider) {
       template: '<div ui-view></div>'
     })
     .state('management.applications.application.subscriptions.list', {
-      url: '?page&size&:api&:status',
+      url: '?page&size&:api&:status&:api_key',
       component: 'applicationSubscriptions',
       resolve: {
         subscriptions: ($stateParams, ApplicationService: ApplicationService) => {
@@ -129,6 +129,10 @@ function applicationsConfig($stateProvider) {
 
           if ($stateParams["api"]) {
             query += "&api=" + $stateParams["api"]
+          }
+
+          if ($stateParams["api_key"]) {
+            query += "&api_key=" + $stateParams["api_key"];
           }
 
           return ApplicationService.listSubscriptions($stateParams.applicationId, query).then(response => response.data)
@@ -168,11 +172,15 @@ function applicationsConfig($stateProvider) {
           type: 'int',
           value: 10,
           dynamic: true
+        },
+        api_key: {
+          type: 'string',
+          dynamic: true
         }
       }
     })
     .state('management.applications.application.subscriptions.subscription', {
-      url: '/:subscriptionId?page&size&:api&:status',
+      url: '/:subscriptionId?page&size&:api&:status&:api_key',
       component: 'applicationSubscription',
       resolve: {
         subscription: ($stateParams, ApplicationService: ApplicationService) =>
@@ -203,6 +211,10 @@ function applicationsConfig($stateProvider) {
         size: {
           type: 'int',
           value: 10,
+          dynamic: true
+        },
+        api_key: {
+          type: 'string',
           dynamic: true
         }
       }

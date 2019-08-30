@@ -47,9 +47,9 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
         plan: $state.params['plan'],
         status: $state.params['status'],
         page: $state.params['page'],
-        size: $state.params['size']
+        size: $state.params['size'],
+        api_key: $state.params['api_key']
       };
-      console.log(this.backStateParams)
     }
 
     $onInit() {

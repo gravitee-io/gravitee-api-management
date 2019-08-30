@@ -42,7 +42,8 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
         api: $state.params['api'],
         status: $state.params['status'],
         page: $state.params['page'],
-        size: $state.params['size']
+        size: $state.params['size'],
+        api_key: $state.params['api_key']
       };
     }
 

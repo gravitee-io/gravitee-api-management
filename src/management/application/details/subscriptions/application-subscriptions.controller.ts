@@ -22,8 +22,10 @@ import ApiService from '../../../../services/api.service';
 import { PagedResult } from "../../../../entities/pagedResult";
 import { StateService } from '@uirouter/core';
 
+let defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
+
 export class SubscriptionQuery {
-  status?: string[] = ['ACCEPTED', 'PENDING','PAUSED'];
+  status?: string[] = defaultStatus;
   apis?: string[];
   page?: number = 1;
   size?: number = 10;
@@ -57,19 +59,22 @@ class ApplicationSubscriptionsController {
     'ngInject';
 
     this.onPaginate = this.onPaginate.bind(this);
-    if(this.$state.params["status"]) {
+    if (this.$state.params["status"]) {
       if (Array.isArray(this.$state.params["status"])) {
         this.query.status = this.$state.params["status"];
       } else {
-        this.query.status = [this.$state.params["status"]];
+        this.query.status = this.$state.params["status"].split(',');
       }
     }
-    if(this.$state.params["api"]) {
+    if (this.$state.params["api"]) {
       if (Array.isArray(this.$state.params["api"])) {
         this.query.apis = this.$state.params["api"];
       } else {
-        this.query.apis = [this.$state.params["api"]];
+        this.query.apis = this.$state.params["api"].split(',');
       }
+    }
+    if (this.$state.params["api_key"]) {
+      this.query.api_key = this.$state.params["api_key"];
     }
   }
 
@@ -102,6 +107,10 @@ class ApplicationSubscriptionsController {
       parameters['api'] = this.query.apis.join(',');
     }
 
+    if (this.query.api_key !== undefined) {
+      parameters['api_key'] = this.query.api_key;
+    }
+
     _.mapKeys(parameters, (value, key ) => {
       return query += key + '=' + value + '&';
     });
@@ -117,7 +126,8 @@ class ApplicationSubscriptionsController {
         status: this.query.status ? this.query.status.join(",") : "",
         api: this.query.apis ? this.query.apis.join(",") : "",
         page: this.query.page,
-        size: this.query.size
+        size: this.query.size,
+        api_key: this.query.api_key
       }),
       {notify: false});
 
@@ -225,6 +235,14 @@ class ApplicationSubscriptionsController {
         this.NotificationService.show('An expiration date has been settled for API Key');
       });
     });
+  }
+
+  hasFilter() {
+    return _.difference(defaultStatus, this.query.status).length > 0
+      || _.difference(this.query.status, defaultStatus).length > 0
+      || (this.query.applications && this.query.applications.length)
+      || (this.query.plans && this.query.plans.length)
+      || this.query.api_key;
   }
 }
 

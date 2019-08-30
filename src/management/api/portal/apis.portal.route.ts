@@ -128,7 +128,7 @@ function apisPortalRouterConfig($stateProvider) {
       }
     })
     .state('management.apis.detail.portal.subscriptions.list', {
-      url: '?page&size&:application&:status&:plan',
+      url: '?page&size&:application&:status&:plan&:api_key',
       component: 'apiSubscriptions',
       resolve: {
         subscriptions: ($stateParams, ApiService: ApiService) => {
@@ -140,14 +140,18 @@ function apisPortalRouterConfig($stateProvider) {
           }
 
           if ($stateParams["application"]) {
-            query += "&application=" + $stateParams["application"]
+            query += "&application=" + $stateParams["application"];
           }
 
           if ($stateParams["plan"]) {
             query += "&plan=" + $stateParams["plan"];
           }
 
-          return ApiService.getSubscriptions($stateParams.apiId, query).then(response => response.data)
+          if ($stateParams["api_key"]) {
+            query += "&api_key=" + $stateParams["api_key"];
+          }
+
+          return ApiService.getSubscriptions($stateParams.apiId, query).then(response => response.data);
         },
 
         subscribers: ($stateParams, ApiService: ApiService) =>
@@ -186,11 +190,15 @@ function apisPortalRouterConfig($stateProvider) {
           type: 'int',
           value: 10,
           dynamic: true
+        },
+        api_key: {
+          type: "string",
+          dynamic: true
         }
       }
     })
     .state('management.apis.detail.portal.subscriptions.subscription', {
-      url: '/:subscriptionId?:page&:size&:application&:status&:plan',
+      url: '/:subscriptionId?:page&:size&:application&:status&:plan&:api_key',
       component: 'apiSubscription',
       resolve: {
         subscription: ($stateParams, ApiService: ApiService) =>
@@ -225,6 +233,10 @@ function apisPortalRouterConfig($stateProvider) {
         size: {
           type: 'int',
           value: 10,
+          dynamic: true
+        },
+        api_key: {
+          type: "string",
           dynamic: true
         }
       }

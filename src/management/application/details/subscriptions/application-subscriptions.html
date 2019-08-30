@@ -35,11 +35,15 @@
               <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.status">{{ value }}</md-option>
             </md-select>
           </md-input-container>
+          <md-input-container class="md-block" flex-gt-sm flex="20">
+            <label>API key</label>
+            <input ng-model="$ctrl.query.api_key">
+          </md-input-container>
           <div>
             <md-button type="submit" class="md-raised md-primary">
               Search
             </md-button>
-            <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="$ctrl.subscriptionsFiltersForm.$pristine">
+            <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="!$ctrl.hasFilter()">
               Clear
             </md-button>
           </div>
@@ -66,7 +70,8 @@
             page: $ctrl.query.page,
             size: $ctrl.query.size,
             status: $ctrl.query.status,
-            api: $ctrl.query.apis})">
+            api: $ctrl.query.apis,
+            api_key: $ctrl.query.api_key})">
                 {{$ctrl.subscriptions.metadata[subscription.api].name}}
               </a>
             </td>

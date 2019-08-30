@@ -20,12 +20,15 @@ import { PagedResult } from "../../../../entities/pagedResult";
 import { StateService } from '@uirouter/core';
 import * as moment from 'moment';
 
+let defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
+
 export class SubscriptionQuery {
-  status?: string[] = ['ACCEPTED', 'PENDING', 'PAUSED'];
+  status?: string[] = defaultStatus;
   applications?: string[];
   plans?: string[];
   page?: number = 1;
   size?: number = 10;
+  api_key?: string;
 }
 
 const ApiSubscriptionsComponent: ng.IComponentOptions = {
@@ -63,26 +66,29 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       'ngInject';
 
       this.onPaginate = this.onPaginate.bind(this);
-      if(this.$state.params["status"]) {
+      if (this.$state.params["status"]) {
         if (Array.isArray(this.$state.params["status"])) {
           this.query.status = this.$state.params["status"];
         } else {
-          this.query.status = [this.$state.params["status"]];
+          this.query.status = this.$state.params["status"].split(',');
         }
       }
-      if(this.$state.params["application"]) {
+      if (this.$state.params["application"]) {
         if (Array.isArray(this.$state.params["application"])) {
           this.query.applications = this.$state.params["application"];
         } else {
-          this.query.applications = [this.$state.params["application"]];
+          this.query.applications = this.$state.params["application"].split(',');
         }
       }
-      if(this.$state.params["plan"]) {
+      if (this.$state.params["plan"]) {
         if (Array.isArray(this.$state.params["plan"])) {
           this.query.plans = this.$state.params["plan"];
         } else {
-          this.query.plans = [this.$state.params["plan"]];
+          this.query.plans = this.$state.params["plan"].split(',');
         }
+      }
+      if (this.$state.params["api_key"]) {
+        this.query.api_key = this.$state.params["api_key"];
       }
     }
 
@@ -123,6 +129,10 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
         parameters['plan'] = this.query.plans.join(',');
       }
 
+      if (this.query.api_key !== undefined) {
+        parameters['api_key'] = this.query.api_key;
+      }
+
       _.mapKeys(parameters, (value, key ) => {
         return query += key + '=' + value + '&';
       });
@@ -139,7 +149,8 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
           application: this.query.applications ? this.query.applications.join(",") : "",
           plan: this.query.plans ? this.query.plans.join(",") : "",
           page: this.query.page,
-          size: this.query.size
+          size: this.query.size,
+          api_key: this.query.api_key
         }),
         {notify: false});
 
@@ -222,6 +233,14 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
         });
         document.getElementById('hidden-export-container').removeChild(hiddenElement);
       });
+    }
+
+    hasFilter() {
+      return _.difference(defaultStatus, this.query.status).length > 0
+        || _.difference(this.query.status, defaultStatus).length > 0
+        || (this.query.applications && this.query.applications.length)
+        || (this.query.plans && this.query.plans.length)
+        || this.query.api_key;
     }
   }
 };

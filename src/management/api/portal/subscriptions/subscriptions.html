@@ -23,13 +23,13 @@
     <div class="gv-filters" flex>
         <form ng-submit="$ctrl.search()" name="$ctrl.subscriptionsFiltersForm">
           <div layout-gt-sm="row">
-            <md-input-container class="md-block" flex-gt-sm flex="30">
+            <md-input-container class="md-block" flex-gt-sm flex="20">
               <label>Plan</label>
               <md-select ng-model="$ctrl.query.plans" placeholder="Plans" multiple>
                 <md-option ng-value="plan.id" ng-repeat="plan in $ctrl.plans track by plan.id">{{ plan.name }}</md-option>
               </md-select>
             </md-input-container>
-            <md-input-container class="md-block" flex-gt-sm flex="30">
+            <md-input-container class="md-block" flex-gt-sm flex="20">
               <label>Application</label>
               <md-select ng-model="$ctrl.query.applications" placeholder="Applications" multiple>
                 <md-option ng-value="subscriber.id" ng-repeat="subscriber in $ctrl.subscribers track by subscriber.id">{{ subscriber.name }}</md-option>
@@ -41,11 +41,15 @@
                 <md-option ng-value="key" ng-repeat="(key, value) in $ctrl.status">{{ value }}</md-option>
               </md-select>
             </md-input-container>
+            <md-input-container class="md-block" flex-gt-sm flex="20">
+              <label>API key</label>
+              <input ng-model="$ctrl.query.api_key">
+            </md-input-container>
             <div>
               <md-button type="submit" class="md-raised md-primary">
                 Search
               </md-button>
-              <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="$ctrl.subscriptionsFiltersForm.$pristine">
+              <md-button type="button" class="md-raised" ng-click="$ctrl.clearFilters()" ng-disabled="!$ctrl.hasFilter()">
                 Clear
               </md-button>
                 <md-button type="button" class="md-raised" ng-click="$ctrl.exportAsCSV()" ng-disabled="!$ctrl.subscriptions.data || $ctrl.subscriptions.data.length === 0">
@@ -82,7 +86,8 @@
               size: $ctrl.query.size,
               status: $ctrl.query.status,
               application: $ctrl.query.applications,
-              plan: $ctrl.query.plans
+              plan: $ctrl.query.plans,
+              api_key: $ctrl.query.api_key
             })">
               {{$ctrl.subscriptions.metadata[subscription.plan].name}}
             </a>
