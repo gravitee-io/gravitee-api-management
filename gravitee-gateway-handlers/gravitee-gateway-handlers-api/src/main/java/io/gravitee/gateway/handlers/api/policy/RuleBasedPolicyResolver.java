@@ -21,6 +21,7 @@ import io.gravitee.gateway.policy.AbstractPolicyResolver;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.StreamType;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -32,10 +33,14 @@ import java.util.stream.Collectors;
 public abstract class RuleBasedPolicyResolver extends AbstractPolicyResolver {
 
     protected List<Policy> resolve(StreamType streamType, ExecutionContext context, List<Rule> rules) {
-        return rules.stream()
-                .filter(rule -> rule.isEnabled() && rule.getMethods().contains(context.request().method()))
-                .map(rule -> create(streamType, rule.getPolicy().getName(), rule.getPolicy().getConfiguration()))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        if (rules != null && ! rules.isEmpty()) {
+            return rules.stream()
+                    .filter(rule -> rule.isEnabled() && rule.getMethods().contains(context.request().method()))
+                    .map(rule -> create(streamType, rule.getPolicy().getName(), rule.getPolicy().getConfiguration()))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
     }
 }
