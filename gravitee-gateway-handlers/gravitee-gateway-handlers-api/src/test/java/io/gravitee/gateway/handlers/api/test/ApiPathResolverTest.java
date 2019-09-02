@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -91,7 +92,9 @@ public class ApiPathResolverTest {
         pathResolver = new ApiPathResolverImpl(api);
 
         // API 2
-        when(api2.getPaths()).thenReturn(paths);
+        Map<String, Path> api2Paths = new HashMap<>(paths);
+        api2Paths.remove("/");
+        when(api2.getPaths()).thenReturn(api2Paths);
         pathResolver2 = new ApiPathResolverImpl(api2);
     }
 
@@ -102,6 +105,16 @@ public class ApiPathResolverTest {
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/", path.getPath());
+    }
+
+    @Test
+    public void resolve_unknown() {
+        when(request.path()).thenReturn("/myapi");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/", request);
+        Assert.assertNotNull(path);
+
+        Assert.assertNull(path.getPath());
+        Assert.assertEquals(Collections.emptyList(), path.getRules());
     }
 
     @Test
@@ -161,7 +174,7 @@ public class ApiPathResolverTest {
     @Test
     public void resolve_pathWithContextPath_mustReturnRoot() {
         when(request.path()).thenReturn("/v1/products/");
-        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve("/v1/products/", request);
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver.resolve("/v1/products/", request);
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/", path.getPath());

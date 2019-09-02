@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.path.impl;
 
+import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.handlers.api.path.Path;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
@@ -22,6 +23,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -39,8 +41,19 @@ public abstract class AbstractPathResolver implements PathResolver {
 
     private final List<Path> registeredPaths = new ArrayList<>();
 
+    private final static Path UNNOWN_PATH = new Path() {
+        @Override
+        public String getPath() {
+            return null;
+        }
 
-    protected AbstractPathResolver() {
+        @Override
+        public List<Rule> getRules() {
+            return Collections.emptyList();
+        }
+    };
+
+    AbstractPathResolver() {
 
     }
 
@@ -71,7 +84,7 @@ public abstract class AbstractPathResolver implements PathResolver {
             }
         }
 
-        return bestPath;
+        return ( bestPath != null ) ? bestPath : UNNOWN_PATH;
     }
 
     protected void register(Path path) {
