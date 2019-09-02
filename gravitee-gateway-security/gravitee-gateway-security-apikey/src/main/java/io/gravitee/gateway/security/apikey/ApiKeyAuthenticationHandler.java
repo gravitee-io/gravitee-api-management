@@ -71,7 +71,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
     public boolean canHandle(AuthenticationContext context) {
         final String apiKey = readApiKey(context.request());
 
-        if (apiKey == null || apiKey.isEmpty()) {
+        if (apiKey == null) {
             return false;
         }
 
