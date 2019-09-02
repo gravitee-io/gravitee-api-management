@@ -90,6 +90,20 @@ public class ApiKeyAuthenticationHandlerTest {
     }
 
     @Test
+    public void shouldHandleRequestUsingQueryParameters_emptyApiKey() {
+        when(authenticationContext.request()).thenReturn(request);
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.put("api-key", Collections.singletonList(""));
+        when(request.parameters()).thenReturn(parameters);
+
+        HttpHeaders headers = new HttpHeaders();
+        when(request.headers()).thenReturn(headers);
+
+        boolean handle = authenticationHandler.canHandle(authenticationContext);
+        Assert.assertTrue(handle);
+    }
+
+    @Test
     public void shouldReturnPolicies() {
         ExecutionContext executionContext = mock(ExecutionContext.class);
 
