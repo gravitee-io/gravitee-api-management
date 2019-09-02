@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import {IScope} from "angular";
+import {IScope, ITimeoutService} from "angular";
 import { StateService } from '@uirouter/core';
 
 interface ILogsFiltersScope extends IScope {
@@ -118,7 +118,8 @@ class LogsFiltersController {
     }];
 
   constructor(private $scope: ILogsFiltersScope,
-              private $state: StateService) {
+              private $state: StateService,
+              private $timeout: ITimeoutService) {
     'ngInject';
     this.$scope = $scope;
   }
@@ -143,9 +144,8 @@ class LogsFiltersController {
     let filters = query.split("AND");
     for (let i = 0; i < filters.length; i++) {
       let filter = filters[i].replace(/[()]/g, "");
-      let kv = filter.split(":");
-      let k = kv[0].trim();
-      let v = kv[1].split('OR').map(x => x.trim());
+      let k = filter.split(':')[0].trim();
+      let v = filter.substring(filter.indexOf(':') + 1).split('OR').map(x => x.trim());
       switch(k) {
         case 'api':
           this.filters.api = v;
@@ -153,11 +153,8 @@ class LogsFiltersController {
         case 'application':
           this.filters.application = v;
           break;
-        case 'path':
-          this.filters.uri = this.api.context_path + v[0];
-          break;
         case 'uri':
-          this.filters.uri = v[0];
+          this.filters.uri = v[0].replace(/\*|\\\\/g, '');
           break;
         case 'plan':
           this.filters.plan = v;
@@ -189,8 +186,11 @@ class LogsFiltersController {
         case 'body':
           this.filters.body = v[0].replace(/\*/g, '');
           break;
+        case 'endpoint':
+          this.filters.endpoint = v[0].replace(/\*|\\\\/g, '');
+          break;
         default:
-          console.log('unknown filter: ', k);
+          console.error('unknown filter: ', k);
           break;
       }
     }
@@ -205,7 +205,9 @@ class LogsFiltersController {
       }),
       {notify: false});
 
-    this.onFiltersChange({filters : query});
+    this.$timeout(() => {
+      this.onFiltersChange({filters : query});
+    });
   }
 
   clearFilters() {
@@ -240,6 +242,9 @@ class LogsFiltersController {
           val = '/' + val;
         }
         val = val.replace(/\//g, '\\\\/') + '*';
+      }
+      if (key === 'endpoint') {
+        val = val.replace(/:/g, '\\\\:').replace(/\//g, '\\\\/');
       }
       if (key === 'body') {
         val = '*' + val + '*';
