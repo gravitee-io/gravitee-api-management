@@ -1,4 +1,4 @@
-#ftl output_format="JSON">
+<#ftl output_format="JSON">
 {
     "index_patterns": ["${indexName}-*"],
     "settings": {
