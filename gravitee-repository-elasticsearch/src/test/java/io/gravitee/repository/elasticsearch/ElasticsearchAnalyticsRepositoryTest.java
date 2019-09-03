@@ -24,6 +24,7 @@ import io.gravitee.repository.analytics.query.count.CountResponse;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse.Bucket;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
+import io.gravitee.repository.analytics.query.stats.StatsResponse;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
 import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
 import static io.gravitee.repository.analytics.query.QueryBuilders.*;
+import static java.lang.Float.valueOf;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -224,5 +226,24 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
 
         Assert.assertNotNull(response);
         Assert.assertEquals(1, response.getCount());
+    }
+
+    @Test
+    public void testStats() throws Exception {
+        Assert.assertNotNull(analyticsRepository);
+
+        final StatsResponse response = analyticsRepository.query(
+                stats()
+                        .timeRange(lastDays(30), hours(1))
+                        .query("api:4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1")
+                        .field("response-time")
+                        .build());
+
+        Assert.assertNotNull(response);
+        Assert.assertEquals(valueOf(3), response.getCount());
+        Assert.assertEquals(valueOf(2), response.getMin());
+        Assert.assertEquals(valueOf(51), response.getMax());
+        Assert.assertEquals(valueOf(32.333332f), response.getAvg());
+        Assert.assertEquals(valueOf(97), response.getSum());
     }
 }

@@ -46,13 +46,6 @@
       "aggregations": {
   <#list query.aggregations() as aggregation>
     <#switch aggregation.type()>
-      <#case "AVG">
-      "avg_${aggregation.field()}": {
-        "avg": {
-          "field": "${aggregation.field()}"
-        }
-      }
-        <#break>
       <#case "FIELD">
       "by_${aggregation.field()}": {
         "terms": {
@@ -61,6 +54,11 @@
       }
         <#break>
       <#default>
+      "${aggregation.type()?lower_case}_${aggregation.field()}": {
+        "${aggregation.type()?lower_case}": {
+        "field": "${aggregation.field()}"
+        }
+      }
         <#break>
     </#switch>
     <#sep>,</#sep>

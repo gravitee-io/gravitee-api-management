@@ -47,8 +47,8 @@ public class CountQueryCommand extends AbstractElasticsearchQueryCommand<CountRe
 			SearchResponse searchResponse = execute(countQuery, Type.REQUEST, sQuery).blockingGet();
 			return this.toCountResponse(searchResponse);
 		} catch (final Exception eex) {
-			logger.error("Impossible to perform GroupByQuery", eex);
-			throw new AnalyticsException("Impossible to perform GroupByQuery", eex);
+			logger.error("Impossible to perform CountQuery", eex);
+			throw new AnalyticsException("Impossible to perform CountQuery", eex);
 		}
 	}
 

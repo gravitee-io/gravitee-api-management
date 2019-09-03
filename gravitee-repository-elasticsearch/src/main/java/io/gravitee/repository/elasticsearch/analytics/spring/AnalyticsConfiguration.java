@@ -16,10 +16,12 @@
 package io.gravitee.repository.elasticsearch.analytics.spring;
 
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
+import io.gravitee.repository.analytics.query.stats.StatsQuery;
 import io.gravitee.repository.elasticsearch.analytics.ElasticsearchAnalyticsRepository;
 import io.gravitee.repository.elasticsearch.analytics.query.CountQueryCommand;
 import io.gravitee.repository.elasticsearch.analytics.query.DateHistogramQueryCommand;
 import io.gravitee.repository.elasticsearch.analytics.query.GroupByQueryCommand;
+import io.gravitee.repository.elasticsearch.analytics.query.StatsQueryCommand;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -48,5 +50,10 @@ public class AnalyticsConfiguration {
     @Bean
     public GroupByQueryCommand groupByQueryCommand() {
         return new GroupByQueryCommand();
+    }
+
+    @Bean
+    public StatsQueryCommand statsQueryCommand() {
+        return new StatsQueryCommand();
     }
 }
