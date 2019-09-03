@@ -22,10 +22,6 @@
       <span class="md-subhead">{{ $ctrl.widget.subhead }}</span>
     </md-card-title-text>
     <md-card-title-media>
-      <!--
-      <a title="Settings" ng-click="openSettings(widget)"><i class="glyphicon glyphicon-cog"></i></a>
-      <a title="Remove widget" ng-click="remove(widget)"><i class="glyphicon glyphicon-trash"></i></a>
-      -->
     </md-card-title-media>
   </md-card-title>
   <md-card-content>
@@ -38,6 +34,7 @@
       <gv-widget-chart-line ng-switch-when="line" data="$ctrl.results"></gv-widget-chart-line>
       <gv-widget-chart-pie ng-switch-when="pie" data="$ctrl.results"></gv-widget-chart-pie>
       <gv-widget-chart-map ng-switch-when="map" data="$ctrl.results"></gv-widget-chart-map>
+      <gv-widget-data-stats ng-switch-when="stats" data="$ctrl.results"></gv-widget-data-stats>
     </div>
 
     <div ng-if="!$ctrl.fetchData && !$ctrl.results" layout="column" layout-align="center center" flex>

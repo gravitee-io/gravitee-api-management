@@ -26,16 +26,14 @@ class ApiAnalyticsController {
     private ApiService,
     private resolvedApi,
     private $scope,
-    private $state: StateService,
-    private Constants: any,
-    private $timeout) {
+    private $state: StateService) {
   'ngInject';
     this.ApiService = ApiService;
     this.$scope = $scope;
     this.api = resolvedApi.data;
 
     this.$scope.apiDashboard = [{
-      row: 0,
+      row: 1,
       col: 0,
       sizeY: 1,
       sizeX: 2,
@@ -54,7 +52,7 @@ class ApiAnalyticsController {
       }
     }, {
       row: 0,
-      col: 5,
+      col: 0,
       sizeY: 1,
       sizeX: 2,
       title: 'Status',
@@ -70,7 +68,7 @@ class ApiAnalyticsController {
       }
     }, {
       row: 1,
-      col: 0,
+      col: 2,
       sizeY: 1,
       sizeX: 2,
       title: 'Top plans',
@@ -88,7 +86,7 @@ class ApiAnalyticsController {
       }
     }, {
       row: 1,
-      col: 2,
+      col: 4,
       sizeY: 1,
       sizeX: 2,
       title: 'Top paths',
@@ -105,7 +103,7 @@ class ApiAnalyticsController {
         }
       }
     }, {
-      row: 1,
+      row: 2,
       col: 4,
       sizeY: 1,
       sizeX: 2,
@@ -120,6 +118,45 @@ class ApiAnalyticsController {
           type: 'group_by',
           field: 'mapped-path',
           size: 1000
+        }
+      }
+    }, {
+      row: 2,
+      col: 2,
+      sizeY: 1,
+      sizeX: 2,
+      title: 'Hits by Host ',
+      subhead: 'Hits repartition by Host HTTP Header',
+      chart: {
+        type: 'table',
+        selectable: true,
+        columns: ['Host', 'Hits'],
+        paging: 5,
+        request: {
+          type: 'group_by',
+          field: 'host',
+          fieldLabel: 'host',
+          size: 20
+        }
+      }
+    }, {
+      row: 0,
+      col: 2,
+      sizeY: 1,
+      sizeX: 4,
+      title: 'Stats',
+      chart: {
+        type: 'stats',
+        data: [
+          {key: 'min', label: 'min', unit: 'ms', color: '#66bb6a'},
+          {key: 'max', label: 'max', unit: 'ms', color: '#ef5350'},
+          {key: 'avg', label: 'avg', unit: 'ms', color: '#42a5f5'},
+          {key: 'rps', label: 'requests per second', color: '#ff8f2d'},
+          {key: 'count', label: 'total', color: 'black'}
+        ],
+        request: {
+          type: 'stats',
+          field: 'response-time'
         }
       }
     }, {
@@ -174,25 +211,6 @@ class ApiAnalyticsController {
           aggs: 'field:application'
         }
       }
-    }, {
-      row: 2,
-      col: 0,
-      sizeY: 1,
-      sizeX: 2,
-      title: 'Hits by Host ',
-      subhead: 'Hits repartition by Host HTTP Header',
-      chart: {
-        type: 'table',
-        selectable: true,
-        columns: ['Host', 'Hits'],
-        paging: 5,
-        request: {
-          type: 'group_by',
-          field: 'host',
-          fieldLabel: 'host',
-          size: 20
-        }
-      }
     }];
 
     let hasTenants = _.chain(this.api.proxy.groups)
@@ -200,8 +218,8 @@ class ApiAnalyticsController {
       .find((endpoint) => _.has(endpoint, 'tenants'));
     if (hasTenants === undefined) {
       this.$scope.apiDashboard.push({
-        row: 0,
-        col: 2,
+        row: 2,
+        col: 0,
         sizeY: 1,
         sizeX: 2,
         title: 'Top slow applications',
@@ -220,8 +238,8 @@ class ApiAnalyticsController {
       });
     } else {
       this.$scope.apiDashboard.push({
-        row: 0,
-        col: 2,
+        row: 2,
+        col: 0,
         sizeY: 1,
         sizeX: 2,
         title: 'Tenant repartition',

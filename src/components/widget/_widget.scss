@@ -43,3 +43,37 @@
     margin-right: 10px !important;
   }
 }
+
+.gv-widget-stats-container {
+  margin-top: 40px;
+}
+
+.gv-widget-stats-container-sm {
+  margin-top: 20px;
+}
+
+.gv-widget-stats {
+  border: 1px solid;
+  border-radius: 8px;
+  margin: 15px;
+  padding: 15px;
+}
+
+.gv-widget-stats-sm {
+  margin: 10px;
+  padding: 10px;
+}
+
+.gv-widget-stats-value {
+  font-size: 30px;
+  text-align: center;
+}
+
+.gv-widget-stats-value-sm {
+  font-size: 25px;
+}
+
+.gv-widget-stats-label {
+  font-size: 15px;
+  text-align: center;
+}

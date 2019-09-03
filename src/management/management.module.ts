@@ -141,6 +141,7 @@ import WidgetDataTableComponent from '../components/widget/widget-data-table.com
 import WidgetChartLineComponent from '../components/widget/widget-chart-line.component';
 import WidgetChartPieComponent from '../components/widget/widget-chart-pie.component';
 import WidgetChartMapComponent from '../components/widget/widget-chart-map.component';
+import WidgetDataStatsComponent from '../components/widget/widget-data-stats.component';
 import DashboardComponent from '../components/dashboard/dashboard.component';
 import DashboardFilterComponent from '../components/dashboard/dashboard-filter.component';
 import DashboardFilterController from '../components/dashboard/dashboard-filter.controller';
@@ -656,6 +657,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   .component('gvWidget', WidgetComponent)
   .component('gvWidgetDataTable', WidgetDataTableComponent)
+  .component('gvWidgetDataStats', WidgetDataStatsComponent)
   .component('gvWidgetChartPie', WidgetChartPieComponent)
   .component('gvWidgetChartLine', WidgetChartLineComponent)
   .component('gvWidgetChartMap', WidgetChartMapComponent)

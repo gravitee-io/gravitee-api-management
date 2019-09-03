@@ -84,12 +84,11 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
                        + 'Nb hits: <b>{point.hits}</b>'
           },
           title: {
-            text: 'Total: ' + total
-                  + extraTitle,
+            text: 'Total: ' + total + extraTitle,
             align: 'center',
             useHTML: true,
             verticalAlign: 'middle',
-            y: 40
+            y: 60
           },
           series: [{
             name: 'Percent hits',
