@@ -18,6 +18,7 @@ package io.gravitee.management.service.jackson.ser.api;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.management.model.MemberEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.model.api.ApiEntity;

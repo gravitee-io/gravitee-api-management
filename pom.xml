@@ -34,7 +34,7 @@
 
     <properties>
         <gravitee-node.version>1.4.2</gravitee-node.version>
-        <gravitee-definition.version>1.18.0</gravitee-definition.version>
+        <gravitee-definition.version>1.18.1-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>1.15.0</gravitee-common.version>
         <gravitee-plugin.version>1.8.0</gravitee-plugin.version>
         <gravitee-repository.version>1.25.1</gravitee-repository.version>
