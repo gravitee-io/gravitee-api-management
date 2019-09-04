@@ -13,31 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query.response;
+package io.gravitee.repository.analytics.query.stats;
+
+import io.gravitee.repository.analytics.query.AbstractQuery;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HitsResponse implements Response {
+public class StatsQuery extends AbstractQuery<StatsResponse> {
 
-    private String name;
+    private String field;
 
-    private long hits;
-
-    public String getName() {
-        return name;
+    @Override
+    public Class<StatsResponse> responseType() {
+        return StatsResponse.class;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String field() {
+        return field;
     }
 
-    public long getHits() {
-        return hits;
-    }
-
-    public void setHits(long hits) {
-        this.hits = hits;
+    void field(String field) {
+        this.field = field;
     }
 }

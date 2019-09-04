@@ -13,33 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.analytics.query.response;
+package io.gravitee.repository.analytics.query.stats;
 
-import java.util.Map;
+import io.gravitee.repository.analytics.query.AbstractQueryBuilder;
+import io.gravitee.repository.analytics.query.groupby.GroupByQueryBuilder;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TopHitsResponse implements Response {
+public class StatsQueryBuilder extends AbstractQueryBuilder<StatsQueryBuilder, StatsQuery> {
 
-    private String name;
-
-    private Map<String, Long> values;
-
-    public String getName() {
-        return name;
+    protected StatsQueryBuilder(StatsQuery query) {
+        super(query);
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public static StatsQueryBuilder query() {
+        return new StatsQueryBuilder(new StatsQuery());
     }
 
-    public Map<String, Long> getValues() {
-        return values;
-    }
-
-    public void setValues(Map<String, Long> values) {
-        this.values = values;
+    public StatsQueryBuilder field(String field) {
+        query.field(field);
+        return this;
     }
 }

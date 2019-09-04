@@ -17,6 +17,7 @@ package io.gravitee.repository.analytics.query;
 
 import io.gravitee.repository.analytics.query.count.CountQueryBuilder;
 import io.gravitee.repository.analytics.query.groupby.GroupByQueryBuilder;
+import io.gravitee.repository.analytics.query.stats.StatsQueryBuilder;
 import io.gravitee.repository.analytics.query.tabular.TabularQueryBuilder;
 
 /**
@@ -39,5 +40,9 @@ public class QueryBuilders {
 
     public static TabularQueryBuilder tabular() {
         return TabularQueryBuilder.query();
+    }
+
+    public static StatsQueryBuilder stats() {
+        return StatsQueryBuilder.query();
     }
 }
