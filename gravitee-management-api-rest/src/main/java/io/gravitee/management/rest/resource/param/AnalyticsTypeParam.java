@@ -26,7 +26,8 @@ public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.Analyti
     public enum AnalyticsType {
         GROUP_BY,
         DATE_HISTO,
-        COUNT
+        COUNT,
+        STATS
     }
 
     public AnalyticsTypeParam(String param) throws WebApplicationException {

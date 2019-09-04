@@ -17,21 +17,22 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.analytics.HistogramAnalytics;
 import io.gravitee.management.model.analytics.HitsAnalytics;
+import io.gravitee.management.model.analytics.StatsAnalytics;
 import io.gravitee.management.model.analytics.TopHitsAnalytics;
 import io.gravitee.management.model.analytics.query.CountQuery;
 import io.gravitee.management.model.analytics.query.DateHistogramQuery;
 import io.gravitee.management.model.analytics.query.GroupByQuery;
+import io.gravitee.management.model.analytics.query.StatsQuery;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface AnalyticsService {
-
+    StatsAnalytics execute(StatsQuery query);
     HitsAnalytics execute(CountQuery query);
-
     HistogramAnalytics execute(DateHistogramQuery query);
-
     TopHitsAnalytics execute(GroupByQuery query);
 }

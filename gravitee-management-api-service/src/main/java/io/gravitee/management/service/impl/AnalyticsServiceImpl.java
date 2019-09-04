@@ -15,6 +15,7 @@
  */
 package io.gravitee.management.service.impl;
 
+import io.gravitee.management.model.analytics.query.StatsQuery;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.ApplicationEntity;
 import io.gravitee.management.model.PlanEntity;
@@ -33,6 +34,7 @@ import io.gravitee.repository.analytics.query.groupby.GroupByQueryBuilder;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
 import io.gravitee.repository.analytics.query.response.histogram.Data;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
+import io.gravitee.repository.analytics.query.stats.StatsResponse;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +73,27 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     @Autowired
     private TenantService tenantService;
+
+    @Override
+    public StatsAnalytics execute(final StatsQuery query) {
+        try {
+            final StatsResponse response = analyticsRepository.query(
+                    QueryBuilders.stats()
+                            .query(query.getQuery())
+                            .timeRange(
+                                    DateRangeBuilder.between(query.getFrom(), query.getTo()),
+                                    IntervalBuilder.interval(query.getInterval())
+                            )
+                            .root(query.getRootField(), query.getRootIdentifier())
+                            .field(query.getField())
+                            .build());
+
+            return convert(response, query);
+        } catch (AnalyticsException ae) {
+            logger.error("Unable to calculate analytics: ", ae);
+            throw new TechnicalManagementException("Unable to calculate analytics", ae);
+        }
+    }
 
     @Override
     public HitsAnalytics execute(CountQuery query) {
@@ -228,12 +251,24 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return analyticsBucket;
     }
 
+    private StatsAnalytics convert(final StatsResponse statsResponse, final StatsQuery query) {
+        final StatsAnalytics statsAnalytics = new StatsAnalytics();
+        statsAnalytics.setAvg(statsResponse.getAvg());
+        statsAnalytics.setCount(statsResponse.getCount());
+        statsAnalytics.setMax(statsResponse.getMax());
+        statsAnalytics.setMin(statsResponse.getMin());
+        statsAnalytics.setSum(statsResponse.getSum());
+        if (statsResponse.getCount() != null) {
+            final long numberOfSeconds = (query.getTo() - query.getFrom()) / 1000;
+            statsAnalytics.setRps(statsResponse.getCount() / numberOfSeconds);
+        }
+        return statsAnalytics;
+    }
+
     private HitsAnalytics convert(CountResponse countResponse) {
         HitsAnalytics hitsAnalytics = new HitsAnalytics();
-//        hitsAnalytics.setName(countResponse.getName());
         hitsAnalytics.setHits(countResponse.getCount());
-
-        return  hitsAnalytics;
+        return hitsAnalytics;
     }
 
     private TopHitsAnalytics convert(GroupByResponse groupByResponse) {

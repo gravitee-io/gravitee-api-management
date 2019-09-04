@@ -74,9 +74,24 @@ public class ApiAnalyticsResource extends AbstractResource {
             case COUNT:
                 analytics = executeCount(api, analyticsParam);
                 break;
+            case STATS:
+                analytics = executeStats(api, analyticsParam);
+                break;
         }
 
         return Response.ok(analytics).build();
+    }
+
+    private Analytics executeStats(String api, AnalyticsParam analyticsParam) {
+        final StatsQuery query = new StatsQuery();
+        query.setFrom(analyticsParam.getFrom());
+        query.setTo(analyticsParam.getTo());
+        query.setInterval(analyticsParam.getInterval());
+        query.setQuery(analyticsParam.getQuery());
+        query.setRootField("api");
+        query.setRootIdentifier(api);
+        query.setField(analyticsParam.getField());
+        return analyticsService.execute(query);
     }
 
     private Analytics executeCount(String api, AnalyticsParam analyticsParam) {

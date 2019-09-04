@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.management.model.analytics;
+package io.gravitee.management.model.analytics.query;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HitsAnalytics implements Analytics {
+public class StatsQuery extends AbstractQuery {
+    private String field;
 
-    private long hits;
-
-    public long getHits() {
-        return hits;
+    public String getField() {
+        return field;
     }
 
-    public void setHits(long hits) {
-        this.hits = hits;
+    public void setField(String field) {
+        this.field = field;
     }
 }
