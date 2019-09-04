@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Titouan COMPIEGNE
  */
-public class ApiEntity {
+public class ApiStateEntity {
 
     @JsonProperty("api_id")
     private String apiId;

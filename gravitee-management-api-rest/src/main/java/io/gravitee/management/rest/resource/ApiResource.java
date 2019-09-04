@@ -25,6 +25,7 @@ import io.gravitee.management.model.notification.NotifierEntity;
 import io.gravitee.management.model.parameters.Key;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
+import io.gravitee.management.rest.model.ApiStateEntity;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.management.rest.resource.param.LifecycleActionParam.LifecycleAction;
 import io.gravitee.management.rest.resource.param.ReviewActionParam;
@@ -52,7 +53,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayOutputStream;
-import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -326,17 +326,17 @@ public class ApiResource extends AbstractResource {
             value = "Get the state of the API",
             notes = "User must have the MANAGE_LIFECYCLE permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "API's state", response = io.gravitee.management.rest.model.ApiEntity.class),
+            @ApiResponse(code = 200, message = "API's state", response = ApiStateEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public io.gravitee.management.rest.model.ApiEntity isAPISynchronized(@PathParam("api") String api) {
+    public ApiStateEntity isAPISynchronized(@PathParam("api") String api) {
         ApiEntity foundApi = apiService.findById(api);
         if (Visibility.PUBLIC.equals(foundApi.getVisibility())
                 || hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
-            io.gravitee.management.rest.model.ApiEntity apiEntity = new io.gravitee.management.rest.model.ApiEntity();
-            apiEntity.setApiId(api);
-            setSynchronizationState(apiEntity);
+            ApiStateEntity apiStateEntity = new ApiStateEntity();
+            apiStateEntity.setApiId(api);
+            setSynchronizationState(apiStateEntity);
 
-            return apiEntity;
+            return apiStateEntity;
         }
         throw new ForbiddenAccessException();
     }
@@ -652,11 +652,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiAlertsResource.class);
     }
 
-    private void setSynchronizationState(io.gravitee.management.rest.model.ApiEntity apiEntity) {
-        if (apiService.isSynchronized(apiEntity.getApiId())) {
-            apiEntity.setIsSynchronized(true);
+    private void setSynchronizationState(ApiStateEntity apiStateEntity) {
+        if (apiService.isSynchronized(apiStateEntity.getApiId())) {
+            apiStateEntity.setIsSynchronized(true);
         } else {
-            apiEntity.setIsSynchronized(false);
+            apiStateEntity.setIsSynchronized(false);
         }
     }
 
