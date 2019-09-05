@@ -18,11 +18,13 @@ package io.gravitee.repository.elasticsearch.spring;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.client.http.HttpClient;
 import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
+import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.index.MultiTypeIndexNameGenerator;
 import io.gravitee.elasticsearch.index.PerTypeIndexNameGenerator;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
+import io.gravitee.elasticsearch.version.Error;
 import io.gravitee.repository.elasticsearch.analytics.spring.AnalyticsConfiguration;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.healthcheck.spring.HealthCheckConfiguration;
@@ -39,6 +41,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import java.util.concurrent.TimeUnit;
+
+import static java.lang.String.format;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -100,6 +104,12 @@ public class ElasticsearchRepositoryConfiguration {
 
         singleVersion.subscribe();
 
-        return singleVersion.blockingGet();
+        final ElasticsearchInfo elasticsearchInfo = singleVersion.blockingGet();
+        if (elasticsearchInfo.getStatus() != 200) {
+            throw new ElasticsearchException(format("Status '%d', reason: %s",
+                    elasticsearchInfo.getStatus(), elasticsearchInfo.getError().getReason()));
+        }
+
+        return elasticsearchInfo;
     }
 }

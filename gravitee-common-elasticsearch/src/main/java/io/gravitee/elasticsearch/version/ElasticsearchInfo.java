@@ -28,14 +28,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ElasticsearchInfo {
 
     private String name;
-
     @JsonProperty("cluster_name")
     private String clusterName;
-
     @JsonProperty("cluster_uuid")
     private String clusterUuid;
-
     private Version version;
+    private Error error;
+    private Integer status;
 
     public String getName() {
         return name;
@@ -67,5 +66,21 @@ public class ElasticsearchInfo {
 
     public void setVersion(Version version) {
         this.version = version;
+    }
+
+    public Error getError() {
+        return error;
+    }
+
+    public void setError(Error error) {
+        this.error = error;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }
