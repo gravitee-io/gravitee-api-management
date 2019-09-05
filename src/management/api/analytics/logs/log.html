@@ -41,7 +41,7 @@
             <table md-table class="gv-table-dense">
               <tbody md-body>
               <tr md-row ng-if="$ctrl.log.securityToken">
-                <td md-cell style="width: 1%; font-weight: bold;" nowrap>Token</td>
+                <td md-cell style="width: 1%; font-weight: bold;" nowrap>{{$ctrl.log.securityType === 'api_key'?'API key': 'Client id'}}</td>
                 <td md-cell>{{$ctrl.log.securityToken}}</td>
               </tr>
               <tr md-row ng-if="$ctrl.log.application">
