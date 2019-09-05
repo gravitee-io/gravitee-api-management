@@ -24,7 +24,6 @@ import io.gravitee.elasticsearch.index.MultiTypeIndexNameGenerator;
 import io.gravitee.elasticsearch.index.PerTypeIndexNameGenerator;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
-import io.gravitee.elasticsearch.version.Error;
 import io.gravitee.repository.elasticsearch.analytics.spring.AnalyticsConfiguration;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.healthcheck.spring.HealthCheckConfiguration;
@@ -105,7 +104,7 @@ public class ElasticsearchRepositoryConfiguration {
         singleVersion.subscribe();
 
         final ElasticsearchInfo elasticsearchInfo = singleVersion.blockingGet();
-        if (elasticsearchInfo.getStatus() != 200) {
+        if (elasticsearchInfo.getStatus() != null && elasticsearchInfo.getStatus() != 200) {
             throw new ElasticsearchException(format("Status '%d', reason: %s",
                     elasticsearchInfo.getStatus(), elasticsearchInfo.getError().getReason()));
         }
