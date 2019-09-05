@@ -23,24 +23,37 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
+import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.http.SecurityType;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.ApiKey;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static java.util.Optional.of;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Metrics.class)
 public class ApiKeyAuthenticationHandlerTest {
 
     @InjectMocks
@@ -48,9 +61,17 @@ public class ApiKeyAuthenticationHandlerTest {
 
     @Mock
     private Request request;
-
+    @Mock
+    private Metrics metrics;
     @Mock
     private AuthenticationContext authenticationContext;
+    @Mock
+    private ApiKeyRepository apiKeyRepository;
+
+    @Before
+    public void init() {
+        initMocks(this);
+    }
 
     @Test
     public void shouldNotHandleRequest() {
@@ -65,28 +86,36 @@ public class ApiKeyAuthenticationHandlerTest {
     }
 
     @Test
-    public void shouldHandleRequestUsingHeaders() {
+    public void shouldHandleRequestUsingHeaders() throws TechnicalException {
         when(authenticationContext.request()).thenReturn(request);
+        when(request.metrics()).thenReturn(metrics);
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
         when(request.headers()).thenReturn(headers);
+        when(apiKeyRepository.findById("xxxxx-xxxx-xxxxx")).thenReturn(of(new ApiKey()));
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);
+        verify(metrics).setSecurityType(SecurityType.API_KEY);
+        verify(metrics).setSecurityToken("xxxxx-xxxx-xxxxx");
     }
 
     @Test
-    public void shouldHandleRequestUsingQueryParameters() {
+    public void shouldHandleRequestUsingQueryParameters() throws TechnicalException {
         when(authenticationContext.request()).thenReturn(request);
+        when(request.metrics()).thenReturn(metrics);
         MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.put("api-key", Collections.singletonList("xxxxx-xxxx-xxxxx"));
         when(request.parameters()).thenReturn(parameters);
+        when(apiKeyRepository.findById("xxxxx-xxxx-xxxxx")).thenReturn(of(new ApiKey()));
 
         HttpHeaders headers = new HttpHeaders();
         when(request.headers()).thenReturn(headers);
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);
+        verify(metrics).setSecurityType(SecurityType.API_KEY);
+        verify(metrics).setSecurityToken("xxxxx-xxxx-xxxxx");
     }
 
     @Test

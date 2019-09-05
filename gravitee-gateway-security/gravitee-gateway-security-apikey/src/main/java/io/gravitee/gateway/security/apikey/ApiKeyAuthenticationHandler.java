@@ -22,8 +22,10 @@ import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
+import io.gravitee.reporter.api.http.SecurityType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.ApiKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -33,6 +35,9 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+
+import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
 
 /**
  * An api-key based {@link AuthenticationHandler}.
@@ -75,11 +80,17 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
             return false;
         }
 
+
         if (apiKeyRepository != null) {
             // Get the api-key from the repository if not present in the context
             if (context.get(APIKEY_CONTEXT_ATTRIBUTE) == null) {
                 try {
-                    context.set(APIKEY_CONTEXT_ATTRIBUTE, apiKeyRepository.findById(apiKey));
+                    final Optional<ApiKey> optApiKey = apiKeyRepository.findById(apiKey);
+                    if (optApiKey.isPresent()) {
+                        context.request().metrics().setSecurityType(API_KEY);
+                        context.request().metrics().setSecurityToken(apiKey);
+                    }
+                    context.set(APIKEY_CONTEXT_ATTRIBUTE, optApiKey);
                 } catch (TechnicalException e) {
                     // Any API key plan can be selected, the request will be rejected by the API Key policy whatsoever
                 }
