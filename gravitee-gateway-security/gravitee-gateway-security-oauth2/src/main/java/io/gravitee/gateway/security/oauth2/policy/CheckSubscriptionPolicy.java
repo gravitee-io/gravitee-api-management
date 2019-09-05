@@ -62,6 +62,9 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
             return;
         }
 
+        request.metrics().setSecurityType(OAUTH2);
+        request.metrics().setSecurityToken(clientId);
+
         String api = (String) executionContext.getAttribute(ExecutionContext.ATTR_API);
 
         try {
@@ -82,10 +85,6 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                     executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
                     executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
-
-                    final String accessToken = (String) executionContext.getAttribute("oauth.access_token");
-                    request.metrics().setSecurityType(OAUTH2);
-                    request.metrics().setSecurityToken(accessToken);
 
                     policyChain.doNext(request, response);
                     return;

@@ -56,6 +56,9 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
         // Get plan and client_id from execution context
         String api = (String) executionContext.getAttribute(ExecutionContext.ATTR_API);
         String clientId = (String) executionContext.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
+
+        request.metrics().setSecurityType(JWT);
+        request.metrics().setSecurityToken(clientId);
         try {
             List<Subscription> subscriptions = subscriptionRepository.search(
                     new SubscriptionCriteria.Builder()
@@ -74,10 +77,6 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                     executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
                     executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
-
-                    final String accessToken = (String) executionContext.getAttribute("jwt.token");
-                    request.metrics().setSecurityType(JWT);
-                    request.metrics().setSecurityToken(accessToken);
 
                     policyChain.doNext(request, response);
                     return;
