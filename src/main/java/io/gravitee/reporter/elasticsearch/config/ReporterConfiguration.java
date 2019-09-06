@@ -72,6 +72,31 @@ public class ReporterConfiguration {
 	@Value("${reporters.elasticsearch.security.password:#{null}}")
 	private String password;
 	/**
+	 * Elasticsearch ssl keystore path.
+	 */
+	@Value("${reporters.elasticsearch.ssl.keystore.type:#{null}}")
+	private String sslKeystoreType;
+	/**
+	 * Elasticsearch ssl keystore path.
+	 */
+	@Value("${reporters.elasticsearch.ssl.keystore.path:#{null}}")
+	private String sslKeystore;
+	/**
+	 * Elasticsearch ssl keystore password.
+	 */
+	@Value("${reporters.elasticsearch.ssl.keystore.password:#{null}}")
+	private String sslKeystorePassword;
+	/**
+	 * Elasticsearch ssl pem certs paths
+	 */
+	@Value("${reporters.elasticsearch.ssl.keystore.certs}")
+	private List<String> sslPemCerts;
+	/**
+	 * Elasticsearch ssl pem keys paths
+	 */
+	@Value("${reporters.elasticsearch.ssl.keystore.keys}")
+	private List<String> sslPemKeys;
+	/**
 	 * Elasticsearch HTTP request timeout.
 	 */
 	@Value("${reporters.elasticsearch.http.timeout:30000}")
@@ -172,6 +197,46 @@ public class ReporterConfiguration {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getSslKeystoreType() {
+		return sslKeystoreType;
+	}
+
+	public void setSslKeystoreType(String sslKeystoreType) {
+		this.sslKeystoreType = sslKeystoreType;
+	}
+
+	public String getSslKeystore() {
+		return sslKeystore;
+	}
+
+	public void setSslKeystore(String sslKeystore) {
+		this.sslKeystore = sslKeystore;
+	}
+
+	public String getSslKeystorePassword() {
+		return sslKeystorePassword;
+	}
+
+	public void setSslKeystorePassword(String sslKeystorePassword) {
+		this.sslKeystorePassword = sslKeystorePassword;
+	}
+
+	public List<String> getSslPemCerts() {
+		return sslPemCerts;
+	}
+
+	public void setSslPemCerts(List<String> sslPemCerts) {
+		this.sslPemCerts = sslPemCerts;
+	}
+
+	public List<String> getSslPemKeys() {
+		return sslPemKeys;
+	}
+
+	public void setSslPemKeys(List<String> sslPemKeys) {
+		this.sslPemKeys = sslPemKeys;
 	}
 
 	public int getNumberOfShards() {
