@@ -65,6 +65,36 @@ public class RepositoryConfiguration {
 	private String password;
 
 	/**
+	 * Elasticsearch ssl keystore type. (jks, pkcs12,)
+	 */
+	@Value("${analytics.elasticsearch.ssl.keystore.type:#{null}}")
+	private String sslKeystoreType;
+
+	/**
+	 * Elasticsearch ssl keystore path.
+	 */
+	@Value("${analytics.elasticsearch.ssl.keystore.path:#{null}}")
+	private String sslKeystore;
+
+	/**
+	 * Elasticsearch ssl keystore password.
+	 */
+	@Value("${analytics.elasticsearch.ssl.keystore.password:#{null}}")
+	private String sslKeystorePassword;
+
+	/**
+	 * Elasticsearch ssl pem certs paths
+	 */
+	@Value("${analytics.elasticsearch.ssl.keystore.certs}")
+	private List<String> sslPemCerts;
+
+	/**
+	 * Elasticsearch ssl pem keys paths
+	 */
+	@Value("${analytics.elasticsearch.ssl.keystore.keys}")
+	private List<String> sslPemKeys;
+
+	/**
 	 * Configurable request timeout for http requests to elasticsearch
 	 */
 	@Value("${analytics.elasticsearch.http.timeout:10000}")
@@ -124,6 +154,46 @@ public class RepositoryConfiguration {
 
 	public void setPerTypeIndex(boolean perTypeIndex) {
 		this.perTypeIndex = perTypeIndex;
+	}
+
+	public String getSslKeystoreType() {
+		return sslKeystoreType;
+	}
+
+	public void setSslKeystoreType(String sslKeystoreType) {
+		this.sslKeystoreType = sslKeystoreType;
+	}
+
+	public String getSslKeystore() {
+		return sslKeystore;
+	}
+
+	public void setSslKeystore(String sslKeystore) {
+		this.sslKeystore = sslKeystore;
+	}
+
+	public String getSslKeystorePassword() {
+		return sslKeystorePassword;
+	}
+
+	public void setSslKeystorePassword(String sslKeystorePassword) {
+		this.sslKeystorePassword = sslKeystorePassword;
+	}
+
+	public List<String> getSslPemCerts() {
+		return sslPemCerts;
+	}
+
+	public void setSslPemCerts(List<String> sslPemCerts) {
+		this.sslPemCerts = sslPemCerts;
+	}
+
+	public List<String> getSslPemKeys() {
+		return sslPemKeys;
+	}
+
+	public void setSslPemKeys(List<String> sslPemKeys) {
+		this.sslPemKeys = sslPemKeys;
 	}
 
 	private boolean crossClusterInitialized;

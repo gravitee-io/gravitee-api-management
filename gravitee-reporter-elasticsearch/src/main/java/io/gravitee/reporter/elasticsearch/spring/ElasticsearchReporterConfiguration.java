@@ -16,11 +16,10 @@
 package io.gravitee.reporter.elasticsearch.spring;
 
 import io.gravitee.elasticsearch.client.Client;
-import io.gravitee.elasticsearch.client.http.HttpClient;
-import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
+import io.gravitee.elasticsearch.client.http.*;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
-import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
+import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.vertx.reactivex.core.Vertx;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +39,25 @@ public class ElasticsearchReporterConfiguration {
         clientConfiguration.setUsername(reporterConfiguration.getUsername());
         clientConfiguration.setPassword(reporterConfiguration.getPassword());
         clientConfiguration.setRequestTimeout(reporterConfiguration.getRequestTimeout());
+        if (reporterConfiguration.getSslKeystoreType() != null) {
+            if (reporterConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.JKS_KEYSTORE_TYPE)) {
+                clientConfiguration.setSslConfig(new HttpClientJksSslConfiguration(
+                        reporterConfiguration.getSslKeystore(),
+                        reporterConfiguration.getSslKeystorePassword()
+                ));
+            } else if (reporterConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PFX_KEYSTORE_TYPE)) {
+                clientConfiguration.setSslConfig(new HttpClientPfxSslConfiguration(
+                        reporterConfiguration.getSslKeystore(),
+                        reporterConfiguration.getSslKeystorePassword()
+                ));
+            } else if (reporterConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PEM_KEYSTORE_TYPE)) {
+                clientConfiguration.setSslConfig(new HttpClientPemSslConfiguration(
+                        reporterConfiguration.getSslPemCerts(),
+                        reporterConfiguration.getSslPemKeys()
+                ));
+            }
+        }
+
         return new HttpClient(clientConfiguration);
     }
 

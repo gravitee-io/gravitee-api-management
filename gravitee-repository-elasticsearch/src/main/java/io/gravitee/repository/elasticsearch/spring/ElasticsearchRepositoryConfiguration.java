@@ -16,8 +16,7 @@
 package io.gravitee.repository.elasticsearch.spring;
 
 import io.gravitee.elasticsearch.client.Client;
-import io.gravitee.elasticsearch.client.http.HttpClient;
-import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
+import io.gravitee.elasticsearch.client.http.*;
 import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.index.MultiTypeIndexNameGenerator;
@@ -82,6 +81,24 @@ public class ElasticsearchRepositoryConfiguration {
         clientConfiguration.setUsername(repositoryConfiguration.getUsername());
         clientConfiguration.setPassword(repositoryConfiguration.getPassword());
         clientConfiguration.setRequestTimeout(repositoryConfiguration.getRequestTimeout());
+        if (repositoryConfiguration.getSslKeystoreType() != null) {
+            if (repositoryConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.JKS_KEYSTORE_TYPE)) {
+                clientConfiguration.setSslConfig(new HttpClientJksSslConfiguration(
+                        repositoryConfiguration.getSslKeystore(),
+                        repositoryConfiguration.getSslKeystorePassword()
+                ));
+            } else if (repositoryConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PFX_KEYSTORE_TYPE)) {
+                clientConfiguration.setSslConfig(new HttpClientPfxSslConfiguration(
+                        repositoryConfiguration.getSslKeystore(),
+                        repositoryConfiguration.getSslKeystorePassword()
+                ));
+            } else if (repositoryConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PEM_KEYSTORE_TYPE)) {
+                clientConfiguration.setSslConfig(new HttpClientPemSslConfiguration(
+                        repositoryConfiguration.getSslPemCerts(),
+                        repositoryConfiguration.getSslPemKeys()
+                ));
+            }
+        }
         return new HttpClient(clientConfiguration);
     }
 

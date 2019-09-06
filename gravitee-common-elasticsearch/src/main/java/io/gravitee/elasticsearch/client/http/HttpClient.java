@@ -29,6 +29,7 @@ import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.vertx.core.Handler;
+import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
@@ -44,8 +45,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
-
-import static java.lang.String.format;
 
 import static java.lang.String.format;
 
@@ -111,8 +110,12 @@ public class HttpClient implements Client {
 
             if (HTTPS_SCHEME.equals(elasticEdpt.getScheme())) {
                 options
-                        .setSsl(true)
-                        .setTrustAll(true);
+                    .setSsl(true)
+                    .setTrustAll(true);
+
+                if (this.configuration.getSslConfig() != null) {
+                    options.setKeyCertOptions(this.configuration.getSslConfig().getVertxWebClientSslKeystoreOptions());
+                }
             }
 
             this.httpClient = WebClient.create(vertx, options);

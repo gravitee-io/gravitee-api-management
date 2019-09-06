@@ -33,6 +33,8 @@ public class HttpClientConfiguration {
     private String username;
     private String password;
 
+    private ClientSslConfiguration sslConfig;
+
     private long requestTimeout = 10000;
 
     public List<Endpoint> getEndpoints() {
@@ -65,5 +67,13 @@ public class HttpClientConfiguration {
 
     public void setRequestTimeout(long requestTimeout) {
         this.requestTimeout = requestTimeout;
+    }
+
+    public ClientSslConfiguration getSslConfig() {
+        return sslConfig;
+    }
+
+    public void setSslConfig(ClientSslConfiguration sslConfig) {
+        this.sslConfig = sslConfig;
     }
 }
