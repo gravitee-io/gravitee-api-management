@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import _ = require('lodash');
 import ApiService from "../../../../services/api.service";
 import NotificationService from "../../../../services/notification.service";
@@ -94,7 +93,7 @@ class ApiLoggingConfigurationController {
         },
         plans: ($stateParams, ApiService: ApiService) => {
           'ngInject';
-          return ApiService.getApiPlans($stateParams.apiId).then(response => response.data);
+          return ApiService.getApiPlans($stateParams.apiId, 'published,deprecated').then(response => response.data);
         }
       }
     }).then((condition) => {
