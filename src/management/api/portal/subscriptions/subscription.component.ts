@@ -18,6 +18,7 @@ import _ = require('lodash');
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
+import moment = require("moment");
 
 const ApiSubscriptionComponent: ng.IComponentOptions = {
   bindings: {
@@ -268,6 +269,10 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
         this.subscription.plan = plan;
         this.transferSubscription(this.subscription);
       });
+    }
+
+    isValid(key) {
+      return !key.revoked && (!key.expire_at || moment().isBefore(key.expire_at)) ;
     }
   }
 };
