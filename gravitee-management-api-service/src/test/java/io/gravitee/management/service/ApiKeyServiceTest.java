@@ -218,6 +218,48 @@ public class ApiKeyServiceTest {
         assertNotNull(apiKey.getExpireAt());
     }
 
+    @Test
+    public void shouldRenewWithoutRenewingExpiredKeys() throws TechnicalException {
+        // Prepare data
+        // apiKey object is not a mock since its state is updated by the call to apiKeyService.renew()
+        apiKey = new ApiKey();
+        apiKey.setKey("123-456-789");
+        apiKey.setSubscription(SUBSCRIPTION_ID);
+        apiKey.setCreatedAt(new Date());
+        apiKey.setPlan(PLAN_ID);
+        apiKey.setApplication(APPLICATION_ID);
+        apiKey.setExpireAt(Date.from(new Date().toInstant().minus(1, ChronoUnit.DAYS)));
+        final ApiModelEntity api = mock(ApiModelEntity.class);
+
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(plan.getApis()).thenReturn(Collections.singleton(API_ID));
+
+        // Stub
+        when(apiKeyGenerator.generate()).thenReturn(API_KEY);
+        when(subscriptionService.findById(subscription.getId())).thenReturn(subscription);
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+        when(apiKeyRepository.findBySubscription(SUBSCRIPTION_ID)).thenReturn(Collections.singleton(apiKey));
+        when(applicationService.findById(subscription.getApplication())).thenReturn(application);
+        when(planService.findById(subscription.getPlan())).thenReturn(plan);
+        when(apiService.findByIdForTemplates(any())).thenReturn(api);
+
+        // Run
+        final ApiKeyEntity apiKeyEntity = apiKeyService.renew(SUBSCRIPTION_ID);
+
+        // Verify
+        // A new API Key has been created
+        verify(apiKeyRepository, times(1)).create(any());
+        assertEquals(API_KEY, apiKeyEntity.getKey());
+
+        // Old API Key has been revoked
+        verify(apiKeyRepository, times(0)).update(apiKey);
+        assertFalse(apiKey.isRevoked());
+        assertNotNull(apiKey.getExpireAt());
+    }
+
     /*
     @Test
     public void shouldGenerateAndInvalidOldKeys() throws TechnicalException {
