@@ -39,11 +39,11 @@ function interceptorConfig(
             errorMessage = 'Wrong user or password';
           } else {
             // if on portal home do not redirect
-            error.config.forceSessionExpired = $location.$$path !== '' && $location.$$path !== '/' && !$location.$$path.startWith("/registration/confirm");
+            error.config.forceSessionExpired = $location.$$path !== '' && $location.$$path !== '/' && !_.startsWith($location.$$path, "/registration/confirm");
             if (error.config.forceSessionExpired || (!sessionExpired && !error.config.silentCall)) {
               sessionExpired = true;
               // session expired
-              notificationService.showError(error, 'Session expired, redirecting to login...');
+              notificationService.showError(error, 'Session expired, redirecting to home...');
               let redirectUri = $location.$$path;
               $timeout(function () {
                 $injector.get('$rootScope').$broadcast('graviteeLogout', {redirectUri: redirectUri});
