@@ -27,7 +27,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     resolvedHookScope: '<',
     resolvedHooks: '<',
     resolvedNotifiers: '<',
-    notificationSettings: '<'
+    notificationSettings: '='
   },
   template: require('./notificationsettings.html'),
   controller: function(
@@ -59,7 +59,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
       }
     };
 
-    vm.selectNotificationSetting = (n) => {
+    vm.selectNotificationSetting = (n, reload) => {
       vm.selectedNotificationSetting = n;
       vm.hookStatus = {};
       _.forEach(vm.resolvedHooks,  (hook: Hook) => {
@@ -74,7 +74,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
       }
       $timeout(function () {
         $state.params.notificationId = vm.selectedNotificationSetting.id;
-        $state.transitionTo($state.current, $state.params);
+        $state.transitionTo($state.current, $state.params, {reload: reload});
       });
     };
 
@@ -125,8 +125,8 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
               vm.notificationSettings = _.filter(vm.notificationSettings, (n: any) => {
                 return vm.selectedNotificationSetting.id !== n.id;
               });
-              vm.selectNotificationSetting(vm.notificationSettings[0]);
-          })
+              vm.selectNotificationSetting(vm.notificationSettings[0], true);
+          });
         });
     };
 
