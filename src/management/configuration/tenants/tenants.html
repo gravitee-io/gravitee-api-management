@@ -40,14 +40,14 @@
     </thead>
     <tbody md-body>
     <tr md-row ng-repeat="tenant in $ctrl.tenants | orderBy: order"ng-mouseover="hovered = true && tenant.id" ng-mouseout="hovered = false">
-      <td md-cell>
+      <td md-cell style="position:relative;">
         {{tenant.id}}
-        <span style="position: absolute">
+        <span style="position: absolute;bottom: 8px;">
             <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
-            <ng-md-icon ng-show="hovered" ng-hide="!hovered" icon="link"
+            <ng-md-icon ng-show="hovered" icon="link"
                         ngclipboard data-clipboard-text="{{tenant.id}}"
                         ngclipboard-success="$ctrl.onClipboardSuccess(e);"
-                        role="button" ></ng-md-icon>
+                        role="button"></ng-md-icon>
         </span>
       </td>
       <td permission permission-only="'management-tenant-u'"
