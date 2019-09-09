@@ -130,14 +130,14 @@
       </table>
     </md-table-container>
 
-<div layout="row">
-  <md-button ng-disabled="$ctrl.viewForm.$invalid || $ctrl.viewForm.$pristine && !$ctrl.formChanged"
-             ng-click="$ctrl.save()"
-             permission permission-only="['portal-view-c', 'portal-view-u']"
-             class="md-raised md-primary">
-    Save
-  </md-button>
-</div>
+      <div layout="row">
+        <md-button ng-disabled="$ctrl.viewForm.$invalid || $ctrl.viewForm.$pristine && !$ctrl.formChanged"
+                   ng-click="$ctrl.save()"
+                   permission permission-only="['portal-view-c', 'portal-view-u']"
+                   class="md-raised md-primary">
+          Save
+        </md-button>
+      </div>
     </div>
   </div>
 </div>
