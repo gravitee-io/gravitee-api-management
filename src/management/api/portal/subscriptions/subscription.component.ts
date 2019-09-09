@@ -247,6 +247,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
 
         this.ApiService.updateApiKey(this.api.id, apiKey).then(() => {
           this.NotificationService.show('An expiration date has been defined for API Key.');
+          this.listApiKeys();
         });
       });
     }
@@ -272,7 +273,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     }
 
     isValid(key) {
-      return !key.revoked && (!key.expire_at || moment().isBefore(key.expire_at)) ;
+      return !key.revoked && !key.expired ;
     }
   }
 };
