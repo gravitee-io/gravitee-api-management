@@ -42,12 +42,12 @@
                   <a class="execute" ui-sref="{{$ctrl.settingsMenu.apiPortalHeader.goTo}}">API Portal Headers</a>
               </li>
               <li class="iterable-item"
-                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.identityproviders') }"
+                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.identityproviders')}"
                   ng-if="$ctrl.settingsMenu.identityProviders.perm">
                 <a class="execute" ui-sref="{{$ctrl.settingsMenu.identityProviders.goTo}}">Authentication</a>
               </li>
               <li class="iterable-item"
-                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.clientregistrationproviders') }"
+                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.clientregistrationproviders')}"
                   ng-if="$ctrl.settingsMenu.clientRegistration.perm">
                 <a class="execute" ui-sref="{{$ctrl.settingsMenu.clientRegistration.goTo}}">Client Registration</a>
               </li>
@@ -89,7 +89,8 @@
                   ng-if="$ctrl.settingsMenu.api_logging.perm">
                 <a class="execute" ui-sref="{{$ctrl.settingsMenu.api_logging.goTo}}">API Logging</a>
               </li>
-              <li class="iterable-item" ui-sref-active="aui-nav-selected"
+              <li class="iterable-item"
+                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.dictionaries')}"
                   ng-if="$ctrl.settingsMenu.dictionaries.perm">
                 <a class="execute" ui-sref="{{$ctrl.settingsMenu.dictionaries.goTo}}">Dictionaries</a>
               </li>

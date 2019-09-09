@@ -100,7 +100,7 @@ class DictionaryController {
 
   reset() {
     this.dictionary = _.cloneDeep(this.initialDictionary);
-    this.$scope.formDictionary.$setPristine();
+    this.formDictionary.$setPristine();
   }
 
   update() {
