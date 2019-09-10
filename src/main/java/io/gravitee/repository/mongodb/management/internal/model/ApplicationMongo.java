@@ -45,6 +45,8 @@ public class ApplicationMongo extends Auditable {
 
     private String type;
 
+    private String picture;
+
     private String status;
 
     private Set<String> groups;
@@ -97,6 +99,15 @@ public class ApplicationMongo extends Auditable {
 
     public void setGroups(Set<String> groups) {
         this.groups = groups;
+    }
+
+    
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     public String getStatus() {

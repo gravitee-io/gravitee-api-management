@@ -78,6 +78,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 		applicationMongo.setUpdatedAt(application.getUpdatedAt());
 		applicationMongo.setType(application.getType().toString());
 		applicationMongo.setGroups(application.getGroups());
+		applicationMongo.setPicture(application.getPicture());
 		applicationMongo.setStatus(application.getStatus().toString());
 		applicationMongo.setMetadata(application.getMetadata());
 
