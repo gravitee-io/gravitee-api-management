@@ -146,6 +146,11 @@ databaseChangeLog:
                     type: nvarchar(64)
                     constraints:
                       nullable: false
+                - column:
+                    name: picture
+                    type: nclob
+                    constraints:
+                      nullable: true
           - sql:
               sql: update applications set environment='DEFAULT'
 

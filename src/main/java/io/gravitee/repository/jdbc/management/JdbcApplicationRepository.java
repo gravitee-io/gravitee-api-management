@@ -66,6 +66,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             .addColumn(TYPE_FIELD, Types.NVARCHAR, ApplicationType.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("picture", Types.NVARCHAR, String.class)
             .addColumn(STATUS_FIELD, Types.NVARCHAR, ApplicationStatus.class)
             .build();
 
