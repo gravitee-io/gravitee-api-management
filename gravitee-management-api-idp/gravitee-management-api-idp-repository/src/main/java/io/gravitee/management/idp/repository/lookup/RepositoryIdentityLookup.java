@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 
 import java.util.Collection;
 import java.util.function.Function;
@@ -45,6 +46,9 @@ public class RepositoryIdentityLookup implements IdentityLookup {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private Environment environment;
 
     @Override
     public io.gravitee.management.idp.api.identity.User retrieve(IdentityReference identityReference) {
@@ -67,6 +71,12 @@ public class RepositoryIdentityLookup implements IdentityLookup {
     @Override
     public boolean searchable() {
         return true;
+    }
+
+    @Override
+    public boolean allowEmailInSearchResults() {
+        Boolean allow = environment.getProperty("allow-email-in-search-results",Boolean.class);
+        return allow != null && allow;
     }
 
     @Override

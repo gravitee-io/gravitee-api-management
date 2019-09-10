@@ -199,6 +199,8 @@ security:
           roles: MANAGEMENT:USER, PORTAL:USER
     # Enable authentication using internal repository
     - type: gravitee
+      # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
+#      allow-email-in-search-results: true
     # Enable authentication using an LDAP/Active Directory
 #    - type: ldap
       # This is default LDAP configuration for ApacheDS
@@ -230,6 +232,8 @@ security:
 #              GRAVITEE-USERS: USER
 #            }
 #      lookup:
+         # allow search results to display the user email. Be careful, It may be contrary to the user privacy.
+#         allow-email-in-search-results: true
 #        user:
           # Search base for user searches. Defaults to "". Only used with user filter.
           # It should be relative to the Base DN. If the whole DN is o=user accounts,c=io,o=gravitee then the base should be like this:
