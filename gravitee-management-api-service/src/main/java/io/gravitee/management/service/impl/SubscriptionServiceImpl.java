@@ -89,6 +89,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private AuditService auditService;
     @Autowired
     private NotifierService notifierService;
+    @Autowired
+    private GroupService groupService;
 
     @Override
     public SubscriptionEntity findById(String subscription) {
@@ -171,6 +173,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             if (planEntity.getSecurity() == PlanSecurityType.KEY_LESS) {
                 throw new PlanNotSubscribableException("A key_less plan is not subscribable !");
+            }
+
+            if (planEntity.getExcludedGroups() != null && !planEntity.getExcludedGroups().isEmpty()) {
+                final Set<GroupEntity> groups = groupService.findByUser(getAuthenticatedUsername());
+                groups.stream().map(GroupEntity::getId).forEach(group -> {
+                    if (planEntity.getExcludedGroups().contains(group)) {
+                        throw new PlanRestrictedException(plan);
+                    }
+                });
             }
 
             ApplicationEntity applicationEntity = applicationService.findById(application);
